@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "paths": {}
+  },
+  "exclude": [
+    "**/*.story.tsx",
+    "**/*.test.ts*",
+    "**/*.tmpl.ts",
+    "dist",
+    "utils"
+  ],
+  "extends": "./tsconfig.json"
+}
