@@ -1,6 +1,11 @@
 # Yarn Berry
 .pnp.*
 .yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
 
 # Editor junk
 *.sublime-workspace
