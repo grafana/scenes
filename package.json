@@ -2,7 +2,7 @@
     "author": "Grafana Labs",
     "license": "Apache-2.0",
     "name": "@grafana/scenes",
-    "version": "0.0.1",
+    "version": "0.0.4",
     "description": "Grafana framework for building dynamic dashboards",
     "keywords": [
         "typescript"
@@ -14,10 +14,8 @@
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "module": "dist/esm/index.js",
     "publishConfig": {
-        "main": "dist/index.js",
-        "module": "dist/esm/index.js",
-        "types": "dist/index.d.ts",
         "access": "public"
     },
     "files": [
