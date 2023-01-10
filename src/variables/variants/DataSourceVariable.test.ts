@@ -1,12 +1,11 @@
 import { lastValueFrom } from 'rxjs';
 
-import { DataSourceInstanceSettings, ScopedVars } from '@grafana/data';
+import { DataSourceInstanceSettings, ScopedVars, PluginType } from '@grafana/data';
 
 import { SceneObject } from '../../core/types';
 import { CustomFormatterFn } from '../interpolation/sceneInterpolator';
 
 import { DataSourceVariable } from './DataSourceVariable';
-import { PluginType } from '@grafana/data';
 
 function getDataSource(name: string, type: string, isDefault = false): DataSourceInstanceSettings {
   return {
