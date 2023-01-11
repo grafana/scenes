@@ -12,7 +12,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     const from = state.from ?? 'now-6h';
     const to = state.to ?? 'now';
     const timeZone = state.timeZone ?? getTimeZone();
-    const value = evaluateTimeRange(from, to, timeZone);
+    const value = evaluateTimeRange(from, to, timeZone, state.fiscalYearStartMonth);
     super({ from, to, timeZone, value, ...state });
   }
 
@@ -31,12 +31,13 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.to = timeRange.raw.to.toISOString();
     }
 
-    update.value = evaluateTimeRange(update.from, update.to, this.state.timeZone);
+    update.value = evaluateTimeRange(update.from, update.to, this.state.timeZone, this.state.fiscalYearStartMonth);
     this.setState(update);
   };
 
   public onRefresh = () => {
-    this.setState({ value: evaluateTimeRange(this.state.from, this.state.to, this.state.timeZone) });
+    const { from, to, timeZone, fiscalYearStartMonth } = this.state;
+    this.setState({ value: evaluateTimeRange(from, to, timeZone, fiscalYearStartMonth) });
   };
 
   public onIntervalChanged = (_: string) => {};
