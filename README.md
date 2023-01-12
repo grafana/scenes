@@ -15,6 +15,8 @@
 
 ## Development
 
+### Working with Grafana
+
 @grafana/scenes does not come with dedicated playground yet. It is currently possible to run Scene demos using Grafana. To do that, the following setup is required.
 
 1. Clone @grafana/scenes repository.
@@ -24,3 +26,10 @@
 1. From Grafana directory run `yarn install`.
 1. Start Grafana with `scenes` [feature toggle enabled](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#feature_toggles)
 1. Navigate to `http://localhost:3000/scenes` to explore demo scenes.
+
+### Working with Grafana app plugin
+
+1. Run `YARN_IGNORE_PATH=1 yarn link` from @grafana/scenes directory.
+1. Run `yarn dev` from @grafana/scenes directory.
+1. Run `yarn link @grafana/scenes` from app plugin directory.
+1. Start app plugin development server.
