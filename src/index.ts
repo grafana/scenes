@@ -28,7 +28,7 @@ export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
 export { SceneTimePicker } from './components/SceneTimePicker';
-export { ScenePanelRepeater } from './components/ScenePanelRepeater';
+export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneSubMenu } from './components/SceneSubMenu';
 export { SceneFlexLayout } from './components/layout/SceneFlexLayout';
 export { SceneGridLayout } from './components/layout/SceneGridLayout';
