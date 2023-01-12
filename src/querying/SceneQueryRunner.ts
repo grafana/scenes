@@ -5,20 +5,19 @@ import {
   CoreApp,
   DataQuery,
   DataQueryRequest,
-  DataSourceApi,
   DataSourceRef,
   DataTransformerConfig,
   PanelData,
   rangeUtil,
-  ScopedVars,
   TimeRange,
   transformDataFrame,
 } from '@grafana/data';
-import { getDataSourceSrv, getRunRequest } from '@grafana/runtime';
+import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectStatePlain } from '../core/types';
+import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 
 let counter = 100;
@@ -47,13 +46,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _containerWidth?: number;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
-    statePaths: ['queries'],
+    statePaths: ['queries', 'datasource'],
     onReferencedVariableValueChanged: () => this.runQueries(),
   });
 
   public activate() {
     super.activate();
-
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._subs.add(
@@ -141,7 +139,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     };
 
     try {
-      const ds = await getDataSource(datasource, request.scopedVars);
+      const ds = await getDataSource(datasource, {
+        ...request.scopedVars,
+        __sceneObject: { text: '__sceneObject', value: this },
+      });
 
       // Attach the data source name to each query
       request.targets = request.targets.map((query) => {
@@ -179,13 +180,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private onDataReceived = (data: PanelData) => {
     this.setState({ data });
   };
-}
-
-async function getDataSource(datasource: DataSourceRef | undefined, scopedVars: ScopedVars): Promise<DataSourceApi> {
-  if (datasource && (datasource as any).query) {
-    return datasource as DataSourceApi;
-  }
-  return await getDataSourceSrv().get(datasource as string, scopedVars);
 }
 
 export const getTransformationsStream: (
