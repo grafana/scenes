@@ -9,6 +9,7 @@ import {
   LoadingState,
   PanelData,
   PluginType,
+  ScopedVars,
   StandardVariableSupport,
   toDataFrame,
   toUtc,
@@ -34,6 +35,8 @@ const runRequestMock = jest.fn().mockReturnValue(
     timeRange: getDefaultTimeRange(),
   })
 );
+
+const getDataSourceMock = jest.fn();
 
 const fakeDsMock: DataSourceApi = {
   name: 'fake-std',
@@ -72,7 +75,8 @@ const fakeDsMock: DataSourceApi = {
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
   getDataSourceSrv: () => ({
-    get: (ds: DataSourceRef): Promise<DataSourceApi> => {
+    get: (ds: DataSourceRef, vars: ScopedVars): Promise<DataSourceApi> => {
+      getDataSourceMock(ds, vars);
       return Promise.resolve(fakeDsMock);
     },
   }),
@@ -137,6 +141,7 @@ describe('QueryVariable', () => {
     afterEach(() => {
       Date.now = originalNow;
       runRequestMock.mockClear();
+      getDataSourceMock.mockClear();
     });
 
     it('Should resolve variable options via provided runner', async () => {
@@ -155,7 +160,7 @@ describe('QueryVariable', () => {
       ]);
     });
 
-    it('Should pass variable scene object via request scoped vars', async () => {
+    it('Should pass variable scene object when resolving data source and via request scoped vars', async () => {
       const variable = new QueryVariable({
         name: 'test',
         datasource: { uid: 'fake-std', type: 'fake-std' },
@@ -163,8 +168,12 @@ describe('QueryVariable', () => {
       });
 
       await lastValueFrom(variable.validateAndUpdate());
-      const call = runRequestMock.mock.calls[0];
-      expect(call[1].scopedVars.__sceneObject).toEqual({ value: variable, text: '__sceneObject' });
+
+      const getDataSourceCall = getDataSourceMock.mock.calls[0];
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: variable, text: '__sceneObject' });
+      expect(getDataSourceCall[1].__sceneObject).toEqual({ value: variable, text: '__sceneObject' });
     });
 
     describe('when refresh on dashboard load set', () => {

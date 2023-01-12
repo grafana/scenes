@@ -15,13 +15,13 @@ import {
   VariableRefresh,
   VariableSort,
 } from '@grafana/data';
-import { getDataSourceSrv } from '@grafana/runtime';
 
 import { sceneGraph } from '../../../core/sceneGraph';
 import { SceneComponentProps } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
 import { VariableValueSelect } from '../../components/VariableValueSelect';
 import { VariableValueOption } from '../../types';
+import { getDataSource } from '../../../utils/getDataSource';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../MultiValueVariable';
 
 import { createQueryVariableRunner } from './createQueryVariableRunner';
@@ -92,7 +92,11 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       return of([]);
     }
 
-    return from(this.getDataSource()).pipe(
+    return from(
+      getDataSource(this.state.datasource, {
+        __sceneObject: { text: '__sceneObject', value: this },
+      })
+    ).pipe(
       mergeMap((ds) => {
         const runner = createQueryVariableRunner(ds);
         const target = runner.getTarget(this);
@@ -123,12 +127,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
         );
       })
     );
-  }
-
-  private async getDataSource(): Promise<DataSourceApi> {
-    return getDataSourceSrv().get(this.state.datasource, {
-      __sceneObject: { text: '__sceneObject', value: this },
-    });
   }
 
   private getRequest(target: DataQuery) {
