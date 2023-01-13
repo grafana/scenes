@@ -142,10 +142,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     };
 
     try {
-      const ds = await getDataSource(datasource, {
-        ...request.scopedVars,
-        ...sceneObjectScopedVar,
-      });
+      const ds = await getDataSource(datasource, request.scopedVars);
 
       // Attach the data source name to each query
       request.targets = request.targets.map((query) => {
