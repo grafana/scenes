@@ -9,6 +9,7 @@ import {
   DataTransformerConfig,
   PanelData,
   rangeUtil,
+  ScopedVar,
   TimeRange,
   transformDataFrame,
 } from '@grafana/data';
@@ -122,7 +123,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
   private async runWithTimeRange(timeRange: TimeRange) {
     const { datasource, minInterval, queries } = this.state;
-
+    const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
+      __sceneObject: { text: '__sceneObject', value: this },
+    };
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
       requestId: getNextRequestId(),
@@ -134,15 +137,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       intervalMs: 1000,
       targets: cloneDeep(queries),
       maxDataPoints: this.getMaxDataPoints(),
-      scopedVars: {},
+      scopedVars: sceneObjectScopedVar,
       startTime: Date.now(),
     };
 
     try {
-      const ds = await getDataSource(datasource, {
-        ...request.scopedVars,
-        __sceneObject: { text: '__sceneObject', value: this },
-      });
+      const ds = await getDataSource(datasource, request.scopedVars);
 
       // Attach the data source name to each query
       request.targets = request.targets.map((query) => {

@@ -15,13 +15,11 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 
 import { SceneQueryRunner } from './SceneQueryRunner';
 
-const getDatasource = () => {
-  return {
-    getRef: () => ({ uid: 'test' }),
-  };
-};
+const getDataSourceMock = jest.fn().mockReturnValue({
+  getRef: () => ({ uid: 'test' }),
+});
 
-const runRequest = jest.fn().mockReturnValue(
+const runRequestMock = jest.fn().mockReturnValue(
   of<PanelData>({
     state: LoadingState.Done,
     series: [
@@ -40,14 +38,18 @@ let sentRequest: DataQueryRequest | undefined;
 jest.mock('@grafana/runtime', () => ({
   getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
     sentRequest = request;
-    return runRequest(ds, request);
+    return runRequestMock(ds, request);
   },
   getDataSourceSrv: () => {
-    return { get: getDatasource };
+    return { get: getDataSourceMock };
   },
 }));
 
 describe('SceneQueryRunner', () => {
+  afterEach(() => {
+    runRequestMock.mockClear();
+    getDataSourceMock.mockClear();
+  });
   describe('when activated and got no data', () => {
     it('should run queries', async () => {
       const queryRunner = new SceneQueryRunner({
@@ -64,6 +66,25 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
       // Default max data points
       expect(sentRequest?.maxDataPoints).toBe(500);
+    });
+
+    it('should pass scene object via scoped vars when resolving datasource and running request', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const getDataSourceCall = getDataSourceMock.mock.calls[0];
+      const runRequestCall = runRequestMock.mock.calls[0];
+      // expect(runRequestCall[1].scopedVars.__sceneObject.value).toBe(queryRunner);
+      expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
+      expect(getDataSourceCall[1].__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
     });
   });
 
