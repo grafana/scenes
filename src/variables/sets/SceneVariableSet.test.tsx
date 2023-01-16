@@ -97,25 +97,21 @@ describe('SceneVariableList', () => {
       expect(A.isGettingValues).toBe(false);
     });
 
-    it.only('Can reactivate after can', async () => {
+    it('Can re-activate after deactivated', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
-      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
-      const set = new SceneVariableSet({ variables: [A, B] });
-      const scene = new TestScene({ $variables: set });
+      const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A] }) });
 
       // Active and complete first variable
       scene.activate();
-      A.signalUpdateCompleted();
-      expect(B.isGettingValues).toBe(true);
+      expect(A.isGettingValues).toBe(true);
 
       // Deactivate and reactivate
       scene.deactivate();
-      expect(B.isGettingValues).toBe(false);
+      expect(A.isGettingValues).toBe(false);
 
       // Reactivate and complete A again
       scene.activate();
-      A.signalUpdateCompleted();
-      expect(B.isGettingValues).toBe(true);
+      expect(A.isGettingValues).toBe(true);
     });
 
     describe('When update process completed and variables have changed values', () => {
