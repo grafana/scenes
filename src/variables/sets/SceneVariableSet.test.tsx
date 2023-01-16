@@ -86,9 +86,7 @@ describe('SceneVariableList', () => {
   describe('When deactivated', () => {
     it('Should cancel running variable queries', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
-      const set = new SceneVariableSet({ variables: [A] });
-
-      const scene = new TestScene({ $variables: set });
+      const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A] }) });
 
       scene.activate();
       expect(A.isGettingValues).toBe(true);
