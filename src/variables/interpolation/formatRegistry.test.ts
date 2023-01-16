@@ -64,5 +64,7 @@ describe('formatRegistry', () => {
     expect(formatValue(FormatRegistryID.date, 1594671549254, 'text', ['seconds'])).toBe('1594671549');
     expect(formatValue(FormatRegistryID.date, 1594671549254, 'text', ['iso'])).toBe('2020-07-13T20:19:09.254Z');
     expect(formatValue(FormatRegistryID.date, 1594671549254, 'text', ['YYYY-MM'])).toBe('2020-07');
+    expect(formatValue(FormatRegistryID.date, 1594671549254, 'text', ['YYYY-MM', 'ss'])).toBe('2020-07:09');
+    expect(formatValue(FormatRegistryID.date, 1594671549254, 'text', ['YYYY', 'MM', 'DD'])).toBe('2020:07:13');
   });
 });
