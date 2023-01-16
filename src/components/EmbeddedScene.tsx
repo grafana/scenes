@@ -13,7 +13,7 @@ export interface EmbeddedSceneState extends SceneObjectStatePlain {
    */
   body: SceneObject;
   /**
-   * Top row of variables, filters, time pickers and custom actions.
+   * Top row of variable selectors, filters, time pickers and custom actions.
    */
   controls?: SceneObject[];
 }
