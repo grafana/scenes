@@ -37,11 +37,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    */
   public deactivate(): void {
     super.deactivate();
-    this.variablesToUpdate.clear();
 
     for (const update of this.updating.values()) {
       update.subscription?.unsubscribe();
     }
+
+    this.variablesToUpdate.clear();
+    this.updating.clear();
+    this.variablesThatHaveChanged.clear();
   }
 
   /**
