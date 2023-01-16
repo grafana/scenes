@@ -17,6 +17,10 @@ interface NestedSceneState extends SceneLayoutChildState {
   actions?: SceneObject[];
 }
 
+/**
+ * @internal
+ * POC status, don't use this yet
+ */
 export class NestedScene extends SceneObjectBase<NestedSceneState> {
   public static Component = NestedSceneRenderer;
 

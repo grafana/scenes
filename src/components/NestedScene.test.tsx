@@ -2,13 +2,12 @@ import { screen, render } from '@testing-library/react';
 import React from 'react';
 
 import { NestedScene } from './NestedScene';
-import { EmbeddedScene } from './Scene';
+import { EmbeddedScene } from './EmbeddedScene';
 import { SceneCanvasText } from './SceneCanvasText';
 import { SceneFlexLayout } from './layout/SceneFlexLayout';
 
 function setup() {
   const scene = new EmbeddedScene({
-    title: 'Hello',
     body: new SceneFlexLayout({
       children: [
         new NestedScene({

@@ -3,7 +3,7 @@ import React from 'react';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayoutChildState } from '../../core/types';
-import { EmbeddedScene } from '../Scene';
+import { EmbeddedScene } from '../EmbeddedScene';
 
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';
@@ -26,7 +26,6 @@ describe('SceneGridLayout', () => {
   describe('rendering', () => {
     it('should render all grid children', async () => {
       const scene = new EmbeddedScene({
-        title: 'Grid test',
         body: new SceneGridLayout({
           children: [
             new TestObject({ placement: { x: 0, y: 0, width: 12, height: 5 } }),
@@ -42,7 +41,6 @@ describe('SceneGridLayout', () => {
 
     it('should not render children of a collapsed row', async () => {
       const scene = new EmbeddedScene({
-        title: 'Grid test',
         body: new SceneGridLayout({
           children: [
             new TestObject({ key: 'a', placement: { x: 0, y: 0, width: 12, height: 5 } }),
@@ -65,7 +63,6 @@ describe('SceneGridLayout', () => {
 
     it('should  render children of an expanded row', async () => {
       const scene = new EmbeddedScene({
-        title: 'Grid test',
         body: new SceneGridLayout({
           children: [
             new TestObject({ key: 'a', placement: { x: 0, y: 0, width: 12, height: 5 } }),

@@ -22,14 +22,14 @@ export { TestVariable } from './variables/variants/TestVariable';
 export { UrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
-export { EmbeddedScene, type SceneState } from './components/Scene';
+export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
 export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
 export { SceneTimePicker } from './components/SceneTimePicker';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
-export { SceneSubMenu } from './components/SceneSubMenu';
+export { SceneSubMenu, SceneSubMenuSpacer } from './components/SceneSubMenu';
 export { SceneFlexLayout } from './components/layout/SceneFlexLayout';
 export { SceneGridLayout } from './components/layout/SceneGridLayout';
 export { SceneGridRow } from './components/layout/SceneGridRow';
