@@ -2,7 +2,7 @@ import React, { RefCallback, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
 import { PluginContextProvider, useFieldOverrides, ScopedVars } from '@grafana/data';
-import { getAppEvents } from '@grafana/runtime';
+import { getAppEvents, getTemplateSrv } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, useTheme2 } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
@@ -15,7 +15,9 @@ import { VizPanel } from './VizPanel';
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const theme = useTheme2();
   const replace = useMemo(
-    () => (value: string, scoped?: ScopedVars) => sceneGraph.interpolate(model, value, scoped),
+    () => (value: string, scoped?: ScopedVars) =>
+      // Using core's templateSrv to provide interpolation for non-scene object variables
+      getTemplateSrv().replace(value, { ...scoped, __sceneObject: { text: '__sceneObject', value: model } }),
     [model]
   );
   const { title, options, fieldConfig, pluginId, pluginLoadError, $data, placement } = model.useState();
