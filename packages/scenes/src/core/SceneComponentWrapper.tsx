@@ -31,7 +31,7 @@ export function SceneComponentWrapper<T extends SceneObject>({
   }
 
   const editor = getSceneEditor(model);
-  const EditWrapper = getSceneEditor(model).getEditComponentWrapper();
+  const EditWrapper: any = getSceneEditor(model).getEditComponentWrapper();
 
   return (
     <EditWrapper model={model} editor={editor}>

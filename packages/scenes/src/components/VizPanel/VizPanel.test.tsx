@@ -6,7 +6,7 @@ import {
   standardEditorsRegistry,
   standardFieldConfigEditorRegistry,
 } from '@grafana/data';
-import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
+import { getPanelPlugin } from '../../../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel } from './VizPanel';
 
