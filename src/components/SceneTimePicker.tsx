@@ -8,6 +8,7 @@ import { SceneComponentProps, SceneObjectStatePlain } from '../core/types';
 
 export interface SceneTimePickerState extends SceneObjectStatePlain {
   hidePicker?: boolean;
+  isOnCanvas?: boolean;
 }
 
 export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
@@ -15,7 +16,7 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
-  const { hidePicker } = model.useState();
+  const { hidePicker, isOnCanvas } = model.useState();
   const timeRange = sceneGraph.getTimeRange(model);
   const timeRangeState = timeRange.useState();
 
@@ -26,6 +27,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
   return (
     <ToolbarButtonRow alignment="right">
       <TimeRangePicker
+        isOnCanvas={isOnCanvas}
         value={timeRangeState.value}
         onChange={timeRange.onTimeRangeChange}
         timeZone={'browser'}
