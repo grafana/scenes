@@ -1,19 +1,21 @@
 name: CI Tests
-on: [push]
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build-and-test:
     name: Build and test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
       - uses: actions/checkout@v3
-
-      - name: Setup .npmrc file for NPM registry
+      - name: Test using Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: yarn
