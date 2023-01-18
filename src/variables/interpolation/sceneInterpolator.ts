@@ -7,7 +7,6 @@ import { SceneVariables, VariableValue } from '../types';
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
-import { EmptyVariableSet } from './defaults';
 
 export type CustomFormatterFn = (
   value: unknown,
