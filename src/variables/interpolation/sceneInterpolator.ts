@@ -33,11 +33,6 @@ export function sceneInterpolator(
     return target ?? '';
   }
 
-  // Skip any interpolation if there are no variables in the scene object graph
-  if (getVariables(sceneObject) === EmptyVariableSet) {
-    return target;
-  }
-
   VARIABLE_REGEX.lastIndex = 0;
 
   return target.replace(VARIABLE_REGEX, (match, var1, var2, fmt2, var3, fieldPath, fmt3) => {

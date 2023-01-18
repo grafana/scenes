@@ -93,9 +93,8 @@ export function interpolate(
   scopedVars?: ScopedVars,
   format?: string | CustomFormatterFn
 ): string {
-  // Skip interpolation if there are no variable dependencies
-  if (!value || !sceneObject.variableDependency || sceneObject.variableDependency.getNames().size === 0) {
-    return value ?? '';
+  if (value === '' || value == null) {
+    return '';
   }
 
   return sceneInterpolator(sceneObject, value, getVariables, scopedVars, format);

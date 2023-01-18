@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   AbsoluteTimeRange,
   FieldConfigSource,
@@ -9,12 +7,12 @@ import {
   getPanelOptionsWithDefaults,
 } from '@grafana/data';
 import { config, getPluginImportUtils } from '@grafana/runtime';
-import { Field, Input } from '@grafana/ui';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DeepPartial, SceneComponentProps, SceneLayoutChildState } from '../../core/types';
+import { DeepPartial, SceneLayoutChildState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
+import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLayoutChildState {
   title: string;
@@ -28,7 +26,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLa
 
 export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>> {
   public static Component = VizPanelRenderer;
-  public static Editor = VizPanelEditor;
+
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    statePaths: ['title', 'options', 'fieldConfig'],
+  });
 
   // Not part of state as this is not serializable
   private _plugin?: PanelPlugin;
@@ -114,14 +115,4 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   public onFieldConfigChange = (fieldConfig: FieldConfigSource<TFieldConfig>) => {
     this.setState({ fieldConfig });
   };
-}
-
-function VizPanelEditor({ model }: SceneComponentProps<VizPanel>) {
-  const { title } = model.useState();
-
-  return (
-    <Field label="Title">
-      <Input defaultValue={title} onBlur={(evt) => model.setState({ title: evt.currentTarget.value })} />
-    </Field>
-  );
 }
