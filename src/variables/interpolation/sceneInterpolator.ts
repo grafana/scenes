@@ -24,7 +24,6 @@ export type CustomFormatterFn = (
 export function sceneInterpolator(
   sceneObject: SceneObject,
   target: string | undefined | null,
-  getVariables: (sceneObject: SceneObject) => SceneVariables,
   scopedVars?: ScopedVars,
   format?: string | CustomFormatterFn
 ): string {

@@ -97,7 +97,7 @@ export function interpolate(
     return '';
   }
 
-  return sceneInterpolator(sceneObject, value, getVariables, scopedVars, format);
+  return sceneInterpolator(sceneObject, value, scopedVars, format);
 }
 
 export const sceneGraph = {
