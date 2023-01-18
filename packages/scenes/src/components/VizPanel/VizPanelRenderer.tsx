@@ -48,7 +48,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     return <div>Panel plugin has no panel component</div>;
   }
 
-  const PanelComponent = plugin.panel;
+  const PanelComponent = plugin.panel as any;
 
   // Query runner needs to with for auto maxDataPoints
   if ($data instanceof SceneQueryRunner) {
