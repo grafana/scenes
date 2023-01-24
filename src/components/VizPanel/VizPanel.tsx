@@ -18,6 +18,7 @@ import { VizPanelRenderer } from './VizPanelRenderer';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLayoutChildState {
   title: string;
+  description?: string;
   pluginId: string;
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;

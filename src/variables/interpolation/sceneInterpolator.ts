@@ -82,7 +82,7 @@ function lookupSceneVariable(name: string, sceneObject: SceneObject): FormatVari
 function formatValue(
   variable: FormatVariable,
   value: VariableValue | undefined | null,
-  formatNameOrFn: string | CustomFormatterFn
+  formatNameOrFn?: string | CustomFormatterFn
 ): string {
   if (value === null || value === undefined) {
     return '';

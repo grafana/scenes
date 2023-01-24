@@ -18,7 +18,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     () => (value: string, scoped?: ScopedVars) => sceneGraph.interpolate(model, value, scoped),
     [model]
   );
-  const { title, options, fieldConfig, pluginId, pluginLoadError, $data, placement } = model.useState();
+  const { title, description, options, fieldConfig, pluginId, pluginLoadError, $data, placement } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
   const { data } = sceneGraph.getData(model).useState();
@@ -59,9 +59,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
       <PanelChrome
         title={titleInterpolated}
+        description={description ? () => replace(description) : ''}
+        loadingState={dataWithOverrides?.state}
+        statusMessage={dataWithOverrides?.error ? dataWithOverrides.error.message : ''}
         width={width}
         height={height}
-        leftItems={isDraggable ? [dragHandle] : undefined}
+        titleItems={dragHandle}
       >
         {(innerWidth, innerHeight) => (
           <>
