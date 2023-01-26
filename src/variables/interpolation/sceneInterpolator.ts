@@ -2,12 +2,11 @@ import { ScopedVars } from '@grafana/data';
 import { VariableModel, VariableType } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
-import { SceneVariables, VariableValue } from '../types';
+import { VariableValue } from '../types';
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
-import { EmptyVariableSet } from './defaults';
 
 export type CustomFormatterFn = (
   value: unknown,
@@ -25,17 +24,11 @@ export type CustomFormatterFn = (
 export function sceneInterpolator(
   sceneObject: SceneObject,
   target: string | undefined | null,
-  getVariables: (sceneObject: SceneObject) => SceneVariables,
   scopedVars?: ScopedVars,
   format?: string | CustomFormatterFn
 ): string {
   if (!target) {
     return target ?? '';
-  }
-
-  // Skip any interpolation if there are no variables in the scene object graph
-  if (getVariables(sceneObject) === EmptyVariableSet) {
-    return target;
   }
 
   VARIABLE_REGEX.lastIndex = 0;

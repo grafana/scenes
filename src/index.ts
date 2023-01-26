@@ -9,6 +9,7 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
 
 export * from './variables/types';
+export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
 export { formatRegistry, FormatRegistryID, type FormatVariable } from './variables/interpolation/formatRegistry';
 export { type CustomFormatterFn } from './variables/interpolation/sceneInterpolator';
 export { VariableValueSelectors } from './variables/components/VariableValueSelectors';

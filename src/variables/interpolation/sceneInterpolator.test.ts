@@ -1,4 +1,3 @@
-import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObjectStatePlain } from '../../core/types';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -42,9 +41,9 @@ describe('sceneInterpolator', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene, '${test}', sceneGraph.getVariables)).toBe('hello');
-    expect(sceneInterpolator(scene.state.nested!, '${test}', sceneGraph.getVariables)).toBe('nestedValue');
-    expect(sceneInterpolator(scene.state.nested!, '${atRootOnly}', sceneGraph.getVariables)).toBe('RootValue');
+    expect(sceneInterpolator(scene, '${test}')).toBe('hello');
+    expect(sceneInterpolator(scene.state.nested!, '${test}')).toBe('nestedValue');
+    expect(sceneInterpolator(scene.state.nested!, '${atRootOnly}')).toBe('RootValue');
   });
 
   describe('Given a variable with allValue', () => {
@@ -62,7 +61,7 @@ describe('sceneInterpolator', () => {
         }),
       });
 
-      expect(sceneInterpolator(scene, '${test:regex}', sceneGraph.getVariables)).toBe('.*');
+      expect(sceneInterpolator(scene, '${test:regex}')).toBe('.*');
     });
   });
 
@@ -80,7 +79,7 @@ describe('sceneInterpolator', () => {
         }),
       });
 
-      expect(sceneInterpolator(scene, '${test.prop1}', sceneGraph.getVariables)).toBe('prop1Value');
+      expect(sceneInterpolator(scene, '${test.prop1}')).toBe('prop1Value');
     });
   });
 
@@ -96,7 +95,7 @@ describe('sceneInterpolator', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene, '${test:queryparam}', sceneGraph.getVariables)).toBe('var-test=hello');
+    expect(sceneInterpolator(scene, '${test:queryparam}')).toBe('var-test=hello');
   });
 
   it('Can format multi valued values', () => {
@@ -111,7 +110,7 @@ describe('sceneInterpolator', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene, 'test.${test}.asd', sceneGraph.getVariables)).toBe('test.{hello,world}.asd');
+    expect(sceneInterpolator(scene, 'test.${test}.asd')).toBe('test.{hello,world}.asd');
   });
 
   it('Can format multi valued values using text formatter', () => {
@@ -127,7 +126,7 @@ describe('sceneInterpolator', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene, '${test:text}', sceneGraph.getVariables)).toBe('hello + world');
+    expect(sceneInterpolator(scene, '${test:text}')).toBe('hello + world');
   });
 
   it('Can use formats with arguments', () => {
@@ -142,7 +141,7 @@ describe('sceneInterpolator', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene, '${test:date:YYYY-MM}', sceneGraph.getVariables)).toBe('2020-07');
+    expect(sceneInterpolator(scene, '${test:date:YYYY-MM}')).toBe('2020-07');
   });
 
   it('Can use scopedVars', () => {
@@ -154,8 +153,8 @@ describe('sceneInterpolator', () => {
 
     const scopedVars = { __from: { value: 'a', text: 'b' } };
 
-    expect(sceneInterpolator(scene, '${__from}', sceneGraph.getVariables, scopedVars)).toBe('a');
-    expect(sceneInterpolator(scene, '${__from:text}', sceneGraph.getVariables, scopedVars)).toBe('b');
+    expect(sceneInterpolator(scene, '${__from}', scopedVars)).toBe('a');
+    expect(sceneInterpolator(scene, '${__from:text}', scopedVars)).toBe('b');
   });
 
   it('Can use scopedVars with fieldPath', () => {
@@ -166,6 +165,6 @@ describe('sceneInterpolator', () => {
     });
 
     const scopedVars = { __data: { value: { name: 'Main org' }, text: '' } };
-    expect(sceneInterpolator(scene, '${__data.name}', sceneGraph.getVariables, scopedVars)).toBe('Main org');
+    expect(sceneInterpolator(scene, '${__data.name}', scopedVars)).toBe('Main org');
   });
 });
