@@ -23,15 +23,25 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
 
   private urlSyncManager?: UrlSyncManager;
 
-  public activate() {
-    super.activate();
+  /**
+   * initUrlSync should be called before the scene is rendered to ensure that objects are in sync
+   * before they get activated. This saves some unnecessary re-renders and makes sure variables
+   * queries are issued as needed.
+   */
+  public initUrlSync() {
     this.urlSyncManager = new UrlSyncManager(this);
     this.urlSyncManager.initSync();
   }
 
+  public activate() {
+    super.activate();
+  }
+
   public deactivate() {
     super.deactivate();
-    this.urlSyncManager!.cleanUp();
+    if (this.urlSyncManager) {
+      this.urlSyncManager!.cleanUp();
+    }
   }
 }
 
