@@ -14,21 +14,24 @@ import {
 import { SceneTimeRange } from '../core/SceneTimeRange';
 
 import { SceneQueryRunner } from './SceneQueryRunner';
+import { EmbeddedScene } from '../components/EmbeddedScene';
+import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
+import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
+import { TestVariable } from '../variables/variants/TestVariable';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
 });
 
+const result = toDataFrame([
+  [100, 1],
+  [200, 2],
+  [300, 3],
+]);
 const runRequestMock = jest.fn().mockReturnValue(
   of<PanelData>({
     state: LoadingState.Done,
-    series: [
-      toDataFrame([
-        [100, 1],
-        [200, 2],
-        [300, 3],
-      ]),
-    ],
+    series: [result],
     timeRange: getDefaultTimeRange(),
   })
 );
@@ -85,6 +88,46 @@ describe('SceneQueryRunner', () => {
       // expect(runRequestCall[1].scopedVars.__sceneObject.value).toBe(queryRunner);
       expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
       expect(getDataSourceCall[1].__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
+    });
+  });
+
+  describe('when re-activated', () => {
+    describe('variables have changed', () => {
+      it('should run queries', async () => {
+        const v1 = new TestVariable({ name: 'A', query: 'A.*', value: 'a', text: '', options: [] });
+        const v2 = new TestVariable({ name: 'B', query: 'B.*', value: 'b', text: '', options: [] });
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A', expr: '${A} ${B}' }],
+          $timeRange: new SceneTimeRange(),
+        });
+
+        const scene = new EmbeddedScene({
+          $data: queryRunner,
+          $variables: new SceneVariableSet({
+            variables: [v1, v2],
+          }),
+          body: new SceneFlexLayout({
+            children: [],
+          }),
+        });
+
+        expect(queryRunner.state.data).toBeUndefined();
+
+        scene.activate();
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+        expect(queryRunner.state.data?.series).toEqual([result]);
+        expect(runRequestMock).toHaveBeenCalledTimes(1);
+
+        scene.deactivate();
+        v1.setState({ value: 'a1' });
+        v2.setState({ value: 'b1' });
+        scene.activate();
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(runRequestMock).toHaveBeenCalledTimes(2);
+      });
     });
   });
 

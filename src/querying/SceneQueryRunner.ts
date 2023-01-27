@@ -20,6 +20,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectStatePlain } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
+import { VariableValue } from '../variables/types';
 
 let counter = 100;
 
@@ -45,6 +46,8 @@ export interface DataQueryExtended extends DataQuery {
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
+  // Map of variable values used for performing last run
+  private _lastRunVariables = new Map<string, VariableValue | undefined | null>();
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -69,8 +72,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   }
 
   private shouldRunQueriesOnActivate() {
-    // If we already have data, no need
+    // Check if variables have changed since last run.
+    // This is relevant in case variable values are applied via URL sync that happened before activation.
+    // In such scenerio no objects are notified about variables change, hence queries would not be run.
     // TODO validate that time range is similar and if not we should run queries again
+    if (!areMapsEqual(this._lastRunVariables, this.getCurrentVariables())) {
+      return true;
+    }
+
+    // If we already have data, no need
     if (this.state.data) {
       return false;
     }
@@ -107,13 +117,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
         }, 0);
       }
     } else {
-      // let's just remember the width until next query issue
-      this._containerWidth = width;
+      // if the updated container width is bigger than 0 let's remember the width until next query issue
+      if (width > 0) {
+        this._containerWidth = width;
+      }
     }
   }
 
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
+
     this.runWithTimeRange(timeRange.state.value);
   }
 
@@ -122,7 +135,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   }
 
   private async runWithTimeRange(timeRange: TimeRange) {
+    // Persist values of variables used for last run
+    const variables = sceneGraph.getVariables(this);
+    this._variableDependency.getNames().forEach((name) => {
+      const value = variables.getByName(name)?.getValue();
+      this._lastRunVariables.set(name, value);
+    });
+
     const { datasource, minInterval, queries } = this.state;
+
     const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
       __sceneObject: { text: '__sceneObject', value: this },
     };
@@ -143,7 +164,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
     try {
       const ds = await getDataSource(datasource, request.scopedVars);
-
       // Attach the data source name to each query
       request.targets = request.targets.map((query) => {
         if (!query.datasource) {
@@ -180,6 +200,18 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private onDataReceived = (data: PanelData) => {
     this.setState({ data });
   };
+
+  private getCurrentVariables() {
+    const currentVars = new Map<string, VariableValue | undefined | null>();
+    const variables = sceneGraph.getVariables(this);
+
+    this._variableDependency.getNames().forEach((name) => {
+      const value = variables.getByName(name)?.getValue();
+      currentVars.set(name, value);
+    });
+
+    return currentVars;
+  }
 }
 
 export const getTransformationsStream: (
@@ -202,3 +234,10 @@ export const getTransformationsStream: (
     })
   );
 };
+
+function areMapsEqual(
+  m1: Map<string, VariableValue | undefined | null>,
+  m2: Map<string, VariableValue | undefined | null>
+) {
+  return m1.size === m2.size && Array.from(m1.keys()).every((key) => m1.get(key) === m2.get(key));
+}
