@@ -9,6 +9,7 @@ export type FlexLayoutDirection = 'column' | 'row';
 
 interface SceneFlexLayoutState extends SceneLayoutState {
   direction?: FlexLayoutDirection;
+  wrap?: CSSProperties['flexWrap'];
 }
 
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> {
@@ -23,10 +24,19 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> {
 }
 
 function FlexLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneFlexLayout>) {
-  const { direction = 'row', children } = model.useState();
+  const { direction = 'row', children, wrap } = model.useState();
+
+  const style: CSSProperties = {
+    flexGrow: 1,
+    flexDirection: direction,
+    display: 'flex',
+    gap: '8px',
+    flexWrap: wrap,
+    alignContent: 'baseline',
+  };
 
   return (
-    <div style={{ flexGrow: 1, flexDirection: direction, display: 'flex', gap: '8px' }}>
+    <div style={style}>
       {children.map((item) => (
         <FlexLayoutChildComponent key={item.state.key} item={item} direction={direction} isEditing={isEditing} />
       ))}
