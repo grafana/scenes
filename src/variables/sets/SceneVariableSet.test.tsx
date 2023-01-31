@@ -5,11 +5,10 @@ import { act } from 'react-dom/test-utils';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
 import { SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObjectStatePlain } from '../../core/types';
+import { SceneObjectStatePlain, SceneLayoutChildState, SceneObject } from '../../core/types';
 import { TestVariable } from '../variants/TestVariable';
 
 import { SceneVariableSet } from './SceneVariableSet';
-import { SceneLayoutChildState, SceneObject } from '@grafana/scenes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
