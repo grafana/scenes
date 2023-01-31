@@ -9,9 +9,12 @@ import { SceneObjectStatePlain } from '../../core/types';
 import { TestVariable } from '../variants/TestVariable';
 
 import { SceneVariableSet } from './SceneVariableSet';
+import { SceneLayoutChildState, SceneObject } from '@grafana/scenes';
+import { VariableDependencyConfig } from '../VariableDependencyConfig';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 interface TestSceneState extends SceneObjectStatePlain {
-  nested?: TestScene;
+  nested?: SceneObject;
 }
 
 class TestScene extends SceneObjectBase<TestSceneState> {}
@@ -172,4 +175,161 @@ describe('SceneVariableList', () => {
       expect(A.getValueOptionsCount).toBe(1);
     });
   });
+
+  describe('When re-activated variables should not reload if current values are ok', () => {
+    it('Should not update variables again when re-activated when nothing has changed', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A, B] }),
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+
+      expect(A.getValueOptionsCount).toBe(1);
+
+      scene.deactivate();
+      scene.activate();
+
+      expect(A.state.loading).toBe(false);
+      expect(A.getValueOptionsCount).toBe(1);
+    });
+
+    it('Should update dependent variables if value changed while deactivated', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A, B] }),
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+
+      expect(A.getValueOptionsCount).toBe(1);
+
+      scene.deactivate();
+
+      A.changeValueTo('AB');
+
+      scene.activate();
+
+      expect(B.state.loading).toBe(true);
+      expect(B.getValueOptionsCount).toBe(2);
+    });
+
+    it('Should continue update if de-activated during loading', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A, B] }),
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+
+      scene.deactivate();
+      scene.activate();
+
+      expect(A.state.loading).toBe(false);
+      expect(B.state.loading).toBe(true);
+    });
+  });
+
+  describe('When variables have change when re-activated broadcast changes', () => {
+    it('Should notify scene objects of change', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
+      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+        nested: sceneObject,
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+
+      scene.deactivate();
+
+      A.changeValueTo('AB');
+
+      scene.activate();
+
+      expect(sceneObject.state.variableValueChanged).toBe(2);
+    });
+
+    it('Should notify scene objects if deactivated during chained update', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [], delayMs: 1 });
+      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A, B] }),
+        nested: sceneObject,
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+
+      scene.deactivate();
+      scene.activate();
+
+      B.signalUpdateCompleted();
+
+      expect(sceneObject.state.variableValueChanged).toBe(1);
+    });
+
+    it('Should not updateAndValidate again if current value is valid when value is multi value and ALL value', async () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: ALL_VARIABLE_VALUE,
+        text: ALL_VARIABLE_TEXT,
+        options: [],
+        delayMs: 1,
+        isMulti: true,
+      });
+
+      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+        nested: sceneObject,
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+
+      scene.deactivate();
+      scene.activate();
+
+      expect(A.state.loading).toBe(false);
+      expect(sceneObject.state.variableValueChanged).toBe(1);
+    });
+  });
 });
+
+interface TestSceneObjectState extends SceneLayoutChildState {
+  title: string;
+  variableValueChanged: number;
+}
+
+export class TestSceneObect extends SceneObjectBase<TestSceneObjectState> {
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    statePaths: ['title'],
+    onReferencedVariableValueChanged: () => {
+      this.setState({ variableValueChanged: this.state.variableValueChanged + 1 });
+    },
+  });
+}

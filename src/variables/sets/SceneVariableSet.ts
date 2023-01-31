@@ -1,19 +1,28 @@
+import { isEqual } from 'lodash';
 import { Unsubscribable } from 'rxjs';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObject } from '../../core/types';
 import { forEachSceneObjectInState } from '../../core/utils';
-import { SceneVariable, SceneVariables, SceneVariableSetState, SceneVariableValueChangedEvent } from '../types';
+import {
+  SceneVariable,
+  SceneVariables,
+  SceneVariableSetState,
+  SceneVariableValueChangedEvent,
+  VariableValue,
+} from '../types';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that have changed in since the activation or since the first manual value change */
-  private variablesThatHaveChanged = new Set<SceneVariable>();
+  private _variablesThatHaveChanged = new Set<SceneVariable>();
 
   /** Variables that are scheduled to be validated and updated */
-  private variablesToUpdate = new Set<SceneVariable>();
+  private _variablesToUpdate = new Set<SceneVariable>();
 
   /** Variables currently updating  */
-  private updating = new Map<SceneVariable, VariableUpdateInProgress>();
+  private _updating = new Map<SceneVariable, VariableUpdateInProgress>();
+
+  private _validValuesWhenDeactivated: Map<SceneVariable, VariableValue | undefined | null> | undefined;
 
   public getByName(name: string): SceneVariable | undefined {
     // TODO: Replace with index
@@ -28,8 +37,57 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     super.activate();
 
     // Subscribe to changes to child variables
-    this._subs.add(this.subscribeToEvent(SceneVariableValueChangedEvent, this.onVariableValueChanged));
-    this.validateAndUpdateAll();
+    this._subs.add(
+      this.subscribeToEvent(SceneVariableValueChangedEvent, (event) => this.handleVariableValueChanged(event.payload))
+    );
+
+    this.checkForVariablesThatChangedWhileInactive();
+
+    // Add all variables that need updating to queue
+    for (const variable of this.state.variables) {
+      if (this.variableNeedsUpdate(variable)) {
+        this._variablesToUpdate.add(variable);
+      }
+    }
+
+    this.updateNextBatch();
+  }
+
+  /**
+   * If variables changed while in in-active state we don't get any change events, so we need to check for that here.
+   */
+  private checkForVariablesThatChangedWhileInactive() {
+    if (!this._validValuesWhenDeactivated) {
+      return;
+    }
+
+    for (const variable of this.state.variables) {
+      if (this._validValuesWhenDeactivated.has(variable)) {
+        const value = this._validValuesWhenDeactivated.get(variable);
+        if (!isVariableValueEqual(value, variable.getValue())) {
+          writeVariableTraceLog(variable, 'Changed while in-active');
+          this.handleVariableValueChanged(variable);
+        }
+      }
+    }
+  }
+
+  private variableNeedsUpdate(variable: SceneVariable): boolean {
+    if (!variable.validateAndUpdate) {
+      return false;
+    }
+
+    // Check if we have a value from past active state
+    if (this._validValuesWhenDeactivated && this._validValuesWhenDeactivated.has(variable)) {
+      const value = this._validValuesWhenDeactivated.get(variable);
+      // If value the same no need to re-validate it
+      if (isVariableValueEqual(value, variable.getValue())) {
+        writeVariableTraceLog(variable, 'Skipping updateAndValidate current value valid');
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -38,13 +96,21 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   public deactivate(): void {
     super.deactivate();
 
-    for (const update of this.updating.values()) {
+    for (const update of this._updating.values()) {
       update.subscription?.unsubscribe();
     }
 
-    this.variablesToUpdate.clear();
-    this.updating.clear();
-    this.variablesThatHaveChanged.clear();
+    // Remember current variable values
+    this._validValuesWhenDeactivated = new Map();
+    for (const variable of this.state.variables) {
+      // if the current variable is not in queue to update and validate and not being actively updated then the value is ok
+      if (!this._variablesToUpdate.has(variable) || !this._updating.has(variable)) {
+        this._validValuesWhenDeactivated.set(variable, variable.getValue());
+      }
+    }
+
+    this._variablesToUpdate.clear();
+    this._updating.clear();
   }
 
   /**
@@ -53,18 +119,18 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    */
   private updateNextBatch() {
     // If we have nothing more to update and variable values changed we need to update scene objects that depend on these variables
-    if (this.variablesToUpdate.size === 0 && this.variablesThatHaveChanged.size > 0) {
+    if (this._variablesToUpdate.size === 0 && this._variablesThatHaveChanged.size > 0) {
       this.notifyDependentSceneObjects();
       return;
     }
 
-    for (const variable of this.variablesToUpdate) {
+    for (const variable of this._variablesToUpdate) {
       if (!variable.validateAndUpdate) {
         throw new Error('Variable added to variablesToUpdate but does not have validateAndUpdate');
       }
 
       // Ignore it if it's already started
-      if (this.updating.has(variable)) {
+      if (this._updating.has(variable)) {
         continue;
       }
 
@@ -77,7 +143,9 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         variable,
       };
 
-      this.updating.set(variable, variableToUpdate);
+      this._updating.set(variable, variableToUpdate);
+      writeVariableTraceLog(variable, 'updateAndValidate started');
+
       variableToUpdate.subscription = variable.validateAndUpdate().subscribe({
         next: () => this.validateAndUpdateCompleted(variable),
         error: (err) => this.handleVariableError(variable, err),
@@ -89,11 +157,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * A variable has completed it's update process. This could mean that variables that depend on it can now be updated in turn.
    */
   private validateAndUpdateCompleted(variable: SceneVariable) {
-    const update = this.updating.get(variable);
+    const update = this._updating.get(variable);
     update?.subscription?.unsubscribe();
 
-    this.updating.delete(variable);
-    this.variablesToUpdate.delete(variable);
+    this._updating.delete(variable);
+    this._variablesToUpdate.delete(variable);
+
+    writeVariableTraceLog(variable, 'updateAndValidate completed');
+
     this.updateNextBatch();
   }
 
@@ -102,12 +173,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * Not sure if this should be handled here on in MultiValueVariable
    */
   private handleVariableError(variable: SceneVariable, err: Error) {
-    const update = this.updating.get(variable);
+    const update = this._updating.get(variable);
     update?.subscription?.unsubscribe();
 
-    this.updating.delete(variable);
-    this.variablesToUpdate.delete(variable);
+    this._updating.delete(variable);
+    this._variablesToUpdate.delete(variable);
     variable.setState({ loading: false, error: err });
+
+    writeVariableTraceLog(variable, 'updateAndValidate error', err);
   }
 
   /**
@@ -118,7 +191,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return false;
     }
 
-    for (const otherVariable of this.variablesToUpdate.values()) {
+    for (const otherVariable of this._variablesToUpdate.values()) {
       if (variable.variableDependency?.hasDependencyOn(otherVariable.state.name)) {
         return true;
       }
@@ -127,30 +200,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     return false;
   }
 
-  /**
-   * Extract dependencies from all variables and add those that needs update to the variablesToUpdate map
-   * Then it will start the update process.
-   */
-  private validateAndUpdateAll() {
-    for (const variable of this.state.variables) {
-      if (variable.validateAndUpdate) {
-        this.variablesToUpdate.add(variable);
-      }
-    }
-
-    this.updateNextBatch();
-  }
-
-  /**
-   * This will trigger an update of all variables that depend on it.
-   * */
-  private onVariableValueChanged = (event: SceneVariableValueChangedEvent) => {
-    const variableThatChanged = event.payload;
-
-    this.variablesThatHaveChanged.add(variableThatChanged);
+  private handleVariableValueChanged(variableThatChanged: SceneVariable) {
+    this._variablesThatHaveChanged.add(variableThatChanged);
 
     // Ignore this change if it is currently updating
-    if (this.updating.has(variableThatChanged)) {
+    if (this._updating.has(variableThatChanged)) {
       return;
     }
 
@@ -158,13 +212,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     for (const otherVariable of this.state.variables) {
       if (otherVariable.variableDependency) {
         if (otherVariable.variableDependency.hasDependencyOn(variableThatChanged.state.name)) {
-          this.variablesToUpdate.add(otherVariable);
+          writeVariableTraceLog(otherVariable, 'Added to update quee, dependant variable value changed');
+          this._variablesToUpdate.add(otherVariable);
         }
       }
     }
 
     this.updateNextBatch();
-  };
+  }
 
   /**
    * Walk scene object graph and update all objects that depend on variables that have changed
@@ -175,7 +230,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     this.traverseSceneAndNotify(this.parent);
-    this.variablesThatHaveChanged.clear();
+    this._variablesThatHaveChanged.clear();
   }
 
   /**
@@ -188,7 +243,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     if (sceneObject.variableDependency) {
-      sceneObject.variableDependency.variableValuesChanged(this.variablesThatHaveChanged);
+      sceneObject.variableDependency.variableValuesChanged(this._variablesThatHaveChanged);
     }
 
     forEachSceneObjectInState(sceneObject.state, (child) => this.traverseSceneAndNotify(child));
@@ -198,4 +253,18 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 export interface VariableUpdateInProgress {
   variable: SceneVariable;
   subscription?: Unsubscribable;
+}
+
+function writeVariableTraceLog(variable: SceneVariable, message: string, err?: Error) {
+  if ((window as any).grafanaLoggingSceneVariables) {
+    console.log(`Variable[${variable.state.name}]: ${message}`, err);
+  }
+}
+
+function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
+  if (a === b) {
+    return true;
+  }
+
+  return isEqual(a, b);
 }
