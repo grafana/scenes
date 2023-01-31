@@ -9,9 +9,11 @@ import { SceneObjectStatePlain } from '../../core/types';
 import { TestVariable } from '../variants/TestVariable';
 
 import { SceneVariableSet } from './SceneVariableSet';
+import { SceneLayoutChildState, SceneObject } from '@grafana/scenes';
+import { VariableDependencyConfig } from '../VariableDependencyConfig';
 
 interface TestSceneState extends SceneObjectStatePlain {
-  nested?: TestScene;
+  nested?: SceneObject;
 }
 
 class TestScene extends SceneObjectBase<TestSceneState> {}
@@ -172,4 +174,44 @@ describe('SceneVariableList', () => {
       expect(A.getValueOptionsCount).toBe(1);
     });
   });
+
+  describe('When variables have change when re-activated broadcast changes', () => {
+    it.only('Should notify scene objects of change', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
+      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+        nested: sceneObject,
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+
+      scene.deactivate();
+
+      A.changeValueTo('AB');
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+
+      expect(sceneObject.state.variableValueChanged).toBe(2);
+    });
+  });
 });
+
+interface TestSceneObjectState extends SceneLayoutChildState {
+  title: string;
+  variableValueChanged: number;
+}
+
+export class TestSceneObect extends SceneObjectBase<TestSceneObjectState> {
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    statePaths: ['title'],
+    onReferencedVariableValueChanged: () => {
+      this.setState({ variableValueChanged: this.state.variableValueChanged + 1 });
+    },
+  });
+}

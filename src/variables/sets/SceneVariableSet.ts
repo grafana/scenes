@@ -3,17 +3,25 @@ import { Unsubscribable } from 'rxjs';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObject } from '../../core/types';
 import { forEachSceneObjectInState } from '../../core/utils';
-import { SceneVariable, SceneVariables, SceneVariableSetState, SceneVariableValueChangedEvent } from '../types';
+import {
+  SceneVariable,
+  SceneVariables,
+  SceneVariableSetState,
+  SceneVariableValueChangedEvent,
+  VariableValue,
+} from '../types';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that have changed in since the activation or since the first manual value change */
-  private variablesThatHaveChanged = new Set<SceneVariable>();
+  private _variablesThatHaveChanged = new Set<SceneVariable>();
 
   /** Variables that are scheduled to be validated and updated */
-  private variablesToUpdate = new Set<SceneVariable>();
+  private _variablesToUpdate = new Set<SceneVariable>();
 
   /** Variables currently updating  */
-  private updating = new Map<SceneVariable, VariableUpdateInProgress>();
+  private _updating = new Map<SceneVariable, VariableUpdateInProgress>();
+
+  private _valuesWhenDeactivated: Map<string, VariableValue | undefined | null> | undefined;
 
   public getByName(name: string): SceneVariable | undefined {
     // TODO: Replace with index
@@ -27,6 +35,8 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   public activate(): void {
     super.activate();
 
+    this.checkIfVariableValuesChangedWhileDeactivated();
+
     // Subscribe to changes to child variables
     this._subs.add(this.subscribeToEvent(SceneVariableValueChangedEvent, this.onVariableValueChanged));
     this.validateAndUpdateAll();
@@ -38,13 +48,19 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   public deactivate(): void {
     super.deactivate();
 
-    for (const update of this.updating.values()) {
+    for (const update of this._updating.values()) {
       update.subscription?.unsubscribe();
     }
 
-    this.variablesToUpdate.clear();
-    this.updating.clear();
-    this.variablesThatHaveChanged.clear();
+    this._variablesToUpdate.clear();
+    this._updating.clear();
+    this._variablesThatHaveChanged.clear();
+
+    // Remember current variable values
+    this._valuesWhenDeactivated = new Map();
+    for (const variable of this.state.variables) {
+      this._valuesWhenDeactivated.set(variable.state.name, variable.getValue());
+    }
   }
 
   /**
@@ -53,18 +69,18 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    */
   private updateNextBatch() {
     // If we have nothing more to update and variable values changed we need to update scene objects that depend on these variables
-    if (this.variablesToUpdate.size === 0 && this.variablesThatHaveChanged.size > 0) {
+    if (this._variablesToUpdate.size === 0 && this._variablesThatHaveChanged.size > 0) {
       this.notifyDependentSceneObjects();
       return;
     }
 
-    for (const variable of this.variablesToUpdate) {
+    for (const variable of this._variablesToUpdate) {
       if (!variable.validateAndUpdate) {
         throw new Error('Variable added to variablesToUpdate but does not have validateAndUpdate');
       }
 
       // Ignore it if it's already started
-      if (this.updating.has(variable)) {
+      if (this._updating.has(variable)) {
         continue;
       }
 
@@ -77,7 +93,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         variable,
       };
 
-      this.updating.set(variable, variableToUpdate);
+      this._updating.set(variable, variableToUpdate);
       variableToUpdate.subscription = variable.validateAndUpdate().subscribe({
         next: () => this.validateAndUpdateCompleted(variable),
         error: (err) => this.handleVariableError(variable, err),
@@ -86,14 +102,30 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   /**
+   * Values can change while deactivated via for example URL sync or manual changes.
+   */
+  private checkIfVariableValuesChangedWhileDeactivated() {
+    if (this._valuesWhenDeactivated) {
+      for (const variable of this.state.variables) {
+        const valueWhenDeactivated = this._valuesWhenDeactivated.get(variable.state.name);
+        if (valueWhenDeactivated !== variable.getValue()) {
+          this._variablesThatHaveChanged.add(variable);
+        }
+      }
+
+      this._valuesWhenDeactivated = undefined;
+    }
+  }
+
+  /**
    * A variable has completed it's update process. This could mean that variables that depend on it can now be updated in turn.
    */
   private validateAndUpdateCompleted(variable: SceneVariable) {
-    const update = this.updating.get(variable);
+    const update = this._updating.get(variable);
     update?.subscription?.unsubscribe();
 
-    this.updating.delete(variable);
-    this.variablesToUpdate.delete(variable);
+    this._updating.delete(variable);
+    this._variablesToUpdate.delete(variable);
     this.updateNextBatch();
   }
 
@@ -102,11 +134,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * Not sure if this should be handled here on in MultiValueVariable
    */
   private handleVariableError(variable: SceneVariable, err: Error) {
-    const update = this.updating.get(variable);
+    const update = this._updating.get(variable);
     update?.subscription?.unsubscribe();
 
-    this.updating.delete(variable);
-    this.variablesToUpdate.delete(variable);
+    this._updating.delete(variable);
+    this._variablesToUpdate.delete(variable);
     variable.setState({ loading: false, error: err });
   }
 
@@ -118,7 +150,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return false;
     }
 
-    for (const otherVariable of this.variablesToUpdate.values()) {
+    for (const otherVariable of this._variablesToUpdate.values()) {
       if (variable.variableDependency?.hasDependencyOn(otherVariable.state.name)) {
         return true;
       }
@@ -134,7 +166,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   private validateAndUpdateAll() {
     for (const variable of this.state.variables) {
       if (variable.validateAndUpdate) {
-        this.variablesToUpdate.add(variable);
+        this._variablesToUpdate.add(variable);
       }
     }
 
@@ -147,10 +179,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   private onVariableValueChanged = (event: SceneVariableValueChangedEvent) => {
     const variableThatChanged = event.payload;
 
-    this.variablesThatHaveChanged.add(variableThatChanged);
+    this._variablesThatHaveChanged.add(variableThatChanged);
 
     // Ignore this change if it is currently updating
-    if (this.updating.has(variableThatChanged)) {
+    if (this._updating.has(variableThatChanged)) {
       return;
     }
 
@@ -158,7 +190,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     for (const otherVariable of this.state.variables) {
       if (otherVariable.variableDependency) {
         if (otherVariable.variableDependency.hasDependencyOn(variableThatChanged.state.name)) {
-          this.variablesToUpdate.add(otherVariable);
+          this._variablesToUpdate.add(otherVariable);
         }
       }
     }
@@ -175,7 +207,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     this.traverseSceneAndNotify(this.parent);
-    this.variablesThatHaveChanged.clear();
+    this._variablesThatHaveChanged.clear();
   }
 
   /**
@@ -188,7 +220,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     if (sceneObject.variableDependency) {
-      sceneObject.variableDependency.variableValuesChanged(this.variablesThatHaveChanged);
+      sceneObject.variableDependency.variableValuesChanged(this._variablesThatHaveChanged);
     }
 
     forEachSceneObjectInState(sceneObject.state, (child) => this.traverseSceneAndNotify(child));
