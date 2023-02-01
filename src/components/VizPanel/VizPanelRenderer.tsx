@@ -19,7 +19,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     () => (value: string, scoped?: ScopedVars, format?: string | CustomFormatterFn) =>
       sceneGraph.interpolate(model, value, scoped, format),
     [model]
-  );
+  ) as InterpolateFunction;
   const { title, description, options, fieldConfig, pluginId, pluginLoadError, $data, placement } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
@@ -86,7 +86,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                     width={innerWidth}
                     height={innerHeight}
                     renderCounter={0}
-                    replaceVariables={replace as InterpolateFunction}
+                    replaceVariables={replace}
                     onOptionsChange={model.onOptionsChange}
                     onFieldConfigChange={model.onFieldConfigChange}
                     onChangeTimeRange={model.onChangeTimeRange}
