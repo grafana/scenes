@@ -48,7 +48,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
-    onReferencedVariableValueChanged: () => this.runQueries(),
+    onReferencedVariableValueChanged: () => {
+      console.log('onReferencedVariableValueChanged');
+      this.runQueries();
+    },
   });
 
   public activate() {
@@ -122,6 +125,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   }
 
   private async runWithTimeRange(timeRange: TimeRange) {
+    // Skip executing queries if variable dependency is in loading state
+    if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
+      return;
+    }
+
     const { datasource, minInterval, queries } = this.state;
     const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
       __sceneObject: { text: '__sceneObject', value: this },

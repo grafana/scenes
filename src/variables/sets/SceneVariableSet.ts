@@ -248,6 +248,19 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     forEachSceneObjectInState(sceneObject.state, (child) => this.traverseSceneAndNotify(child));
   }
+
+  /**
+   * Return true if variable is waiting to update or currently updating
+   */
+  public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable) {
+    console.log(
+      'isVariableLoadingOrWaitingToUpdate',
+      variable.state.name,
+      this._variablesToUpdate.has(variable),
+      this._updating.has(variable)
+    );
+    return this._variablesToUpdate.has(variable) || this._updating.has(variable);
+  }
 }
 
 export interface VariableUpdateInProgress {

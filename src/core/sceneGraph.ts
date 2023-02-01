@@ -1,4 +1,5 @@
 import { ScopedVars } from '@grafana/data';
+import { hasVariableDependencyInLoadingState } from '../variables/utils';
 import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/interpolation/defaults';
 
 import { CustomFormatterFn, sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
@@ -107,4 +108,5 @@ export const sceneGraph = {
   getSceneEditor,
   getLayout,
   interpolate,
+  hasVariableDependencyInLoadingState,
 };

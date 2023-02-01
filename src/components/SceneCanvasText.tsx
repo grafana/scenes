@@ -32,7 +32,7 @@ export class SceneCanvasText extends SceneObjectBase<SceneCanvasTextState> {
 
     return (
       <div style={style} data-testid={key}>
-        {sceneGraph.interpolate(model, text)}
+        {sceneGraph.interpolate(model, text)} A
       </div>
     );
   };

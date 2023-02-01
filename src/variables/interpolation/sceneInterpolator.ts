@@ -7,6 +7,7 @@ import { VariableValue } from '../types';
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
+import { lookupSceneVariable } from '../utils';
 
 export type CustomFormatterFn = (
   value: unknown,
@@ -50,26 +51,6 @@ export function sceneInterpolator(
 
     return formatValue(variable, variable.getValue(fieldPath), fmt);
   });
-}
-
-function lookupSceneVariable(name: string, sceneObject: SceneObject): FormatVariable | null | undefined {
-  const variables = sceneObject.state.$variables;
-  if (!variables) {
-    if (sceneObject.parent) {
-      return lookupSceneVariable(name, sceneObject.parent);
-    } else {
-      return null;
-    }
-  }
-
-  const found = variables.getByName(name);
-  if (found) {
-    return found;
-  } else if (sceneObject.parent) {
-    return lookupSceneVariable(name, sceneObject.parent);
-  }
-
-  return null;
 }
 
 function formatValue(
