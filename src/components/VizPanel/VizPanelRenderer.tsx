@@ -11,7 +11,7 @@ import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneDragHandle } from '../SceneDragHandle';
 
 import { VizPanel } from './VizPanel';
-import { CustomFormatterFn } from 'src/variables/interpolation/sceneInterpolator';
+import { CustomFormatterFn } from '../../variables/interpolation/sceneInterpolator';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const theme = useTheme2();

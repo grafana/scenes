@@ -1,3 +1,5 @@
+const esModules = ['ol', 'd3', 'd3-color', 'd3-interpolate', 'delaunator', 'internmap', 'robust-predicates'].join('|');
+
 module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['./utils/setupTests.ts'],
@@ -18,5 +20,5 @@ module.exports = {
       },
     ],
   },
-  transformIgnorePatterns: ['node_modules/(?!(ol)/)'],
+  transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
 };
