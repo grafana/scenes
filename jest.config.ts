@@ -20,5 +20,5 @@ module.exports = {
       },
     ],
   },
-  transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
+  transformIgnorePatterns: [`<rootDir>/node_modules/(?!${esModules})`],
 };

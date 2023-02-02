@@ -15,9 +15,6 @@
     "utils/**/*.ts*",
     "src/**/*.ts*"
   ],
-  "transformIgnorePatterns": [
-      "node_modules"
-    ],
   "ts-node": {
     "compilerOptions": {
       "isolatedModules": false,
