@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, Switch, useRouteMatch } from 'react-router-dom';
 
-import { NavModelItem } from '@grafana/data';
+import { NavModelItem, UrlQueryMap } from '@grafana/data';
 
 import { SceneComponentProps, SceneObject, SceneObjectStatePlain } from '../../core/types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -144,34 +144,39 @@ function PageRenderer({ page, tabs, activeTab, scene }: ScenePageRenderProps) {
   const pageNav: NavModelItem = {
     text: page.state.title,
     subTitle: page.state.subTitle,
-    url: page.state.url,
+    url: getLinkUrlWithAppUrlState(page.state.url, params, page.state.preserveUrlKeys),
     hideFromBreadcrumbs: page.state.hideFromBreadcrumbs,
-    parentItem: getParentBreadcrumbs(page.state.getParentPage ? page.state.getParentPage() : page.parent),
+    parentItem: getParentBreadcrumbs(page.state.getParentPage ? page.state.getParentPage() : page.parent, params),
   };
 
   if (tabs) {
-    pageNav.children = tabs.map((tab) => ({
+    pageNav.children = tabs.map((tab) => {
+      return {
       text: tab.state.title,
       active: activeTab === tab,
-      url: getLinkUrlWithAppUrlState(tab.state.url, params),
+        url: getLinkUrlWithAppUrlState(tab.state.url, params, tab.state.preserveUrlKeys),
       parentItem: pageNav,
-    }));
+      };
+    });
   }
 
   return (
-    <PluginPage /*navId="grafana-monitoring"*/ pageNav={pageNav} /*hideFooter={true}*/>
+    <PluginPage pageNav={pageNav} /*hideFooter={true}*/>
       <scene.Component model={scene} />
     </PluginPage>
   );
 }
 
-function getParentBreadcrumbs(parent: SceneObject | undefined): NavModelItem | undefined {
+function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryMap): NavModelItem | undefined {
   if (parent instanceof SceneAppPage) {
     return {
       text: parent.state.title,
-      url: parent.state.url,
+      url: getLinkUrlWithAppUrlState(parent.state.url, params, parent.state.preserveUrlKeys),
       hideFromBreadcrumbs: parent.state.hideFromBreadcrumbs,
-      parentItem: getParentBreadcrumbs(parent.state.getParentPage ? parent.state.getParentPage() : parent.parent),
+      parentItem: getParentBreadcrumbs(
+        parent.state.getParentPage ? parent.state.getParentPage() : parent.parent,
+        params
+      ),
     };
   }
 
