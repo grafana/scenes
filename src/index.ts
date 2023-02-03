@@ -34,3 +34,4 @@ export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export { SceneFlexLayout } from './components/layout/SceneFlexLayout';
 export { SceneGridLayout } from './components/layout/SceneGridLayout';
 export { SceneGridRow } from './components/layout/SceneGridRow';
+export { SceneApp, SceneAppPage, type SceneRouteMatch } from './components/SceneApp/SceneApp';
