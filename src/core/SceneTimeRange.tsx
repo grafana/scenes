@@ -16,8 +16,6 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     super({ from, to, timeZone, value, ...state });
   }
 
-  public onIntervalChanged(value: string): void {}
-
   public onTimeRangeChange = (timeRange: TimeRange) => {
     const update: Partial<SceneTimeRangeState> = {};
 

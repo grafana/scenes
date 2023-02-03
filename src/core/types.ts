@@ -133,7 +133,6 @@ export interface SceneTimeRangeState extends SceneObjectStatePlain {
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
   onTimeRangeChange(timeRange: TimeRange): void;
   onRefresh(): void;
-  onIntervalChanged(value: string): void;
 }
 
 export interface SceneObjectRef {
