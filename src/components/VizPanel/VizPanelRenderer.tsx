@@ -1,7 +1,7 @@
 import React, { RefCallback, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
-import { PluginContextProvider, useFieldOverrides, ScopedVars } from '@grafana/data';
+import { PluginContextProvider, useFieldOverrides, ScopedVars, InterpolateFunction } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, useTheme2 } from '@grafana/ui';
 
@@ -11,14 +11,16 @@ import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneDragHandle } from '../SceneDragHandle';
 
 import { VizPanel } from './VizPanel';
+import { CustomFormatterFn } from '../../variables/interpolation/sceneInterpolator';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const theme = useTheme2();
   const replace = useMemo(
-    () => (value: string, scoped?: ScopedVars) => sceneGraph.interpolate(model, value, scoped),
+    () => (value: string, scoped?: ScopedVars, format?: string | CustomFormatterFn) =>
+      sceneGraph.interpolate(model, value, scoped, format),
     [model]
-  );
-  const { title, options, fieldConfig, pluginId, pluginLoadError, $data, placement } = model.useState();
+  ) as InterpolateFunction;
+  const { title, description, options, fieldConfig, pluginId, pluginLoadError, $data, placement } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
   const { data } = sceneGraph.getData(model).useState();
@@ -29,7 +31,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isDraggable = parentLayout.state.placement?.isDraggable ? placement?.isDraggable : false;
   const dragHandle = <SceneDragHandle layoutKey={parentLayout.state.key!} />;
 
-  const titleInterpolated = sceneGraph.interpolate(model, title);
+  const titleInterpolated = replace(title, undefined, 'text');
 
   // Not sure we need to subscribe to this state
   const timeZone = sceneGraph.getTimeRange(model).state.timeZone;
@@ -59,9 +61,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
       <PanelChrome
         title={titleInterpolated}
+        description={description ? () => replace(description) : ''}
+        loadingState={dataWithOverrides?.state}
+        statusMessage={dataWithOverrides?.error ? dataWithOverrides.error.message : ''}
         width={width}
         height={height}
-        leftItems={isDraggable ? [dragHandle] : undefined}
+        titleItems={isDraggable ? [dragHandle] : []}
       >
         {(innerWidth, innerHeight) => (
           <>
@@ -81,7 +86,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                     width={innerWidth}
                     height={innerHeight}
                     renderCounter={0}
-                    replaceVariables={(str: string) => str}
+                    replaceVariables={replace}
                     onOptionsChange={model.onOptionsChange}
                     onFieldConfigChange={model.onFieldConfigChange}
                     onChangeTimeRange={model.onChangeTimeRange}
