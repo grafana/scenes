@@ -76,7 +76,6 @@ function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
   const { tabs, drilldowns, url, routePath } = model.state;
   const routes: React.ReactNode[] = [];
 
-  console.log('page renderer', url);
   if (tabs) {
     for (const page of tabs) {
       routes.push(
@@ -85,7 +84,6 @@ function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
           key={page.state.url}
           path={page.state.routePath ?? page.state.url}
           render={() => {
-            debugger;
             return <page.Component model={page} />;
           }}
         ></Route>
@@ -107,7 +105,6 @@ function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
       }
     }
 
-    console.log('routes', routes);
     return <Switch>{routes}</Switch>;
   }
 
