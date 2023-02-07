@@ -107,8 +107,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
         }, 0);
       }
     } else {
-      // let's just remember the width until next query issue
-      this._containerWidth = width;
+      // if the updated container width is bigger than 0 let's remember the width until next query issue
+      if (width > 0) {
+        this._containerWidth = width;
+      }
     }
   }
 

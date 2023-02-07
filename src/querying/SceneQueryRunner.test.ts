@@ -82,12 +82,44 @@ describe('SceneQueryRunner', () => {
 
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
       const runRequestCall = runRequestMock.mock.calls[0];
-      // expect(runRequestCall[1].scopedVars.__sceneObject.value).toBe(queryRunner);
+
       expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
       expect(getDataSourceCall[1].__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
     });
   });
 
+  describe('when container width changed during deactivation', () => {
+    it('and container width is 0 but previously was rendered', async () => {
+      const timeRange = new SceneTimeRange();
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: timeRange,
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+      // When consumer viz is rendered with width 1000
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall1 = runRequestMock.mock.calls[0];
+      // should be run with default maxDataPoints
+      expect(runRequestCall1[1].maxDataPoints).toEqual(500);
+
+      queryRunner.setContainerWidth(1000);
+      queryRunner.deactivate();
+      // When width is externally set to 0 before the consumer container has not yet rendered with expected width
+      queryRunner.setContainerWidth(0);
+      queryRunner.activate();
+
+      timeRange.setState({ from: 'now-10m' });
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall2 = runRequestMock.mock.calls[1];
+      expect(runRequestCall2[1].maxDataPoints).toEqual(1000);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+  });
   describe('when activated and maxDataPointsFromWidth set to true', () => {
     it('should run queries', async () => {
       const queryRunner = new SceneQueryRunner({
