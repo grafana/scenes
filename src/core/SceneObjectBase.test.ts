@@ -4,6 +4,7 @@ import { SceneDataNode } from './SceneDataNode';
 import { SceneObjectBase } from './SceneObjectBase';
 import { SceneObjectStateChangedEvent } from './events';
 import { SceneLayoutChild, SceneObject, SceneObjectStatePlain } from './types';
+import { SceneTimeRange } from '../core/SceneTimeRange';
 
 interface TestSceneState extends SceneObjectStatePlain {
   name?: string;
@@ -94,6 +95,7 @@ describe('SceneObject', () => {
     const scene = new TestScene({
       $data: new SceneDataNode({}),
       $variables: new SceneVariableSet({ variables: [] }),
+      $timeRange: new SceneTimeRange({}),
     });
 
     scene.activate();
@@ -108,6 +110,10 @@ describe('SceneObject', () => {
 
     it('Should activate $variables', () => {
       expect(scene.state.$variables!.isActive).toBe(true);
+    });
+
+    it('Should activate $timeRange', () => {
+      expect(scene.state.$timeRange!.isActive).toBe(true);
     });
   });
 
