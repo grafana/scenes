@@ -57,6 +57,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     $data.setContainerWidth(width);
   }
 
+  const titleItems: React.ReactNode[] = isDraggable ? [dragHandle] : [];
+
+  // If we have local time range show that in panel header
+  if (model.state.$timeRange) {
+    titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} />);
+  }
+
   return (
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
       <PanelChrome

@@ -38,8 +38,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
         onChangeTimeZone={() => {}}
         onChangeFiscalYearStartMonth={() => {}}
       />
-
-      <RefreshPicker onRefresh={timeRange.onRefresh} onIntervalChanged={timeRange.onIntervalChanged} />
+      <RefreshPicker onRefresh={timeRange.onRefresh} onIntervalChanged={() => {}} />
     </ToolbarButtonRow>
   );
 }

@@ -4,17 +4,10 @@
     "declarationDir": "./compiled",
     "emitDeclarationOnly": true,
     "isolatedModules": true,
-    "rootDirs": [
-      "."
-    ]
+    "rootDirs": ["."]
   },
-  "exclude": [
-    "dist/**/*"
-  ],
-  "include": [
-    "utils/**/*.ts*",
-    "src/**/*.ts*"
-  ],
+  "exclude": ["dist/**/*"],
+  "include": ["utils/**/*.ts*", "src/**/*.ts*"],
   "ts-node": {
     "compilerOptions": {
       "isolatedModules": false,
