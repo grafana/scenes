@@ -790,7 +790,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/e2e-selectors@npm:9.4.0-94910pre, @grafana/e2e-selectors@npm:canary":
+"@grafana/e2e-selectors@npm:9.4.0-94910pre":
   version: 9.4.0-94910pre
   resolution: "@grafana/e2e-selectors@npm:9.4.0-94910pre"
   dependencies:
@@ -809,6 +809,17 @@ __metadata:
     tslib: 2.4.1
     typescript: 4.8.4
   checksum: 1f3d010a8c306c51c1a014144156365cd89aa9c9236dad61af268003ea272156545c15d33e6ef154049e5ec298d5a2ce274b0e6a9bb50b72a4b0829dd41917fa
+  languageName: node
+  linkType: hard
+
+"@grafana/e2e-selectors@npm:canary":
+  version: 9.4.0-101831pre
+  resolution: "@grafana/e2e-selectors@npm:9.4.0-101831pre"
+  dependencies:
+    "@grafana/tsconfig": ^1.2.0-rc1
+    tslib: 2.4.1
+    typescript: 4.8.4
+  checksum: ee788792fb6b8a35095cf8f306ac45136c1fec6add9da6696cb591492dbfd3f496d261c96a6efda0986078f94740434625b5eb61e664aea4b08ec0f5558918cd
   languageName: node
   linkType: hard
 
@@ -938,10 +949,7 @@ __metadata:
     lint-staged: ^13.1.0
     lodash: 4.17.21
     prettier: 2.5.1
-    react: 17.0.2
-    react-dom: 17.0.2
     react-grid-layout: 1.3.4
-    react-router-dom: ^5.2.0
     react-use: 17.4.0
     react-virtualized-auto-sizer: 1.0.7
     rimraf: ^3.0.2
@@ -957,6 +965,10 @@ __metadata:
     tslib: 2.4.1
     typescript: 4.9.3
     uuid: ^9.0.0
+  peerDependencies:
+    react: 17.0.2
+    react-dom: 17.0.2
+    react-router-dom: ^5.2.0
   languageName: unknown
   linkType: soft
 
@@ -7606,7 +7618,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loose-envify@npm:^1.0.0, loose-envify@npm:^1.1.0, loose-envify@npm:^1.2.0, loose-envify@npm:^1.3.1, loose-envify@npm:^1.4.0":
+"loose-envify@npm:^1.0.0, loose-envify@npm:^1.2.0, loose-envify@npm:^1.3.1, loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
   dependencies:
@@ -9029,19 +9041,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:17.0.2":
-  version: 17.0.2
-  resolution: "react-dom@npm:17.0.2"
-  dependencies:
-    loose-envify: ^1.1.0
-    object-assign: ^4.1.1
-    scheduler: ^0.20.2
-  peerDependencies:
-    react: 17.0.2
-  checksum: 1c1eaa3bca7c7228d24b70932e3d7c99e70d1d04e13bb0843bbf321582bc25d7961d6b8a6978a58a598af2af496d1cedcfb1bf65f6b0960a0a8161cb8dab743c
-  languageName: node
-  linkType: hard
-
 "react-draggable@npm:^4.0.0, react-draggable@npm:^4.0.3":
   version: 4.4.5
   resolution: "react-draggable@npm:4.4.5"
@@ -9407,16 +9406,6 @@ __metadata:
     react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
   checksum: a19f43b9015fb84e16db983617dac618a8b298881d2ca96ffc2fb00534afd958ee57a00fd0017733b56f8c34dd84e5be59337877aed3c66329ed3b84e8d018ba
-  languageName: node
-  linkType: hard
-
-"react@npm:17.0.2":
-  version: 17.0.2
-  resolution: "react@npm:17.0.2"
-  dependencies:
-    loose-envify: ^1.1.0
-    object-assign: ^4.1.1
-  checksum: b254cc17ce3011788330f7bbf383ab653c6848902d7936a87b09d835d091e3f295f7e9dd1597c6daac5dc80f90e778c8230218ba8ad599f74adcc11e33b9d61b
   languageName: node
   linkType: hard
 
@@ -9804,16 +9793,6 @@ __metadata:
   dependencies:
     xmlchars: ^2.2.0
   checksum: d3fa3e2aaf6c65ed52ee993aff1891fc47d5e47d515164b5449cbf5da2cbdc396137e55590472e64c5c436c14ae64a8a03c29b9e7389fc6f14035cf4e982ef3b
-  languageName: node
-  linkType: hard
-
-"scheduler@npm:^0.20.2":
-  version: 0.20.2
-  resolution: "scheduler@npm:0.20.2"
-  dependencies:
-    loose-envify: ^1.1.0
-    object-assign: ^4.1.1
-  checksum: c4b35cf967c8f0d3e65753252d0f260271f81a81e427241295c5a7b783abf4ea9e905f22f815ab66676f5313be0a25f47be582254db8f9241b259213e999b8fc
   languageName: node
   linkType: hard
 
