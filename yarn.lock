@@ -813,13 +813,13 @@ __metadata:
   linkType: hard
 
 "@grafana/e2e-selectors@npm:canary":
-  version: 9.4.0-94910pre
-  resolution: "@grafana/e2e-selectors@npm:9.4.0-94910pre"
+  version: 9.4.0-101831pre
+  resolution: "@grafana/e2e-selectors@npm:9.4.0-101831pre"
   dependencies:
     "@grafana/tsconfig": ^1.2.0-rc1
     tslib: 2.4.1
     typescript: 4.8.4
-  checksum: 30d6de3b83910a2fffc7ba2afc8889fe099c28c6eb6b7fe5f3e4a4693e4dcfac0a6f450122ecdbb47250bfcede84e6d864340aa8ed2d6c3845521bd08cbfb123
+  checksum: ee788792fb6b8a35095cf8f306ac45136c1fec6add9da6696cb591492dbfd3f496d261c96a6efda0986078f94740434625b5eb61e664aea4b08ec0f5558918cd
   languageName: node
   linkType: hard
 
@@ -929,6 +929,7 @@ __metadata:
     "@types/react": 17.0.42
     "@types/react-dom": 17.0.14
     "@types/react-grid-layout": 1.3.2
+    "@types/react-router-dom": 5.3.3
     "@types/react-virtualized-auto-sizer": 1.0.1
     "@types/testing-library__jest-dom": ^5.14.5
     "@types/uuid": 8.3.4
@@ -966,6 +967,8 @@ __metadata:
     tslib: 2.4.1
     typescript: 4.9.3
     uuid: ^9.0.0
+  peerDependencies:
+    react-router-dom: ^5.2.0
   languageName: unknown
   linkType: soft
 
@@ -2679,7 +2682,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/history@npm:4.7.11":
+"@types/history@npm:4.7.11, @types/history@npm:^4.7.11":
   version: 4.7.11
   resolution: "@types/history@npm:4.7.11"
   checksum: c92e2ba407dcab0581a9afdf98f533aa41b61a71133420a6d92b1ca9839f741ab1f9395b17454ba5b88cb86020b70b22d74a1950ccfbdfd9beeaa5459fdc3464
@@ -2844,6 +2847,27 @@ __metadata:
     hoist-non-react-statics: ^3.3.0
     redux: ^4.0.0
   checksum: 6582246581331ac7fbbd44aa1f1c136c8a9c8febbcf462432ac81302263308c21e1a2e7868beb7f73bbcb52a8e67935d133cb37f5bdcb6564eaff3a811805101
+  languageName: node
+  linkType: hard
+
+"@types/react-router-dom@npm:5.3.3":
+  version: 5.3.3
+  resolution: "@types/react-router-dom@npm:5.3.3"
+  dependencies:
+    "@types/history": ^4.7.11
+    "@types/react": "*"
+    "@types/react-router": "*"
+  checksum: 28c4ea48909803c414bf5a08502acbb8ba414669b4b43bb51297c05fe5addc4df0b8fd00e0a9d1e3535ec4073ef38aaafac2c4a2b95b787167d113bc059beff3
+  languageName: node
+  linkType: hard
+
+"@types/react-router@npm:*":
+  version: 5.1.20
+  resolution: "@types/react-router@npm:5.1.20"
+  dependencies:
+    "@types/history": ^4.7.11
+    "@types/react": "*"
+  checksum: 128764143473a5e9457ddc715436b5d49814b1c214dde48939b9bef23f0e77f52ffcdfa97eb8d3cc27e2c229869c0cdd90f637d887b62f2c9f065a87d6425419
   languageName: node
   linkType: hard
 
