@@ -74,7 +74,7 @@ export interface SceneVariableDependencyConfigLike {
   hasDependencyOn(name: string): boolean;
 
   /**
-   * Will be called when any variable value has changed.
+   * Will be called when the VariableSet have completed an update process
    **/
-  variableValuesChanged(variables: Set<SceneVariable>): void;
+  variableUpdatesCompleted(changedVariables: Set<SceneVariable>): void;
 }

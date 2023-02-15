@@ -20,6 +20,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectStatePlain } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
+import { SceneVariable } from '../variables/types';
 
 let counter = 100;
 
@@ -45,10 +46,11 @@ export interface DataQueryExtended extends DataQuery {
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
+  private _firstQueryStarted = false;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
-    onReferencedVariableValueChanged: () => this.runQueries(),
+    onVariableUpdatesCompleted: (variables) => this.onVariableUpdatesCompleted(variables),
   });
 
   public activate() {
@@ -65,6 +67,26 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
+    }
+  }
+
+  /**
+   * Handles some tricky cases where we need to run queries even when they have not changed in case
+   * the query execution on activate was stopped due to VariableSet still not having processed all variables.
+   */
+  private onVariableUpdatesCompleted(variables: Set<SceneVariable>) {
+    if (!this._firstQueryStarted && this.shouldRunQueriesOnActivate()) {
+      this.runQueries();
+      return;
+    }
+
+    const deps = this._variableDependency.getNames();
+
+    for (const variable of variables) {
+      if (deps.has(variable.state.name)) {
+        this.runQueries();
+        return;
+      }
     }
   }
 
@@ -133,6 +155,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
       __sceneObject: { text: '__sceneObject', value: this },
     };
+
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
       requestId: getNextRequestId(),
@@ -147,6 +170,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       scopedVars: sceneObjectScopedVar,
       startTime: Date.now(),
     };
+
+    // Need to set this here as the process of getting the data source is async
+    this._firstQueryStarted = true;
 
     try {
       const ds = await getDataSource(datasource, request.scopedVars);

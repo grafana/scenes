@@ -13,6 +13,11 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    * If not specified the default behavior is to trigger a re-render
    */
   onReferencedVariableValueChanged?: () => void;
+
+  /**
+   * Optional way to customize how to handle when the variable system has completed an update
+   */
+  onVariableUpdatesCompleted?: (changedVariables: Set<SceneVariable>) => void;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
@@ -23,10 +28,13 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
 
   public scanCount = 0;
 
-  public constructor(private _sceneObject: SceneObject<TState>, options: VariableDependencyConfigOptions<TState>) {
-    this._statePaths = options.statePaths;
+  public constructor(
+    private _sceneObject: SceneObject<TState>,
+    private _options: VariableDependencyConfigOptions<TState>
+  ) {
+    this._statePaths = _options.statePaths;
     this._onReferencedVariableValueChanged =
-      options.onReferencedVariableValueChanged ?? this.defaultHandlerReferencedVariableValueChanged;
+      _options.onReferencedVariableValueChanged ?? this.defaultHandlerReferencedVariableValueChanged;
   }
 
   /**
@@ -39,7 +47,13 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   /**
    * This is called whenever any set of variables have new values. It up to this implementation to check if it's relevant given the current dependencies.
    */
-  public variableValuesChanged(variables: Set<SceneVariable>) {
+  public variableUpdatesCompleted(variables: Set<SceneVariable>) {
+    // If custom handler let the scene object handle this
+    if (this._options.onVariableUpdatesCompleted) {
+      this._options.onVariableUpdatesCompleted(variables);
+      return;
+    }
+
     const deps = this.getNames();
 
     for (const variable of variables) {

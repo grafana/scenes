@@ -119,7 +119,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    */
   private updateNextBatch() {
     // If we have nothing more to update and variable values changed we need to update scene objects that depend on these variables
-    if (this._variablesToUpdate.size === 0 && this._variablesThatHaveChanged.size > 0) {
+    if (this._variablesToUpdate.size === 0) {
       this.notifyDependentSceneObjects();
       return;
     }
@@ -243,7 +243,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     if (sceneObject.variableDependency) {
-      sceneObject.variableDependency.variableValuesChanged(this._variablesThatHaveChanged);
+      sceneObject.variableDependency.variableUpdatesCompleted(this._variablesThatHaveChanged);
     }
 
     forEachSceneObjectInState(sceneObject.state, (child) => this.traverseSceneAndNotify(child));
@@ -253,6 +253,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * Return true if variable is waiting to update or currently updating
    */
   public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable) {
+    // If we have not activated yet then variables are not up to date
+    if (!this.isActive) {
+      return true;
+    }
+
     return this._variablesToUpdate.has(variable) || this._updating.has(variable);
   }
 }
