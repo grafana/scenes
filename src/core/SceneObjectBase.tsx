@@ -139,7 +139,11 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   public activate() {
     this._isActive = true;
 
-    const { $data, $variables } = this.state;
+    const { $data, $variables, $timeRange } = this.state;
+
+    if ($timeRange && !$timeRange.isActive) {
+      $timeRange.activate();
+    }
 
     if ($variables && !$variables.isActive) {
       $variables.activate();
@@ -156,7 +160,11 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   public deactivate(): void {
     this._isActive = false;
 
-    const { $data, $variables } = this.state;
+    const { $data, $variables, $timeRange } = this.state;
+
+    if ($timeRange && $timeRange.isActive) {
+      $timeRange.deactivate();
+    }
 
     if ($data && $data.isActive) {
       $data.deactivate();
