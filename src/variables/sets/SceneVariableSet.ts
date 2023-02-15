@@ -104,7 +104,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     this._validValuesWhenDeactivated = new Map();
     for (const variable of this.state.variables) {
       // if the current variable is not in queue to update and validate and not being actively updated then the value is ok
-      if (!this._variablesToUpdate.has(variable) || !this._updating.has(variable)) {
+      if (!this._variablesToUpdate.has(variable) && !this._updating.has(variable)) {
         this._validValuesWhenDeactivated.set(variable, variable.getValue());
       }
     }
@@ -269,7 +269,7 @@ export interface VariableUpdateInProgress {
 
 function writeVariableTraceLog(variable: SceneVariable, message: string, err?: Error) {
   if ((window as any).grafanaLoggingSceneVariables) {
-    console.log(`Variable[${variable.state.name}]: ${message}`, err);
+    console.log(`Variable[${variable.state.name}]: ${message}`, err ?? '');
   }
 }
 

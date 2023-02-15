@@ -288,6 +288,25 @@ describe('SceneVariableList', () => {
       expect(sceneObject.state.variableValueChanged).toBe(1);
     });
 
+    it('Should handle being deactivated right away', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [], delayMs: 1 });
+      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A, B] }),
+        nested: sceneObject,
+      });
+
+      scene.activate();
+      scene.deactivate();
+      scene.activate();
+
+      A.signalUpdateCompleted();
+
+      expect(B.state.loading).toBe(true);
+    });
+
     it('Should not updateAndValidate again if current value is valid when value is multi value and ALL value', async () => {
       const A = new TestVariable({
         name: 'A',
