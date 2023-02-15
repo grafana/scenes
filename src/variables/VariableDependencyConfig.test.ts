@@ -1,4 +1,3 @@
-import { SceneFlexLayout, SceneVariableSet, TestVariable } from '@grafana/scenes';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObjectStatePlain } from '../core/types';
 
