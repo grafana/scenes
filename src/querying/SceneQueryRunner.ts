@@ -80,14 +80,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       return;
     }
 
-    const deps = this._variableDependency.getNames();
+    // const deps = this._variableDependency.getNames();
 
-    for (const variable of variables) {
-      if (deps.has(variable.state.name)) {
-        this.runQueries();
-        return;
-      }
-    }
+    // for (const variable of variables) {
+    //   if (deps.has(variable.state.name)) {
+    //     this.runQueries();
+    //     return;
+    //   }
+    // }
   }
 
   private shouldRunQueriesOnActivate() {

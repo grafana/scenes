@@ -344,7 +344,7 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
     });
 
-    it('Should execute query wven when variable completes but value unchanged', async () => {
+    it('Should execute query when variable completes but value unchanged', async () => {
       const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A', query: '$A' }],
