@@ -98,7 +98,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     }
 
     if (this._variableDependency.hasVariablesChangedWhileInactive()) {
-      writeSceneLog('SceneQueryRunner', 'Variable dependency changed while inactive, running queries', this);
+      writeSceneLog('SceneQueryRunner', 'Variable dependency changed while inactive, running queries');
       return true;
     }
 
