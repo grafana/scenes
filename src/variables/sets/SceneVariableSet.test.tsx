@@ -14,6 +14,8 @@ import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 interface TestSceneState extends SceneObjectStatePlain {
   nested?: SceneObject;
+  /** To test logic for inactive scene objects  */
+  hidden?: SceneObject;
 }
 
 class TestScene extends SceneObjectBase<TestSceneState> {}
@@ -244,16 +246,19 @@ describe('SceneVariableList', () => {
   });
 
   describe('When variables have change when re-activated broadcast changes', () => {
-    it('Should notify scene objects of change', async () => {
+    it('Should notify only active objects of change', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
-      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const nestedObj = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const inActiveSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A] }),
-        nested: sceneObject,
+        nested: nestedObj,
+        hidden: inActiveSceneObject,
       });
 
       scene.activate();
+      nestedObj.activate();
 
       A.signalUpdateCompleted();
 
@@ -263,20 +268,22 @@ describe('SceneVariableList', () => {
 
       scene.activate();
 
-      expect(sceneObject.state.variableValueChanged).toBe(2);
+      expect(nestedObj.state.variableValueChanged).toBe(2);
+      expect(inActiveSceneObject.state.variableValueChanged).toBe(0);
     });
 
     it('Should notify scene objects if deactivated during chained update', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
       const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [], delayMs: 1 });
-      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const nestedSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A, B] }),
-        nested: sceneObject,
+        nested: nestedSceneObject,
       });
 
       scene.activate();
+      nestedSceneObject.activate();
 
       A.signalUpdateCompleted();
 
@@ -285,7 +292,7 @@ describe('SceneVariableList', () => {
 
       B.signalUpdateCompleted();
 
-      expect(sceneObject.state.variableValueChanged).toBe(1);
+      expect(nestedSceneObject.state.variableValueChanged).toBe(1);
     });
 
     it('Should handle being deactivated right away', async () => {
@@ -318,14 +325,15 @@ describe('SceneVariableList', () => {
         isMulti: true,
       });
 
-      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const nestedSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A] }),
-        nested: sceneObject,
+        nested: nestedSceneObject,
       });
 
       scene.activate();
+      nestedSceneObject.activate();
 
       A.signalUpdateCompleted();
 
@@ -333,7 +341,7 @@ describe('SceneVariableList', () => {
       scene.activate();
 
       expect(A.state.loading).toBe(false);
-      expect(sceneObject.state.variableValueChanged).toBe(1);
+      expect(nestedSceneObject.state.variableValueChanged).toBe(1);
     });
   });
 });

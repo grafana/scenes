@@ -1,26 +1,8 @@
-import { SceneVariable } from './types';
+import { isEqual } from 'lodash';
+import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject } from '../core/types';
 import { SceneVariableSet } from './sets/SceneVariableSet';
-
-export function lookupSceneVariable(name: string, sceneObject: SceneObject): SceneVariable | null | undefined {
-  const variables = sceneObject.state.$variables;
-  if (!variables) {
-    if (sceneObject.parent) {
-      return lookupSceneVariable(name, sceneObject.parent);
-    } else {
-      return null;
-    }
-  }
-
-  const found = variables.getByName(name);
-  if (found) {
-    return found;
-  } else if (sceneObject.parent) {
-    return lookupSceneVariable(name, sceneObject.parent);
-  }
-
-  return null;
-}
+import { VariableValue } from './types';
 
 /**
  * Checks if the variable is currently loading or waiting to update
@@ -31,7 +13,7 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   for (const name of sceneObject.variableDependency.getNames()) {
-    const variable = lookupSceneVariable(name, sceneObject);
+    const variable = sceneGraph.getVariable(name, sceneObject);
     if (!variable) {
       continue;
     }
@@ -41,4 +23,12 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   return false;
+}
+
+export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
+  if (a === b) {
+    return true;
+  }
+
+  return isEqual(a, b);
 }

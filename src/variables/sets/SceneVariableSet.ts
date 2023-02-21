@@ -1,4 +1,3 @@
-import { isEqual } from 'lodash';
 import { Unsubscribable } from 'rxjs';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -11,6 +10,7 @@ import {
   SceneVariableValueChangedEvent,
   VariableValue,
 } from '../types';
+import { isVariableValueEqual } from '../utils';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that have changed in since the activation or since the first manual value change */
@@ -242,6 +242,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return;
     }
 
+    // Skip non active scene objects
+    if (!sceneObject.isActive) {
+      return;
+    }
+
     if (sceneObject.variableDependency) {
       sceneObject.variableDependency.variableUpdatesCompleted(this._variablesThatHaveChanged);
     }
@@ -271,12 +276,4 @@ function writeVariableTraceLog(variable: SceneVariable, message: string, err?: E
   if ((window as any).grafanaLoggingSceneVariables) {
     console.log(`Variable[${variable.state.name}]: ${message}`, err ?? '');
   }
-}
-
-function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
-  if (a === b) {
-    return true;
-  }
-
-  return isEqual(a, b);
 }

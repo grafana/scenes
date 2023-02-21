@@ -21,6 +21,7 @@ import { SceneObject, SceneObjectStatePlain } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
+import { writeSceneLog } from '../utils/writeSceneLog';
 
 let counter = 100;
 
@@ -48,7 +49,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _containerWidth?: number;
   private _firstQueryStarted = false;
 
-  protected _variableDependency = new VariableDependencyConfig(this, {
+  protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
     onVariableUpdatesCompleted: (variables) => this.onVariableUpdatesCompleted(variables),
   });
@@ -80,25 +81,30 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       return;
     }
 
-    // const deps = this._variableDependency.getNames();
+    const deps = this._variableDependency.getNames();
 
-    // for (const variable of variables) {
-    //   if (deps.has(variable.state.name)) {
-    //     this.runQueries();
-    //     return;
-    //   }
-    // }
+    for (const variable of variables) {
+      if (deps.has(variable.state.name)) {
+        this.runQueries();
+        return;
+      }
+    }
   }
 
   private shouldRunQueriesOnActivate() {
-    // If we already have data, no need
-    // TODO validate that time range is similar and if not we should run queries again
-    if (this.state.data) {
+    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
+    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
       return false;
     }
 
-    // If no maxDataPoints specified we need might to wait for container width to be set from the outside
-    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
+    if (this._variableDependency.hasVariablesChangedWhileInactive()) {
+      writeSceneLog('SceneQueryRunner', 'Variable dependency changed while inactive, running queries', this);
+      return true;
+    }
+
+    // If we already have data, no need
+    // TODO validate that time range is similar and if not we should run queries again
+    if (this.state.data) {
       return false;
     }
 
@@ -112,6 +118,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       this._querySub.unsubscribe();
       this._querySub = undefined;
     }
+
+    this._variableDependency.rememberValuesWhenDeactivated();
   }
 
   public setContainerWidth(width: number) {

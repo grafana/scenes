@@ -322,7 +322,7 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data?.state).toBe(undefined);
     });
 
-    it('Should execute query when variable completes update', async () => {
+    it('Should execute query when variable updates', async () => {
       const variable = new TestVariable({ name: 'A', value: '', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A', query: '$A' }],
@@ -342,9 +342,15 @@ describe('SceneQueryRunner', () => {
       variable.signalUpdateCompleted();
       await new Promise((r) => setTimeout(r, 1));
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      variable.changeValueTo('AB');
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
-    it('Should execute query when variable completes but value unchanged', async () => {
+    it('Should execute query again after variable changed while inactive', async () => {
       const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A', query: '$A' }],
@@ -360,10 +366,29 @@ describe('SceneQueryRunner', () => {
       });
 
       scene.activate();
+
       // should execute query when variable completes update
       variable.signalUpdateCompleted();
       await new Promise((r) => setTimeout(r, 1));
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      // simulate we collapse a part of the scene where this query runner is
+      queryRunner.deactivate();
+
+      variable.changeValueTo('AB');
+
+      await new Promise((r) => setTimeout(r, 1));
+      // Should not execute query
+      expect(runRequestMock.mock.calls.length).toBe(1);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      // now activate again it should detect value change and issue new query
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should execute query a second time
+      expect(runRequestMock.mock.calls.length).toBe(2);
     });
   });
 });

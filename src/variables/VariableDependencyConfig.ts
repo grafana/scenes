@@ -1,7 +1,10 @@
+import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectState } from '../core/types';
+import { writeSceneLog } from '../utils/writeSceneLog';
 import { VARIABLE_REGEX } from './constants';
 
-import { SceneVariable, SceneVariableDependencyConfigLike } from './types';
+import { SceneVariable, SceneVariableDependencyConfigLike, VariableValue } from './types';
+import { isVariableValueEqual } from './utils';
 
 interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   /**
@@ -25,6 +28,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   private _dependencies = new Set<string>();
   private _statePaths?: Array<keyof TState>;
   private _onReferencedVariableValueChanged: () => void;
+  private _valuesWhenDeactivated: Map<SceneVariable, VariableValue | undefined | null> | undefined;
 
   public scanCount = 0;
 
@@ -129,6 +133,34 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       const variableName = var1 || var2 || var3;
       this._dependencies.add(variableName);
     }
+  }
+
+  public rememberValuesWhenDeactivated() {
+    this._valuesWhenDeactivated = new Map();
+    for (const variableName of this.getNames()) {
+      const variable = sceneGraph.getVariable(variableName, this._sceneObject);
+      if (variable) {
+        this._valuesWhenDeactivated.set(variable, variable.getValue());
+      }
+    }
+  }
+
+  public hasVariablesChangedWhileInactive(): boolean {
+    if (!this._valuesWhenDeactivated) {
+      return false;
+    }
+
+    for (const variableName of this.getNames()) {
+      const variable = sceneGraph.getVariable(variableName, this._sceneObject);
+      if (variable && this._valuesWhenDeactivated.has(variable)) {
+        const value = this._valuesWhenDeactivated.get(variable);
+        if (!isVariableValueEqual(value, variable.getValue())) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 }
 

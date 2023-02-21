@@ -3,7 +3,7 @@ import { hasVariableDependencyInLoadingState } from '../variables/utils';
 import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/interpolation/defaults';
 
 import { CustomFormatterFn, sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
-import { SceneVariables } from '../variables/types';
+import { SceneVariable, SceneVariables } from '../variables/types';
 
 import { SceneDataState, SceneEditor, SceneLayoutState, SceneObject, SceneTimeRangeLike } from './types';
 
@@ -101,6 +101,29 @@ export function interpolate(
   return sceneInterpolator(sceneObject, value, scopedVars, format);
 }
 
+/**
+ * Will walk the scene object graph up to the root looking for the first variable with the specified name
+ */
+export function getVariable(name: string, sceneObject: SceneObject): SceneVariable | null | undefined {
+  const variables = sceneObject.state.$variables;
+  if (!variables) {
+    if (sceneObject.parent) {
+      return getVariable(name, sceneObject.parent);
+    } else {
+      return null;
+    }
+  }
+
+  const found = variables.getByName(name);
+  if (found) {
+    return found;
+  } else if (sceneObject.parent) {
+    return getVariable(name, sceneObject.parent);
+  }
+
+  return null;
+}
+
 export const sceneGraph = {
   getVariables,
   getData,
@@ -108,5 +131,6 @@ export const sceneGraph = {
   getSceneEditor,
   getLayout,
   interpolate,
+  getVariable,
   hasVariableDependencyInLoadingState,
 };
