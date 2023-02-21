@@ -1,11 +1,11 @@
 import { ScopedVars } from '@grafana/data';
-import { hasVariableDependencyInLoadingState } from '../variables/utils';
 import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/interpolation/defaults';
 
 import { CustomFormatterFn, sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
-import { SceneVariable, SceneVariables } from '../variables/types';
+import { SceneVariables } from '../variables/types';
 
 import { SceneDataState, SceneEditor, SceneLayoutState, SceneObject, SceneTimeRangeLike } from './types';
+import { lookupVariable } from '../variables/lookupVariable';
 
 /**
  * Get the closest node with variables
@@ -102,26 +102,24 @@ export function interpolate(
 }
 
 /**
- * Will walk the scene object graph up to the root looking for the first variable with the specified name
+ * Checks if the variable is currently loading or waiting to update
  */
-export function getVariable(name: string, sceneObject: SceneObject): SceneVariable | null | undefined {
-  const variables = sceneObject.state.$variables;
-  if (!variables) {
-    if (sceneObject.parent) {
-      return getVariable(name, sceneObject.parent);
-    } else {
-      return null;
+export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
+  if (!sceneObject.variableDependency) {
+    return false;
+  }
+
+  for (const name of sceneObject.variableDependency.getNames()) {
+    const variable = sceneGraph.lookupVariable(name, sceneObject);
+    if (!variable) {
+      continue;
     }
+
+    const set = variable.parent as SceneVariables;
+    return set.isVariableLoadingOrWaitingToUpdate(variable);
   }
 
-  const found = variables.getByName(name);
-  if (found) {
-    return found;
-  } else if (sceneObject.parent) {
-    return getVariable(name, sceneObject.parent);
-  }
-
-  return null;
+  return false;
 }
 
 export const sceneGraph = {
@@ -131,6 +129,6 @@ export const sceneGraph = {
   getSceneEditor,
   getLayout,
   interpolate,
-  getVariable,
+  lookupVariable,
   hasVariableDependencyInLoadingState,
 };

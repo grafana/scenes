@@ -1,9 +1,5 @@
-export function writeSceneLog(logger: string, message: string, err?: Error) {
+export function writeSceneLog(logger: string, message: string, ...rest: unknown[]) {
   if ((window as any).grafanaSceneLogging) {
-    if (err) {
-      console.log(`${logger}: `, message, err);
-    } else {
-      console.log(`${logger}: `, message);
-    }
+    console.log(`${logger}: `, message, ...rest);
   }
 }

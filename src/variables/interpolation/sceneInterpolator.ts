@@ -7,7 +7,7 @@ import { VariableValue } from '../types';
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
-import { lookupSceneVariable } from '../utils';
+import { lookupVariable } from '../lookupVariable';
 
 export type CustomFormatterFn = (
   value: unknown,
@@ -42,7 +42,7 @@ export function sceneInterpolator(
     if (scopedVars && scopedVars[variableName]) {
       variable = getSceneVariableForScopedVar(variableName, scopedVars[variableName]);
     } else {
-      variable = lookupSceneVariable(variableName, sceneObject);
+      variable = lookupVariable(variableName, sceneObject);
     }
 
     if (!variable) {

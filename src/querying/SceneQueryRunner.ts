@@ -22,6 +22,7 @@ import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
+import { VariableValueChangeDetector } from '../variables/VariableValueChangeDetector';
 
 let counter = 100;
 
@@ -48,6 +49,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _firstQueryStarted = false;
+  private _variableChangeDetector = new VariableValueChangeDetector(this);
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -97,8 +99,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       return false;
     }
 
-    if (this._variableDependency.hasVariablesChangedWhileInactive()) {
-      writeSceneLog('SceneQueryRunner', 'Variable dependency changed while inactive, running queries');
+    if (this._variableChangeDetector.hasVariablesChangedWhileInactive()) {
+      writeSceneLog(
+        'SceneQueryRunner',
+        'Variable dependency changed while inactive, shouldRunQueriesOnActivate returns true'
+      );
       return true;
     }
 
@@ -119,7 +124,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       this._querySub = undefined;
     }
 
-    this._variableDependency.rememberValuesWhenDeactivated();
+    this._variableChangeDetector.recordCurrentDependencyValues();
   }
 
   public setContainerWidth(width: number) {
@@ -156,6 +161,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private async runWithTimeRange(timeRange: TimeRange) {
     // Skip executing queries if variable dependency is in loading state
     if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
+      writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
       return;
     }
 
@@ -208,6 +214,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       request.intervalMs = norm.intervalMs;
 
       const runRequest = getRunRequest();
+
+      writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
+
       this._querySub = runRequest(ds, request)
         .pipe(getTransformationsStream(this, this.state.transformations))
         .subscribe({

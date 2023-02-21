@@ -59,7 +59,14 @@ export interface SceneVariableSetState extends SceneObjectStatePlain {
 }
 
 export interface SceneVariables extends SceneObject<SceneVariableSetState> {
+  /**
+   * Will look for and return variable matching name
+   */
   getByName(name: string): SceneVariable | undefined;
+  /**
+   * Will return true if the variable is loading or waiting for an update to complete.
+   */
+  isVariableLoadingOrWaitingToUpdate(variable: SceneVariable): boolean;
 }
 
 export class SceneVariableValueChangedEvent extends BusEventWithPayload<SceneVariable> {

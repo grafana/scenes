@@ -3,6 +3,7 @@ import { Unsubscribable } from 'rxjs';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObject } from '../../core/types';
 import { forEachSceneObjectInState } from '../../core/utils';
+import { writeSceneLog } from '../../utils/writeSceneLog';
 import {
   SceneVariable,
   SceneVariables,
@@ -273,7 +274,5 @@ export interface VariableUpdateInProgress {
 }
 
 function writeVariableTraceLog(variable: SceneVariable, message: string, err?: Error) {
-  if ((window as any).grafanaLoggingSceneVariables) {
-    console.log(`Variable[${variable.state.name}]: ${message}`, err ?? '');
-  }
+  writeSceneLog('SceneVariableSet', `Variable[${variable.state.name}]: ${message}`, err);
 }
