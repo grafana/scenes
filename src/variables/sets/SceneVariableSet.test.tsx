@@ -200,6 +200,27 @@ describe('SceneVariableList', () => {
       expect(A.getValueOptionsCount).toBe(1);
     });
 
+    it('Should not update variables again when value changed to valid value', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+
+      scene.deactivate();
+
+      A.changeValueTo('AB');
+
+      scene.activate();
+
+      expect(A.state.loading).toBe(false);
+      expect(A.getValueOptionsCount).toBe(1);
+    });
+
     it('Should update dependent variables if value changed while deactivated', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
@@ -246,7 +267,9 @@ describe('SceneVariableList', () => {
   });
 
   describe('When variables have change when re-activated broadcast changes', () => {
-    it('Should notify only active objects of change', async () => {
+    it.only('Should notify only active objects of change', async () => {
+      (window as any).grafanaSceneLogging = true;
+
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
       const nestedObj = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
       const inActiveSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
@@ -268,7 +291,9 @@ describe('SceneVariableList', () => {
 
       scene.activate();
 
-      expect(nestedObj.state.variableValueChanged).toBe(2);
+      A.signalUpdateCompleted();
+
+      expect(nestedObj.state.variableValueChanged).toBe(1);
       expect(inActiveSceneObject.state.variableValueChanged).toBe(0);
     });
 

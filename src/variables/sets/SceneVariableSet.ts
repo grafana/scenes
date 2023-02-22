@@ -67,7 +67,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         const value = this._validValuesWhenDeactivated.get(variable);
         if (!isVariableValueEqual(value, variable.getValue())) {
           writeVariableTraceLog(variable, 'Changed while in-active');
-          this.handleVariableValueChanged(variable);
+          this.addDependentVariablesToUpdateQueue(variable);
         }
       }
     }
@@ -119,6 +119,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * If one has a dependency that is currently in variablesToUpdate it will be skipped for now.
    */
   private updateNextBatch() {
+    console.log('updateNextBatch', this._variablesToUpdate.size);
     // If we have nothing more to update and variable values changed we need to update scene objects that depend on these variables
     if (this._variablesToUpdate.size === 0) {
       this.notifyDependentSceneObjects();
@@ -209,7 +210,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return;
     }
 
-    // Add variables that depend on the changed variable to the update queue
+    this.addDependentVariablesToUpdateQueue(variableThatChanged);
+    this.updateNextBatch();
+  }
+
+  private addDependentVariablesToUpdateQueue(variableThatChanged: SceneVariable) {
     for (const otherVariable of this.state.variables) {
       if (otherVariable.variableDependency) {
         if (otherVariable.variableDependency.hasDependencyOn(variableThatChanged.state.name)) {
@@ -218,8 +223,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         }
       }
     }
-
-    this.updateNextBatch();
   }
 
   /**
@@ -249,6 +252,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     if (sceneObject.variableDependency) {
+      console.log('variableUpdatesCompleted');
       sceneObject.variableDependency.variableUpdatesCompleted(this._variablesThatHaveChanged);
     }
 

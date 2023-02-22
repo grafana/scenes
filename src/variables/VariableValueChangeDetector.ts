@@ -4,7 +4,7 @@ import { SceneVariable, VariableValue } from './types';
 import { isVariableValueEqual } from './utils';
 
 /**
- * Useful for rememmber variable values
+ * Useful for remembering variable values
  **/
 export class VariableValueChangeDetector {
   private _values: Map<SceneVariable, VariableValue | undefined | null> | undefined;
