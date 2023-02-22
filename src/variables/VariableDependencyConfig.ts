@@ -17,14 +17,13 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   /**
    * Optional way to customize how to handle when the variable system has completed an update
    */
-  onVariableUpdatesCompleted?: (changedVariables: Set<SceneVariable>) => void;
+  onVariableUpdatesCompleted?: (changedVariables: Set<SceneVariable>, dependencyChanged?: boolean) => void;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
   private _state: TState | undefined;
   private _dependencies = new Set<string>();
   private _statePaths?: Array<keyof TState>;
-  private _onReferencedVariableValueChanged: () => void;
 
   public scanCount = 0;
 
@@ -33,8 +32,6 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     private _options: VariableDependencyConfigOptions<TState>
   ) {
     this._statePaths = _options.statePaths;
-    this._onReferencedVariableValueChanged =
-      _options.onReferencedVariableValueChanged ?? this.defaultHandlerReferencedVariableValueChanged;
   }
 
   /**
@@ -47,19 +44,28 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   /**
    * This is called whenever any set of variables have new values. It up to this implementation to check if it's relevant given the current dependencies.
    */
-  public variableUpdatesCompleted(variables: Set<SceneVariable>) {
-    // If custom handler let the scene object handle this
+  public variableUpdatesCompleted(changedVariables: Set<SceneVariable>) {
+    const deps = this.getNames();
+    let dependencyChanged = false;
+
+    for (const variable of changedVariables) {
+      if (deps.has(variable.state.name)) {
+        dependencyChanged = true;
+        break;
+      }
+    }
+
+    // If custom handler is always called to let the scene object know that SceneVariableSet has completed processing variables
     if (this._options.onVariableUpdatesCompleted) {
-      this._options.onVariableUpdatesCompleted(variables);
+      this._options.onVariableUpdatesCompleted(changedVariables, dependencyChanged);
       return;
     }
 
-    const deps = this.getNames();
-
-    for (const variable of variables) {
-      if (deps.has(variable.state.name)) {
-        this._onReferencedVariableValueChanged();
-        return;
+    if (dependencyChanged) {
+      if (this._options.onReferencedVariableValueChanged) {
+        this._options.onReferencedVariableValueChanged();
+      } else {
+        this.defaultHandlerReferencedVariableValueChanged();
       }
     }
   }

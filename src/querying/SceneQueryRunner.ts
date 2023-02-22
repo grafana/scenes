@@ -22,7 +22,7 @@ import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
-import { VariableValueChangeDetector } from '../variables/VariableValueChangeDetector';
+import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 
 let counter = 100;
 
@@ -48,8 +48,9 @@ export interface DataQueryExtended extends DataQuery {
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
+  private _variableValueRecorder = new VariableValueRecorder();
+  // Think this needs to move to state
   private _firstQueryStarted = false;
-  private _variableChangeDetector = new VariableValueChangeDetector();
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -77,19 +78,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
    * Handles some tricky cases where we need to run queries even when they have not changed in case
    * the query execution on activate was stopped due to VariableSet still not having processed all variables.
    */
-  private onVariableUpdatesCompleted(variables: Set<SceneVariable>) {
+  private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
     if (!this._firstQueryStarted && this.shouldRunQueriesOnActivate()) {
       this.runQueries();
       return;
     }
 
-    const deps = this._variableDependency.getNames();
-
-    for (const variable of variables) {
-      if (deps.has(variable.state.name)) {
-        this.runQueries();
-        return;
-      }
+    if (dependencyChanged) {
+      this.runQueries();
     }
   }
 
@@ -99,7 +95,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       return false;
     }
 
-    if (this._variableChangeDetector.hasDependenciesChanged(this)) {
+    if (this._variableValueRecorder.hasDependenciesChanged(this)) {
       writeSceneLog(
         'SceneQueryRunner',
         'Variable dependency changed while inactive, shouldRunQueriesOnActivate returns true'
@@ -124,7 +120,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       this._querySub = undefined;
     }
 
-    this._variableChangeDetector.recordCurrentDependencyValuesForSceneObject(this);
+    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
   public setContainerWidth(width: number) {

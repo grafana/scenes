@@ -4,9 +4,9 @@ import { SceneVariable, VariableValue } from './types';
 import { isVariableValueEqual } from './utils';
 
 /**
- * Useful for remembering variable values
+ * Useful for remembering variable values to know if they have changed
  **/
-export class VariableValueChangeDetector {
+export class VariableValueRecorder {
   private _values = new Map<SceneVariable, VariableValue | undefined | null>();
 
   public recordCurrentDependencyValuesForSceneObject(sceneObject: SceneObject) {

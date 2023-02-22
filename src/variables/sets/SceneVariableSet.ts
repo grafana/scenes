@@ -5,7 +5,7 @@ import { SceneObject } from '../../core/types';
 import { forEachSceneObjectInState } from '../../core/utils';
 import { writeSceneLog } from '../../utils/writeSceneLog';
 import { SceneVariable, SceneVariables, SceneVariableSetState, SceneVariableValueChangedEvent } from '../types';
-import { VariableValueChangeDetector } from '../VariableValueChangeDetector';
+import { VariableValueRecorder } from '../VariableValueRecorder';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that have changed in since the activation or since the first manual value change */
@@ -17,7 +17,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   /** Variables currently updating  */
   private _updating = new Map<SceneVariable, VariableUpdateInProgress>();
 
-  private _changeDetector = new VariableValueChangeDetector();
+  private _variableValueRecorder = new VariableValueRecorder();
 
   public getByName(name: string): SceneVariable | undefined {
     // TODO: Replace with index
@@ -52,12 +52,12 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * If variables changed while in in-active state we don't get any change events, so we need to check for that here.
    */
   private checkForVariablesThatChangedWhileInactive() {
-    if (!this._changeDetector.hasValues()) {
+    if (!this._variableValueRecorder.hasValues()) {
       return;
     }
 
     for (const variable of this.state.variables) {
-      if (this._changeDetector.hasValueChanged(variable)) {
+      if (this._variableValueRecorder.hasValueChanged(variable)) {
         writeVariableTraceLog(variable, 'Changed while in-active');
         this.addDependentVariablesToUpdateQueue(variable);
       }
@@ -70,7 +70,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     // If we have recorded valid value (even if it has changed since we do not need to re-validate this variable)
-    if (this._changeDetector.hasRecordedValue(variable)) {
+    if (this._variableValueRecorder.hasRecordedValue(variable)) {
       writeVariableTraceLog(variable, 'Skipping updateAndValidate current value valid');
       return false;
     }
@@ -92,7 +92,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     for (const variable of this.state.variables) {
       // if the current variable is not in queue to update and validate and not being actively updated then the value is ok
       if (!this._variablesToUpdate.has(variable) && !this._updating.has(variable)) {
-        this._changeDetector.recordCurrentValue(variable);
+        this._variableValueRecorder.recordCurrentValue(variable);
       }
     }
 
