@@ -17,7 +17,7 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   /**
    * Optional way to customize how to handle when the variable system has completed an update
    */
-  onVariableUpdatesCompleted?: (changedVariables: Set<SceneVariable>, dependencyChanged?: boolean) => void;
+  onVariableUpdatesCompleted?: (changedVariables: Set<SceneVariable>, dependencyChanged: boolean) => void;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
