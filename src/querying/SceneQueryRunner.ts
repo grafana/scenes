@@ -49,7 +49,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _firstQueryStarted = false;
-  private _variableChangeDetector = new VariableValueChangeDetector(this);
+  private _variableChangeDetector = new VariableValueChangeDetector();
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -99,7 +99,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       return false;
     }
 
-    if (this._variableChangeDetector.hasVariablesChangedWhileInactive()) {
+    if (this._variableChangeDetector.hasDependenciesChanged(this)) {
       writeSceneLog(
         'SceneQueryRunner',
         'Variable dependency changed while inactive, shouldRunQueriesOnActivate returns true'
@@ -124,7 +124,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       this._querySub = undefined;
     }
 
-    this._variableChangeDetector.recordCurrentDependencyValues();
+    this._variableChangeDetector.recordCurrentDependencyValuesForSceneObject(this);
   }
 
   public setContainerWidth(width: number) {

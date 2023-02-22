@@ -7,28 +7,53 @@ import { isVariableValueEqual } from './utils';
  * Useful for remembering variable values
  **/
 export class VariableValueChangeDetector {
-  private _values: Map<SceneVariable, VariableValue | undefined | null> | undefined;
+  private _values = new Map<SceneVariable, VariableValue | undefined | null>();
 
-  public constructor(private _sceneObject: SceneObject) {}
+  public recordCurrentDependencyValuesForSceneObject(sceneObject: SceneObject) {
+    this.clearValues();
 
-  public recordCurrentDependencyValues() {
-    this._values = new Map();
-
-    for (const variableName of this._sceneObject.variableDependency!.getNames()) {
-      const variable = sceneGraph.lookupVariable(variableName, this._sceneObject);
+    for (const variableName of sceneObject.variableDependency!.getNames()) {
+      const variable = sceneGraph.lookupVariable(variableName, sceneObject);
       if (variable) {
         this._values.set(variable, variable.getValue());
       }
     }
   }
 
-  public hasVariablesChangedWhileInactive(): boolean {
+  public clearValues() {
+    this._values.clear();
+  }
+
+  public hasValues(): boolean {
+    return !!this._values;
+  }
+
+  public recordCurrentValue(variable: SceneVariable) {
+    this._values.set(variable, variable.getValue());
+  }
+
+  public hasRecordedValue(variable: SceneVariable): boolean {
+    return this._values.has(variable);
+  }
+
+  public hasValueChanged(variable: SceneVariable): boolean {
+    if (this._values.has(variable)) {
+      const value = this._values.get(variable);
+      if (!isVariableValueEqual(value, variable.getValue())) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public hasDependenciesChanged(sceneObject: SceneObject): boolean {
     if (!this._values) {
       return false;
     }
 
-    for (const variableName of this._sceneObject.variableDependency!.getNames()) {
-      const variable = sceneGraph.lookupVariable(variableName, this._sceneObject);
+    for (const variableName of sceneObject.variableDependency!.getNames()) {
+      const variable = sceneGraph.lookupVariable(variableName, sceneObject);
       if (variable && this._values.has(variable)) {
         const value = this._values.get(variable);
         if (!isVariableValueEqual(value, variable.getValue())) {

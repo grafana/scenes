@@ -4,14 +4,8 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObject } from '../../core/types';
 import { forEachSceneObjectInState } from '../../core/utils';
 import { writeSceneLog } from '../../utils/writeSceneLog';
-import {
-  SceneVariable,
-  SceneVariables,
-  SceneVariableSetState,
-  SceneVariableValueChangedEvent,
-  VariableValue,
-} from '../types';
-import { isVariableValueEqual } from '../utils';
+import { SceneVariable, SceneVariables, SceneVariableSetState, SceneVariableValueChangedEvent } from '../types';
+import { VariableValueChangeDetector } from '../VariableValueChangeDetector';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that have changed in since the activation or since the first manual value change */
@@ -23,7 +17,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   /** Variables currently updating  */
   private _updating = new Map<SceneVariable, VariableUpdateInProgress>();
 
-  private _validValuesWhenDeactivated: Map<SceneVariable, VariableValue | undefined | null> | undefined;
+  private _changeDetector = new VariableValueChangeDetector();
 
   public getByName(name: string): SceneVariable | undefined {
     // TODO: Replace with index
@@ -58,17 +52,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * If variables changed while in in-active state we don't get any change events, so we need to check for that here.
    */
   private checkForVariablesThatChangedWhileInactive() {
-    if (!this._validValuesWhenDeactivated) {
+    if (!this._changeDetector.hasValues()) {
       return;
     }
 
     for (const variable of this.state.variables) {
-      if (this._validValuesWhenDeactivated.has(variable)) {
-        const value = this._validValuesWhenDeactivated.get(variable);
-        if (!isVariableValueEqual(value, variable.getValue())) {
-          writeVariableTraceLog(variable, 'Changed while in-active');
-          this.addDependentVariablesToUpdateQueue(variable);
-        }
+      if (this._changeDetector.hasValueChanged(variable)) {
+        writeVariableTraceLog(variable, 'Changed while in-active');
+        this.addDependentVariablesToUpdateQueue(variable);
       }
     }
   }
@@ -78,14 +69,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return false;
     }
 
-    // Check if we have a value from past active state
-    if (this._validValuesWhenDeactivated && this._validValuesWhenDeactivated.has(variable)) {
-      const value = this._validValuesWhenDeactivated.get(variable);
-      // If value the same no need to re-validate it
-      if (isVariableValueEqual(value, variable.getValue())) {
-        writeVariableTraceLog(variable, 'Skipping updateAndValidate current value valid');
-        return false;
-      }
+    // If we have recorded valid value (even if it has changed since we do not need to re-validate this variable)
+    if (this._changeDetector.hasRecordedValue(variable)) {
+      writeVariableTraceLog(variable, 'Skipping updateAndValidate current value valid');
+      return false;
     }
 
     return true;
@@ -102,11 +89,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     // Remember current variable values
-    this._validValuesWhenDeactivated = new Map();
     for (const variable of this.state.variables) {
       // if the current variable is not in queue to update and validate and not being actively updated then the value is ok
       if (!this._variablesToUpdate.has(variable) && !this._updating.has(variable)) {
-        this._validValuesWhenDeactivated.set(variable, variable.getValue());
+        this._changeDetector.recordCurrentValue(variable);
       }
     }
 
@@ -119,7 +105,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * If one has a dependency that is currently in variablesToUpdate it will be skipped for now.
    */
   private updateNextBatch() {
-    console.log('updateNextBatch', this._variablesToUpdate.size);
     // If we have nothing more to update and variable values changed we need to update scene objects that depend on these variables
     if (this._variablesToUpdate.size === 0) {
       this.notifyDependentSceneObjects();
@@ -252,7 +237,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     if (sceneObject.variableDependency) {
-      console.log('variableUpdatesCompleted');
       sceneObject.variableDependency.variableUpdatesCompleted(this._variablesThatHaveChanged);
     }
 

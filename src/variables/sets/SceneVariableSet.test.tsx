@@ -267,9 +267,7 @@ describe('SceneVariableList', () => {
   });
 
   describe('When variables have change when re-activated broadcast changes', () => {
-    it.only('Should notify only active objects of change', async () => {
-      (window as any).grafanaSceneLogging = true;
-
+    it('Should notify only active objects of change', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
       const nestedObj = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
       const inActiveSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
