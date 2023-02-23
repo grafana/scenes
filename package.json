@@ -2,7 +2,7 @@
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
   "name": "@grafana/scenes",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Grafana framework for building dynamic dashboards",
   "keywords": [
     "typescript"
