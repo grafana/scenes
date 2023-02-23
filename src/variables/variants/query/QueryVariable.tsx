@@ -39,6 +39,7 @@ export interface QueryVariableState extends MultiValueVariableState {
 
 export class QueryVariable extends MultiValueVariable<QueryVariableState> {
   private updateSubscription?: Unsubscribable;
+  private dataSourceSubject?: Subject<DataSourceApi>;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['regex', 'query', 'datasource'],
