@@ -50,8 +50,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
-  // Think this needs to move to state
-  private _firstQueryStarted = false;
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -164,6 +162,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       return;
     }
 
+    // If we where waiting for variables clear that flag
+    if (this.state.isWaitingForVariables) {
+      this.setState({ isWaitingForVariables: false });
+    }
+
     const { datasource, minInterval, queries } = this.state;
     const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
       __sceneObject: { text: '__sceneObject', value: this },
@@ -224,7 +227,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   }
 
   private onDataReceived = (data: PanelData) => {
-    this.setState({ data, isWaitingForVariables: false });
+    this.setState({ data });
   };
 }
 
