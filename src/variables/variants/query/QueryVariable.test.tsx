@@ -144,20 +144,26 @@ describe('QueryVariable', () => {
       getDataSourceMock.mockClear();
     });
 
-    it('Should resolve variable options via provided runner', async () => {
+    it('Should resolve variable options via provided runner', (done) => {
       const variable = new QueryVariable({
         name: 'test',
         datasource: { uid: 'fake-std', type: 'fake-std' },
         query: 'query',
       });
 
-      await lastValueFrom(variable.validateAndUpdate());
+      variable.validateAndUpdate().subscribe({
+        next: () => {
+          expect(variable.state.options).toEqual([
+            { label: 'A', value: 'A' },
+            { label: 'AB', value: 'AB' },
+            { label: 'C', value: 'C' },
+          ]);
+          expect(variable.state.loading).toEqual(false);
+          done();
+        },
+      });
 
-      expect(variable.state.options).toEqual([
-        { label: 'A', value: 'A' },
-        { label: 'AB', value: 'AB' },
-        { label: 'C', value: 'C' },
-      ]);
+      expect(variable.state.loading).toEqual(true);
     });
 
     it('Should pass variable scene object when resolving data source and via request scoped vars', async () => {
