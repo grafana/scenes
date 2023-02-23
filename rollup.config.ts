@@ -2,6 +2,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import path from 'path';
 import dts from 'rollup-plugin-dts';
 import esbuild from 'rollup-plugin-esbuild';
+import eslint from '@rollup/plugin-eslint';
 import { externals } from 'rollup-plugin-node-externals';
 
 const env = process.env.NODE_ENV || 'production';
@@ -14,6 +15,7 @@ export default [
       externals({ deps: true, devDeps: true, packagePath: './package.json' }),
       resolve({ browser: true }),
       esbuild(),
+      eslint(),
     ],
     output: [
       {
@@ -33,7 +35,7 @@ export default [
     },
   },
   {
-    input: './compiled/index.d.ts',
+    input: 'src/index.ts',
     plugins: [dts()],
     output: {
       file: pkg.types,

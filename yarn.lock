@@ -637,7 +637,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/eslintrc@npm:^1.3.3":
+"@eslint/eslintrc@npm:^1.3.3, @eslint/eslintrc@npm:^1.4.1":
   version: 1.4.1
   resolution: "@eslint/eslintrc@npm:1.4.1"
   dependencies:
@@ -914,6 +914,7 @@ __metadata:
     "@grafana/schema": canary
     "@grafana/tsconfig": ^1.2.0-rc1
     "@grafana/ui": canary
+    "@rollup/plugin-eslint": ^9.0.3
     "@rollup/plugin-node-resolve": 15.0.1
     "@swc/core": ^1.2.162
     "@swc/jest": ^0.2.20
@@ -1155,7 +1156,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@humanwhocodes/config-array@npm:^0.11.6":
+"@humanwhocodes/config-array@npm:^0.11.6, @humanwhocodes/config-array@npm:^0.11.8":
   version: 0.11.8
   resolution: "@humanwhocodes/config-array@npm:0.11.8"
   dependencies:
@@ -2203,6 +2204,21 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0-rc.1 || ^18.0.0
   checksum: 3bb3aa77f4938fcd7788c5c5abf24f8f3d3c034d555962e44202d09673844cbb31d7b280edc9ac432bdd06847bc253527f8946f2604b9c88d5fcb96fdc56fbd1
+  languageName: node
+  linkType: hard
+
+"@rollup/plugin-eslint@npm:^9.0.3":
+  version: 9.0.3
+  resolution: "@rollup/plugin-eslint@npm:9.0.3"
+  dependencies:
+    "@rollup/pluginutils": ^5.0.1
+    eslint: ^8.24.0
+  peerDependencies:
+    rollup: ^1.20.0||^2.0.0||^3.0.0
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+  checksum: 609abead94bd82dd6b207ffff7b7b2edca906d593268cde1fe171ff8328898734ccb9b449965fee3684e62c581b770eae46c72965161d41ff9826e88ca113191
   languageName: node
   linkType: hard
 
@@ -5805,6 +5821,55 @@ __metadata:
   bin:
     eslint: bin/eslint.js
   checksum: cc85af9985a3a11085c011f3d27abe8111006d34cc274291b3c4d7bea51a4e2ff6135780249becd919ba7f6d6d1ecc38a6b73dacb6a7be08d38453b344dc8d37
+  languageName: node
+  linkType: hard
+
+"eslint@npm:^8.24.0":
+  version: 8.34.0
+  resolution: "eslint@npm:8.34.0"
+  dependencies:
+    "@eslint/eslintrc": ^1.4.1
+    "@humanwhocodes/config-array": ^0.11.8
+    "@humanwhocodes/module-importer": ^1.0.1
+    "@nodelib/fs.walk": ^1.2.8
+    ajv: ^6.10.0
+    chalk: ^4.0.0
+    cross-spawn: ^7.0.2
+    debug: ^4.3.2
+    doctrine: ^3.0.0
+    escape-string-regexp: ^4.0.0
+    eslint-scope: ^7.1.1
+    eslint-utils: ^3.0.0
+    eslint-visitor-keys: ^3.3.0
+    espree: ^9.4.0
+    esquery: ^1.4.0
+    esutils: ^2.0.2
+    fast-deep-equal: ^3.1.3
+    file-entry-cache: ^6.0.1
+    find-up: ^5.0.0
+    glob-parent: ^6.0.2
+    globals: ^13.19.0
+    grapheme-splitter: ^1.0.4
+    ignore: ^5.2.0
+    import-fresh: ^3.0.0
+    imurmurhash: ^0.1.4
+    is-glob: ^4.0.0
+    is-path-inside: ^3.0.3
+    js-sdsl: ^4.1.4
+    js-yaml: ^4.1.0
+    json-stable-stringify-without-jsonify: ^1.0.1
+    levn: ^0.4.1
+    lodash.merge: ^4.6.2
+    minimatch: ^3.1.2
+    natural-compare: ^1.4.0
+    optionator: ^0.9.1
+    regexpp: ^3.2.0
+    strip-ansi: ^6.0.1
+    strip-json-comments: ^3.1.0
+    text-table: ^0.2.0
+  bin:
+    eslint: bin/eslint.js
+  checksum: 4e13e9eb05ac2248efbb6acae0b2325091235d5c47ba91a4775c7d6760778cbcd358a773ebd42f4629d2ad89e27c02f5d66eb1f737d75d9f5fc411454f83b2e5
   languageName: node
   linkType: hard
 
