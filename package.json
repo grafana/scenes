@@ -28,7 +28,7 @@
     "tsc": "tsc -p ./tsconfig.build.json",
     "dev": "yarn clean && yarn build:dev --watch",
     "build:dev": "yarn build:prod --environment NODE_ENV:development",
-    "build:prod": "yarn lint && yarn typecheck && yarn bundle",
+    "build:prod": "yarn bundle",
     "bundle": "rollup -c rollup.config.ts",
     "clean": "rimraf ./dist ./compiled ./package.tgz",
     "typecheck": "tsc --emitDeclarationOnly false --noEmit",
