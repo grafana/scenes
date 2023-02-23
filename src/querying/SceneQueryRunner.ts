@@ -20,6 +20,9 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectStatePlain } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
+import { SceneVariable } from '../variables/types';
+import { writeSceneLog } from '../utils/writeSceneLog';
+import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 
 let counter = 100;
 
@@ -36,6 +39,7 @@ export interface QueryRunnerState extends SceneObjectStatePlain {
   maxDataPoints?: number;
   // Non persisted state
   maxDataPointsFromWidth?: boolean;
+  isWaitingForVariables?: boolean;
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -45,10 +49,12 @@ export interface DataQueryExtended extends DataQuery {
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
+  private _variableValueRecorder = new VariableValueRecorder();
 
-  protected _variableDependency = new VariableDependencyConfig(this, {
+  protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
-    onReferencedVariableValueChanged: () => this.runQueries(),
+    onVariableUpdatesCompleted: (variables, dependencyChanged) =>
+      this.onVariableUpdatesCompleted(variables, dependencyChanged),
   });
 
   public activate() {
@@ -68,15 +74,38 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     }
   }
 
+  /**
+   * Handles some tricky cases where we need to run queries even when they have not changed in case
+   * the query execution on activate was stopped due to VariableSet still not having processed all variables.
+   */
+  private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
+    if (this.state.isWaitingForVariables && this.shouldRunQueriesOnActivate()) {
+      this.runQueries();
+      return;
+    }
+
+    if (dependencyChanged) {
+      this.runQueries();
+    }
+  }
+
   private shouldRunQueriesOnActivate() {
-    // If we already have data, no need
-    // TODO validate that time range is similar and if not we should run queries again
-    if (this.state.data) {
+    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
+    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
       return false;
     }
 
-    // If no maxDataPoints specified we need might to wait for container width to be set from the outside
-    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
+    if (this._variableValueRecorder.hasDependenciesChanged(this)) {
+      writeSceneLog(
+        'SceneQueryRunner',
+        'Variable dependency changed while inactive, shouldRunQueriesOnActivate returns true'
+      );
+      return true;
+    }
+
+    // If we already have data, no need
+    // TODO validate that time range is similar and if not we should run queries again
+    if (this.state.data) {
       return false;
     }
 
@@ -90,6 +119,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       this._querySub.unsubscribe();
       this._querySub = undefined;
     }
+
+    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
   public setContainerWidth(width: number) {
@@ -124,10 +155,23 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   }
 
   private async runWithTimeRange(timeRange: TimeRange) {
+    // Skip executing queries if variable dependency is in loading state
+    if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
+      writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
+      this.setState({ isWaitingForVariables: true });
+      return;
+    }
+
+    // If we where waiting for variables clear that flag
+    if (this.state.isWaitingForVariables) {
+      this.setState({ isWaitingForVariables: false });
+    }
+
     const { datasource, minInterval, queries } = this.state;
     const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
       __sceneObject: { text: '__sceneObject', value: this },
     };
+
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
       requestId: getNextRequestId(),
@@ -169,6 +213,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       request.intervalMs = norm.intervalMs;
 
       const runRequest = getRunRequest();
+
+      writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
+
       this._querySub = runRequest(ds, request)
         .pipe(getTransformationsStream(this, this.state.transformations))
         .subscribe({

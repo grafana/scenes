@@ -5,6 +5,7 @@ import { CustomFormatterFn, sceneInterpolator } from '../variables/interpolation
 import { SceneVariables } from '../variables/types';
 
 import { SceneDataState, SceneEditor, SceneLayoutState, SceneObject, SceneTimeRangeLike } from './types';
+import { lookupVariable } from '../variables/lookupVariable';
 
 /**
  * Get the closest node with variables
@@ -100,6 +101,27 @@ export function interpolate(
   return sceneInterpolator(sceneObject, value, scopedVars, format);
 }
 
+/**
+ * Checks if the variable is currently loading or waiting to update
+ */
+export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
+  if (!sceneObject.variableDependency) {
+    return false;
+  }
+
+  for (const name of sceneObject.variableDependency.getNames()) {
+    const variable = lookupVariable(name, sceneObject);
+    if (!variable) {
+      continue;
+    }
+
+    const set = variable.parent as SceneVariables;
+    return set.isVariableLoadingOrWaitingToUpdate(variable);
+  }
+
+  return false;
+}
+
 export const sceneGraph = {
   getVariables,
   getData,
@@ -107,4 +129,6 @@ export const sceneGraph = {
   getSceneEditor,
   getLayout,
   interpolate,
+  lookupVariable,
+  hasVariableDependencyInLoadingState,
 };

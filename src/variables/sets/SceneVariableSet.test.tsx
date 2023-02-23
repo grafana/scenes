@@ -14,6 +14,8 @@ import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 interface TestSceneState extends SceneObjectStatePlain {
   nested?: SceneObject;
+  /** To test logic for inactive scene objects  */
+  hidden?: SceneObject;
 }
 
 class TestScene extends SceneObjectBase<TestSceneState> {}
@@ -198,6 +200,27 @@ describe('SceneVariableList', () => {
       expect(A.getValueOptionsCount).toBe(1);
     });
 
+    it('Should not update variables again when value changed to valid value', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+
+      scene.deactivate();
+
+      A.changeValueTo('AB');
+
+      scene.activate();
+
+      expect(A.state.loading).toBe(false);
+      expect(A.getValueOptionsCount).toBe(1);
+    });
+
     it('Should update dependent variables if value changed while deactivated', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
@@ -244,16 +267,19 @@ describe('SceneVariableList', () => {
   });
 
   describe('When variables have change when re-activated broadcast changes', () => {
-    it('Should notify scene objects of change', async () => {
+    it('Should notify only active objects of change', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
-      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const nestedObj = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const inActiveSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A] }),
-        nested: sceneObject,
+        nested: nestedObj,
+        hidden: inActiveSceneObject,
       });
 
       scene.activate();
+      nestedObj.activate();
 
       A.signalUpdateCompleted();
 
@@ -263,10 +289,36 @@ describe('SceneVariableList', () => {
 
       scene.activate();
 
-      expect(sceneObject.state.variableValueChanged).toBe(2);
+      // Should not start loadaing A again, it has options already
+      expect(A.state.loading).toBe(false);
+      expect(nestedObj.state.variableValueChanged).toBe(1);
+      expect(inActiveSceneObject.state.variableValueChanged).toBe(0);
     });
 
     it('Should notify scene objects if deactivated during chained update', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [], delayMs: 1 });
+      const nestedSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A, B] }),
+        nested: nestedSceneObject,
+      });
+
+      scene.activate();
+      nestedSceneObject.activate();
+
+      A.signalUpdateCompleted();
+
+      scene.deactivate();
+      scene.activate();
+
+      B.signalUpdateCompleted();
+
+      expect(nestedSceneObject.state.variableValueChanged).toBe(1);
+    });
+
+    it('Should handle being deactivated right away', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
       const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [], delayMs: 1 });
       const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
@@ -277,15 +329,12 @@ describe('SceneVariableList', () => {
       });
 
       scene.activate();
-
-      A.signalUpdateCompleted();
-
       scene.deactivate();
       scene.activate();
 
-      B.signalUpdateCompleted();
+      A.signalUpdateCompleted();
 
-      expect(sceneObject.state.variableValueChanged).toBe(1);
+      expect(B.state.loading).toBe(true);
     });
 
     it('Should not updateAndValidate again if current value is valid when value is multi value and ALL value', async () => {
@@ -299,14 +348,15 @@ describe('SceneVariableList', () => {
         isMulti: true,
       });
 
-      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const nestedSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A] }),
-        nested: sceneObject,
+        nested: nestedSceneObject,
       });
 
       scene.activate();
+      nestedSceneObject.activate();
 
       A.signalUpdateCompleted();
 
@@ -314,7 +364,7 @@ describe('SceneVariableList', () => {
       scene.activate();
 
       expect(A.state.loading).toBe(false);
-      expect(sceneObject.state.variableValueChanged).toBe(1);
+      expect(nestedSceneObject.state.variableValueChanged).toBe(1);
     });
   });
 });

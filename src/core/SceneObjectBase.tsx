@@ -145,12 +145,12 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       $timeRange.activate();
     }
 
-    if ($data && !$data.isActive) {
-      $data.activate();
-    }
-
     if ($variables && !$variables.isActive) {
       $variables.activate();
+    }
+
+    if ($data && !$data.isActive) {
+      $data.activate();
     }
   }
 

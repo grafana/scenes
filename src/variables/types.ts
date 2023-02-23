@@ -59,7 +59,14 @@ export interface SceneVariableSetState extends SceneObjectStatePlain {
 }
 
 export interface SceneVariables extends SceneObject<SceneVariableSetState> {
+  /**
+   * Will look for and return variable matching name
+   */
   getByName(name: string): SceneVariable | undefined;
+  /**
+   * Will return true if the variable is loading or waiting for an update to complete.
+   */
+  isVariableLoadingOrWaitingToUpdate(variable: SceneVariable): boolean;
 }
 
 export class SceneVariableValueChangedEvent extends BusEventWithPayload<SceneVariable> {
@@ -74,7 +81,7 @@ export interface SceneVariableDependencyConfigLike {
   hasDependencyOn(name: string): boolean;
 
   /**
-   * Will be called when any variable value has changed.
+   * Will be called when the VariableSet have completed an update process
    **/
-  variableValuesChanged(variables: Set<SceneVariable>): void;
+  variableUpdatesCompleted(changedVariables: Set<SceneVariable>): void;
 }
