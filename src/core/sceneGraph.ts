@@ -110,7 +110,7 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   for (const name of sceneObject.variableDependency.getNames()) {
-    const variable = sceneGraph.lookupVariable(name, sceneObject);
+    const variable = lookupVariable(name, sceneObject);
     if (!variable) {
       continue;
     }

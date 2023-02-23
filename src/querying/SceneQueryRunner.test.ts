@@ -390,5 +390,47 @@ describe('SceneQueryRunner', () => {
       // Should execute query a second time
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
+
+    it('Should execute query again after variable changed while whole scene was inactive', async () => {
+      const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const timeRange = new SceneTimeRange();
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: timeRange,
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      // should execute query when variable completes update
+      variable.signalUpdateCompleted();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      // Deactivate scene which deactivates SceneVariableSet
+      scene.deactivate();
+
+      // Now change value
+      variable.changeValueTo('AB');
+      // Allow rxjs logic time run
+      await new Promise((r) => setTimeout(r, 1));
+      // Should not execute query
+      expect(runRequestMock.mock.calls.length).toBe(1);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      // now activate again it should detect value change and issue new query
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should execute query a second time
+      expect(runRequestMock.mock.calls.length).toBe(2);
+    });
   });
 });

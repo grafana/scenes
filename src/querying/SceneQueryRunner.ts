@@ -39,6 +39,7 @@ export interface QueryRunnerState extends SceneObjectStatePlain {
   maxDataPoints?: number;
   // Non persisted state
   maxDataPointsFromWidth?: boolean;
+  isWaitingForVariables?: boolean;
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -80,7 +81,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
    * the query execution on activate was stopped due to VariableSet still not having processed all variables.
    */
   private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
-    if (!this._firstQueryStarted && this.shouldRunQueriesOnActivate()) {
+    if (this.state.isWaitingForVariables && this.shouldRunQueriesOnActivate()) {
       this.runQueries();
       return;
     }
@@ -159,6 +160,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     // Skip executing queries if variable dependency is in loading state
     if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
       writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
+      this.setState({ isWaitingForVariables: true });
       return;
     }
 
@@ -181,9 +183,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       scopedVars: sceneObjectScopedVar,
       startTime: Date.now(),
     };
-
-    // Need to set this here as the process of getting the data source is async
-    this._firstQueryStarted = true;
 
     try {
       const ds = await getDataSource(datasource, request.scopedVars);
@@ -225,7 +224,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   }
 
   private onDataReceived = (data: PanelData) => {
-    this.setState({ data });
+    this.setState({ data, isWaitingForVariables: false });
   };
 }
 
