@@ -70,7 +70,7 @@ function getStyles(theme: GrafanaTheme2) {
     container: css({
       flexGrow: 1,
       display: 'flex',
-      gap: '8px',
+      gap: theme.spacing(2),
       minHeight: '100%',
       flexDirection: 'column',
     }),
@@ -83,6 +83,7 @@ function getStyles(theme: GrafanaTheme2) {
       display: 'flex',
       gap: theme.spacing(1),
       alignItems: 'center',
+      flexWrap: 'wrap',
     }),
   };
 }

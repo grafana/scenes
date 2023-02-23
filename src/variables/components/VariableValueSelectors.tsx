@@ -1,13 +1,14 @@
 import React from 'react';
 
-import { VariableHide } from '@grafana/data';
+import { GrafanaTheme2, VariableHide } from '@grafana/data';
 import { selectors } from '@grafana/e2e-selectors';
-import { Tooltip } from '@grafana/ui';
+import { Tooltip, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps, SceneObject, SceneObjectStatePlain } from '../../core/types';
 import { SceneVariableState } from '../types';
+import { css } from '@emotion/css';
 
 export class VariableValueSelectors extends SceneObjectBase<SceneObjectStatePlain> {
   public static Component = VariableValueSelectorsRenderer;
@@ -15,17 +16,24 @@ export class VariableValueSelectors extends SceneObjectBase<SceneObjectStatePlai
 
 function VariableValueSelectorsRenderer({ model }: SceneComponentProps<VariableValueSelectors>) {
   const variables = sceneGraph.getVariables(model)!.useState();
+  const styles = useStyles2(getStyles);
 
   return (
     <>
       {variables.variables.map((variable) => (
-        <VariableValueSelectWrapper key={variable.state.key} variable={variable} />
+        <VariableValueSelectWrapper key={variable.state.key} variable={variable} styles={styles} />
       ))}
     </>
   );
 }
 
-function VariableValueSelectWrapper({ variable }: { variable: SceneObject<SceneVariableState> }) {
+function VariableValueSelectWrapper({
+  variable,
+  styles,
+}: {
+  variable: SceneObject<SceneVariableState>;
+  styles: VariableLabelStyles;
+}) {
   const state = variable.useState();
 
   if (state.hide === VariableHide.hideVariable) {
@@ -33,14 +41,14 @@ function VariableValueSelectWrapper({ variable }: { variable: SceneObject<SceneV
   }
 
   return (
-    <div className="gf-form">
-      <VariableLabel state={state} />
+    <div className={styles.container}>
+      <VariableLabel state={state} styles={styles} />
       <variable.Component model={variable} />
     </div>
   );
 }
 
-function VariableLabel({ state }: { state: SceneVariableState }) {
+function VariableLabel({ state, styles }: { state: SceneVariableState; styles: VariableLabelStyles }) {
   if (state.hide === VariableHide.hideLabel) {
     return null;
   }
@@ -52,7 +60,7 @@ function VariableLabel({ state }: { state: SceneVariableState }) {
     return (
       <Tooltip content={state.description} placement={'bottom'}>
         <label
-          className="gf-form-label gf-form-label--variable"
+          className={styles.variableLabel}
           data-testid={selectors.pages.Dashboard.SubMenu.submenuItemLabels(labelOrName)}
           htmlFor={elementId}
         >
@@ -64,7 +72,7 @@ function VariableLabel({ state }: { state: SceneVariableState }) {
 
   return (
     <label
-      className="gf-form-label gf-form-label--variable"
+      className={styles.variableLabel}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemLabels(labelOrName)}
       htmlFor={elementId}
     >
@@ -72,3 +80,26 @@ function VariableLabel({ state }: { state: SceneVariableState }) {
     </label>
   );
 }
+
+const getStyles = (theme: GrafanaTheme2) => ({
+  container: css({
+    display: 'flex',
+  }),
+  variableLabel: css({
+    background: theme.isDark ? theme.colors.background.primary : theme.colors.background.secondary,
+    display: `flex`,
+    alignItems: 'center',
+    padding: theme.spacing(0, 1),
+    fontWeight: theme.typography.fontWeightMedium,
+    fontSize: theme.typography.bodySmall.fontSize,
+    height: theme.spacing(theme.components.height.md),
+    lineHeight: theme.spacing(theme.components.height.md),
+    borderRadius: theme.shape.borderRadius(1),
+    border: `1px solid ${theme.components.input.borderColor}`,
+    position: 'relative',
+    // To make the border line up with the input border
+    right: -1,
+  }),
+});
+
+type VariableLabelStyles = ReturnType<typeof getStyles>;
