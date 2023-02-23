@@ -1,12 +1,11 @@
 import React from 'react';
-import { Observable, Subject, of, Unsubscribable, filter, take, mergeMap, catchError, throwError, from } from 'rxjs';
+import { Observable, of, Unsubscribable, filter, take, mergeMap, catchError, throwError, from } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
   CoreApp,
   DataQuery,
   DataQueryRequest,
-  DataSourceApi,
   DataSourceRef,
   getDefaultTimeRange,
   LoadingState,
@@ -39,7 +38,6 @@ export interface QueryVariableState extends MultiValueVariableState {
 
 export class QueryVariable extends MultiValueVariable<QueryVariableState> {
   private updateSubscription?: Unsubscribable;
-  private dataSourceSubject?: Subject<DataSourceApi>;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['regex', 'query', 'datasource'],
@@ -78,12 +76,9 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
   public deactivate(): void {
     super.deactivate();
+
     if (this.updateSubscription) {
       this.updateSubscription.unsubscribe();
-    }
-
-    if (this.dataSourceSubject) {
-      this.dataSourceSubject.unsubscribe();
     }
   }
 
@@ -91,6 +86,8 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     if (this.state.query === '' || !this.state.datasource) {
       return of([]);
     }
+
+    this.setState({ loading: true });
 
     return from(
       getDataSource(this.state.datasource, {
