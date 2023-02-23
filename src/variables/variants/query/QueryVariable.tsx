@@ -1,12 +1,11 @@
 import React from 'react';
-import { Observable, Subject, of, Unsubscribable, filter, take, mergeMap, catchError, throwError, from } from 'rxjs';
+import { Observable, of, Unsubscribable, filter, take, mergeMap, catchError, throwError, from } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
   CoreApp,
   DataQuery,
   DataQueryRequest,
-  DataSourceApi,
   DataSourceRef,
   getDefaultTimeRange,
   LoadingState,
