@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 
 import { SceneComponentProps, SceneEditor, SceneObject } from './types';
 
-export function SceneComponentWrapper<T extends SceneObject>({
+function SceneComponentWrapperWithoutMemo<T extends SceneObject>({
   model,
   isEditing,
   ...otherProps
@@ -39,6 +39,8 @@ export function SceneComponentWrapper<T extends SceneObject>({
     </EditWrapper>
   );
 }
+
+export const SceneComponentWrapper = React.memo(SceneComponentWrapperWithoutMemo);
 
 function EmptyRenderer<T>(_: SceneComponentProps<T>): React.ReactElement | null {
   return null;
