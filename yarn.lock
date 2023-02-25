@@ -951,7 +951,7 @@ __metadata:
     rollup-plugin-esbuild: 5.0.0
     rollup-plugin-node-externals: ^5.0.0
     rollup-plugin-svg-import: ^1.6.0
-    rxjs: 7.5.7
+    rxjs: 7.8.0
     ts-jest: 29.0.3
     ts-node: 10.9.1
     tsc-watch: ^4.5.0
@@ -970,21 +970,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/schema@npm:9.5.0-103195pre":
+"@grafana/schema@npm:9.5.0-103195pre, @grafana/schema@npm:canary":
   version: 9.5.0-103195pre
   resolution: "@grafana/schema@npm:9.5.0-103195pre"
   dependencies:
     tslib: 2.5.0
   checksum: ab7ca7f0c195afbaea3ad3499d559753a2ad70d40e9c0cddad6b70cc4dad412e2c944ef5f44090a79220334f4a5957b0db20dfde472121570aae4c12c1b0abb7
-  languageName: node
-  linkType: hard
-
-"@grafana/schema@npm:canary":
-  version: 9.4.0-94910pre
-  resolution: "@grafana/schema@npm:9.4.0-94910pre"
-  dependencies:
-    tslib: 2.4.1
-  checksum: 757ca14cb680ea03d73892730d673a7ba21548834e4a6b717fc16699b3d17ec3ca11321d6501db7caf1c59756b22b676fbc3bea7f8a932e94f131bdcaae8e8eb
   languageName: node
   linkType: hard
 
