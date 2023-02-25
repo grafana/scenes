@@ -75,10 +75,10 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
   return (
     <div className={styles.row}>
       <div className={cx(styles.rowHeader, isCollapsed && styles.rowHeaderCollapsed)}>
-        <div onClick={model.onCollapseToggle} className={styles.rowTitleWrapper}>
+        <button onClick={model.onCollapseToggle} className={styles.rowTitleButton}>
           {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
           <span className={styles.rowTitle}>{title}</span>
-        </div>
+        </button>
         {placement?.isDraggable && isCollapsed && <div>{dragHandle}</div>}
       </div>
     </div>
@@ -103,10 +103,13 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       marginBottom: '8px',
       border: `1px solid transparent`,
     }),
-    rowTitleWrapper: css({
+    rowTitleButton: css({
       display: 'flex',
       alignItems: 'center',
       cursor: 'pointer',
+      background: 'transparent',
+      border: 'none',
+      gap: theme.spacing(1),
     }),
     rowHeaderCollapsed: css({
       marginBottom: '0px',
@@ -115,8 +118,8 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       borderRadius: theme.shape.borderRadius(1),
     }),
     rowTitle: css({
-      fontSize: theme.typography.h6.fontSize,
-      fontWeight: theme.typography.h6.fontWeight,
+      fontSize: theme.typography.h5.fontSize,
+      fontWeight: theme.typography.fontWeightMedium,
     }),
   };
 };
