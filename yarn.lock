@@ -726,7 +726,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/data@npm:9.5.0-103195pre":
+"@grafana/data@npm:9.5.0-103195pre, @grafana/data@npm:canary":
   version: 9.5.0-103195pre
   resolution: "@grafana/data@npm:9.5.0-103195pre"
   dependencies:
@@ -758,39 +758,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/data@npm:canary":
-  version: 9.4.0-95425pre
-  resolution: "@grafana/data@npm:9.4.0-95425pre"
-  dependencies:
-    "@braintree/sanitize-url": 6.0.1
-    "@grafana/schema": 9.4.0-95425pre
-    "@types/d3-interpolate": ^1.4.0
-    d3-interpolate: 1.4.0
-    date-fns: 2.29.3
-    eventemitter3: 4.0.7
-    fast_array_intersect: 1.1.0
-    history: 4.10.1
-    lodash: 4.17.21
-    marked: 4.2.0
-    moment: 2.29.4
-    moment-timezone: 0.5.38
-    ol: 7.1.0
-    papaparse: 5.3.2
-    react-use: 17.4.0
-    regenerator-runtime: 0.13.10
-    rxjs: 7.5.7
-    tinycolor2: 1.4.2
-    tslib: 2.4.1
-    uplot: 1.6.23
-    xss: 1.0.14
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0
-    react-dom: ^16.8.0 || ^17.0.0
-  checksum: 0cbaf61643549e0a4275c16f8716f4253cc6e3d31959d61e5dd5827011481e9adea202d6db046dbf8662edf5180e24da9be4c6a434fdda10c1be10e129a4344d
-  languageName: node
-  linkType: hard
-
-"@grafana/e2e-selectors@npm:9.5.0-103195pre":
+"@grafana/e2e-selectors@npm:9.5.0-103195pre, @grafana/e2e-selectors@npm:canary":
   version: 9.5.0-103195pre
   resolution: "@grafana/e2e-selectors@npm:9.5.0-103195pre"
   dependencies:
@@ -798,17 +766,6 @@ __metadata:
     tslib: 2.5.0
     typescript: 4.8.4
   checksum: 80512613adae147224ac25d8c31dadf8dc030730da9979aad0564cedc6d10908af5812b7c77a5398cc4aef2206ba91a7eac8c697d9d3d5f7cdc622f0a44c5fa2
-  languageName: node
-  linkType: hard
-
-"@grafana/e2e-selectors@npm:canary":
-  version: 9.4.0-101831pre
-  resolution: "@grafana/e2e-selectors@npm:9.4.0-101831pre"
-  dependencies:
-    "@grafana/tsconfig": ^1.2.0-rc1
-    tslib: 2.4.1
-    typescript: 4.8.4
-  checksum: ee788792fb6b8a35095cf8f306ac45136c1fec6add9da6696cb591492dbfd3f496d261c96a6efda0986078f94740434625b5eb61e664aea4b08ec0f5558918cd
   languageName: node
   linkType: hard
 
@@ -960,15 +917,6 @@ __metadata:
     uuid: ^9.0.0
   languageName: unknown
   linkType: soft
-
-"@grafana/schema@npm:9.4.0-95425pre":
-  version: 9.4.0-95425pre
-  resolution: "@grafana/schema@npm:9.4.0-95425pre"
-  dependencies:
-    tslib: 2.4.1
-  checksum: 90b6be505199232b7c53ad04fbb0dfe9cad8e3e70943b6428f3158a5477e45bc18e0bb15b6a45452e7b53871eb756eb8cdaf9f8c667d9306b4bf64566b69168c
-  languageName: node
-  linkType: hard
 
 "@grafana/schema@npm:9.5.0-103195pre, @grafana/schema@npm:canary":
   version: 9.5.0-103195pre
@@ -2561,22 +2509,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/d3-color@npm:^1":
-  version: 1.4.2
-  resolution: "@types/d3-color@npm:1.4.2"
-  checksum: 60d0f00ceb53052a142c606465eeec49b264a8dee180ddeda121770bd24e2fe34d8c33140022d929a5bf3d862e6908a55ee86ac629d10ac93f124fb40db7022a
-  languageName: node
-  linkType: hard
-
-"@types/d3-interpolate@npm:^1.4.0":
-  version: 1.4.2
-  resolution: "@types/d3-interpolate@npm:1.4.2"
-  dependencies:
-    "@types/d3-color": ^1
-  checksum: 3d551377c036580efb4f918171300d849d9bf7c6fe61b1ee6ba916065a2e406cded2aaef067a39d068ec6ab898053abb703413921f2d3701c9332bd201152ef9
-  languageName: node
-  linkType: hard
-
 "@types/d3-interpolate@npm:^3.0.0":
   version: 3.0.1
   resolution: "@types/d3-interpolate@npm:3.0.1"
@@ -4166,13 +4098,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-color@npm:1":
-  version: 1.4.1
-  resolution: "d3-color@npm:1.4.1"
-  checksum: a214b61458b5fcb7ad1a84faed0e02918037bab6be37f2d437bf0e2915cbd854d89fbf93754f17b0781c89e39d46704633d05a2bfae77e6209f0f4b140f9894b
-  languageName: node
-  linkType: hard
-
 "d3-color@npm:1 - 3, d3-color@npm:3":
   version: 3.1.0
   resolution: "d3-color@npm:3.1.0"
@@ -4292,15 +4217,6 @@ __metadata:
   dependencies:
     d3-color: 1 - 3
   checksum: a42ba314e295e95e5365eff0f604834e67e4a3b3c7102458781c477bd67e9b24b6bb9d8e41ff5521050a3f2c7c0c4bbbb6e187fd586daa3980943095b267e78b
-  languageName: node
-  linkType: hard
-
-"d3-interpolate@npm:1.4.0":
-  version: 1.4.0
-  resolution: "d3-interpolate@npm:1.4.0"
-  dependencies:
-    d3-color: 1
-  checksum: d98988bd1e2f59d01f100d0a19315ad8f82ef022aa09a65aff76f747a44f9b52f2d64c6578b8f47e01f2b14a8f0ef88f5460d11173c0dd2d58238c217ac0ec03
   languageName: node
   linkType: hard
 
@@ -5908,21 +5824,6 @@ __metadata:
   version: 1.0.0-beta.2
   resolution: "gensync@npm:1.0.0-beta.2"
   checksum: a7437e58c6be12aa6c90f7730eac7fa9833dc78872b4ad2963d2031b00a3367a93f98aec75f9aaac7220848e4026d67a8655e870b24f20a543d103c0d65952ec
-  languageName: node
-  linkType: hard
-
-"geotiff@npm:2.0.4":
-  version: 2.0.4
-  resolution: "geotiff@npm:2.0.4"
-  dependencies:
-    "@petamoriken/float16": ^3.4.7
-    lerc: ^3.0.0
-    lru-cache: ^6.0.0
-    pako: ^2.0.4
-    parse-headers: ^2.0.2
-    web-worker: ^1.2.0
-    xml-utils: ^1.0.2
-  checksum: 68d54ea7b9a8965287b20a7c30b5eb9552bd21ed341edfd65dfd424309b7d91fffb2dc474298f23bc2274ed8b34d1792812fa444385bd6000173d706de675169
   languageName: node
   linkType: hard
 
@@ -8247,16 +8148,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ol-mapbox-style@npm:9.1.0":
-  version: 9.1.0
-  resolution: "ol-mapbox-style@npm:9.1.0"
-  dependencies:
-    "@mapbox/mapbox-gl-style-spec": ^13.23.1
-    mapbox-to-css-font: ^2.4.1
-  checksum: 587a41456b76e1bd592b7594c288661ee8c651e9f1cd038a53ff5c01654b68081911088a6feba6ee3ac133f34072d629f171dbf35cd2f13dab3908d519268978
-  languageName: node
-  linkType: hard
-
 "ol-mapbox-style@npm:^9.2.0":
   version: 9.6.0
   resolution: "ol-mapbox-style@npm:9.6.0"
@@ -8264,19 +8155,6 @@ __metadata:
     "@mapbox/mapbox-gl-style-spec": ^13.23.1
     mapbox-to-css-font: ^2.4.1
   checksum: 9fe0cce55eb35ad041cf8ab201e10e3b9d436e080e993344317387f3c9ed30f94edb111a8b6beac97511c7898feef2032864f1a188e7f65ac9b14257741b221f
-  languageName: node
-  linkType: hard
-
-"ol@npm:7.1.0":
-  version: 7.1.0
-  resolution: "ol@npm:7.1.0"
-  dependencies:
-    earcut: ^2.2.3
-    geotiff: 2.0.4
-    ol-mapbox-style: 9.1.0
-    pbf: 3.2.1
-    rbush: ^3.0.1
-  checksum: 0935be63be953d29e142ea38191e0161c58ec75375bd60640f7e54c4c831dd5d0401c55f4144ede159e90c0bb3c3e6bc7a71c1f82e640208df6dfc9325da5abd
   languageName: node
   linkType: hard
 
@@ -9839,15 +9717,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:7.5.7":
-  version: 7.5.7
-  resolution: "rxjs@npm:7.5.7"
-  dependencies:
-    tslib: ^2.1.0
-  checksum: edabcdb73b0f7e0f5f6e05c2077aff8c52222ac939069729704357d6406438acca831c24210db320aba269e86dbe1a400f3769c89101791885121a342fb15d9c
-  languageName: node
-  linkType: hard
-
 "rxjs@npm:7.8.0, rxjs@npm:^7.5.7":
   version: 7.8.0
   resolution: "rxjs@npm:7.8.0"
@@ -10628,13 +10497,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinycolor2@npm:1.4.2":
-  version: 1.4.2
-  resolution: "tinycolor2@npm:1.4.2"
-  checksum: 57ed262e08815a4ab0ed933edafdbc6555a17081781766149813b44a080ecbe58b3ee281e81c0e75b42e4d41679f138cfa98eabf043f829e0683c04adb12c031
-  languageName: node
-  linkType: hard
-
 "tinycolor2@npm:1.6.0":
   version: 1.6.0
   resolution: "tinycolor2@npm:1.6.0"
@@ -10986,13 +10848,6 @@ __metadata:
   bin:
     browserslist-lint: cli.js
   checksum: 12db73b4f63029ac407b153732e7cd69a1ea8206c9100b482b7d12859cd3cd0bc59c602d7ae31e652706189f1acb90d42c53ab24a5ba563ed13aebdddc5561a0
-  languageName: node
-  linkType: hard
-
-"uplot@npm:1.6.23":
-  version: 1.6.23
-  resolution: "uplot@npm:1.6.23"
-  checksum: 4fd2b6340b09f8cbff5c136238962c4e31621267a17c321e0183d021c72338973ba16fd943858248983edc4cf9307e352f99e806b6ffb5eaff7a132adaff2bff
   languageName: node
   linkType: hard
 
