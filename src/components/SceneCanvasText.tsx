@@ -13,6 +13,10 @@ export interface SceneCanvasTextState extends SceneLayoutChildState {
   align?: 'left' | 'center' | 'right';
 }
 
+/**
+ * Not a really useful component, just an example of how to create one
+ * @internal
+ */
 export class SceneCanvasText extends SceneObjectBase<SceneCanvasTextState> {
   public static Editor = Editor;
 
