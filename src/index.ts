@@ -4,6 +4,7 @@ export { sceneGraph } from './core/sceneGraph';
 export { SceneObjectBase } from './core/SceneObjectBase';
 export { SceneDataNode } from './core/SceneDataNode';
 export { SceneDataTransformer } from './core/SceneDataTransformer';
+export { SceneDataCustomTransformer } from './core/SceneDataCustomTransformer';
 export { SceneTimeRange } from './core/SceneTimeRange';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
