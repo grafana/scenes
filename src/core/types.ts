@@ -1,7 +1,16 @@
 import React from 'react';
-import { Observer, Subscription, Unsubscribable } from 'rxjs';
+import { MonoTypeOperatorFunction, Observer, Subscription, Unsubscribable } from 'rxjs';
 
-import { BusEvent, BusEventHandler, BusEventType, PanelData, TimeRange, TimeZone } from '@grafana/data';
+import {
+  BusEvent,
+  BusEventHandler,
+  BusEventType,
+  DataFrame,
+  DataTransformContext,
+  PanelData,
+  TimeRange,
+  TimeZone,
+} from '@grafana/data';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 
@@ -156,6 +165,8 @@ export interface SceneObjectUrlSyncHandler<TState> {
 
 export type SceneObjectUrlValue = string | string[] | undefined | null;
 export type SceneObjectUrlValues = Record<string, SceneObjectUrlValue>;
+
+export type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
 
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];

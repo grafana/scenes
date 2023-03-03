@@ -1,8 +1,9 @@
 import { cloneDeep } from 'lodash';
-import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of } from 'rxjs';
+import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of, from } from 'rxjs';
 
 import {
   CoreApp,
+  DataFrame,
   DataQuery,
   DataQueryRequest,
   DataSourceRef,
@@ -17,7 +18,7 @@ import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneObject, SceneObjectStatePlain } from '../core/types';
+import { CustomTransformOperator, SceneObject, SceneObjectStatePlain } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -33,7 +34,8 @@ export function getNextRequestId() {
 export interface QueryRunnerState extends SceneObjectStatePlain {
   data?: PanelData;
   queries: DataQueryExtended[];
-  transformations?: DataTransformerConfig[];
+  // Array of standard transformation configs and custom transform operators
+  transformations?: Array<DataTransformerConfig | CustomTransformOperator>;
   datasource?: DataSourceRef;
   minInterval?: string;
   maxDataPoints?: number;
@@ -233,7 +235,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
 export const getTransformationsStream: (
   sceneObject: SceneObject,
-  transformations?: DataTransformerConfig[]
+  transformations?: Array<DataTransformerConfig | CustomTransformOperator>
 ) => MonoTypeOperatorFunction<PanelData> = (sceneObject, transformations) => (inputStream) => {
   return inputStream.pipe(
     mergeMap((data) => {
@@ -247,7 +249,57 @@ export const getTransformationsStream: (
         },
       };
 
-      return transformDataFrame(transformations, data.series, ctx).pipe(map((series) => ({ ...data, series })));
+      const transformationsToApply = getTransformations(transformations);
+
+      let stream = of(data.series);
+
+      return from(transformationsToApply).pipe(
+        mergeMap((t) => {
+          if (isCustomTransformation(t[0])) {
+            const operators: Array<MonoTypeOperatorFunction<DataFrame[]>> = [];
+            for (const customOperator of t as CustomTransformOperator[]) {
+              operators.push(customOperator(ctx));
+            }
+            // @ts-ignore TypeScript has a hard time understanding this construct
+            stream = stream.pipe.apply(stream, operators);
+          } else {
+            stream = stream.pipe(mergeMap((series) => transformDataFrame(t as DataTransformerConfig[], series, ctx)));
+          }
+          return stream;
+        }),
+        map((series) => ({ ...data, series }))
+      );
     })
   );
 };
+
+function getTransformations(transformations: Array<DataTransformerConfig | CustomTransformOperator>) {
+  const result: Array<DataTransformerConfig[] | CustomTransformOperator[]> = [];
+  let agg: DataTransformerConfig[] | CustomTransformOperator[] = [];
+
+  for (let i = 0; i < transformations.length; i++) {
+    agg.push(transformations[i] as any);
+
+    if (isCustomTransformation(transformations[i])) {
+      if (i + 1 <= transformations.length && !isCustomTransformation(transformations[i + 1])) {
+        result.push(agg);
+        agg = [];
+      }
+    } else {
+      if (i + 1 <= transformations.length && isCustomTransformation(transformations[i + 1])) {
+        result.push(agg);
+        agg = [];
+      }
+    }
+
+    if (i === transformations.length - 1) {
+      result.push(agg);
+    }
+  }
+
+  return result;
+}
+
+function isCustomTransformation(t: DataTransformerConfig | CustomTransformOperator): t is CustomTransformOperator {
+  return typeof t === 'function';
+}
