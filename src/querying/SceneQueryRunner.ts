@@ -1,9 +1,8 @@
 import { cloneDeep } from 'lodash';
-import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of, from } from 'rxjs';
+import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of } from 'rxjs';
 
 import {
   CoreApp,
-  DataFrame,
   DataQuery,
   DataQueryRequest,
   DataSourceRef,
@@ -249,57 +248,7 @@ export const getTransformationsStream: (
         },
       };
 
-      const transformationsToApply = getTransformations(transformations);
-
-      let stream = of(data.series);
-
-      return from(transformationsToApply).pipe(
-        mergeMap((t) => {
-          if (isCustomTransformation(t[0])) {
-            const operators: Array<MonoTypeOperatorFunction<DataFrame[]>> = [];
-            for (const customOperator of t as CustomTransformOperator[]) {
-              operators.push(customOperator(ctx));
-            }
-            // @ts-ignore TypeScript has a hard time understanding this construct
-            stream = stream.pipe.apply(stream, operators);
-          } else {
-            stream = stream.pipe(mergeMap((series) => transformDataFrame(t as DataTransformerConfig[], series, ctx)));
-          }
-          return stream;
-        }),
-        map((series) => ({ ...data, series }))
-      );
+      return transformDataFrame(transformations, data.series, ctx).pipe(map((series) => ({ ...data, series })));
     })
   );
 };
-
-function getTransformations(transformations: Array<DataTransformerConfig | CustomTransformOperator>) {
-  const result: Array<DataTransformerConfig[] | CustomTransformOperator[]> = [];
-  let agg: DataTransformerConfig[] | CustomTransformOperator[] = [];
-
-  for (let i = 0; i < transformations.length; i++) {
-    agg.push(transformations[i] as any);
-
-    if (isCustomTransformation(transformations[i])) {
-      if (i + 1 <= transformations.length && !isCustomTransformation(transformations[i + 1])) {
-        result.push(agg);
-        agg = [];
-      }
-    } else {
-      if (i + 1 <= transformations.length && isCustomTransformation(transformations[i + 1])) {
-        result.push(agg);
-        agg = [];
-      }
-    }
-
-    if (i === transformations.length - 1) {
-      result.push(agg);
-    }
-  }
-
-  return result;
-}
-
-function isCustomTransformation(t: DataTransformerConfig | CustomTransformOperator): t is CustomTransformOperator {
-  return typeof t === 'function';
-}
