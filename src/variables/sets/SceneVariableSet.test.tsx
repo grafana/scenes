@@ -5,12 +5,13 @@ import { act } from 'react-dom/test-utils';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
 import { SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObjectStatePlain, SceneLayoutChildState, SceneObject } from '../../core/types';
+import { SceneObjectStatePlain, SceneLayoutChildState, SceneObject, SceneComponentProps } from '../../core/types';
 import { TestVariable } from '../variants/TestVariable';
 
 import { SceneVariableSet } from './SceneVariableSet';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
+import { sceneGraph } from '../../core/sceneGraph';
 
 interface TestSceneState extends SceneObjectStatePlain {
   nested?: SceneObject;
@@ -19,6 +20,23 @@ interface TestSceneState extends SceneObjectStatePlain {
 }
 
 class TestScene extends SceneObjectBase<TestSceneState> {}
+
+interface SceneTextItemState extends SceneObjectStatePlain {
+  text: string;
+}
+
+class SceneTextItem extends SceneObjectBase<SceneTextItemState> {
+  protected _variableDependency = new VariableDependencyConfig(this, { statePaths: ['text'] });
+  public renderCount = 0;
+
+  public static Component = ({ model }: SceneComponentProps<SceneTextItem>) => {
+    const { text, key } = model.useState();
+
+    model.renderCount += 1;
+
+    return <div data-testid={key}>{sceneGraph.interpolate(model, text)}</div>;
+  };
+}
 
 describe('SceneVariableList', () => {
   describe('When activated', () => {
@@ -121,8 +139,8 @@ describe('SceneVariableList', () => {
         const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
         const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
 
-        const helloText = new SceneCanvasText({ text: 'Hello' });
-        const sceneObjectWithVariable = new SceneCanvasText({ text: '$A - $B' });
+        const helloText = new SceneTextItem({ text: 'Hello' });
+        const sceneObjectWithVariable = new SceneTextItem({ text: '$A - $B', key: '' });
 
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [B, A] }),
@@ -139,16 +157,16 @@ describe('SceneVariableList', () => {
         });
 
         expect(screen.getByText('AA - AAA')).toBeInTheDocument();
-        expect((helloText as any)._renderCount).toBe(1);
-        expect((sceneObjectWithVariable as any)._renderCount).toBe(2);
+        expect((helloText as any).renderCount).toBe(1);
+        expect((sceneObjectWithVariable as any).renderCount).toBe(2);
 
         act(() => {
           B.changeValueTo('B');
         });
 
         expect(screen.getByText('AA - B')).toBeInTheDocument();
-        expect((helloText as any)._renderCount).toBe(1);
-        expect((sceneObjectWithVariable as any)._renderCount).toBe(3);
+        expect((helloText as any).renderCount).toBe(1);
+        expect((sceneObjectWithVariable as any).renderCount).toBe(3);
       });
     });
   });
