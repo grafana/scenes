@@ -22,10 +22,6 @@ function SceneComponentWrapperWithoutMemo<T extends SceneObject>({
     };
   }, [model]);
 
-  /** Useful for tests and evaluating efficiency in reducing renderings */
-  // @ts-ignore
-  model._renderCount += 1;
-
   if (!isEditing) {
     return inner;
   }
