@@ -8,6 +8,7 @@ import {
   DataSourceRef,
   DataTransformerConfig,
   PanelData,
+  preProcessPanelData,
   rangeUtil,
   ScopedVar,
   TimeRange,
@@ -217,7 +218,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
       this._querySub = runRequest(ds, request)
-        .pipe(getTransformationsStream(this, this.state.transformations))
+        .pipe(getTransformationsStream(this, this.state.transformations, this.state.data))
         .subscribe({
           next: this.onDataReceived,
         });
@@ -231,23 +232,28 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   };
 }
 
-export const getTransformationsStream: (
+export function getTransformationsStream(
   sceneObject: SceneObject,
-  transformations?: DataTransformerConfig[]
-) => MonoTypeOperatorFunction<PanelData> = (sceneObject, transformations) => (inputStream) => {
-  return inputStream.pipe(
-    mergeMap((data) => {
-      if (!transformations || transformations.length === 0) {
-        return of(data);
-      }
+  transformations?: DataTransformerConfig[],
+  lastResult?: PanelData
+): MonoTypeOperatorFunction<PanelData> {
+  return (inputStream) => {
+    return inputStream.pipe(
+      mergeMap((data) => {
+        const preProcessedData = preProcessPanelData(data, lastResult);
 
-      const ctx = {
-        interpolate: (value: string) => {
-          return sceneGraph.interpolate(sceneObject, value, data?.request?.scopedVars);
-        },
-      };
+        if (!transformations || transformations.length === 0) {
+          return of(preProcessedData);
+        }
 
-      return transformDataFrame(transformations, data.series, ctx).pipe(map((series) => ({ ...data, series })));
-    })
-  );
-};
+        const ctx = {
+          interpolate: (value: string) => {
+            return sceneGraph.interpolate(sceneObject, value, preProcessedData?.request?.scopedVars);
+          },
+        };
+
+        return transformDataFrame(transformations, data.series, ctx).pipe(map((series) => ({ ...data, series })));
+      })
+    );
+  };
+}
