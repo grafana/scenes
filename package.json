@@ -99,7 +99,7 @@
     "rollup-plugin-esbuild": "5.0.0",
     "rollup-plugin-node-externals": "^5.0.0",
     "rollup-plugin-svg-import": "^1.6.0",
-    "rxjs": "7.5.7",
+    "rxjs": "7.8.0",
     "ts-jest": "29.0.3",
     "ts-node": "10.9.1",
     "tsc-watch": "^4.5.0",

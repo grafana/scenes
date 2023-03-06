@@ -5,6 +5,8 @@ import {
   PanelPlugin,
   toUtc,
   getPanelOptionsWithDefaults,
+  ScopedVars,
+  InterpolateFunction,
 } from '@grafana/data';
 import { config, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -13,6 +15,7 @@ import { DeepPartial, SceneLayoutChildState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
+import { CustomFormatterFn } from '../../variables/interpolation/sceneInterpolator';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLayoutChildState {
   title: string;
@@ -21,6 +24,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLa
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
+  displayMode?: 'default' | 'transparent';
+  hoverHeader?: boolean;
   // internal state
   pluginLoadError?: string;
 }
@@ -82,6 +87,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     });
 
     this._plugin = plugin;
+
     this.setState({
       options: withDefaults.options,
       fieldConfig: withDefaults.fieldConfig,
@@ -116,4 +122,8 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   public onFieldConfigChange = (fieldConfig: FieldConfigSource<TFieldConfig>) => {
     this.setState({ fieldConfig });
   };
+
+  public interpolate = ((value: string, scoped?: ScopedVars, format?: string | CustomFormatterFn) => {
+    return sceneGraph.interpolate(this, value, scoped, format);
+  }) as InterpolateFunction;
 }
