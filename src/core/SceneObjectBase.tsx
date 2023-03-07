@@ -19,8 +19,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   private _state: TState;
   private _events = new EventBusSrv();
 
-  /** Incremented in SceneComponentWrapper, useful for tests and rendering optimizations */
-  protected _renderCount = 0;
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
 

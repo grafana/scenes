@@ -19,6 +19,7 @@ export { CustomVariable } from './variables/variants/CustomVariable';
 export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
+export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 
 export { UrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
