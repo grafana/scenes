@@ -17,7 +17,7 @@ import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneObject, SceneObjectStatePlain } from '../core/types';
+import { CustomTransformOperator, SceneObject, SceneObjectStatePlain } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -33,7 +33,8 @@ export function getNextRequestId() {
 export interface QueryRunnerState extends SceneObjectStatePlain {
   data?: PanelData;
   queries: DataQueryExtended[];
-  transformations?: DataTransformerConfig[];
+  // Array of standard transformation configs and custom transform operators
+  transformations?: Array<DataTransformerConfig | CustomTransformOperator>;
   datasource?: DataSourceRef;
   minInterval?: string;
   maxDataPoints?: number;
@@ -233,7 +234,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
 export const getTransformationsStream: (
   sceneObject: SceneObject,
-  transformations?: DataTransformerConfig[]
+  transformations?: Array<DataTransformerConfig | CustomTransformOperator>
 ) => MonoTypeOperatorFunction<PanelData> = (sceneObject, transformations) => (inputStream) => {
   return inputStream.pipe(
     mergeMap((data) => {

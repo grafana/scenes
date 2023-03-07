@@ -6,10 +6,11 @@ import { getTransformationsStream } from '../querying/SceneQueryRunner';
 
 import { SceneObjectBase } from './SceneObjectBase';
 import { sceneGraph } from './sceneGraph';
-import { SceneDataState } from './types';
+import { CustomTransformOperator, SceneDataState } from './types';
 
 export interface SceneDataTransformerState extends SceneDataState {
-  transformations?: DataTransformerConfig[];
+  // Array of standard transformation configs and custom transform operators
+  transformations?: Array<DataTransformerConfig | CustomTransformOperator>;
 }
 
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> {
