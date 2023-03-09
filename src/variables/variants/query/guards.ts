@@ -7,7 +7,10 @@ import {
   StandardVariableQuery,
   DataQueryRequest,
   DataQueryResponse,
+  QueryEditorProps,
 } from '@grafana/data';
+import { TemplateSrv } from '@grafana/runtime';
+import { ComponentType } from 'react';
 
 import { Observable } from 'rxjs';
 
@@ -35,6 +38,29 @@ interface DataSourceWithStandardVariableSupport<
   };
 }
 
+interface DataSourceWithCustomVariableSupport<
+  TQuery extends DataQuery = DataQuery,
+  TOptions extends DataSourceJsonData = DataSourceJsonData
+> extends DataSourceApi<TQuery, TOptions> {
+  variables: {
+    getType(): VariableSupportType;
+    editor: VariableQueryEditorType;
+    query(request: DataQueryRequest<TQuery>): Observable<DataQueryResponse>;
+  };
+}
+
+interface VariableQueryEditorProps {
+  query: any;
+  onChange: (query: any, definition: string) => void;
+  datasource: any;
+  templateSrv: TemplateSrv;
+}
+
+type VariableQueryEditorType<
+  TQuery extends DataQuery = DataQuery,
+  TOptions extends DataSourceJsonData = DataSourceJsonData
+> = ComponentType<VariableQueryEditorProps> | ComponentType<QueryEditorProps<any, TQuery, TOptions, any>> | null;
+
 export const hasLegacyVariableSupport = <
   TQuery extends DataQuery = DataQuery,
   TOptions extends DataSourceJsonData = DataSourceJsonData
@@ -60,4 +86,27 @@ export const hasStandardVariableSupport = <
 
   const variableSupport = datasource.variables;
   return 'toDataQuery' in variableSupport && Boolean(variableSupport.toDataQuery);
+};
+
+export const hasCustomVariableSupport = <
+  TQuery extends DataQuery = DataQuery,
+  TOptions extends DataSourceJsonData = DataSourceJsonData
+>(
+  datasource: DataSourceApi<TQuery, TOptions>
+): datasource is DataSourceWithCustomVariableSupport<TQuery, TOptions> => {
+  if (!datasource.variables) {
+    return false;
+  }
+
+  if (datasource.variables.getType() !== VariableSupportType.Custom) {
+    return false;
+  }
+
+  const variableSupport = datasource.variables;
+  return (
+    'query' in variableSupport &&
+    'editor' in variableSupport &&
+    Boolean(variableSupport.query) &&
+    Boolean(variableSupport.editor)
+  );
 };

@@ -10,7 +10,7 @@ import {
 } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
-import { hasLegacyVariableSupport, hasStandardVariableSupport } from './guards';
+import { hasCustomVariableSupport, hasLegacyVariableSupport, hasStandardVariableSupport } from './guards';
 
 import { QueryVariable } from './QueryVariable';
 
@@ -88,6 +88,29 @@ class LegacyQueryRunner implements QueryRunner {
   }
 }
 
+class CustomQueryRunner implements QueryRunner {
+  public constructor(private datasource: DataSourceApi, private _runRequest = getRunRequest()) {}
+
+  public getTarget(variable: QueryVariable) {
+    if (hasCustomVariableSupport(this.datasource)) {
+      return variable.state.query;
+    }
+
+    throw new Error("Couldn't create a target with supplied arguments.");
+  }
+
+  public runRequest(_: RunnerArgs, request: DataQueryRequest) {
+    if (!hasCustomVariableSupport(this.datasource)) {
+      return getEmptyMetricFindValueObservable();
+    }
+
+    if (!this.datasource.variables.query) {
+      return this._runRequest(this.datasource, request);
+    }
+    return this._runRequest(this.datasource, request, this.datasource.variables.query);
+  }
+}
+
 function getEmptyMetricFindValueObservable(): Observable<PanelData> {
   return of({ state: LoadingState.Done, series: [], timeRange: getDefaultTimeRange() });
 }
@@ -101,7 +124,9 @@ function createQueryVariableRunnerFactory(datasource: DataSourceApi): QueryRunne
     return new LegacyQueryRunner(datasource);
   }
 
-  // TODO: add support for legacy, cutom and datasource query runners
+  if (hasCustomVariableSupport(datasource)) {
+    return new CustomQueryRunner(datasource);
+  }
 
   throw new Error(`Couldn't create a query runner for datasource ${datasource.type}`);
 }
