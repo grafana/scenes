@@ -6,6 +6,8 @@ import { SceneVariables } from '../variables/types';
 
 import { SceneDataState, SceneEditor, SceneLayoutState, SceneObject, SceneTimeRangeLike } from './types';
 import { lookupVariable } from '../variables/lookupVariable';
+import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
+import { SceneGridLayout } from '../components/layout/SceneGridLayout';
 
 /**
  * Get the closest node with variables
@@ -74,7 +76,7 @@ export function getSceneEditor(sceneObject: SceneObject): SceneEditor {
  * Will walk up the scene object graph to the closest $layout scene object
  */
 export function getLayout(scene: SceneObject): SceneObject<SceneLayoutState> {
-  if (scene.constructor.name === 'SceneFlexLayout' || scene.constructor.name === 'SceneGridLayout') {
+  if (scene instanceof SceneFlexLayout || scene instanceof SceneGridLayout) {
     return scene as SceneObject<SceneLayoutState>;
   }
 
