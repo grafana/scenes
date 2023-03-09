@@ -14,7 +14,7 @@ function formatValue<T extends VariableValue>(
 }
 
 describe('formatRegistry', () => {
-  it('Can format values acccording to format', () => {
+  it('Can format values according to format', () => {
     expect(formatValue(FormatRegistryID.lucene, 'foo bar')).toBe('foo\\ bar');
     expect(formatValue(FormatRegistryID.lucene, '-1')).toBe('-1');
     expect(formatValue(FormatRegistryID.lucene, '-test')).toBe('\\-test');
@@ -46,6 +46,7 @@ describe('formatRegistry', () => {
     );
 
     expect(formatValue(FormatRegistryID.json, ['test', 12])).toBe('["test",12]');
+    expect(formatValue(FormatRegistryID.json, 'test')).toBe('test');
 
     expect(formatValue(FormatRegistryID.percentEncode, ['foo()bar BAZ', 'test2'])).toBe(
       '%7Bfoo%28%29bar%20BAZ%2Ctest2%7D'

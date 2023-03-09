@@ -179,6 +179,9 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       name: 'JSON',
       description: 'JSON stringify value',
       formatter: (value) => {
+        if (typeof value === 'string') {
+          return value
+        }
         return JSON.stringify(value);
       },
     },
