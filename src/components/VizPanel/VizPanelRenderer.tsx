@@ -31,7 +31,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const parentLayout = sceneGraph.getLayout(model);
 
   // If parent has enabled dragging and we have not explicitly disabled it then dragging is enabled
-  const isDraggable = parentLayout.isDraggable() ? placement?.isDraggable ?? true : false;
+  const isDraggable = parentLayout.isDraggable() && (placement?.isDraggable ?? true);
   const dragClass = isDraggable && parentLayout.getDragClassName ? parentLayout.getDragClassName() : '';
   const dragClassCancel =
     isDraggable && parentLayout.getDragCancelClassName ? parentLayout.getDragCancelClassName() : '';
