@@ -21,6 +21,16 @@ const getDrilldownScene = (match: SceneRouteMatch<{ id: string }>) =>
   setupScene(new SceneCanvasText({ text: `${match.params.id} drilldown!` }));
 
 describe('SceneApp', () => {
+  const original = console.error;
+
+  beforeEach(() => {
+    console.error = jest.fn();
+  });
+
+  afterEach(() => {
+    console.error = original;
+  });
+
   it('should error when rendered outside of a router context', () => {
     const page1Scene = setupScene(new SceneCanvasText({ text: 'Page 1' }));
     const app = new SceneApp({
