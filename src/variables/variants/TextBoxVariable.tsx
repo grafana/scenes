@@ -23,7 +23,7 @@ export class TextBoxVariable
       ...initialState,
     });
 
-    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: [this.getKey()]})
+    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: [this.getKey()] });
   }
 
   public getValue(): VariableValue {
@@ -40,7 +40,7 @@ export class TextBoxVariable
   }
 
   public getUrlState(state: TextBoxVariableState) {
-    return { [this.getKey()]: state.value }; 
+    return { [this.getKey()]: state.value };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
@@ -49,7 +49,7 @@ export class TextBoxVariable
     if (typeof val === 'string') {
       update.value = val;
     }
-    
+
     this.setState(update);
   }
 
