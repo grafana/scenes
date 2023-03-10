@@ -3,14 +3,25 @@ import ReactGridLayout from 'react-grid-layout';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneLayoutChild, SceneLayoutState, SceneLayoutChildOptions } from '../../core/types';
+import {
+  SceneComponentProps,
+  SceneLayout,
+  SceneLayoutChild,
+  SceneLayoutState,
+  SceneLayoutChildOptions,
+} from '../../core/types';
 import { DEFAULT_PANEL_SPAN, GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
 
 import { SceneGridRow } from './SceneGridRow';
 
-interface SceneGridLayoutState extends SceneLayoutState {}
+interface SceneGridLayoutState extends SceneLayoutState {
+  /**
+   * Turn on or off dragging for all items. Indiviadual items can still disabled via placement.isDraggable
+   **/
+  isDraggable?: boolean;
+}
 
-export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> {
+export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> implements SceneLayout {
   public static Component = SceneGridLayoutRenderer;
 
   private _skipOnLayoutChange = false;
@@ -18,12 +29,25 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> {
   public constructor(state: SceneGridLayoutState) {
     super({
       ...state,
-      placement: {
-        isDraggable: true,
-        ...state.placement,
-      },
+      isDraggable: true,
+      placement: state.placement,
       children: sortChildrenByPosition(state.children),
     });
+  }
+
+  /**
+   * SceneLayout interface. Used for example by VizPanelRenderer
+   */
+  public isDraggable(): boolean {
+    return this.state.isDraggable ?? false;
+  }
+
+  public getDragClassName() {
+    return `grid-drag-handle-${this.state.key}`;
+  }
+
+  public getDragCancelClassName() {
+    return `grid-drag-cancel`;
   }
 
   public toggleRow(row: SceneGridRow) {
@@ -338,6 +362,7 @@ function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>
               cols={GRID_COLUMN_COUNT}
               rowHeight={GRID_CELL_HEIGHT}
               draggableHandle={`.grid-drag-handle-${model.state.key}`}
+              draggableCancel=".grid-drag-cancel"
               // @ts-ignore: ignoring for now until we make the size type numbers-only
               layout={layout}
               onDragStop={model.onDragStop}

@@ -111,7 +111,11 @@ export interface SceneLayoutState extends SceneLayoutChildState {
   children: SceneLayoutChild[];
 }
 
-export type SceneLayout<T extends SceneLayoutState = SceneLayoutState> = SceneObject<T>;
+export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> extends SceneObject<T> {
+  isDraggable(): boolean;
+  getDragClassName?(): string;
+  getDragCancelClassName?(): string;
+}
 
 export interface SceneEditorState extends SceneObjectStatePlain {
   hoverObject?: SceneObjectRef;

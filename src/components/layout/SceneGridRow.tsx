@@ -39,7 +39,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
     });
   }
 
-  public get layout(): SceneGridLayout {
+  public getGridLayout(): SceneGridLayout {
     const layout = this.parent;
 
     if (!layout || !(layout instanceof SceneGridLayout)) {
@@ -54,7 +54,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
       return;
     }
 
-    this.layout.toggleRow(this);
+    this.getGridLayout().toggleRow(this);
   };
 
   public getUrlState(state: SceneGridRowState) {
@@ -72,7 +72,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
   const { isCollapsible, isCollapsed, title, placement } = model.useState();
-  const dragHandle = <SceneDragHandle layoutKey={model.layout.state.key!} />;
+  const dragHandle = <SceneDragHandle dragClass={model.getGridLayout().getDragClassName()} />;
 
   return (
     <div className={styles.row}>
