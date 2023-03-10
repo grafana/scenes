@@ -8,7 +8,6 @@ import { PanelChrome, ErrorBoundaryAlert, useTheme2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
-import { SceneDragHandle } from '../SceneDragHandle';
 
 import { VizPanel } from './VizPanel';
 
@@ -31,11 +30,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const { data } = sceneGraph.getData(model).useState();
   const parentLayout = sceneGraph.getLayout(model);
 
-  // TODO: this should probably be parentLayout.isDraggingEnabled() ? placement?.isDraggable : false
-  // The current logic is not correct, just because parent layout itself is not draggable does not mean children are not
-  const isDraggable = parentLayout.state.placement?.isDraggable ? placement?.isDraggable : false;
-  const dragHandle = <SceneDragHandle layoutKey={parentLayout.state.key!} />;
+  // If parent has enabled dragging and we have not explicitly disabled it then dragging is enabled
+  const isDraggable = parentLayout.isDraggable() && (placement?.isDraggable ?? true);
+  const dragClass = isDraggable && parentLayout.getDragClass ? parentLayout.getDragClass() : '';
+  const dragClassCancel = isDraggable && parentLayout.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
 
+  // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
 
   // Not sure we need to subscribe to this state
@@ -61,7 +61,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     $data.setContainerWidth(width);
   }
 
-  const titleItems: React.ReactNode[] = isDraggable ? [dragHandle] : [];
+  const titleItems: React.ReactNode[] = [];
 
   // If we have local time range show that in panel header
   if (model.state.$timeRange) {
@@ -79,7 +79,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         height={height}
         displayMode={displayMode}
         hoverHeader={hoverHeader}
-        titleItems={isDraggable ? [dragHandle] : []}
+        titleItems={titleItems}
+        dragClass={dragClass}
+        dragClassCancel={dragClassCancel}
       >
         {(innerWidth, innerHeight) => (
           <>

@@ -4,7 +4,7 @@ import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/
 import { CustomFormatterFn, sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
 import { SceneVariables } from '../variables/types';
 
-import { SceneDataState, SceneEditor, SceneLayoutState, SceneObject, SceneTimeRangeLike } from './types';
+import { SceneDataState, SceneEditor, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
 import { lookupVariable } from '../variables/lookupVariable';
 
 /**
@@ -73,9 +73,9 @@ export function getSceneEditor(sceneObject: SceneObject): SceneEditor {
 /**
  * Will walk up the scene object graph to the closest $layout scene object
  */
-export function getLayout(scene: SceneObject): SceneObject<SceneLayoutState> {
-  if (scene.constructor.name === 'SceneFlexLayout' || scene.constructor.name === 'SceneGridLayout') {
-    return scene as SceneObject<SceneLayoutState>;
+export function getLayout(scene: SceneObject): SceneLayout {
+  if ('isDraggable' in scene) {
+    return scene as SceneLayout;
   }
 
   if (scene.parent) {

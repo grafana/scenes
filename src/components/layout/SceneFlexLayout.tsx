@@ -3,7 +3,13 @@ import React, { CSSProperties } from 'react';
 import { Field, RadioButtonGroup } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneLayoutChild, SceneLayoutState, SceneLayoutChildOptions } from '../../core/types';
+import {
+  SceneComponentProps,
+  SceneLayoutChild,
+  SceneLayoutState,
+  SceneLayoutChildOptions,
+  SceneLayout,
+} from '../../core/types';
 
 export type FlexLayoutDirection = 'column' | 'row';
 
@@ -12,7 +18,7 @@ interface SceneFlexLayoutState extends SceneLayoutState {
   wrap?: CSSProperties['flexWrap'];
 }
 
-export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> {
+export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
   public static Component = FlexLayoutRenderer;
   public static Editor = FlexLayoutEditor;
 
@@ -20,6 +26,10 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> {
     this.setState({
       direction: this.state.direction === 'row' ? 'column' : 'row',
     });
+  }
+
+  public isDraggable(): boolean {
+    return false;
   }
 }
 

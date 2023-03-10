@@ -5,7 +5,6 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps, SceneLayoutChildState, SceneObject, SceneObjectUrlValues } from '../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
 import { SceneDragHandle } from '../SceneDragHandle';
@@ -40,18 +39,22 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
     });
   }
 
-  public onCollapseToggle = () => {
-    if (!this.state.isCollapsible) {
-      return;
-    }
-
+  public getGridLayout(): SceneGridLayout {
     const layout = this.parent;
 
     if (!layout || !(layout instanceof SceneGridLayout)) {
       throw new Error('SceneGridRow must be a child of SceneGridLayout');
     }
 
-    layout.toggleRow(this);
+    return layout;
+  }
+
+  public onCollapseToggle = () => {
+    if (!this.state.isCollapsible) {
+      return;
+    }
+
+    this.getGridLayout().toggleRow(this);
   };
 
   public getUrlState(state: SceneGridRowState) {
@@ -69,8 +72,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
   const { isCollapsible, isCollapsed, title, placement } = model.useState();
-  const layout = sceneGraph.getLayout(model);
-  const dragHandle = <SceneDragHandle layoutKey={layout.state.key!} />;
+  const dragHandle = <SceneDragHandle dragClass={model.getGridLayout().getDragClass()} />;
 
   return (
     <div className={styles.row}>
