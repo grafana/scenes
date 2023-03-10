@@ -37,7 +37,6 @@ export class CustomQueryHandlerDataSource extends DataSourceApi {
   }
 
   public query(request: DataQueryRequest<DataQuery>): Promise<DataQueryResponse> | Observable<DataQueryResponse> {
-    console.log('asd');
     return this.customQueryHandler(request);
   }
 
