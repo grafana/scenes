@@ -3,7 +3,7 @@ import React from 'react';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayoutChildState } from '../core/types';
 
-export interface JustRenderMyReactState<TProps = {}> extends SceneLayoutChildState {
+export interface SceneReactObjectState<TProps = {}> extends SceneLayoutChildState {
   /**
    * React component to render
    */
@@ -19,11 +19,10 @@ export interface JustRenderMyReactState<TProps = {}> extends SceneLayoutChildSta
 }
 
 /**
- * Not a really useful component, just an example of how to create one
- * @internal
+ * A utility object that can be used to render any React component or ReactNode
  */
-export class JustRenderMyReact extends SceneObjectBase<JustRenderMyReactState> {
-  public static Component = ({ model }: SceneComponentProps<JustRenderMyReact>) => {
+export class SceneReactObject extends SceneObjectBase<SceneReactObjectState> {
+  public static Component = ({ model }: SceneComponentProps<SceneReactObject>) => {
     const { component: Component, props, reactNode } = model.useState();
 
     if (Component) {

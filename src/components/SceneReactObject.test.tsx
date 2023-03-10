@@ -1,12 +1,12 @@
 import { Button } from '@grafana/ui';
 import { screen, render, act } from '@testing-library/react';
 import React from 'react';
-import { JustRenderMyReact } from './JustRenderMyReact';
+import { SceneReactObject } from './SceneReactObject';
 import { SceneFlexLayout } from './layout/SceneFlexLayout';
 
-describe('JustRenderMyReact', () => {
+describe('SceneReactObject', () => {
   it('should render component', () => {
-    const jrmr = new JustRenderMyReact({
+    const jrmr = new SceneReactObject({
       component: Button,
       props: { children: 'buttonText' },
     });
@@ -26,7 +26,7 @@ describe('JustRenderMyReact', () => {
   });
 
   it('should render ReactNode', () => {
-    const jrmr = new JustRenderMyReact({
+    const jrmr = new SceneReactObject({
       reactNode: <Button>buttonText</Button>,
     });
 
