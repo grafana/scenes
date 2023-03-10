@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { RefreshPicker, TimeRangePicker, ToolbarButtonRow } from '@grafana/ui';
+import { TimeRangePicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -25,20 +25,17 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
   }
 
   return (
-    <ToolbarButtonRow alignment="right">
-      <TimeRangePicker
-        isOnCanvas={isOnCanvas}
-        value={timeRangeState.value}
-        onChange={timeRange.onTimeRangeChange}
-        timeZone={'browser'}
-        fiscalYearStartMonth={0}
-        onMoveBackward={() => {}}
-        onMoveForward={() => {}}
-        onZoom={() => {}}
-        onChangeTimeZone={() => {}}
-        onChangeFiscalYearStartMonth={() => {}}
-      />
-      <RefreshPicker onRefresh={timeRange.onRefresh} onIntervalChanged={() => {}} />
-    </ToolbarButtonRow>
+    <TimeRangePicker
+      isOnCanvas={isOnCanvas}
+      value={timeRangeState.value}
+      onChange={timeRange.onTimeRangeChange}
+      timeZone={'browser'}
+      fiscalYearStartMonth={0}
+      onMoveBackward={() => {}}
+      onMoveForward={() => {}}
+      onZoom={() => {}}
+      onChangeTimeZone={() => {}}
+      onChangeFiscalYearStartMonth={() => {}}
+    />
   );
 }

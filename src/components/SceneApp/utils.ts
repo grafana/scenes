@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { UrlQueryMap, urlUtil } from '@grafana/data';
 import { locationSearchToObject } from '@grafana/runtime';
 
-export function useAppQueryParams() {
+export function useAppQueryParams(): UrlQueryMap {
   const location = useLocation();
   return locationSearchToObject(location.search || '');
 }

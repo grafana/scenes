@@ -19,6 +19,7 @@ export { CustomVariable } from './variables/variants/CustomVariable';
 export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
+export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 
 export { UrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
@@ -29,6 +30,7 @@ export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
 export { SceneTimePicker } from './components/SceneTimePicker';
+export { SceneRefreshPicker } from './components/SceneRefreshPicker';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export { SceneFlexLayout } from './components/layout/SceneFlexLayout';
