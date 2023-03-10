@@ -113,8 +113,8 @@ export interface SceneLayoutState extends SceneLayoutChildState {
 
 export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> extends SceneObject<T> {
   isDraggable(): boolean;
-  getDragClassName?(): string;
-  getDragCancelClassName?(): string;
+  getDragClass?(): string;
+  getDragClassCancel?(): string;
 }
 
 export interface SceneEditorState extends SceneObjectStatePlain {
