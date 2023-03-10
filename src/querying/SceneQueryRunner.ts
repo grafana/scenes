@@ -11,7 +11,9 @@ import {
   rangeUtil,
   ScopedVar,
   TimeRange,
+  DataSourceApi,
   transformDataFrame,
+  ScopedVars,
 } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
@@ -23,12 +25,15 @@ import { VariableDependencyConfig } from '../variables/VariableDependencyConfig'
 import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
+import { CustomQueryHandlerDataSource } from './CustomQueryHandlerDataSource';
 
 let counter = 100;
 
 export function getNextRequestId() {
   return 'QS' + counter++;
 }
+
+export type CustomQueryHandler = DataSourceApi['query'];
 
 export interface QueryRunnerState extends SceneObjectStatePlain {
   data?: PanelData;
@@ -41,6 +46,10 @@ export interface QueryRunnerState extends SceneObjectStatePlain {
   // Non persisted state
   maxDataPointsFromWidth?: boolean;
   isWaitingForVariables?: boolean;
+  /**
+   * Allows plugin apps to implement custom query handling.
+   **/
+  customQueryHandler?: CustomQueryHandler;
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -189,7 +198,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     };
 
     try {
-      const ds = await getDataSource(datasource, request.scopedVars);
+      const ds = await this.getDataSource(datasource, request.scopedVars);
 
       // Attach the data source name to each query
       request.targets = request.targets.map((query) => {
@@ -225,6 +234,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
     }
+  }
+
+  private async getDataSource(dataSourceRef: DataSourceRef | undefined, scopedVars: ScopedVars) {
+    if (this.state.customQueryHandler) {
+      return new CustomQueryHandlerDataSource(this.state.customQueryHandler);
+    }
+
+    return await getDataSource(dataSourceRef, scopedVars);
   }
 
   private onDataReceived = (data: PanelData) => {

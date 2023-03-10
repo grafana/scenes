@@ -1,10 +1,12 @@
-import { map, of } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 
 import {
   ArrayVector,
   CustomTransformOperator,
   DataQueryRequest,
+  DataQueryResponse,
   DataSourceApi,
+  FieldType,
   getDefaultTimeRange,
   LoadingState,
   PanelData,
@@ -23,21 +25,34 @@ import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistr
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
+  query: () =>
+    of({
+      data: [
+        toDataFrame([
+          [100, 1],
+          [200, 2],
+          [300, 3],
+        ]),
+      ],
+    }),
 });
 
-const runRequestMock = jest.fn().mockReturnValue(
-  of<PanelData>({
-    state: LoadingState.Done,
-    series: [
-      toDataFrame([
-        [100, 1],
-        [200, 2],
-        [300, 3],
-      ]),
-    ],
-    timeRange: getDefaultTimeRange(),
-  })
-);
+const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
+  const result: PanelData = {
+    state: LoadingState.Loading,
+    series: [],
+    timeRange: request.range,
+  };
+
+  return (ds.query(request) as Observable<DataQueryResponse>).pipe(
+    map((packet) => {
+      result.state = LoadingState.Done;
+      //@ts-ignore
+      result.series = packet.data;
+      return result;
+    })
+  );
+});
 
 let sentRequest: DataQueryRequest | undefined;
 
@@ -236,6 +251,28 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
       expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([600, 1200, 1800]);
       expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([6, 12, 18]);
+    });
+
+    describe('Can execute custom datasource queries', () => {
+      it('Should call custom data source query function', async () => {
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A', query: '$A' }],
+          customQueryHandler: (request) =>
+            of({ data: [{ refId: 'A', fields: [{ name: 'time', type: FieldType.time, values: [123] }] }] }),
+        });
+
+        const scene = new SceneFlexLayout({
+          $timeRange: new SceneTimeRange(),
+          $data: queryRunner,
+          children: [],
+        });
+
+        scene.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.series[0].fields[0].values.get(0)).toBe(123);
+      });
     });
 
     describe('custom transformations', () => {
