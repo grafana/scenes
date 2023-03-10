@@ -32,9 +32,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // If parent has enabled dragging and we have not explicitly disabled it then dragging is enabled
   const isDraggable = parentLayout.isDraggable() && (placement?.isDraggable ?? true);
-  const dragClass = isDraggable && parentLayout.getDragClassName ? parentLayout.getDragClassName() : '';
-  const dragClassCancel =
-    isDraggable && parentLayout.getDragCancelClassName ? parentLayout.getDragCancelClassName() : '';
+  const dragClass = isDraggable && parentLayout.getDragClass ? parentLayout.getDragClass() : '';
+  const dragClassCancel = isDraggable && parentLayout.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');

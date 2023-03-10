@@ -42,11 +42,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     return this.state.isDraggable ?? false;
   }
 
-  public getDragClassName() {
+  public getDragClass() {
     return `grid-drag-handle-${this.state.key}`;
   }
 
-  public getDragCancelClassName() {
+  public getDragClassCancel() {
     return `grid-drag-cancel`;
   }
 
