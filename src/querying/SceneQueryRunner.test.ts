@@ -2,13 +2,11 @@ import { map, of } from 'rxjs';
 
 import {
   ArrayVector,
-  CustomTransformOperator,
   DataQueryRequest,
   DataSourceApi,
   getDefaultTimeRange,
   LoadingState,
   PanelData,
-  standardTransformersRegistry,
   toDataFrame,
 } from '@grafana/data';
 
