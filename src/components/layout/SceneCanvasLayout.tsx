@@ -1,4 +1,4 @@
-import React, { CSSProperties } from 'react';
+import React, {CSSProperties, useRef} from 'react';
 import { VerticalConstraint, HorizontalConstraint, BackgroundImageSize } from '../../core/canvasTypes';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -10,14 +10,28 @@ import {
   SceneLayout,
   SceneLayoutChildState,
 } from '../../core/types';
+import { initMoveable } from "./canvasUtils";
 
 interface SceneCanvasLayoutState extends SceneLayoutState {}
 
 export class SceneCanvasLayout extends SceneObjectBase<SceneCanvasLayoutState> implements SceneLayout {
   public static Component = CanvasLayoutRenderer;
+  public static Editor = CanvasLayoutEditor;
+
+  public moveable: { moveable: any, selecto: any} | undefined;
+  public moveableContainer: any | undefined;
+  public targetElements: any = []; // HTMLDivElement[] = []; // @TODO
+
 
   public isDraggable(): boolean {
     return false;
+  }
+
+  public initializeMoveable(ref: any) {
+    this.moveableContainer = ref;
+    if (this.moveableContainer && this.targetElements) {
+      this.moveable = initMoveable(this.moveableContainer.current, this.targetElements);
+    }
   }
 }
 
@@ -31,11 +45,18 @@ function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCan
     alignContent: 'baseline',
   };
 
+  const ref = useRef<any>();
+  model.initializeMoveable(ref);
+
   return (
-    <div style={style}>
-      {children.map((item) => (
-        <CanvasLayoutChildComponent key={item.state.key} item={item} isEditing={isEditing} />
-      ))}
+    <div style={style} ref={ref}>
+      {children.map((item) => {
+        return (
+          <div key={item.state.key} ref={(el) => model.targetElements.push(el)}>
+            <CanvasLayoutChildComponent key={item.state.key} item={item} isEditing={isEditing} />
+          </div>
+        )
+      })}
     </div>
   );
 }
@@ -216,4 +237,11 @@ function getItemStyles(state: SceneLayoutChildState = {}) {
   // }
 
   return style;
+}
+
+// @TODO implement
+function CanvasLayoutEditor({ model }: SceneComponentProps<SceneCanvasLayout>) {
+  return (
+      <div>EDITOR</div>
+  );
 }
