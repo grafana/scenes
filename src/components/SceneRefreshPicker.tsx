@@ -101,7 +101,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 }
 
 export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneRefreshPicker>) {
-  const { refresh, intervals } = model.useState();
+  const { refresh, intervals, isOnCanvas } = model.useState();
 
   return (
     <RefreshPicker
@@ -109,6 +109,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       intervals={intervals}
       onRefresh={model.onRefresh}
       onIntervalChanged={model.onIntervalChanged}
+      isOnCanvas={isOnCanvas}
     />
   );
 }
