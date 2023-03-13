@@ -1,4 +1,5 @@
 export * from './core/types';
+export * from './core/canvasTypes';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
 export { SceneObjectBase } from './core/SceneObjectBase';
@@ -34,6 +35,7 @@ export { SceneRefreshPicker } from './components/SceneRefreshPicker';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export { SceneFlexLayout } from './components/layout/SceneFlexLayout';
+export { SceneCanvasLayout } from './components/layout/SceneCanvasLayout';
 export { SceneGridLayout } from './components/layout/SceneGridLayout';
 export { SceneGridRow } from './components/layout/SceneGridRow';
 export { SceneApp, SceneAppPage, type SceneRouteMatch } from './components/SceneApp/SceneApp';

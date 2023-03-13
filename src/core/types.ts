@@ -13,6 +13,7 @@ import {
 } from '@grafana/data';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
+import { BackgroundConfig, Constraint, LineConfig } from './canvasTypes';
 
 export interface SceneObjectStatePlain {
   key?: string;
@@ -24,21 +25,30 @@ export interface SceneObjectStatePlain {
 
 export interface SceneLayoutChildState extends SceneObjectStatePlain {
   placement?: SceneLayoutChildOptions;
+  constraint?: Constraint; // defaults vertical - top, horizontal - left
+  background?: BackgroundConfig;
+  border?: LineConfig;
 }
 
 export type SceneObjectState = SceneObjectStatePlain | SceneLayoutState | SceneLayoutChildState;
 
+//TODO rename this to placement
 export interface SceneLayoutChildOptions {
   width?: number | string;
   height?: number | string;
   xSizing?: 'fill' | 'content';
   ySizing?: 'fill' | 'content';
-  x?: number;
-  y?: number;
+  x?: number; // grid coordinates
+  y?: number; // grid coordinates
   minWidth?: number | string;
   minHeight?: number | string;
   isDraggable?: boolean;
   isResizable?: boolean;
+  // canvas layout
+  top?: number;
+  left?: number;
+  right?: number;
+  bottom?: number;
 }
 
 export interface SceneComponentProps<T> {
