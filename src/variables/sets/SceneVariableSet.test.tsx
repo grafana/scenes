@@ -384,6 +384,41 @@ describe('SceneVariableList', () => {
       expect(nestedSceneObject.state.variableValueChanged).toBe(1);
     });
   });
+
+  describe('When variables array changes', () => {
+    it('Should start update process', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.*', value: '', text: '', options: [] });
+      const nestedObj = new TestSceneObect({ title: '$B', variableValueChanged: 0 });
+      const set = new SceneVariableSet({ variables: [A] });
+
+      const scene = new TestScene({
+        $variables: set,
+        nested: nestedObj,
+      });
+
+      scene.activate();
+      nestedObj.activate();
+
+      A.signalUpdateCompleted();
+
+      // No  variable value changed for B yet as it is not part of scene yet
+      expect(nestedObj.state.variableValueChanged).toBe(0);
+
+      // Update state with a new variable
+      set.setState({ variables: [A, B] });
+
+      // Should not start loadaing A again, it has options already
+      expect(A.state.loading).toBe(false);
+      // Should start B
+      expect(B.state.loading).toBe(true);
+
+      B.signalUpdateCompleted();
+
+      // Depenedent scene object notified of change
+      expect(nestedObj.state.variableValueChanged).toBe(1);
+    });
+  });
 });
 
 interface TestSceneObjectState extends SceneLayoutChildState {

@@ -36,6 +36,9 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       this.subscribeToEvent(SceneVariableValueChangedEvent, (event) => this.handleVariableValueChanged(event.payload))
     );
 
+    // Subscribe to state changes
+    this._subs.add(this.subscribeToState({ next: (state) => this.handleStateChanged(state) }));
+
     this.checkForVariablesThatChangedWhileInactive();
 
     // Add all variables that need updating to queue
@@ -46,6 +49,29 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     this.updateNextBatch();
+  }
+
+  /**
+   * Look for new variables that need to be initialized
+   */
+  private handleStateChanged(state: SceneVariableSetState) {
+    const variablesToUpdateCountStart = this._variablesToUpdate.size;
+
+    for (const variable of state.variables) {
+      // If this is a new variable
+      if (
+        !this._variablesToUpdate.has(variable) &&
+        !this._updating.has(variable) &&
+        !this._variableValueRecorder.hasRecordedValue(variable)
+      ) {
+        this._variablesToUpdate.add(variable);
+      }
+    }
+
+    // Only start a new batch if there was no batch already running
+    if (variablesToUpdateCountStart === 0 && this._variablesToUpdate.size > 0) {
+      this.updateNextBatch();
+    }
   }
 
   /**
@@ -189,6 +215,9 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
   private handleVariableValueChanged(variableThatChanged: SceneVariable) {
     this._variablesThatHaveChanged.add(variableThatChanged);
+
+    // Remember current variable value
+    this._variableValueRecorder.recordCurrentValue(variableThatChanged);
 
     // Ignore this change if it is currently updating
     if (this._updating.has(variableThatChanged)) {
