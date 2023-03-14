@@ -1,4 +1,4 @@
-import { map, of } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 
 import {
   ArrayVector,
@@ -18,6 +18,9 @@ import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
 import { getCustomTransformOperator } from '../core/SceneDataTransformer.test';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
+import { QueryRunnerWithTransformations } from './transformations';
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { SceneObjectStatePlain } from '../core/types';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -205,10 +208,12 @@ describe('SceneQueryRunner', () => {
     });
 
     it('should apply transformations to query results', async () => {
-      const queryRunner = new SceneQueryRunner({
-        queries: [{ refId: 'A' }],
-        $timeRange: new SceneTimeRange(),
-        maxDataPoints: 100,
+      const queryRunner = new QueryRunnerWithTransformations({
+        queryRunner: new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          maxDataPoints: 100,
+        }),
         transformations: [
           {
             id: 'transformer1',
@@ -238,10 +243,12 @@ describe('SceneQueryRunner', () => {
 
     describe('custom transformations', () => {
       it('applies leading custom transformer', async () => {
-        const queryRunner = new SceneQueryRunner({
-          queries: [{ refId: 'A' }],
-          $timeRange: new SceneTimeRange(),
-          maxDataPoints: 100,
+        const queryRunner = new QueryRunnerWithTransformations({
+          queryRunner: new SceneQueryRunner({
+            queries: [{ refId: 'A' }],
+            $timeRange: new SceneTimeRange(),
+            maxDataPoints: 100,
+          }),
           // divide by 100, multiply by 2, multiply by 3
           transformations: [
             customTransformOperator,
@@ -273,10 +280,12 @@ describe('SceneQueryRunner', () => {
       });
 
       it('applies trailing custom transformer', async () => {
-        const queryRunner = new SceneQueryRunner({
-          queries: [{ refId: 'A' }],
-          $timeRange: new SceneTimeRange(),
-          maxDataPoints: 100,
+        const queryRunner = new QueryRunnerWithTransformations({
+          queryRunner: new SceneQueryRunner({
+            queries: [{ refId: 'A' }],
+            $timeRange: new SceneTimeRange(),
+            maxDataPoints: 100,
+          }),
           // multiply by 2, multiply by 3, divide by 100
           transformations: [
             {
@@ -308,10 +317,12 @@ describe('SceneQueryRunner', () => {
       });
 
       it('applies mixed transforms', async () => {
-        const queryRunner = new SceneQueryRunner({
-          queries: [{ refId: 'A' }],
-          $timeRange: new SceneTimeRange(),
-          maxDataPoints: 100,
+        const queryRunner = new QueryRunnerWithTransformations({
+          queryRunner: new SceneQueryRunner({
+            queries: [{ refId: 'A' }],
+            $timeRange: new SceneTimeRange(),
+            maxDataPoints: 100,
+          }),
           // divide by 100,multiply by 2, divide by 100, multiply by 3, divide by 100
           transformations: [
             customTransformOperator,
@@ -342,6 +353,50 @@ describe('SceneQueryRunner', () => {
         expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
         expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([0.0006, 0.0012, 0.0018]);
         expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([0.000006, 0.000012, 0.000018]);
+      });
+    });
+
+    describe('custom transformer object', () => {
+      it('Can re-trigger transformations without issuing new query', async () => {
+        const someObject = new SceneObjectSearchBox({ value: 'hello' });
+
+        const queryRunner = new QueryRunnerWithTransformations({
+          queryRunner: new SceneQueryRunner({
+            queries: [{ refId: 'A' }],
+            $timeRange: new SceneTimeRange(),
+            maxDataPoints: 100,
+          }),
+          transformations: [
+            () => (source) => {
+              return source.pipe(
+                map((data) => {
+                  //return data;
+                  return data.map((frame) => ({ ...frame, name: someObject.state.value }));
+                })
+              );
+            },
+          ],
+        });
+
+        // This could potentially be done by QueryRunnerWithTransformations if we passed it "dependencies" (object it should subscribe to and re-run transformations on change)
+        someObject.subscribeToState({
+          next: () => queryRunner.reprocessTransformations(),
+        });
+
+        queryRunner.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        // Verify transformation has run once
+        expect(queryRunner.state.data?.series[0].name).toBe('hello');
+
+        // Updates structureRev and re-trigger transformation
+        someObject.setState({ value: 'new name' });
+
+        // Need to do this to get rxjs time to update
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.series[0].name).toBe('new name');
       });
     });
   });
@@ -529,3 +584,9 @@ describe('SceneQueryRunner', () => {
     });
   });
 });
+
+export interface SceneObjectSearchBoxState extends SceneObjectStatePlain {
+  value: string;
+}
+
+export class SceneObjectSearchBox extends SceneObjectBase<SceneObjectSearchBoxState> {}
