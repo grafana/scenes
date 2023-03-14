@@ -178,5 +178,4 @@ export type DeepPartial<T> = {
 
 export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
-  // getStream(): Observable<PanelData>;
 }

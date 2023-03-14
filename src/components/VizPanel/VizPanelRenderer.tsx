@@ -6,7 +6,7 @@ import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, useTheme2 } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { isSceneQueryRunner, SceneComponentProps } from '../../core/types';
+import { SceneComponentProps } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 
