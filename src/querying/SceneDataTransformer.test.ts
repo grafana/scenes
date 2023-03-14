@@ -262,6 +262,7 @@ describe('SceneDataTransformer', () => {
       expect(data?.series[0].fields[0].values.toArray()).toEqual([0.1, 0.2, 0.3]);
       expect(data?.series[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
     });
+
     it('applies leading custom transformer', () => {
       // divide values by 100, multiply by 2
       const transformationNode = new SceneDataTransformer({
@@ -361,6 +362,7 @@ describe('SceneDataTransformer', () => {
       expect(data?.series[0].fields[0].values.toArray()).toEqual([0.2, 0.4, 0.6]);
       expect(data?.series[0].fields[1].values.toArray()).toEqual([0.2, 0.4, 0.6]);
     });
+
     it('applies mixed transforms', () => {
       //  multiply by 2, divide values by 100, multiply by 2, divide values by 100
       const transformationNode = new SceneDataTransformer({
@@ -445,121 +447,6 @@ describe('SceneDataTransformer', () => {
       expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
       expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([600, 1200, 1800]);
       expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([6, 12, 18]);
-    });
-
-    describe('custom transformations', () => {
-      it('applies leading custom transformer', async () => {
-        const queryRunner = new SceneDataTransformer({
-          $data: new SceneQueryRunner({
-            queries: [{ refId: 'A' }],
-            $timeRange: new SceneTimeRange(),
-            maxDataPoints: 100,
-          }),
-          // divide by 100, multiply by 2, multiply by 3
-          transformations: [
-            customTransformOperator,
-            {
-              id: 'transformer1',
-              options: {
-                option: 'value1',
-              },
-            },
-            {
-              id: 'transformer2',
-              options: {
-                option: 'value2',
-              },
-            },
-          ],
-        });
-
-        queryRunner.activate();
-
-        await new Promise((r) => setTimeout(r, 1));
-
-        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
-        expect(customTransformerSpy).toHaveBeenCalledTimes(1);
-        expect(queryRunner.state.data?.series).toHaveLength(1);
-        expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
-        expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([6, 12, 18]);
-        expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([0.06, 0.12, 0.18]);
-      });
-
-      it('applies trailing custom transformer', async () => {
-        const queryRunner = new SceneDataTransformer({
-          $data: new SceneQueryRunner({
-            queries: [{ refId: 'A' }],
-            $timeRange: new SceneTimeRange(),
-            maxDataPoints: 100,
-          }),
-          // multiply by 2, multiply by 3, divide by 100
-          transformations: [
-            {
-              id: 'transformer1',
-              options: {
-                option: 'value1',
-              },
-            },
-            {
-              id: 'transformer2',
-              options: {
-                option: 'value2',
-              },
-            },
-            customTransformOperator,
-          ],
-        });
-
-        queryRunner.activate();
-
-        await new Promise((r) => setTimeout(r, 1));
-
-        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
-        expect(customTransformerSpy).toHaveBeenCalledTimes(1);
-        expect(queryRunner.state.data?.series).toHaveLength(1);
-        expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
-        expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([6, 12, 18]);
-        expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([0.06, 0.12, 0.18]);
-      });
-
-      it('applies mixed transforms', async () => {
-        const queryRunner = new SceneDataTransformer({
-          $data: new SceneQueryRunner({
-            queries: [{ refId: 'A' }],
-            $timeRange: new SceneTimeRange(),
-            maxDataPoints: 100,
-          }),
-          // divide by 100,multiply by 2, divide by 100, multiply by 3, divide by 100
-          transformations: [
-            customTransformOperator,
-            {
-              id: 'transformer1',
-              options: {
-                option: 'value1',
-              },
-            },
-            customTransformOperator,
-            {
-              id: 'transformer2',
-              options: {
-                option: 'value2',
-              },
-            },
-            customTransformOperator,
-          ],
-        });
-
-        queryRunner.activate();
-
-        await new Promise((r) => setTimeout(r, 1));
-
-        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
-        expect(customTransformerSpy).toHaveBeenCalledTimes(3);
-        expect(queryRunner.state.data?.series).toHaveLength(1);
-        expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
-        expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([0.0006, 0.0012, 0.0018]);
-        expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([0.000006, 0.000012, 0.000018]);
-      });
     });
 
     describe('custom transformer object', () => {
