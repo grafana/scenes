@@ -2,6 +2,8 @@
   "name": "scenes-app",
   "private": true,
   "version": "0.0.18",
+  "author": "Grafana Labs",
+  "license": "AGPL-3.0-only",
   "description": "A basic grafana app plugin",
   "scripts": {
     "build": "TS_NODE_PROJECT=\"./.config/webpack/tsconfig.webpack.json\" webpack -c ./.config/webpack/webpack.config.ts --env production",
@@ -14,8 +16,6 @@
     "lint:fix": "yarn lint --fix",
     "server": "docker-compose up --build"
   },
-  "author": "Your name",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@grafana/e2e": "9.2.1",
