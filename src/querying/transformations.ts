@@ -1,35 +1,61 @@
-import { BusEventBase, DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
-import { map, Observable, of } from 'rxjs';
+import { DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
+import { map, of, Unsubscribable } from 'rxjs';
+import { SceneDataNodeState } from '../core/SceneDataNode';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { CustomTransformOperator, SceneObject, SceneObjectStatePlain } from '../core/types';
+import { CustomTransformOperator, SceneQueryRunnerInterface } from '../core/types';
 
-export interface SceneQueryRunnerDataTransformer extends SceneObject {
-  transform(data: PanelData): Observable<PanelData>;
-}
-
-export class ReprocessTransformationsEvent extends BusEventBase {
-  public static readonly type = 'reprocess-transformations';
-}
-
-export interface DefaultQueryRunnerDataTransformerState extends SceneObjectStatePlain {
+export interface QueryRunnerWithTransformationsState extends SceneDataNodeState {
   // Array of standard transformation configs and custom transform operators
-  transformations?: Array<DataTransformerConfig | CustomTransformOperator>;
+  transformations: Array<DataTransformerConfig | CustomTransformOperator>;
+  queryRunner: SceneQueryRunnerInterface;
 }
 
-export class DefaultQueryRunnerDataTransformer
-  extends SceneObjectBase<DefaultQueryRunnerDataTransformerState>
-  implements SceneQueryRunnerDataTransformer
+export class QueryRunnerWithTransformations
+  extends SceneObjectBase<QueryRunnerWithTransformationsState>
+  implements SceneQueryRunnerInterface
 {
   // TODO add variable dependency config
 
-  // Should this automatically trigger ReprocessTransformationsEvent on state change?
+  private _transformSub?: Unsubscribable;
 
-  public transform(data: PanelData): Observable<PanelData> {
+  public activate(): void {
+    super.activate();
+
+    const { queryRunner } = this.state;
+
+    queryRunner.activate();
+
+    this._subs.add(
+      queryRunner.subscribeToState({
+        next: (state) => this.transform(state.data),
+      })
+    );
+  }
+
+  public deactivate(): void {
+    super.deactivate();
+    this.state.queryRunner.deactivate();
+  }
+
+  public setContainerWidth(width: number) {
+    this.state.queryRunner.setContainerWidth(width);
+  }
+
+  public reprocessTransformations() {
+    this.transform(this.state.queryRunner.state.data);
+  }
+
+  private transform(data: PanelData | undefined) {
     const transformations = this.state.transformations || [];
 
-    if (transformations.length === 0) {
-      return of(data);
+    if (transformations.length === 0 || !data) {
+      this.setState({ data });
+      return;
+    }
+
+    if (this._transformSub) {
+      this._transformSub.unsubscribe();
     }
 
     const ctx = {
@@ -38,6 +64,8 @@ export class DefaultQueryRunnerDataTransformer
       },
     };
 
-    return transformDataFrame(transformations, data.series, ctx).pipe(map((series) => ({ ...data, series })));
+    this._transformSub = transformDataFrame(transformations, data.series, ctx)
+      .pipe(map((series) => ({ ...data, series })))
+      .subscribe((data) => this.setState({ data }));
   }
 }
