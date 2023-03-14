@@ -1,7 +1,8 @@
 {
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
-  "name": "grafana",
+  "private": true,
+  "name": "grafana-scenes",
   "version": "0.0.18",
   "description": "Grafana framework for building dynamic dashboards",
   "keywords": [
@@ -26,16 +27,19 @@
   ],
   "scripts": {
     "precommit": "yarn run lint-staged",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "packages:publish": "lerna exec --no-private -- npm publish"
   },
   "resolutions": {
     "@types/react": "17.0.42"
   },
   "packageManager": "yarn@3.3.1",
   "workspaces": [
+    ".",
     "packages/*"
   ],
   "devDependencies": {
-    "lerna": "^6.5.1"
+    "lerna": "^6.5.1",
+    "lint-staged": "^13.2.0"
   }
 }

@@ -5,15 +5,24 @@
     width="100px"
     padding="40px"
   />
-  <h1>@grafana/scenes</h1>
+  <h1>Grafana Scenes</h1>
   <p>Create dashboard-like experiences in Grafana app plugins</p>
 </div>
+
+| Package Name    | Description                     | Readme                                  | Version                                                            | Downloads                                             |
+| --------------- | ------------------------------- | --------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
+| @grafana/scenes | Scenes SDK                      | [Link](./packages/scenes/README.md)     | ![npm](https://img.shields.io/npm/v/@grafana/scenes?label=version) | ![npm](https://img.shields.io/npm/dw/@grafana/scenes) |
+| Scenes App      | Demo app using Scenes framework | [Link](./packages/scenes-app/README.md) | -                                                                  | -                                                     |
 
 ## Important notice
 
 @grafana/scenes is in its early days. We do not encourage anyone to use it in plugins yet. APIs can (and probably will) change significantly in the months to come.
 
 ## Development
+
+### Running the demo app
+
+Please refer to [demo app README](./packages/scenes-app/README.md) for more info.
 
 ### Working with Grafana
 

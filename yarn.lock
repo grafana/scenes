@@ -10306,12 +10306,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"grafana@workspace:.":
+"grafana-scenes@workspace:.":
   version: 0.0.0-use.local
-  resolution: "grafana@workspace:."
+  resolution: "grafana-scenes@workspace:."
   dependencies:
     lerna: ^6.5.1
-    lint-staged: ^13.1.0
+    lint-staged: ^13.2.0
   languageName: unknown
   linkType: soft
 
@@ -12949,7 +12949,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:^13.1.0":
+"lint-staged@npm:^13.2.0":
   version: 13.2.0
   resolution: "lint-staged@npm:13.2.0"
   dependencies:

@@ -1,7 +1,7 @@
 {
   "name": "scenes-app",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.18",
   "description": "A basic grafana app plugin",
   "scripts": {
     "build": "TS_NODE_PROJECT=\"./.config/webpack/tsconfig.webpack.json\" webpack -c ./.config/webpack/webpack.config.ts --env production",
@@ -10,7 +10,7 @@
     "test": "jest --watch --onlyChanged",
     "test:ci": "jest --maxWorkers 4",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
+    "lint": "eslint --config ./.config/.eslintrc --cache --ignore-path ../../.gitignore --ext .js,.jsx,.ts,.tsx .",
     "lint:fix": "yarn lint --fix",
     "server": "docker-compose up --build"
   },

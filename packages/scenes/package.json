@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes",
-  "version": "0.0.0",
+  "version": "0.0.23",
   "description": "> TODO: description",
   "author": "Dominik Prokop <dominik.prokop@grafana.com>",
   "homepage": "https://github.com/grafana/scenes#readme",
@@ -12,7 +12,10 @@
     "src": "src"
   },
   "files": [
-    "src"
+    "dist",
+    "./README.md",
+    "./CHANGELOG.md",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",
@@ -21,13 +24,14 @@
   "scripts": {
     "tsc": "tsc -p ./tsconfig.build.json",
     "dev": "yarn clean && yarn build:dev --watch",
-    "build:dev": "yarn build:prod --environment NODE_ENV:development",
-    "build:prod": "yarn bundle",
-    "bundle": "rollup -c rollup.config.ts",
+    "build": "rollup -c rollup.config.ts",
+    "build:dev": "yarn build --environment NODE_ENV:development",
     "clean": "rimraf ./dist ./compiled ./package.tgz",
     "typecheck": "tsc --emitDeclarationOnly false --noEmit",
     "test": "jest",
-    "lint": "eslint --ignore-path ../../.gitignore . --ext .js,.tsx,.ts --cache"
+    "lint": "eslint --ignore-path ../../.gitignore . --ext .js,.tsx,.ts --cache",
+    "prepack": "node ./scripts/prepack.js",
+    "postpack": "node ./scripts/postpack.js"
   },
   "bugs": {
     "url": "https://github.com/grafana/scenes/issues"

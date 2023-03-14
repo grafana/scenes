@@ -7,7 +7,7 @@ scenesapppath=$(pwd)/packages/scenes-app
 yarn install
 
 cd $scenesapppath
-docker compose up -d
+docker compose up -d --build
 
 cd $scenesapppath
 echo "Demo app: Compiling..."
