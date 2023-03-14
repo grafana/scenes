@@ -52,8 +52,8 @@ function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCan
     <div style={style} ref={ref}>
       {children.map((item) => {
         return (
-          <div key={item.state.key} ref={(el) => model.targetElements.push(el)}>
-            <CanvasLayoutChildComponent key={item.state.key} item={item} isEditing={isEditing} />
+          <div key={item.state.key}>
+            <CanvasLayoutChildComponent key={item.state.key} item={item} isEditing={isEditing} model={model} />
           </div>
         )
       })}
@@ -61,11 +61,11 @@ function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCan
   );
 }
 
-function CanvasLayoutChildComponent({ item, isEditing }: { item: SceneLayoutChild; isEditing?: boolean }) {
+function CanvasLayoutChildComponent({ item, isEditing, model }: { item: SceneLayoutChild; isEditing?: boolean, model?: SceneCanvasLayout }) {
   const state = item.useState();
 
   return (
-    <div style={getItemStyles(state)}>
+    <div style={getItemStyles(state)} ref={(el) => model?.targetElements.push(el)}>
       <item.Component model={item} isEditing={isEditing} />
     </div>
   );
