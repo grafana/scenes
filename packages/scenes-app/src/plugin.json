@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "app",
-  "name": "Scenes App template",
+  "name": "Scenes Test App",
   "id": "grafana-scenes-app",
   "info": {
     "keywords": ["basic", "app", "example"],
-    "description": "A basic grafana app plugin",
+    "description": "An app to test scenes scenarios",
     "author": {
       "name": "Your name"
     },
