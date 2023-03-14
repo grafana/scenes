@@ -4,6 +4,7 @@ import { SceneDataNodeState } from '../core/SceneDataNode';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformOperator, SceneQueryRunnerInterface } from '../core/types';
+import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 
 export interface QueryRunnerWithTransformationsState extends SceneDataNodeState {
   // Array of standard transformation configs and custom transform operators
@@ -15,7 +16,11 @@ export class QueryRunnerWithTransformations
   extends SceneObjectBase<QueryRunnerWithTransformationsState>
   implements SceneQueryRunnerInterface
 {
-  // TODO add variable dependency config
+  protected _variableDependency: VariableDependencyConfig<QueryRunnerWithTransformationsState> =
+    new VariableDependencyConfig(this, {
+      statePaths: ['transformations'],
+      onReferencedVariableValueChanged: () => this.reprocessTransformations(),
+    });
 
   private _transformSub?: Unsubscribable;
 

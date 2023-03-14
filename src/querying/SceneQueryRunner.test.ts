@@ -18,14 +18,9 @@ import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
 import { getCustomTransformOperator } from '../core/SceneDataTransformer.test';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
-import {
-  DefaultQueryRunnerDataTransformer,
-  QueryRunnerWithTransformations,
-  ReprocessTransformationsEvent,
-  SceneQueryRunnerDataTransformer,
-} from './transformations';
+import { QueryRunnerWithTransformations } from './transformations';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObjectStatePlain, SceneQueryRunnerInterface } from '../core/types';
+import { SceneObjectStatePlain } from '../core/types';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
