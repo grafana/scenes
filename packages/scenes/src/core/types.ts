@@ -175,3 +175,11 @@ export type CustomTransformOperator = (context: DataTransformContext) => MonoTyp
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
+
+export interface SceneQueryRunnerInterface extends SceneObject<SceneDataState> {
+  setContainerWidth: (width: number) => void;
+}
+
+export function isSceneQueryRunner(obj: SceneObject): obj is SceneQueryRunnerInterface {
+  return 'setContainerWidth' in obj;
+}
