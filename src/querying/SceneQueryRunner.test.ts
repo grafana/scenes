@@ -1,4 +1,4 @@
-import { map, of } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 
 import {
   ArrayVector,
@@ -18,6 +18,13 @@ import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
 import { getCustomTransformOperator } from '../core/SceneDataTransformer.test';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
+import {
+  DefaultQueryRunnerDataTransformer,
+  ReprocessTransformationsEvent,
+  SceneQueryRunnerDataTransformer,
+} from './transformations';
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { SceneObjectStatePlain } from '../core/types';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -209,20 +216,22 @@ describe('SceneQueryRunner', () => {
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
         maxDataPoints: 100,
-        transformations: [
-          {
-            id: 'transformer1',
-            options: {
-              option: 'value1',
+        transformer: new DefaultQueryRunnerDataTransformer({
+          transformations: [
+            {
+              id: 'transformer1',
+              options: {
+                option: 'value1',
+              },
             },
-          },
-          {
-            id: 'transformer2',
-            options: {
-              option: 'value2',
+            {
+              id: 'transformer2',
+              options: {
+                option: 'value2',
+              },
             },
-          },
-        ],
+          ],
+        }),
       });
 
       queryRunner.activate();
@@ -243,21 +252,23 @@ describe('SceneQueryRunner', () => {
           $timeRange: new SceneTimeRange(),
           maxDataPoints: 100,
           // divide by 100, multiply by 2, multiply by 3
-          transformations: [
-            customTransformOperator,
-            {
-              id: 'transformer1',
-              options: {
-                option: 'value1',
+          transformer: new DefaultQueryRunnerDataTransformer({
+            transformations: [
+              customTransformOperator,
+              {
+                id: 'transformer1',
+                options: {
+                  option: 'value1',
+                },
               },
-            },
-            {
-              id: 'transformer2',
-              options: {
-                option: 'value2',
+              {
+                id: 'transformer2',
+                options: {
+                  option: 'value2',
+                },
               },
-            },
-          ],
+            ],
+          }),
         });
 
         queryRunner.activate();
@@ -278,21 +289,23 @@ describe('SceneQueryRunner', () => {
           $timeRange: new SceneTimeRange(),
           maxDataPoints: 100,
           // multiply by 2, multiply by 3, divide by 100
-          transformations: [
-            {
-              id: 'transformer1',
-              options: {
-                option: 'value1',
+          transformer: new DefaultQueryRunnerDataTransformer({
+            transformations: [
+              {
+                id: 'transformer1',
+                options: {
+                  option: 'value1',
+                },
               },
-            },
-            {
-              id: 'transformer2',
-              options: {
-                option: 'value2',
+              {
+                id: 'transformer2',
+                options: {
+                  option: 'value2',
+                },
               },
-            },
-            customTransformOperator,
-          ],
+              customTransformOperator,
+            ],
+          }),
         });
 
         queryRunner.activate();
@@ -313,23 +326,25 @@ describe('SceneQueryRunner', () => {
           $timeRange: new SceneTimeRange(),
           maxDataPoints: 100,
           // divide by 100,multiply by 2, divide by 100, multiply by 3, divide by 100
-          transformations: [
-            customTransformOperator,
-            {
-              id: 'transformer1',
-              options: {
-                option: 'value1',
+          transformer: new DefaultQueryRunnerDataTransformer({
+            transformations: [
+              customTransformOperator,
+              {
+                id: 'transformer1',
+                options: {
+                  option: 'value1',
+                },
               },
-            },
-            customTransformOperator,
-            {
-              id: 'transformer2',
-              options: {
-                option: 'value2',
+              customTransformOperator,
+              {
+                id: 'transformer2',
+                options: {
+                  option: 'value2',
+                },
               },
-            },
-            customTransformOperator,
-          ],
+              customTransformOperator,
+            ],
+          }),
         });
 
         queryRunner.activate();
@@ -342,6 +357,34 @@ describe('SceneQueryRunner', () => {
         expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
         expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([0.0006, 0.0012, 0.0018]);
         expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([0.000006, 0.000012, 0.000018]);
+      });
+    });
+
+    describe('custom transformer object', () => {
+      it.only('Can re-trigger transformations without issuing new query', async () => {
+        const customDataTransfomer = new CustomQueryRunnerDataTransformer({ structureRev: 10 });
+
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          maxDataPoints: 100,
+          transformer: customDataTransfomer,
+        });
+
+        queryRunner.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        // Verify transformation has run once
+        expect(queryRunner.state.data?.structureRev).toBe(10);
+
+        // Updates structureRev and re-trigger transformation
+        customDataTransfomer.updateStateAndRetriggerTransformation();
+
+        // Need to do this to get rxjs time to update
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.structureRev).toBe(11);
       });
     });
   });
@@ -529,3 +572,21 @@ describe('SceneQueryRunner', () => {
     });
   });
 });
+
+interface CustomQueryRunnerDataTransformerState extends SceneObjectStatePlain {
+  structureRev: number;
+}
+
+class CustomQueryRunnerDataTransformer
+  extends SceneObjectBase<CustomQueryRunnerDataTransformerState>
+  implements SceneQueryRunnerDataTransformer
+{
+  public updateStateAndRetriggerTransformation() {
+    this.setState({ structureRev: this.state.structureRev + 1 });
+    this.publishEvent(new ReprocessTransformationsEvent());
+  }
+
+  public transform(data: PanelData): Observable<PanelData> {
+    return of(data).pipe(map((d) => ({ ...d, structureRev: this.state.structureRev })));
+  }
+}

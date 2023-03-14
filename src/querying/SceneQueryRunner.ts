@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of } from 'rxjs';
+import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of, ReplaySubject } from 'rxjs';
 
 import {
   CoreApp,
@@ -24,6 +24,7 @@ import { VariableDependencyConfig } from '../variables/VariableDependencyConfig'
 import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
+import { ReprocessTransformationsEvent, SceneQueryRunnerDataTransformer } from './transformations';
 
 let counter = 100;
 
@@ -33,12 +34,12 @@ export function getNextRequestId() {
 
 export interface QueryRunnerState extends SceneObjectStatePlain {
   data?: PanelData;
+  dataPreTransforms?: PanelData;
   queries: DataQueryExtended[];
-  // Array of standard transformation configs and custom transform operators
-  transformations?: Array<DataTransformerConfig | CustomTransformOperator>;
   datasource?: DataSourceRef;
   minInterval?: string;
   maxDataPoints?: number;
+  transformer?: SceneQueryRunnerDataTransformer;
   // Non persisted state
   maxDataPointsFromWidth?: boolean;
   isWaitingForVariables?: boolean;
@@ -52,6 +53,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
+  private _rawDataSubject = new ReplaySubject<PanelData>(1);
+  /**
+   * Also stored in state, this is just to store it while rxjs pipeline is running and to then have a single state change
+   * when we store this and the transformed data.
+   **/
+  private _dataPreTransforms?: PanelData;
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -61,6 +68,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
   public activate() {
     super.activate();
+
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._subs.add(
@@ -70,6 +78,29 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
         },
       })
     );
+
+    // Pipe raw data through the transformations and store in state
+    this._subs.add(
+      this._rawDataSubject.pipe(mergeMap(this.transformData)).subscribe((data) => {
+        console.log('got transformed data');
+        this.setState({ data, dataPreTransforms: this._dataPreTransforms });
+      })
+    );
+
+    if (this.state.transformer) {
+      this.state.transformer.activate();
+
+      // Subscribe to transformer wanting to re-process transformations
+      this._subs.add(
+        this.state.transformer.subscribeToEvent(ReprocessTransformationsEvent, () => {
+          console.log('re-processing transformations');
+          this._rawDataSubject.next(this.state.dataPreTransforms!);
+        })
+      );
+    }
+
+    // this._rawDataSubject.next({ state: LoadingState.Done, series: [], timeRange: getDefaultTimeRange() });
+    // this._rawDataSubject.next({ state: LoadingState.Done, series: [], timeRange: getDefaultTimeRange() });
 
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
@@ -120,6 +151,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     if (this._querySub) {
       this._querySub.unsubscribe();
       this._querySub = undefined;
+    }
+
+    if (this.state.transformer) {
+      this.state.transformer.deactivate();
     }
 
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
@@ -218,18 +253,24 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
-      this._querySub = runRequest(ds, request)
-        .pipe(getTransformationsStream(this, this.state.transformations, this.state.data))
-        .subscribe({
-          next: this.onDataReceived,
-        });
+      this._querySub = runRequest(ds, request).subscribe((data) => this._rawDataSubject.next(data));
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
     }
   }
 
-  private onDataReceived = (data: PanelData) => {
-    this.setState({ data });
+  transformData = (data: PanelData) => {
+    const { transformer } = this.state;
+
+    this._dataPreTransforms = data;
+
+    const preProcessedData = preProcessPanelData(data, this.state.data);
+
+    if (!transformer) {
+      return of(preProcessedData);
+    }
+
+    return transformer.transform(preProcessedData);
   };
 }
 
