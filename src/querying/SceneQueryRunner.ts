@@ -82,7 +82,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     // Pipe raw data through the transformations and store in state
     this._subs.add(
       this._rawDataSubject.pipe(mergeMap(this.transformData)).subscribe((data) => {
-        console.log('got transformed data');
         this.setState({ data, dataPreTransforms: this._dataPreTransforms });
       })
     );
@@ -93,14 +92,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
       // Subscribe to transformer wanting to re-process transformations
       this._subs.add(
         this.state.transformer.subscribeToEvent(ReprocessTransformationsEvent, () => {
-          console.log('re-processing transformations');
           this._rawDataSubject.next(this.state.dataPreTransforms!);
         })
       );
     }
-
-    // this._rawDataSubject.next({ state: LoadingState.Done, series: [], timeRange: getDefaultTimeRange() });
-    // this._rawDataSubject.next({ state: LoadingState.Done, series: [], timeRange: getDefaultTimeRange() });
 
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
