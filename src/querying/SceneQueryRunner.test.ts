@@ -590,27 +590,6 @@ describe('SceneQueryRunner', () => {
   });
 });
 
-// interface CustomQueryRunnerDataTransformerState extends SceneObjectStatePlain {
-//   structureRev: number;
-// }
-
-// class CustomQueryRunnerDataTransformer
-//   extends SceneObjectBase<CustomQueryRunnerDataTransformerState>
-//   implements SceneQueryRunnerDataTransformer
-// {
-//   public updateStateAndRetriggerTransformation() {
-//     this.setState({ structureRev: this.state.structureRev + 1 });
-
-//     if (this.parent instanceof SceneQueryRunner) {
-//       this.parent.reprocessData();
-//     }
-//   }
-
-//   public transform(data: PanelData): Observable<PanelData> {
-//     return of(data).pipe(map((d) => ({ ...d, structureRev: this.state.structureRev })));
-//   }
-// }
-
 export interface SceneObjectSearchBoxState extends SceneObjectStatePlain {
   value: string;
 }
