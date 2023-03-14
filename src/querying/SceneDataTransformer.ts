@@ -7,10 +7,20 @@ import { CustomTransformOperator, SceneDataProvider } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 
 export interface SceneDataTransformerState extends SceneDataNodeState {
-  // Array of standard transformation configs and custom transform operators
+  /**
+   * Array of standard transformation configs and custom transform operators
+   */
   transformations: Array<DataTransformerConfig | CustomTransformOperator>;
 }
 
+/**
+ * You can use transform as a $data object. It can either transform an inner $data DataProvider or if that is not set it will
+ * subscribe to a DataProvider higher up in the scene graph and transform it's data.
+ *
+ * The transformations array supports custom (runtime defined) transformation as well as declarative core transformations.
+ * You can manually re-process the transformations by calling reprocessTransformations(). This is useful if you have
+ * transformations that depend on other scene object states.
+ */
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> implements SceneDataProvider {
   protected _variableDependency: VariableDependencyConfig<SceneDataTransformerState> = new VariableDependencyConfig(
     this,
