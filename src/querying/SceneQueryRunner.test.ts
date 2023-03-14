@@ -24,7 +24,7 @@ import {
   SceneQueryRunnerDataTransformer,
 } from './transformations';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObjectStatePlain } from '../core/types';
+import { SceneObjectStatePlain, SceneQueryRunnerInterface } from '../core/types';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -361,7 +361,7 @@ describe('SceneQueryRunner', () => {
     });
 
     describe('custom transformer object', () => {
-      it.only('Can re-trigger transformations without issuing new query', async () => {
+      it('Can re-trigger transformations without issuing new query', async () => {
         const customDataTransfomer = new CustomQueryRunnerDataTransformer({ structureRev: 10 });
 
         const queryRunner = new SceneQueryRunner({
@@ -583,7 +583,10 @@ class CustomQueryRunnerDataTransformer
 {
   public updateStateAndRetriggerTransformation() {
     this.setState({ structureRev: this.state.structureRev + 1 });
-    this.publishEvent(new ReprocessTransformationsEvent());
+
+    if (this.parent instanceof SceneQueryRunner) {
+      this.parent.reprocessData();
+    }
   }
 
   public transform(data: PanelData): Observable<PanelData> {

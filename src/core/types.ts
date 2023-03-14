@@ -178,7 +178,6 @@ export type DeepPartial<T> = {
 
 export interface SceneQueryRunnerInterface extends SceneObject<SceneDataState> {
   setContainerWidth: (width: number) => void;
-  // Might add ways here to subscribe or access raw data before transformations
 }
 
 export function isSceneQueryRunner(obj: SceneObject): obj is SceneQueryRunnerInterface {

@@ -18,13 +18,13 @@ import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { CustomTransformOperator, SceneObject, SceneObjectStatePlain } from '../core/types';
+import { CustomTransformOperator, SceneObject, SceneObjectStatePlain, SceneQueryRunnerInterface } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
-import { ReprocessTransformationsEvent, SceneQueryRunnerDataTransformer } from './transformations';
+import { SceneQueryRunnerDataTransformer } from './transformations';
 
 let counter = 100;
 
@@ -49,7 +49,7 @@ export interface DataQueryExtended extends DataQuery {
   [key: string]: any;
 }
 
-export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
+export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneQueryRunnerInterface {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
@@ -88,13 +88,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
     if (this.state.transformer) {
       this.state.transformer.activate();
-
-      // Subscribe to transformer wanting to re-process transformations
-      this._subs.add(
-        this.state.transformer.subscribeToEvent(ReprocessTransformationsEvent, () => {
-          this._rawDataSubject.next(this.state.dataPreTransforms!);
-        })
-      );
     }
 
     if (this.shouldRunQueriesOnActivate()) {
@@ -254,7 +247,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
     }
   }
 
-  transformData = (data: PanelData) => {
+  private transformData = (data: PanelData) => {
     const { transformer } = this.state;
 
     this._dataPreTransforms = data;
@@ -267,6 +260,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
     return transformer.transform(preProcessedData);
   };
+
+  public reprocessData() {
+    if (this._dataPreTransforms) {
+      this._rawDataSubject.next(this._dataPreTransforms!);
+    }
+  }
 }
 
 export function getTransformationsStream(
