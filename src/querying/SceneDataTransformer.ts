@@ -14,8 +14,8 @@ export interface SceneDataTransformerState extends SceneDataNodeState {
 }
 
 /**
- * You can use transform as a $data object. It can either transform an inner $data DataProvider or if that is not set it will
- * subscribe to a DataProvider higher up in the scene graph and transform it's data.
+ * You can use this as a $data object. It can either transform an inner $data DataProvider or if that is not set it will
+ * subscribe to a DataProvider higher up in the scene graph and transform its data.
  *
  * The transformations array supports custom (runtime defined) transformation as well as declarative core transformations.
  * You can manually re-process the transformations by calling reprocessTransformations(). This is useful if you have
