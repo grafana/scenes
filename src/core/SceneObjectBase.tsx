@@ -3,7 +3,13 @@ import { Observer, Subject, Subscription, Unsubscribable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import { BusEvent, BusEventHandler, BusEventType, EventBusSrv } from '@grafana/data';
-import { SceneObject, SceneComponent, SceneObjectState, SceneObjectUrlSyncHandler } from './types';
+import {
+  SceneObject,
+  SceneComponent,
+  SceneObjectState,
+  SceneObjectUrlSyncHandler,
+  ExternalActivationOrDeactivationHandler,
+} from './types';
 import { useForceUpdate } from '@grafana/ui';
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
@@ -18,6 +24,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   private _subject = new Subject<TState>();
   private _state: TState;
   private _events = new EventBusSrv();
+  private _activationHandlers: ExternalActivationOrDeactivationHandler[] = [];
+  private _deactivationHandlers: ExternalActivationOrDeactivationHandler[] = [];
 
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
@@ -150,6 +158,13 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     if ($data && !$data.isActive) {
       $data.activate();
     }
+
+    this._activationHandlers.forEach((handler) => {
+      const result = handler();
+      if (result) {
+        this._deactivationHandlers.push(result);
+      }
+    });
   }
 
   /**
@@ -171,6 +186,9 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     if ($variables && $variables.isActive) {
       $variables.deactivate();
     }
+
+    this._deactivationHandlers.forEach((handler) => handler());
+    this._deactivationHandlers = [];
 
     // Clear subscriptions and listeners
     this._events.removeAllListeners();
@@ -199,6 +217,14 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    */
   public clone(withState?: Partial<TState>): this {
     return cloneSceneObject(this, withState);
+  }
+
+  /**
+   * Allows external code to register code that is executed on activate and deactivate. This allow you
+   * to wire up scene objects that need to respond to state changes in other objects from the outside.
+   **/
+  public registerActivationHandler(handler: ExternalActivationOrDeactivationHandler) {
+    this._activationHandlers.push(handler);
   }
 }
 

@@ -16,9 +16,13 @@ export interface SceneDataTransformerState extends SceneDataState {
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> {
   private _transformationsSub?: Unsubscribable;
 
-  public activate() {
-    super.activate();
+  public constructor(state: SceneDataTransformerState) {
+    super(state);
 
+    this.registerActivationHandler(() => this.activationHandler());
+  }
+
+  private activationHandler() {
     if (!this.parent || !this.parent.parent) {
       return;
     }
@@ -41,15 +45,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         },
       })
     );
-  }
 
-  public deactivate(): void {
-    super.deactivate();
-
-    if (this._transformationsSub) {
-      this._transformationsSub.unsubscribe();
-      this._transformationsSub = undefined;
-    }
+    return () => {
+      if (this._transformationsSub) {
+        this._transformationsSub.unsubscribe();
+        this._transformationsSub = undefined;
+      }
+    };
   }
 
   private transformData(data: Observable<PanelData>) {
