@@ -11,12 +11,17 @@ import {
   SceneLayoutChildState,
 } from '../../core/types';
 import { initMoveable } from "./canvasUtils";
+import {getGlobalStyles} from "./globalStyles";
+import {config} from "@grafana/runtime";
+import {Global} from "@emotion/react";
 
 interface SceneCanvasLayoutState extends SceneLayoutState {}
 
 export class SceneCanvasLayout extends SceneObjectBase<SceneCanvasLayoutState> implements SceneLayout {
   public static Component = CanvasLayoutRenderer;
   public static Editor = CanvasLayoutEditor;
+
+  globalCSS = getGlobalStyles(config.theme2);
 
   public moveable: { moveable: any, selecto: any} | undefined;
   public moveableContainer: any | undefined;
@@ -49,15 +54,18 @@ function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCan
   model.initializeMoveable(ref);
 
   return (
-    <div style={style} ref={ref}>
-      {children.map((item) => {
-        return (
-          <div key={item.state.key}>
-            <CanvasLayoutChildComponent key={item.state.key} item={item} isEditing={isEditing} model={model} />
-          </div>
-        )
-      })}
-    </div>
+    <>
+      <Global styles={model.globalCSS} />
+      <div style={style} ref={ref}>
+        {children.map((item) => {
+          return (
+            <div key={item.state.key}>
+              <CanvasLayoutChildComponent key={item.state.key} item={item} isEditing={isEditing} model={model} />
+            </div>
+          )
+        })}
+      </div>
+    </>
   );
 }
 

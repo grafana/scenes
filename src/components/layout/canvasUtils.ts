@@ -23,7 +23,11 @@ export function initMoveable(container: any, targetElements: HTMLElement[]) {
         event.target.style.transform = event.transform;
     });
 
-    selecto.on('selectEnd', (event) => {
+    selecto.on('select', (e) => {
+        // @TODO revisit after Moveable is fully functional
+        e.added.forEach((el) => el.classList.add('selecto-selected'));
+        e.removed.forEach((el) => el.classList.remove('selecto-selected'));
+    }).on('selectEnd', (event) => {
         moveable!.target = event.selected;
         if (event.isDragStart) {
             event.inputEvent.preventDefault();
