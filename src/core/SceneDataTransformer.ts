@@ -1,67 +1,85 @@
-import { Observable, of, Unsubscribable } from 'rxjs';
+import { DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
+import { map, Unsubscribable } from 'rxjs';
+import { SceneDataNodeState } from '../core/SceneDataNode';
+import { sceneGraph } from '../core/sceneGraph';
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { CustomTransformOperator, SceneDataProvider } from '../core/types';
+import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 
-import { DataTransformerConfig, LoadingState, PanelData } from '@grafana/data';
-
-import { getTransformationsStream } from '../querying/SceneQueryRunner';
-
-import { SceneObjectBase } from './SceneObjectBase';
-import { sceneGraph } from './sceneGraph';
-import { CustomTransformOperator, SceneDataState } from './types';
-
-export interface SceneDataTransformerState extends SceneDataState {
+export interface SceneDataTransformerState extends SceneDataNodeState {
   // Array of standard transformation configs and custom transform operators
-  transformations?: Array<DataTransformerConfig | CustomTransformOperator>;
+  transformations: Array<DataTransformerConfig | CustomTransformOperator>;
 }
 
-export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> {
-  private _transformationsSub?: Unsubscribable;
+export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> implements SceneDataProvider {
+  protected _variableDependency: VariableDependencyConfig<SceneDataTransformerState> = new VariableDependencyConfig(
+    this,
+    {
+      statePaths: ['transformations'],
+      onReferencedVariableValueChanged: () => this.reprocessTransformations(),
+    }
+  );
 
-  public activate() {
+  private _transformSub?: Unsubscribable;
+
+  public activate(): void {
     super.activate();
 
+    const sourceData = this.getSourceData();
+
+    this._subs.add(
+      sourceData.subscribeToState({
+        next: (state) => this.transform(state.data),
+      })
+    );
+
+    if (sourceData.state.data) {
+      this.transform(sourceData.state.data);
+    }
+  }
+
+  private getSourceData(): SceneDataProvider {
+    if (this.state.$data) {
+      return this.state.$data;
+    }
+
     if (!this.parent || !this.parent.parent) {
+      throw new Error('SceneDataTransformer must either have $data set on it or have a parent.parent with $data');
+    }
+
+    return sceneGraph.getData(this.parent.parent);
+  }
+
+  public setContainerWidth(width: number) {
+    if (this.state.$data && this.state.$data.setContainerWidth) {
+      this.state.$data.setContainerWidth(width);
+    }
+  }
+
+  public reprocessTransformations() {
+    this.transform(this.getSourceData().state.data);
+  }
+
+  private transform(data: PanelData | undefined) {
+    const transformations = this.state.transformations || [];
+
+    if (transformations.length === 0 || !data) {
+      this.setState({ data });
       return;
     }
 
-    const initialData = sceneGraph.getData(this.parent.parent).state.data;
-
-    if (initialData) {
-      this.transformData(of(initialData));
+    if (this._transformSub) {
+      this._transformSub.unsubscribe();
     }
 
-    this._subs.add(
-      // Need to subscribe to the parent's parent because the parent has a $data reference to this object
-      sceneGraph.getData(this.parent.parent).subscribeToState({
-        next: (data) => {
-          if (data.data?.state === LoadingState.Done) {
-            this.transformData(of(data.data));
-          } else {
-            this.setState({ data: data.data });
-          }
-        },
-      })
-    );
-  }
-
-  public deactivate(): void {
-    super.deactivate();
-
-    if (this._transformationsSub) {
-      this._transformationsSub.unsubscribe();
-      this._transformationsSub = undefined;
-    }
-  }
-
-  private transformData(data: Observable<PanelData>) {
-    if (this._transformationsSub) {
-      this._transformationsSub.unsubscribe();
-      this._transformationsSub = undefined;
-    }
-
-    this._transformationsSub = data.pipe(getTransformationsStream(this, this.state.transformations)).subscribe({
-      next: (data) => {
-        this.setState({ data });
+    const ctx = {
+      interpolate: (value: string) => {
+        return sceneGraph.interpolate(this, value, data.request?.scopedVars);
       },
-    });
+    };
+
+    this._transformSub = transformDataFrame(transformations, data.series, ctx)
+      .pipe(map((series) => ({ ...data, series })))
+      .subscribe((data) => this.setState({ data }));
   }
 }

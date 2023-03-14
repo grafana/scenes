@@ -56,7 +56,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const PanelComponent = plugin.panel;
 
   // If we have a query runner on our level inform it of the container width (used to set auto max data points)
-  if ($data && isSceneQueryRunner($data)) {
+  if ($data && $data.setContainerWidth) {
     $data.setContainerWidth(width);
   }
 

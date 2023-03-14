@@ -18,9 +18,9 @@ import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
 import { getCustomTransformOperator } from '../core/SceneDataTransformer.test';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
-import { QueryRunnerWithTransformations } from './transformations';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObjectStatePlain } from '../core/types';
+import { SceneDataTransformer } from '../core/SceneDataTransformer';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -208,8 +208,8 @@ describe('SceneQueryRunner', () => {
     });
 
     it('should apply transformations to query results', async () => {
-      const queryRunner = new QueryRunnerWithTransformations({
-        queryRunner: new SceneQueryRunner({
+      const queryRunner = new SceneDataTransformer({
+        $data: new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
           maxDataPoints: 100,
@@ -243,8 +243,8 @@ describe('SceneQueryRunner', () => {
 
     describe('custom transformations', () => {
       it('applies leading custom transformer', async () => {
-        const queryRunner = new QueryRunnerWithTransformations({
-          queryRunner: new SceneQueryRunner({
+        const queryRunner = new SceneDataTransformer({
+          $data: new SceneQueryRunner({
             queries: [{ refId: 'A' }],
             $timeRange: new SceneTimeRange(),
             maxDataPoints: 100,
@@ -280,8 +280,8 @@ describe('SceneQueryRunner', () => {
       });
 
       it('applies trailing custom transformer', async () => {
-        const queryRunner = new QueryRunnerWithTransformations({
-          queryRunner: new SceneQueryRunner({
+        const queryRunner = new SceneDataTransformer({
+          $data: new SceneQueryRunner({
             queries: [{ refId: 'A' }],
             $timeRange: new SceneTimeRange(),
             maxDataPoints: 100,
@@ -317,8 +317,8 @@ describe('SceneQueryRunner', () => {
       });
 
       it('applies mixed transforms', async () => {
-        const queryRunner = new QueryRunnerWithTransformations({
-          queryRunner: new SceneQueryRunner({
+        const queryRunner = new SceneDataTransformer({
+          $data: new SceneQueryRunner({
             queries: [{ refId: 'A' }],
             $timeRange: new SceneTimeRange(),
             maxDataPoints: 100,
@@ -360,8 +360,8 @@ describe('SceneQueryRunner', () => {
       it('Can re-trigger transformations without issuing new query', async () => {
         const someObject = new SceneObjectSearchBox({ value: 'hello' });
 
-        const queryRunner = new QueryRunnerWithTransformations({
-          queryRunner: new SceneQueryRunner({
+        const queryRunner = new SceneDataTransformer({
+          $data: new SceneQueryRunner({
             queries: [{ refId: 'A' }],
             $timeRange: new SceneTimeRange(),
             maxDataPoints: 100,
