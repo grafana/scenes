@@ -223,6 +223,14 @@ function getItemStyles(state: SceneLayoutChildState = {}) {
     }
   }
 
+  if (placement && placement.minWidth !== undefined) {
+    style.minWidth = placement.minWidth;
+  }
+
+  if (placement && placement.minHeight !== undefined) {
+    style.minHeight = placement.minHeight;
+  }
+
   // this.options.placement = placement;
   // this.sizeStyle = style;
   // if (this.div) {
