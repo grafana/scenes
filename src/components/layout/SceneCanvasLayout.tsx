@@ -1,4 +1,4 @@
-import React, {CSSProperties, useRef} from 'react';
+import React, {CSSProperties} from 'react';
 import { VerticalConstraint, HorizontalConstraint, BackgroundImageSize } from '../../core/canvasTypes';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -11,17 +11,12 @@ import {
   SceneLayoutChildState,
 } from '../../core/types';
 import { initMoveable } from "./canvasUtils";
-import {getGlobalStyles} from "./globalStyles";
-import {config} from "@grafana/runtime";
-import {Global} from "@emotion/react";
 
 interface SceneCanvasLayoutState extends SceneLayoutState {}
 
 export class SceneCanvasLayout extends SceneObjectBase<SceneCanvasLayoutState> implements SceneLayout {
   public static Component = CanvasLayoutRenderer;
   public static Editor = CanvasLayoutEditor;
-
-  globalCSS = getGlobalStyles(config.theme2);
 
   public moveable: { moveable: any, selecto: any} | undefined;
   public moveableContainer: any | undefined;
@@ -32,10 +27,10 @@ export class SceneCanvasLayout extends SceneObjectBase<SceneCanvasLayoutState> i
     return false;
   }
 
-  public initializeMoveable(ref: any) {
-    this.moveableContainer = ref;
+  public initializeMoveable(el: HTMLDivElement) {
+    this.moveableContainer = el;
     if (this.moveableContainer && this.targetElements) {
-      this.moveable = initMoveable(this.moveableContainer.current, this.targetElements);
+      this.moveable = initMoveable(this.moveableContainer, this.targetElements);
     }
   }
 }
@@ -50,13 +45,9 @@ function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCan
     alignContent: 'baseline',
   };
 
-  const ref = useRef<any>();
-  model.initializeMoveable(ref);
-
   return (
     <>
-      <Global styles={model.globalCSS} />
-      <div style={style} ref={ref}>
+      <div style={style} ref={(el) => el && model.initializeMoveable(el)}>
         {children.map((item) => {
           return (
             <div key={item.state.key}>
