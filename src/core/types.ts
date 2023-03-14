@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonoTypeOperatorFunction, Observer, Subscription, Unsubscribable } from 'rxjs';
+import { MonoTypeOperatorFunction, Observer, SubscriptionLike, Unsubscribable } from 'rxjs';
 
 import {
   BusEvent,
@@ -69,7 +69,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   readonly urlSync?: SceneObjectUrlSyncHandler<TState>;
 
   /** Subscribe to state changes */
-  subscribeToState(observer?: Partial<Observer<TState>>): Subscription;
+  subscribeToState(observer?: Partial<Observer<TState>>): SubscriptionLike;
 
   /** Subscribe to a scene event */
   subscribeToEvent<T extends BusEvent>(typeFilter: BusEventType<T>, handler: BusEventHandler<T>): Unsubscribable;
