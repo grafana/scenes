@@ -18,7 +18,7 @@ import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { CustomTransformOperator, SceneObject, SceneObjectStatePlain } from '../core/types';
+import { CustomTransformOperator, SceneDataProvider, SceneObject, SceneObjectStatePlain } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -33,9 +33,8 @@ export function getNextRequestId() {
 
 export interface QueryRunnerState extends SceneObjectStatePlain {
   data?: PanelData;
+  dataPreTransforms?: PanelData;
   queries: DataQueryExtended[];
-  // Array of standard transformation configs and custom transform operators
-  transformations?: Array<DataTransformerConfig | CustomTransformOperator>;
   datasource?: DataSourceRef;
   minInterval?: string;
   maxDataPoints?: number;
@@ -48,7 +47,7 @@ export interface DataQueryExtended extends DataQuery {
   [key: string]: any;
 }
 
-export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
+export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
@@ -61,6 +60,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
   public activate() {
     super.activate();
+
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._subs.add(
@@ -218,18 +218,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> {
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
-      this._querySub = runRequest(ds, request)
-        .pipe(getTransformationsStream(this, this.state.transformations, this.state.data))
-        .subscribe({
-          next: this.onDataReceived,
-        });
+      this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
     }
   }
 
   private onDataReceived = (data: PanelData) => {
-    this.setState({ data });
+    const preProcessedData = preProcessPanelData(data, this.state.data);
+    this.setState({ data: preProcessedData });
   };
 }
 

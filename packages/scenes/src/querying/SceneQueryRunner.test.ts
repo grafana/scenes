@@ -1,4 +1,4 @@
-import { map, of } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 
 import {
   ArrayVector,
@@ -16,8 +16,6 @@ import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
-import { getCustomTransformOperator } from '../core/SceneDataTransformer.test';
-import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -50,56 +48,11 @@ jest.mock('@grafana/runtime', () => ({
 }));
 
 describe('SceneQueryRunner', () => {
-  beforeAll(() => {
-    mockTransformationsRegistry([
-      {
-        id: 'transformer1',
-        name: 'Custom Transformer',
-        operator: (options) => (source) => {
-          return source.pipe(
-            map((data) => {
-              return data.map((frame) => {
-                return {
-                  ...frame,
-                  fields: frame.fields.map((field) => {
-                    return {
-                      ...field,
-                      values: new ArrayVector(field.values.toArray().map((v) => v * 2)),
-                    };
-                  }),
-                };
-              });
-            })
-          );
-        },
-      },
-      {
-        id: 'transformer2',
-        name: 'Custom Transformer2',
-        operator: (options) => (source) => {
-          return source.pipe(
-            map((data) => {
-              return data.map((frame) => {
-                return {
-                  ...frame,
-                  fields: frame.fields.map((field) => {
-                    return {
-                      ...field,
-                      values: new ArrayVector(field.values.toArray().map((v) => v * 3)),
-                    };
-                  }),
-                };
-              });
-            })
-          );
-        },
-      },
-    ]);
-  });
   afterEach(() => {
     runRequestMock.mockClear();
     getDataSourceMock.mockClear();
   });
+
   describe('when activated and got no data', () => {
     it('should run queries', async () => {
       const queryRunner = new SceneQueryRunner({
@@ -193,156 +146,6 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
-    });
-  });
-
-  describe('transformations', () => {
-    let customTransformerSpy = jest.fn();
-    let customTransformOperator = getCustomTransformOperator(customTransformerSpy);
-
-    afterEach(() => {
-      customTransformerSpy.mockClear();
-    });
-
-    it('should apply transformations to query results', async () => {
-      const queryRunner = new SceneQueryRunner({
-        queries: [{ refId: 'A' }],
-        $timeRange: new SceneTimeRange(),
-        maxDataPoints: 100,
-        transformations: [
-          {
-            id: 'transformer1',
-            options: {
-              option: 'value1',
-            },
-          },
-          {
-            id: 'transformer2',
-            options: {
-              option: 'value2',
-            },
-          },
-        ],
-      });
-
-      queryRunner.activate();
-
-      await new Promise((r) => setTimeout(r, 1));
-
-      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
-      expect(queryRunner.state.data?.series).toHaveLength(1);
-      expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
-      expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([600, 1200, 1800]);
-      expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([6, 12, 18]);
-    });
-
-    describe('custom transformations', () => {
-      it('applies leading custom transformer', async () => {
-        const queryRunner = new SceneQueryRunner({
-          queries: [{ refId: 'A' }],
-          $timeRange: new SceneTimeRange(),
-          maxDataPoints: 100,
-          // divide by 100, multiply by 2, multiply by 3
-          transformations: [
-            customTransformOperator,
-            {
-              id: 'transformer1',
-              options: {
-                option: 'value1',
-              },
-            },
-            {
-              id: 'transformer2',
-              options: {
-                option: 'value2',
-              },
-            },
-          ],
-        });
-
-        queryRunner.activate();
-
-        await new Promise((r) => setTimeout(r, 1));
-
-        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
-        expect(customTransformerSpy).toHaveBeenCalledTimes(1);
-        expect(queryRunner.state.data?.series).toHaveLength(1);
-        expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
-        expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([6, 12, 18]);
-        expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([0.06, 0.12, 0.18]);
-      });
-
-      it('applies trailing custom transformer', async () => {
-        const queryRunner = new SceneQueryRunner({
-          queries: [{ refId: 'A' }],
-          $timeRange: new SceneTimeRange(),
-          maxDataPoints: 100,
-          // multiply by 2, multiply by 3, divide by 100
-          transformations: [
-            {
-              id: 'transformer1',
-              options: {
-                option: 'value1',
-              },
-            },
-            {
-              id: 'transformer2',
-              options: {
-                option: 'value2',
-              },
-            },
-            customTransformOperator,
-          ],
-        });
-
-        queryRunner.activate();
-
-        await new Promise((r) => setTimeout(r, 1));
-
-        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
-        expect(customTransformerSpy).toHaveBeenCalledTimes(1);
-        expect(queryRunner.state.data?.series).toHaveLength(1);
-        expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
-        expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([6, 12, 18]);
-        expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([0.06, 0.12, 0.18]);
-      });
-
-      it('applies mixed transforms', async () => {
-        const queryRunner = new SceneQueryRunner({
-          queries: [{ refId: 'A' }],
-          $timeRange: new SceneTimeRange(),
-          maxDataPoints: 100,
-          // divide by 100,multiply by 2, divide by 100, multiply by 3, divide by 100
-          transformations: [
-            customTransformOperator,
-            {
-              id: 'transformer1',
-              options: {
-                option: 'value1',
-              },
-            },
-            customTransformOperator,
-            {
-              id: 'transformer2',
-              options: {
-                option: 'value2',
-              },
-            },
-            customTransformOperator,
-          ],
-        });
-
-        queryRunner.activate();
-
-        await new Promise((r) => setTimeout(r, 1));
-
-        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
-        expect(customTransformerSpy).toHaveBeenCalledTimes(3);
-        expect(queryRunner.state.data?.series).toHaveLength(1);
-        expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
-        expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([0.0006, 0.0012, 0.0018]);
-        expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([0.000006, 0.000012, 0.000018]);
-      });
     });
   });
 

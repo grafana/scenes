@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonoTypeOperatorFunction, Observer, Subscription, Unsubscribable } from 'rxjs';
+import { MonoTypeOperatorFunction, Observer, SubscriptionLike, Unsubscribable } from 'rxjs';
 
 import {
   BusEvent,
@@ -17,7 +17,7 @@ import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/
 export interface SceneObjectStatePlain {
   key?: string;
   $timeRange?: SceneTimeRangeLike;
-  $data?: SceneObject<SceneDataState>;
+  $data?: SceneDataProvider;
   $editor?: SceneEditor;
   $variables?: SceneVariables;
 }
@@ -69,7 +69,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   readonly urlSync?: SceneObjectUrlSyncHandler<TState>;
 
   /** Subscribe to state changes */
-  subscribeToState(observer?: Partial<Observer<TState>>): Subscription;
+  subscribeToState(observer?: Partial<Observer<TState>>): SubscriptionLike;
 
   /** Subscribe to a scene event */
   subscribeToEvent<T extends BusEvent>(typeFilter: BusEventType<T>, handler: BusEventHandler<T>): Unsubscribable;
@@ -175,3 +175,7 @@ export type CustomTransformOperator = (context: DataTransformContext) => MonoTyp
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
+
+export interface SceneDataProvider extends SceneObject<SceneDataState> {
+  setContainerWidth?: (width: number) => void;
+}

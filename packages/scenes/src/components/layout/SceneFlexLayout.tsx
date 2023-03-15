@@ -42,6 +42,7 @@ function FlexLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneFlexL
     gap: '8px',
     flexWrap: wrap,
     alignContent: 'baseline',
+    minHeight: 0,
   };
 
   return (
