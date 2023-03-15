@@ -6,7 +6,9 @@ import { SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneCanvasText } from '../SceneCanvasText';
-import { SceneApp, SceneAppPage, SceneRouteMatch } from './SceneApp';
+import { SceneApp } from './SceneApp';
+import { SceneAppPage } from './SceneAppPage';
+import { SceneRouteMatch } from './types';
 
 const setupScene = (inspectableObject: SceneObject) => {
   return new EmbeddedScene({
