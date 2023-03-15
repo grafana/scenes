@@ -3,16 +3,14 @@ if [[ -z "${GRAFANA_PATH}" ]]; then
     echo "Set GRAFANA_PATH env variable first"
 fi
 
-scenespath=$(pwd)
-scenespath=$(pwd)/packages/scenes
+scenespwd=$(pwd)
 
-echo $scenespath
 yarn install
 
 cd $GRAFANA_PATH
-yarn add '@grafana/scenes'@portal:$scenespath 
+yarn add '@grafana/scenes'@portal:$scenespwd 
 clear
-cd $scenespath
+cd $scenespwd
 echo "@grafana/scenes: linked to Grafana repo. Start Grafana now."
 echo "@grafana/scenes: Compiling..."
 yarn dev
