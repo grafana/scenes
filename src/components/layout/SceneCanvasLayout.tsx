@@ -27,11 +27,17 @@ export class SceneCanvasLayout extends SceneObjectBase<SceneCanvasLayoutState> i
     return false;
   }
 
-  public initializeMoveable(el: HTMLDivElement) {
+  public initializeMoveable(el: HTMLDivElement, children: SceneLayoutChild[]) {
     this.moveableContainer = el;
     if (this.moveableContainer && this.targetElements) {
-      this.moveable = initMoveable(this.moveableContainer, this.targetElements);
+      this.moveable = initMoveable(this.moveableContainer, this.targetElements, children);
     }
+  }
+
+  // @TODO breaking..
+  public initializeElement(el: HTMLDivElement, item: SceneLayoutChild) {
+    console.log('initializeElement');
+    // item.setState({ ...item.state, div: el});
   }
 }
 
@@ -47,7 +53,7 @@ function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCan
 
   return (
     <>
-      <div style={style} ref={(el) => el && model.initializeMoveable(el)}>
+      <div style={style} ref={(el) => el && model.initializeMoveable(el, children)}>
         {children.map((item) => {
           return (
             <div key={item.state.key}>
@@ -64,7 +70,7 @@ function CanvasLayoutChildComponent({ item, isEditing, model }: { item: SceneLay
   const state = item.useState();
 
   return (
-    <div style={getItemStyles(state)} ref={(el) => model?.targetElements.push(el)}>
+    <div style={getItemStyles(state)} ref={(el) => { model?.targetElements.push(el); model?.initializeElement(el!, item) }}>
       <item.Component model={item} isEditing={isEditing} />
     </div>
   );

@@ -28,6 +28,7 @@ export interface SceneLayoutChildState extends SceneObjectStatePlain {
   constraint?: Constraint; // defaults vertical - top, horizontal - left
   background?: BackgroundConfig;
   border?: LineConfig;
+  div?: HTMLDivElement;
 }
 
 export type SceneObjectState = SceneObjectStatePlain | SceneLayoutState | SceneLayoutChildState;
