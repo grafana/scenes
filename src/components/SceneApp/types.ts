@@ -33,10 +33,6 @@ export interface SceneAppPageState extends SceneObjectStatePlain {
   title: string;
   /** Page subTitle */
   subTitle?: string;
-  /** Can be used to place actions inline with the heading */
-  pageInfo?: ScenePageInfoItem[];
-  /** Can be used to place actions inline with the heading */
-  pageActions?: React.ReactNode;
   /** For an image before title */
   titleImg?: string;
   /** For an icon before title */
