@@ -18,8 +18,10 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> {
 }
 
 function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
-  const { tabs, drilldowns, url, routePath } = model.state;
+  const { tabs, drilldowns, url, routePath } = model.useState();
   const routes: React.ReactNode[] = [];
+
+  console.log('SceneAppPageRenderer');
 
   if (tabs) {
     for (const page of tabs) {
@@ -72,7 +74,7 @@ function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
 
   // if parent is a SceneAppPage we are a tab
   if (model.parent instanceof SceneAppPage) {
-    page = <ScenePageRenderer page={model.parent} activeTab={model} tabs={model.parent.state.tabs} />;
+    page = <ScenePageRenderer page={model.parent} activeTab={model} />;
   }
 
   return (
@@ -95,17 +97,19 @@ function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
 
 interface ScenePageRenderProps {
   page: SceneAppPageLike;
-  tabs?: SceneAppPageLike[];
-  activeTab?: SceneAppPage;
+  activeTab?: SceneAppPageLike;
 }
 
-function ScenePageRenderer({ page, tabs, activeTab }: ScenePageRenderProps) {
+function ScenePageRenderer({ page, activeTab }: ScenePageRenderProps) {
   /**
    * We use this flag to make sure the URL sync is enabled before the scene is actually rendered.
    */
   const [isInitialized, setIsInitialized] = useState(false);
   const params = useAppQueryParams();
   const routeMatch = useRouteMatch();
+  const { tabs, title, subTitle, titleImg, titleIcon, hideFromBreadcrumbs, pageInfo, controls } = page.useState();
+
+  console.log('ScenePageRenderer', page);
 
   let scene = sceneCache.get(routeMatch!.url);
   if (!scene) {
@@ -117,22 +121,24 @@ function ScenePageRenderer({ page, tabs, activeTab }: ScenePageRenderProps) {
   useEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
     if (!isInitialized && scene) {
+      // Connect scene with page scene
+      page.setState({ currentScene: scene });
       scene.initUrlSync();
       setIsInitialized(true);
     }
-  }, [isInitialized, scene]);
+  }, [isInitialized, scene, page]);
 
   if (!isInitialized) {
     return null;
   }
 
   const pageNav: NavModelItem = {
-    text: page.state.title,
-    subTitle: page.state.subTitle,
-    img: page.state.titleImg,
-    icon: page.state.titleIcon,
+    text: title,
+    subTitle: subTitle,
+    img: titleImg,
+    icon: titleIcon,
     url: getLinkUrlWithAppUrlState(page.state.url, params, page.state.preserveUrlKeys),
-    hideFromBreadcrumbs: page.state.hideFromBreadcrumbs,
+    hideFromBreadcrumbs: hideFromBreadcrumbs,
     parentItem: getParentBreadcrumbs(page.state.getParentPage ? page.state.getParentPage() : page.parent, params),
   };
 
@@ -147,8 +153,13 @@ function ScenePageRenderer({ page, tabs, activeTab }: ScenePageRenderProps) {
     });
   }
 
+  let pageActions: React.ReactNode = undefined;
+  if (controls) {
+    pageActions = controls.map((control) => <control.Component model={control} key={control.state.key} />);
+  }
+
   return (
-    <PluginPage pageNav={pageNav}>
+    <PluginPage pageNav={pageNav} info={pageInfo} actions={pageActions}>
       <scene.Component model={scene} />
     </PluginPage>
   );

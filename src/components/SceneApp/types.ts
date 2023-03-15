@@ -33,10 +33,10 @@ export interface SceneAppPageState extends SceneObjectStatePlain {
   title: string;
   /** Page subTitle */
   subTitle?: string;
-  /** Can be used to place actions inline with the heading */
+  /** Page info items */
   pageInfo?: ScenePageInfoItem[];
-  /** Can be used to place actions inline with the heading */
-  pageActions?: React.ReactNode;
+  /** Shown in the top right */
+  controls?: SceneObject[];
   /** For an image before title */
   titleImg?: string;
   /** For an icon before title */
@@ -57,6 +57,10 @@ export interface SceneAppPageState extends SceneObjectStatePlain {
   getParentPage?: () => SceneAppPageLike;
   // Array of query params that will be preserved in breadcrumb and page tab links, i.e. ['from', 'to', 'var-datacenter',...]
   preserveUrlKeys?: string[];
+  /**
+   * The current scene, this is set by the framework after scene url initialization
+   **/
+  currentScene?: SceneObject;
 }
 
 export type SceneAppPageLike = SceneObject<SceneAppPageState>;
@@ -66,4 +70,9 @@ export interface SceneAppDrilldownView {
   routePath: string;
   // Function that returns a page object for a given drilldown route match. Use parent to configure drilldown view parent SceneAppPage via getParentPage method.
   getPage: (routeMatch: SceneRouteMatch<any>, parent: SceneAppPageLike) => SceneAppPageLike;
+}
+
+export interface ScenePageHeaderItemState extends SceneObjectStatePlain {
+  label?: string;
+  value: React.ReactNode;
 }

@@ -7,6 +7,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObjectStatePlain, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
+import { ItemWithLabel } from './ItemWithLabel';
 
 export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'];
 
@@ -16,6 +17,7 @@ export interface SceneRefreshPickerState extends SceneObjectStatePlain {
   // List of allowed refresh intervals, e.g. ['5s', '1m']
   intervals?: string[];
   isOnCanvas?: boolean;
+  label?: string;
 }
 
 export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState> {
@@ -101,15 +103,17 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 }
 
 export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneRefreshPicker>) {
-  const { refresh, intervals, isOnCanvas } = model.useState();
+  const { refresh, intervals, isOnCanvas, label } = model.useState();
 
   return (
-    <RefreshPicker
-      value={refresh}
-      intervals={intervals}
-      onRefresh={model.onRefresh}
-      onIntervalChanged={model.onIntervalChanged}
-      isOnCanvas={isOnCanvas}
-    />
+    <ItemWithLabel label={label}>
+      <RefreshPicker
+        value={refresh}
+        intervals={intervals}
+        onRefresh={model.onRefresh}
+        onIntervalChanged={model.onIntervalChanged}
+        isOnCanvas={isOnCanvas}
+      />
+    </ItemWithLabel>
   );
 }
