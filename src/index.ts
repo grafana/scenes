@@ -36,4 +36,12 @@ export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export { SceneFlexLayout } from './components/layout/SceneFlexLayout';
 export { SceneGridLayout } from './components/layout/SceneGridLayout';
 export { SceneGridRow } from './components/layout/SceneGridRow';
-export { SceneApp, SceneAppPage, type SceneRouteMatch } from './components/SceneApp/SceneApp';
+export {
+  type SceneAppPageLike,
+  type SceneRouteMatch,
+  type SceneAppPageState,
+  type SceneAppDrilldownView,
+  type SceneAppRoute,
+} from './components/SceneApp/types';
+export { SceneApp } from './components/SceneApp/SceneApp';
+export { SceneAppPage } from './components/SceneApp/SceneAppPage';
