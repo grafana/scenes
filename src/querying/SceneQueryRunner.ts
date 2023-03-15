@@ -18,7 +18,7 @@ import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { CustomTransformOperator, SceneObject, SceneObjectStatePlain, SceneQueryRunnerInterface } from '../core/types';
+import { CustomTransformOperator, SceneDataProvider, SceneObject, SceneObjectStatePlain } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -47,7 +47,7 @@ export interface DataQueryExtended extends DataQuery {
   [key: string]: any;
 }
 
-export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneQueryRunnerInterface {
+export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
