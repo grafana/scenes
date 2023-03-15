@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "declarationDir": "./compiled",
+    "emitDeclarationOnly": true,
+    "isolatedModules": true,
+    "rootDirs": ["."]
+  },
+  "exclude": ["dist/**/*"],
+  "include": ["utils/**/*.ts*", "src/**/*.ts*"]
+}

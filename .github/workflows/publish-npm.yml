@@ -38,10 +38,10 @@ jobs:
 
       - name: Build library
         if: steps.version_check.outputs.changed == 'true'
-        run: yarn build:prod
+        run: lerna run build
 
       - name: Publish package to NPM
         if: steps.version_check.outputs.changed == 'true'
-        run: npm publish --access public
+        run: lerna publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

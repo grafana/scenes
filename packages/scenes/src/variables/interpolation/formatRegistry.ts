@@ -180,7 +180,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       description: 'JSON stringify value',
       formatter: (value) => {
         if (typeof value === 'string') {
-          return value
+          return value;
         }
         return JSON.stringify(value);
       },

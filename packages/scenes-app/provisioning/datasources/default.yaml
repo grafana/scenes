@@ -1,0 +1,6 @@
+apiVersion: 1
+
+datasources:
+  - name: scenes-app-testdata
+    isDefault: true
+    type: testdata
