@@ -148,4 +148,84 @@ describe('SceneObject', () => {
       expect(scene.state.$variables!.isActive).toBe(false);
     });
   });
+
+  describe('state subscription', () => {
+    describe('emits previous and current value', () => {
+      const jestPrevSpy = jest.fn();
+      const jestCurrentSpy = jest.fn();
+
+      afterEach(() => {
+        jestPrevSpy.mockClear();
+        jestCurrentSpy.mockClear();
+      });
+
+      it('when no initial state value', async () => {
+        const scene = new TestScene({
+          $data: new SceneDataNode({}),
+          $variables: new SceneVariableSet({ variables: [] }),
+        });
+
+        scene.activate();
+
+        scene.subscribeToState({
+          next: ({ previous, current }) => {
+            jestPrevSpy(previous.name);
+            jestCurrentSpy(current.name);
+          },
+        });
+        scene.setState({ name: 'new name' });
+        expect(jestPrevSpy).toHaveBeenLastCalledWith(undefined);
+        expect(jestCurrentSpy).toHaveBeenLastCalledWith('new name');
+
+        scene.setState({ name: 'next name' });
+        expect(jestPrevSpy).toHaveBeenLastCalledWith('new name');
+        expect(jestCurrentSpy).toHaveBeenLastCalledWith('next name');
+      });
+      it('when initial state value defined', async () => {
+        const scene = new TestScene({
+          $data: new SceneDataNode({}),
+          $variables: new SceneVariableSet({ variables: [] }),
+          name: 'initial name',
+        });
+
+        scene.activate();
+
+        scene.subscribeToState({
+          next: ({ previous, current }) => {
+            jestPrevSpy(previous.name);
+            jestCurrentSpy(current.name);
+          },
+        });
+        scene.setState({ name: 'new name' });
+        expect(jestPrevSpy).toHaveBeenLastCalledWith('initial name');
+        expect(jestCurrentSpy).toHaveBeenLastCalledWith('new name');
+
+        scene.setState({ name: 'next name' });
+        expect(jestPrevSpy).toHaveBeenLastCalledWith('new name');
+        expect(jestCurrentSpy).toHaveBeenLastCalledWith('next name');
+      });
+
+      it('when subscribed to state after state changes', async () => {
+        const scene = new TestScene({
+          $data: new SceneDataNode({}),
+          $variables: new SceneVariableSet({ variables: [] }),
+          name: 'initial name',
+        });
+
+        scene.activate();
+        scene.setState({ name: 'new name' });
+
+        scene.subscribeToState({
+          next: ({ previous, current }) => {
+            jestPrevSpy(previous.name);
+            jestCurrentSpy(current.name);
+          },
+        });
+
+        scene.setState({ name: 'next name' });
+        expect(jestPrevSpy).toHaveBeenLastCalledWith('new name');
+        expect(jestCurrentSpy).toHaveBeenLastCalledWith('next name');
+      });
+    });
+  });
 });

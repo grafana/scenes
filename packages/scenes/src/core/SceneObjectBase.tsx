@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Observer, Subject, Subscription, SubscriptionLike, Unsubscribable } from 'rxjs';
+import { Observer, Subject, Subscription, SubscriptionLike, Unsubscribable, startWith, pairwise, map } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import { BusEvent, BusEventHandler, BusEventType, EventBusSrv } from '@grafana/data';
@@ -82,8 +82,14 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /**
    * Subscribe to the scene state subject
    **/
-  public subscribeToState(observerOrNext?: Partial<Observer<TState>>): SubscriptionLike {
-    return this._subject.subscribe(observerOrNext);
+  public subscribeToState(observerOrNext?: Partial<Observer<{ previous: TState; current: TState }>>): SubscriptionLike {
+    return this._subject
+      .pipe(
+        startWith(this._state),
+        pairwise(),
+        map(([previous, current]) => ({ previous, current }))
+      )
+      .subscribe(observerOrNext);
   }
 
   /**

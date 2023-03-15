@@ -69,7 +69,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   readonly urlSync?: SceneObjectUrlSyncHandler<TState>;
 
   /** Subscribe to state changes */
-  subscribeToState(observer?: Partial<Observer<TState>>): SubscriptionLike;
+  subscribeToState(observer?: Partial<Observer<{ previous: TState; current: TState }>>): SubscriptionLike;
 
   /** Subscribe to a scene event */
   subscribeToEvent<T extends BusEvent>(typeFilter: BusEventType<T>, handler: BusEventHandler<T>): Unsubscribable;

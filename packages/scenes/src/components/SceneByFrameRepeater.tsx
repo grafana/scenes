@@ -23,9 +23,9 @@ export class SceneByFrameRepeater extends SceneObjectBase<RepeatOptions> {
 
     this._subs.add(
       sceneGraph.getData(this).subscribeToState({
-        next: (data) => {
-          if (data.data?.state === LoadingState.Done) {
-            this.performRepeat(data.data);
+        next: (state) => {
+          if (state.current.data?.state === LoadingState.Done) {
+            this.performRepeat(state.current.data);
           }
         },
       })

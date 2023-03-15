@@ -66,7 +66,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._subs.add(
       timeRange.subscribeToState({
         next: (timeRange) => {
-          this.runWithTimeRange(timeRange.value);
+          this.runWithTimeRange(timeRange.current.value);
         },
       })
     );

@@ -39,7 +39,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     this._subs.add(
       sourceData.subscribeToState({
-        next: (state) => this.transform(state.data),
+        next: (state) => this.transform(state.current.data),
       })
     );
 
