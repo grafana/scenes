@@ -38,7 +38,7 @@ export default [
     input: 'src/index.ts',
     plugins: [dts()],
     output: {
-      file: './dist/index.d.ts',
+      file: pkg.types,
       format: 'es',
     },
   },

@@ -21,7 +21,7 @@ jobs:
         run: yarn
 
       - name: Build library
-        run: lerna run build
+        run: yarn build:prod
 
       - name: Test library
-        run: lerna run test
+        run: yarn test
