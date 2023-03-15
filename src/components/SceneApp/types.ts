@@ -20,14 +20,6 @@ export interface SceneAppRoute {
   drilldown?: SceneAppDrilldownView;
 }
 
-/**
- * This type is should be imported from @grafana/runtime (prop to PluginPage) but it's not exported
- */
-export interface ScenePageInfoItem {
-  label: string;
-  value: React.ReactNode;
-}
-
 export interface SceneAppPageState extends SceneObjectStatePlain {
   /** Page title */
   title: string;
