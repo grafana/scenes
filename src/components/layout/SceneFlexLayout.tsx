@@ -35,6 +35,7 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
 
 function FlexLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneFlexLayout>) {
   const { direction = 'row', children, wrap } = model.useState();
+
   const style: CSSProperties = {
     flexGrow: 1,
     flexDirection: direction,
