@@ -33,7 +33,6 @@ const getStyles = (theme: GrafanaTheme2) => {
       display: 'flex',
       flexDirection: 'row',
       gap: theme.spacing(1.5),
-      overflow: 'auto',
     }),
     infoItem: css({
       ...theme.typography.bodySmall,
