@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { NavModelItem, UrlQueryMap } from '@grafana/data';
 import { PluginPage } from '@grafana/runtime';
 import { Route, Switch, useRouteMatch } from 'react-router-dom';
@@ -18,7 +18,7 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> {
 }
 
 function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
-  const { tabs, drilldowns, url, routePath } = model.state;
+  const { tabs, drilldowns, url, routePath } = model.useState();
   const routes: React.ReactNode[] = [];
 
   if (tabs) {
@@ -72,7 +72,7 @@ function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
 
   // if parent is a SceneAppPage we are a tab
   if (model.parent instanceof SceneAppPage) {
-    page = <ScenePageRenderer page={model.parent} activeTab={model} tabs={model.parent.state.tabs} />;
+    page = <ScenePageRenderer page={model.parent} activeTab={model} />;
   }
 
   return (
@@ -95,15 +95,11 @@ function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
 
 interface ScenePageRenderProps {
   page: SceneAppPageLike;
-  tabs?: SceneAppPageLike[];
   activeTab?: SceneAppPage;
 }
 
-function ScenePageRenderer({ page, tabs, activeTab }: ScenePageRenderProps) {
-  /**
-   * We use this flag to make sure the URL sync is enabled before the scene is actually rendered.
-   */
-  const [isInitialized, setIsInitialized] = useState(false);
+function ScenePageRenderer({ page, activeTab }: ScenePageRenderProps) {
+  const pageState = page.useState();
   const params = useAppQueryParams();
   const routeMatch = useRouteMatch();
 
@@ -114,30 +110,33 @@ function ScenePageRenderer({ page, tabs, activeTab }: ScenePageRenderProps) {
     sceneCache.set(routeMatch!.url, scene);
   }
 
+  const { initializedScene } = pageState;
+  const isInitialized = !initializedScene || initializedScene !== scene;
+
   useEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
     if (!isInitialized && scene) {
       scene.initUrlSync();
-      setIsInitialized(true);
+      page.setState({ initializedScene: scene });
     }
-  }, [isInitialized, scene]);
+  }, [isInitialized, scene, page]);
 
   if (!isInitialized) {
     return null;
   }
 
   const pageNav: NavModelItem = {
-    text: page.state.title,
-    subTitle: page.state.subTitle,
-    img: page.state.titleImg,
-    icon: page.state.titleIcon,
-    url: getLinkUrlWithAppUrlState(page.state.url, params, page.state.preserveUrlKeys),
-    hideFromBreadcrumbs: page.state.hideFromBreadcrumbs,
-    parentItem: getParentBreadcrumbs(page.state.getParentPage ? page.state.getParentPage() : page.parent, params),
+    text: pageState.title,
+    subTitle: pageState.subTitle,
+    img: pageState.titleImg,
+    icon: pageState.titleIcon,
+    url: getLinkUrlWithAppUrlState(pageState.url, params, pageState.preserveUrlKeys),
+    hideFromBreadcrumbs: pageState.hideFromBreadcrumbs,
+    parentItem: getParentBreadcrumbs(pageState.getParentPage ? pageState.getParentPage() : page.parent, params),
   };
 
-  if (tabs) {
-    pageNav.children = tabs.map((tab) => {
+  if (pageState.tabs) {
+    pageNav.children = pageState.tabs.map((tab) => {
       return {
         text: tab.state.title,
         active: activeTab === tab,
@@ -147,8 +146,13 @@ function ScenePageRenderer({ page, tabs, activeTab }: ScenePageRenderProps) {
     });
   }
 
+  let pageActions: React.ReactNode = undefined;
+  if (pageState.controls) {
+    pageActions = pageState.controls.map((control) => <control.Component model={control} key={control.state.key} />);
+  }
+
   return (
-    <PluginPage pageNav={pageNav}>
+    <PluginPage pageNav={pageNav} actions={pageActions}>
       <scene.Component model={scene} />
     </PluginPage>
   );

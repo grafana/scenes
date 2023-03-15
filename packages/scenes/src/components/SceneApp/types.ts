@@ -33,6 +33,8 @@ export interface SceneAppPageState extends SceneObjectStatePlain {
   url: string;
   // Use to provide parametrized page URL, i.e. /app/overview/:clusterId
   routePath?: string;
+  /** Shown in the top right inline with the page title */
+  controls?: SceneObject[];
   // Whether or not page should be visible in the breadcrumbs path
   hideFromBreadcrumbs?: boolean;
   // Array of SceneAppPage objects that are used as page tabs displayed on top of the page
@@ -45,6 +47,10 @@ export interface SceneAppPageState extends SceneObjectStatePlain {
   getParentPage?: () => SceneAppPageLike;
   // Array of query params that will be preserved in breadcrumb and page tab links, i.e. ['from', 'to', 'var-datacenter',...]
   preserveUrlKeys?: string[];
+  /**
+   * The current initialized scene, this is set by the framework after scene url initialization
+   **/
+  initializedScene?: SceneObject;
 }
 
 export type SceneAppPageLike = SceneObject<SceneAppPageState>;
