@@ -3,10 +3,10 @@ export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
 export { SceneObjectBase } from './core/SceneObjectBase';
 export { SceneDataNode } from './core/SceneDataNode';
-export { SceneDataTransformer } from './core/SceneDataTransformer';
 export { SceneTimeRange } from './core/SceneTimeRange';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
+export { SceneDataTransformer } from './querying/SceneDataTransformer';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';

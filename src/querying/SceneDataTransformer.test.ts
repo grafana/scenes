@@ -1,15 +1,25 @@
-import { map } from 'rxjs';
+import { map, of } from 'rxjs';
 
-import { ArrayVector, getDefaultTimeRange, LoadingState, toDataFrame } from '@grafana/data';
+import {
+  ArrayVector,
+  getDefaultTimeRange,
+  LoadingState,
+  toDataFrame,
+  PanelData,
+  DataQueryRequest,
+  DataSourceApi,
+} from '@grafana/data';
 
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
-import { SceneDataNode } from './SceneDataNode';
+import { SceneDataNode } from '../core/SceneDataNode';
 import { SceneDataTransformer } from './SceneDataTransformer';
-import { SceneObjectBase } from './SceneObjectBase';
-import { sceneGraph } from './sceneGraph';
-import { CustomTransformOperator } from './types';
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { sceneGraph } from '../core/sceneGraph';
+import { CustomTransformOperator, SceneObjectStatePlain } from '../core/types';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
+import { SceneQueryRunner } from './SceneQueryRunner';
+import { SceneTimeRange } from '../core/SceneTimeRange';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
 
@@ -47,6 +57,36 @@ export const getCustomTransformOperator = (spy: jest.Mock): CustomTransformOpera
     );
   };
 };
+
+const getDataSourceMock = jest.fn().mockReturnValue({
+  getRef: () => ({ uid: 'test' }),
+});
+
+const runRequestMock = jest.fn().mockReturnValue(
+  of<PanelData>({
+    state: LoadingState.Done,
+    series: [
+      toDataFrame([
+        [100, 1],
+        [200, 2],
+        [300, 3],
+      ]),
+    ],
+    timeRange: getDefaultTimeRange(),
+  })
+);
+
+let sentRequest: DataQueryRequest | undefined;
+
+jest.mock('@grafana/runtime', () => ({
+  getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
+    sentRequest = request;
+    return runRequestMock(ds, request);
+  },
+  getDataSourceSrv: () => {
+    return { get: getDataSourceMock };
+  },
+}));
 
 describe('SceneDataTransformer', () => {
   let customTransformerSpy = jest.fn();
@@ -222,6 +262,7 @@ describe('SceneDataTransformer', () => {
       expect(data?.series[0].fields[0].values.toArray()).toEqual([0.1, 0.2, 0.3]);
       expect(data?.series[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
     });
+
     it('applies leading custom transformer', () => {
       // divide values by 100, multiply by 2
       const transformationNode = new SceneDataTransformer({
@@ -321,6 +362,7 @@ describe('SceneDataTransformer', () => {
       expect(data?.series[0].fields[0].values.toArray()).toEqual([0.2, 0.4, 0.6]);
       expect(data?.series[0].fields[1].values.toArray()).toEqual([0.2, 0.4, 0.6]);
     });
+
     it('applies mixed transforms', () => {
       //  multiply by 2, divide values by 100, multiply by 2, divide values by 100
       const transformationNode = new SceneDataTransformer({
@@ -371,4 +413,90 @@ describe('SceneDataTransformer', () => {
       expect(data?.series[0].fields[1].values.toArray()).toEqual([0.004, 0.008, 0.012]);
     });
   });
+
+  describe('With inner query runner', () => {
+    it('should apply transformations to query results', async () => {
+      const queryRunner = new SceneDataTransformer({
+        $data: new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          maxDataPoints: 100,
+        }),
+        transformations: [
+          {
+            id: 'transformer1',
+            options: {
+              option: 'value1',
+            },
+          },
+          {
+            id: 'transformer2',
+            options: {
+              option: 'value2',
+            },
+          },
+        ],
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(queryRunner.state.data?.series).toHaveLength(1);
+      expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
+      expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([600, 1200, 1800]);
+      expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([6, 12, 18]);
+    });
+
+    describe('custom transformer object', () => {
+      it('Can re-trigger transformations without issuing new query', async () => {
+        const someObject = new SceneObjectSearchBox({ value: 'hello' });
+
+        const queryRunner = new SceneDataTransformer({
+          $data: new SceneQueryRunner({
+            queries: [{ refId: 'A' }],
+            $timeRange: new SceneTimeRange(),
+            maxDataPoints: 100,
+          }),
+          transformations: [
+            () => (source) => {
+              return source.pipe(
+                map((data) => {
+                  //return data;
+                  return data.map((frame) => ({ ...frame, name: someObject.state.value }));
+                })
+              );
+            },
+          ],
+        });
+
+        // This could potentially be done by QueryRunnerWithTransformations if we passed it "dependencies" (object it should subscribe to and re-run transformations on change)
+        someObject.subscribeToState({
+          next: () => queryRunner.reprocessTransformations(),
+        });
+
+        queryRunner.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        // Verify transformation has run once
+        expect(queryRunner.state.data?.series[0].name).toBe('hello');
+
+        // Updates structureRev and re-trigger transformation
+        someObject.setState({ value: 'new name' });
+
+        // Need to do this to get rxjs time to update
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.series[0].name).toBe('new name');
+      });
+    });
+  });
 });
+
+export interface SceneObjectSearchBoxState extends SceneObjectStatePlain {
+  value: string;
+}
+
+export class SceneObjectSearchBox extends SceneObjectBase<SceneObjectSearchBoxState> {}
