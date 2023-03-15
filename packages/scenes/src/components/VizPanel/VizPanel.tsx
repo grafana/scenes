@@ -7,6 +7,7 @@ import {
   getPanelOptionsWithDefaults,
   ScopedVars,
   InterpolateFunction,
+  PanelMenuItem,
 } from '@grafana/data';
 import { config, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -26,6 +27,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLa
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
   hoverHeader?: boolean;
+  menuItems?: PanelMenuItem[];
   // internal state
   pluginLoadError?: string;
 }
