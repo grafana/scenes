@@ -38,7 +38,7 @@ jobs:
 
       - name: Build library
         if: steps.version_check.outputs.changed == 'true'
-        run: yarn build
+        run: lerna run build
 
       - name: Publish package to NPM
         if: steps.version_check.outputs.changed == 'true'
