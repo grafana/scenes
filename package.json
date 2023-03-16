@@ -29,7 +29,7 @@
     "precommit": "yarn run lint-staged",
     "prepare": "husky install",
     "packages:publish": "lerna exec --no-private -- npm publish",
-    "test:scenes": "lerna run test --scope '@grafana/scenes'"
+    "test:scenes": "lerna run test --scope '@grafana/scenes' --"
   },
   "resolutions": {
     "@types/react": "17.0.42"
