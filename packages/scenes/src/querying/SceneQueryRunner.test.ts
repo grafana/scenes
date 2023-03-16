@@ -1,7 +1,6 @@
-import { map, Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 
 import {
-  ArrayVector,
   DataQueryRequest,
   DataSourceApi,
   getDefaultTimeRange,

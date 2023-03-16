@@ -1,3 +1,33 @@
+# 0.21 (2023-03-15)
+
+**SceneObject subscribeToState parameter change**
+
+Signature change. Now the parameter to this function expects a simple function that takes two args (newState, prevState).
+
+Before:
+
+```ts
+ this._subs.add(
+  sourceData.subscribeToState({
+    next: (state) => this.transform(state.data),
+  })
+);
+```
+
+Becomes:
+
+```ts
+ this._subs.add(
+  sourceData.subscribeToState((state) => this.transform(state.data))
+);
+```
+
+# 0.20 (2023-03-15)
+
+**AppScenePage**
+
+The getScene for drilldowns now expect the parent property to be of type AppScenePageLike (interface).
+
 # 0.19 (2023-03-15)
 
 **SceneQueryRunner no longer has transformations**
