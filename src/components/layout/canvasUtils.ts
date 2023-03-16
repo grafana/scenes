@@ -26,6 +26,15 @@ export function initMoveable(container: HTMLDivElement, targetElements: HTMLElem
         event.target.style.transform = event.transform;
       }
     })
+    .on('dragEnd', (event) => {
+      // Get state of node and save result to model placement
+    })
+    .on('dragGroupEnd', (e) => {
+      for (let event of e.events) {
+        // Get state of node and save result to model placement
+      }
+    })
+    // TODO: Figure out resize events
     .on('resize', (event) => {});
 
   let targets: Array<HTMLElement | SVGElement> = [];

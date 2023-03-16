@@ -1,4 +1,6 @@
-import React, {CSSProperties} from 'react';
+import Moveable from 'moveable';
+import React, { CSSProperties } from 'react';
+import Selecto from 'selecto';
 import { VerticalConstraint, HorizontalConstraint, BackgroundImageSize } from '../../core/canvasTypes';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -10,7 +12,7 @@ import {
   SceneLayout,
   SceneLayoutChildState,
 } from '../../core/types';
-import { initMoveable } from "./canvasUtils";
+import { initMoveable } from './canvasUtils';
 
 interface SceneCanvasLayoutState extends SceneLayoutState {}
 
@@ -18,10 +20,9 @@ export class SceneCanvasLayout extends SceneObjectBase<SceneCanvasLayoutState> i
   public static Component = CanvasLayoutRenderer;
   public static Editor = CanvasLayoutEditor;
 
-  public moveable: { moveable: any, selecto: any} | undefined;
-  public moveableContainer: any | undefined;
-  public targetElements: any = []; // HTMLDivElement[] = []; // @TODO
-
+  public moveable: { moveable: Moveable; selecto: Selecto } | undefined;
+  public moveableContainer: HTMLDivElement | null = null;
+  public targetElements: HTMLDivElement[] = [];
 
   public isDraggable(): boolean {
     return false;
@@ -53,18 +54,26 @@ function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCan
             <div key={item.state.key}>
               <CanvasLayoutChildComponent key={item.state.key} item={item} isEditing={isEditing} model={model} />
             </div>
-          )
+          );
         })}
       </div>
     </>
   );
 }
 
-function CanvasLayoutChildComponent({ item, isEditing, model }: { item: SceneLayoutChild; isEditing?: boolean, model?: SceneCanvasLayout }) {
+function CanvasLayoutChildComponent({
+  item,
+  isEditing,
+  model,
+}: {
+  item: SceneLayoutChild;
+  isEditing?: boolean;
+  model?: SceneCanvasLayout;
+}) {
   const state = item.useState();
 
   return (
-    <div style={getItemStyles(state)} ref={(el) => model?.targetElements.push(el)}>
+    <div style={getItemStyles(state)} ref={(el) => el && model?.targetElements.push(el)}>
       <item.Component model={item} isEditing={isEditing} />
     </div>
   );
@@ -248,7 +257,5 @@ function getItemStyles(state: SceneLayoutChildState = {}) {
 
 // @TODO implement
 function CanvasLayoutEditor({ model }: SceneComponentProps<SceneCanvasLayout>) {
-  return (
-      <div>EDITOR</div>
-  );
+  return <div>EDITOR</div>;
 }
