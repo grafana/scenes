@@ -226,9 +226,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   private handleVariableValueChanged(variableThatChanged: SceneVariable) {
     this._variablesThatHaveChanged.add(variableThatChanged);
 
-    // Remember current variable value
-    this._variableValueRecorder.recordCurrentValue(variableThatChanged);
-
     // Ignore this change if it is currently updating
     if (this._updating.has(variableThatChanged)) {
       return;
