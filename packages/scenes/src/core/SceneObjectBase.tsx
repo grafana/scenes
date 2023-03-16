@@ -9,6 +9,8 @@ import {
   SceneObjectState,
   SceneObjectUrlSyncHandler,
   SceneStateChangedHandler,
+  SceneActivationHandler,
+  SceneDeactivationHandler,
 } from './types';
 import { useForceUpdate } from '@grafana/ui';
 
@@ -23,6 +25,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   private _isActive = false;
   private _state: TState;
   private _events = new EventBusSrv();
+  private _activationHandlers: SceneActivationHandler[] = [];
+  private _deactivationHandlers: SceneDeactivationHandler[] = [];
 
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
@@ -157,6 +161,13 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     if ($data && !$data.isActive) {
       $data.activate();
     }
+
+    this._activationHandlers.forEach((handler) => {
+      const result = handler();
+      if (result) {
+        this._deactivationHandlers.push(result);
+      }
+    });
   }
 
   /**
@@ -178,6 +189,9 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     if ($variables && $variables.isActive) {
       $variables.deactivate();
     }
+
+    this._deactivationHandlers.forEach((handler) => handler());
+    this._deactivationHandlers = [];
 
     // Clear subscriptions and listeners
     this._events.removeAllListeners();
@@ -203,6 +217,14 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    */
   public clone(withState?: Partial<TState>): this {
     return cloneSceneObject(this, withState);
+  }
+
+  /**
+   * Allows external code to register code that is executed on activate and deactivate. This allow you
+   * to wire up scene objects that need to respond to state changes in other objects from the outside.
+   **/
+  public addActivationHandler(handler: SceneActivationHandler) {
+    this._activationHandlers.push(handler);
   }
 }
 
