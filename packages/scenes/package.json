@@ -1,0 +1,116 @@
+{
+  "name": "@grafana/scenes",
+  "version": "0.0.20",
+  "description": "Grafana framework for building dynamic dashboards",
+  "author": "Grafana Labs",
+  "license": "AGPL-3.0-only",
+  "homepage": "https://github.com/grafana/scenes#readme",
+  "main": "dist/index.js",
+  "types": "src/index.ts",
+  "module": "dist/esm/index.js",
+  "directories": {
+    "src": "src"
+  },
+  "files": [
+    "dist",
+    "./README.md",
+    "./CHANGELOG.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grafana/scenes.git"
+  },
+  "scripts": {
+    "tsc": "tsc -p ./tsconfig.build.json",
+    "dev": "yarn clean && yarn build:dev --watch",
+    "build": "rollup -c rollup.config.ts",
+    "build:dev": "yarn build --environment NODE_ENV:development",
+    "clean": "rimraf ./dist ./compiled ./package.tgz",
+    "typecheck": "tsc --emitDeclarationOnly false --noEmit",
+    "test": "jest",
+    "lint": "eslint --ignore-path ../../.gitignore . --ext .js,.tsx,.ts --cache",
+    "prepack": "node ./scripts/prepack.js",
+    "postpack": "node ./scripts/postpack.js"
+  },
+  "bugs": {
+    "url": "https://github.com/grafana/scenes/issues"
+  },
+  "dependencies": {
+    "@grafana/e2e-selectors": "^9.4.3",
+    "@grafana/experimental": "1.0.1",
+    "react-grid-layout": "1.3.4",
+    "react-use": "17.4.0",
+    "react-virtualized-auto-sizer": "1.0.7",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@emotion/css": "11.10.5",
+    "@emotion/react": "11.10.5",
+    "@grafana/data": "canary",
+    "@grafana/eslint-config": "5.1.0",
+    "@grafana/runtime": "canary",
+    "@grafana/schema": "canary",
+    "@grafana/tsconfig": "^1.2.0-rc1",
+    "@grafana/ui": "canary",
+    "@rollup/plugin-eslint": "^9.0.3",
+    "@rollup/plugin-node-resolve": "15.0.1",
+    "@swc/core": "^1.2.162",
+    "@swc/jest": "^0.2.20",
+    "@testing-library/dom": "^8.19.1",
+    "@testing-library/jest-dom": "5.16.5",
+    "@testing-library/react": "12.1.4",
+    "@testing-library/react-hooks": "8.0.1",
+    "@testing-library/user-event": "14.4.3",
+    "@types/history": "4.7.11",
+    "@types/jest": "29.2.3",
+    "@types/lodash": "4.14.187",
+    "@types/node": "18.11.9",
+    "@types/react": "17.0.42",
+    "@types/react-dom": "17.0.14",
+    "@types/react-grid-layout": "1.3.2",
+    "@types/react-router-dom": "5.3.3",
+    "@types/react-virtualized-auto-sizer": "1.0.1",
+    "@types/testing-library__jest-dom": "^5.14.5",
+    "@types/uuid": "8.3.4",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "esbuild": "^0.14.47",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jsdoc": "^36.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.26.1",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "husky": "^8.0.3",
+    "jest": "29.3.1",
+    "jest-environment-jsdom": "29.3.1",
+    "jest-matcher-utils": "29.3.1",
+    "lodash": "4.17.21",
+    "prettier": "2.5.1",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "react-router-dom": "^5.2.0",
+    "rimraf": "^3.0.2",
+    "rollup": "2.79.1",
+    "rollup-plugin-dts": "^5.0.0",
+    "rollup-plugin-esbuild": "5.0.0",
+    "rollup-plugin-node-externals": "^5.0.0",
+    "rollup-plugin-svg-import": "^1.6.0",
+    "rxjs": "7.8.0",
+    "ts-jest": "29.0.3",
+    "ts-node": "10.9.1",
+    "tsc-watch": "^4.5.0",
+    "tslib": "2.4.1",
+    "typescript": "4.9.3"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "eslint --ext .js,.tsx,.ts --cache --fix",
+      "prettier --write"
+    ],
+    "*.{json,scss,md,mdx}": [
+      "prettier --write"
+    ]
+  }
+}
