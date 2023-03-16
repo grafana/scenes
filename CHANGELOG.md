@@ -56,11 +56,9 @@ The reasons for this change it to have more control over when only transformatio
 It also removes some duplication between SceneQueryRunner and SceneDataTransformer. There is also a new interface SceneDataProvider.
 
 ```ts
-
 export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
 }
-
 ```
 
 Change PR

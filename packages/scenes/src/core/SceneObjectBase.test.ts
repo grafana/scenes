@@ -148,4 +148,51 @@ describe('SceneObject', () => {
       expect(scene.state.$variables!.isActive).toBe(false);
     });
   });
+
+  describe('Can wire up objects', () => {
+    it('State handle activation handlers', () => {
+      const nestedScene = new TestScene({ name: 'nested' });
+      const scene = new TestScene({
+        name: 'root',
+        nested: nestedScene,
+      });
+
+      // This is just a dummy example of subscribing and reacting to scene object state change from outside the scene objects
+      // This should allow more custom behaviors without needing custom scene objects
+      let unsubscribed = false;
+
+      scene.addActivationHandler(() => {
+        const sub = nestedScene.subscribeToState((state) => scene.setState({ name: state.name }));
+
+        return () => {
+          sub.unsubscribe();
+          unsubscribed = true;
+        };
+      });
+
+      scene.activate();
+
+      expect(scene.state.name).toBe('root');
+
+      nestedScene.setState({ name: 'new name' });
+
+      expect(scene.state.name).toBe('new name');
+
+      scene.deactivate();
+
+      expect(unsubscribed).toBe(true);
+
+      nestedScene.setState({ name: 'new name 2' });
+
+      // Nothing should happen when state change while inactive
+      expect(scene.state.name).toBe('new name');
+
+      // Activate scene again
+      scene.activate();
+
+      // verify that the wiring is back
+      nestedScene.setState({ name: 'new name 3' });
+      expect(scene.state.name).toBe('new name 3');
+    });
+  });
 });

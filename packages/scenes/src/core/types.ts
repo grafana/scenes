@@ -103,7 +103,16 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
 
   /** Force a re-render, should only be needed when variable values change */
   forceRender(): void;
+
+  /**
+   * Allows external code to register code that is executed on activate and deactivate. This allow you
+   * to wire up scene objects that need to respond to state changes in other objects from the outside.
+   **/
+  addActivationHandler(handler: SceneActivationHandler): void;
 }
+
+export type SceneActivationHandler = () => SceneDeactivationHandler | void;
+export type SceneDeactivationHandler = () => void;
 
 export type SceneLayoutChild = SceneObject<SceneLayoutChildState | SceneLayoutState>;
 
