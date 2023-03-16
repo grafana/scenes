@@ -12,6 +12,9 @@ export interface SceneControlWrapperState extends SceneObjectStatePlain {
   separator?: boolean;
 }
 
+/**
+ * @experimental Component for SceneAppPage controls property
+ */
 export class SceneControlWrapper extends SceneObjectBase<SceneControlWrapperState> {
   public static Component = ({ model }: SceneComponentProps<SceneControlWrapper>) => {
     const { label, value, separator } = model.useState();
