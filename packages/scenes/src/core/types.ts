@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonoTypeOperatorFunction, Observer, SubscriptionLike, Unsubscribable } from 'rxjs';
+import { MonoTypeOperatorFunction, Unsubscribable } from 'rxjs';
 
 import {
   BusEvent,
@@ -13,7 +13,6 @@ import {
 } from '@grafana/data';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
-import { SceneObjectStateChangedEvent } from './events';
 
 export interface SceneObjectStatePlain {
   key?: string;
