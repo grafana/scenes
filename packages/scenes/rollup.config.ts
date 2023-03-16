@@ -8,16 +8,17 @@ import ftc from 'rollup-plugin-fork-ts-checker';
 const env = process.env.NODE_ENV || 'production';
 const pkg = require('./package.json');
 
+const plugins = [
+  externals({ deps: true, devDeps: true, packagePath: './package.json' }),
+  resolve({ browser: true }),
+  esbuild(),
+  eslint(),
+];
+
 export default [
   {
     input: 'src/index.ts',
-    plugins: [
-      ftc(),
-      externals({ deps: true, devDeps: true, packagePath: './package.json' }),
-      resolve({ browser: true }),
-      esbuild(),
-      eslint(),
-    ],
+    plugins: env === 'development' ? [ftc(), ...plugins] : plugins,
     output: [
       {
         format: 'cjs',
