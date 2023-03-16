@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Observer, Subject, Subscription, SubscriptionLike, Unsubscribable } from 'rxjs';
+import { Subscription, Unsubscribable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import { BusEvent, BusEventHandler, BusEventType, EventBusSrv } from '@grafana/data';
