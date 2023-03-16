@@ -38,7 +38,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   public constructor(state: SceneDataTransformerState) {
     super(state);
 
-    this.registerActivationHandler(() => this.activationHandler());
+    this.addActivationHandler(() => this.activationHandler());
   }
 
   private activationHandler() {

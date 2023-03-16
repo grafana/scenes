@@ -223,7 +223,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Allows external code to register code that is executed on activate and deactivate. This allow you
    * to wire up scene objects that need to respond to state changes in other objects from the outside.
    **/
-  public registerActivationHandler(handler: SceneActivationHandler) {
+  public addActivationHandler(handler: SceneActivationHandler) {
     this._activationHandlers.push(handler);
   }
 }

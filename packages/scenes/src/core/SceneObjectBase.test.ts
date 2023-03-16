@@ -161,7 +161,7 @@ describe('SceneObject', () => {
       // This should allow more custom behaviors without needing custom scene objects
       let unsubscribed = false;
 
-      scene.registerActivationHandler(() => {
+      scene.addActivationHandler(() => {
         const sub = nestedScene.subscribeToState((state) => scene.setState({ name: state.name }));
 
         return () => {

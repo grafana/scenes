@@ -108,7 +108,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * Allows external code to register code that is executed on activate and deactivate. This allow you
    * to wire up scene objects that need to respond to state changes in other objects from the outside.
    **/
-  registerActivationHandler(handler: SceneActivationHandler): void;
+  addActivationHandler(handler: SceneActivationHandler): void;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;
