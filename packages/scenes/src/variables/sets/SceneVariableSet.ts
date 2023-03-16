@@ -37,7 +37,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     );
 
     // Subscribe to state changes
-    this._subs.add(this.subscribeToState({ next: (state) => this.handleStateChanged(state) }));
+    this._subs.add(this.subscribeToState((state) => this.handleStateChanged(state)));
 
     this.checkForVariablesThatChangedWhileInactive();
 

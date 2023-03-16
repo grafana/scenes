@@ -408,7 +408,7 @@ describe('SceneVariableList', () => {
       // Update state with a new variable
       set.setState({ variables: [A, B] });
 
-      // Should not start loadaing A again, it has options already
+      // Should not start loading A again, it has options already
       expect(A.state.loading).toBe(false);
       // Should start B
       expect(B.state.loading).toBe(true);
