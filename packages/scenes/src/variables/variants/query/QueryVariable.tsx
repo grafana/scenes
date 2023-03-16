@@ -65,10 +65,8 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
     if (this.state.refresh === VariableRefresh.onTimeRangeChanged) {
       this._subs.add(
-        timeRange.subscribeToState({
-          next: () => {
-            this.updateSubscription = this.validateAndUpdate().subscribe();
-          },
+        timeRange.subscribeToState(() => {
+          this.updateSubscription = this.validateAndUpdate().subscribe();
         })
       );
     }

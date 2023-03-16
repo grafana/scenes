@@ -64,10 +64,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._subs.add(
-      timeRange.subscribeToState({
-        next: (timeRange) => {
-          this.runWithTimeRange(timeRange.value);
-        },
+      timeRange.subscribeToState((timeRange) => {
+        this.runWithTimeRange(timeRange.value);
       })
     );
 
