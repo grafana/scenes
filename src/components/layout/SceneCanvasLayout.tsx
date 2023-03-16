@@ -43,7 +43,7 @@ function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCan
   );
 }
 
-function getItemStyles(state: SceneLayoutChildState = {}) {
+export function getItemStyles(state: SceneLayoutChildState = {}) {
   const { constraint } = state;
   const { vertical, horizontal } = constraint ?? {};
   const placement = state.placement ?? ({} as SceneLayoutChildOptions);
