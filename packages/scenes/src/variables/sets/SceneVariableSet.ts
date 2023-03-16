@@ -37,7 +37,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     );
 
     // Subscribe to state changes
-    this._subs.add(this.subscribeToState((state) => this.handleStateChanged(state)));
+    this._subs.add(this.subscribeToState(this.handleStateChanged));
 
     this.checkForVariablesThatChangedWhileInactive();
 
@@ -54,17 +54,27 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   /**
    * Look for new variables that need to be initialized
    */
-  private handleStateChanged(state: SceneVariableSetState) {
+  private handleStateChanged = (newState: SceneVariableSetState, oldState: SceneVariableSetState) => {
     const variablesToUpdateCountStart = this._variablesToUpdate.size;
 
-    for (const variable of state.variables) {
-      // If this is a new variable
-      if (
-        !this._variablesToUpdate.has(variable) &&
-        !this._updating.has(variable) &&
-        !this._variableValueRecorder.hasRecordedValue(variable)
-      ) {
-        this._variablesToUpdate.add(variable);
+    // Check for removed variables
+    for (const variable of oldState.variables) {
+      if (!newState.variables.includes(variable)) {
+        const updating = this._updating.get(variable);
+        if (updating?.subscription) {
+          updating.subscription.unsubscribe();
+        }
+        this._updating.delete(variable);
+        this._variablesToUpdate.delete(variable);
+      }
+    }
+
+    // Check for new variables
+    for (const variable of newState.variables) {
+      if (!oldState.variables.includes(variable)) {
+        if (this.variableNeedsUpdate(variable)) {
+          this._variablesToUpdate.add(variable);
+        }
       }
     }
 
@@ -72,7 +82,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     if (variablesToUpdateCountStart === 0 && this._variablesToUpdate.size > 0) {
       this.updateNextBatch();
     }
-  }
+  };
 
   /**
    * If variables changed while in in-active state we don't get any change events, so we need to check for that here.
