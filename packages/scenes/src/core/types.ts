@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonoTypeOperatorFunction, Observer, SubscriptionLike, Unsubscribable } from 'rxjs';
+import { MonoTypeOperatorFunction, Unsubscribable } from 'rxjs';
 
 import {
   BusEvent,
@@ -69,7 +69,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   readonly urlSync?: SceneObjectUrlSyncHandler<TState>;
 
   /** Subscribe to state changes */
-  subscribeToState(observer?: Partial<Observer<TState>>): SubscriptionLike;
+  subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable;
 
   /** Subscribe to a scene event */
   subscribeToEvent<T extends BusEvent>(typeFilter: BusEventType<T>, handler: BusEventHandler<T>): Unsubscribable;
@@ -171,6 +171,7 @@ export type SceneObjectUrlValue = string | string[] | undefined | null;
 export type SceneObjectUrlValues = Record<string, SceneObjectUrlValue>;
 
 export type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
+export type SceneStateChangedHandler<TState> = (newState: TState, prevState: TState) => void;
 
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];

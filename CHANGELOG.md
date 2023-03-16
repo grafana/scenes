@@ -1,39 +1,32 @@
-# 0.0.21 (2023-03-15)
+# 0.21 (2023-03-15)
 
-**VizPanel supports menus**
+**SceneObject subscribeToState parameter change**
 
-You can now provide menu items to `VizPanel` object.
+Signature change. Now the parameter to this function expects a simple function that takes two args (newState, prevState).
 
-Example:
+Before:
 
-```tsx
-const panel = new VizPanel({
-  pluginId: 'timeseries',
-  menuItems: [
-    {
-      text: 'Menu item',
-      href: 'http://url.com',
-    },
-    {
-      text: 'Manu item with submenu',
-      onClick: () => {
-        alert('Clicked!');
-      },
-      subMenu: [
-        {
-          text: 'Submenu item',
-          onClick: () => {
-            alert('Submenu item clicked');
-          },
-        },
-      ],
-    },
-  ],
-  // ...
-});
+```ts
+this._subs.add(
+  sourceData.subscribeToState({
+    next: (state) => this.transform(state.data),
+  })
+);
 ```
 
-# 0.0.19 (2023-03-15)
+Becomes:
+
+```ts
+this._subs.add(sourceData.subscribeToState((state) => this.transform(state.data)));
+```
+
+# 0.20 (2023-03-15)
+
+**AppScenePage**
+
+The getScene for drilldowns now expect the parent property to be of type AppScenePageLike (interface).
+
+# 0.19 (2023-03-15)
 
 **SceneQueryRunner no longer has transformations**
 

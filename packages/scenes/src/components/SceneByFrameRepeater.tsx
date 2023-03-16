@@ -22,12 +22,10 @@ export class SceneByFrameRepeater extends SceneObjectBase<RepeatOptions> {
     super.activate();
 
     this._subs.add(
-      sceneGraph.getData(this).subscribeToState({
-        next: (data) => {
-          if (data.data?.state === LoadingState.Done) {
-            this.performRepeat(data.data);
-          }
-        },
+      sceneGraph.getData(this).subscribeToState((data) => {
+        if (data.data?.state === LoadingState.Done) {
+          this.performRepeat(data.data);
+        }
       })
     );
   }
