@@ -472,9 +472,7 @@ describe('SceneDataTransformer', () => {
         });
 
         // This could potentially be done by QueryRunnerWithTransformations if we passed it "dependencies" (object it should subscribe to and re-run transformations on change)
-        someObject.subscribeToState({
-          next: () => queryRunner.reprocessTransformations(),
-        });
+        someObject.subscribeToState(() => queryRunner.reprocessTransformations());
 
         queryRunner.activate();
 

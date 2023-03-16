@@ -126,13 +126,13 @@ describe('SceneObject', () => {
     scene.activate();
 
     // Subscribe to state change and to event
-    const stateSub = scene.subscribeToState({ next: () => {} });
+    const stateSub = scene.subscribeToState(() => {});
     const eventSub = scene.subscribeToEvent(SceneObjectStateChangedEvent, () => {});
 
     scene.deactivate();
 
     it('Should close subscriptions', () => {
-      expect(stateSub.closed).toBe(true);
+      expect((stateSub as any).closed).toBe(true);
       expect((eventSub as any).closed).toBe(true);
     });
 
