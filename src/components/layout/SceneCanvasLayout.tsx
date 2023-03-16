@@ -1,18 +1,15 @@
-import Moveable from 'moveable';
-import React, { CSSProperties } from 'react';
-import Selecto from 'selecto';
+import React from 'react';
 import { VerticalConstraint, HorizontalConstraint, BackgroundImageSize } from '../../core/canvasTypes';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import {
   SceneComponentProps,
-  SceneLayoutChild,
   SceneLayoutState,
   SceneLayoutChildOptions,
   SceneLayout,
   SceneLayoutChildState,
 } from '../../core/types';
-import { initMoveable } from './canvasUtils';
+import { SceneCanvasRootLayout } from './SceneCanvasRootLayout';
 
 interface SceneCanvasLayoutState extends SceneLayoutState {}
 
@@ -20,62 +17,29 @@ export class SceneCanvasLayout extends SceneObjectBase<SceneCanvasLayoutState> i
   public static Component = CanvasLayoutRenderer;
   public static Editor = CanvasLayoutEditor;
 
-  public moveable: { moveable: Moveable; selecto: Selecto } | undefined;
-  public moveableContainer: HTMLDivElement | null = null;
-  public targetElements: HTMLDivElement[] = [];
-
   public isDraggable(): boolean {
     return false;
-  }
-
-  public initializeMoveable(el: HTMLDivElement) {
-    this.moveableContainer = el;
-    if (this.moveableContainer && this.targetElements) {
-      this.moveable = initMoveable(this.moveableContainer, this.targetElements);
-    }
   }
 }
 
 function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCanvasLayout>) {
   const { children } = model.useState();
-  const style: CSSProperties = {
-    flexGrow: 1,
-    flexDirection: 'row',
-    display: 'flex',
-    gap: '8px',
-    alignContent: 'baseline',
-  };
+
+  // TODO: create function to walk up tree for this (highest one)
+  const canvasManager = model.parent as SceneCanvasRootLayout;
 
   return (
     <>
-      <div style={style} ref={(el) => el && model.initializeMoveable(el)}>
-        {children.map((item) => {
-          return (
-            <div key={item.state.key}>
-              <CanvasLayoutChildComponent key={item.state.key} item={item} isEditing={isEditing} model={model} />
-            </div>
-          );
-        })}
-      </div>
+      {children.map((item) => {
+        canvasManager.itemRegistry.set(item.state.key!, item);
+
+        return (
+          <div style={getItemStyles(item.state)} key={item.state.key} className="selectable" data-key={item.state.key}>
+            <item.Component model={item} isEditing={isEditing} />
+          </div>
+        );
+      })}
     </>
-  );
-}
-
-function CanvasLayoutChildComponent({
-  item,
-  isEditing,
-  model,
-}: {
-  item: SceneLayoutChild;
-  isEditing?: boolean;
-  model?: SceneCanvasLayout;
-}) {
-  const state = item.useState();
-
-  return (
-    <div style={getItemStyles(state)} ref={(el) => el && model?.targetElements.push(el)}>
-      <item.Component model={item} isEditing={isEditing} />
-    </div>
   );
 }
 

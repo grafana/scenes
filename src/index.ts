@@ -36,6 +36,7 @@ export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export { SceneFlexLayout } from './components/layout/SceneFlexLayout';
 export { SceneCanvasLayout } from './components/layout/SceneCanvasLayout';
+export { SceneCanvasRootLayout } from './components/layout/SceneCanvasRootLayout';
 export { SceneGridLayout } from './components/layout/SceneGridLayout';
 export { SceneGridRow } from './components/layout/SceneGridRow';
 export { SceneApp, SceneAppPage, type SceneRouteMatch } from './components/SceneApp/SceneApp';
