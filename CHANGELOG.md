@@ -1,4 +1,4 @@
-# 0.21 (2023-03-15)
+# 0.21 (2023-03-17)
 
 **SceneObject subscribeToState parameter change**
 
@@ -21,6 +21,15 @@ Becomes:
   sourceData.subscribeToState((state) => this.transform(state.data))
 );
 ```
+
+**addActivationHandler**
+
+SceneObject now has a new function called addActivationHandler that makes it much easier to add external behaviors to core scene componenents. The 
+activation handler (callback) can return a deactivation handler. This works very similar to useEffect.  
+
+For custom components that used to override activate and then call super.activate() we now recommend that you instead use addActivationHandler from 
+the constructor. See https://github.com/grafana/scenes/pull/77 for some examples. 
+
 
 # 0.20 (2023-03-15)
 
