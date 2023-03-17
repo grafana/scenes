@@ -11,7 +11,6 @@ export { SceneDataTransformer } from './querying/SceneDataTransformer';
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
 export { formatRegistry, FormatRegistryID, type FormatVariable } from './variables/interpolation/formatRegistry';
-export { type CustomFormatterFn } from './variables/interpolation/sceneInterpolator';
 export { VariableValueSelectors } from './variables/components/VariableValueSelectors';
 export { SceneVariableSet } from './variables/sets/SceneVariableSet';
 export { ConstantVariable } from './variables/variants/ConstantVariable';

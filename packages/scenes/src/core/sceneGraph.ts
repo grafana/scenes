@@ -1,8 +1,8 @@
 import { ScopedVars } from '@grafana/data';
 import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/interpolation/defaults';
 
-import { CustomFormatterFn, sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
-import { SceneVariables } from '../variables/types';
+import { sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
+import { VariableCustomFormatterFn, SceneVariables } from '../variables/types';
 
 import { SceneDataState, SceneEditor, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
 import { lookupVariable } from '../variables/lookupVariable';
@@ -92,7 +92,7 @@ export function interpolate(
   sceneObject: SceneObject,
   value: string | undefined | null,
   scopedVars?: ScopedVars,
-  format?: string | CustomFormatterFn
+  format?: string | VariableCustomFormatterFn
 ): string {
   if (value === '' || value == null) {
     return '';
