@@ -23,6 +23,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     placement,
     displayMode,
     hoverHeader,
+    menu,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
@@ -69,6 +70,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} />);
   }
 
+  let panelMenu;
+  if (menu) {
+    panelMenu = <menu.Component model={menu} />;
+  }
+
   return (
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
       <PanelChrome
@@ -83,6 +89,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         titleItems={titleItems}
         dragClass={dragClass}
         dragClassCancel={dragClassCancel}
+        menu={panelMenu}
       >
         {(innerWidth, innerHeight) => (
           <>

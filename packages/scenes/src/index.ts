@@ -26,6 +26,7 @@ export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
+export { VizPanelMenu } from './components/VizPanel/VizPanelMenu';
 export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
@@ -45,3 +46,4 @@ export {
 } from './components/SceneApp/types';
 export { SceneApp } from './components/SceneApp/SceneApp';
 export { SceneAppPage } from './components/SceneApp/SceneAppPage';
+export { SceneReactObject } from './components/SceneReactObject';

@@ -7,7 +7,7 @@ Signature change. Now the parameter to this function expects a simple function t
 Before:
 
 ```ts
- this._subs.add(
+this._subs.add(
   sourceData.subscribeToState({
     next: (state) => this.transform(state.data),
   })
@@ -17,19 +17,44 @@ Before:
 Becomes:
 
 ```ts
- this._subs.add(
-  sourceData.subscribeToState((state) => this.transform(state.data))
-);
+this._subs.add(sourceData.subscribeToState((state) => this.transform(state.data)));
 ```
 
 **addActivationHandler**
 
-SceneObject now has a new function called addActivationHandler that makes it much easier to add external behaviors to core scene componenents. The 
-activation handler (callback) can return a deactivation handler. This works very similar to useEffect.  
+SceneObject now has a new function called addActivationHandler that makes it much easier to add external behaviors to core scene componenents. The
+activation handler (callback) can return a deactivation handler. This works very similar to useEffect.
 
-For custom components that used to override activate and then call super.activate() we now recommend that you instead use addActivationHandler from 
-the constructor. See https://github.com/grafana/scenes/pull/77 for some examples. 
+For custom components that used to override activate and then call super.activate() we now recommend that you instead use addActivationHandler from
+the constructor. See https://github.com/grafana/scenes/pull/77 for some examples.
 
+**VizPanelMenu**
+
+A new scene object to enable panel menu for `VizPanel`.
+
+Example usage:
+
+```ts
+const menu = new VizPanelMenu({});
+
+// Configure menu items
+menu.addActivationHandler(() => {
+  menu.setItems(menuItems);
+});
+
+// Attach menu to VizPanel
+const panelWithMenu = new VizPanel({
+  title: 'Panel with menu',
+  menu,
+  // ... VizPanel configuration
+});
+```
+
+To see more examples, please look at [`VizPanelMenu` demo](./packages/scenes-app/src/pages/Demos/scenes/panelMenu.ts).
+
+**Scene App demos**
+
+Scene App included with this repo now contains Demos page in which we will continue providing examples of particular @grafana/scenes usages. Run `./scripts/demo.sh` and navigate to [http://localhost:3001/a/grafana-scenes-app/demos](http://localhost:3001/a/grafana-scenes-app/demos) to see available demos.
 
 # 0.20 (2023-03-15)
 

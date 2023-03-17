@@ -14,6 +14,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { DeepPartial, SceneLayoutChildState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
+import { VizPanelMenu } from './VizPanelMenu';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { CustomFormatterFn } from '../../variables/interpolation/sceneInterpolator';
 
@@ -26,6 +27,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLa
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
   hoverHeader?: boolean;
+  menu?: VizPanelMenu;
   // internal state
   pluginLoadError?: string;
 }
