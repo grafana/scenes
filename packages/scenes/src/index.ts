@@ -46,3 +46,4 @@ export {
 } from './components/SceneApp/types';
 export { SceneApp } from './components/SceneApp/SceneApp';
 export { SceneAppPage } from './components/SceneApp/SceneAppPage';
+export { SceneReactObject } from './components/SceneReactObject';
