@@ -1,4 +1,4 @@
-import { EmbeddedScene } from '@grafana/scenes';
+import { EmbeddedScene, SceneCanvasText, SceneFlexLayout } from '@grafana/scenes';
 import { getPanelMenuTest } from './scenes/panelMenu';
 
 interface SceneDef {
@@ -10,18 +10,24 @@ export function getDemos(): SceneDef[] {
   return [{ title: 'Panel menu', getScene: getPanelMenuTest }];
 }
 
-const cache: Record<string, EmbeddedScene> = {};
+function getErrorScene(title: string) {
+  return new EmbeddedScene({
+    body: new SceneFlexLayout({
+      direction: 'column',
+      children: [
+        new SceneCanvasText({
+          text: `¯\\_(ツ)_/¯ No scene found with title ${title}`,
+          align: 'center',
+        }),
+      ],
+    }),
+  });
+}
 
 export function getDemoByTitle(title: string) {
-  if (cache[title]) {
-    return cache[title];
-  }
-
-  const scene = getDemos().find((x) => x.title === title);
-
-  if (scene) {
-    cache[title] = scene.getScene();
-  }
-
-  return cache[title];
+  return (
+    getDemos()
+      .find((x) => x.title === title)
+      ?.getScene() || getErrorScene(title)
+  );
 }

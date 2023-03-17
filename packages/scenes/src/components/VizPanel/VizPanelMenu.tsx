@@ -5,23 +5,16 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectStatePlain } from '../../core/types';
 
 interface VizPanelMenuState extends SceneObjectStatePlain {
-  items: PanelMenuItem[];
+  items?: PanelMenuItem[];
 }
 
 export class VizPanelMenu extends SceneObjectBase<VizPanelMenuState> {
   static Component = VizPanelMenuRenderer;
 
-  public constructor(state: Partial<VizPanelMenuState>) {
-    super({
-      ...state,
-      items: state.items || [],
-    });
-  }
-
   // Allows adding menu items dynamically
   public addItem(item: PanelMenuItem) {
     this.setState({
-      items: [...this.state.items, item],
+      items: this.state.items ? [...this.state.items, item] : [item],
     });
   }
 
@@ -53,6 +46,9 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
       )
     );
   };
+  if (!items) {
+    return null;
+  }
 
   return <Menu>{renderItems(items)}</Menu>;
 }

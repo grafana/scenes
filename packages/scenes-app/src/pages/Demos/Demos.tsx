@@ -1,6 +1,6 @@
 import { EmbeddedScene, SceneApp, SceneAppPage, SceneFlexLayout, SceneReactObject } from '@grafana/scenes';
 import { Stack } from '@grafana/experimental';
-import * as React from 'react';
+import React, { useMemo } from 'react';
 import { prefixRoute } from '../../utils/utils.routing';
 import { ROUTES } from '../../constants';
 import { getDemoByTitle, getDemos } from './getDemos';
@@ -43,7 +43,7 @@ const getScene = () => {
 };
 
 export const DemoPage = () => {
-  const scene = getScene();
+  const scene = useMemo(() => getScene(), []);
   return <scene.Component model={scene} />;
 };
 
