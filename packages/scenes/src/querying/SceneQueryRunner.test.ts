@@ -329,5 +329,38 @@ describe('SceneQueryRunner', () => {
       // Should execute query a second time
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
+
+    it('Should set data and loadingState to Done when there are no queries', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [],
+      });
+
+      const scene = new SceneFlexLayout({
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+
+    it('if datasource not set check queries for datasource', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', datasource: { uid: 'Muuu' } }],
+      });
+
+      const scene = new SceneFlexLayout({
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      const getDataSourceCall = getDataSourceMock.mock.calls[0];
+      expect(getDataSourceCall[0]).toEqual({ uid: 'Muuu' });
+    });
   });
 });
