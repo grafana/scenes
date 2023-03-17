@@ -174,12 +174,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     // Simple path when no queries exist
     if (!queries?.length) {
-      this._querySub = of({
+      this.onDataReceived({
         state: LoadingState.Done,
         series: [],
         timeRange,
-      }).subscribe(this.onDataReceived);
-      return;
+      });
     }
 
     const request: DataQueryRequest = {
