@@ -5,16 +5,8 @@ import { NestedScene } from './NestedScene';
 import { EmbeddedScene } from './EmbeddedScene';
 import { SceneCanvasText } from './SceneCanvasText';
 import { SceneFlexLayout, SceneFlexLayoutChild } from './layout/SceneFlexLayout';
-import { SceneFlexLayoutBuilder } from './layout/SceneFlexLayoutBuilder';
 
 function setup() {
-  const layout = new SceneFlexLayoutBuilder()
-    .addRow()
-    .addChild(new SceneCanvasText({ text: 'SceneCanvasText' }), { width: 100 })
-    .addChild(new SceneCanvasText({ text: 'SceneCanvasText' }), { width: 100 })
-    .end()
-    .addRow();
-
   const scene = new EmbeddedScene({
     body: new SceneFlexLayout({
       children: [

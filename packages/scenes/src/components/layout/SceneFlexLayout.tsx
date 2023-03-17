@@ -21,7 +21,6 @@ export interface SceneFlexLayoutState extends SceneObjectStatePlain {
 
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
   public static Component = FlexLayoutRenderer;
-  public static Editor = FlexLayoutEditor;
 
   public toggleDirection() {
     this.setState({
@@ -120,22 +119,4 @@ function getItemStyles(direction: FlexLayoutDirection, layout: SceneLayoutChildO
   }
 
   return style;
-}
-
-function FlexLayoutEditor({ model }: SceneComponentProps<SceneFlexLayout>) {
-  const { direction = 'row' } = model.useState();
-  const options = [
-    { icon: 'arrow-right', value: 'row' },
-    { icon: 'arrow-down', value: 'column' },
-  ];
-
-  return (
-    <Field label="Direction">
-      <RadioButtonGroup
-        options={options}
-        value={direction}
-        onChange={(value) => model.setState({ direction: value as FlexLayoutDirection })}
-      />
-    </Field>
-  );
 }
