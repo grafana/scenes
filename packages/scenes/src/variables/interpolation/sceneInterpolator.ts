@@ -81,6 +81,8 @@ function formatValue(
     return formatNameOrFn(value, {
       name: variable.state.name,
       type: variable.state.type as VariableType,
+      multi: variable.state.isMulti,
+      includeAll: variable.state.includeAll,
     });
   }
 
