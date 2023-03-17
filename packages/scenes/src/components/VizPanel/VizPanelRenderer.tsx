@@ -1,9 +1,9 @@
 import React, { RefCallback } from 'react';
 import { useMeasure } from 'react-use';
 
-import { PluginContextProvider, useFieldOverrides, PanelMenuItem } from '@grafana/data';
+import { PluginContextProvider, useFieldOverrides } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
-import { PanelChrome, ErrorBoundaryAlert, useTheme2, Menu } from '@grafana/ui';
+import { PanelChrome, ErrorBoundaryAlert, useTheme2 } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
@@ -26,7 +26,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
-  const { menuItems } = model.useState();
+  const { menu } = model.useState();
   const { data } = sceneGraph.getData(model).useState();
   const parentLayout = sceneGraph.getLayout(model);
 
@@ -67,10 +67,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   if (model.state.$timeRange) {
     titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} />);
   }
-
   let panelMenu;
-  if (menuItems) {
-    panelMenu = <VizPanelHeaderMenu items={menuItems} />;
+  if (menu) {
+    panelMenu = <menu.Component model={menu} />;
   }
 
   return (
@@ -124,32 +123,3 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 }
 
 VizPanelRenderer.displayName = 'ScenePanelRenderer';
-
-interface VizPanelHeaderMenuProps {
-  items: PanelMenuItem[];
-  style?: React.CSSProperties;
-  itemsClassName?: string;
-  className?: string;
-}
-
-function VizPanelHeaderMenu({ items }: VizPanelHeaderMenuProps) {
-  const renderItems = (items: PanelMenuItem[]) => {
-    return items.map((item) =>
-      item.type === 'divider' ? (
-        <Menu.Divider key={item.text} />
-      ) : (
-        <Menu.Item
-          key={item.text}
-          label={item.text}
-          icon={item.iconClassName}
-          childItems={item.subMenu ? renderItems(item.subMenu) : undefined}
-          url={item.href}
-          onClick={item.onClick}
-          shortcut={item.shortcut}
-        />
-      )
-    );
-  };
-
-  return <Menu>{renderItems(items)}</Menu>;
-}

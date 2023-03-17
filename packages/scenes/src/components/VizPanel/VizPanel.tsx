@@ -7,7 +7,6 @@ import {
   getPanelOptionsWithDefaults,
   ScopedVars,
   InterpolateFunction,
-  PanelMenuItem,
 } from '@grafana/data';
 import { config, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -15,6 +14,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { DeepPartial, SceneLayoutChildState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
+import { VizPanelMenu } from './VizPanelMenu';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { CustomFormatterFn } from '../../variables/interpolation/sceneInterpolator';
 
@@ -27,7 +27,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLa
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
   hoverHeader?: boolean;
-  menuItems?: PanelMenuItem[];
+  menu?: VizPanelMenu;
   // internal state
   pluginLoadError?: string;
 }
