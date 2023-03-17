@@ -143,7 +143,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   }
 
   /**
-   * Called by the SceneComponentWrapper when the react component is mounted
+   * Called by the SceneComponentWrapper when the react component is mounted.
+   * Don't override this, instead use addActivationHandler
    */
   public activate() {
     this._isActive = true;
@@ -171,7 +172,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   }
 
   /**
-   * Called by the SceneComponentWrapper when the react component is unmounted
+   * Called by the SceneComponentWrapper when the react component is unmounted.
+   * Don't override this, instead use addActivationHandler. The activation handler can return a deactivation handler.
    */
   public deactivate(): void {
     this._isActive = false;
