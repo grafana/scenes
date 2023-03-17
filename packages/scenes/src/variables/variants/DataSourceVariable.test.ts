@@ -3,9 +3,9 @@ import { lastValueFrom } from 'rxjs';
 import { DataSourceInstanceSettings, ScopedVars, PluginType } from '@grafana/data';
 
 import { SceneObject } from '../../core/types';
-import { CustomFormatterFn } from '../interpolation/sceneInterpolator';
 
 import { DataSourceVariable } from './DataSourceVariable';
+import { VariableCustomFormatterFn } from '../types';
 
 function getDataSource(name: string, type: string, isDefault = false): DataSourceInstanceSettings {
   return {
@@ -58,7 +58,7 @@ jest.mock('../../core/sceneGraph', () => {
         sceneObject: SceneObject,
         value: string | undefined | null,
         scopedVars?: ScopedVars,
-        format?: string | CustomFormatterFn
+        format?: string | VariableCustomFormatterFn
       ) => {
         return value?.replace('$variable-1', 'slow');
       },
