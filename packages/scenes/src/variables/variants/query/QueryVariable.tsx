@@ -57,10 +57,11 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       sort: VariableSort.alphabeticalAsc,
       ...initialState,
     });
+
+    this.addActivationHandler(this._onActivate);
   }
 
-  public activate(): void {
-    super.activate();
+  private _onActivate = () => {
     const timeRange = sceneGraph.getTimeRange(this);
 
     if (this.state.refresh === VariableRefresh.onTimeRangeChanged) {
@@ -70,7 +71,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
         })
       );
     }
-  }
+  };
 
   public deactivate(): void {
     super.deactivate();

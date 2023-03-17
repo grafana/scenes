@@ -30,17 +30,16 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
       ...state,
       intervals: state.intervals ?? DEFAULT_INTERVALS,
     });
-  }
 
-  public activate(): void {
-    super.activate();
-    this.setupIntervalTimer();
-  }
+    this.addActivationHandler(() => {
+      this.setupIntervalTimer();
 
-  public deactivate(): void {
-    if (this._intervalTimer) {
-      clearInterval(this._intervalTimer);
-    }
+      return () => {
+        if (this._intervalTimer) {
+          clearInterval(this._intervalTimer);
+        }
+      };
+    });
   }
 
   public onRefresh = () => {
