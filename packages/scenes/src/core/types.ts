@@ -83,10 +83,15 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** How to modify state */
   setState(state: Partial<TState>): void;
 
-  /** Called when the Component is mounted. A place to register event listeners add subscribe to state changes */
+  /**
+   * Called when the Component is mounted. This will also activate any $data, $variables or $timeRange scene object on this level.
+   * Don't override this in your custom SceneObjects, instead use addActivationHandler from the constructor. The activation handler can return a deactivation handler.
+   **/
   activate(): void;
 
-  /** Called when component unmounts. Unsubscribe and closes all subscriptions  */
+  /** Called when component unmounts. This will also deactivate any $data, $variables or $timeRange scene object on this level.
+   * Don't override this in your custom SceneObjects, instead use addActivationHandler from the constructor. The activation handler can return a deactivation handler.
+   */
   deactivate(): void;
 
   /** Get the scene root */

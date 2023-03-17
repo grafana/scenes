@@ -24,13 +24,16 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     return this.state.variables.find((x) => x.state.name === name);
   }
 
-  /**
-   * Subscribes to child variable value changes
-   * And starts the variable value validation process
-   */
-  public activate(): void {
-    super.activate();
+  public constructor(state: SceneVariableSetState) {
+    super(state);
 
+    this.addActivationHandler(this._onActivate);
+  }
+
+  /**
+   * Subscribes to child variable value changes, and starts the variable value validation process
+   */
+  private _onActivate = () => {
     // Subscribe to changes to child variables
     this._subs.add(
       this.subscribeToEvent(SceneVariableValueChangedEvent, (event) => this.handleVariableValueChanged(event.payload))
@@ -46,7 +49,30 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     this.updateNextBatch();
-  }
+
+    // Return deactivation handler;
+    return this._onDeactivate;
+  };
+
+  /**
+   * Cancel all currently running updates
+   */
+  private _onDeactivate = () => {
+    for (const update of this._updating.values()) {
+      update.subscription?.unsubscribe();
+    }
+
+    // Remember current variable values
+    for (const variable of this.state.variables) {
+      // if the current variable is not in queue to update and validate and not being actively updated then the value is ok
+      if (!this._variablesToUpdate.has(variable) && !this._updating.has(variable)) {
+        this._variableValueRecorder.recordCurrentValue(variable);
+      }
+    }
+
+    this._variablesToUpdate.clear();
+    this._updating.clear();
+  };
 
   /**
    * If variables changed while in in-active state we don't get any change events, so we need to check for that here.
@@ -76,28 +102,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     }
 
     return true;
-  }
-
-  /**
-   * Cancel all currently running updates
-   */
-  public deactivate(): void {
-    super.deactivate();
-
-    for (const update of this._updating.values()) {
-      update.subscription?.unsubscribe();
-    }
-
-    // Remember current variable values
-    for (const variable of this.state.variables) {
-      // if the current variable is not in queue to update and validate and not being actively updated then the value is ok
-      if (!this._variablesToUpdate.has(variable) && !this._updating.has(variable)) {
-        this._variableValueRecorder.recordCurrentValue(variable);
-      }
-    }
-
-    this._variablesToUpdate.clear();
-    this._updating.clear();
   }
 
   /**

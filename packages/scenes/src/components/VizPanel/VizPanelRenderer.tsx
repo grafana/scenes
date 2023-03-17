@@ -23,11 +23,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     placement,
     displayMode,
     hoverHeader,
+    menu,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
-  const { menu } = model.useState();
-  const { data } = sceneGraph.getData(model).useState();
   const parentLayout = sceneGraph.getLayout(model);
 
   // If parent has enabled dragging and we have not explicitly disabled it then dragging is enabled
@@ -40,6 +39,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // Not sure we need to subscribe to this state
   const timeZone = sceneGraph.getTimeRange(model).state.timeZone;
+
+  // Subscribe to data and apply field overrides
+  const { data } = sceneGraph.getData(model).useState();
   const dataWithOverrides = useFieldOverrides(plugin, fieldConfig, data, timeZone, theme, model.interpolate);
 
   if (pluginLoadError) {
@@ -67,6 +69,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   if (model.state.$timeRange) {
     titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} />);
   }
+
   let panelMenu;
   if (menu) {
     panelMenu = <menu.Component model={menu} />;
