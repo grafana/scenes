@@ -1,11 +1,11 @@
 import { cloneDeep } from 'lodash';
 import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of } from 'rxjs';
 
+import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
+
 import {
   CoreApp,
-  DataQuery,
   DataQueryRequest,
-  DataSourceRef,
   DataTransformerConfig,
   PanelData,
   preProcessPanelData,
@@ -28,7 +28,7 @@ import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 let counter = 100;
 
 export function getNextRequestId() {
-  return 'QS' + counter++;
+  return 'SQR' + counter++;
 }
 
 export interface QueryRunnerState extends SceneObjectStatePlain {
@@ -167,10 +167,20 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.setState({ isWaitingForVariables: false });
     }
 
-    const { datasource, minInterval, queries } = this.state;
+    const { minInterval, queries } = this.state;
     const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
       __sceneObject: { text: '__sceneObject', value: this },
     };
+
+    // Simple path when no queries exist
+    if (!queries?.length) {
+      this._querySub = of({
+        state: LoadingState.Done,
+        series: [],
+        timeRange,
+      }).subscribe(this.onDataReceived);
+      return;
+    }
 
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
@@ -188,6 +198,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     };
 
     try {
+      const datasource = this.state.datasource ?? findFirstDatasource(request.targets);
       const ds = await getDataSource(datasource, request.scopedVars);
 
       // Attach the data source name to each query
@@ -226,6 +237,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const preProcessedData = preProcessPanelData(data, this.state.data);
     this.setState({ data: preProcessedData });
   };
+}
+
+function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
+  for (const t of targets) {
+    if (t.datasource != null) {
+      return t.datasource;
+    }
+  }
+  return undefined;
 }
 
 export function getTransformationsStream(
