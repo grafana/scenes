@@ -5,17 +5,18 @@ import { Field, RadioButtonGroup } from '@grafana/ui';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import {
   SceneComponentProps,
-  SceneLayoutChild,
-  SceneLayoutState,
   SceneLayoutChildOptions,
   SceneLayout,
+  SceneObjectStatePlain,
+  SceneObject,
 } from '../../core/types';
 
 export type FlexLayoutDirection = 'column' | 'row';
 
-interface SceneFlexLayoutState extends SceneLayoutState {
+export interface SceneFlexLayoutState extends SceneObjectStatePlain {
   direction?: FlexLayoutDirection;
   wrap?: CSSProperties['flexWrap'];
+  children: SceneFlexLayoutChild[];
 }
 
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
@@ -48,26 +49,35 @@ function FlexLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneFlexL
   return (
     <div style={style}>
       {children.map((item) => (
-        <FlexLayoutChildComponent key={item.state.key} item={item} direction={direction} isEditing={isEditing} />
+        <item.Component key={item.state.key} model={item} isEditing={isEditing} />
       ))}
     </div>
   );
 }
 
-function FlexLayoutChildComponent({
-  item,
-  direction,
-  isEditing,
-}: {
-  item: SceneLayoutChild;
-  direction: FlexLayoutDirection;
-  isEditing?: boolean;
-}) {
-  const { placement } = item.useState();
+export interface SceneFlexLayoutChildState extends SceneObjectStatePlain {
+  width?: number | string;
+  height?: number | string;
+  xSizing?: 'fill' | 'content';
+  ySizing?: 'fill' | 'content';
+  minWidth?: number | string;
+  minHeight?: number | string;
+  isDraggable?: boolean;
+  isResizable?: boolean;
+  body: SceneObject;
+}
+
+export class SceneFlexLayoutChild extends SceneObjectBase<SceneFlexLayoutChildState> {
+  public static Component = SceneFlexLayoutChildRenderer;
+}
+
+function SceneFlexLayoutChildRenderer({ model, isEditing }: SceneComponentProps<SceneFlexLayoutChild>) {
+  const state = model.useState();
+  const { direction = 'row' } = (model.parent as SceneFlexLayout).useState();
 
   return (
-    <div style={getItemStyles(direction, placement)}>
-      <item.Component model={item} isEditing={isEditing} />
+    <div style={getItemStyles(direction, state)}>
+      <model.Component model={model} isEditing={isEditing} />
     </div>
   );
 }

@@ -4,18 +4,32 @@ import React from 'react';
 import { NestedScene } from './NestedScene';
 import { EmbeddedScene } from './EmbeddedScene';
 import { SceneCanvasText } from './SceneCanvasText';
-import { SceneFlexLayout } from './layout/SceneFlexLayout';
+import { SceneFlexLayout, SceneFlexLayoutChild } from './layout/SceneFlexLayout';
+import { SceneFlexLayoutBuilder } from './layout/SceneFlexLayoutBuilder';
 
 function setup() {
+  const layout = new SceneFlexLayoutBuilder()
+    .addRow()
+    .addChild(new SceneCanvasText({ text: 'SceneCanvasText' }), { width: 100 })
+    .addChild(new SceneCanvasText({ text: 'SceneCanvasText' }), { width: 100 })
+    .end()
+    .addRow();
+
   const scene = new EmbeddedScene({
     body: new SceneFlexLayout({
       children: [
-        new NestedScene({
-          title: 'Nested title',
-          canRemove: true,
-          canCollapse: true,
-          body: new SceneFlexLayout({
-            children: [new SceneCanvasText({ text: 'SceneCanvasText' })],
+        new SceneFlexLayoutChild({
+          body: new NestedScene({
+            title: 'Nested title',
+            canRemove: true,
+            canCollapse: true,
+            body: new SceneFlexLayout({
+              children: [
+                new SceneFlexLayoutChild({
+                  body: new SceneCanvasText({ text: 'SceneCanvasText' }),
+                }),
+              ],
+            }),
           }),
         }),
       ],

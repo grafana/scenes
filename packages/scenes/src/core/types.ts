@@ -119,13 +119,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;
 export type SceneDeactivationHandler = () => void;
 
-export type SceneLayoutChild = SceneObject<SceneLayoutChildState | SceneLayoutState>;
-
-export interface SceneLayoutState extends SceneLayoutChildState {
-  children: SceneLayoutChild[];
-}
-
-export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> extends SceneObject<T> {
+export interface SceneLayout extends SceneObject {
   isDraggable(): boolean;
   getDragClass?(): string;
   getDragClassCancel?(): string;
