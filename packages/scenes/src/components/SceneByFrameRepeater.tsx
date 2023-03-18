@@ -43,8 +43,8 @@ export class SceneByFrameRepeater extends SceneObjectBase<SceneByFrameRepeaterSt
     this.state.body.setState({ children: newChildren });
   }
 
-  public static Component = ({ model, isEditing }: SceneComponentProps<SceneByFrameRepeater>) => {
+  public static Component = ({ model }: SceneComponentProps<SceneByFrameRepeater>) => {
     const { body } = model.useState();
-    return <body.Component model={body} isEditing={isEditing} />;
+    return <body.Component model={body} />;
   };
 }

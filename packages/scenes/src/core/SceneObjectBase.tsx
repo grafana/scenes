@@ -76,13 +76,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     return SceneComponentWrapper;
   }
 
-  /**
-   * Temporary solution, should be replaced by declarative options
-   */
-  public get Editor(): SceneComponent<this> {
-    return ((this as any).constructor['Editor'] ?? (() => null)) as SceneComponent<this>;
-  }
-
   private setParent() {
     forEachSceneObjectInState(this._state, (child) => (child._parent = this));
   }

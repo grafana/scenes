@@ -1,14 +1,11 @@
 import React, { useEffect } from 'react';
 
-import { SceneComponentProps, SceneEditor, SceneObject } from './types';
+import { SceneComponentCustomWrapper, SceneComponentProps, SceneObject } from './types';
 
-function SceneComponentWrapperWithoutMemo<T extends SceneObject>({
-  model,
-  isEditing,
-  ...otherProps
-}: SceneComponentProps<T>) {
+function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...otherProps }: SceneComponentProps<T>) {
   const Component = (model as any).constructor['Component'] ?? EmptyRenderer;
-  const inner = <Component {...otherProps} model={model} isEditing={isEditing} />;
+  const inner = <Component {...otherProps} model={model} />;
+  const CustomWrapper = getComponentWrapper(model);
 
   // Handle component activation state state
   useEffect(() => {
@@ -22,18 +19,11 @@ function SceneComponentWrapperWithoutMemo<T extends SceneObject>({
     };
   }, [model]);
 
-  if (!isEditing) {
-    return inner;
+  if (CustomWrapper) {
+    return <CustomWrapper model={model}>{inner}</CustomWrapper>;
   }
 
-  const editor = getSceneEditor(model);
-  const EditWrapper = getSceneEditor(model).getEditComponentWrapper();
-
-  return (
-    <EditWrapper model={model} editor={editor}>
-      {inner}
-    </EditWrapper>
-  );
+  return inner;
 }
 
 export const SceneComponentWrapper = React.memo(SceneComponentWrapperWithoutMemo);
@@ -42,15 +32,14 @@ function EmptyRenderer<T>(_: SceneComponentProps<T>): React.ReactElement | null 
   return null;
 }
 
-function getSceneEditor(sceneObject: SceneObject): SceneEditor {
-  const { $editor } = sceneObject.state;
-  if ($editor) {
-    return $editor;
+function getComponentWrapper(sceneObject: SceneObject): SceneComponentCustomWrapper | undefined {
+  if (sceneObject.componentWrapper) {
+    return sceneObject.componentWrapper;
   }
 
   if (sceneObject.parent) {
-    return getSceneEditor(sceneObject.parent);
+    return getComponentWrapper(sceneObject.parent);
   }
 
-  throw new Error('No editor found in scene tree');
+  return undefined;
 }
