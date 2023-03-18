@@ -32,6 +32,9 @@ function EmptyRenderer<T>(_: SceneComponentProps<T>): React.ReactElement | null 
   return null;
 }
 
+/**
+ * If this or any parent has componentWrapper then return and use that
+ */
 function getComponentWrapper(sceneObject: SceneObject): SceneComponentCustomWrapper | undefined {
   if (sceneObject.componentWrapper) {
     return sceneObject.componentWrapper;
