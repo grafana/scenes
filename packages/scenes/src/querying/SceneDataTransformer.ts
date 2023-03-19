@@ -22,6 +22,11 @@ export interface SceneDataTransformerState extends SceneDataNodeState {
  * transformations that depend on other scene object states.
  */
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> implements SceneDataProvider {
+  private _transformSub?: Unsubscribable;
+
+  /**
+   * Scan transformations for variable usage and re-process transforms when a variable values change
+   */
   protected _variableDependency: VariableDependencyConfig<SceneDataTransformerState> = new VariableDependencyConfig(
     this,
     {
@@ -30,22 +35,26 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     }
   );
 
-  private _transformSub?: Unsubscribable;
+  public constructor(state: SceneDataTransformerState) {
+    super(state);
 
-  public activate(): void {
-    super.activate();
+    this.addActivationHandler(() => this.activationHandler());
+  }
 
+  private activationHandler() {
     const sourceData = this.getSourceData();
 
-    this._subs.add(
-      sourceData.subscribeToState({
-        next: (state) => this.transform(state.data),
-      })
-    );
+    this._subs.add(sourceData.subscribeToState((state) => this.transform(state.data)));
 
     if (sourceData.state.data) {
       this.transform(sourceData.state.data);
     }
+
+    return () => {
+      if (this._transformSub) {
+        this._transformSub.unsubscribe();
+      }
+    };
   }
 
   private getSourceData(): SceneDataProvider {

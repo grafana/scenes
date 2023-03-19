@@ -76,11 +76,8 @@ const runRequestMock = jest.fn().mockReturnValue(
   })
 );
 
-let sentRequest: DataQueryRequest | undefined;
-
 jest.mock('@grafana/runtime', () => ({
   getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
-    sentRequest = request;
     return runRequestMock(ds, request);
   },
   getDataSourceSrv: () => {
@@ -472,9 +469,7 @@ describe('SceneDataTransformer', () => {
         });
 
         // This could potentially be done by QueryRunnerWithTransformations if we passed it "dependencies" (object it should subscribe to and re-run transformations on change)
-        someObject.subscribeToState({
-          next: () => queryRunner.reprocessTransformations(),
-        });
+        someObject.subscribeToState(() => queryRunner.reprocessTransformations());
 
         queryRunner.activate();
 

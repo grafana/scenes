@@ -12,24 +12,24 @@ import {
   SceneLayoutChild,
 } from '../core/types';
 
-interface RepeatOptions extends SceneObjectStatePlain {
+interface SceneByFrameRepeaterState extends SceneObjectStatePlain {
   body: SceneObject<SceneLayoutState>;
   getLayoutChild(data: PanelData, frame: DataFrame, frameIndex: number): SceneLayoutChild;
 }
 
-export class SceneByFrameRepeater extends SceneObjectBase<RepeatOptions> {
-  public activate(): void {
-    super.activate();
+export class SceneByFrameRepeater extends SceneObjectBase<SceneByFrameRepeaterState> {
+  public constructor(state: SceneByFrameRepeaterState) {
+    super(state);
 
-    this._subs.add(
-      sceneGraph.getData(this).subscribeToState({
-        next: (data) => {
+    this.addActivationHandler(() => {
+      this._subs.add(
+        sceneGraph.getData(this).subscribeToState((data) => {
           if (data.data?.state === LoadingState.Done) {
             this.performRepeat(data.data);
           }
-        },
-      })
-    );
+        })
+      );
+    });
   }
 
   private performRepeat(data: PanelData) {

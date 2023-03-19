@@ -1,9 +1,17 @@
 import { useEffect } from 'react';
-import { Observer, Subject, Subscription, SubscriptionLike, Unsubscribable } from 'rxjs';
+import { Subscription, Unsubscribable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import { BusEvent, BusEventHandler, BusEventType, EventBusSrv } from '@grafana/data';
-import { SceneObject, SceneComponent, SceneObjectState, SceneObjectUrlSyncHandler } from './types';
+import {
+  SceneObject,
+  SceneComponent,
+  SceneObjectState,
+  SceneObjectUrlSyncHandler,
+  SceneStateChangedHandler,
+  SceneActivationHandler,
+  SceneDeactivationHandler,
+} from './types';
 import { useForceUpdate } from '@grafana/ui';
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
@@ -15,9 +23,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   implements SceneObject<TState>
 {
   private _isActive = false;
-  private _subject = new Subject<TState>();
   private _state: TState;
   private _events = new EventBusSrv();
+  private _activationHandlers: SceneActivationHandler[] = [];
+  private _deactivationHandlers: SceneDeactivationHandler[] = [];
 
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
@@ -31,7 +40,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     }
 
     this._state = Object.freeze(state);
-    this._subject.next(state);
     this.setParent();
   }
 
@@ -82,8 +90,12 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /**
    * Subscribe to the scene state subject
    **/
-  public subscribeToState(observerOrNext?: Partial<Observer<TState>>): SubscriptionLike {
-    return this._subject.subscribe(observerOrNext);
+  public subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable {
+    return this._events.subscribe(SceneObjectStateChangedEvent, (event) => {
+      if (event.payload.changedObject === this) {
+        handler(event.payload.newState as TState, event.payload.prevState as TState);
+      }
+    });
   }
 
   /**
@@ -103,7 +115,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     this._state = Object.freeze(newState);
 
     this.setParent();
-    this._subject.next(newState);
 
     // Bubble state change event. This is event is subscribed to by UrlSyncManager and UndoManager
     this.publishEvent(
@@ -132,7 +143,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   }
 
   /**
-   * Called by the SceneComponentWrapper when the react component is mounted
+   * Called by the SceneComponentWrapper when the react component is mounted.
+   * Don't override this, instead use addActivationHandler
    */
   public activate() {
     this._isActive = true;
@@ -150,10 +162,18 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     if ($data && !$data.isActive) {
       $data.activate();
     }
+
+    this._activationHandlers.forEach((handler) => {
+      const result = handler();
+      if (result) {
+        this._deactivationHandlers.push(result);
+      }
+    });
   }
 
   /**
-   * Called by the SceneComponentWrapper when the react component is unmounted
+   * Called by the SceneComponentWrapper when the react component is unmounted.
+   * Don't override this, instead use addActivationHandler. The activation handler can return a deactivation handler.
    */
   public deactivate(): void {
     this._isActive = false;
@@ -172,13 +192,13 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       $variables.deactivate();
     }
 
+    this._deactivationHandlers.forEach((handler) => handler());
+    this._deactivationHandlers = [];
+
     // Clear subscriptions and listeners
     this._events.removeAllListeners();
     this._subs.unsubscribe();
     this._subs = new Subscription();
-
-    this._subject.complete();
-    this._subject = new Subject<TState>();
   }
 
   /**
@@ -200,6 +220,14 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   public clone(withState?: Partial<TState>): this {
     return cloneSceneObject(this, withState);
   }
+
+  /**
+   * Allows external code to register code that is executed on activate and deactivate. This allow you
+   * to wire up scene objects that need to respond to state changes in other objects from the outside.
+   **/
+  public addActivationHandler(handler: SceneActivationHandler) {
+    this._activationHandlers.push(handler);
+  }
 }
 
 /**
@@ -210,7 +238,7 @@ function useSceneObjectState<TState extends SceneObjectState>(model: SceneObject
   const forceUpdate = useForceUpdate();
 
   useEffect(() => {
-    const s = model.subscribeToState({ next: forceUpdate });
+    const s = model.subscribeToState(forceUpdate);
     return () => s.unsubscribe();
   }, [model, forceUpdate]);
 
