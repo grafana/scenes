@@ -39,6 +39,9 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       this.subscribeToEvent(SceneVariableValueChangedEvent, (event) => this.handleVariableValueChanged(event.payload))
     );
 
+    // Subscribe to state changes
+    this._subs.add(this.subscribeToState(this.handleStateChanged));
+
     this.checkForVariablesThatChangedWhileInactive();
 
     // Add all variables that need updating to queue
@@ -72,6 +75,39 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     this._variablesToUpdate.clear();
     this._updating.clear();
+  };
+
+  /**
+   * Look for new variables that need to be initialized
+   */
+  private handleStateChanged = (newState: SceneVariableSetState, oldState: SceneVariableSetState) => {
+    const variablesToUpdateCountStart = this._variablesToUpdate.size;
+
+    // Check for removed variables
+    for (const variable of oldState.variables) {
+      if (!newState.variables.includes(variable)) {
+        const updating = this._updating.get(variable);
+        if (updating?.subscription) {
+          updating.subscription.unsubscribe();
+        }
+        this._updating.delete(variable);
+        this._variablesToUpdate.delete(variable);
+      }
+    }
+
+    // Check for new variables
+    for (const variable of newState.variables) {
+      if (!oldState.variables.includes(variable)) {
+        if (this.variableNeedsUpdate(variable)) {
+          this._variablesToUpdate.add(variable);
+        }
+      }
+    }
+
+    // Only start a new batch if there was no batch already running
+    if (variablesToUpdateCountStart === 0 && this._variablesToUpdate.size > 0) {
+      this.updateNextBatch();
+    }
   };
 
   /**
