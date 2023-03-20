@@ -167,4 +167,25 @@ describe('sceneInterpolator', () => {
     const scopedVars = { __data: { value: { name: 'Main org' }, text: '' } };
     expect(sceneInterpolator(scene, '${__data.name}', scopedVars)).toBe('Main org');
   });
+
+  it('Can use custom formatter', () => {
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [
+          new TestVariable({
+            name: 'cluster',
+            value: ['1', '2'],
+            text: ['hello', 'world'],
+            isMulti: true,
+            includeAll: true,
+          }),
+        ],
+      }),
+    });
+
+    const formatter = jest.fn().mockReturnValue('custom');
+
+    expect(sceneInterpolator(scene, '$cluster', undefined, formatter)).toBe('custom');
+    expect(formatter.mock.calls[0][1]).toEqual({ name: 'cluster', type: 'custom', multi: true, includeAll: true });
+  });
 });

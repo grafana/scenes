@@ -16,7 +16,7 @@ import { DeepPartial, SceneLayoutChildState } from '../../core/types';
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
-import { CustomFormatterFn } from '../../variables/interpolation/sceneInterpolator';
+import { VariableCustomFormatterFn } from '../../variables/types';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLayoutChildState {
   title: string;
@@ -125,7 +125,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     this.setState({ fieldConfig });
   };
 
-  public interpolate = ((value: string, scoped?: ScopedVars, format?: string | CustomFormatterFn) => {
+  public interpolate = ((value: string, scoped?: ScopedVars, format?: string | VariableCustomFormatterFn) => {
     return sceneGraph.interpolate(this, value, scoped, format);
   }) as InterpolateFunction;
 }

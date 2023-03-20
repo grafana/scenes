@@ -1,19 +1,13 @@
 import { ScopedVars } from '@grafana/data';
-import { VariableModel, VariableType } from '@grafana/schema';
+import { VariableType } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
-import { VariableValue } from '../types';
+import { VariableCustomFormatterFn, VariableValue } from '../types';
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
 import { lookupVariable } from '../lookupVariable';
-
-export type CustomFormatterFn = (
-  value: unknown,
-  legacyVariableModel: Partial<VariableModel>,
-  legacyDefaultFormatter?: CustomFormatterFn
-) => string;
 
 /**
  * This function will try to parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
@@ -26,7 +20,7 @@ export function sceneInterpolator(
   sceneObject: SceneObject,
   target: string | undefined | null,
   scopedVars?: ScopedVars,
-  format?: string | CustomFormatterFn
+  format?: string | VariableCustomFormatterFn
 ): string {
   if (!target) {
     return target ?? '';
@@ -56,7 +50,7 @@ export function sceneInterpolator(
 function formatValue(
   variable: FormatVariable,
   value: VariableValue | undefined | null,
-  formatNameOrFn?: string | CustomFormatterFn
+  formatNameOrFn?: string | VariableCustomFormatterFn
 ): string {
   if (value === null || value === undefined) {
     return '';
@@ -81,6 +75,8 @@ function formatValue(
     return formatNameOrFn(value, {
       name: variable.state.name,
       type: variable.state.type as VariableType,
+      multi: variable.state.isMulti,
+      includeAll: variable.state.includeAll,
     });
   }
 
