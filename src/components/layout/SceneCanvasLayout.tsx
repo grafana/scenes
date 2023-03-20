@@ -9,7 +9,6 @@ import {
   SceneLayout,
   SceneLayoutChildState,
 } from '../../core/types';
-import { SceneCanvasRootLayout } from './SceneCanvasRootLayout';
 
 interface SceneCanvasLayoutState extends SceneLayoutState {}
 
@@ -25,16 +24,21 @@ export class SceneCanvasLayout extends SceneObjectBase<SceneCanvasLayoutState> i
 function CanvasLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneCanvasLayout>) {
   const { children } = model.useState();
 
-  // TODO: create function to walk up tree for this (highest one)
-  const canvasManager = model.parent as SceneCanvasRootLayout;
-
   return (
     <>
       {children.map((item) => {
-        canvasManager.itemRegistry.set(item.state.key!, item);
-
         return (
-          <div style={getItemStyles(item.state)} key={item.state.key} className="selectable" data-key={item.state.key}>
+          <div 
+            style={getItemStyles(item.state)} 
+            key={item.state.key} 
+            className="selectable" 
+            ref={(v) => {
+              // not pretty, but this lets us get back to the item directly
+              // from dom events -- avoiding a complicated lookup by key
+              if(v) {
+                (v as any).__item = item; 
+              }
+            }}>
             <item.Component model={item} isEditing={isEditing} />
           </div>
         );

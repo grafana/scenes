@@ -1,5 +1,5 @@
 import Moveable from 'moveable';
-import { OnResize } from 'react-moveable/declaration/types';
+import { OnEvent, OnResize } from 'react-moveable/declaration/types';
 import React, { CSSProperties } from 'react';
 import Selecto from 'selecto';
 import { Constraint, HorizontalConstraint, VerticalConstraint } from '../../core/canvasTypes';
@@ -137,14 +137,16 @@ function applyResize(event: OnResize, placement: SceneLayoutChildOptions) {
   }
 }
 
+function getSceneLayoutChild(e: OnEvent): SceneLayoutChild | undefined {);
+  return (e.target as any)?.__item as SceneLayoutChild;
+}
+
 export class SceneCanvasRootLayout extends SceneObjectBase<SceneCanvasLayoutRootState> implements SceneLayout {
   public static Component = CanvasLayoutRenderer;
   public static Editor = CanvasRootLayoutEditor;
 
   public moveable?: Moveable;
   public selecto?: Selecto;
-
-  public itemRegistry = new Map<string, SceneLayoutChild>();
 
   public isDraggable(): boolean {
     return false;
@@ -182,7 +184,7 @@ export class SceneCanvasRootLayout extends SceneObjectBase<SceneCanvasLayoutRoot
         }
       })
       .on('dragEnd', (event) => {
-        const item = this.itemRegistry.get(event.target.dataset.key ?? '');
+        const item = getSceneLayoutChild(event);
         if (!item) {
           return;
         }
@@ -195,7 +197,7 @@ export class SceneCanvasRootLayout extends SceneObjectBase<SceneCanvasLayoutRoot
       })
       .on('dragGroupEnd', (e) => {
         for (let event of e.events) {
-          const item = this.itemRegistry.get(event.target.dataset.key ?? '');
+          const item = getSceneLayoutChild(event);
           if (!item) {
             return;
           }
@@ -208,7 +210,7 @@ export class SceneCanvasRootLayout extends SceneObjectBase<SceneCanvasLayoutRoot
         }
       })
       .on('resizeStart', (event) => {
-        const item = this.itemRegistry.get(event.target.dataset.key ?? '');
+        const item = getSceneLayoutChild(event);
         if (!item) {
           return;
         }
@@ -232,7 +234,7 @@ export class SceneCanvasRootLayout extends SceneObjectBase<SceneCanvasLayoutRoot
         }
       })
       .on('resize', (event) => {
-        const item = this.itemRegistry.get(event.target.dataset.key ?? '');
+        const item = getSceneLayoutChild(event);
         if (!item) {
           return;
         }
@@ -240,7 +242,7 @@ export class SceneCanvasRootLayout extends SceneObjectBase<SceneCanvasLayoutRoot
         applyResize(event, resizingTempPlacement!);
       })
       .on('resizeEnd', (event) => {
-        const item = this.itemRegistry.get(event.target.dataset.key ?? '');
+        const item = getSceneLayoutChild(event);
         if (!item) {
           return;
         }
