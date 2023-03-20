@@ -18,7 +18,6 @@ export interface SceneObjectStatePlain {
   key?: string;
   $timeRange?: SceneTimeRangeLike;
   $data?: SceneDataProvider;
-  $editor?: SceneEditor;
   $variables?: SceneVariables;
 }
 
@@ -43,10 +42,15 @@ export interface SceneLayoutChildOptions {
 
 export interface SceneComponentProps<T> {
   model: T;
-  isEditing?: boolean;
 }
 
-export type SceneComponent<TModel> = React.FunctionComponent<SceneComponentProps<TModel>>;
+export interface SceneComponentWrapperProps {
+  model: SceneObject;
+  children: React.ReactNode;
+}
+
+export type SceneComponent<TModel> = (props: SceneComponentProps<TModel>) => React.ReactElement | null;
+export type SceneComponentCustomWrapper = (props: SceneComponentWrapperProps) => React.ReactElement | null;
 
 export interface SceneDataState extends SceneObjectStatePlain {
   data?: PanelData;
@@ -103,9 +107,6 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** A React component to use for rendering the object */
   Component(props: SceneComponentProps<SceneObject<TState>>): React.ReactElement | null;
 
-  /** To be replaced by declarative method */
-  Editor(props: SceneComponentProps<SceneObject<TState>>): React.ReactElement | null;
-
   /** Force a re-render, should only be needed when variable values change */
   forceRender(): void;
 
@@ -129,24 +130,6 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
   isDraggable(): boolean;
   getDragClass?(): string;
   getDragClassCancel?(): string;
-}
-
-export interface SceneEditorState extends SceneObjectStatePlain {
-  hoverObject?: SceneObjectRef;
-  selectedObject?: SceneObjectRef;
-}
-
-export interface SceneEditor extends SceneObject<SceneEditorState> {
-  onMouseEnterObject(model: SceneObject): void;
-  onMouseLeaveObject(model: SceneObject): void;
-  onSelectObject(model: SceneObject): void;
-  getEditComponentWrapper(): React.ComponentType<SceneComponentEditWrapperProps>;
-}
-
-interface SceneComponentEditWrapperProps {
-  editor: SceneEditor;
-  model: SceneObject;
-  children: React.ReactNode;
 }
 
 export interface SceneTimeRangeState extends SceneObjectStatePlain {

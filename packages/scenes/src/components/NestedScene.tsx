@@ -45,7 +45,7 @@ export class NestedScene extends SceneObjectBase<NestedSceneState> {
   };
 }
 
-export function NestedSceneRenderer({ model, isEditing }: SceneComponentProps<NestedScene>) {
+export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>) {
   const { title, isCollapsed, canCollapse, canRemove, body, actions } = model.useState();
   const styles = useStyles2(getStyles);
 
@@ -85,7 +85,7 @@ export function NestedSceneRenderer({ model, isEditing }: SceneComponentProps<Ne
         </Stack>
         <div className={styles.actions}>{toolbarActions}</div>
       </div>
-      {!isCollapsed && <body.Component model={body} isEditing={isEditing} />}
+      {!isCollapsed && <body.Component model={body} />}
     </div>
   );
 }

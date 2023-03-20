@@ -85,3 +85,19 @@ export interface SceneVariableDependencyConfigLike {
    **/
   variableUpdatesCompleted(changedVariables: Set<SceneVariable>): void;
 }
+
+/**
+ * Used in CustomFormatterFn
+ */
+export interface CustomFormatterVariable {
+  name: string;
+  type: VariableType;
+  multi?: boolean;
+  includeAll?: boolean;
+}
+
+export type VariableCustomFormatterFn = (
+  value: unknown,
+  legacyVariableModel: Partial<CustomFormatterVariable>,
+  legacyDefaultFormatter?: VariableCustomFormatterFn
+) => string;

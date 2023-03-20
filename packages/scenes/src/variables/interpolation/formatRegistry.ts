@@ -19,6 +19,8 @@ export interface FormatVariable {
   state: {
     name: string;
     type: VariableType | string;
+    isMulti?: boolean;
+    includeAll?: boolean;
   };
 
   getValue(fieldPath?: string): VariableValue | undefined | null;

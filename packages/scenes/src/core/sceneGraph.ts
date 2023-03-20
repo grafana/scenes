@@ -1,10 +1,10 @@
 import { ScopedVars } from '@grafana/data';
 import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/interpolation/defaults';
 
-import { CustomFormatterFn, sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
-import { SceneVariables } from '../variables/types';
+import { sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
+import { VariableCustomFormatterFn, SceneVariables } from '../variables/types';
 
-import { SceneDataState, SceneEditor, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
+import { SceneDataState, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
 import { lookupVariable } from '../variables/lookupVariable';
 
 /**
@@ -55,22 +55,6 @@ export function getTimeRange(sceneObject: SceneObject): SceneTimeRangeLike {
 }
 
 /**
- * Will walk up the scene object graph to the closest $editor scene object
- */
-export function getSceneEditor(sceneObject: SceneObject): SceneEditor {
-  const { $editor } = sceneObject.state;
-  if ($editor) {
-    return $editor;
-  }
-
-  if (sceneObject.parent) {
-    return getSceneEditor(sceneObject.parent);
-  }
-
-  throw new Error('No editor found in scene tree');
-}
-
-/**
  * Will walk up the scene object graph to the closest $layout scene object
  */
 export function getLayout(scene: SceneObject): SceneLayout {
@@ -92,7 +76,7 @@ export function interpolate(
   sceneObject: SceneObject,
   value: string | undefined | null,
   scopedVars?: ScopedVars,
-  format?: string | CustomFormatterFn
+  format?: string | VariableCustomFormatterFn
 ): string {
   if (value === '' || value == null) {
     return '';
@@ -126,7 +110,6 @@ export const sceneGraph = {
   getVariables,
   getData,
   getTimeRange,
-  getSceneEditor,
   getLayout,
   interpolate,
   lookupVariable,
