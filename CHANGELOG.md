@@ -1,6 +1,7 @@
 # 0.22 ()
 
 * Removal of isEditing from SceneComponentProps (also $editor from SceneObjectState, and sceneGraph.getSceneEditor)
+* DataSourceVariable state change, query property is now named pluginId
 
 # 0.21 (2023-03-17)
 
