@@ -33,7 +33,7 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
   }
 }
 
-function FlexLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneFlexLayout>) {
+function FlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>) {
   const { direction = 'row', children, wrap } = model.useState();
   const style: CSSProperties = {
     flexGrow: 1,
@@ -48,7 +48,7 @@ function FlexLayoutRenderer({ model, isEditing }: SceneComponentProps<SceneFlexL
   return (
     <div style={style}>
       {children.map((item) => (
-        <FlexLayoutChildComponent key={item.state.key} item={item} direction={direction} isEditing={isEditing} />
+        <FlexLayoutChildComponent key={item.state.key} item={item} direction={direction} />
       ))}
     </div>
   );
@@ -67,7 +67,7 @@ function FlexLayoutChildComponent({
 
   return (
     <div style={getItemStyles(direction, placement)}>
-      <item.Component model={item} isEditing={isEditing} />
+      <item.Component model={item} />
     </div>
   );
 }
