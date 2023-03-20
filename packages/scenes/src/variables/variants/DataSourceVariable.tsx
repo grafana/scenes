@@ -13,7 +13,7 @@ import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } f
 
 export interface DataSourceVariableState extends MultiValueVariableState {
   /**
-   * Include all data source instance of this plugin type
+   * Include all data source instances with this plugin id
    */
   pluginId: string;
   /**
