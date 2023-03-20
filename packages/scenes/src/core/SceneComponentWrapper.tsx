@@ -1,11 +1,9 @@
 import React, { useEffect } from 'react';
 
-import { SceneComponentCustomWrapper, SceneComponentProps, SceneObject } from './types';
+import { SceneComponentProps, SceneObject } from './types';
 
 function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...otherProps }: SceneComponentProps<T>) {
   const Component = (model as any).constructor['Component'] ?? EmptyRenderer;
-  const inner = <Component {...otherProps} model={model} />;
-  const CustomWrapper = getComponentWrapper(model);
 
   // Handle component activation state state
   useEffect(() => {
@@ -19,30 +17,11 @@ function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...oth
     };
   }, [model]);
 
-  if (CustomWrapper) {
-    return <CustomWrapper model={model}>{inner}</CustomWrapper>;
-  }
-
-  return inner;
+  return <Component {...otherProps} model={model} />;
 }
 
 export const SceneComponentWrapper = React.memo(SceneComponentWrapperWithoutMemo);
 
 function EmptyRenderer<T>(_: SceneComponentProps<T>): React.ReactElement | null {
   return null;
-}
-
-/**
- * If this or any parent has componentWrapper then return and use that
- */
-function getComponentWrapper(sceneObject: SceneObject): SceneComponentCustomWrapper | undefined {
-  if (sceneObject.componentWrapper) {
-    return sceneObject.componentWrapper;
-  }
-
-  if (sceneObject.parent) {
-    return getComponentWrapper(sceneObject.parent);
-  }
-
-  return undefined;
 }

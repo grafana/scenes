@@ -72,12 +72,6 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** This abstraction declares URL sync dependencies of a scene object. **/
   readonly urlSync?: SceneObjectUrlSyncHandler<TState>;
 
-  /**
-   * Component wrapper, can be used to for edit modes, to wrap objects in an edit wrappers. This component wrapper will
-   * be used for all children of this object (unless they specify their own wrapper).
-   **/
-  readonly componentWrapper?: SceneComponentCustomWrapper;
-
   /** Subscribe to state changes */
   subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable;
 
