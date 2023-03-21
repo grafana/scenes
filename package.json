@@ -40,18 +40,7 @@
     "packages/*"
   ],
   "devDependencies": {
-    "auto": "^10.43.0",
     "lerna": "^6.5.1",
     "lint-staged": "^13.2.0"
-  },
-  "auto": {
-    "plugins": [
-      "npm"
-    ],
-    "author": {
-      "name": "grafanabot",
-      "email": "bot@grafana.com"
-    },
-    "onlyPublishWithReleaseLabel": true
   }
 }
