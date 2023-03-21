@@ -1,3 +1,9 @@
+# (Tue Mar 21 2023)
+
+
+
+---
+
 # 0.22 ()
 
 * Removal of isEditing from SceneComponentProps (also $editor from SceneObjectState, and sceneGraph.getSceneEditor)
