@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
 jobs:
   build-and-test:
     name: Build and test
@@ -38,3 +35,6 @@ jobs:
 
       - name: Run auto shipit
         run: yarn auto shipit --base-branch main
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
