@@ -14,7 +14,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16'
-          cache: 'yarn'
 
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
@@ -40,10 +39,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16'
-          cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn
+        uses: ./.github/actions/yarn-nm-install
 
       - name: Build library
         run: lerna run build
