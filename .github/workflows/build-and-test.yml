@@ -19,9 +19,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16'
+          cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn
+        run: yarn --immutable --cached
 
       - name: Test library
         run: lerna run test
@@ -31,6 +32,12 @@ jobs:
 
       - name: Build library
         run: lerna run build
+
+      - name: Build library
+        run: lerna run build
+
+      - name: Git diff
+        run: git diff
 
       - name: Run auto shipit
         run: yarn auto shipit --base-branch main
