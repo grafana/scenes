@@ -23,3 +23,17 @@ export function lookupVariable(name: string, sceneObject: SceneObject): SceneVar
 
   return null;
 }
+
+export function lookupAllVariables(sceneObject: SceneObject): Record<string, SceneVariable> {
+  const result: Record<string, SceneVariable> = Object.fromEntries(
+    sceneObject.state.$variables?.state.variables.map((v) => [v.state.name, v]) ?? []
+  )
+
+  if (sceneObject.parent) {
+    return {
+      ...lookupAllVariables(sceneObject.parent),
+      ...result,
+    }
+  }
+  return result;
+}

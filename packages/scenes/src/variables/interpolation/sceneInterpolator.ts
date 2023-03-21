@@ -1,13 +1,13 @@
-import { ScopedVars } from '@grafana/data';
+import { ScopedVars, DataLinkBuiltInVars } from '@grafana/data';
 import { VariableType } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
 import { VariableCustomFormatterFn, VariableValue } from '../types';
 
-import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
+import { getSceneVariableForScopedVar, ScopedVarsVariable } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
-import { lookupVariable } from '../lookupVariable';
+import { lookupAllVariables, lookupVariable } from '../lookupVariable';
 
 /**
  * This function will try to parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
@@ -31,9 +31,15 @@ export function sceneInterpolator(
   return target.replace(VARIABLE_REGEX, (match, var1, var2, fmt2, var3, fieldPath, fmt3) => {
     const variableName = var1 || var2 || var3;
     const fmt = fmt2 || fmt3 || format;
-    let variable: FormatVariable | undefined | null;
-
-    if (scopedVars && scopedVars[variableName]) {
+    let variable: FormatVariable | undefined | null;  
+    
+    if (variableName === DataLinkBuiltInVars.includeVars) {
+      const variables = lookupAllVariables(sceneObject);
+      return Object.values(variables)
+          .map((v) => v.getValue() ? formatRegistry.get(FormatRegistryID.queryParam).formatter(v.getValue()!, [], v) : '')
+          .filter(v => !!v)
+          .join('&');
+    } else if (scopedVars && scopedVars[variableName]) {
       variable = getSceneVariableForScopedVar(variableName, scopedVars[variableName]);
     } else {
       variable = lookupVariable(variableName, sceneObject);
