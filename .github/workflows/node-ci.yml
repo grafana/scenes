@@ -17,16 +17,13 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn
+        uses: ./.github/actions/yarn-nm-install
 
       - name: Test library
         run: lerna run test
 
       - name: Typecheck library
         run: lerna run typecheck
-
-      - name: Build library
-        run: lerna run build
 
   release:
     name: Release
