@@ -28,11 +28,6 @@
 - Update [#88](https://github.com/grafana/scenes/pull/88) ([@torkelo](https://github.com/torkelo))
 - Auto: Automate changelog and github releases [#85](https://github.com/grafana/scenes/pull/85) ([@torkelo](https://github.com/torkelo))
 
-#### ⚠️ Pushed to `main`
-
-- add step ([@torkelo](https://github.com/torkelo))
-- Add a condition ([@torkelo](https://github.com/torkelo))
-
 #### Authors: 1
 
 - Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
