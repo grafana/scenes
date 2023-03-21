@@ -19,7 +19,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn
+        run: yarn install --immutable --prefer-offline
 
       - name: Test library
         run: lerna run test
