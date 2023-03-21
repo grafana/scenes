@@ -28,3 +28,6 @@ jobs:
 
       - name: Build library
         run: lerna run build
+
+      - name: Run auto shipit
+        run: yarn auto shipit --base-branch main
