@@ -36,8 +36,5 @@ jobs:
       - name: Build library
         run: lerna run build
 
-      - name: Git diff
-        run: git diff
-
       - name: Run auto shipit
         run: yarn auto shipit --base-branch main
