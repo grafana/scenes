@@ -22,7 +22,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn --immutable --cached
+        run: yarn install --immutable --cached
 
       - name: Test library
         run: lerna run test
