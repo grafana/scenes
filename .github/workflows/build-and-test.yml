@@ -6,11 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
 jobs:
   build-and-test:
     name: Build and test
     runs-on: ubuntu-latest
-    environment: CI
     steps:
       - uses: actions/checkout@v3
       - name: Test using Node.js
