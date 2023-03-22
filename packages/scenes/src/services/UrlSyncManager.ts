@@ -1,6 +1,5 @@
 import { Location } from 'history';
 import { isEqual } from 'lodash';
-import { Unsubscribable } from 'rxjs';
 
 import { locationService } from '@grafana/runtime';
 
@@ -9,20 +8,25 @@ import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/
 import { forEachSceneObjectInState } from '../core/utils';
 
 export class UrlSyncManager {
-  private locationListenerUnsub: () => void;
-  private stateChangeSub: Unsubscribable;
   private initialStates: Map<string, SceneObjectUrlValue> = new Map();
   private urlKeyMapper = new UniqueUrlKeyMapper();
 
-  public constructor(private sceneRoot: SceneObject) {
-    this.stateChangeSub = sceneRoot.subscribeToEvent(SceneObjectStateChangedEvent, this.onStateChanged);
-    this.locationListenerUnsub = locationService.getHistory().listen(this.onLocationUpdate);
-  }
+  public constructor(private sceneRoot: SceneObject) {}
 
   /**
    * Updates the current scene state to match URL state.
    */
   public initSync() {
+    this.sceneRoot.addActivationHandler(() => {
+      const stateChangeSub = this.sceneRoot.subscribeToEvent(SceneObjectStateChangedEvent, this.onStateChanged);
+      const locationListenerUnsub = locationService.getHistory().listen(this.onLocationUpdate);
+
+      return () => {
+        stateChangeSub.unsubscribe();
+        locationListenerUnsub();
+      };
+    });
+
     const urlParams = locationService.getSearch();
     this.urlKeyMapper.rebuldIndex(this.sceneRoot);
     this.syncSceneStateFromUrl(this.sceneRoot, urlParams);
@@ -68,11 +72,6 @@ export class UrlSyncManager {
     }
   };
 
-  public cleanUp() {
-    this.stateChangeSub.unsubscribe();
-    this.locationListenerUnsub();
-  }
-
   private syncSceneStateFromUrl(sceneObject: SceneObject, urlParams: URLSearchParams) {
     if (sceneObject.urlSync) {
       const urlState: SceneObjectUrlValues = {};
@@ -82,6 +81,11 @@ export class UrlSyncManager {
         const uniqueKey = this.urlKeyMapper.getUniqueKey(key, sceneObject);
         const newValue = urlParams.getAll(uniqueKey);
         const currentValue = currentState[key];
+
+        // Remember the initial state so we can go restore in in case URL state is cleared
+        if (!this.initialStates.has(uniqueKey)) {
+          this.initialStates.set(uniqueKey, currentValue);
+        }
 
         if (isUrlValueEqual(newValue, currentValue)) {
           continue;
@@ -93,15 +97,11 @@ export class UrlSyncManager {
           } else {
             urlState[key] = newValue[0];
           }
+        } else if (this.initialStates.has(uniqueKey)) {
+          const initalState = this.initialStates.get(uniqueKey);
 
-          // Remember the initial state so we can go back to it
-          if (!this.initialStates.has(uniqueKey) && currentValue !== undefined) {
-            this.initialStates.set(uniqueKey, currentValue);
-          }
-        } else {
-          const initialValue = this.initialStates.get(uniqueKey);
-          if (initialValue !== undefined) {
-            urlState[key] = initialValue;
+          if (initalState !== currentValue) {
+            urlState[key] = initalState;
           }
         }
       }
