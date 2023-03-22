@@ -1,3 +1,4 @@
+import { DataLinkBuiltInVars } from '@grafana/data';
 import { SceneObject } from '../core/types';
 import { SceneVariable } from './types';
 
@@ -5,6 +6,10 @@ import { SceneVariable } from './types';
  * Will walk the scene object graph up to the root looking for the first variable with the specified name
  */
 export function lookupVariable(name: string, sceneObject: SceneObject): SceneVariable | null | undefined {
+  if (name === DataLinkBuiltInVars.includeVars) {
+    return null;
+  }
+
   const variables = sceneObject.state.$variables;
   if (!variables) {
     if (sceneObject.parent) {
