@@ -25,15 +25,6 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
 
   public constructor(state: EmbeddedSceneState) {
     super(state);
-
-    this.addActivationHandler(() => {
-      // Clean up url sync when the scene is deactivated
-      return () => {
-        if (this.urlSyncManager) {
-          this.urlSyncManager!.cleanUp();
-        }
-      };
-    });
   }
 
   /**
