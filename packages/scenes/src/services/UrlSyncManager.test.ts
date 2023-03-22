@@ -223,7 +223,7 @@ describe('UrlSyncManager', () => {
       expect(obj.state.optional).toBe(undefined);
     });
 
-    it('Should update from state correctly', () => {
+    it('When updating via state and removing from url', () => {
       const obj = new TestObj({ name: 'test' });
       scene = new SceneFlexLayout({
         children: [obj],
@@ -243,6 +243,25 @@ describe('UrlSyncManager', () => {
 
       // Should update state
       expect(obj.state.optional).toBe(undefined);
+    });
+
+    it('When removing optional state via state change', () => {
+      const obj = new TestObj({ name: 'test' });
+      scene = new SceneFlexLayout({
+        children: [obj],
+      });
+
+      urlManager = new UrlSyncManager(scene);
+      urlManager.initSync();
+      scene.activate();
+
+      obj.setState({ optional: 'handler' });
+
+      expect(locationService.getSearchObject().optional).toEqual('handler');
+
+      obj.setState({ optional: undefined });
+
+      expect(locationService.getSearchObject().optional).toEqual(undefined);
     });
   });
 });
