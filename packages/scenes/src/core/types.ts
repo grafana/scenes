@@ -123,7 +123,7 @@ export type SceneDeactivationHandler = () => void;
 export type SceneLayoutChild = SceneObject<SceneLayoutChildState | SceneLayoutState>;
 
 export interface SceneLayoutState extends SceneLayoutChildState {
-  children: SceneLayoutChild[];
+  children: SceneObject[];
 }
 
 export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> extends SceneObject<T> {

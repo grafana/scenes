@@ -2,6 +2,7 @@ import {
   CustomVariable,
   EmbeddedScene,
   SceneControlsSpacer,
+  SceneFlexItem,
   SceneFlexLayout,
   SceneQueryRunner,
   SceneRefreshPicker,
@@ -68,10 +69,15 @@ export function getBasicScene(templatised = true, seriesToShow = '__server_names
     $data: queryRunner,
     body: new SceneFlexLayout({
       children: [
-        new VizPanel({
-          pluginId: 'timeseries',
-          // Title is using variable value
-          title: templatised ? '${seriesToShow}' : seriesToShow,
+        new SceneFlexItem({
+          flexGrow: 1,
+          children: [
+            new VizPanel({
+              pluginId: 'timeseries',
+              // Title is using variable value
+              title: templatised ? '${seriesToShow}' : seriesToShow,
+            }),
+          ],
         }),
       ],
     }),

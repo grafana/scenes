@@ -1,5 +1,12 @@
 import { ReducerID, ThresholdsMode } from '@grafana/data';
-import { SceneByFrameRepeater, SceneDataNode, SceneDataTransformer, SceneFlexLayout, VizPanel } from '@grafana/scenes';
+import {
+  SceneByFrameRepeater,
+  SceneDataNode,
+  SceneDataTransformer,
+  SceneFlexItem,
+  SceneFlexLayout,
+  VizPanel,
+} from '@grafana/scenes';
 import { ROUTES } from '../../constants';
 import { prefixRoute } from '../../utils/utils.routing';
 
@@ -126,35 +133,39 @@ export function getRoomsTemperatureStats() {
       children: [],
     }),
     getLayoutChild: (data, frame) => {
-      return new VizPanel({
-        title: frame.name,
-        pluginId: 'stat',
-        placement: {
-          minHeight: 200,
-          minWidth: '20%',
-        },
-        $data: new SceneDataNode({
-          data: {
-            ...data,
-            series: [frame],
-          },
-        }),
-        fieldConfig: {
-          defaults: {
-            unit: 'celsius',
-            links: [
-              {
-                title: 'Go to room temperature overview',
-                url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/temperature',
+      return new SceneFlexItem({
+        flexGrow: 1,
+        minHeight: 200,
+        minWidth: '20%',
+        children: [
+          new VizPanel({
+            title: frame.name,
+            pluginId: 'stat',
+
+            $data: new SceneDataNode({
+              data: {
+                ...data,
+                series: [frame],
               },
-              {
-                title: 'Go to room humidity overview',
-                url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/humidity',
+            }),
+            fieldConfig: {
+              defaults: {
+                unit: 'celsius',
+                links: [
+                  {
+                    title: 'Go to room temperature overview',
+                    url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/temperature',
+                  },
+                  {
+                    title: 'Go to room humidity overview',
+                    url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/humidity',
+                  },
+                ],
               },
-            ],
-          },
-          overrides: [],
-        },
+              overrides: [],
+            },
+          }),
+        ],
       });
     },
   });

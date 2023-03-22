@@ -3,21 +3,59 @@ import React, { CSSProperties } from 'react';
 import { Field, RadioButtonGroup } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import {
-  SceneComponentProps,
-  SceneLayoutChild,
-  SceneLayoutState,
-  SceneLayoutChildOptions,
-  SceneLayout,
-} from '../../core/types';
+import { SceneComponentProps, SceneLayout, SceneObjectStatePlain, SceneLayoutState } from '../../core/types';
 
-export type FlexLayoutDirection = 'column' | 'row';
-
-interface SceneFlexLayoutState extends SceneLayoutState {
-  direction?: FlexLayoutDirection;
+interface SceneFlexLayoutState extends SceneObjectStatePlain {
+  direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
+  children: SceneFlexItem[];
 }
 
+interface SceneFlexItemState extends SceneLayoutState {
+  order?: CSSProperties['order'];
+  flexGrow?: CSSProperties['flexGrow'];
+  flexShrink?: CSSProperties['flexShrink'];
+  flexBasis?: CSSProperties['flexBasis'];
+  alignSelf?: CSSProperties['alignSelf'];
+  width?: CSSProperties['width'];
+  height?: CSSProperties['height'];
+  minWidth?: CSSProperties['minWidth'];
+  minHeight?: CSSProperties['minHeight'];
+  maxWidth?: CSSProperties['maxWidth'];
+  maxHeight?: CSSProperties['maxHeight'];
+  isDraggable?: boolean;
+  isResizable?: boolean;
+}
+
+export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
+  public static Component = SceneFlexItemRenderer;
+}
+
+function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
+  const { children, ...rest } = model.useState();
+  const style: CSSProperties = {
+    display: 'flex',
+    position: 'relative',
+    flexGrow: rest.flexGrow || 0, // 0 = default?
+    flexShrink: rest.flexShrink, // 1 = default?
+    alignSelf: rest.alignSelf || 'auto',
+    flexBasis: rest.flexBasis || 'auto',
+    width: rest.width || 'auto',
+    height: rest.height || 'auto',
+    minWidth: rest.minWidth || 0,
+    minHeight: rest.minHeight || 0,
+    maxWidth: rest.maxWidth,
+    maxHeight: rest.maxHeight,
+  };
+
+  return (
+    <div style={style}>
+      {children.map((item) => (
+        <item.Component key={item.state.key} model={item} />
+      ))}
+    </div>
+  );
+}
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
   public static Component = FlexLayoutRenderer;
   public static Editor = FlexLayoutEditor;
@@ -36,11 +74,11 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
 function FlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>) {
   const { direction = 'row', children, wrap } = model.useState();
   const style: CSSProperties = {
+    display: 'flex',
     flexGrow: 1,
     flexDirection: direction,
-    display: 'flex',
     gap: '8px',
-    flexWrap: wrap,
+    flexWrap: wrap || 'nowrap',
     alignContent: 'baseline',
     minHeight: 0,
   };
@@ -48,68 +86,10 @@ function FlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>) {
   return (
     <div style={style}>
       {children.map((item) => (
-        <FlexLayoutChildComponent key={item.state.key} item={item} direction={direction} />
+        <item.Component key={item.state.key} model={item} />
       ))}
     </div>
   );
-}
-
-function FlexLayoutChildComponent({
-  item,
-  direction,
-  isEditing,
-}: {
-  item: SceneLayoutChild;
-  direction: FlexLayoutDirection;
-  isEditing?: boolean;
-}) {
-  const { placement } = item.useState();
-
-  return (
-    <div style={getItemStyles(direction, placement)}>
-      <item.Component model={item} />
-    </div>
-  );
-}
-
-function getItemStyles(direction: FlexLayoutDirection, layout: SceneLayoutChildOptions = {}) {
-  const { xSizing = 'fill', ySizing = 'fill' } = layout;
-
-  const style: CSSProperties = {
-    display: 'flex',
-    flexDirection: direction,
-    minWidth: layout.minWidth,
-    minHeight: layout.minHeight,
-    position: 'relative',
-  };
-
-  if (direction === 'column') {
-    if (layout.height) {
-      style.height = layout.height;
-    } else {
-      style.flexGrow = ySizing === 'fill' ? 1 : 0;
-    }
-
-    if (layout.width) {
-      style.width = layout.width;
-    } else {
-      style.alignSelf = xSizing === 'fill' ? 'stretch' : 'flex-start';
-    }
-  } else {
-    if (layout.height) {
-      style.height = layout.height;
-    } else {
-      style.alignSelf = ySizing === 'fill' ? 'stretch' : 'flex-start';
-    }
-
-    if (layout.width) {
-      style.width = layout.width;
-    } else {
-      style.flexGrow = xSizing === 'fill' ? 1 : 0;
-    }
-  }
-
-  return style;
 }
 
 function FlexLayoutEditor({ model }: SceneComponentProps<SceneFlexLayout>) {
@@ -124,7 +104,7 @@ function FlexLayoutEditor({ model }: SceneComponentProps<SceneFlexLayout>) {
       <RadioButtonGroup
         options={options}
         value={direction}
-        onChange={(value) => model.setState({ direction: value as FlexLayoutDirection })}
+        onChange={(value) => model.setState({ direction: value as CSSProperties['flexDirection'] })}
       />
     </Field>
   );

@@ -1,7 +1,14 @@
 import * as React from 'react';
 import { prefixRoute } from '../../utils/utils.routing';
 import { DATASOURCE_REF, ROUTES } from '../../constants';
-import { EmbeddedScene, SceneApp, SceneAppPage, SceneFlexLayout, SceneQueryRunner } from '@grafana/scenes';
+import {
+  EmbeddedScene,
+  SceneApp,
+  SceneAppPage,
+  SceneFlexItem,
+  SceneFlexLayout,
+  SceneQueryRunner,
+} from '@grafana/scenes';
 import { getHumidityOverviewScene, getTemperatureOverviewScene } from './scenes';
 import { getRoomsTemperatureStats, getRoomsTemperatureTable } from './panels';
 
@@ -25,7 +32,16 @@ const getScene = () =>
 
     body: new SceneFlexLayout({
       direction: 'column',
-      children: [getRoomsTemperatureTable(), getRoomsTemperatureStats()],
+      children: [
+        new SceneFlexItem({
+          minHeight: '30%',
+          children: [getRoomsTemperatureTable()],
+        }),
+        new SceneFlexItem({
+          flexGrow: 1,
+          children: [getRoomsTemperatureStats()],
+        }),
+      ],
     }),
   });
 

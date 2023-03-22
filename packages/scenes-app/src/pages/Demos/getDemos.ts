@@ -1,5 +1,7 @@
-import { EmbeddedScene, SceneCanvasText, SceneFlexLayout } from '@grafana/scenes';
+import { EmbeddedScene, SceneCanvasText, SceneFlexItem, SceneFlexLayout } from '@grafana/scenes';
+import { getFlexLayoutTest } from './scenes/flexLayout';
 import { getPanelMenuTest } from './scenes/panelMenu';
+import { getPanelRepeaterTest } from './scenes/panelRepeater';
 
 interface SceneDef {
   title: string;
@@ -7,7 +9,11 @@ interface SceneDef {
 }
 
 export function getDemos(): SceneDef[] {
-  return [{ title: 'Panel menu', getScene: getPanelMenuTest }];
+  return [
+    { title: 'Panel menu', getScene: getPanelMenuTest },
+    { title: 'Flex layout', getScene: getFlexLayoutTest },
+    { title: 'Panel repeater', getScene: getPanelRepeaterTest },
+  ];
 }
 
 function getErrorScene(title: string) {
@@ -15,9 +21,13 @@ function getErrorScene(title: string) {
     body: new SceneFlexLayout({
       direction: 'column',
       children: [
-        new SceneCanvasText({
-          text: `¯\\_(ツ)_/¯ No scene found with title ${title}`,
-          align: 'center',
+        new SceneFlexItem({
+          children: [
+            new SceneCanvasText({
+              text: `¯\\_(ツ)_/¯ No scene found with title ${title}`,
+              align: 'center',
+            }),
+          ],
         }),
       ],
     }),
