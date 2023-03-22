@@ -8,7 +8,6 @@ import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/
 import { forEachSceneObjectInState } from '../core/utils';
 
 export class UrlSyncManager {
-  private initialStates: Map<string, SceneObjectUrlValue> = new Map();
   private urlKeyMapper = new UniqueUrlKeyMapper();
 
   public constructor(private sceneRoot: SceneObject) {}
@@ -45,7 +44,6 @@ export class UrlSyncManager {
 
     if (changedObject.urlSync) {
       const newUrlState = changedObject.urlSync.getUrlState(payload.newState);
-      const prevUrlState = changedObject.urlSync.getUrlState(payload.prevState);
 
       const searchParams = locationService.getSearch();
       const mappedUpdated: SceneObjectUrlValues = {};
@@ -58,11 +56,6 @@ export class UrlSyncManager {
 
         if (!isUrlValueEqual(currentUrlValue, newUrlValue)) {
           mappedUpdated[uniqueKey] = newUrlValue;
-
-          // Remember the initial state so we can go back to it
-          if (!this.initialStates.has(uniqueKey) && prevUrlState[key] !== undefined) {
-            this.initialStates.set(uniqueKey, prevUrlState[key]);
-          }
         }
       }
 
@@ -82,11 +75,6 @@ export class UrlSyncManager {
         const newValue = urlParams.getAll(uniqueKey);
         const currentValue = currentState[key];
 
-        // Remember the initial state so we can go restore in in case URL state is cleared
-        if (!this.initialStates.has(uniqueKey)) {
-          this.initialStates.set(uniqueKey, currentValue);
-        }
-
         if (isUrlValueEqual(newValue, currentValue)) {
           continue;
         }
@@ -97,12 +85,9 @@ export class UrlSyncManager {
           } else {
             urlState[key] = newValue[0];
           }
-        } else if (this.initialStates.has(uniqueKey)) {
-          const initalState = this.initialStates.get(uniqueKey);
-
-          if (initalState !== currentValue) {
-            urlState[key] = initalState;
-          }
+        } else {
+          // mark this key as having no url state
+          urlState[key] = null;
         }
       }
 
