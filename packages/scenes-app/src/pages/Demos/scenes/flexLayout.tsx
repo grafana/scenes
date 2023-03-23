@@ -16,7 +16,8 @@ export function getFlexLayoutTest() {
       direction: 'column',
       children: [
         new SceneFlexItem({
-          flexGrow: 1,
+          ySizing: 'fill',
+          xSizing: 'fill',
           children: [
             new SceneFlexLayout({
               direction: 'row',
@@ -32,14 +33,12 @@ export function getFlexLayoutTest() {
                   ],
                 }),
                 new SceneFlexItem({
-                  flexGrow: 1,
                   children: [
                     new SceneFlexLayout({
                       $data: getQueryRunnerWithRandomWalkQuery(),
                       direction: 'column',
                       children: [
                         new SceneFlexItem({
-                          flexGrow: 1,
                           children: [
                             new VizPanel({
                               pluginId: 'timeseries',
@@ -57,7 +56,6 @@ export function getFlexLayoutTest() {
                           ],
                         }),
                         new SceneFlexItem({
-                          flexGrow: 1,
                           children: [
                             new VizPanel({
                               pluginId: 'timeseries',
@@ -66,22 +64,21 @@ export function getFlexLayoutTest() {
                           ],
                         }),
                         new SceneFlexItem({
+                          ySizing: 'content',
                           children: [
                             new SceneCanvasText({
                               text: 'Size to content',
-
                               fontSize: 20,
                               align: 'center',
                             }),
                           ],
                         }),
                         new SceneFlexItem({
-                          flexGrow: 1,
+                          height: 300,
                           children: [
                             new VizPanel({
                               pluginId: 'timeseries',
                               title: 'Fixed height',
-                              placement: { height: 300 },
                             }),
                           ],
                         }),
@@ -94,18 +91,20 @@ export function getFlexLayoutTest() {
           ],
         }),
         new SceneFlexItem({
-          flexGrow: 1,
-          maxHeight: '300px',
+          xSizing: 'fill',
           children: [
             new SceneFlexLayout({
               direction: 'row',
               children: [
                 new SceneFlexItem({
-                  width: '300px',
+                  width: 50,
+                  height: 50,
                   children: [new DebugItem({})],
                 }),
                 new SceneFlexItem({
-                  flexGrow: 1,
+                  xSizing: 'fill',
+                  ySizing: 'fill',
+                  maxHeight: 200,
                   children: [
                     new VizPanel({
                       title: 'Panel 1',
@@ -116,6 +115,7 @@ export function getFlexLayoutTest() {
                 }),
                 new SceneFlexItem({
                   width: '10%',
+                  ySizing: 'fill',
                   children: [new DebugItem({})],
                 }),
               ],

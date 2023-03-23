@@ -11,14 +11,14 @@ import {
 import { config, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DeepPartial, SceneLayoutChildState } from '../../core/types';
+import { DeepPartial, SceneObjectStatePlain } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { VariableCustomFormatterFn } from '../../variables/types';
 
-export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLayoutChildState {
+export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectStatePlain {
   title: string;
   description?: string;
   pluginId: string;
@@ -30,6 +30,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLa
   menu?: VizPanelMenu;
   // internal state
   pluginLoadError?: string;
+  isDraggable?: boolean;
+  isResizable?: boolean;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>> {

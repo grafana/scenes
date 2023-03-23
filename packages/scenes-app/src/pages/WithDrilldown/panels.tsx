@@ -34,10 +34,6 @@ export function getRoomsTemperatureTable() {
         },
       ],
     }),
-    placement: {
-      ySizing: 'fill',
-      height: 300,
-    },
     displayMode: 'transparent',
     title: 'Room temperature overview',
     hoverHeader: true,
@@ -134,8 +130,7 @@ export function getRoomsTemperatureStats() {
     }),
     getLayoutChild: (data, frame) => {
       return new SceneFlexItem({
-        flexGrow: 1,
-        minHeight: 200,
+        height: '50%',
         minWidth: '20%',
         children: [
           new VizPanel({

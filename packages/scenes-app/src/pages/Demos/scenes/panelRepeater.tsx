@@ -28,7 +28,6 @@ export function getPanelRepeaterTest(): EmbeddedScene {
       getLayoutChild: (data, frame, frameIndex) => {
         return new SceneFlexItem({
           minHeight: 200,
-          flexGrow: 1,
           children: [
             new SceneFlexLayout({
               direction: 'row',
@@ -41,7 +40,6 @@ export function getPanelRepeaterTest(): EmbeddedScene {
               }),
               children: [
                 new SceneFlexItem({
-                  flexGrow: 1,
                   children: [
                     new VizPanel({
                       pluginId: 'timeseries',
@@ -74,7 +72,6 @@ export function getPanelRepeaterTest(): EmbeddedScene {
     $data: queryRunner,
     controls: [
       new SceneToolbarInput({
-        label: 'Series count',
         value: '2',
         onChange: (newValue) => {
           queryRunner.setState({

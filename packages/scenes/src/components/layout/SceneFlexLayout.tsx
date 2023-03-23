@@ -3,7 +3,13 @@ import React, { CSSProperties } from 'react';
 import { Field, RadioButtonGroup } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneLayout, SceneObjectStatePlain, SceneLayoutState } from '../../core/types';
+import {
+  SceneComponentProps,
+  SceneLayout,
+  SceneObjectStatePlain,
+  SceneLayoutState,
+  SceneObject,
+} from '../../core/types';
 
 interface SceneFlexLayoutState extends SceneObjectStatePlain {
   direction?: CSSProperties['flexDirection'];
@@ -12,10 +18,7 @@ interface SceneFlexLayoutState extends SceneObjectStatePlain {
 }
 
 interface SceneFlexItemState extends SceneLayoutState {
-  order?: CSSProperties['order'];
   flexGrow?: CSSProperties['flexGrow'];
-  flexShrink?: CSSProperties['flexShrink'];
-  flexBasis?: CSSProperties['flexBasis'];
   alignSelf?: CSSProperties['alignSelf'];
   width?: CSSProperties['width'];
   height?: CSSProperties['height'];
@@ -23,30 +26,28 @@ interface SceneFlexItemState extends SceneLayoutState {
   minHeight?: CSSProperties['minHeight'];
   maxWidth?: CSSProperties['maxWidth'];
   maxHeight?: CSSProperties['maxHeight'];
-  isDraggable?: boolean;
-  isResizable?: boolean;
+  xSizing?: 'fill' | 'content';
+  ySizing?: 'fill' | 'content';
 }
 
 export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
   public static Component = SceneFlexItemRenderer;
 }
 
+function isSceneFlexLayout(model: SceneObject): model is SceneFlexLayout {
+  return model instanceof SceneFlexLayout;
+}
+
 function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
-  const { children, ...rest } = model.useState();
-  const style: CSSProperties = {
-    display: 'flex',
-    position: 'relative',
-    flexGrow: rest.flexGrow || 0, // 0 = default?
-    flexShrink: rest.flexShrink, // 1 = default?
-    alignSelf: rest.alignSelf || 'auto',
-    flexBasis: rest.flexBasis || 'auto',
-    width: rest.width || 'auto',
-    height: rest.height || 'auto',
-    minWidth: rest.minWidth || 0,
-    minHeight: rest.minHeight || 0,
-    maxWidth: rest.maxWidth,
-    maxHeight: rest.maxHeight,
-  };
+  const { children } = model.useState();
+  const parent = model.parent;
+  let style: CSSProperties = {};
+
+  if (parent && isSceneFlexLayout(parent)) {
+    style = getItemStyles(parent.state.direction || 'row', model);
+  } else {
+    throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
+  }
 
   return (
     <div style={style}>
@@ -108,4 +109,46 @@ function FlexLayoutEditor({ model }: SceneComponentProps<SceneFlexLayout>) {
       />
     </Field>
   );
+}
+
+function getItemStyles(direction: CSSProperties['flexDirection'], item: SceneFlexItem) {
+  const { xSizing = 'fill', ySizing = 'fill' } = item.state;
+
+  const style: CSSProperties = {
+    display: 'flex',
+    position: 'relative',
+    flexDirection: direction,
+    minWidth: item.state.minWidth,
+    minHeight: item.state.minHeight,
+    maxWidth: item.state.maxWidth,
+    maxHeight: item.state.maxHeight,
+  };
+
+  if (direction === 'column') {
+    if (item.state.height) {
+      style.height = item.state.height;
+    } else {
+      style.flexGrow = ySizing === 'fill' ? 1 : 0;
+    }
+
+    if (item.state.width) {
+      style.width = item.state.width;
+    } else {
+      style.alignSelf = xSizing === 'fill' ? 'stretch' : 'flex-start';
+    }
+  } else {
+    if (item.state.height) {
+      style.height = item.state.height;
+    } else {
+      style.alignSelf = ySizing === 'fill' ? 'stretch' : 'flex-start';
+    }
+
+    if (item.state.width) {
+      style.width = item.state.width;
+    } else {
+      style.flexGrow = xSizing === 'fill' ? 1 : 0;
+    }
+  }
+
+  return style;
 }

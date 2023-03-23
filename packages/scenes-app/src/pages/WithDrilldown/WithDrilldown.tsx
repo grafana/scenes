@@ -34,11 +34,11 @@ const getScene = () =>
       direction: 'column',
       children: [
         new SceneFlexItem({
-          minHeight: '30%',
+          height: 300,
           children: [getRoomsTemperatureTable()],
         }),
         new SceneFlexItem({
-          flexGrow: 1,
+          ySizing: 'fill',
           children: [getRoomsTemperatureStats()],
         }),
       ],
