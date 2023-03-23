@@ -44,9 +44,14 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
-    const update: Partial<SceneTimeRangeState> = {};
+    // ignore if both are missing
+    if (!values.to && !values.from) {
+      return;
+    }
 
+    const update: Partial<SceneTimeRangeState> = {};
     const from = parseUrlParam(values.from);
+
     if (from) {
       update.from = from;
     }
