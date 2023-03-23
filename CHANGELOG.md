@@ -1,42 +1,14 @@
-# v0.0.22 (Tue Mar 21 2023)
+# vNext
 
-#### 🐛 Bug Fix
+* UrlSync: SceneObject that implement url sync _urlSync property will now see a change to how updateFromUrl is called. It is now called with null values when url query parameters are removed. Before the UrlSyncManager would remember the initial state and pass that to updateFromUrl, but now if you want to preserve your current state or set to some initial state you have to handle that logic inside updateFromUrl.
 
-- Auto release test [#91](https://github.com/grafana/scenes/pull/91) ([@torkelo](https://github.com/torkelo))
-- Release: test [#90](https://github.com/grafana/scenes/pull/90) ([@torkelo](https://github.com/torkelo))
-- Update [#88](https://github.com/grafana/scenes/pull/88) ([@torkelo](https://github.com/torkelo))
-- Auto: Automate changelog and github releases [#85](https://github.com/grafana/scenes/pull/85) ([@torkelo](https://github.com/torkelo))
-- `@grafana/scenes`
-  - Auto: Another release test [#92](https://github.com/grafana/scenes/pull/92) ([@torkelo](https://github.com/torkelo))
-  - Auto: Testing [#89](https://github.com/grafana/scenes/pull/89) ([@torkelo](https://github.com/torkelo))
-
-#### ⚠️ Pushed to `main`
-
-- add step ([@torkelo](https://github.com/torkelo))
-- Add a condition ([@torkelo](https://github.com/torkelo))
-
-#### Authors: 1
-
-- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
-
----
-
-# v0.0.22 (Tue Mar 21 2023)
-
-#### 🐛 Bug Fix
-
-- Update [#88](https://github.com/grafana/scenes/pull/88) ([@torkelo](https://github.com/torkelo))
-- Auto: Automate changelog and github releases [#85](https://github.com/grafana/scenes/pull/85) ([@torkelo](https://github.com/torkelo))
-
-#### Authors: 1
-
-- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
-
----
-
+# v0.0.28 (Tue Mar 21 2023)
 
 * Removal of isEditing from SceneComponentProps (also $editor from SceneObjectState, and sceneGraph.getSceneEditor)
 * DataSourceVariable state change, query property is now named pluginId
+
+---
+
 
 # 0.21 (2023-03-17)
 
