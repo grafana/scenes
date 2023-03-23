@@ -132,35 +132,33 @@ export function getRoomsTemperatureStats() {
       return new SceneFlexItem({
         height: '50%',
         minWidth: '20%',
-        children: [
-          new VizPanel({
-            title: frame.name,
-            pluginId: 'stat',
+        child: new VizPanel({
+          title: frame.name,
+          pluginId: 'stat',
 
-            $data: new SceneDataNode({
-              data: {
-                ...data,
-                series: [frame],
-              },
-            }),
-            fieldConfig: {
-              defaults: {
-                unit: 'celsius',
-                links: [
-                  {
-                    title: 'Go to room temperature overview',
-                    url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/temperature',
-                  },
-                  {
-                    title: 'Go to room humidity overview',
-                    url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/humidity',
-                  },
-                ],
-              },
-              overrides: [],
+          $data: new SceneDataNode({
+            data: {
+              ...data,
+              series: [frame],
             },
           }),
-        ],
+          fieldConfig: {
+            defaults: {
+              unit: 'celsius',
+              links: [
+                {
+                  title: 'Go to room temperature overview',
+                  url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/temperature',
+                },
+                {
+                  title: 'Go to room humidity overview',
+                  url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/humidity',
+                },
+              ],
+            },
+            overrides: [],
+          },
+        }),
       });
     },
   });
@@ -170,7 +168,6 @@ export function getRoomTemperatureStatPanel(reducers: ReducerID[]) {
   return new VizPanel({
     pluginId: 'stat',
     title: '',
-    placement: { height: 300 },
     $data: new SceneDataTransformer({
       transformations: [
         {

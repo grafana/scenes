@@ -97,53 +97,45 @@ export function getPanelMenuTest() {
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          children: [
-            new VizPanel({
-              title: 'Basic static menu',
-              pluginId: 'timeseries',
+          child: new VizPanel({
+            title: 'Basic static menu',
+            pluginId: 'timeseries',
 
-              menu: staticMenu,
-            }),
-          ],
+            menu: staticMenu,
+          }),
         }),
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          children: [
-            new VizPanel({
-              title: 'Basic lazy menu',
-              pluginId: 'timeseries',
-              menu: staticMenuViaActivation,
-            }),
-          ],
+          child: new VizPanel({
+            title: 'Basic lazy menu',
+            pluginId: 'timeseries',
+            menu: staticMenuViaActivation,
+          }),
         }),
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          children: [
-            new VizPanel({
-              title: 'Async menu, will show after 1s',
-              pluginId: 'timeseries',
+          child: new VizPanel({
+            title: 'Async menu, will show after 1s',
+            pluginId: 'timeseries',
 
-              menu: lazyMenu,
-            }),
-          ],
+            menu: lazyMenu,
+          }),
         }),
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          children: [
-            new VizPanel({
-              title: 'New item added to menu after it is shown',
-              pluginId: 'timeseries',
-              menu: dynamicMenu,
-            }),
-          ],
+          child: new VizPanel({
+            title: 'New item added to menu after it is shown',
+            pluginId: 'timeseries',
+            menu: dynamicMenu,
+          }),
         }),
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          children: [panelWithMenu],
+          child: panelWithMenu,
         }),
       ],
     }),

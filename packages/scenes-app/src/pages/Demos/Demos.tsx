@@ -26,11 +26,9 @@ const getScene = () => {
               children: [
                 new SceneFlexItem({
                   flexGrow: 1,
-                  children: [
-                    new SceneReactObject({
-                      component: () => <DemosList />,
-                    }),
-                  ],
+                  child: new SceneReactObject({
+                    component: () => <DemosList />,
+                  }),
                 }),
               ],
             }),

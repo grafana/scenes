@@ -25,6 +25,10 @@ export interface SceneLayoutChildState extends SceneObjectStatePlain {
   placement?: SceneLayoutChildOptions;
 }
 
+export interface SceneLayoutItem extends SceneObjectStatePlain {
+  child: SceneObject;
+}
+
 export type SceneObjectState = SceneObjectStatePlain | SceneLayoutState | SceneLayoutChildState;
 
 export interface SceneLayoutChildOptions {

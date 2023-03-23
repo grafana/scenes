@@ -28,43 +28,37 @@ export function getPanelRepeaterTest(): EmbeddedScene {
       getLayoutChild: (data, frame, frameIndex) => {
         return new SceneFlexItem({
           minHeight: 200,
-          children: [
-            new SceneFlexLayout({
-              direction: 'row',
-              key: `panel-${frameIndex}`,
-              $data: new SceneDataNode({
-                data: {
-                  ...data,
-                  series: [frame],
-                },
-              }),
-              children: [
-                new SceneFlexItem({
-                  children: [
-                    new VizPanel({
-                      pluginId: 'timeseries',
-                      title: 'aaa',
-                      options: {
-                        legend: { displayMode: 'hidden' },
-                      },
-                    }),
-                  ],
-                }),
-                new SceneFlexItem({
-                  width: 300,
-                  children: [
-                    new VizPanel({
-                      pluginId: 'stat',
-                      fieldConfig: { defaults: { displayName: 'Last' }, overrides: [] },
-                      options: {
-                        graphMode: 'none',
-                      },
-                    }),
-                  ],
-                }),
-              ],
+          child: new SceneFlexLayout({
+            direction: 'row',
+            key: `panel-${frameIndex}`,
+            $data: new SceneDataNode({
+              data: {
+                ...data,
+                series: [frame],
+              },
             }),
-          ],
+            children: [
+              new SceneFlexItem({
+                child: new VizPanel({
+                  pluginId: 'timeseries',
+                  title: 'aaa',
+                  options: {
+                    legend: { displayMode: 'hidden' },
+                  },
+                }),
+              }),
+              new SceneFlexItem({
+                width: 300,
+                child: new VizPanel({
+                  pluginId: 'stat',
+                  fieldConfig: { defaults: { displayName: 'Last' }, overrides: [] },
+                  options: {
+                    graphMode: 'none',
+                  },
+                }),
+              }),
+            ],
+          }),
         });
       },
     }),

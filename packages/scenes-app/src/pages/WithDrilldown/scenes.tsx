@@ -29,37 +29,33 @@ export function getTemperatureOverviewScene(roomName: string) {
       children: [
         new SceneFlexItem({
           height: 500,
-          children: [
-            new VizPanel({
-              title: 'Temperature over time',
-              pluginId: 'timeseries',
+          child: new VizPanel({
+            title: 'Temperature over time',
+            pluginId: 'timeseries',
 
-              fieldConfig: {
-                defaults: {
-                  unit: 'celsius',
-                },
-                overrides: [],
+            fieldConfig: {
+              defaults: {
+                unit: 'celsius',
               },
-            }),
-          ],
+              overrides: [],
+            },
+          }),
         }),
         new SceneFlexItem({
-          children: [
-            new SceneFlexLayout({
-              direction: 'row',
-              children: [
-                new SceneFlexItem({
-                  children: [getRoomTemperatureStatPanel([ReducerID.min])],
-                }),
-                new SceneFlexItem({
-                  children: [getRoomTemperatureStatPanel([ReducerID.max])],
-                }),
-                new SceneFlexItem({
-                  children: [getRoomTemperatureStatPanel([ReducerID.mean])],
-                }),
-              ],
-            }),
-          ],
+          child: new SceneFlexLayout({
+            direction: 'row',
+            children: [
+              new SceneFlexItem({
+                child: getRoomTemperatureStatPanel([ReducerID.min]),
+              }),
+              new SceneFlexItem({
+                child: getRoomTemperatureStatPanel([ReducerID.max]),
+              }),
+              new SceneFlexItem({
+                child: getRoomTemperatureStatPanel([ReducerID.mean]),
+              }),
+            ],
+          }),
         }),
       ],
     }),
@@ -83,19 +79,17 @@ export function getHumidityOverviewScene(roomName: string) {
       children: [
         new SceneFlexItem({
           height: 500,
-          children: [
-            new VizPanel({
-              title: 'Humidity readings over time',
-              pluginId: 'timeseries',
+          child: new VizPanel({
+            title: 'Humidity readings over time',
+            pluginId: 'timeseries',
 
-              fieldConfig: {
-                defaults: {
-                  unit: 'humidity',
-                },
-                overrides: [],
+            fieldConfig: {
+              defaults: {
+                unit: 'humidity',
               },
-            }),
-          ],
+              overrides: [],
+            },
+          }),
         }),
       ],
     }),

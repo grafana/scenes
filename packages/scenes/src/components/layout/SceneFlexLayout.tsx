@@ -7,8 +7,8 @@ import {
   SceneComponentProps,
   SceneLayout,
   SceneObjectStatePlain,
-  SceneLayoutState,
   SceneObject,
+  SceneLayoutItem,
 } from '../../core/types';
 
 interface SceneFlexLayoutState extends SceneObjectStatePlain {
@@ -17,7 +17,7 @@ interface SceneFlexLayoutState extends SceneObjectStatePlain {
   children: SceneFlexItem[];
 }
 
-interface SceneFlexItemState extends SceneLayoutState {
+interface SceneFlexItemState extends SceneLayoutItem {
   flexGrow?: CSSProperties['flexGrow'];
   alignSelf?: CSSProperties['alignSelf'];
   width?: CSSProperties['width'];
@@ -39,7 +39,7 @@ function isSceneFlexLayout(model: SceneObject): model is SceneFlexLayout {
 }
 
 function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
-  const { children } = model.useState();
+  const { child } = model.useState();
   const parent = model.parent;
   let style: CSSProperties = {};
 
@@ -51,9 +51,7 @@ function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
 
   return (
     <div style={style}>
-      {children.map((item) => (
-        <item.Component key={item.state.key} model={item} />
-      ))}
+      <child.Component model={child} />
     </div>
   );
 }
