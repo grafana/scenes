@@ -1,18 +1,20 @@
 import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneObjectStatePlain } from '../../core/types';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
+import { FormatRegistryID } from './formatRegistry';
 
 import { sceneInterpolator } from './sceneInterpolator';
 
-interface TestSceneState extends SceneObjectStatePlain {
+export interface TestSceneState extends SceneObjectStatePlain {
   nested?: TestScene;
 }
 
-class TestScene extends SceneObjectBase<TestSceneState> {}
+export class TestScene extends SceneObjectBase<TestSceneState> {}
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {
@@ -187,5 +189,25 @@ describe('sceneInterpolator', () => {
 
     expect(sceneInterpolator(scene, '$cluster', undefined, formatter)).toBe('custom');
     expect(formatter.mock.calls[0][1]).toEqual({ name: 'cluster', type: 'custom', multi: true, includeAll: true });
+  });
+
+  it('Can use use $__all_variables', () => {
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [new TestVariable({ name: 'cluster', value: 'A', text: 'A' })],
+      }),
+    });
+
+    expect(sceneInterpolator(scene, '$__all_variables')).toBe('var-cluster=A');
+    // Should not url encode again if format is queryparam
+    expect(sceneInterpolator(scene, '$__all_variables', {}, FormatRegistryID.percentEncode)).toBe('var-cluster=A');
+  });
+
+  it('Can use use $__url_time_range', () => {
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+    });
+
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
   });
 });

@@ -2,12 +2,13 @@ import { ScopedVars } from '@grafana/data';
 import { VariableType } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
-import { VariableCustomFormatterFn, VariableValue } from '../types';
+import { isCustomVariableValue, VariableCustomFormatterFn, VariableValue } from '../types';
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
 import { lookupVariable } from '../lookupVariable';
+import { macrosIndex } from '../macros';
 
 /**
  * This function will try to parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
@@ -31,13 +32,7 @@ export function sceneInterpolator(
   return target.replace(VARIABLE_REGEX, (match, var1, var2, fmt2, var3, fieldPath, fmt3) => {
     const variableName = var1 || var2 || var3;
     const fmt = fmt2 || fmt3 || format;
-    let variable: FormatVariable | undefined | null;
-
-    if (scopedVars && scopedVars[variableName]) {
-      variable = getSceneVariableForScopedVar(variableName, scopedVars[variableName]);
-    } else {
-      variable = lookupVariable(variableName, sceneObject);
-    }
+    const variable = lookupFormatVariable(variableName, scopedVars, sceneObject);
 
     if (!variable) {
       return match;
@@ -45,6 +40,22 @@ export function sceneInterpolator(
 
     return formatValue(variable, variable.getValue(fieldPath), fmt);
   });
+}
+
+function lookupFormatVariable(
+  name: string,
+  scopedVars: ScopedVars | undefined,
+  sceneObject: SceneObject
+): FormatVariable | null {
+  if (macrosIndex[name]) {
+    return new macrosIndex[name](name, sceneObject);
+  }
+
+  if (scopedVars && scopedVars[name]) {
+    return getSceneVariableForScopedVar(name, scopedVars[name]);
+  } else {
+    return lookupVariable(name, sceneObject);
+  }
 }
 
 function formatValue(
@@ -56,15 +67,11 @@ function formatValue(
     return '';
   }
 
-  // Special handling for custom values that should not be formatted / escaped
-  // This is used by the custom allValue that usually contain wildcards and therefore should not be escaped
-  if (typeof value === 'object' && 'isCustomValue' in value && formatNameOrFn !== FormatRegistryID.text) {
-    return value.toString();
+  // Variable can return a custom value that handles formatting
+  // This is useful for customAllValue and macros that return values that are already formatted or need special formatting
+  if (isCustomVariableValue(value)) {
+    return value.formatter(formatNameOrFn);
   }
-
-  // if (isAdHoc(variable) && format !== FormatRegistryID.queryParam) {
-  //   return '';
-  // }
 
   // if it's an object transform value to string
   if (!Array.isArray(value) && typeof value === 'object') {
