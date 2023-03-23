@@ -1,4 +1,4 @@
-import { ScopedVars, DataLinkBuiltInVars } from '@grafana/data';
+import { ScopedVars } from '@grafana/data';
 import { VariableType } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
@@ -8,7 +8,7 @@ import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
 import { lookupVariable } from '../lookupVariable';
-import { UrlVariables } from './UrlVariables';
+import { macrosIndex } from '../macros';
 
 /**
  * This function will try to parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
@@ -47,8 +47,8 @@ function lookupFormatVariable(
   scopedVars: ScopedVars | undefined,
   sceneObject: SceneObject
 ): FormatVariable | null {
-  if (name === DataLinkBuiltInVars.includeVars) {
-    return new UrlVariables(name, sceneObject);
+  if (macrosIndex[name]) {
+    return new macrosIndex[name](name, sceneObject);
   }
 
   if (scopedVars && scopedVars[name]) {

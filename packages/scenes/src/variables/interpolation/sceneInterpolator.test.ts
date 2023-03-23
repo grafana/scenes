@@ -1,4 +1,5 @@
 import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneObjectStatePlain } from '../../core/types';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
@@ -200,5 +201,13 @@ describe('sceneInterpolator', () => {
     expect(sceneInterpolator(scene, '$__all_variables')).toBe('var-cluster=A');
     // Should not url encode again if format is queryparam
     expect(sceneInterpolator(scene, '$__all_variables', {}, FormatRegistryID.percentEncode)).toBe('var-cluster=A');
+  });
+
+  it('Can use use $__url_time_range', () => {
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+    });
+
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
   });
 });

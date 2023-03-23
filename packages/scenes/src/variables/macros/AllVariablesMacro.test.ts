@@ -2,8 +2,8 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
-import { TestScene } from './sceneInterpolator.test';
-import { UrlVariables } from './UrlVariables';
+import { TestScene } from '../interpolation/sceneInterpolator.test';
+import { AllVariablesMacro } from './AllVariablesMacro';
 
 describe('UrlVariables', () => {
   it('Should include variables from all levels', () => {
@@ -23,7 +23,7 @@ describe('UrlVariables', () => {
       }),
     });
 
-    const urlVars = new UrlVariables('__all_variables', scene.state.nested!);
+    const urlVars = new AllVariablesMacro('__all_variables', scene.state.nested!);
     expect(urlVars.getValue().format()).toBe('var-cluster=A');
   });
 
@@ -39,7 +39,7 @@ describe('UrlVariables', () => {
       }),
     });
 
-    const urlVars = new UrlVariables('__all_variables', scene);
+    const urlVars = new AllVariablesMacro('__all_variables', scene);
     expect(urlVars.getValue().format()).toBe('var-cluster=A');
   });
 });

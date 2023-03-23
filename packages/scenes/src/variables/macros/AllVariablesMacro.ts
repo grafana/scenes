@@ -1,8 +1,8 @@
 import { SceneObject } from '../../core/types';
-import { SceneVariable, VariableCustomFormatterFn, VariableValueCustom } from '../types';
-import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
+import { SceneVariable, VariableValueCustom } from '../types';
+import { formatRegistry, FormatRegistryID, FormatVariable } from '../interpolation/formatRegistry';
 
-export class UrlVariables implements FormatVariable {
+export class AllVariablesMacro implements FormatVariable {
   public state: { name: string; type: string };
   private _sceneObject: SceneObject;
 
@@ -11,7 +11,7 @@ export class UrlVariables implements FormatVariable {
     this._sceneObject = sceneObject;
   }
 
-  public getValue(fieldPath?: string | undefined): SkipFormattingValue {
+  public getValue(): SkipFormattingValue {
     const allVars = collectAllVariables(this._sceneObject);
     const format = formatRegistry.get(FormatRegistryID.queryParam);
     const params: string[] = [];
@@ -28,7 +28,7 @@ export class UrlVariables implements FormatVariable {
     return new SkipFormattingValue(params.join('&'));
   }
 
-  public getValueText?(fieldPath?: string | undefined): string {
+  public getValueText?(): string {
     return '';
   }
 }
@@ -60,10 +60,10 @@ function collectAllVariables(
  * The sceneInterpolator will detect if getValue returns VariableValueCustom and will skip the normal formatting
  * This is useful as otherwise we would url encode macros like $__all_variables twice.
  */
-export class SkipFormattingValue implements VariableValueCustom {
+class SkipFormattingValue implements VariableValueCustom {
   public constructor(private _value: string) {}
 
-  public format(formatNameOrFn?: string | VariableCustomFormatterFn): string {
+  public format(): string {
     return this._value;
   }
 }
