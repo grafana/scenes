@@ -1,5 +1,5 @@
 import { SceneObject } from '../../core/types';
-import { isCustomVariableValue, SceneVariable, CustomVariableValue } from '../types';
+import { isCustomVariableValue, SceneVariable } from '../types';
 import { formatRegistry, FormatRegistryID, FormatVariable } from '../interpolation/formatRegistry';
 import { SkipFormattingValue } from './types';
 
