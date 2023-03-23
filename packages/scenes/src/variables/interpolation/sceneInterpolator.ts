@@ -52,7 +52,7 @@ function lookupFormatVariable(
   }
 
   if (scopedVars && scopedVars[name]) {
-    return getSceneVariableForScopedVar(name, scopedVars[name], sceneObject);
+    return getSceneVariableForScopedVar(name, scopedVars[name]);
   } else {
     return lookupVariable(name, sceneObject);
   }
