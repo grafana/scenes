@@ -1,6 +1,7 @@
 import { SceneObject } from '../../core/types';
 import { SkipFormattingValue } from '../SkipFormattingValue';
 import { SceneVariable, VariableValue } from '../types';
+import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 
@@ -41,10 +42,9 @@ function collectAllVariables(
 ): Record<string, SceneVariable> {
   if (sceneObject.state.$variables) {
     for (const variable of sceneObject.state.$variables.state.variables) {
-      // // We do not want to include some variables
-      // if (variable instanceof ObjectVariable) {
-      //     continue
-      // }
+      if (variable.state.skipUrlSync) {
+        continue;
+      }
 
       if (!record[variable.state.name]) {
         record[variable.state.name] = variable;

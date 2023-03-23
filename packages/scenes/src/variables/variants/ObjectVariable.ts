@@ -13,6 +13,13 @@ export class ObjectVariable<T extends object>
 {
   private static fieldAccessorCache: FieldAccessorCache = {};
 
+  public constructor(state: ObjectVariableState<T>) {
+    super({
+      skipUrlSync: true,
+      ...state,
+    });
+  }
+
   public getValue(fieldPath: string): VariableValue {
     return this.getFieldAccessor(fieldPath)(this.state.value);
   }

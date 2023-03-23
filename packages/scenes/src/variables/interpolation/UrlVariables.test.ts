@@ -24,19 +24,20 @@ describe('UrlVariables', () => {
       }),
     });
 
-    const urlVars = new UrlVariables('__all_variables', scene);
+    const urlVars = new UrlVariables('__all_variables', scene.state.nested!);
     const value = urlVars.getValue() as VariableValueCustom;
     expect(value.skipFormatting).toBe(true);
     expect(value.toString()).toBe('var-cluster=A');
   });
 
-  it('Should ignore object variables and constant variables', () => {
+  it('Should ignore variables with skipUrlSync', () => {
     const scene = new TestScene({
       $variables: new SceneVariableSet({
         variables: [
           new TestVariable({ name: 'cluster', value: 'A', text: 'A' }),
+          new TestVariable({ name: 'server', value: 'A', text: 'A', skipUrlSync: true }),
           new ObjectVariable({ name: 'test', type: 'custom', value: {} }),
-          new ConstantVariable({ name: 'test', value: 'Muahaha' }),
+          new ConstantVariable({ name: 'constant', value: 'Muahaha' }),
         ],
       }),
     });
