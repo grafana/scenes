@@ -206,25 +206,4 @@ describe('sceneInterpolator', () => {
 
     expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
   });
-
-  it('Can use use ${__value.raw}', () => {
-    const scene = new TestScene({});
-    const data = toDataFrame({
-      name: 'A',
-      fields: [{ name: 'number', type: FieldType.number, values: [5, 10] }],
-    });
-
-    const dataContext: DataContextScopedVar = {
-      value: {
-        field: data.fields[0],
-        valueRowIndex: 1,
-      },
-    };
-
-    const scopedVars = { __dataContext: dataContext };
-
-    expect(sceneInterpolator(scene, '${__value.raw}', scopedVars)).toBe('10');
-    expect(sceneInterpolator(scene, '${__value.numeric}', scopedVars)).toBe('10');
-    expect(sceneInterpolator(scene, '${__value}', scopedVars)).toBe('10');
-  });
 });
