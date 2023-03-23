@@ -70,7 +70,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   readonly variableDependency?: SceneVariableDependencyConfigLike;
 
   /** This abstraction declares URL sync dependencies of a scene object. **/
-  readonly urlSync?: SceneObjectUrlSyncHandler<TState>;
+  readonly urlSync?: SceneObjectUrlSyncHandler;
 
   /** Subscribe to state changes */
   subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable;
@@ -153,14 +153,14 @@ export function isSceneObject(obj: any): obj is SceneObject {
   return obj.useState !== undefined;
 }
 
-export interface SceneObjectWithUrlSync<TState> extends SceneObject {
-  getUrlState(state: TState): SceneObjectUrlValues;
+export interface SceneObjectWithUrlSync extends SceneObject {
+  getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
 }
 
-export interface SceneObjectUrlSyncHandler<TState> {
+export interface SceneObjectUrlSyncHandler {
   getKeys(): string[];
-  getUrlState(state: TState): SceneObjectUrlValues;
+  getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
 }
 

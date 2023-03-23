@@ -17,7 +17,7 @@ describe('SceneTimeRange', () => {
 
   it('toUrlValues with relative range', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
-    expect(timeRange.urlSync?.getUrlState(timeRange.state)).toEqual({
+    expect(timeRange.urlSync?.getUrlState()).toEqual({
       from: 'now-1h',
       to: 'now',
     });

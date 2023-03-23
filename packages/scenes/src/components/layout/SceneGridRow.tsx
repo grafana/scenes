@@ -57,8 +57,8 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
     this.getGridLayout().toggleRow(this);
   };
 
-  public getUrlState(state: SceneGridRowState) {
-    return { rowc: state.isCollapsed ? '1' : '0' };
+  public getUrlState() {
+    return { rowc: this.state.isCollapsed ? '1' : '0' };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
