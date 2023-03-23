@@ -2,7 +2,7 @@ import { ScopedVars } from '@grafana/data';
 import { VariableType } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
-import { isCustomVariableValue, VariableCustomFormatterFn, VariableValue, CustomVariableValue } from '../types';
+import { isCustomVariableValue, VariableCustomFormatterFn, VariableValue } from '../types';
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
