@@ -1,7 +1,5 @@
 import React, { CSSProperties } from 'react';
 
-import { Field, RadioButtonGroup } from '@grafana/ui';
-
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import {
   SceneComponentProps,
@@ -11,53 +9,16 @@ import {
   SceneLayoutItem,
 } from '../../core/types';
 
+export interface SceneFlexItemLike extends SceneObject<SceneFlexItemState> {}
+
 interface SceneFlexLayoutState extends SceneObjectStatePlain {
   direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
-  children: SceneFlexItem[];
+  children: SceneFlexItemLike[];
 }
 
-interface SceneFlexItemState extends SceneLayoutItem {
-  flexGrow?: CSSProperties['flexGrow'];
-  alignSelf?: CSSProperties['alignSelf'];
-  width?: CSSProperties['width'];
-  height?: CSSProperties['height'];
-  minWidth?: CSSProperties['minWidth'];
-  minHeight?: CSSProperties['minHeight'];
-  maxWidth?: CSSProperties['maxWidth'];
-  maxHeight?: CSSProperties['maxHeight'];
-  xSizing?: 'fill' | 'content';
-  ySizing?: 'fill' | 'content';
-}
-
-export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
-  public static Component = SceneFlexItemRenderer;
-}
-
-function isSceneFlexLayout(model: SceneObject): model is SceneFlexLayout {
-  return model instanceof SceneFlexLayout;
-}
-
-function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
-  const { child } = model.useState();
-  const parent = model.parent;
-  let style: CSSProperties = {};
-
-  if (parent && isSceneFlexLayout(parent)) {
-    style = getItemStyles(parent.state.direction || 'row', model);
-  } else {
-    throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
-  }
-
-  return (
-    <div style={style}>
-      <child.Component model={child} />
-    </div>
-  );
-}
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
-  public static Component = FlexLayoutRenderer;
-  public static Editor = FlexLayoutEditor;
+  public static Component = SceneFlexLayoutRenderer;
 
   public toggleDirection() {
     this.setState({
@@ -70,7 +31,7 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
   }
 }
 
-function FlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>) {
+function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>) {
   const { direction = 'row', children, wrap } = model.useState();
   const style: CSSProperties = {
     display: 'flex',
@@ -91,25 +52,41 @@ function FlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>) {
   );
 }
 
-function FlexLayoutEditor({ model }: SceneComponentProps<SceneFlexLayout>) {
-  const { direction = 'row' } = model.useState();
-  const options = [
-    { icon: 'arrow-right', value: 'row' },
-    { icon: 'arrow-down', value: 'column' },
-  ];
-
-  return (
-    <Field label="Direction">
-      <RadioButtonGroup
-        options={options}
-        value={direction}
-        onChange={(value) => model.setState({ direction: value as CSSProperties['flexDirection'] })}
-      />
-    </Field>
-  );
+interface SceneFlexItemState extends SceneLayoutItem {
+  flexGrow?: CSSProperties['flexGrow'];
+  alignSelf?: CSSProperties['alignSelf'];
+  width?: CSSProperties['width'];
+  height?: CSSProperties['height'];
+  minWidth?: CSSProperties['minWidth'];
+  minHeight?: CSSProperties['minHeight'];
+  maxWidth?: CSSProperties['maxWidth'];
+  maxHeight?: CSSProperties['maxHeight'];
+  xSizing?: 'fill' | 'content';
+  ySizing?: 'fill' | 'content';
 }
 
-function getItemStyles(direction: CSSProperties['flexDirection'], item: SceneFlexItem) {
+export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
+  public static Component = SceneFlexItemRenderer;
+}
+
+function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
+  const { child } = model.useState();
+  const parent = model.parent;
+  let style: CSSProperties = {};
+
+  if (parent && isSceneFlexLayout(parent)) {
+    style = getFlexItemItemStyles(parent.state.direction || 'row', model);
+  } else {
+    throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
+  }
+
+  return (
+    <div style={style}>
+      <child.Component model={child} />
+    </div>
+  );
+}
+function getFlexItemItemStyles(direction: CSSProperties['flexDirection'], item: SceneFlexItem) {
   const { xSizing = 'fill', ySizing = 'fill' } = item.state;
 
   const style: CSSProperties = {
@@ -149,4 +126,8 @@ function getItemStyles(direction: CSSProperties['flexDirection'], item: SceneFle
   }
 
   return style;
+}
+
+function isSceneFlexLayout(model: SceneObject): model is SceneFlexLayout {
+  return model instanceof SceneFlexLayout;
 }
