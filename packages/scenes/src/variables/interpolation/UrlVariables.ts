@@ -1,8 +1,6 @@
 import { SceneObject } from '../../core/types';
 import { SkipFormattingValue } from '../SkipFormattingValue';
 import { SceneVariable, VariableValue } from '../types';
-import { ConstantVariable } from '../variants/ConstantVariable';
-import { ObjectVariable } from '../variants/ObjectVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 
 export class UrlVariables implements FormatVariable {
