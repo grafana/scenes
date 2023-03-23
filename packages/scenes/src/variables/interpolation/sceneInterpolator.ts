@@ -2,7 +2,7 @@ import { ScopedVars, DataLinkBuiltInVars } from '@grafana/data';
 import { VariableType } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
-import { VariableCustomFormatterFn, VariableValue } from '../types';
+import { VariableCustomFormatterFn, VariableValue, VariableValueCustom } from '../types';
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
@@ -67,10 +67,10 @@ function formatValue(
     return '';
   }
 
-  // Special handling for custom values that should not be formatted / escaped
-  // This is used by the custom allValue that usually contain wildcards and therefore should not be escaped
-  if (typeof value === 'object' && 'skipFormatting' in value && formatNameOrFn !== FormatRegistryID.text) {
-    return value.toString();
+  // Variable can return a custom value that handles formatting
+  // This is useful for customAllValue and macros that return values that are already formatted or need special formatting
+  if (isVariableValueCustom(value)) {
+    return value.format(formatNameOrFn);
   }
 
   // if it's an object transform value to string
@@ -110,4 +110,8 @@ function formatValue(
   }
 
   return formatter.formatter(value, args, variable);
+}
+
+export function isVariableValueCustom(value: VariableValue): value is VariableValueCustom {
+  return typeof value === 'object' && 'format' in value;
 }

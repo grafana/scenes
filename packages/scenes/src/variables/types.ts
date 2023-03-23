@@ -40,12 +40,14 @@ export type VariableValue = VariableValueSingle | VariableValueSingle[];
 export type VariableValueSingle = string | boolean | number | VariableValueCustom;
 
 /**
- * This is for edge case values like the custom "allValue" that should not be escaped/formatted like other values.
+ * This is for edge case values like the custom "allValue" that should not be escaped/formatted like other values
  * The custom all value usually contain wildcards that should not be escaped.
  */
 export interface VariableValueCustom {
-  skipFormatting: true;
-  toString(): string;
+  /**
+   * The format name or function used in the expression
+   */
+  format(formatNameOrFn?: string | VariableCustomFormatterFn): string;
 }
 
 export interface ValidateAndUpdateResult {}

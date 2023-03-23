@@ -1,9 +1,15 @@
 import { lastValueFrom, Observable, of } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
+import { FormatRegistryID } from '../interpolation/formatRegistry';
 
-import { SceneVariableValueChangedEvent, VariableValueCustom, VariableValueOption } from '../types';
-import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
+import { SceneVariableValueChangedEvent, VariableValueOption } from '../types';
+import {
+  CustomAllValue,
+  MultiValueVariable,
+  MultiValueVariableState,
+  VariableGetOptionsArgs,
+} from '../variants/MultiValueVariable';
 
 export interface ExampleVariableState extends MultiValueVariableState {
   optionsToReturn: VariableValueOption[];
@@ -264,9 +270,9 @@ describe('MultiValueVariable', () => {
         text: 'A',
       });
 
-      const value = variable.getValue() as VariableValueCustom;
-      expect(value.skipFormatting).toBe(true);
-      expect(value.toString()).toBe('.*');
+      const value = variable.getValue() as CustomAllValue;
+      expect(value.format()).toBe('.*');
+      expect(value.format(FormatRegistryID.text)).toBe(ALL_VARIABLE_TEXT);
     });
   });
 

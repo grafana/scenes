@@ -1,5 +1,4 @@
 import { SceneVariableSet } from '../sets/SceneVariableSet';
-import { VariableValueCustom } from '../types';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
@@ -25,9 +24,7 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new UrlVariables('__all_variables', scene.state.nested!);
-    const value = urlVars.getValue() as VariableValueCustom;
-    expect(value.skipFormatting).toBe(true);
-    expect(value.toString()).toBe('var-cluster=A');
+    expect(urlVars.getValue().format()).toBe('var-cluster=A');
   });
 
   it('Should ignore variables with skipUrlSync', () => {
@@ -43,6 +40,6 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new UrlVariables('__all_variables', scene);
-    expect(urlVars.getValue()?.toString()).toBe('var-cluster=A');
+    expect(urlVars.getValue().format()).toBe('var-cluster=A');
   });
 });

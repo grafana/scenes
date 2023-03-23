@@ -13,8 +13,10 @@ import {
   VariableValue,
   VariableValueOption,
   VariableValueSingle,
+  VariableValueCustom,
+  VariableCustomFormatterFn,
 } from '../types';
-import { SkipFormattingValue } from '../SkipFormattingValue';
+import { FormatRegistryID } from '../interpolation/formatRegistry';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -116,7 +118,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   public getValue(): VariableValue {
     if (this.hasAllValue()) {
       if (this.state.allValue) {
-        return new SkipFormattingValue(this.state.allValue);
+        return new CustomAllValue(this.state.allValue);
       }
 
       return this.state.options.map((x) => x.value);
@@ -265,5 +267,21 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     if (urlValue != null) {
       this._sceneObject.changeValueTo(urlValue);
     }
+  }
+}
+
+/**
+ * Variable getValue can return this to skip any subsequent formatting.
+ * This is useful for custom all values that should not be escaped/formatted.
+ */
+export class CustomAllValue implements VariableValueCustom {
+  public constructor(private _value: string) {}
+
+  public format(formatNameOrFn?: string | VariableCustomFormatterFn): string {
+    if (formatNameOrFn === FormatRegistryID.text) {
+      return ALL_VARIABLE_TEXT;
+    }
+
+    return this._value;
   }
 }
