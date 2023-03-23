@@ -1,20 +1,16 @@
-import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { FieldType, toDataFrame } from '@grafana/data';
+
 import { SceneTimeRange } from '../../core/SceneTimeRange';
-import { SceneObjectStatePlain } from '../../core/types';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
+import { DataContextScopedVar } from '../macros/DataValueMacro';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { TestScene } from '../TestScene';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
 import { FormatRegistryID } from './formatRegistry';
 
 import { sceneInterpolator } from './sceneInterpolator';
-
-export interface TestSceneState extends SceneObjectStatePlain {
-  nested?: TestScene;
-}
-
-export class TestScene extends SceneObjectBase<TestSceneState> {}
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {
@@ -209,5 +205,26 @@ describe('sceneInterpolator', () => {
     });
 
     expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
+  });
+
+  it('Can use use ${__value.raw}', () => {
+    const scene = new TestScene({});
+    const data = toDataFrame({
+      name: 'A',
+      fields: [{ name: 'number', type: FieldType.number, values: [5, 10] }],
+    });
+
+    const dataContext: DataContextScopedVar = {
+      value: {
+        field: data.fields[0],
+        valueRowIndex: 1,
+      },
+    };
+
+    const scopedVars = { __dataContext: dataContext };
+
+    expect(sceneInterpolator(scene, '${__value.raw}', scopedVars)).toBe('10');
+    expect(sceneInterpolator(scene, '${__value.numeric}', scopedVars)).toBe('10');
+    expect(sceneInterpolator(scene, '${__value}', scopedVars)).toBe('10');
   });
 });

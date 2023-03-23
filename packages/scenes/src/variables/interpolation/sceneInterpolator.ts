@@ -48,7 +48,7 @@ function lookupFormatVariable(
   sceneObject: SceneObject
 ): FormatVariable | null {
   if (macrosIndex[name]) {
-    return new macrosIndex[name](name, sceneObject);
+    return new macrosIndex[name](name, sceneObject, scopedVars);
   }
 
   if (scopedVars && scopedVars[name]) {
