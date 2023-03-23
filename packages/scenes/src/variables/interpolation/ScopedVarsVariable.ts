@@ -1,10 +1,12 @@
 import { property } from 'lodash';
 
-import { ScopedVar } from '@grafana/data';
+import { ScopedVar, DataLinkBuiltInVars } from '@grafana/data';
 
 import { VariableValue } from '../types';
 
 import { FormatVariable } from './formatRegistry';
+import { SceneObject } from '../../core/types';
+import { UrlVariables } from './UrlVariables';
 
 export class ScopedVarsVariable implements FormatVariable {
   private static fieldAccessorCache: FieldAccessorCache = {};
@@ -61,7 +63,7 @@ let scopedVarsVariable: ScopedVarsVariable | undefined;
 /**
  * Reuses a single instance to avoid unnecessary memory allocations
  */
-export function getSceneVariableForScopedVar(name: string, value: ScopedVar) {
+export function getSceneVariableForScopedVar(name: string, value: ScopedVar, sceneObject: SceneObject): FormatVariable {
   if (!scopedVarsVariable) {
     scopedVarsVariable = new ScopedVarsVariable(name, value);
   } else {

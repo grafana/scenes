@@ -44,7 +44,7 @@ export type VariableValueSingle = string | boolean | number | VariableValueCusto
  * The custom all value usually contain wildcards that should not be escaped.
  */
 export interface VariableValueCustom {
-  isCustomValue: true;
+  skipFormatting: true;
   toString(): string;
 }
 

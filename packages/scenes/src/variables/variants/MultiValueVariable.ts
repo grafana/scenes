@@ -12,9 +12,9 @@ import {
   ValidateAndUpdateResult,
   VariableValue,
   VariableValueOption,
-  VariableValueCustom,
   VariableValueSingle,
 } from '../types';
+import { SkipFormattingValue } from '../SkipFormattingValue';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -116,7 +116,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   public getValue(): VariableValue {
     if (this.hasAllValue()) {
       if (this.state.allValue) {
-        return new CustomAllValue(this.state.allValue);
+        return new SkipFormattingValue(this.state.allValue);
       }
 
       return this.state.options.map((x) => x.value);
@@ -230,19 +230,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     return options;
-  }
-}
-
-/**
- * The custom allValue needs a special wrapping / handling to make it not be formatted / escaped like normal values
- */
-class CustomAllValue implements VariableValueCustom {
-  public isCustomValue: true = true;
-
-  public constructor(private _value: string) {}
-
-  public toString() {
-    return this._value;
   }
 }
 

@@ -5,14 +5,15 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
+import { FormatRegistryID } from './formatRegistry';
 
 import { sceneInterpolator } from './sceneInterpolator';
 
-interface TestSceneState extends SceneObjectStatePlain {
+export interface TestSceneState extends SceneObjectStatePlain {
   nested?: TestScene;
 }
 
-class TestScene extends SceneObjectBase<TestSceneState> {}
+export class TestScene extends SceneObjectBase<TestSceneState> {}
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {
@@ -196,6 +197,8 @@ describe('sceneInterpolator', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene, '$__all_variables')).toBe('A');
+    expect(sceneInterpolator(scene, '$__all_variables')).toBe('var-cluster=A');
+    // Should not url encode again if format is queryparam
+    expect(sceneInterpolator(scene, '$__all_variables', {}, FormatRegistryID.percentEncode)).toBe('var-cluster=A');
   });
 });

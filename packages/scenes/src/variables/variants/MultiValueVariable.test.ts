@@ -265,7 +265,7 @@ describe('MultiValueVariable', () => {
       });
 
       const value = variable.getValue() as VariableValueCustom;
-      expect(value.isCustomValue).toBe(true);
+      expect(value.skipFormatting).toBe(true);
       expect(value.toString()).toBe('.*');
     });
   });

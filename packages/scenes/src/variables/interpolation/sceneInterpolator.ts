@@ -4,10 +4,11 @@ import { VariableType } from '@grafana/schema';
 import { SceneObject } from '../../core/types';
 import { VariableCustomFormatterFn, VariableValue } from '../types';
 
-import { getSceneVariableForScopedVar, ScopedVarsVariable } from './ScopedVarsVariable';
+import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
-import { lookupAllVariables, lookupVariable } from '../lookupVariable';
+import { lookupVariable } from '../lookupVariable';
+import { UrlVariables } from './UrlVariables';
 
 /**
  * This function will try to parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
@@ -31,19 +32,7 @@ export function sceneInterpolator(
   return target.replace(VARIABLE_REGEX, (match, var1, var2, fmt2, var3, fieldPath, fmt3) => {
     const variableName = var1 || var2 || var3;
     const fmt = fmt2 || fmt3 || format;
-    let variable: FormatVariable | undefined | null;  
-    
-    if (variableName === DataLinkBuiltInVars.includeVars) {
-      const variables = lookupAllVariables(sceneObject);
-      return Object.values(variables)
-          .map((v) => v.getValue() ? formatRegistry.get(FormatRegistryID.queryParam).formatter(v.getValue()!, [], v) : '')
-          .filter(v => !!v)
-          .join('&');
-    } else if (scopedVars && scopedVars[variableName]) {
-      variable = getSceneVariableForScopedVar(variableName, scopedVars[variableName]);
-    } else {
-      variable = lookupVariable(variableName, sceneObject);
-    }
+    const variable = lookupFormatVariable(variableName, scopedVars, sceneObject);
 
     if (!variable) {
       return match;
@@ -51,6 +40,22 @@ export function sceneInterpolator(
 
     return formatValue(variable, variable.getValue(fieldPath), fmt);
   });
+}
+
+function lookupFormatVariable(
+  name: string,
+  scopedVars: ScopedVars | undefined,
+  sceneObject: SceneObject
+): FormatVariable | null {
+  if (name === DataLinkBuiltInVars.includeVars) {
+    return new UrlVariables(name, sceneObject);
+  }
+
+  if (scopedVars && scopedVars[name]) {
+    return getSceneVariableForScopedVar(name, scopedVars[name], sceneObject);
+  } else {
+    return lookupVariable(name, sceneObject);
+  }
 }
 
 function formatValue(
@@ -64,13 +69,9 @@ function formatValue(
 
   // Special handling for custom values that should not be formatted / escaped
   // This is used by the custom allValue that usually contain wildcards and therefore should not be escaped
-  if (typeof value === 'object' && 'isCustomValue' in value && formatNameOrFn !== FormatRegistryID.text) {
+  if (typeof value === 'object' && 'skipFormatting' in value && formatNameOrFn !== FormatRegistryID.text) {
     return value.toString();
   }
-
-  // if (isAdHoc(variable) && format !== FormatRegistryID.queryParam) {
-  //   return '';
-  // }
 
   // if it's an object transform value to string
   if (!Array.isArray(value) && typeof value === 'object') {
