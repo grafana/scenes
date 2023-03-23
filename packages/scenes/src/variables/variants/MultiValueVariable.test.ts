@@ -271,8 +271,13 @@ describe('MultiValueVariable', () => {
       });
 
       const value = variable.getValue() as CustomAllValue;
-      expect(value.format()).toBe('.*');
-      expect(value.format(FormatRegistryID.text)).toBe(ALL_VARIABLE_TEXT);
+      expect(value.formatter()).toBe('.*');
+      // Should have special handling for text format
+      expect(value.formatter(FormatRegistryID.text)).toBe(ALL_VARIABLE_TEXT);
+      // Should ignore most formats
+      expect(value.formatter(FormatRegistryID.regex)).toBe('.*');
+      // Should not ignore url encoding
+      expect(value.formatter(FormatRegistryID.percentEncode)).toBe('.%2A');
     });
   });
 

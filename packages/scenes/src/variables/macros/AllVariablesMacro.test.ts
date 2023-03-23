@@ -4,6 +4,7 @@ import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
 import { TestScene } from '../interpolation/sceneInterpolator.test';
 import { AllVariablesMacro } from './AllVariablesMacro';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 describe('UrlVariables', () => {
   it('Should include variables from all levels', () => {
@@ -24,7 +25,27 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene.state.nested!);
-    expect(urlVars.getValue().format()).toBe('var-cluster=A');
+    expect(urlVars.getValue().formatter()).toBe('var-cluster=A');
+  });
+
+  it('Should handle variable with custom all value', () => {
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [
+          new TestVariable({
+            name: 'cluster',
+            value: ALL_VARIABLE_VALUE,
+            text: ALL_VARIABLE_TEXT,
+            isMulti: true,
+            allValue: '.*',
+            includeAll: true,
+          }),
+        ],
+      }),
+    });
+
+    const urlVars = new AllVariablesMacro('__all_variables', scene);
+    expect(urlVars.getValue().formatter()).toBe('var-cluster=All');
   });
 
   it('Should ignore variables with skipUrlSync', () => {
@@ -40,6 +61,6 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene);
-    expect(urlVars.getValue().format()).toBe('var-cluster=A');
+    expect(urlVars.getValue().formatter()).toBe('var-cluster=A');
   });
 });

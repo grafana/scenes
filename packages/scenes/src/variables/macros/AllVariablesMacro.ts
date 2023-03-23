@@ -1,5 +1,5 @@
 import { SceneObject } from '../../core/types';
-import { SceneVariable, VariableValueCustom } from '../types';
+import { isCustomVariableValue, SceneVariable, CustomVariableValue } from '../types';
 import { formatRegistry, FormatRegistryID, FormatVariable } from '../interpolation/formatRegistry';
 
 export class AllVariablesMacro implements FormatVariable {
@@ -20,7 +20,13 @@ export class AllVariablesMacro implements FormatVariable {
       const variable = allVars[name];
       const value = variable.getValue();
 
-      if (value) {
+      if (!value) {
+        continue;
+      }
+
+      if (isCustomVariableValue(value)) {
+        params.push(value.formatter(FormatRegistryID.queryParam));
+      } else {
         params.push(format.formatter(value, [], variable));
       }
     }
@@ -60,10 +66,10 @@ function collectAllVariables(
  * The sceneInterpolator will detect if getValue returns VariableValueCustom and will skip the normal formatting
  * This is useful as otherwise we would url encode macros like $__all_variables twice.
  */
-class SkipFormattingValue implements VariableValueCustom {
+class SkipFormattingValue implements CustomVariableValue {
   public constructor(private _value: string) {}
 
-  public format(): string {
+  public formatter(): string {
     return this._value;
   }
 }

@@ -2,7 +2,7 @@ import { ScopedVars } from '@grafana/data';
 import { VariableType } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
-import { VariableCustomFormatterFn, VariableValue, VariableValueCustom } from '../types';
+import { isCustomVariableValue, VariableCustomFormatterFn, VariableValue, CustomVariableValue } from '../types';
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
@@ -69,8 +69,8 @@ function formatValue(
 
   // Variable can return a custom value that handles formatting
   // This is useful for customAllValue and macros that return values that are already formatted or need special formatting
-  if (isVariableValueCustom(value)) {
-    return value.format(formatNameOrFn);
+  if (isCustomVariableValue(value)) {
+    return value.formatter(formatNameOrFn);
   }
 
   // if it's an object transform value to string
@@ -110,8 +110,4 @@ function formatValue(
   }
 
   return formatter.formatter(value, args, variable);
-}
-
-export function isVariableValueCustom(value: VariableValue): value is VariableValueCustom {
-  return typeof value === 'object' && 'format' in value;
 }
