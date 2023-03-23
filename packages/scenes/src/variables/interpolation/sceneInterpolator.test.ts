@@ -188,4 +188,14 @@ describe('sceneInterpolator', () => {
     expect(sceneInterpolator(scene, '$cluster', undefined, formatter)).toBe('custom');
     expect(formatter.mock.calls[0][1]).toEqual({ name: 'cluster', type: 'custom', multi: true, includeAll: true });
   });
+
+  it('Can use use $__all_variables', () => {
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [new TestVariable({ name: 'cluster', value: 'A', text: 'A' })],
+      }),
+    });
+
+    expect(sceneInterpolator(scene, '$__all_variables')).toBe('A');
+  });
 });

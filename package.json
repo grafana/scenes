@@ -3,7 +3,7 @@
   "license": "AGPL-3.0-only",
   "private": true,
   "name": "grafana-scenes",
-  "version": "0.0.21",
+  "version": "0.0.28",
   "description": "Grafana framework for building dynamic dashboards",
   "keywords": [
     "typescript"
@@ -40,7 +40,18 @@
     "packages/*"
   ],
   "devDependencies": {
+    "auto": "^10.43.0",
     "lerna": "^6.5.1",
     "lint-staged": "^13.2.0"
+  },
+  "auto": {
+    "plugins": [
+      "npm"
+    ],
+    "author": {
+      "name": "grafanabot",
+      "email": "bot@grafana.com"
+    },
+    "onlyPublishWithReleaseLabel": true
   }
 }

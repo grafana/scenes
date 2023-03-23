@@ -2,7 +2,7 @@ name: publish-npm
 on:
   push:
     branches:
-      - main
+      - disabled
 
 jobs:
   publish:

@@ -1,4 +1,39 @@
-# 0.22 ()
+# v0.0.22 (Tue Mar 21 2023)
+
+#### 🐛 Bug Fix
+
+- Auto release test [#91](https://github.com/grafana/scenes/pull/91) ([@torkelo](https://github.com/torkelo))
+- Release: test [#90](https://github.com/grafana/scenes/pull/90) ([@torkelo](https://github.com/torkelo))
+- Update [#88](https://github.com/grafana/scenes/pull/88) ([@torkelo](https://github.com/torkelo))
+- Auto: Automate changelog and github releases [#85](https://github.com/grafana/scenes/pull/85) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - Auto: Another release test [#92](https://github.com/grafana/scenes/pull/92) ([@torkelo](https://github.com/torkelo))
+  - Auto: Testing [#89](https://github.com/grafana/scenes/pull/89) ([@torkelo](https://github.com/torkelo))
+
+#### ⚠️ Pushed to `main`
+
+- add step ([@torkelo](https://github.com/torkelo))
+- Add a condition ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v0.0.22 (Tue Mar 21 2023)
+
+#### 🐛 Bug Fix
+
+- Update [#88](https://github.com/grafana/scenes/pull/88) ([@torkelo](https://github.com/torkelo))
+- Auto: Automate changelog and github releases [#85](https://github.com/grafana/scenes/pull/85) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 
 * Removal of isEditing from SceneComponentProps (also $editor from SceneObjectState, and sceneGraph.getSceneEditor)
 * DataSourceVariable state change, query property is now named pluginId
