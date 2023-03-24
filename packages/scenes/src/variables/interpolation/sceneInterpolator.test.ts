@@ -1,8 +1,5 @@
-import { FieldType, toDataFrame } from '@grafana/data';
-
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
-import { DataContextScopedVar } from '../macros/DataValueMacro';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { TestScene } from '../TestScene';
 import { ConstantVariable } from '../variants/ConstantVariable';

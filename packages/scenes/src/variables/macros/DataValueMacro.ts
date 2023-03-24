@@ -1,13 +1,13 @@
-import { Field, formattedValueToString, getDisplayProcessor, ScopedVars } from '@grafana/data';
+import { DataFrame, FieldType, formattedValueToString, getDisplayProcessor, ScopedVars } from '@grafana/data';
 import { SceneObject } from '../../core/types';
 import { FormatVariable } from '../interpolation/formatRegistry';
 import { VariableValue } from '../types';
 
 export interface DataContextScopedVar {
   value: {
-    field: Field;
-    timeField?: Field;
-    valueRowIndex?: number;
+    frame: DataFrame;
+    fieldIndex: number;
+    valueIndex: number;
   };
 }
 
@@ -26,17 +26,23 @@ export class DataValueMacro implements FormatVariable {
       return '';
     }
 
-    const { field, valueRowIndex, timeField } = dataContext.value;
+    const { frame, valueIndex, fieldIndex } = dataContext.value;
 
-    if (!valueRowIndex) {
+    if (!valueIndex) {
       return '';
     }
 
     if (fieldPath === 'time') {
-      return timeField ? timeField.values.get(valueRowIndex) : undefined;
+      const timeField = frame.fields.find((f) => f.type === FieldType.time);
+      return timeField ? timeField.values.get(valueIndex) : undefined;
     }
 
-    const value = field.values.get(valueRowIndex);
+    const field = frame.fields[fieldIndex];
+    if (!field) {
+      return '';
+    }
+
+    const value = field.values.get(valueIndex);
     if (fieldPath === 'raw') {
       return value;
     }
@@ -50,7 +56,6 @@ export class DataValueMacro implements FormatVariable {
       case 'numeric':
         return result.numeric;
       default:
-        console.log('formatting', result);
         return formattedValueToString(result);
     }
   }

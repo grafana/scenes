@@ -27,9 +27,9 @@ describe('DataValueMacro', () => {
 
     const dataContext: DataContextScopedVar = {
       value: {
-        field: data.fields[0],
-        timeField: data.fields[1],
-        valueRowIndex: 1,
+        frame: data,
+        fieldIndex: 0,
+        valueIndex: 1,
       },
     };
 
