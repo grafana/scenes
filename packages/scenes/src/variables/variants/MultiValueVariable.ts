@@ -37,7 +37,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   extends SceneObjectBase<TState>
   implements SceneVariable<TState>
 {
-  protected _urlSync: SceneObjectUrlSyncHandler<TState> = new MultiValueUrlSyncHandler(this);
+  protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
    * The source of value options.
@@ -236,7 +236,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 }
 
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
-  implements SceneObjectUrlSyncHandler<TState>
+  implements SceneObjectUrlSyncHandler
 {
   public constructor(private _sceneObject: MultiValueVariable<TState>) {}
 
@@ -248,9 +248,9 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     return [this.getKey()];
   }
 
-  public getUrlState(state: TState): SceneObjectUrlValues {
+  public getUrlState(): SceneObjectUrlValues {
     let urlValue: string | string[] | null = null;
-    let value = state.value;
+    let value = this._sceneObject.state.value;
 
     if (Array.isArray(value)) {
       urlValue = value.map(String);

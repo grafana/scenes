@@ -333,7 +333,7 @@ describe('MultiValueVariable', () => {
         text: 'A',
       });
 
-      expect(variable.urlSync?.getUrlState(variable.state)).toEqual({ ['var-test']: '1' });
+      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: '1' });
     });
 
     it('getUrlState should return string array if value is string array', async () => {
@@ -345,7 +345,7 @@ describe('MultiValueVariable', () => {
         text: ['A', 'B'],
       });
 
-      expect(variable.urlSync?.getUrlState(variable.state)).toEqual({ ['var-test']: ['1', '2'] });
+      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['1', '2'] });
     });
 
     it('fromUrlState should update value for single value', async () => {
