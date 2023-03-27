@@ -5,7 +5,7 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayoutChildState } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 
-import { SceneGridLayout } from './SceneGridLayout';
+import { SceneGridItem, SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';
 
 // Mocking AutoSizer to allow testing of the SceneGridLayout component rendering
@@ -28,8 +28,24 @@ describe('SceneGridLayout', () => {
       const scene = new EmbeddedScene({
         body: new SceneGridLayout({
           children: [
-            new TestObject({ placement: { x: 0, y: 0, width: 12, height: 5 } }),
-            new TestObject({ placement: { x: 0, y: 5, width: 12, height: 5 } }),
+            new SceneGridItem({
+              x: 0,
+              y: 0,
+              width: 12,
+              height: 5,
+              isDraggable: false,
+              isResizable: false,
+              child: new TestObject({}),
+            }),
+            new SceneGridItem({
+              x: 0,
+              y: 5,
+              width: 12,
+              height: 5,
+              isDraggable: false,
+              isResizable: false,
+              child: new TestObject({}),
+            }),
           ],
         }),
       });
@@ -43,14 +59,41 @@ describe('SceneGridLayout', () => {
       const scene = new EmbeddedScene({
         body: new SceneGridLayout({
           children: [
-            new TestObject({ key: 'a', placement: { x: 0, y: 0, width: 12, height: 5 } }),
-            new TestObject({ key: 'b', placement: { x: 0, y: 5, width: 12, height: 5 } }),
+            new SceneGridItem({
+              x: 0,
+              y: 0,
+              width: 12,
+              height: 5,
+              isResizable: false,
+              isDraggable: false,
+              child: new TestObject({ key: 'a' }),
+            }),
+            new SceneGridItem({
+              x: 0,
+              y: 5,
+              width: 12,
+              height: 5,
+              isResizable: false,
+              isDraggable: false,
+              child: new TestObject({ key: 'b' }),
+            }),
+
             new SceneGridRow({
               title: 'Row A',
               key: 'Row A',
               isCollapsed: true,
-              placement: { y: 10 },
-              children: [new TestObject({ key: 'c', placement: { x: 0, y: 11, width: 12, height: 5 } })],
+              y: 10,
+              children: [
+                new SceneGridItem({
+                  x: 0,
+                  y: 11,
+                  width: 12,
+                  height: 5,
+                  isResizable: false,
+                  isDraggable: false,
+                  child: new TestObject({ key: 'c' }),
+                }),
+              ],
             }),
           ],
         }),
@@ -65,14 +108,41 @@ describe('SceneGridLayout', () => {
       const scene = new EmbeddedScene({
         body: new SceneGridLayout({
           children: [
-            new TestObject({ key: 'a', placement: { x: 0, y: 0, width: 12, height: 5 } }),
-            new TestObject({ key: 'b', placement: { x: 0, y: 5, width: 12, height: 5 } }),
+            new SceneGridItem({
+              x: 0,
+              y: 0,
+              width: 12,
+              height: 5,
+              isResizable: false,
+              isDraggable: false,
+              child: new TestObject({ key: 'a' }),
+            }),
+            new SceneGridItem({
+              x: 0,
+              y: 5,
+              width: 12,
+              height: 5,
+              isResizable: false,
+              isDraggable: false,
+              child: new TestObject({ key: 'b' }),
+            }),
+
             new SceneGridRow({
               title: 'Row A',
               key: 'Row A',
               isCollapsed: false,
-              placement: { y: 10 },
-              children: [new TestObject({ key: 'c', placement: { x: 0, y: 11, width: 12, height: 5 } })],
+              y: 10,
+              children: [
+                new SceneGridItem({
+                  x: 0,
+                  y: 11,
+                  width: 12,
+                  height: 5,
+                  isResizable: false,
+                  isDraggable: false,
+                  child: new TestObject({ key: 'c' }),
+                }),
+              ],
             }),
           ],
         }),
@@ -88,9 +158,36 @@ describe('SceneGridLayout', () => {
     it('shoud update layout children placement and order ', () => {
       const layout = new SceneGridLayout({
         children: [
-          new TestObject({ key: 'a', placement: { x: 0, y: 0, width: 1, height: 1 } }),
-          new TestObject({ key: 'b', placement: { x: 1, y: 0, width: 1, height: 1 } }),
-          new TestObject({ key: 'c', placement: { x: 0, y: 1, width: 1, height: 1 } }),
+          new SceneGridItem({
+            key: 'a',
+            x: 0,
+            y: 0,
+            width: 1,
+            height: 1,
+            isResizable: false,
+            isDraggable: false,
+            child: new TestObject({}),
+          }),
+          new SceneGridItem({
+            key: 'b',
+            x: 1,
+            y: 0,
+            width: 1,
+            height: 1,
+            isResizable: false,
+            isDraggable: false,
+            child: new TestObject({}),
+          }),
+          new SceneGridItem({
+            key: 'c',
+            x: 0,
+            y: 1,
+            width: 1,
+            height: 1,
+            isResizable: false,
+            isDraggable: false,
+            child: new TestObject({}),
+          }),
         ],
       });
       layout.onDragStop(
@@ -120,24 +217,49 @@ describe('SceneGridLayout', () => {
       );
 
       expect(layout.state.children[0].state.key).toEqual('b');
-      expect(layout.state.children[0].state.placement).toEqual({ x: 0, y: 0, width: 1, height: 1 });
+      expect(layout.state.children[0].state.x).toEqual(0);
+      expect(layout.state.children[0].state.y).toEqual(0);
+      expect(layout.state.children[0].state.width).toEqual(1);
+      expect(layout.state.children[0].state.height).toEqual(1);
       expect(layout.state.children[1].state.key).toEqual('a');
-      expect(layout.state.children[1].state.placement).toEqual({ x: 0, y: 1, width: 1, height: 1 });
+      expect(layout.state.children[1].state.x).toEqual(0);
+      expect(layout.state.children[1].state.y).toEqual(1);
+      expect(layout.state.children[1].state.width).toEqual(1);
+      expect(layout.state.children[1].state.height).toEqual(1);
       expect(layout.state.children[2].state.key).toEqual('c');
-      expect(layout.state.children[2].state.placement).toEqual({ x: 0, y: 2, width: 1, height: 1 });
+      expect(layout.state.children[2].state.x).toEqual(0);
+      expect(layout.state.children[2].state.y).toEqual(2);
+      expect(layout.state.children[2].state.width).toEqual(1);
+      expect(layout.state.children[2].state.height).toEqual(1);
     });
   });
 
   describe('when using rows', () => {
     it('should update objects relations when moving object out of a row', () => {
-      const rowAChild1 = new TestObject({ key: 'row-a-child1', placement: { x: 0, y: 1, width: 1, height: 1 } });
-      const rowAChild2 = new TestObject({ key: 'row-a-child2', placement: { x: 1, y: 1, width: 1, height: 1 } });
+      const rowAChild1 = new SceneGridItem({
+        x: 0,
+        y: 1,
+        width: 1,
+        height: 1,
+        isResizable: false,
+        isDraggable: false,
+        child: new TestObject({ key: 'row-a-child1' }),
+      });
+      const rowAChild2 = new SceneGridItem({
+        x: 1,
+        y: 1,
+        width: 1,
+        height: 1,
+        isResizable: false,
+        isDraggable: false,
+        child: new TestObject({ key: 'row-a-child2' }),
+      });
 
       const sourceRow = new SceneGridRow({
         title: 'Row A',
         key: 'row-a',
+        y: 0,
         children: [rowAChild1, rowAChild2],
-        placement: { y: 0 },
       });
 
       const layout = new SceneGridLayout({
@@ -159,8 +281,26 @@ describe('SceneGridLayout', () => {
       expect(updatedLayout[1]).not.toEqual(rowAChild1);
     });
     it('should update objects relations when moving objects between rows', () => {
-      const rowAChild1 = new TestObject({ key: 'row-a-child1', placement: { x: 0, y: 0, width: 1, height: 1 } });
-      const rowAChild2 = new TestObject({ key: 'row-a-child2', placement: { x: 1, y: 0, width: 1, height: 1 } });
+      const rowAChild1 = new SceneGridItem({
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1,
+        isResizable: false,
+        isDraggable: false,
+        key: 'row-a-child1',
+        child: new TestObject({}),
+      });
+      const rowAChild2 = new SceneGridItem({
+        x: 1,
+        y: 0,
+        width: 1,
+        height: 1,
+        isResizable: false,
+        isDraggable: false,
+        key: 'row-a-child2',
+        child: new TestObject({}),
+      });
 
       const sourceRow = new SceneGridRow({
         title: 'Row A',
@@ -174,7 +314,16 @@ describe('SceneGridLayout', () => {
         children: [],
       });
 
-      const panelOutsideARow = new TestObject({ key: 'a', placement: { x: 0, y: 0, width: 1, height: 1 } });
+      const panelOutsideARow = new SceneGridItem({
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1,
+        isResizable: false,
+        isDraggable: false,
+        key: 'a',
+        child: new TestObject({}),
+      });
       const layout = new SceneGridLayout({
         children: [panelOutsideARow, sourceRow, targetRow],
       });
@@ -200,25 +349,58 @@ describe('SceneGridLayout', () => {
     });
 
     it('should update position of objects when row is expanded', () => {
-      const rowAChild1 = new TestObject({ key: 'row-a-child1', placement: { x: 0, y: 1, width: 1, height: 1 } });
-      const rowAChild2 = new TestObject({ key: 'row-a-child2', placement: { x: 1, y: 1, width: 1, height: 1 } });
+      const rowAChild1 = new SceneGridItem({
+        x: 0,
+        y: 1,
+        width: 1,
+        height: 1,
+        isResizable: false,
+        isDraggable: false,
+        child: new TestObject({ key: 'row-a-child1' }),
+      });
+
+      const rowAChild2 = new SceneGridItem({
+        x: 1,
+        y: 1,
+        width: 1,
+        height: 1,
+        isResizable: false,
+        isDraggable: false,
+        child: new TestObject({ key: 'row-a-child2' }),
+      });
 
       const rowA = new SceneGridRow({
         title: 'Row A',
         key: 'row-a',
         children: [rowAChild1, rowAChild2],
-        placement: { y: 0 },
+        y: 0,
         isCollapsed: true,
       });
 
-      const panelOutsideARow = new TestObject({ key: 'outsider', placement: { x: 0, y: 1, width: 1, height: 1 } });
+      const panelOutsideARow = new SceneGridItem({
+        x: 0,
+        y: 1,
+        width: 1,
+        height: 1,
+        isResizable: false,
+        isDraggable: false,
+        child: new TestObject({ key: 'outsider' }),
+      });
 
-      const rowBChild1 = new TestObject({ key: 'row-b-child1', placement: { x: 0, y: 3, width: 1, height: 1 } });
+      const rowBChild1 = new SceneGridItem({
+        x: 0,
+        y: 3,
+        width: 1,
+        height: 1,
+        isResizable: false,
+        isDraggable: false,
+        child: new TestObject({ key: 'row-b-child1' }),
+      });
       const rowB = new SceneGridRow({
         title: 'Row B',
         key: 'row-b',
         children: [rowBChild1],
-        placement: { y: 2 },
+        y: 2,
         isCollapsed: false,
       });
 
@@ -228,9 +410,9 @@ describe('SceneGridLayout', () => {
 
       layout.toggleRow(rowA);
 
-      expect(panelOutsideARow.state!.placement!.y).toEqual(2);
-      expect(rowB.state!.placement!.y).toEqual(3);
-      expect(rowBChild1.state!.placement!.y).toEqual(4);
+      expect(panelOutsideARow.state!.y).toEqual(2);
+      expect(rowB.state!.y).toEqual(3);
+      expect(rowBChild1.state!.y).toEqual(4);
     });
   });
 });
