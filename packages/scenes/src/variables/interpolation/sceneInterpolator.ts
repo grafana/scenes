@@ -11,7 +11,7 @@ import { lookupVariable } from '../lookupVariable';
 import { macrosIndex } from '../macros';
 
 /**
- * This function will try to parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
+ * This function will try o parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
  * use the scene graph and walk up the parent tree until it finds the closest variable.
  *
  * ScopedVars should not really be needed much in the new scene architecture as they can be added to the local scene node instead of passed in interpolate function.
