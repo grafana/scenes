@@ -27,6 +27,9 @@ jobs:
       - name: Build library
         run: lerna run build
 
+      - name: Prepare repository
+        run: git fetch --unshallow --tags
+
       - name: Run auto shipit
         run: yarn auto shipit --base-branch auto-test
         env:
