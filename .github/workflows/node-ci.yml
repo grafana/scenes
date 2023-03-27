@@ -28,7 +28,7 @@ jobs:
         run: lerna run build
 
       - name: Run auto shipit
-        run: yarn auto shipit
+        run: yarn auto shipit --base-branch auto-test
         env:
           GITHUB_TOKEN: ${{ secrets.GH_BOT_ACCESS_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
