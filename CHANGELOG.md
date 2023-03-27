@@ -1,3 +1,30 @@
+# v0.1.0 (Mon Mar 27 2023)
+
+### Release Notes
+
+#### UrlSync: Simplify url sync interface ([#100](https://github.com/grafana/scenes/pull/100))
+
+The  SceneObjectUrlSyncHandler interface has changed. The function `getUrlState` no longer takes state as parameter. The implementation needs to use the current scene object state instead.
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - UrlSync: Simplify url sync interface [#100](https://github.com/grafana/scenes/pull/100) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Auto: Removing label condition that did not work [#109](https://github.com/grafana/scenes/pull/109) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - Clean up changelog [#108](https://github.com/grafana/scenes/pull/108) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.0.32 (Mon Mar 27 2023)
 
   - Scene: Support for new types of "macro" variables starting with __all_variables [#98](https://github.com/grafana/scenes/pull/98) ([@domasx2](https://github.com/domasx2) [@torkelo](https://github.com/torkelo))
