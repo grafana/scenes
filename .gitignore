@@ -24,3 +24,5 @@
 compiled
 dist
 node_modules
+
+.env
