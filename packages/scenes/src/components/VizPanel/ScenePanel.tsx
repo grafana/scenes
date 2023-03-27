@@ -1,6 +1,6 @@
 import React, { RefCallback } from 'react';
 
-import { AbsoluteTimeRange, toUtc, ScopedVars, InterpolateFunction } from '@grafana/data';
+import { ScopedVars, InterpolateFunction } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps, SceneLayoutChildState } from '../../core/types';

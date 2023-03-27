@@ -3,7 +3,7 @@ import { useMeasure } from 'react-use';
 
 import { PluginContextProvider, useFieldOverrides } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
-import { PanelChrome, ErrorBoundaryAlert, useTheme2 } from '@grafana/ui';
+import { PanelChrome, ErrorBoundaryAlert, useTheme2, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
@@ -97,24 +97,26 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             {dataWithOverrides && (
               <ErrorBoundaryAlert dependencies={[plugin, data]}>
                 <PluginContextProvider meta={plugin.meta}>
-                  <PanelComponent
-                    id={1}
-                    data={dataWithOverrides}
-                    title={title}
-                    timeRange={dataWithOverrides.timeRange}
-                    timeZone={timeZone}
-                    options={options}
-                    fieldConfig={fieldConfig}
-                    transparent={false}
-                    width={innerWidth}
-                    height={innerHeight}
-                    renderCounter={0}
-                    replaceVariables={model.interpolate}
-                    onOptionsChange={model.onOptionsChange}
-                    onFieldConfigChange={model.onFieldConfigChange}
-                    onChangeTimeRange={model.onChangeTimeRange}
-                    eventBus={getAppEvents()}
-                  />
+                  <PanelContextProvider value={model.getPanelContext()}>
+                    <PanelComponent
+                      id={1}
+                      data={dataWithOverrides}
+                      title={title}
+                      timeRange={dataWithOverrides.timeRange}
+                      timeZone={timeZone}
+                      options={options}
+                      fieldConfig={fieldConfig}
+                      transparent={false}
+                      width={innerWidth}
+                      height={innerHeight}
+                      renderCounter={0}
+                      replaceVariables={model.interpolate}
+                      onOptionsChange={model.onOptionsChange}
+                      onFieldConfigChange={model.onFieldConfigChange}
+                      onChangeTimeRange={model.onChangeTimeRange}
+                      eventBus={getAppEvents()}
+                    />
+                  </PanelContextProvider>
                 </PluginContextProvider>
               </ErrorBoundaryAlert>
             )}
