@@ -6,7 +6,7 @@ import {
   SceneLayout,
   SceneObjectStatePlain,
   SceneObject,
-  SceneLayoutItem,
+  SceneLayoutItemState,
 } from '../../core/types';
 
 export interface SceneFlexItemLike extends SceneObject<SceneFlexItemState> {}
@@ -52,7 +52,7 @@ function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>
   );
 }
 
-interface SceneFlexItemState extends SceneLayoutItem {
+interface SceneFlexItemState extends SceneLayoutItemState {
   flexGrow?: CSSProperties['flexGrow'];
   alignSelf?: CSSProperties['alignSelf'];
   width?: CSSProperties['width'];

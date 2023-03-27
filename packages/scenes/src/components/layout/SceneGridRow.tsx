@@ -13,7 +13,7 @@ import { SceneGridLayout } from './SceneGridLayout';
 import { GRID_COLUMN_COUNT } from './constants';
 import { SceneGridItemLike, SceneGridItemStateLike } from './types';
 
-export interface SceneGridRowState extends Omit<SceneGridItemStateLike, 'child'> {
+export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
   isCollapsible?: boolean;
   isCollapsed?: boolean;

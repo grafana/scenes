@@ -6,7 +6,7 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import {
   SceneComponentProps,
   SceneLayout,
-  SceneLayoutItem,
+  SceneLayoutItemState,
   SceneObject,
   SceneObjectStatePlain,
 } from '../../core/types';
@@ -20,7 +20,7 @@ interface SceneGridLayoutState extends SceneObjectStatePlain {
    * Turn on or off dragging for all items. Indiviadual items can still disabled via isDraggable property
    **/
   isDraggable?: boolean;
-  children: Array<SceneGridItemLike | SceneGridRow>;
+  children: SceneGridItemLike[];
 }
 
 export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> implements SceneLayout {
@@ -322,7 +322,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 }
 
-interface SceneGridItemState extends SceneGridItemStateLike, SceneLayoutItem {}
+interface SceneGridItemState extends SceneGridItemStateLike, SceneLayoutItemState {}
 
 export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implements SceneGridItemLike {
   static Component = SceneGridItemRenderer;
