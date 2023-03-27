@@ -49,7 +49,9 @@ export interface SceneComponentWrapperProps {
   children: React.ReactNode;
 }
 
-export type SceneComponent<TModel> = (props: SceneComponentProps<TModel>) => React.ReactElement | null;
+export type SceneComponent<TModel, TProps = {}> = (
+  props: SceneComponentProps<TModel> & TProps
+) => React.ReactElement | null;
 export type SceneComponentCustomWrapper = (props: SceneComponentWrapperProps) => React.ReactElement | null;
 
 export interface SceneDataState extends SceneObjectStatePlain {
