@@ -1,0 +1,10 @@
+{
+  "author": {
+    "name": "grafanabot",
+    "email": "bot@grafana.com"
+  },
+  "onlyPublishWithReleaseLabel": true,
+  "plugins": [
+    "npm"
+  ]
+}
