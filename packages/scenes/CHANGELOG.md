@@ -1,46 +1,9 @@
 # v0.0.32 (Mon Mar 27 2023)
 
-#### 🐛 Bug Fix
-
-- Enable auto [#107](https://github.com/grafana/scenes/pull/107) ([@torkelo](https://github.com/torkelo))
-- Fix type import [#104](https://github.com/grafana/scenes/pull/104) ([@torkelo](https://github.com/torkelo))
-- my bad ([@torkelo](https://github.com/torkelo))
-- Fix type import ([@torkelo](https://github.com/torkelo))
-- Macros: Share SkipFormattingValue value between AllUrlVariablesMacro and UrlTimeRangeMacro [#101](https://github.com/grafana/scenes/pull/101) ([@torkelo](https://github.com/torkelo))
-- Share skip formatting ([@torkelo](https://github.com/torkelo))
-- Scene: Support for new types of "macro" variables starting with __all_variables [#98](https://github.com/grafana/scenes/pull/98) ([@domasx2](https://github.com/domasx2) [@torkelo](https://github.com/torkelo))
-- Removed some old code ([@torkelo](https://github.com/torkelo))
-- Updates ([@torkelo](https://github.com/torkelo))
-- More refactoring ([@torkelo](https://github.com/torkelo))
-- Refactoring and added time range macro ([@torkelo](https://github.com/torkelo))
-- Refactoring ([@torkelo](https://github.com/torkelo))
-- fix ([@torkelo](https://github.com/torkelo))
-- Fixed ts issues ([@torkelo](https://github.com/torkelo))
-- Merge branch 'main' of github.com:grafana/scenes into scene-url-variables ([@torkelo](https://github.com/torkelo))
-- ScenesApp: Change to workspace dependency [#99](https://github.com/grafana/scenes/pull/99) ([@torkelo](https://github.com/torkelo))
+- Scene: Support for new types of "macro" variables starting with \_\_all_variables [#98](https://github.com/grafana/scenes/pull/98) ([@domasx2](https://github.com/domasx2) [@torkelo](https://github.com/torkelo))
 - UrlSyncManager: Improvements and fixes [#96](https://github.com/grafana/scenes/pull/96) ([@torkelo](https://github.com/torkelo))
-- remove unused arg ([@torkelo](https://github.com/torkelo))
-- Add skipUrlSync support ([@torkelo](https://github.com/torkelo))
-- Variables: Add support for macro variables like __all_variables ([@torkelo](https://github.com/torkelo))
-- Merge branch 'scene-interpolate-all-variables' into domas-interpolate-all-variables ([@torkelo](https://github.com/torkelo))
-- Simplify logic ([@torkelo](https://github.com/torkelo))
-- minor fix ([@torkelo](https://github.com/torkelo))
-- Made tests a bit clear on what scenario they where testing ([@torkelo](https://github.com/torkelo))
-- remove unnessary cleanup in EmbeddedScene ([@torkelo](https://github.com/torkelo))
-- UrlSyncManager: Improvements and fixes ([@torkelo](https://github.com/torkelo))
-- Update ([@torkelo](https://github.com/torkelo))
-- Changelog: Clean up auto crap [#94](https://github.com/grafana/scenes/pull/94) ([@torkelo](https://github.com/torkelo))
-- Fixing changelog ([@torkelo](https://github.com/torkelo))
-- test ([@torkelo](https://github.com/torkelo))
-- Yarn: Caching should work [#93](https://github.com/grafana/scenes/pull/93) ([@torkelo](https://github.com/torkelo))
-- interpolate all variables ([@domasx2](https://github.com/domasx2))
 
-#### Authors: 2
-
-- Domas ([@domasx2](https://github.com/domasx2))
-- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
-
----
+* UrlSync: SceneObject that implement url sync \_urlSync property will now see a change to how updateFromUrl is called. It is now called with null values when url query parameters are removed. Before the UrlSyncManager would remember the initial state and pass that to updateFromUrl, but now if you want to preserve your current state or set to some initial state you have to handle that logic inside updateFromUrl.
 
 # v0.0.28 (Tue Mar 21 2023)
 
