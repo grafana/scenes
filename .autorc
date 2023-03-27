@@ -5,9 +5,6 @@
   },
   "onlyPublishWithReleaseLabel": true,
   "plugins": [
-    "npm",
-    {
-      "monorepoChangelog": false
-    }
+    "npm"
   ]
 }
