@@ -102,6 +102,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@auto-it/omit-commits@npm:^10.43.0":
+  version: 10.43.0
+  resolution: "@auto-it/omit-commits@npm:10.43.0"
+  dependencies:
+    "@auto-it/core": 10.43.0
+    fp-ts: ^2.5.3
+    io-ts: ^2.1.2
+    tslib: 2.1.0
+  checksum: a0e9d29e3c2cfbfe80d0ecf220a271826b2c163f4e27c21452ff80efdc713dbf479eafd9d0fa3bc954994fe87ded83392980dbb7ebac3efe4e056650f94a3b7e
+  languageName: node
+  linkType: hard
+
 "@auto-it/package-json-utils@npm:10.43.0":
   version: 10.43.0
   resolution: "@auto-it/package-json-utils@npm:10.43.0"
@@ -11135,6 +11147,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "grafana-scenes@workspace:."
   dependencies:
+    "@auto-it/omit-commits": ^10.43.0
     "@auto-it/released": ^10.43.0
     auto: ^10.43.0
     lerna: ^6.5.1
