@@ -1,7 +1,8 @@
 import { SceneObject } from '../../core/types';
 import { isCustomVariableValue, SceneVariable } from '../types';
-import { formatRegistry, FormatRegistryID, FormatVariable } from '../interpolation/formatRegistry';
+import { formatRegistry, FormatVariable } from '../interpolation/formatRegistry';
 import { SkipFormattingValue } from './types';
+import { VariableFormatID } from '@grafana/schema';
 
 export class AllVariablesMacro implements FormatVariable {
   public state: { name: string; type: string };
@@ -14,7 +15,7 @@ export class AllVariablesMacro implements FormatVariable {
 
   public getValue(): SkipFormattingValue {
     const allVars = collectAllVariables(this._sceneObject);
-    const format = formatRegistry.get(FormatRegistryID.queryParam);
+    const format = formatRegistry.get(VariableFormatID.QueryParam);
     const params: string[] = [];
 
     for (const name of Object.keys(allVars)) {
@@ -26,7 +27,7 @@ export class AllVariablesMacro implements FormatVariable {
       }
 
       if (isCustomVariableValue(value)) {
-        params.push(value.formatter(FormatRegistryID.queryParam));
+        params.push(value.formatter(VariableFormatID.QueryParam));
       } else {
         params.push(format.formatter(value, [], variable));
       }
