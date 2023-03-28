@@ -1,6 +1,8 @@
+import { css } from '@emotion/css';
 import React from 'react';
 
-import { CoreApp } from '@grafana/data';
+import { CoreApp, GrafanaTheme2 } from '@grafana/data';
+import { useStyles2 } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
@@ -12,6 +14,8 @@ export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>)
 
   const { data } = sceneGraph.getData(model).useState();
   const sceneQueryRunner = sceneGraph.getSceneQueryRunner(model);
+
+  const styles = useStyles2(getStyles);
 
   if (datasourceLoadErrorMessage) {
     return <div>Failed to load datasource: {datasourceLoadErrorMessage}</div>;
@@ -32,17 +36,43 @@ export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>)
   const QueryEditor = loadedDatasource.components.QueryEditor;
 
   return (
-    <QueryEditor
-      key={loadedDatasource?.name}
-      query={sceneQueryRunner.state.queries[0]}
-      datasource={loadedDatasource}
-      onChange={(query) => model.onChange(sceneQueryRunner, query)}
-      onRunQuery={() => {}}
-      onAddQuery={() => {}}
-      data={data}
-      range={data?.timeRange}
-      queries={sceneQueryRunner.state.queries}
-      app={CoreApp.PanelEditor}
-    />
+    <ul className={styles.editorList}>
+      {sceneQueryRunner.state.queries.map((query) => (
+        <li key={query.refId} className={styles.queryEditor}>
+          <span className={styles.refIdLabel}>{query.refId}</span>
+          <QueryEditor
+            key={loadedDatasource?.name}
+            query={query}
+            datasource={loadedDatasource}
+            onChange={(query) => model.onChange(sceneQueryRunner, query)}
+            onRunQuery={() => {}}
+            onAddQuery={() => {}}
+            data={data}
+            range={data?.timeRange}
+            queries={sceneQueryRunner.state.queries}
+            app={CoreApp.PanelEditor}
+          />
+        </li>
+      ))}
+    </ul>
   );
+}
+
+function getStyles(theme: GrafanaTheme2) {
+  return {
+    editorList: css({
+      overflow: 'auto',
+      listStyle: 'none',
+      gap: theme.spacing(2),
+    }),
+    queryEditor: css({
+      display: 'flex',
+      flexDirection: 'column',
+    }),
+    refIdLabel: css({
+      display: 'flex',
+      flexGrow: 1,
+      fontSize: theme.typography.h5.fontSize,
+    }),
+  };
 }

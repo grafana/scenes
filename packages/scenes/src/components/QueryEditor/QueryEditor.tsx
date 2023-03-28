@@ -36,15 +36,11 @@ export class QueryEditor extends SceneObjectBase<QueryEditorState> {
 
   public onChange = (sceneQueryRunner: SceneQueryRunner, query: DataQuery) => {
     const { loadedDatasource } = this.state;
-    
+
     if (sceneQueryRunner && loadedDatasource) {
+      const oldQueries = sceneQueryRunner.state.queries;
       sceneQueryRunner.setState({
-        queries: [
-          {
-            datasource: loadedDatasource.getRef(),
-            ...query,
-          },
-        ],
+        queries: oldQueries.map((q) => q.refId === query.refId ? query : q)
       });
 
       sceneQueryRunner.runQueries();
