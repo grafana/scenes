@@ -43,7 +43,7 @@ describe('formatRegistry', () => {
     expect(formatValue(VariableFormatID.CSV, ['test', 'test2'])).toBe('test,test2');
 
     expect(formatValue(VariableFormatID.HTML, '<script>alert(asd)</script>')).toBe(
-      '&lt;script&gt;alert(asd)&lt;/script&gt;'
+      '&lt;script&gt;alert(asd)&lt;&#47;script&gt;'
     );
 
     expect(formatValue(VariableFormatID.JSON, ['test', 12])).toBe('["test",12]');
