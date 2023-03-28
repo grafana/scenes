@@ -26,7 +26,7 @@ export interface SceneLayoutChildState extends SceneObjectStatePlain {
 }
 
 export interface SceneLayoutItemState extends SceneObjectStatePlain {
-  child: SceneObject | undefined;
+  body: SceneObject | undefined;
 }
 
 export type SceneObjectState = SceneObjectStatePlain | SceneLayoutState | SceneLayoutChildState;

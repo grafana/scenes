@@ -11,7 +11,7 @@ describe('SceneReactObject', () => {
       props: { children: 'buttonText' },
     });
 
-    const scene = new SceneFlexLayout({ children: [new SceneFlexItem({ child: jrmr })] });
+    const scene = new SceneFlexLayout({ children: [new SceneFlexItem({ body: jrmr })] });
 
     render(<scene.Component model={scene} />);
 
@@ -30,7 +30,7 @@ describe('SceneReactObject', () => {
       reactNode: <Button>buttonText</Button>,
     });
 
-    const scene = new SceneFlexLayout({ children: [new SceneFlexItem({ child: jrmr })] });
+    const scene = new SceneFlexLayout({ children: [new SceneFlexItem({ body: jrmr })] });
 
     render(<scene.Component model={scene} />);
 

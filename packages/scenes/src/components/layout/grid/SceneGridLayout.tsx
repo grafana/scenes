@@ -385,18 +385,18 @@ export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implement
 }
 
 function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
-  const { child } = model.useState();
+  const { body } = model.useState();
   const parent = model.parent;
 
   if (parent && !isSceneGridLayout(parent) && !isSceneGridRow(parent)) {
     throw new Error('SceneGridItem must be a child of SceneGridLayout or SceneGridRow');
   }
 
-  if (!child) {
+  if (!body) {
     return null;
   }
 
-  return <child.Component model={child} />;
+  return <body.Component model={body} />;
 }
 
 function validateChildrenSize(children: SceneGridItemLike[]) {

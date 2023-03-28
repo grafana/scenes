@@ -12,7 +12,7 @@ function setupScene(refresh: string, intervals?: string[]) {
 
   const scene = new SceneFlexLayout({
     $timeRange: timeRange,
-    children: [new SceneFlexItem({ child: refreshPicker })],
+    children: [new SceneFlexItem({ body: refreshPicker })],
   });
 
   scene.activate();

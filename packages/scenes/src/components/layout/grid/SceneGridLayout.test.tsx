@@ -35,7 +35,7 @@ describe('SceneGridLayout', () => {
               height: 5,
               isDraggable: false,
               isResizable: false,
-              child: new TestObject({}),
+              body: new TestObject({}),
             }),
             new SceneGridItem({
               x: 0,
@@ -44,7 +44,7 @@ describe('SceneGridLayout', () => {
               height: 5,
               isDraggable: false,
               isResizable: false,
-              child: new TestObject({}),
+              body: new TestObject({}),
             }),
           ],
         }),
@@ -66,7 +66,7 @@ describe('SceneGridLayout', () => {
               height: 5,
               isResizable: false,
               isDraggable: false,
-              child: new TestObject({ key: 'a' }),
+              body: new TestObject({ key: 'a' }),
             }),
             new SceneGridItem({
               x: 0,
@@ -75,7 +75,7 @@ describe('SceneGridLayout', () => {
               height: 5,
               isResizable: false,
               isDraggable: false,
-              child: new TestObject({ key: 'b' }),
+              body: new TestObject({ key: 'b' }),
             }),
 
             new SceneGridRow({
@@ -91,7 +91,7 @@ describe('SceneGridLayout', () => {
                   height: 5,
                   isResizable: false,
                   isDraggable: false,
-                  child: new TestObject({ key: 'c' }),
+                  body: new TestObject({ key: 'c' }),
                 }),
               ],
             }),
@@ -115,7 +115,7 @@ describe('SceneGridLayout', () => {
               height: 5,
               isResizable: false,
               isDraggable: false,
-              child: new TestObject({ key: 'a' }),
+              body: new TestObject({ key: 'a' }),
             }),
             new SceneGridItem({
               x: 0,
@@ -124,7 +124,7 @@ describe('SceneGridLayout', () => {
               height: 5,
               isResizable: false,
               isDraggable: false,
-              child: new TestObject({ key: 'b' }),
+              body: new TestObject({ key: 'b' }),
             }),
 
             new SceneGridRow({
@@ -140,7 +140,7 @@ describe('SceneGridLayout', () => {
                   height: 5,
                   isResizable: false,
                   isDraggable: false,
-                  child: new TestObject({ key: 'c' }),
+                  body: new TestObject({ key: 'c' }),
                 }),
               ],
             }),
@@ -166,7 +166,7 @@ describe('SceneGridLayout', () => {
             height: 1,
             isResizable: false,
             isDraggable: false,
-            child: new TestObject({}),
+            body: new TestObject({}),
           }),
           new SceneGridItem({
             key: 'b',
@@ -176,7 +176,7 @@ describe('SceneGridLayout', () => {
             height: 1,
             isResizable: false,
             isDraggable: false,
-            child: new TestObject({}),
+            body: new TestObject({}),
           }),
           new SceneGridItem({
             key: 'c',
@@ -186,7 +186,7 @@ describe('SceneGridLayout', () => {
             height: 1,
             isResizable: false,
             isDraggable: false,
-            child: new TestObject({}),
+            body: new TestObject({}),
           }),
         ],
       });
@@ -243,7 +243,7 @@ describe('SceneGridLayout', () => {
         height: 1,
         isResizable: false,
         isDraggable: false,
-        child: new TestObject({ key: 'row-a-child1' }),
+        body: new TestObject({ key: 'row-a-child1' }),
       });
       const rowAChild2 = new SceneGridItem({
         x: 1,
@@ -252,7 +252,7 @@ describe('SceneGridLayout', () => {
         height: 1,
         isResizable: false,
         isDraggable: false,
-        child: new TestObject({ key: 'row-a-child2' }),
+        body: new TestObject({ key: 'row-a-child2' }),
       });
 
       const sourceRow = new SceneGridRow({
@@ -289,7 +289,7 @@ describe('SceneGridLayout', () => {
         isResizable: false,
         isDraggable: false,
         key: 'row-a-child1',
-        child: new TestObject({}),
+        body: new TestObject({}),
       });
       const rowAChild2 = new SceneGridItem({
         x: 1,
@@ -299,7 +299,7 @@ describe('SceneGridLayout', () => {
         isResizable: false,
         isDraggable: false,
         key: 'row-a-child2',
-        child: new TestObject({}),
+        body: new TestObject({}),
       });
 
       const sourceRow = new SceneGridRow({
@@ -322,7 +322,7 @@ describe('SceneGridLayout', () => {
         isResizable: false,
         isDraggable: false,
         key: 'a',
-        child: new TestObject({}),
+        body: new TestObject({}),
       });
       const layout = new SceneGridLayout({
         children: [panelOutsideARow, sourceRow, targetRow],
@@ -356,7 +356,7 @@ describe('SceneGridLayout', () => {
         height: 1,
         isResizable: false,
         isDraggable: false,
-        child: new TestObject({ key: 'row-a-child1' }),
+        body: new TestObject({ key: 'row-a-child1' }),
       });
 
       const rowAChild2 = new SceneGridItem({
@@ -366,7 +366,7 @@ describe('SceneGridLayout', () => {
         height: 1,
         isResizable: false,
         isDraggable: false,
-        child: new TestObject({ key: 'row-a-child2' }),
+        body: new TestObject({ key: 'row-a-child2' }),
       });
 
       const rowA = new SceneGridRow({
@@ -384,7 +384,7 @@ describe('SceneGridLayout', () => {
         height: 1,
         isResizable: false,
         isDraggable: false,
-        child: new TestObject({ key: 'outsider' }),
+        body: new TestObject({ key: 'outsider' }),
       });
 
       const rowBChild1 = new SceneGridItem({
@@ -394,7 +394,7 @@ describe('SceneGridLayout', () => {
         height: 1,
         isResizable: false,
         isDraggable: false,
-        child: new TestObject({ key: 'row-b-child1' }),
+        body: new TestObject({ key: 'row-b-child1' }),
       });
       const rowB = new SceneGridRow({
         title: 'Row B',

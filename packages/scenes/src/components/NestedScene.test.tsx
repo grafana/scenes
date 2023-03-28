@@ -11,12 +11,12 @@ function setup() {
     body: new SceneFlexLayout({
       children: [
         new SceneFlexItem({
-          child: new NestedScene({
+          body: new NestedScene({
             title: 'Nested title',
             canRemove: true,
             canCollapse: true,
             body: new SceneFlexLayout({
-              children: [new SceneFlexItem({ child: new SceneCanvasText({ text: 'SceneCanvasText' }) })],
+              children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'SceneCanvasText' }) })],
             }),
           }),
         }),

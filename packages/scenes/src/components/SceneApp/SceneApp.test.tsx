@@ -13,7 +13,7 @@ import { SceneRouteMatch } from './types';
 const setupScene = (inspectableObject: SceneObject) => {
   return new EmbeddedScene({
     body: new SceneFlexLayout({
-      children: [new SceneFlexItem({ child: inspectableObject })],
+      children: [new SceneFlexItem({ body: inspectableObject })],
     }),
   });
 };

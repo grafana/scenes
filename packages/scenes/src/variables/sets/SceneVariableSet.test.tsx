@@ -143,7 +143,7 @@ describe('SceneVariableList', () => {
 
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [B, A] }),
-          children: [new SceneFlexItem({ child: helloText }), new SceneFlexItem({ child: sceneObjectWithVariable })],
+          children: [new SceneFlexItem({ body: helloText }), new SceneFlexItem({ body: sceneObjectWithVariable })],
         });
 
         render(<scene.Component model={scene} />);

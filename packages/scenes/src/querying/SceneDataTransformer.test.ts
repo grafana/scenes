@@ -175,7 +175,7 @@ describe('SceneDataTransformer', () => {
     // @ts-expect-error
     const scene = new SceneFlexLayout({
       $data: sourceDataNode,
-      children: [new SceneFlexItem({ child: consumer })],
+      children: [new SceneFlexItem({ body: consumer })],
     });
 
     sourceDataNode.activate();
@@ -223,7 +223,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [new SceneFlexItem({ child: consumer })],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -273,7 +273,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [new SceneFlexItem({ child: consumer })],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -323,7 +323,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [new SceneFlexItem({ child: consumer })],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -373,7 +373,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [new SceneFlexItem({ child: consumer })],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();

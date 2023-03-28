@@ -70,7 +70,7 @@ export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
 }
 
 function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
-  const { child } = model.useState();
+  const { body } = model.useState();
   const parent = model.parent;
   let style: CSSProperties = {};
 
@@ -80,13 +80,13 @@ function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
     throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
   }
 
-  if (!child) {
+  if (!body) {
     return null;
   }
 
   return (
     <div style={style}>
-      <child.Component model={child} />
+      <body.Component model={body} />
     </div>
   );
 }

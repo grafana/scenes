@@ -51,7 +51,7 @@ export class NestedScene extends SceneObjectBase<NestedSceneState> {
 
     if (isSceneLayoutItem(parent)) {
       parent.setState({
-        child: undefined,
+        body: undefined,
       });
     }
   };
@@ -129,5 +129,5 @@ const getStyles = (theme: GrafanaTheme2) => ({
 });
 
 function isSceneLayoutItem(x: SceneObject): x is SceneObject<SceneLayoutItemState> {
-  return 'child' in x.state;
+  return 'body' in x.state;
 }
