@@ -11,20 +11,20 @@ import {
 import { config, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DeepPartial } from '../../core/types';
+import { DeepPartial, SceneLayoutChildState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
-import { PanelChromeState } from '../PanelChromeRenderer';
 import { VariableCustomFormatterFn } from '../../variables/types';
 
-export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends PanelChromeState {
+export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLayoutChildState {
+  title: string;
+  description?: string;
   pluginId: string;
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
-
   displayMode?: 'default' | 'transparent';
   hoverHeader?: boolean;
   menu?: VizPanelMenu;

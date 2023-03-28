@@ -1,5 +1,6 @@
 import { EmbeddedScene, SceneCanvasText, SceneFlexLayout } from '@grafana/scenes';
 import { getPanelMenuTest } from './scenes/panelMenu';
+import { getQueryEditorDemo } from './scenes/queryEditor';
 
 interface SceneDef {
   title: string;
@@ -7,7 +8,10 @@ interface SceneDef {
 }
 
 export function getDemos(): SceneDef[] {
-  return [{ title: 'Panel menu', getScene: getPanelMenuTest }];
+  return [
+    { title: 'Panel menu', getScene: getPanelMenuTest },
+    { title: 'Query editor demo', getScene: getQueryEditorDemo },
+  ];
 }
 
 function getErrorScene(title: string) {

@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { CoreApp } from '@grafana/data';
-import { DataQuery } from '@grafana/schema';
 
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
@@ -9,7 +8,7 @@ import { SceneComponentProps } from '../../core/types';
 import { QueryEditor } from './QueryEditor';
 
 export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>) {
-  const { datasourceLoadErrorMessage, loadedDatasource, query } = model.useState();
+  const { datasourceLoadErrorMessage, loadedDatasource } = model.useState();
 
   const { data } = sceneGraph.getData(model).useState();
   const sceneQueryRunner = sceneGraph.getSceneQueryRunner(model);
@@ -26,35 +25,23 @@ export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>)
     return <div>Datasource has no query editor.</div>;
   }
 
+  if (!sceneQueryRunner || sceneQueryRunner.state.queries.length === 0) {
+    return <div>No queries found.</div>;
+  }
+
   const QueryEditor = loadedDatasource.components.QueryEditor;
-
-  const onChange = (query: DataQuery) => {
-    model.setState({ query });
-
-    if (sceneQueryRunner) {
-      sceneQueryRunner.setState({
-        queries: [
-          {
-            datasource: loadedDatasource.getRef(),
-            ...query,
-          },
-        ],
-      });
-      sceneQueryRunner.runQueries();
-    }
-  };
 
   return (
     <QueryEditor
       key={loadedDatasource?.name}
-      query={query}
+      query={sceneQueryRunner.state.queries[0]}
       datasource={loadedDatasource}
-      onChange={onChange}
+      onChange={(query) => model.onChange(sceneQueryRunner, query)}
       onRunQuery={() => {}}
       onAddQuery={() => {}}
       data={data}
       range={data?.timeRange}
-      queries={[query]}
+      queries={sceneQueryRunner.state.queries}
       app={CoreApp.PanelEditor}
     />
   );

@@ -1,23 +1,24 @@
 import { DataSourceApi } from '@grafana/data';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { SceneLayoutChildState } from '../../core/types';
 
 import { QueryEditorRenderer } from './QueryEditorRenderer';
 import { DataQuery, DataSourceRef } from '@grafana/schema';
-import { PanelChromeState } from '../PanelChromeRenderer';
 
-export interface QueryEditorState extends PanelChromeState {
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+
+export interface QueryEditorState extends SceneLayoutChildState {
   datasource: string | DataSourceRef;
   datasourceLoadErrorMessage?: string;
   loadedDatasource?: DataSourceApi;
-  query: DataQuery;
 }
 
 export class QueryEditor extends SceneObjectBase<QueryEditorState> {
   public static Component = QueryEditorRenderer;
 
   public constructor(state: Partial<QueryEditorState>) {
-    super({ query: { refId: 'A' }, title: 'Title', datasource: 'gdev-testdata', ...state });
+    super({ datasource: 'gdev-testdata', ...state });
   }
 
   public activate() {
@@ -32,4 +33,21 @@ export class QueryEditor extends SceneObjectBase<QueryEditorState> {
         this.setState({ datasourceLoadErrorMessage: err.message });
       });
   }
+
+  public onChange = (sceneQueryRunner: SceneQueryRunner, query: DataQuery) => {
+    const { loadedDatasource } = this.state;
+    
+    if (sceneQueryRunner && loadedDatasource) {
+      sceneQueryRunner.setState({
+        queries: [
+          {
+            datasource: loadedDatasource.getRef(),
+            ...query,
+          },
+        ],
+      });
+
+      sceneQueryRunner.runQueries();
+    }
+  };
 }
