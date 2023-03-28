@@ -6,7 +6,13 @@ import { Stack } from '@grafana/experimental';
 import { Button, ToolbarButton, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObject, SceneLayoutChildState, SceneComponentProps, SceneLayout } from '../core/types';
+import {
+  SceneObject,
+  SceneLayoutChildState,
+  SceneComponentProps,
+  SceneLayout,
+  SceneLayoutItemState,
+} from '../core/types';
 
 interface NestedSceneState extends SceneLayoutChildState {
   title: string;
@@ -43,7 +49,7 @@ export class NestedScene extends SceneObjectBase<NestedSceneState> {
       });
     }
 
-    if ('child' in parent.state) {
+    if (isSceneLayoutItem(parent)) {
       parent.setState({
         child: undefined,
       });
@@ -121,3 +127,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flexGrow: 1,
   }),
 });
+
+function isSceneLayoutItem(x: SceneObject): x is SceneObject<SceneLayoutItemState> {
+  return 'child' in x.state;
+}
