@@ -34,7 +34,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dragClass = isDraggable && parentLayout.getDragClass ? parentLayout.getDragClass() : '';
   const dragClassCancel = isDraggable && parentLayout.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
 
-  console.log('VizPanelRenderer', parentLayout.isDraggable(), isDraggable, dragClass);
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
 

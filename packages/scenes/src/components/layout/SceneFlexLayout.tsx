@@ -80,6 +80,10 @@ function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
     throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
   }
 
+  if (!child) {
+    return null;
+  }
+
   return (
     <div style={style}>
       <child.Component model={child} />

@@ -2,6 +2,7 @@ import { EmbeddedScene, SceneCanvasText, SceneFlexItem, SceneFlexLayout } from '
 import { getFlexLayoutTest } from './scenes/flexLayout';
 import { getGridLayoutTest } from './scenes/grid';
 import { getGridWithRowLayoutTest } from './scenes/gridWithRow';
+import { getNestedScene } from './scenes/nestedScene';
 import { getPanelMenuTest } from './scenes/panelMenu';
 import { getPanelRepeaterTest } from './scenes/panelRepeater';
 
@@ -17,6 +18,7 @@ export function getDemos(): SceneDef[] {
     { title: 'Panel repeater', getScene: getPanelRepeaterTest },
     { title: 'Grid layout', getScene: getGridLayoutTest },
     { title: 'Grid layout with rows', getScene: getGridWithRowLayoutTest },
+    { title: 'Nested scene', getScene: getNestedScene },
   ];
 }
 

@@ -2,7 +2,7 @@ import { Location } from 'history';
 
 import { locationService } from '@grafana/runtime';
 
-import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneLayoutChildState, SceneObject, SceneObjectUrlValues } from '../core/types';
@@ -60,7 +60,7 @@ describe('UrlSyncManager', () => {
     it('should update url', () => {
       const obj = new TestObj({ name: 'test' });
       scene = new SceneFlexLayout({
-        children: [obj],
+        children: [new SceneFlexItem({ child: obj })],
       });
 
       urlManager = new UrlSyncManager(scene);
@@ -88,7 +88,7 @@ describe('UrlSyncManager', () => {
       const obj = new TestObj({ name: 'test' });
       const initialObjState = obj.state;
       scene = new SceneFlexLayout({
-        children: [obj],
+        children: [new SceneFlexItem({ child: obj })],
       });
 
       urlManager = new UrlSyncManager(scene);
@@ -126,9 +126,11 @@ describe('UrlSyncManager', () => {
 
       scene = new SceneFlexLayout({
         children: [
-          new SceneFlexLayout({
-            $timeRange: innerTimeRange,
-            children: [],
+          new SceneFlexItem({
+            child: new SceneFlexLayout({
+              $timeRange: innerTimeRange,
+              children: [],
+            }),
           }),
         ],
         $timeRange: outerTimeRange,
@@ -172,7 +174,7 @@ describe('UrlSyncManager', () => {
     it('Should update url correctly', () => {
       const obj = new TestObj({ name: 'test' });
       scene = new SceneFlexLayout({
-        children: [obj],
+        children: [new SceneFlexItem({ child: obj })],
       });
 
       urlManager = new UrlSyncManager(scene);
@@ -203,7 +205,7 @@ describe('UrlSyncManager', () => {
     it('Should update from url correctly', () => {
       const obj = new TestObj({ name: 'test' });
       scene = new SceneFlexLayout({
-        children: [obj],
+        children: [new SceneFlexItem({ child: obj })],
       });
 
       urlManager = new UrlSyncManager(scene);
@@ -226,7 +228,7 @@ describe('UrlSyncManager', () => {
     it('When updating via state and removing from url', () => {
       const obj = new TestObj({ name: 'test' });
       scene = new SceneFlexLayout({
-        children: [obj],
+        children: [new SceneFlexItem({ child: obj })],
       });
 
       urlManager = new UrlSyncManager(scene);
@@ -248,7 +250,7 @@ describe('UrlSyncManager', () => {
     it('When removing optional state via state change', () => {
       const obj = new TestObj({ name: 'test' });
       scene = new SceneFlexLayout({
-        children: [obj],
+        children: [new SceneFlexItem({ child: obj })],
       });
 
       urlManager = new UrlSyncManager(scene);

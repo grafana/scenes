@@ -42,6 +42,12 @@ export class NestedScene extends SceneObjectBase<NestedSceneState> {
         children: parent.state.children.filter((x) => x !== this),
       });
     }
+
+    if ('child' in parent.state) {
+      parent.setState({
+        child: undefined,
+      });
+    }
   };
 }
 

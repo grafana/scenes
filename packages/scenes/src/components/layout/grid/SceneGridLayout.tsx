@@ -392,6 +392,10 @@ function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
     throw new Error('SceneGridItem must be a child of SceneGridLayout or SceneGridRow');
   }
 
+  if (!child) {
+    return null;
+  }
+
   return <child.Component model={child} />;
 }
 
