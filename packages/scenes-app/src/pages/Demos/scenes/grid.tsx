@@ -21,7 +21,7 @@ export function getGridLayoutTest(): EmbeddedScene {
           height: 10,
           isResizable: true,
           isDraggable: true,
-          child: new VizPanel({
+          body: new VizPanel({
             pluginId: 'timeseries',
             title: 'Draggable and resizable',
           }),
@@ -33,7 +33,7 @@ export function getGridLayoutTest(): EmbeddedScene {
           height: 10,
           isResizable: false,
           isDraggable: false,
-          child: new VizPanel({
+          body: new VizPanel({
             pluginId: 'timeseries',
             title: 'No drag and no resize',
             isDraggable: false,
@@ -48,17 +48,17 @@ export function getGridLayoutTest(): EmbeddedScene {
           height: 10,
           isDraggable: false,
           isResizable: true,
-          child: new SceneFlexLayout({
+          body: new SceneFlexLayout({
             direction: 'column',
             children: [
               new SceneFlexItem({
-                child: new VizPanel({
+                body: new VizPanel({
                   pluginId: 'timeseries',
                   title: 'Child of flex layout',
                 }),
               }),
               new SceneFlexItem({
-                child: new VizPanel({
+                body: new VizPanel({
                   pluginId: 'timeseries',
                   title: 'Child of flex layout',
                 }),

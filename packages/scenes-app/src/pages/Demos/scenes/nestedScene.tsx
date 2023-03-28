@@ -15,14 +15,14 @@ export function getNestedScene(): EmbeddedScene {
       direction: 'column',
       children: [
         new SceneFlexItem({
-          child: new VizPanel({
+          body: new VizPanel({
             key: '3',
             pluginId: 'timeseries',
             title: 'Panel 3',
           }),
         }),
         new SceneFlexItem({
-          child: getInnerScene('Inner scene'),
+          body: getInnerScene('Inner scene'),
         }),
       ],
     }),
@@ -41,7 +41,7 @@ export function getInnerScene(title: string) {
       direction: 'row',
       children: [
         new SceneFlexItem({
-          child: new VizPanel({
+          body: new VizPanel({
             key: '3',
             pluginId: 'timeseries',
             title: 'Data',

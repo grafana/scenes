@@ -28,7 +28,7 @@ function getErrorScene(title: string) {
       direction: 'column',
       children: [
         new SceneFlexItem({
-          child: new SceneCanvasText({
+          body: new SceneCanvasText({
             text: `¯\\_(ツ)_/¯ No scene found with title ${title}`,
             align: 'center',
           }),

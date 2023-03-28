@@ -28,7 +28,7 @@ export function getPanelRepeaterTest(): EmbeddedScene {
       getLayoutChild: (data, frame, frameIndex) => {
         return new SceneFlexItem({
           minHeight: 200,
-          child: new SceneFlexLayout({
+          body: new SceneFlexLayout({
             direction: 'row',
             key: `panel-${frameIndex}`,
             $data: new SceneDataNode({
@@ -39,7 +39,7 @@ export function getPanelRepeaterTest(): EmbeddedScene {
             }),
             children: [
               new SceneFlexItem({
-                child: new VizPanel({
+                body: new VizPanel({
                   pluginId: 'timeseries',
                   title: 'aaa',
                   options: {
@@ -49,7 +49,7 @@ export function getPanelRepeaterTest(): EmbeddedScene {
               }),
               new SceneFlexItem({
                 width: 300,
-                child: new VizPanel({
+                body: new VizPanel({
                   pluginId: 'stat',
                   fieldConfig: { defaults: { displayName: 'Last' }, overrides: [] },
                   options: {

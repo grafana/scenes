@@ -29,7 +29,7 @@ export function getGridWithRowLayoutTest(): EmbeddedScene {
               height: 5,
               isResizable: true,
               isDraggable: true,
-              child: new VizPanel({
+              body: new VizPanel({
                 pluginId: 'timeseries',
                 title: 'Row A Child1',
                 key: 'Row A Child1',
@@ -42,7 +42,7 @@ export function getGridWithRowLayoutTest(): EmbeddedScene {
               height: 5,
               isResizable: true,
               isDraggable: true,
-              child: new VizPanel({
+              body: new VizPanel({
                 pluginId: 'timeseries',
                 title: 'Row A Child2',
                 key: 'Row A Child2',
@@ -63,7 +63,7 @@ export function getGridWithRowLayoutTest(): EmbeddedScene {
               height: 5,
               isResizable: false,
               isDraggable: true,
-              child: new VizPanel({
+              body: new VizPanel({
                 pluginId: 'timeseries',
                 title: 'Row B Child1',
                 key: 'Row B Child1',
@@ -76,7 +76,7 @@ export function getGridWithRowLayoutTest(): EmbeddedScene {
               height: 5,
               isResizable: false,
               isDraggable: true,
-              child: new VizPanel({
+              body: new VizPanel({
                 pluginId: 'timeseries',
                 title: 'Row B Child2',
                 key: 'Row B Child2',
@@ -91,7 +91,7 @@ export function getGridWithRowLayoutTest(): EmbeddedScene {
           height: 10,
           isResizable: true,
           isDraggable: true,
-          child: new VizPanel({
+          body: new VizPanel({
             pluginId: 'timeseries',
             title: 'Outsider',
             key: 'Outsider',

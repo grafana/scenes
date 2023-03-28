@@ -18,24 +18,24 @@ export function getFlexLayoutTest() {
         new SceneFlexItem({
           ySizing: 'fill',
           xSizing: 'fill',
-          child: new SceneFlexLayout({
+          body: new SceneFlexLayout({
             direction: 'row',
             children: [
               new SceneFlexItem({
                 minWidth: '70%',
-                child: new VizPanel({
+                body: new VizPanel({
                   pluginId: 'timeseries',
                   title: 'Dynamic height and width',
                   $data: getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }),
                 }),
               }),
               new SceneFlexItem({
-                child: new SceneFlexLayout({
+                body: new SceneFlexLayout({
                   $data: getQueryRunnerWithRandomWalkQuery(),
                   direction: 'column',
                   children: [
                     new SceneFlexItem({
-                      child: new VizPanel({
+                      body: new VizPanel({
                         pluginId: 'timeseries',
                         title: 'Fill height',
                         options: {},
@@ -50,14 +50,14 @@ export function getFlexLayoutTest() {
                       }),
                     }),
                     new SceneFlexItem({
-                      child: new VizPanel({
+                      body: new VizPanel({
                         pluginId: 'timeseries',
                         title: 'Fill height',
                       }),
                     }),
                     new SceneFlexItem({
                       ySizing: 'content',
-                      child: new SceneCanvasText({
+                      body: new SceneCanvasText({
                         text: 'Size to content',
                         fontSize: 20,
                         align: 'center',
@@ -65,7 +65,7 @@ export function getFlexLayoutTest() {
                     }),
                     new SceneFlexItem({
                       height: 300,
-                      child: new VizPanel({
+                      body: new VizPanel({
                         pluginId: 'timeseries',
                         title: 'Fixed height',
                       }),
@@ -78,19 +78,19 @@ export function getFlexLayoutTest() {
         }),
         new SceneFlexItem({
           xSizing: 'fill',
-          child: new SceneFlexLayout({
+          body: new SceneFlexLayout({
             direction: 'row',
             children: [
               new SceneFlexItem({
                 width: 50,
                 height: 50,
-                child: new DebugItem({}),
+                body: new DebugItem({}),
               }),
               new SceneFlexItem({
                 xSizing: 'fill',
                 ySizing: 'fill',
                 maxHeight: 200,
-                child: new VizPanel({
+                body: new VizPanel({
                   title: 'Panel 1',
                   pluginId: 'timeseries',
                   $data: getQueryRunnerWithRandomWalkQuery(),
@@ -99,7 +99,7 @@ export function getFlexLayoutTest() {
               new SceneFlexItem({
                 width: '10%',
                 ySizing: 'fill',
-                child: new DebugItem({}),
+                body: new DebugItem({}),
               }),
             ],
           }),

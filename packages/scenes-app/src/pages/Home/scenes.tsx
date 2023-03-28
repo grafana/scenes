@@ -70,7 +70,7 @@ export function getBasicScene(templatised = true, seriesToShow = '__server_names
     body: new SceneFlexLayout({
       children: [
         new SceneFlexItem({
-          child: new VizPanel({
+          body: new VizPanel({
             pluginId: 'timeseries',
             // Title is using variable value
             title: templatised ? '${seriesToShow}' : seriesToShow,

@@ -35,11 +35,11 @@ const getScene = () =>
       children: [
         new SceneFlexItem({
           height: 300,
-          child: getRoomsTemperatureTable(),
+          body: getRoomsTemperatureTable(),
         }),
         new SceneFlexItem({
           ySizing: 'fill',
-          child: getRoomsTemperatureStats(),
+          body: getRoomsTemperatureStats(),
         }),
       ],
     }),

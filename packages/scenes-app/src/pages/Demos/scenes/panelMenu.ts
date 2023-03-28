@@ -97,7 +97,7 @@ export function getPanelMenuTest() {
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          child: new VizPanel({
+          body: new VizPanel({
             title: 'Basic static menu',
             pluginId: 'timeseries',
 
@@ -107,7 +107,7 @@ export function getPanelMenuTest() {
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          child: new VizPanel({
+          body: new VizPanel({
             title: 'Basic lazy menu',
             pluginId: 'timeseries',
             menu: staticMenuViaActivation,
@@ -116,7 +116,7 @@ export function getPanelMenuTest() {
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          child: new VizPanel({
+          body: new VizPanel({
             title: 'Async menu, will show after 1s',
             pluginId: 'timeseries',
 
@@ -126,7 +126,7 @@ export function getPanelMenuTest() {
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          child: new VizPanel({
+          body: new VizPanel({
             title: 'New item added to menu after it is shown',
             pluginId: 'timeseries',
             menu: dynamicMenu,
@@ -135,7 +135,7 @@ export function getPanelMenuTest() {
         new SceneFlexItem({
           minHeight: 200,
           minWidth: '40%',
-          child: panelWithMenu,
+          body: panelWithMenu,
         }),
       ],
     }),

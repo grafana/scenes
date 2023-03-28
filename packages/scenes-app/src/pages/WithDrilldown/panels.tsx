@@ -132,7 +132,7 @@ export function getRoomsTemperatureStats() {
       return new SceneFlexItem({
         height: '50%',
         minWidth: '20%',
-        child: new VizPanel({
+        body: new VizPanel({
           title: frame.name,
           pluginId: 'stat',
 

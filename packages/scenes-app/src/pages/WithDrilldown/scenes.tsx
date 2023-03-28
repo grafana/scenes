@@ -29,7 +29,7 @@ export function getTemperatureOverviewScene(roomName: string) {
       children: [
         new SceneFlexItem({
           height: 500,
-          child: new VizPanel({
+          body: new VizPanel({
             title: 'Temperature over time',
             pluginId: 'timeseries',
 
@@ -42,17 +42,17 @@ export function getTemperatureOverviewScene(roomName: string) {
           }),
         }),
         new SceneFlexItem({
-          child: new SceneFlexLayout({
+          body: new SceneFlexLayout({
             direction: 'row',
             children: [
               new SceneFlexItem({
-                child: getRoomTemperatureStatPanel([ReducerID.min]),
+                body: getRoomTemperatureStatPanel([ReducerID.min]),
               }),
               new SceneFlexItem({
-                child: getRoomTemperatureStatPanel([ReducerID.max]),
+                body: getRoomTemperatureStatPanel([ReducerID.max]),
               }),
               new SceneFlexItem({
-                child: getRoomTemperatureStatPanel([ReducerID.mean]),
+                body: getRoomTemperatureStatPanel([ReducerID.mean]),
               }),
             ],
           }),
@@ -79,7 +79,7 @@ export function getHumidityOverviewScene(roomName: string) {
       children: [
         new SceneFlexItem({
           height: 500,
-          child: new VizPanel({
+          body: new VizPanel({
             title: 'Humidity readings over time',
             pluginId: 'timeseries',
 
