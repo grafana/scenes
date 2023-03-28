@@ -34,8 +34,8 @@ export { SceneRefreshPicker } from './components/SceneRefreshPicker';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export { SceneFlexLayout, SceneFlexItem } from './components/layout/SceneFlexLayout';
-export { SceneGridLayout, SceneGridItem } from './components/layout/SceneGridLayout';
-export { SceneGridRow } from './components/layout/SceneGridRow';
+export { SceneGridLayout, SceneGridItem } from './components/layout/grid/SceneGridLayout';
+export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,

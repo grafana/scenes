@@ -2,14 +2,14 @@ import React from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
-import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import {
   SceneComponentProps,
   SceneLayout,
   SceneLayoutItemState,
   SceneObject,
   SceneObjectStatePlain,
-} from '../../core/types';
+} from '../../../core/types';
 import { DEFAULT_PANEL_SPAN, GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
 
 import { SceneGridRow } from './SceneGridRow';
@@ -101,7 +101,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
         this.pushChildDown(child, pushDownAmount);
       }
 
-      if (isSceneGridRow(child) && (child as unknown as SceneGridRow) !== row) {
+      if (isSceneGridRow(child) && child !== row) {
         for (const rowChild of child.state.children) {
           if (rowChild.state.y! > rowY) {
             this.pushChildDown(rowChild, pushDownAmount);
@@ -171,7 +171,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     });
   };
 
-  private pushChildDown(child: SceneGridRow | SceneGridItemLike, amount: number) {
+  private pushChildDown(child: SceneGridItemLike, amount: number) {
     child.setState({
       y: child.state.y! + amount,
     });
@@ -192,7 +192,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
           return this;
         }
 
-        return sceneChild as unknown as SceneGridRow;
+        return sceneChild;
       }
     }
 
@@ -202,12 +202,9 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   /**
    * This likely needs a slighltly different approach. Where we clone or deactivate or and re-activate the moved child
    */
-  public moveChildTo(child: SceneGridRow | SceneGridItemLike, target: SceneGridLayout | SceneGridRow) {
+  public moveChildTo(child: SceneGridItemLike, target: SceneGridLayout | SceneGridRow) {
     const currentParent = child.parent!;
     let rootChildren = this.state.children;
-    if (child instanceof SceneGridRow) {
-      return rootChildren;
-    }
 
     const newChild = child.clone({ key: child.state.key });
 
@@ -275,7 +272,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     this._skipOnLayoutChange = true;
   };
 
-  private toGridCell(child: SceneGridItemLike | SceneGridRow): ReactGridLayout.Layout {
+  private toGridCell(child: SceneGridItemLike): ReactGridLayout.Layout {
     const size = child.state;
 
     let x = size.x ?? 0;
@@ -320,23 +317,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     return cells;
   }
-}
-
-interface SceneGridItemState extends SceneGridItemStateLike, SceneLayoutItemState {}
-
-export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implements SceneGridItemLike {
-  static Component = SceneGridItemRenderer;
-}
-
-function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
-  const { child } = model.useState();
-  const parent = model.parent;
-
-  if (parent && !isSceneGridLayout(parent) && !isSceneGridRow(parent)) {
-    throw new Error('SceneGridItem must be a child of SceneGridLayout or SceneGridRow');
-  }
-
-  return <child.Component model={child} />;
 }
 
 function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
@@ -398,7 +378,24 @@ function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>
   );
 }
 
-function validateChildrenSize(children: Array<SceneGridItemLike | SceneGridRow>) {
+interface SceneGridItemState extends SceneGridItemStateLike, SceneLayoutItemState {}
+
+export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implements SceneGridItemLike {
+  static Component = SceneGridItemRenderer;
+}
+
+function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
+  const { child } = model.useState();
+  const parent = model.parent;
+
+  if (parent && !isSceneGridLayout(parent) && !isSceneGridRow(parent)) {
+    throw new Error('SceneGridItem must be a child of SceneGridLayout or SceneGridRow');
+  }
+
+  return <child.Component model={child} />;
+}
+
+function validateChildrenSize(children: SceneGridItemLike[]) {
   if (
     children.find(
       (c) =>
@@ -416,7 +413,7 @@ function isItemSizeEqual(a: SceneGridItemPlacement, b: SceneGridItemPlacement) {
   return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 }
 
-function sortChildrenByPosition(children: Array<SceneGridRow | SceneGridItemLike>) {
+function sortChildrenByPosition(children: SceneGridItemLike[]) {
   return [...children].sort((a, b) => {
     return a.state.y! - b.state.y! || a.state.x! - b.state.x!;
   });

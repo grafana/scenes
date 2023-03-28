@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneLayoutChildState } from '../../core/types';
-import { EmbeddedScene } from '../EmbeddedScene';
+import { SceneObjectBase } from '../../../core/SceneObjectBase';
+import { SceneComponentProps, SceneLayoutChildState } from '../../../core/types';
+import { EmbeddedScene } from '../../EmbeddedScene';
 
 import { SceneGridItem, SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';

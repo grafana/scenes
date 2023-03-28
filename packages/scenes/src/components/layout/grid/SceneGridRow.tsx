@@ -4,10 +4,10 @@ import React from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 
-import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
-import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
-import { SceneDragHandle } from '../SceneDragHandle';
+import { SceneObjectBase } from '../../../core/SceneObjectBase';
+import { SceneComponentProps, SceneObjectUrlValues } from '../../../core/types';
+import { SceneObjectUrlSyncConfig } from '../../../services/SceneObjectUrlSyncConfig';
+import { SceneDragHandle } from '../../SceneDragHandle';
 
 import { SceneGridLayout } from './SceneGridLayout';
 import { GRID_COLUMN_COUNT } from './constants';

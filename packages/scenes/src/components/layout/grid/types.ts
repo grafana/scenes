@@ -1,4 +1,4 @@
-import { SceneObject, SceneObjectStatePlain } from '../../core/types';
+import { SceneObject, SceneObjectStatePlain } from '../../../core/types';
 
 export interface SceneGridItemPlacement {
   x?: number;
