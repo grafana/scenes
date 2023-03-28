@@ -12,9 +12,12 @@ import {
   ValidateAndUpdateResult,
   VariableValue,
   VariableValueOption,
-  VariableValueCustom,
   VariableValueSingle,
+  CustomVariableValue,
+  VariableCustomFormatterFn,
 } from '../types';
+import { formatRegistry } from '../interpolation/formatRegistry';
+import { VariableFormatID } from '@grafana/schema';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -35,7 +38,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   extends SceneObjectBase<TState>
   implements SceneVariable<TState>
 {
-  protected _urlSync: SceneObjectUrlSyncHandler<TState> = new MultiValueUrlSyncHandler(this);
+  protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
    * The source of value options.
@@ -116,7 +119,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   public getValue(): VariableValue {
     if (this.hasAllValue()) {
       if (this.state.allValue) {
-        return new CustomAllValue(this.state.allValue);
+        return new CustomAllValue(this.state.allValue, this);
       }
 
       return this.state.options.map((x) => x.value);
@@ -233,21 +236,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   }
 }
 
-/**
- * The custom allValue needs a special wrapping / handling to make it not be formatted / escaped like normal values
- */
-class CustomAllValue implements VariableValueCustom {
-  public isCustomValue: true = true;
-
-  public constructor(private _value: string) {}
-
-  public toString() {
-    return this._value;
-  }
-}
-
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
-  implements SceneObjectUrlSyncHandler<TState>
+  implements SceneObjectUrlSyncHandler
 {
   public constructor(private _sceneObject: MultiValueVariable<TState>) {}
 
@@ -259,9 +249,9 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     return [this.getKey()];
   }
 
-  public getUrlState(state: TState): SceneObjectUrlValues {
+  public getUrlState(): SceneObjectUrlValues {
     let urlValue: string | string[] | null = null;
-    let value = state.value;
+    let value = this._sceneObject.state.value;
 
     if (Array.isArray(value)) {
       urlValue = value.map(String);
@@ -278,5 +268,29 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     if (urlValue != null) {
       this._sceneObject.changeValueTo(urlValue);
     }
+  }
+}
+
+/**
+ * Variable getValue can return this to skip any subsequent formatting.
+ * This is useful for custom all values that should not be escaped/formatted.
+ */
+export class CustomAllValue implements CustomVariableValue {
+  public constructor(private _value: string, private _variable: SceneVariable) {}
+
+  public formatter(formatNameOrFn?: string | VariableCustomFormatterFn): string {
+    if (formatNameOrFn === VariableFormatID.Text) {
+      return ALL_VARIABLE_TEXT;
+    }
+
+    if (formatNameOrFn === VariableFormatID.PercentEncode) {
+      return formatRegistry.get(VariableFormatID.PercentEncode).formatter(this._value, [], this._variable);
+    }
+
+    if (formatNameOrFn === VariableFormatID.QueryParam) {
+      return formatRegistry.get(VariableFormatID.QueryParam).formatter(ALL_VARIABLE_TEXT, [], this._variable);
+    }
+
+    return this._value;
   }
 }

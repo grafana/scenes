@@ -37,15 +37,17 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
 
 export type VariableValue = VariableValueSingle | VariableValueSingle[];
 
-export type VariableValueSingle = string | boolean | number | VariableValueCustom;
+export type VariableValueSingle = string | boolean | number | CustomVariableValue;
 
 /**
- * This is for edge case values like the custom "allValue" that should not be escaped/formatted like other values.
+ * This is for edge case values like the custom "allValue" that should not be escaped/formatted like other values
  * The custom all value usually contain wildcards that should not be escaped.
  */
-export interface VariableValueCustom {
-  isCustomValue: true;
-  toString(): string;
+export interface CustomVariableValue {
+  /**
+   * The format name or function used in the expression
+   */
+  formatter(formatNameOrFn?: string | VariableCustomFormatterFn): string;
 }
 
 export interface ValidateAndUpdateResult {}
@@ -101,3 +103,7 @@ export type VariableCustomFormatterFn = (
   legacyVariableModel: Partial<CustomFormatterVariable>,
   legacyDefaultFormatter?: VariableCustomFormatterFn
 ) => string;
+
+export function isCustomVariableValue(value: VariableValue): value is CustomVariableValue {
+  return typeof value === 'object' && 'formatter' in value;
+}

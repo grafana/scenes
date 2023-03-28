@@ -4,7 +4,7 @@ import { SceneVariable } from './types';
 /**
  * Will walk the scene object graph up to the root looking for the first variable with the specified name
  */
-export function lookupVariable(name: string, sceneObject: SceneObject): SceneVariable | null | undefined {
+export function lookupVariable(name: string, sceneObject: SceneObject): SceneVariable | null {
   const variables = sceneObject.state.$variables;
   if (!variables) {
     if (sceneObject.parent) {
