@@ -4,7 +4,7 @@ import React from 'react';
 import { Router } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
-import { SceneFlexLayout } from '../layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneCanvasText } from '../SceneCanvasText';
 import { SceneApp } from './SceneApp';
 import { SceneAppPage } from './SceneAppPage';
@@ -13,7 +13,7 @@ import { SceneRouteMatch } from './types';
 const setupScene = (inspectableObject: SceneObject) => {
   return new EmbeddedScene({
     body: new SceneFlexLayout({
-      children: [inspectableObject],
+      children: [new SceneFlexItem({ body: inspectableObject })],
     }),
   });
 };

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 
-import { SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObjectStatePlain, SceneLayoutChildState, SceneObject, SceneComponentProps } from '../../core/types';
 import { TestVariable } from '../variants/TestVariable';
@@ -143,7 +143,7 @@ describe('SceneVariableList', () => {
 
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [B, A] }),
-          children: [helloText, sceneObjectWithVariable],
+          children: [new SceneFlexItem({ body: helloText }), new SceneFlexItem({ body: sceneObjectWithVariable })],
         });
 
         render(<scene.Component model={scene} />);
