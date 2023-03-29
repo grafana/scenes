@@ -11,6 +11,7 @@ import {
   SceneStateChangedHandler,
   SceneActivationHandler,
   SceneDeactivationHandler,
+  CancelActivationHandler,
 } from './types';
 import { useForceUpdate } from '@grafana/ui';
 
@@ -165,7 +166,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     });
   }
 
-  public activate(): SceneDeactivationHandler {
+  public activate(): CancelActivationHandler {
     if (!this.isActive) {
       this._internalActivate();
     }
