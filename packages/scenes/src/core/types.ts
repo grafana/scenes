@@ -95,12 +95,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * Called when the Component is mounted. This will also activate any $data, $variables or $timeRange scene object on this level.
    * Don't override this in your custom SceneObjects, instead use addActivationHandler from the constructor.
    **/
-  activate(): SceneDeactivationHandler;
-
-  /** Called when component unmounts. This will also deactivate any $data, $variables or $timeRange scene object on this level.
-   * Don't override this in your custom SceneObjects, instead use addActivationHandler from the constructor. The activation handler can return a deactivation handler.
-   */
-  // deactivate(): void;
+  activate(): CancelActivationHandler;
 
   /** Get the scene root */
   getRoot(): SceneObject;
@@ -123,6 +118,11 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;
 export type SceneDeactivationHandler = () => void;
+
+/**
+ * Function returned by activate() that when called will deactivate the object if it's the last activator
+ **/
+export type CancelActivationHandler = () => void;
 
 export type SceneLayoutChild = SceneObject<SceneLayoutChildState | SceneLayoutState>;
 
