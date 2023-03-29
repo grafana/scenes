@@ -77,49 +77,51 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   return (
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
-      <PanelChrome
-        title={titleInterpolated}
-        description={description ? () => model.interpolate(description) : ''}
-        loadingState={data.state}
-        statusMessage={getChromeStatusMessage(data, pluginLoadError)}
-        width={width}
-        height={height}
-        displayMode={displayMode}
-        hoverHeader={hoverHeader}
-        titleItems={titleItems}
-        dragClass={dragClass}
-        dragClassCancel={dragClassCancel}
-        menu={panelMenu}
-      >
-        {(innerWidth, innerHeight) => (
-          <>
-            <ErrorBoundaryAlert dependencies={[plugin, data]}>
-              <PluginContextProvider meta={plugin.meta}>
-                <PanelContextProvider value={model.getPanelContext()}>
-                  <PanelComponent
-                    id={1}
-                    data={data}
-                    title={title}
-                    timeRange={data.timeRange}
-                    timeZone={timeZone}
-                    options={options}
-                    fieldConfig={fieldConfig}
-                    transparent={false}
-                    width={innerWidth}
-                    height={innerHeight}
-                    renderCounter={0}
-                    replaceVariables={model.interpolate}
-                    onOptionsChange={model.onOptionsChange}
-                    onFieldConfigChange={model.onFieldConfigChange}
-                    onChangeTimeRange={model.onChangeTimeRange}
-                    eventBus={getAppEvents()}
-                  />
-                </PanelContextProvider>
-              </PluginContextProvider>
-            </ErrorBoundaryAlert>
-          </>
-        )}
-      </PanelChrome>
+      {width > 0 && height > 0 && (
+        <PanelChrome
+          title={titleInterpolated}
+          description={description ? () => model.interpolate(description) : ''}
+          loadingState={data.state}
+          statusMessage={getChromeStatusMessage(data, pluginLoadError)}
+          width={width}
+          height={height}
+          displayMode={displayMode}
+          hoverHeader={hoverHeader}
+          titleItems={titleItems}
+          dragClass={dragClass}
+          dragClassCancel={dragClassCancel}
+          menu={panelMenu}
+        >
+          {(innerWidth, innerHeight) => (
+            <>
+              <ErrorBoundaryAlert dependencies={[plugin, data]}>
+                <PluginContextProvider meta={plugin.meta}>
+                  <PanelContextProvider value={model.getPanelContext()}>
+                    <PanelComponent
+                      id={1}
+                      data={data}
+                      title={title}
+                      timeRange={data.timeRange}
+                      timeZone={timeZone}
+                      options={options}
+                      fieldConfig={fieldConfig}
+                      transparent={false}
+                      width={innerWidth}
+                      height={innerHeight}
+                      renderCounter={0}
+                      replaceVariables={model.interpolate}
+                      onOptionsChange={model.onOptionsChange}
+                      onFieldConfigChange={model.onFieldConfigChange}
+                      onChangeTimeRange={model.onChangeTimeRange}
+                      eventBus={getAppEvents()}
+                    />
+                  </PanelContextProvider>
+                </PluginContextProvider>
+              </ErrorBoundaryAlert>
+            </>
+          )}
+        </PanelChrome>
+      )}
     </div>
   );
 }

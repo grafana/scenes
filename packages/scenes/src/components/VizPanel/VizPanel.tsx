@@ -201,12 +201,12 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   public applyFieldConfig(rawData?: PanelData): PanelData {
     const plugin = this._plugin!;
 
-    if (plugin.meta.skipDataQuery || !rawData) {
+    if (!plugin || plugin.meta.skipDataQuery || !rawData) {
       // TODO setup time range subscription instead
       return emptyPanelData;
     }
 
-    const fieldConfigRegistry = plugin!.fieldConfigRegistry;
+    const fieldConfigRegistry = plugin.fieldConfigRegistry;
 
     let structureRev = 0;
 
@@ -222,19 +222,19 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       structureRev++;
     }
 
-    const dataFramesWithConfig = applyFieldOverrides({
-      data: newFrames,
-      fieldConfig: this.state.fieldConfig,
-      fieldConfigRegistry,
-      replaceVariables: this.interpolate,
-      theme: config.theme2,
-      timeZone: rawData.request?.timezone,
-    });
-
-    return {
+    this._dataWithFieldConfig = {
       ...rawData,
-      series: dataFramesWithConfig,
       structureRev: structureRev,
+      series: applyFieldOverrides({
+        data: newFrames,
+        fieldConfig: this.state.fieldConfig,
+        fieldConfigRegistry,
+        replaceVariables: this.interpolate,
+        theme: config.theme2,
+        timeZone: rawData.request?.timezone,
+      }),
     };
+
+    return this._dataWithFieldConfig;
   }
 }
