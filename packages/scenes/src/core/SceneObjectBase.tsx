@@ -224,14 +224,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   public addActivationHandler(handler: SceneActivationHandler) {
     this._activationHandlers.push(handler);
   }
-
-  /**
-   * Allows external code to register code that is executed on deactivate.
-   * Needing to use this should be very rare, if you use addActivationHandler you can just return a function from it
-   */
-  public addDeactivationHandler(handler: SceneDeactivationHandler) {
-    this._deactivationHandlers.push(handler);
-  }
 }
 
 /**
