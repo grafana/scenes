@@ -45,6 +45,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   private _plugin?: PanelPlugin;
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
+    console.log('VIZ PANEL constructor');
     super({
       options: {},
       fieldConfig: { defaults: {}, overrides: [] },

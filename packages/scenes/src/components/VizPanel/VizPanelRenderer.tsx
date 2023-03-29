@@ -11,6 +11,7 @@ import { SceneComponentProps } from '../../core/types';
 import { VizPanel } from './VizPanel';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
+  console.log('VizPanelRenderer');
   const theme = useTheme2();
   const {
     title,
