@@ -1,6 +1,7 @@
 import {
   CustomVariable,
   EmbeddedScene,
+  SceneCanvasText,
   SceneControlsSpacer,
   SceneFlexItem,
   SceneFlexLayout,
@@ -16,7 +17,7 @@ import { ThresholdsMode } from '@grafana/schema';
 import { DATASOURCE_REF } from '../../constants';
 import { CustomSceneObject } from './CustomSceneObject';
 
-export function getBasicScene(templatised = true, seriesToShow = '__server_names') {
+export function getBasicScene(templatised = true, seriesToShow = '__server_names', withMap = true) {
   const timeRange = new SceneTimeRange({
     from: 'now-6h',
     to: 'now',
@@ -71,92 +72,94 @@ export function getBasicScene(templatised = true, seriesToShow = '__server_names
     body: new SceneFlexLayout({
       children: [
         new SceneFlexItem({
-          body: new VizPanel({
-            pluginId: 'geomap',
-            options: {
-              view: {
-                allLayers: true,
-                id: 'coords',
-                lat: 38.297683,
-                lon: -99.228359,
-                zoom: 3.98,
-                shared: true,
-              },
-              controls: {
-                showZoom: true,
-                mouseWheelZoom: true,
-                showAttribution: true,
-                showScale: false,
-                showMeasure: false,
-                showDebug: false,
-              },
-              tooltip: {
-                mode: 'details',
-              },
-              basemap: {
-                config: {},
-                name: 'Layer 0',
-                type: 'default',
-              },
-              layers: [
-                {
-                  config: {
-                    color: {
-                      field: 'Price',
-                      fixed: 'dark-green',
-                    },
-                    fillOpacity: 0.4,
-                    shape: 'circle',
-                    showLegend: true,
-                    size: {
-                      field: 'Count',
-                      fixed: 5,
-                      max: 15,
-                      min: 2,
-                    },
+          body: withMap
+            ? new VizPanel({
+                pluginId: 'geomap',
+                options: {
+                  view: {
+                    allLayers: true,
+                    id: 'coords',
+                    lat: 38.297683,
+                    lon: -99.228359,
+                    zoom: 3.98,
+                    shared: true,
                   },
-                  location: {
-                    gazetteer: 'public/gazetteer/usa-states.json',
-                    lookup: 'State',
-                    mode: 'auto',
+                  controls: {
+                    showZoom: true,
+                    mouseWheelZoom: true,
+                    showAttribution: true,
+                    showScale: false,
+                    showMeasure: false,
+                    showDebug: false,
                   },
-                  name: 'Layer 1',
-                  type: 'markers',
-                },
-              ],
-            },
-            fieldConfig: {
-              defaults: {
-                custom: {
-                  hideFrom: {
-                    tooltip: false,
-                    viz: false,
-                    legend: false,
+                  tooltip: {
+                    mode: 'details',
                   },
-                },
-                mappings: [],
-                thresholds: {
-                  mode: ThresholdsMode.Absolute,
-                  steps: [
+                  basemap: {
+                    config: {},
+                    name: 'Layer 0',
+                    type: 'default',
+                  },
+                  layers: [
                     {
-                      color: 'green',
-                      value: 0,
-                    },
-                    {
-                      color: 'red',
-                      value: 80,
+                      config: {
+                        color: {
+                          field: 'Price',
+                          fixed: 'dark-green',
+                        },
+                        fillOpacity: 0.4,
+                        shape: 'circle',
+                        showLegend: true,
+                        size: {
+                          field: 'Count',
+                          fixed: 5,
+                          max: 15,
+                          min: 2,
+                        },
+                      },
+                      location: {
+                        gazetteer: 'public/gazetteer/usa-states.json',
+                        lookup: 'State',
+                        mode: 'auto',
+                      },
+                      name: 'Layer 1',
+                      type: 'markers',
                     },
                   ],
                 },
-                color: {
-                  mode: 'continuous-GrYlRd',
+                fieldConfig: {
+                  defaults: {
+                    custom: {
+                      hideFrom: {
+                        tooltip: false,
+                        viz: false,
+                        legend: false,
+                      },
+                    },
+                    mappings: [],
+                    thresholds: {
+                      mode: ThresholdsMode.Absolute,
+                      steps: [
+                        {
+                          color: 'green',
+                          value: 0,
+                        },
+                        {
+                          color: 'red',
+                          value: 80,
+                        },
+                      ],
+                    },
+                    color: {
+                      mode: 'continuous-GrYlRd',
+                    },
+                  },
+                  overrides: [],
                 },
-              },
-              overrides: [],
-            },
-            // Title is using variable value
-            title: templatised ? '${seriesToShow}' : seriesToShow,
-          }),
+                // Title is using variable value
+                title: templatised ? '${seriesToShow}' : seriesToShow,
+              })
+            : new SceneCanvasText({ text: 'No map panel' }),
         }),
       ],
     }),

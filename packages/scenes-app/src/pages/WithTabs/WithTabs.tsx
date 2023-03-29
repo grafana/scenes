@@ -5,11 +5,11 @@ import { prefixRoute } from '../../utils/utils.routing';
 import { getBasicScene } from '../Home/scenes';
 
 const getTab1Scene = () => {
-  return getBasicScene(false, '__server_names');
+  return getBasicScene(false, '__server_names', true);
 };
 
 const getTab2Scene = () => {
-  return getBasicScene(false, '__house_locations');
+  return getBasicScene(false, '__house_locations', false);
 };
 
 const getScene = () =>
@@ -24,12 +24,12 @@ const getScene = () =>
         getScene: getTab1Scene,
         tabs: [
           new SceneAppPage({
-            title: 'Server names',
+            title: 'With geomap',
             url: prefixRoute(`${ROUTES.WithTabs}`),
             getScene: getTab1Scene,
           }),
           new SceneAppPage({
-            title: 'House locations',
+            title: 'Without geomap',
             url: prefixRoute(`${ROUTES.WithTabs}/tab-two`),
             getScene: getTab2Scene,
           }),
