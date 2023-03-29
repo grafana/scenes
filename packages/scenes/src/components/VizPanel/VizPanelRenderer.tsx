@@ -22,7 +22,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     placement,
     displayMode,
     hoverHeader,
-    dataWithFieldConfig,
     menu,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
@@ -33,6 +32,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isDraggable = parentLayout.isDraggable() && (placement?.isDraggable ?? true);
   const dragClass = isDraggable && parentLayout.getDragClass ? parentLayout.getDragClass() : '';
   const dragClassCancel = isDraggable && parentLayout.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
+  const rawData = sceneGraph.getData(model).useState();
+  const dataWithFieldConfig = model.applyFieldConfig(rawData.data);
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');

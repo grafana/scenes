@@ -11,16 +11,14 @@ export interface SceneDataNodeState extends SceneObjectStatePlain {
 export class SceneDataNode extends SceneObjectBase<SceneDataNodeState> implements SceneDataProvider {
   public constructor(state?: Partial<SceneDataNodeState>) {
     super({
-      data: getEmptyPanelData(),
+      data: emptyPanelData,
       ...state,
     });
   }
 }
 
-export function getEmptyPanelData() {
-  return {
-    state: LoadingState.Done,
-    series: [],
-    timeRange: getDefaultTimeRange(),
-  };
-}
+export const emptyPanelData = {
+  state: LoadingState.Done,
+  series: [],
+  timeRange: getDefaultTimeRange(),
+};

@@ -26,7 +26,7 @@ import { VariableDependencyConfig } from '../../variables/VariableDependencyConf
 import { VariableCustomFormatterFn } from '../../variables/types';
 import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';
 import { Unsubscribable } from 'rxjs';
-import { getEmptyPanelData } from '../../core/SceneDataNode';
+import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLayoutChildState {
@@ -41,8 +41,6 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLa
   menu?: VizPanelMenu;
   // internal state
   pluginLoadError?: string;
-  /** internal data state after field config has been applied */
-  dataWithFieldConfig?: PanelData;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>> {
@@ -56,6 +54,8 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   private _plugin?: PanelPlugin;
   private _panelContext: PanelContext;
   private _dataSub?: Unsubscribable;
+  private _prevData?: PanelData;
+  private _dataWithFieldConfig?: PanelData;
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
@@ -63,7 +63,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       fieldConfig: { defaults: {}, overrides: [] },
       title: 'Title',
       pluginId: 'timeseries',
-      dataWithFieldConfig: getEmptyPanelData(),
       ...state,
     });
 
@@ -97,8 +96,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   private _onActivate() {
     if (!this._plugin) {
       this._loadPlugin();
-    } else {
-      this._setupDataSubscription();
     }
   }
 
@@ -144,8 +141,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
     });
-
-    this._setupDataSubscription();
   }
 
   private _onSeriesColorChange = (label: string, color: string) => {
@@ -153,13 +148,13 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   };
 
   private _onSeriesVisibilityChange = (label: string, mode: SeriesVisibilityChangeMode) => {
-    const data = this.state.dataWithFieldConfig;
-
-    if (!data) {
+    if (!this._dataWithFieldConfig) {
       return;
     }
 
-    this.onFieldConfigChange(seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, data.series));
+    this.onFieldConfigChange(
+      seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, this._dataWithFieldConfig.series)
+    );
   };
 
   private _getPluginVersion(plugin: PanelPlugin): string {
@@ -201,54 +196,43 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   /**
    * Subscribes to data and applies field config
    */
-  private _setupDataSubscription() {
+  public applyFieldConfig(rawData?: PanelData): PanelData {
     const plugin = this._plugin!;
 
-    if (plugin.meta.skipDataQuery) {
+    if (plugin.meta.skipDataQuery || !rawData) {
       // TODO setup time range subscription instead
-      this.setState({ dataWithFieldConfig: getEmptyPanelData() });
-      return;
+      return emptyPanelData;
     }
 
-    const dataProvider = sceneGraph.getData(this);
     const fieldConfigRegistry = plugin!.fieldConfigRegistry;
 
     let structureRev = 0;
 
-    this._dataSub = dataProvider.subscribeToState((newDataState) => {
-      const prevFrames = this.state.dataWithFieldConfig?.series;
-      const newData = newDataState.data;
-      const newFrames = newData?.series;
+    const prevFrames = this._prevData?.series;
+    const newFrames = rawData?.series;
 
-      if (!newData) {
-        return;
-      }
+    if (
+      rawData.structureRev == null &&
+      newFrames &&
+      prevFrames &&
+      !compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)
+    ) {
+      structureRev++;
+    }
 
-      if (
-        newData.structureRev == null &&
-        newFrames &&
-        prevFrames &&
-        !compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)
-      ) {
-        structureRev++;
-      }
-
-      const dataFramesWithConfig = applyFieldOverrides({
-        data: newFrames,
-        fieldConfig: this.state.fieldConfig,
-        fieldConfigRegistry,
-        replaceVariables: this.interpolate,
-        theme: config.theme2,
-        timeZone: newData.request?.timezone,
-      });
-
-      this.setState({
-        dataWithFieldConfig: {
-          ...newData,
-          series: dataFramesWithConfig,
-          structureRev: structureRev,
-        },
-      });
+    const dataFramesWithConfig = applyFieldOverrides({
+      data: newFrames,
+      fieldConfig: this.state.fieldConfig,
+      fieldConfigRegistry,
+      replaceVariables: this.interpolate,
+      theme: config.theme2,
+      timeZone: rawData.request?.timezone,
     });
+
+    return {
+      ...rawData,
+      series: dataFramesWithConfig,
+      structureRev: structureRev,
+    };
   }
 }
