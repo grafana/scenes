@@ -31,7 +31,7 @@ export const HomePage = () => {
 
     {!config.datasources[DATASOURCE_REF.uid] && <Alert title={`Missing ${DATASOURCE_REF.uid} datasource`}>
       These demos depend on <b>testdata</b> datasource: <code>{JSON.stringify(DATASOURCE_REF)}</code>.  
-      This can be provisioned using the attached datasource provisioning files.
+      See <a href="https://github.com/grafana/grafana/tree/main/devenv#set-up-your-development-environment">https://github.com/grafana/grafana/tree/main/devenv#set-up-your-development-environment</a> for more details.
     </Alert>}
 
     <scene.Component model={scene} />
