@@ -1,3 +1,64 @@
+# v0.2.0 (Wed Mar 29 2023)
+
+### Release Notes
+
+#### Layout: Create atomic, layout specific objects ([#97](https://github.com/grafana/scenes/pull/97))
+
+The interface of `SceneFlexLayout` and `SceneGridLayout` has changed. These scene objects now accept only dedicated layout item objects as children:
+- `SceneFlexItem` for `SceneFlexLayout`
+- `SceneGridItem` and `SceneGridRow` for `SceneGridLayout`
+
+`placement` property has been replaced by those layout-specific objects. 
+
+Example
+```tsx
+// BEFORE
+const layout = new SceneFlexLayout({
+  direction: 'column',
+  children: [
+    new VizPanel({
+      placement: {
+        width: '50%',
+        height: '400',
+     },
+     ...
+    })
+  ],
+  ...
+})
+
+
+// AFTER
+const layout = new SceneFlexLayout({
+  direction: 'column',
+  children: [ 
+    new SceneFlexItem({ 
+      width: '50%',
+      height: '400',
+      body: new VizPanel({ ... }),
+    }),
+  ],
+  ...
+})
+
+```
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Layout: Create atomic, layout specific objects [#97](https://github.com/grafana/scenes/pull/97) ([@dprokop](https://github.com/dprokop) [@torkelo](https://github.com/torkelo))
+  - Interpolation: FormatRegistryID is now replaced by VariableFormatID from schema package [#112](https://github.com/grafana/scenes/pull/112) ([@ryantxu](https://github.com/ryantxu) [@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Ryan McKinley ([@ryantxu](https://github.com/ryantxu))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.1.0 (Mon Mar 27 2023)
 
 ### Release Notes

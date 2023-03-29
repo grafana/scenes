@@ -1,5 +1,12 @@
 import { ReducerID, ThresholdsMode } from '@grafana/data';
-import { SceneByFrameRepeater, SceneDataNode, SceneDataTransformer, SceneFlexLayout, VizPanel } from '@grafana/scenes';
+import {
+  SceneByFrameRepeater,
+  SceneDataNode,
+  SceneDataTransformer,
+  SceneFlexItem,
+  SceneFlexLayout,
+  VizPanel,
+} from '@grafana/scenes';
 import { ROUTES } from '../../constants';
 import { prefixRoute } from '../../utils/utils.routing';
 
@@ -27,10 +34,6 @@ export function getRoomsTemperatureTable() {
         },
       ],
     }),
-    placement: {
-      ySizing: 'fill',
-      height: 300,
-    },
     displayMode: 'transparent',
     title: 'Room temperature overview',
     hoverHeader: true,
@@ -126,35 +129,36 @@ export function getRoomsTemperatureStats() {
       children: [],
     }),
     getLayoutChild: (data, frame) => {
-      return new VizPanel({
-        title: frame.name,
-        pluginId: 'stat',
-        placement: {
-          minHeight: 200,
-          minWidth: '20%',
-        },
-        $data: new SceneDataNode({
-          data: {
-            ...data,
-            series: [frame],
+      return new SceneFlexItem({
+        height: '50%',
+        minWidth: '20%',
+        body: new VizPanel({
+          title: frame.name,
+          pluginId: 'stat',
+
+          $data: new SceneDataNode({
+            data: {
+              ...data,
+              series: [frame],
+            },
+          }),
+          fieldConfig: {
+            defaults: {
+              unit: 'celsius',
+              links: [
+                {
+                  title: 'Go to room temperature overview',
+                  url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/temperature',
+                },
+                {
+                  title: 'Go to room humidity overview',
+                  url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/humidity',
+                },
+              ],
+            },
+            overrides: [],
           },
         }),
-        fieldConfig: {
-          defaults: {
-            unit: 'celsius',
-            links: [
-              {
-                title: 'Go to room temperature overview',
-                url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/temperature',
-              },
-              {
-                title: 'Go to room humidity overview',
-                url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/humidity',
-              },
-            ],
-          },
-          overrides: [],
-        },
       });
     },
   });
@@ -164,7 +168,6 @@ export function getRoomTemperatureStatPanel(reducers: ReducerID[]) {
   return new VizPanel({
     pluginId: 'stat',
     title: '',
-    placement: { height: 300 },
     $data: new SceneDataTransformer({
       transformations: [
         {

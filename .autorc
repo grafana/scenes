@@ -5,6 +5,16 @@
   },
   "onlyPublishWithReleaseLabel": true,
   "plugins": [
-    "npm"
+    [
+      "npm",
+      {}
+    ],
+    "released",
+    [
+      "omit-commits",
+      {
+        "labels": "no-changelog"
+      }
+    ]
   ]
 }

@@ -1,4 +1,11 @@
-import { EmbeddedScene, SceneApp, SceneAppPage, SceneFlexLayout, SceneReactObject } from '@grafana/scenes';
+import {
+  EmbeddedScene,
+  SceneApp,
+  SceneAppPage,
+  SceneFlexLayout,
+  SceneFlexItem,
+  SceneReactObject,
+} from '@grafana/scenes';
 import { Stack } from '@grafana/experimental';
 import React, { useMemo } from 'react';
 import { prefixRoute } from '../../utils/utils.routing';
@@ -17,8 +24,11 @@ const getScene = () => {
             body: new SceneFlexLayout({
               direction: 'column',
               children: [
-                new SceneReactObject({
-                  component: () => <DemosList />,
+                new SceneFlexItem({
+                  flexGrow: 1,
+                  body: new SceneReactObject({
+                    component: () => <DemosList />,
+                  }),
                 }),
               ],
             }),
@@ -50,7 +60,7 @@ export const DemoPage = () => {
 function DemosList() {
   const demos = getDemos();
   return (
-    <Stack direction="column" gap={1}>
+    <Stack direction="column" gap={1} flexGrow={1}>
       <Stack direction="column" gap={0}>
         {demos.map((demo) => (
           <Card key={demo.title} href={`${prefixRoute(ROUTES.Demos)}/${demo.title}`}>

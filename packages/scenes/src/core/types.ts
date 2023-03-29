@@ -25,6 +25,10 @@ export interface SceneLayoutChildState extends SceneObjectStatePlain {
   placement?: SceneLayoutChildOptions;
 }
 
+export interface SceneLayoutItemState extends SceneObjectStatePlain {
+  body: SceneObject | undefined;
+}
+
 export type SceneObjectState = SceneObjectStatePlain | SceneLayoutState | SceneLayoutChildState;
 
 export interface SceneLayoutChildOptions {
@@ -123,7 +127,7 @@ export type SceneDeactivationHandler = () => void;
 export type SceneLayoutChild = SceneObject<SceneLayoutChildState | SceneLayoutState>;
 
 export interface SceneLayoutState extends SceneLayoutChildState {
-  children: SceneLayoutChild[];
+  children: SceneObject[];
 }
 
 export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> extends SceneObject<T> {

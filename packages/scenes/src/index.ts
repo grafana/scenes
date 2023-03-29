@@ -10,7 +10,7 @@ export { SceneDataTransformer } from './querying/SceneDataTransformer';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
-export { formatRegistry, FormatRegistryID, type FormatVariable } from './variables/interpolation/formatRegistry';
+export { formatRegistry, type FormatVariable } from './variables/interpolation/formatRegistry';
 export { VariableValueSelectors } from './variables/components/VariableValueSelectors';
 export { SceneVariableSet } from './variables/sets/SceneVariableSet';
 export { ConstantVariable } from './variables/variants/ConstantVariable';
@@ -34,9 +34,9 @@ export { SceneTimePicker } from './components/SceneTimePicker';
 export { SceneRefreshPicker } from './components/SceneRefreshPicker';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
-export { SceneFlexLayout } from './components/layout/SceneFlexLayout';
-export { SceneGridLayout } from './components/layout/SceneGridLayout';
-export { SceneGridRow } from './components/layout/SceneGridRow';
+export { SceneFlexLayout, SceneFlexItem } from './components/layout/SceneFlexLayout';
+export { SceneGridLayout, SceneGridItem } from './components/layout/grid/SceneGridLayout';
+export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,
