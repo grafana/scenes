@@ -9,6 +9,10 @@ import {
   InterpolateFunction,
   CoreApp,
   DashboardCursorSync,
+  PanelData,
+  compareArrayValues,
+  compareDataFrameStructures,
+  applyFieldOverrides,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -21,6 +25,9 @@ import { VizPanelMenu } from './VizPanelMenu';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { VariableCustomFormatterFn } from '../../variables/types';
 import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';
+import { Unsubscribable } from 'rxjs';
+import { getEmptyPanelData } from '../../core/SceneDataNode';
+import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLayoutChildState {
   title: string;
@@ -34,6 +41,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneLa
   menu?: VizPanelMenu;
   // internal state
   pluginLoadError?: string;
+  /** internal data state after field config has been applied */
+  dataWithFieldConfig?: PanelData;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>> {
@@ -46,6 +55,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   // Not part of state as this is not serializable
   private _plugin?: PanelPlugin;
   private _panelContext: PanelContext;
+  private _dataSub?: Unsubscribable;
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
@@ -53,6 +63,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       fieldConfig: { defaults: {}, overrides: [] },
       title: 'Title',
       pluginId: 'timeseries',
+      dataWithFieldConfig: getEmptyPanelData(),
       ...state,
     });
 
@@ -72,10 +83,26 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       // canDeleteAnnotations: props.dashboard.canDeleteAnnotations.bind(props.dashboard),
     };
 
-    this.addActivationHandler(() => this._onActivate());
+    this.addActivationHandler(() => {
+      this._onActivate();
+
+      return () => {
+        if (this._dataSub) {
+          this._dataSub.unsubscribe();
+        }
+      };
+    });
   }
 
   private _onActivate() {
+    if (!this._plugin) {
+      this._loadPlugin();
+    } else {
+      this._setupDataSubscription();
+    }
+  }
+
+  private _loadPlugin() {
     const { getPanelPluginFromCache, importPanelPlugin } = getPluginImportUtils();
     const plugin = getPanelPluginFromCache(this.state.pluginId);
 
@@ -117,17 +144,22 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
     });
+
+    this._setupDataSubscription();
   }
 
   private _onSeriesColorChange = (label: string, color: string) => {
-    //this.onFieldConfigChange(changeSeriesColorConfigFactory(label, color, this.props.panel.fieldConfig));
+    this.onFieldConfigChange(changeSeriesColorConfigFactory(label, color, this.state.fieldConfig));
   };
 
   private _onSeriesVisibilityChange = (label: string, mode: SeriesVisibilityChangeMode) => {
-    const data = sceneGraph.getData(this);
-    this.onFieldConfigChange(
-      seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, data.state.data!.series)
-    );
+    const data = this.state.dataWithFieldConfig;
+
+    if (!data) {
+      return;
+    }
+
+    this.onFieldConfigChange(seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, data.series));
   };
 
   private _getPluginVersion(plugin: PanelPlugin): string {
@@ -165,4 +197,58 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   public interpolate = ((value: string, scoped?: ScopedVars, format?: string | VariableCustomFormatterFn) => {
     return sceneGraph.interpolate(this, value, scoped, format);
   }) as InterpolateFunction;
+
+  /**
+   * Subscribes to data and applies field config
+   */
+  private _setupDataSubscription() {
+    const plugin = this._plugin!;
+
+    if (plugin.meta.skipDataQuery) {
+      // TODO setup time range subscription instead
+      this.setState({ dataWithFieldConfig: getEmptyPanelData() });
+      return;
+    }
+
+    const dataProvider = sceneGraph.getData(this);
+    const fieldConfigRegistry = plugin!.fieldConfigRegistry;
+
+    let structureRev = 0;
+
+    this._dataSub = dataProvider.subscribeToState((newDataState) => {
+      const prevFrames = this.state.dataWithFieldConfig?.series;
+      const newData = newDataState.data;
+      const newFrames = newData?.series;
+
+      if (!newData) {
+        return;
+      }
+
+      if (
+        newData.structureRev == null &&
+        newFrames &&
+        prevFrames &&
+        !compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)
+      ) {
+        structureRev++;
+      }
+
+      const dataFramesWithConfig = applyFieldOverrides({
+        data: newFrames,
+        fieldConfig: this.state.fieldConfig,
+        fieldConfigRegistry,
+        replaceVariables: this.interpolate,
+        theme: config.theme2,
+        timeZone: newData.request?.timezone,
+      });
+
+      this.setState({
+        dataWithFieldConfig: {
+          ...newData,
+          series: dataFramesWithConfig,
+          structureRev: structureRev,
+        },
+      });
+    });
+  }
 }

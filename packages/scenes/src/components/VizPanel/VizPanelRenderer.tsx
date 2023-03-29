@@ -1,9 +1,9 @@
 import React, { RefCallback } from 'react';
 import { useMeasure } from 'react-use';
 
-import { PluginContextProvider, useFieldOverrides } from '@grafana/data';
+import { PanelData, PluginContextProvider } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
-import { PanelChrome, ErrorBoundaryAlert, useTheme2, PanelContextProvider } from '@grafana/ui';
+import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
@@ -11,7 +11,6 @@ import { SceneComponentProps } from '../../core/types';
 import { VizPanel } from './VizPanel';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
-  const theme = useTheme2();
   const {
     title,
     description,
@@ -23,6 +22,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     placement,
     displayMode,
     hoverHeader,
+    dataWithFieldConfig,
     menu,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
@@ -39,10 +39,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // Not sure we need to subscribe to this state
   const timeZone = sceneGraph.getTimeRange(model).state.timeZone;
-
-  // Subscribe to data and apply field overrides
-  const { data } = sceneGraph.getData(model).useState();
-  const dataWithOverrides = useFieldOverrides(plugin, fieldConfig, data, timeZone, theme, model.interpolate);
 
   if (pluginLoadError) {
     return <div>Failed to load plugin: {pluginLoadError}</div>;
@@ -75,13 +71,16 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     panelMenu = <menu.Component model={menu} />;
   }
 
+  // We always set this in constructor, and even for non data panels we init this to an empty panel data
+  const data = dataWithFieldConfig!;
+
   return (
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
       <PanelChrome
         title={titleInterpolated}
         description={description ? () => model.interpolate(description) : ''}
-        loadingState={dataWithOverrides?.state}
-        statusMessage={dataWithOverrides?.error ? dataWithOverrides.error.message : ''}
+        loadingState={data.state}
+        statusMessage={getChromeStatusMessage(data, pluginLoadError)}
         width={width}
         height={height}
         displayMode={displayMode}
@@ -93,33 +92,30 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       >
         {(innerWidth, innerHeight) => (
           <>
-            {!dataWithOverrides && <div>No data...</div>}
-            {dataWithOverrides && (
-              <ErrorBoundaryAlert dependencies={[plugin, data]}>
-                <PluginContextProvider meta={plugin.meta}>
-                  <PanelContextProvider value={model.getPanelContext()}>
-                    <PanelComponent
-                      id={1}
-                      data={dataWithOverrides}
-                      title={title}
-                      timeRange={dataWithOverrides.timeRange}
-                      timeZone={timeZone}
-                      options={options}
-                      fieldConfig={fieldConfig}
-                      transparent={false}
-                      width={innerWidth}
-                      height={innerHeight}
-                      renderCounter={0}
-                      replaceVariables={model.interpolate}
-                      onOptionsChange={model.onOptionsChange}
-                      onFieldConfigChange={model.onFieldConfigChange}
-                      onChangeTimeRange={model.onChangeTimeRange}
-                      eventBus={getAppEvents()}
-                    />
-                  </PanelContextProvider>
-                </PluginContextProvider>
-              </ErrorBoundaryAlert>
-            )}
+            <ErrorBoundaryAlert dependencies={[plugin, data]}>
+              <PluginContextProvider meta={plugin.meta}>
+                <PanelContextProvider value={model.getPanelContext()}>
+                  <PanelComponent
+                    id={1}
+                    data={data}
+                    title={title}
+                    timeRange={data.timeRange}
+                    timeZone={timeZone}
+                    options={options}
+                    fieldConfig={fieldConfig}
+                    transparent={false}
+                    width={innerWidth}
+                    height={innerHeight}
+                    renderCounter={0}
+                    replaceVariables={model.interpolate}
+                    onOptionsChange={model.onOptionsChange}
+                    onFieldConfigChange={model.onFieldConfigChange}
+                    onChangeTimeRange={model.onChangeTimeRange}
+                    eventBus={getAppEvents()}
+                  />
+                </PanelContextProvider>
+              </PluginContextProvider>
+            </ErrorBoundaryAlert>
           </>
         )}
       </PanelChrome>
@@ -127,4 +123,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   );
 }
 
-VizPanelRenderer.displayName = 'ScenePanelRenderer';
+function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | undefined) {
+  if (pluginLoadingError) {
+    return pluginLoadingError;
+  }
+
+  return data.error ? data.error.message : undefined;
+}

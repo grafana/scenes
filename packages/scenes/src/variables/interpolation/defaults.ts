@@ -4,14 +4,7 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneVariable, SceneVariables, SceneVariableSetState, SceneVariableState } from '../types';
 
-export const EmptyDataNode = new SceneDataNode({
-  data: {
-    state: LoadingState.Done,
-    series: [],
-    timeRange: getDefaultTimeRange(),
-  },
-});
-
+export const EmptyDataNode = new SceneDataNode();
 export const DefaultTimeRange = new SceneTimeRange();
 
 /**
