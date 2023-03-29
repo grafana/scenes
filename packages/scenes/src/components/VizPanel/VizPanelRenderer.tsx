@@ -78,50 +78,52 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   return (
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
-      <PanelChrome
-        title={titleInterpolated}
-        description={description ? () => model.interpolate(description) : ''}
-        loadingState={dataWithOverrides?.state}
-        statusMessage={dataWithOverrides?.error ? dataWithOverrides.error.message : ''}
-        width={width}
-        height={height}
-        displayMode={displayMode}
-        hoverHeader={hoverHeader}
-        titleItems={titleItems}
-        dragClass={dragClass}
-        dragClassCancel={dragClassCancel}
-        menu={panelMenu}
-      >
-        {(innerWidth, innerHeight) => (
-          <>
-            {!dataWithOverrides && <div>No data...</div>}
-            {dataWithOverrides && (
-              <ErrorBoundaryAlert dependencies={[plugin, data]}>
-                <PluginContextProvider meta={plugin.meta}>
-                  <PanelComponent
-                    id={1}
-                    data={dataWithOverrides}
-                    title={title}
-                    timeRange={dataWithOverrides.timeRange}
-                    timeZone={timeZone}
-                    options={options}
-                    fieldConfig={fieldConfig}
-                    transparent={false}
-                    width={innerWidth}
-                    height={innerHeight}
-                    renderCounter={0}
-                    replaceVariables={model.interpolate}
-                    onOptionsChange={model.onOptionsChange}
-                    onFieldConfigChange={model.onFieldConfigChange}
-                    onChangeTimeRange={model.onChangeTimeRange}
-                    eventBus={getAppEvents()}
-                  />
-                </PluginContextProvider>
-              </ErrorBoundaryAlert>
-            )}
-          </>
-        )}
-      </PanelChrome>
+      {width > 10 && height > 10 && (
+        <PanelChrome
+          title={titleInterpolated}
+          description={description ? () => model.interpolate(description) : ''}
+          loadingState={dataWithOverrides?.state}
+          statusMessage={dataWithOverrides?.error ? dataWithOverrides.error.message : ''}
+          width={width}
+          height={height}
+          displayMode={displayMode}
+          hoverHeader={hoverHeader}
+          titleItems={titleItems}
+          dragClass={dragClass}
+          dragClassCancel={dragClassCancel}
+          menu={panelMenu}
+        >
+          {(innerWidth, innerHeight) => (
+            <>
+              {!dataWithOverrides && <div>No data...</div>}
+              {dataWithOverrides && (
+                <ErrorBoundaryAlert dependencies={[plugin, data]}>
+                  <PluginContextProvider meta={plugin.meta}>
+                    <PanelComponent
+                      id={1}
+                      data={dataWithOverrides}
+                      title={title}
+                      timeRange={dataWithOverrides.timeRange}
+                      timeZone={timeZone}
+                      options={options}
+                      fieldConfig={fieldConfig}
+                      transparent={false}
+                      width={innerWidth}
+                      height={innerHeight}
+                      renderCounter={0}
+                      replaceVariables={model.interpolate}
+                      onOptionsChange={model.onOptionsChange}
+                      onFieldConfigChange={model.onFieldConfigChange}
+                      onChangeTimeRange={model.onChangeTimeRange}
+                      eventBus={getAppEvents()}
+                    />
+                  </PluginContextProvider>
+                </ErrorBoundaryAlert>
+              )}
+            </>
+          )}
+        </PanelChrome>
+      )}
     </div>
   );
 }
