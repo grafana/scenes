@@ -10,6 +10,6 @@ export enum ROUTES {
 }
 
 export const DATASOURCE_REF = {
-  uid: 'gdev-testdata',
+  uid: 'scenes-app-testdata',
   type: 'testdata',
 };
