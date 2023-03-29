@@ -1,46 +1,33 @@
-import { DataSourceApi } from '@grafana/data';
-import { getDataSourceSrv } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneLayoutChildState } from '../../core/types';
 
 import { QueryEditorRenderer } from './QueryEditorRenderer';
-import { DataQuery, DataSourceRef } from '@grafana/schema';
+import { DataQuery } from '@grafana/schema';
 
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { SceneLayoutChildState } from '../../core/types';
+import { DataSourceApi } from '@grafana/data';
 
 export interface QueryEditorState extends SceneLayoutChildState {
-  datasource: string | DataSourceRef;
+  datasource?: DataSourceApi;
   datasourceLoadErrorMessage?: string;
-  loadedDatasource?: DataSourceApi;
 }
 
 export class QueryEditor extends SceneObjectBase<QueryEditorState> {
   public static Component = QueryEditorRenderer;
 
-  public constructor(state: Partial<QueryEditorState>) {
-    super({ datasource: 'gdev-testdata', ...state });
+  public constructor(state?: Partial<SceneLayoutChildState>) {
+    super({ ...state });
   }
 
   public activate() {
     super.activate();
-
-    getDataSourceSrv()
-      .get(this.state.datasource)
-      .then((datasource) => {
-        this.setState({ loadedDatasource: datasource });
-      })
-      .catch((err: Error) => {
-        this.setState({ datasourceLoadErrorMessage: err.message });
-      });
   }
 
   public onChange = (sceneQueryRunner: SceneQueryRunner, query: DataQuery) => {
-    const { loadedDatasource } = this.state;
-
-    if (sceneQueryRunner && loadedDatasource) {
+    if (sceneQueryRunner) {
       const oldQueries = sceneQueryRunner.state.queries;
       sceneQueryRunner.setState({
-        queries: oldQueries.map((q) => q.refId === query.refId ? query : q)
+        queries: oldQueries.map((q) => (q.refId === query.refId ? query : q)),
       });
 
       sceneQueryRunner.runQueries();

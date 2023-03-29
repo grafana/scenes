@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { CoreApp, GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
@@ -8,12 +8,20 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
 
 import { QueryEditor } from './QueryEditor';
+import { getDataSource } from '../../utils/getDataSource';
 
 export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>) {
-  const { datasourceLoadErrorMessage, loadedDatasource } = model.useState();
+  const { datasourceLoadErrorMessage, datasource } = model.useState();
 
   const { data } = sceneGraph.getData(model).useState();
   const sceneQueryRunner = sceneGraph.getSceneQueryRunner(model);
+
+  useEffect(() => {
+    const queryRunnerDatasource = sceneQueryRunner?.state.datasource;
+    getDataSource(queryRunnerDatasource, {})
+      .then((d) => model.setState({ datasource: d }))
+      .catch((err) => model.setState({ datasourceLoadErrorMessage: err }));
+  }, [sceneQueryRunner?.state.datasource, model]);
 
   const styles = useStyles2(getStyles);
 
@@ -21,11 +29,11 @@ export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>)
     return <div>Failed to load datasource: {datasourceLoadErrorMessage}</div>;
   }
 
-  if (!loadedDatasource || !loadedDatasource.components) {
+  if (!datasource || !datasource.components) {
     return <div>Loading data source...</div>;
   }
 
-  if (!loadedDatasource.components.QueryEditor) {
+  if (!datasource.components.QueryEditor) {
     return <div>Datasource has no query editor.</div>;
   }
 
@@ -33,7 +41,7 @@ export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>)
     return <div>No queries found.</div>;
   }
 
-  const QueryEditor = loadedDatasource.components.QueryEditor;
+  const QueryEditor = datasource.components.QueryEditor;
 
   return (
     <ul className={styles.editorList}>
@@ -41,9 +49,9 @@ export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>)
         <li key={query.refId} className={styles.queryEditor}>
           <span className={styles.refIdLabel}>{query.refId}</span>
           <QueryEditor
-            key={loadedDatasource?.name}
+            key={datasource.name}
             query={query}
-            datasource={loadedDatasource}
+            datasource={datasource}
             onChange={(query) => model.onChange(sceneQueryRunner, query)}
             onRunQuery={() => {}}
             onAddQuery={() => {}}
