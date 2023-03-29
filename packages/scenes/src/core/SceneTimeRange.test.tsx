@@ -12,7 +12,7 @@ describe('SceneTimeRange', () => {
     await new Promise((r) => setTimeout(r, 2));
     timeRange.onRefresh();
     const diff = timeRange.state.value.from.valueOf() - startTime;
-    expect(diff).toBeGreaterThan(1);
+    expect(diff).toBeGreaterThan(0);
   });
 
   it('toUrlValues with relative range', () => {

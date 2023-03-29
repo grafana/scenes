@@ -10,7 +10,7 @@ import {
   DataSourceApi,
 } from '@grafana/data';
 
-import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
 import { SceneDataTransformer } from './SceneDataTransformer';
@@ -175,7 +175,7 @@ describe('SceneDataTransformer', () => {
     // @ts-expect-error
     const scene = new SceneFlexLayout({
       $data: sourceDataNode,
-      children: [consumer],
+      children: [new SceneFlexItem({ body: consumer })],
     });
 
     sourceDataNode.activate();
@@ -223,7 +223,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [consumer],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -273,7 +273,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [consumer],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -323,7 +323,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [consumer],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -373,7 +373,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [consumer],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();

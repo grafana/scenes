@@ -1,6 +1,6 @@
 import { dateTime } from '@grafana/data';
 import { SceneTimeRange } from '../core/SceneTimeRange';
-import { SceneFlexLayout } from './layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 import { SceneRefreshPicker } from './SceneRefreshPicker';
 
 function setupScene(refresh: string, intervals?: string[]) {
@@ -12,7 +12,7 @@ function setupScene(refresh: string, intervals?: string[]) {
 
   const scene = new SceneFlexLayout({
     $timeRange: timeRange,
-    children: [refreshPicker],
+    children: [new SceneFlexItem({ body: refreshPicker })],
   });
 
   scene.activate();
