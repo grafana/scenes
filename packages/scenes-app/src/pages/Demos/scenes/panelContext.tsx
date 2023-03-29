@@ -15,7 +15,7 @@ export function getPanelContextDemoScene(): EmbeddedScene {
       direction: 'column',
       children: [
         new SceneFlexItem({
-          height: 300,
+          height: 400,
           body: new VizPanel({
             title: 'Check legend visibility actions, and color change',
             $data: getQueryRunnerFor3SeriesWithLabels(),
