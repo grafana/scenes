@@ -93,38 +93,35 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           dragClassCancel={dragClassCancel}
           menu={panelMenu}
         >
-          {(innerWidth, innerHeight) =>
-            innerWidth > 0 &&
-            innerHeight > 0 && (
-              <>
-                {!dataWithOverrides && <div>No data...</div>}
-                {dataWithOverrides && (
-                  <ErrorBoundaryAlert dependencies={[plugin, data]}>
-                    <PluginContextProvider meta={plugin.meta}>
-                      <PanelComponent
-                        id={1}
-                        data={dataWithOverrides}
-                        title={title}
-                        timeRange={dataWithOverrides.timeRange}
-                        timeZone={timeZone}
-                        options={options}
-                        fieldConfig={fieldConfig}
-                        transparent={false}
-                        width={innerWidth}
-                        height={innerHeight}
-                        renderCounter={0}
-                        replaceVariables={model.interpolate}
-                        onOptionsChange={model.onOptionsChange}
-                        onFieldConfigChange={model.onFieldConfigChange}
-                        onChangeTimeRange={model.onChangeTimeRange}
-                        eventBus={getAppEvents()}
-                      />
-                    </PluginContextProvider>
-                  </ErrorBoundaryAlert>
-                )}
-              </>
-            )
-          }
+          {(innerWidth, innerHeight) => (
+            <>
+              {!dataWithOverrides && <div>No data...</div>}
+              {dataWithOverrides && (
+                <ErrorBoundaryAlert dependencies={[plugin, data]}>
+                  <PluginContextProvider meta={plugin.meta}>
+                    <PanelComponent
+                      id={1}
+                      data={dataWithOverrides}
+                      title={title}
+                      timeRange={dataWithOverrides.timeRange}
+                      timeZone={timeZone}
+                      options={options}
+                      fieldConfig={fieldConfig}
+                      transparent={false}
+                      width={innerWidth}
+                      height={innerHeight}
+                      renderCounter={0}
+                      replaceVariables={model.interpolate}
+                      onOptionsChange={model.onOptionsChange}
+                      onFieldConfigChange={model.onFieldConfigChange}
+                      onChangeTimeRange={model.onChangeTimeRange}
+                      eventBus={getAppEvents()}
+                    />
+                  </PluginContextProvider>
+                </ErrorBoundaryAlert>
+              )}
+            </>
+          )}
         </PanelChrome>
       )}
     </div>
