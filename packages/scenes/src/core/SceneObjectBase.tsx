@@ -30,6 +30,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
+  protected _refCount = 0;
 
   protected _variableDependency: SceneVariableDependencyConfigLike | undefined;
   protected _urlSync: SceneObjectUrlSyncHandler | undefined;
@@ -139,21 +140,21 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Called by the SceneComponentWrapper when the react component is mounted.
    * Don't override this, instead use addActivationHandler
    */
-  public activate() {
+  private _internalActivate() {
     this._isActive = true;
 
     const { $data, $variables, $timeRange } = this.state;
 
     if ($timeRange && !$timeRange.isActive) {
-      $timeRange.activate();
+      this._deactivationHandlers.push($timeRange.activate());
     }
 
     if ($variables && !$variables.isActive) {
-      $variables.activate();
+      this._deactivationHandlers.push($variables.activate());
     }
 
     if ($data && !$data.isActive) {
-      $data.activate();
+      this._deactivationHandlers.push($data.activate());
     }
 
     this._activationHandlers.forEach((handler) => {
@@ -164,26 +165,28 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     });
   }
 
+  public activate(): SceneDeactivationHandler {
+    if (!this.isActive) {
+      this._internalActivate();
+    }
+
+    this._refCount++;
+
+    return () => {
+      this._refCount--;
+
+      if (this._refCount === 0) {
+        this.deactivate();
+      }
+    };
+  }
+
   /**
    * Called by the SceneComponentWrapper when the react component is unmounted.
    * Don't override this, instead use addActivationHandler. The activation handler can return a deactivation handler.
    */
   public deactivate(): void {
     this._isActive = false;
-
-    const { $data, $variables, $timeRange } = this.state;
-
-    if ($timeRange && $timeRange.isActive) {
-      $timeRange.deactivate();
-    }
-
-    if ($data && $data.isActive) {
-      $data.deactivate();
-    }
-
-    if ($variables && $variables.isActive) {
-      $variables.deactivate();
-    }
 
     this._deactivationHandlers.forEach((handler) => handler());
     this._deactivationHandlers = [];
@@ -220,6 +223,14 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    **/
   public addActivationHandler(handler: SceneActivationHandler) {
     this._activationHandlers.push(handler);
+  }
+
+  /**
+   * Allows external code to register code that is executed on deactivate.
+   * Needing to use this should be very rare, if you use addActivationHandler you can just return a function from it
+   */
+  public addDeactivationHandler(handler: SceneDeactivationHandler) {
+    this._deactivationHandlers.push(handler);
   }
 }
 

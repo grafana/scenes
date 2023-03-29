@@ -195,4 +195,30 @@ describe('SceneObject', () => {
       expect(scene.state.name).toBe('new name 3');
     });
   });
+
+  describe('Ref counting activations', () => {
+    it('Should deactivate after last activation caller is deactived', () => {
+      const scene = new TestScene({ name: 'nested' });
+      let activateCounter = 0;
+      let deactivatedCounter = 0;
+
+      scene.addActivationHandler(() => {
+        activateCounter++;
+        return () => deactivatedCounter++;
+      });
+
+      const ref1 = scene.activate();
+      expect(activateCounter).toBe(1);
+      expect(scene.isActive).toBe(true);
+
+      const ref2 = scene.activate();
+      expect(activateCounter).toBe(1);
+
+      ref1();
+      expect(deactivatedCounter).toBe(0);
+
+      ref2();
+      expect(deactivatedCounter).toBe(1);
+    });
+  });
 });
