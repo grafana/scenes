@@ -63,4 +63,11 @@ describe('DataValueMacro', () => {
     expect(sceneInterpolator(scene, '${__value}', scopedVars)).toBe('15%');
     expect(sceneInterpolator(scene, '${__value.time}', scopedVars)).toBe('');
   });
+
+  it('Should leave expression intact when there is no dataContext', () => {
+    const scene = new TestScene({});
+    const scopedVars = {};
+
+    expect(sceneInterpolator(scene, '${__value.raw}', scopedVars)).toBe('${__value.raw}');
+  });
 });

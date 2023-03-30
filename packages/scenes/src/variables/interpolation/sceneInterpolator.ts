@@ -2,7 +2,7 @@ import { ScopedVars } from '@grafana/data';
 import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
-import { isCustomVariableValue, VariableCustomFormatterFn, VariableValue } from '../types';
+import { InterpolationFormatParameter, isCustomVariableValue, VariableValue } from '../types';
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatVariable } from './formatRegistry';
@@ -21,7 +21,7 @@ export function sceneInterpolator(
   sceneObject: SceneObject,
   target: string | undefined | null,
   scopedVars?: ScopedVars,
-  format?: string | VariableCustomFormatterFn
+  format?: InterpolationFormatParameter
 ): string {
   if (!target) {
     return target ?? '';
@@ -32,7 +32,7 @@ export function sceneInterpolator(
   return target.replace(VARIABLE_REGEX, (match, var1, var2, fmt2, var3, fieldPath, fmt3) => {
     const variableName = var1 || var2 || var3;
     const fmt = fmt2 || fmt3 || format;
-    const variable = lookupFormatVariable(variableName, scopedVars, sceneObject);
+    const variable = lookupFormatVariable(variableName, match, scopedVars, sceneObject);
 
     if (!variable) {
       return match;
@@ -44,6 +44,7 @@ export function sceneInterpolator(
 
 function lookupFormatVariable(
   name: string,
+  match: string,
   scopedVars: ScopedVars | undefined,
   sceneObject: SceneObject
 ): FormatVariable | null {
@@ -59,7 +60,7 @@ function lookupFormatVariable(
   }
 
   if (macrosIndex[name]) {
-    return new macrosIndex[name](name, sceneObject, scopedVars);
+    return new macrosIndex[name](name, sceneObject, match, scopedVars);
   }
 
   return null;
@@ -68,7 +69,7 @@ function lookupFormatVariable(
 function formatValue(
   variable: FormatVariable,
   value: VariableValue | undefined | null,
-  formatNameOrFn?: string | VariableCustomFormatterFn
+  formatNameOrFn?: InterpolationFormatParameter
 ): string {
   if (value === null || value === undefined) {
     return '';

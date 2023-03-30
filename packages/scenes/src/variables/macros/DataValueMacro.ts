@@ -9,19 +9,22 @@ import { SceneObject } from '../../core/types';
 import { FormatVariable } from '../interpolation/formatRegistry';
 import { VariableValue } from '../types';
 
+/**
+ * match represents the regex match and is the full expression, example `${varname.fieldpath}`
+ * Macros can return the match when they identify that there required data context is not provided.
+ * This leaves the expression intact so that it can be interpolated later when the data context is available.
+ */
 export class DataValueMacro implements FormatVariable {
   public state: { name: string; type: string };
-  private _scopedVars: ScopedVars | undefined;
 
-  public constructor(name: string, sceneObject: SceneObject, scopedVars?: ScopedVars) {
+  public constructor(name: string, sceneObject: SceneObject, private _match: string, private _scopedVars?: ScopedVars) {
     this.state = { name, type: 'url_variable' };
-    this._scopedVars = scopedVars;
   }
 
   public getValue(fieldPath?: string): VariableValue {
     const dataContext: DataContextScopedVar | undefined = this._scopedVars?.__dataContext;
     if (!dataContext) {
-      return '';
+      return this._match;
     }
 
     const { frame, rowIndex, field, calculatedValue } = dataContext.value;
@@ -41,7 +44,7 @@ export class DataValueMacro implements FormatVariable {
     }
 
     if (!rowIndex) {
-      return '';
+      return this._match;
     }
 
     if (fieldPath === 'time') {
@@ -50,7 +53,7 @@ export class DataValueMacro implements FormatVariable {
     }
 
     if (!field) {
-      return '';
+      return this._match;
     }
 
     const value = field.values.get(rowIndex);

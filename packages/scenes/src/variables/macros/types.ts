@@ -4,7 +4,7 @@ import { FormatVariable } from '../interpolation/formatRegistry';
 import { CustomVariableValue } from '../types';
 
 export interface MacroVariableConstructor {
-  new (name: string, sceneObject: SceneObject, scopedVars?: ScopedVars): FormatVariable;
+  new (name: string, sceneObject: SceneObject, fullMatch?: string, scopedVars?: ScopedVars): FormatVariable;
 }
 
 /**

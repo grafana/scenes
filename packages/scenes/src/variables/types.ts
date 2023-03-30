@@ -104,6 +104,8 @@ export type VariableCustomFormatterFn = (
   legacyDefaultFormatter?: VariableCustomFormatterFn
 ) => string;
 
+export type InterpolationFormatParameter = string | VariableCustomFormatterFn | undefined;
+
 export function isCustomVariableValue(value: VariableValue): value is CustomVariableValue {
   return typeof value === 'object' && 'formatter' in value;
 }
