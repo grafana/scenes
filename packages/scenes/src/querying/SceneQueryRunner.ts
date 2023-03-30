@@ -61,10 +61,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   public constructor(initialState: QueryRunnerState) {
     super(initialState);
 
-    this.addActivationHandler(this._onActivate);
+    this.addActivationHandler(() => this._onActivate());
   }
 
-  private _onActivate = () => {
+  private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._subs.add(
@@ -76,7 +76,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
     }
-  };
+
+    return () => this._onDeactivate();
+  }
 
   /**
    * Handles some tricky cases where we need to run queries even when they have not changed in case
@@ -116,9 +118,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return true;
   }
 
-  public deactivate(): void {
-    super.deactivate();
-
+  private _onDeactivate(): void {
     if (this._querySub) {
       this._querySub.unsubscribe();
       this._querySub = undefined;

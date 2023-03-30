@@ -123,13 +123,13 @@ describe('SceneObject', () => {
       $variables: new SceneVariableSet({ variables: [] }),
     });
 
-    scene.activate();
+    const deactivateScene = scene.activate();
 
     // Subscribe to state change and to event
     const stateSub = scene.subscribeToState(() => {});
     const eventSub = scene.subscribeToEvent(SceneObjectStateChangedEvent, () => {});
 
-    scene.deactivate();
+    deactivateScene();
 
     it('Should close subscriptions', () => {
       expect((stateSub as any).closed).toBe(true);
@@ -170,7 +170,7 @@ describe('SceneObject', () => {
         };
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
 
       expect(scene.state.name).toBe('root');
 
@@ -178,7 +178,7 @@ describe('SceneObject', () => {
 
       expect(scene.state.name).toBe('new name');
 
-      scene.deactivate();
+      deactivateScene();
 
       expect(unsubscribed).toBe(true);
 
@@ -193,6 +193,41 @@ describe('SceneObject', () => {
       // verify that the wiring is back
       nestedScene.setState({ name: 'new name 3' });
       expect(scene.state.name).toBe('new name 3');
+    });
+  });
+
+  describe('Ref counting activations', () => {
+    it('Should deactivate after last activation caller is deactived', () => {
+      const scene = new TestScene({ name: 'nested' });
+      let activateCounter = 0;
+      let deactivatedCounter = 0;
+
+      scene.addActivationHandler(() => {
+        activateCounter++;
+        return () => deactivatedCounter++;
+      });
+
+      const ref1 = scene.activate();
+      expect(activateCounter).toBe(1);
+      expect(scene.isActive).toBe(true);
+
+      const ref2 = scene.activate();
+      expect(activateCounter).toBe(1);
+
+      ref1();
+      expect(deactivatedCounter).toBe(0);
+
+      ref2();
+      expect(deactivatedCounter).toBe(1);
+    });
+
+    it('Cannot call deactivation function twice', () => {
+      const scene = new TestScene({ name: 'nested' });
+
+      const deactivateScene = scene.activate();
+      deactivateScene();
+
+      expect(() => deactivateScene()).toThrow();
     });
   });
 });

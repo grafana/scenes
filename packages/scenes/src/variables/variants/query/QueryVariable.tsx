@@ -58,10 +58,10 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       ...initialState,
     });
 
-    this.addActivationHandler(this._onActivate);
+    this.addActivationHandler(() => this._onActivate());
   }
 
-  private _onActivate = () => {
+  private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
 
     if (this.state.refresh === VariableRefresh.onTimeRangeChanged) {
@@ -71,14 +71,12 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
         })
       );
     }
-  };
 
-  public deactivate(): void {
-    super.deactivate();
-
-    if (this.updateSubscription) {
-      this.updateSubscription.unsubscribe();
-    }
+    return () => {
+      if (this.updateSubscription) {
+        this.updateSubscription.unsubscribe();
+      }
+    };
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {

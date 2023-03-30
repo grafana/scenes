@@ -1,13 +1,11 @@
 {
-    "extends": [
-        "@grafana/eslint-config"
-    ],
-    "rules": {
-        "@typescript-eslint/explicit-member-accessibility": [
-            "error",
-            {
-                "accessibility": "explicit"
-            }
-        ]
-    }
+  "extends": ["@grafana/eslint-config"],
+  "rules": {
+    "@typescript-eslint/explicit-member-accessibility": [
+      "error",
+      {
+        "accessibility": "explicit"
+      }
+    ]
+  }
 }
