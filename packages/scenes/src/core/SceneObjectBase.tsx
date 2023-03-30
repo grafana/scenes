@@ -137,10 +137,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     return !this._parent ? this : this._parent.getRoot();
   }
 
-  /**
-   * Called by the SceneComponentWrapper when the react component is mounted.
-   * Don't override this, instead use addActivationHandler
-   */
   private _internalActivate() {
     this._isActive = true;
 
@@ -166,6 +162,11 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     });
   }
 
+  /**
+   * This is primarily called from SceneComponentWrapper when the SceneObject's Component is mounted.
+   * But in some scenarios this can also be called directly from another scene object. When called manually from another scene object
+   * make sure to call the returned function when the source scene object is deactivated.
+   */
   public activate(): CancelActivationHandler {
     if (!this.isActive) {
       this._internalActivate();
