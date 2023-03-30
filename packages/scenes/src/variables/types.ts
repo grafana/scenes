@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 
-import { BusEventWithPayload, DataFrame, DisplayValue, Field } from '@grafana/data';
+import { BusEventWithPayload } from '@grafana/data';
 import { VariableType, VariableHide } from '@grafana/schema';
 
 import { SceneObject, SceneObjectStatePlain } from '../core/types';
@@ -108,16 +108,4 @@ export type InterpolationFormatParameter = string | VariableCustomFormatterFn | 
 
 export function isCustomVariableValue(value: VariableValue): value is CustomVariableValue {
   return typeof value === 'object' && 'formatter' in value;
-}
-
-/**
- * Used by data link macros
- */
-export interface DataContextScopedVar {
-  value: {
-    frame: DataFrame;
-    field: Field;
-    valueIndex?: number;
-    calculatedValue?: DisplayValue;
-  };
 }
