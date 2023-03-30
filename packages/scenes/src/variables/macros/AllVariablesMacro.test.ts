@@ -2,9 +2,9 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
-import { TestScene } from '../interpolation/sceneInterpolator.test';
 import { AllVariablesMacro } from './AllVariablesMacro';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
+import { TestScene } from '../TestScene';
 
 describe('UrlVariables', () => {
   it('Should include variables from all levels', () => {
