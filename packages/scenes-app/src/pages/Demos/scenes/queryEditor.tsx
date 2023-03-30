@@ -1,5 +1,6 @@
-import { EmbeddedScene, QueryEditor, SceneFlexItem, SceneFlexLayout, SceneTimeRange, VizPanel } from '@grafana/scenes';
+import { EmbeddedScene, SceneFlexItem, SceneFlexLayout, SceneTimeRange, VizPanel } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from '../utils';
+import { QueryEditor } from '../../../components/QueryEditor/QueryEditor';
 
 export function getQueryEditorDemo(): EmbeddedScene {
   return new EmbeddedScene({

@@ -4,16 +4,15 @@ import React from 'react';
 import { CoreApp, GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 
-import { sceneGraph } from '../../core/sceneGraph';
-import { SceneComponentProps } from '../../core/types';
 
-import { QueryEditor } from './QueryEditor';
+import { getSceneQueryRunner, QueryEditor } from './QueryEditor';
+import { SceneComponentProps, sceneGraph } from '@grafana/scenes';
 
 export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>) {
   const { datasource, datasourceLoadErrorMessage } = model.useState();
 
   const { data } = sceneGraph.getData(model).useState();
-  const sceneQueryRunner = sceneGraph.getSceneQueryRunner(model);
+  const sceneQueryRunner = getSceneQueryRunner(model);
   const queries = sceneQueryRunner?.state.queries;
 
   const styles = useStyles2(getStyles);

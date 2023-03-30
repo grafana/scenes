@@ -1,13 +1,10 @@
-import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { SceneObjectBase, SceneLayoutChildState, SceneQueryRunner, getDataSource, SceneDataProvider, SceneObject } from '@grafana/scenes';
+
 
 import { QueryEditorRenderer } from './QueryEditorRenderer';
 import { DataQuery } from '@grafana/schema';
 
-import { findFirstDatasource, SceneQueryRunner } from '../../querying/SceneQueryRunner';
-import { SceneLayoutChildState } from '../../core/types';
 import { DataSourceApi } from '@grafana/data';
-import { getDataSource } from '../../utils/getDataSource';
-import { sceneGraph } from '../../core/sceneGraph';
 
 export interface QueryEditorState extends SceneLayoutChildState {
   datasource?: DataSourceApi;
@@ -24,7 +21,7 @@ export class QueryEditor extends SceneObjectBase<QueryEditorState> {
   }
 
   private _onActivate = () => {
-    const sceneQueryRunner = sceneGraph.getSceneQueryRunner(this);
+    const sceneQueryRunner = getSceneQueryRunner(this);
 
     if (sceneQueryRunner) {
       this._subs.add(
@@ -50,4 +47,29 @@ export class QueryEditor extends SceneObjectBase<QueryEditorState> {
 
     sceneQueryRunner.runQueries();
   };
+}
+/**
+ * Will walk up the scene object graph to the closest SceneQueryRunner
+ */
+export function getSceneQueryRunner(sceneObject: SceneObject): SceneQueryRunner | undefined {
+  if (sceneObject.state.$data !== undefined) {
+    let curData: SceneDataProvider | undefined = sceneObject.state.$data;
+    while (curData !== undefined) {
+      if (curData instanceof SceneQueryRunner) {
+        return curData;
+      }
+
+      curData = curData.state.$data;
+    }
+  }
+  
+  if (sceneObject.parent) {
+    return getSceneQueryRunner(sceneObject.parent);
+  }
+
+  return undefined;
+}
+
+function findFirstDatasource(targets: DataQuery[]) {
+  return targets.find((t) => t.datasource !== null)?.datasource ?? undefined
 }

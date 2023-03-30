@@ -23,9 +23,10 @@ export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 export { UrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
+export { getDataSource } from './utils/getDataSource';
+
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
-export { QueryEditor, type QueryEditorState } from './components/QueryEditor/QueryEditor';
 export { VizPanelMenu } from './components/VizPanel/VizPanelMenu';
 export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
