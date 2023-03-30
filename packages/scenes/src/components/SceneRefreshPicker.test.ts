@@ -16,10 +16,11 @@ function setupScene(refresh: string, intervals?: string[]) {
   });
 
   scene.activate();
-  // activating picker automatically as we do not render scene in the test
-  refreshPicker.activate();
 
-  return { refreshPicker, timeRange };
+  // activating picker automatically as we do not render scene in the test
+  const deactivateRefreshPicker = refreshPicker.activate();
+
+  return { refreshPicker, timeRange, deactivateRefreshPicker };
 }
 
 describe('SceneRefreshPicker', () => {
@@ -91,7 +92,7 @@ describe('SceneRefreshPicker', () => {
   });
 
   it('cancels refresh on deactivation', async () => {
-    const { refreshPicker, timeRange } = setupScene('5s');
+    const { timeRange, deactivateRefreshPicker } = setupScene('5s');
 
     const t1 = timeRange.state.value;
 
@@ -104,7 +105,7 @@ describe('SceneRefreshPicker', () => {
 
     jest.advanceTimersByTime(2000);
 
-    refreshPicker.deactivate();
+    deactivateRefreshPicker();
 
     jest.advanceTimersByTime(3000);
 

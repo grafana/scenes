@@ -42,6 +42,7 @@ describe('UrlSyncManager', () => {
   let locationUpdates: Location[] = [];
   let listenUnregister: () => void;
   let scene: SceneObject;
+  let deactivate = () => {};
 
   beforeEach(() => {
     locationUpdates = [];
@@ -51,7 +52,7 @@ describe('UrlSyncManager', () => {
   });
 
   afterEach(() => {
-    scene.deactivate();
+    deactivate();
     locationService.push('/');
     listenUnregister();
   });
@@ -66,7 +67,7 @@ describe('UrlSyncManager', () => {
       urlManager = new UrlSyncManager(scene);
       urlManager.initSync();
 
-      scene.activate();
+      deactivate = scene.activate();
 
       // When making state change
       obj.setState({ name: 'test2' });
@@ -93,7 +94,8 @@ describe('UrlSyncManager', () => {
 
       urlManager = new UrlSyncManager(scene);
       urlManager.initSync();
-      scene.activate();
+
+      deactivate = scene.activate();
 
       // When non relevant key changes in url
       locationService.partial({ someOtherProp: 'test2' });
@@ -138,7 +140,8 @@ describe('UrlSyncManager', () => {
 
       urlManager = new UrlSyncManager(scene);
       urlManager.initSync();
-      scene.activate();
+
+      deactivate = scene.activate();
 
       // When making state changes for second object with same key
       innerTimeRange.setState({ from: 'now-10m' });
@@ -179,7 +182,8 @@ describe('UrlSyncManager', () => {
 
       urlManager = new UrlSyncManager(scene);
       urlManager.initSync();
-      scene.activate();
+
+      deactivate = scene.activate();
 
       // When making state change
       obj.setState({ array: ['A', 'B'] });
@@ -210,7 +214,8 @@ describe('UrlSyncManager', () => {
 
       urlManager = new UrlSyncManager(scene);
       urlManager.initSync();
-      scene.activate();
+
+      deactivate = scene.activate();
 
       // When setting value via url
       locationService.partial({ optional: 'handler' });
@@ -233,7 +238,8 @@ describe('UrlSyncManager', () => {
 
       urlManager = new UrlSyncManager(scene);
       urlManager.initSync();
-      scene.activate();
+
+      deactivate = scene.activate();
 
       obj.setState({ optional: 'handler' });
 
@@ -255,7 +261,8 @@ describe('UrlSyncManager', () => {
 
       urlManager = new UrlSyncManager(scene);
       urlManager.initSync();
-      scene.activate();
+
+      deactivate = scene.activate();
 
       obj.setState({ optional: 'handler' });
 

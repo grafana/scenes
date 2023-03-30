@@ -176,7 +176,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       this._refCount--;
 
       if (this._refCount === 0) {
-        this.deactivate();
+        this._internalDeactivate();
       }
     };
   }
@@ -185,7 +185,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Called by the SceneComponentWrapper when the react component is unmounted.
    * Don't override this, instead use addActivationHandler. The activation handler can return a deactivation handler.
    */
-  public deactivate(): void {
+  private _internalDeactivate(): void {
     this._isActive = false;
 
     this._deactivationHandlers.forEach((handler) => handler());

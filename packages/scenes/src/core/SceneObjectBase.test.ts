@@ -123,13 +123,13 @@ describe('SceneObject', () => {
       $variables: new SceneVariableSet({ variables: [] }),
     });
 
-    scene.activate();
+    const deactivateScene = scene.activate();
 
     // Subscribe to state change and to event
     const stateSub = scene.subscribeToState(() => {});
     const eventSub = scene.subscribeToEvent(SceneObjectStateChangedEvent, () => {});
 
-    scene.deactivate();
+    deactivateScene();
 
     it('Should close subscriptions', () => {
       expect((stateSub as any).closed).toBe(true);
@@ -170,7 +170,7 @@ describe('SceneObject', () => {
         };
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
 
       expect(scene.state.name).toBe('root');
 
@@ -178,7 +178,7 @@ describe('SceneObject', () => {
 
       expect(scene.state.name).toBe('new name');
 
-      scene.deactivate();
+      deactivateScene();
 
       expect(unsubscribed).toBe(true);
 
