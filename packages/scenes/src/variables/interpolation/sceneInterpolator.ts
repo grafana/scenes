@@ -47,15 +47,22 @@ function lookupFormatVariable(
   scopedVars: ScopedVars | undefined,
   sceneObject: SceneObject
 ): FormatVariable | null {
+  const scopedVar = scopedVars?.[name];
+
+  if (scopedVar) {
+    return getSceneVariableForScopedVar(name, scopedVar);
+  }
+
+  const variable = lookupVariable(name, sceneObject);
+  if (variable) {
+    return variable;
+  }
+
   if (macrosIndex[name]) {
     return new macrosIndex[name](name, sceneObject, scopedVars);
   }
 
-  if (scopedVars && scopedVars[name]) {
-    return getSceneVariableForScopedVar(name, scopedVars[name]);
-  } else {
-    return lookupVariable(name, sceneObject);
-  }
+  return null;
 }
 
 function formatValue(
