@@ -39,10 +39,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   displayMode?: 'default' | 'transparent';
   hoverHeader?: boolean;
   menu?: VizPanelMenu;
-  // internal state
-  pluginLoadError?: string;
   isDraggable?: boolean;
   isResizable?: boolean;
+  // internal state
+  pluginLoadError?: string;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>> {
@@ -196,7 +196,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   }) as InterpolateFunction;
 
   /**
-   * Subscribes to data and applies field config
+   * Called from the react render path to apply the field config to the data provided by the data provider
    */
   public applyFieldConfig(rawData?: PanelData): PanelData {
     const plugin = this._plugin!;
