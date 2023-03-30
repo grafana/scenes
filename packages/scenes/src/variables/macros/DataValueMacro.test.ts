@@ -1,7 +1,6 @@
-import { FieldType, toDataFrame } from '@grafana/data';
+import { FieldType, toDataFrame, DataContextScopedVar } from '@grafana/data';
 import { sceneInterpolator } from '../interpolation/sceneInterpolator';
 import { TestScene } from '../TestScene';
-import { DataContextScopedVar } from '../types';
 
 describe('DataValueMacro', () => {
   const data = toDataFrame({
@@ -29,7 +28,7 @@ describe('DataValueMacro', () => {
       value: {
         frame: data,
         field: data.fields[0],
-        valueIndex: 1,
+        rowIndex: 1,
       },
     };
 

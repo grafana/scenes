@@ -1,7 +1,13 @@
-import { FieldType, formattedValueToString, getDisplayProcessor, ScopedVars } from '@grafana/data';
+import {
+  FieldType,
+  formattedValueToString,
+  getDisplayProcessor,
+  ScopedVars,
+  DataContextScopedVar,
+} from '@grafana/data';
 import { SceneObject } from '../../core/types';
 import { FormatVariable } from '../interpolation/formatRegistry';
-import { DataContextScopedVar, VariableValue } from '../types';
+import { VariableValue } from '../types';
 
 export class DataValueMacro implements FormatVariable {
   public state: { name: string; type: string };
@@ -18,7 +24,7 @@ export class DataValueMacro implements FormatVariable {
       return '';
     }
 
-    const { frame, valueIndex, field, calculatedValue } = dataContext.value;
+    const { frame, rowIndex, field, calculatedValue } = dataContext.value;
 
     if (calculatedValue) {
       switch (fieldPath) {
@@ -34,20 +40,20 @@ export class DataValueMacro implements FormatVariable {
       }
     }
 
-    if (!valueIndex) {
+    if (!rowIndex) {
       return '';
     }
 
     if (fieldPath === 'time') {
       const timeField = frame.fields.find((f) => f.type === FieldType.time);
-      return timeField ? timeField.values.get(valueIndex) : undefined;
+      return timeField ? timeField.values.get(rowIndex) : undefined;
     }
 
     if (!field) {
       return '';
     }
 
-    const value = field.values.get(valueIndex);
+    const value = field.values.get(rowIndex);
     if (fieldPath === 'raw') {
       return value;
     }

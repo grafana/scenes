@@ -19,7 +19,7 @@
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@grafana/e2e": "9.2.1",
-    "@grafana/e2e-selectors": "9.2.1",
+    "@grafana/e2e-selectors": "canary",
     "@grafana/eslint-config": "5.0.0",
     "@grafana/tsconfig": "1.2.0-rc1",
     "@swc/core": "^1.2.144",
