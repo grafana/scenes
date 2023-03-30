@@ -13,7 +13,7 @@ export class TextBoxVariable
   extends SceneObjectBase<TextBoxVariableState>
   implements SceneVariable<TextBoxVariableState>
 {
-  protected _urlSync: SceneObjectUrlSyncHandler<TextBoxVariableState>;
+  protected _urlSync: SceneObjectUrlSyncHandler;
 
   public constructor(initialState: Partial<TextBoxVariableState>) {
     super({
@@ -39,8 +39,8 @@ export class TextBoxVariable
     return `var-${this.state.name}`;
   }
 
-  public getUrlState(state: TextBoxVariableState) {
-    return { [this.getKey()]: state.value };
+  public getUrlState() {
+    return { [this.getKey()]: this.state.value };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {

@@ -43,7 +43,7 @@ export class UrlSyncManager {
     const changedObject = payload.changedObject;
 
     if (changedObject.urlSync) {
-      const newUrlState = changedObject.urlSync.getUrlState(payload.newState);
+      const newUrlState = changedObject.urlSync.getUrlState();
 
       const searchParams = locationService.getSearch();
       const mappedUpdated: SceneObjectUrlValues = {};
@@ -68,7 +68,7 @@ export class UrlSyncManager {
   private syncSceneStateFromUrl(sceneObject: SceneObject, urlParams: URLSearchParams) {
     if (sceneObject.urlSync) {
       const urlState: SceneObjectUrlValues = {};
-      const currentState = sceneObject.urlSync.getUrlState(sceneObject.state);
+      const currentState = sceneObject.urlSync.getUrlState();
 
       for (const key of sceneObject.urlSync.getKeys()) {
         const uniqueKey = this.urlKeyMapper.getUniqueKey(key, sceneObject);

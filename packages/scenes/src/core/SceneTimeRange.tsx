@@ -39,8 +39,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     this.setState({ value: evaluateTimeRange(this.state.from, this.state.to, this.state.timeZone) });
   };
 
-  public getUrlState(state: SceneTimeRangeState) {
-    return { from: state.from, to: state.to };
+  public getUrlState() {
+    return { from: this.state.from, to: this.state.to };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {

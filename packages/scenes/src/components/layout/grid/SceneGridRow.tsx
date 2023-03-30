@@ -4,19 +4,20 @@ import React from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 
-import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneLayoutChildState, SceneObject, SceneObjectUrlValues } from '../../core/types';
-import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
-import { SceneDragHandle } from '../SceneDragHandle';
+import { SceneObjectBase } from '../../../core/SceneObjectBase';
+import { SceneComponentProps, SceneObjectUrlValues } from '../../../core/types';
+import { SceneObjectUrlSyncConfig } from '../../../services/SceneObjectUrlSyncConfig';
+import { SceneDragHandle } from '../../SceneDragHandle';
 
 import { SceneGridLayout } from './SceneGridLayout';
 import { GRID_COLUMN_COUNT } from './constants';
+import { SceneGridItemLike, SceneGridItemStateLike } from './types';
 
-export interface SceneGridRowState extends SceneLayoutChildState {
+export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
   isCollapsible?: boolean;
   isCollapsed?: boolean;
-  children: Array<SceneObject<SceneLayoutChildState>>;
+  children: SceneGridItemLike[];
 }
 
 export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
@@ -24,18 +25,17 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['rowc'] });
 
-  public constructor(state: SceneGridRowState) {
+  public constructor(state: Partial<SceneGridRowState>) {
     super({
-      isCollapsible: true,
+      children: state.children || [],
+      isCollapsible: state.isCollapsible || true,
+      title: state.title || '',
+      isDraggable: state.isDraggable || true,
+      isResizable: state.isResizable || false,
       ...state,
-      placement: {
-        isResizable: false,
-        isDraggable: true,
-        ...state.placement,
-        x: 0,
-        height: 1,
-        width: GRID_COLUMN_COUNT,
-      },
+      x: 0,
+      height: 1,
+      width: GRID_COLUMN_COUNT,
     });
   }
 
@@ -57,8 +57,8 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
     this.getGridLayout().toggleRow(this);
   };
 
-  public getUrlState(state: SceneGridRowState) {
-    return { rowc: state.isCollapsed ? '1' : '0' };
+  public getUrlState() {
+    return { rowc: this.state.isCollapsed ? '1' : '0' };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
@@ -71,7 +71,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
-  const { isCollapsible, isCollapsed, title, placement } = model.useState();
+  const { isCollapsible, isCollapsed, title, isDraggable } = model.useState();
   const dragHandle = <SceneDragHandle dragClass={model.getGridLayout().getDragClass()} />;
 
   return (
@@ -81,7 +81,7 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
           {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
           <span className={styles.rowTitle}>{title}</span>
         </button>
-        {placement?.isDraggable && isCollapsed && <div>{dragHandle}</div>}
+        {isDraggable && isCollapsed && <div>{dragHandle}</div>}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { lastValueFrom, Observable, of } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
-import { FormatRegistryID } from '../interpolation/formatRegistry';
+import { VariableFormatID } from '@grafana/schema';
 
 import { SceneVariableValueChangedEvent, VariableValueOption } from '../types';
 import {
@@ -273,11 +273,11 @@ describe('MultiValueVariable', () => {
       const value = variable.getValue() as CustomAllValue;
       expect(value.formatter()).toBe('.*');
       // Should have special handling for text format
-      expect(value.formatter(FormatRegistryID.text)).toBe(ALL_VARIABLE_TEXT);
+      expect(value.formatter(VariableFormatID.Text)).toBe(ALL_VARIABLE_TEXT);
       // Should ignore most formats
-      expect(value.formatter(FormatRegistryID.regex)).toBe('.*');
+      expect(value.formatter(VariableFormatID.Regex)).toBe('.*');
       // Should not ignore url encoding
-      expect(value.formatter(FormatRegistryID.percentEncode)).toBe('.%2A');
+      expect(value.formatter(VariableFormatID.PercentEncode)).toBe('.%2A');
     });
   });
 
@@ -333,7 +333,7 @@ describe('MultiValueVariable', () => {
         text: 'A',
       });
 
-      expect(variable.urlSync?.getUrlState(variable.state)).toEqual({ ['var-test']: '1' });
+      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: '1' });
     });
 
     it('getUrlState should return string array if value is string array', async () => {
@@ -345,7 +345,7 @@ describe('MultiValueVariable', () => {
         text: ['A', 'B'],
       });
 
-      expect(variable.urlSync?.getUrlState(variable.state)).toEqual({ ['var-test']: ['1', '2'] });
+      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['1', '2'] });
     });
 
     it('fromUrlState should update value for single value', async () => {

@@ -32,7 +32,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   protected _subs = new Subscription();
 
   protected _variableDependency: SceneVariableDependencyConfigLike | undefined;
-  protected _urlSync: SceneObjectUrlSyncHandler<TState> | undefined;
+  protected _urlSync: SceneObjectUrlSyncHandler | undefined;
 
   public constructor(state: TState) {
     if (!state.key) {
@@ -64,7 +64,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   }
 
   /** Returns url sync config */
-  public get urlSync(): SceneObjectUrlSyncHandler<TState> | undefined {
+  public get urlSync(): SceneObjectUrlSyncHandler | undefined {
     return this._urlSync;
   }
 

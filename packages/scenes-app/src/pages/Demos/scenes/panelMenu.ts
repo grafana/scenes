@@ -1,4 +1,4 @@
-import { EmbeddedScene, SceneFlexLayout, VizPanel, VizPanelMenu } from '@grafana/scenes';
+import { EmbeddedScene, SceneFlexItem, SceneFlexLayout, VizPanel, VizPanelMenu } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from '../utils';
 
 export function getPanelMenuTest() {
@@ -52,10 +52,6 @@ export function getPanelMenuTest() {
   const panelWithMenu = new VizPanel({
     title: 'Menu reading from panel state',
     pluginId: 'timeseries',
-    placement: {
-      minHeight: 200,
-      minWidth: '40%',
-    },
     menu: readingFromPanelMenu,
   });
 
@@ -98,47 +94,49 @@ export function getPanelMenuTest() {
       direction: 'row',
       wrap: 'wrap',
       children: [
-        new VizPanel({
-          title: 'Basic static menu',
-          pluginId: 'timeseries',
-          placement: {
-            minHeight: 200,
-            minWidth: '40%',
-          },
+        new SceneFlexItem({
+          minHeight: 200,
+          minWidth: '40%',
+          body: new VizPanel({
+            title: 'Basic static menu',
+            pluginId: 'timeseries',
 
-          menu: staticMenu,
+            menu: staticMenu,
+          }),
         }),
-        new VizPanel({
-          title: 'Basic lazy menu',
-          pluginId: 'timeseries',
-          placement: {
-            minHeight: 200,
-            minWidth: '40%',
-          },
+        new SceneFlexItem({
+          minHeight: 200,
+          minWidth: '40%',
+          body: new VizPanel({
+            title: 'Basic lazy menu',
+            pluginId: 'timeseries',
+            menu: staticMenuViaActivation,
+          }),
+        }),
+        new SceneFlexItem({
+          minHeight: 200,
+          minWidth: '40%',
+          body: new VizPanel({
+            title: 'Async menu, will show after 1s',
+            pluginId: 'timeseries',
 
-          menu: staticMenuViaActivation,
+            menu: lazyMenu,
+          }),
         }),
-        new VizPanel({
-          title: 'Async menu, will show after 1s',
-          pluginId: 'timeseries',
-          placement: {
-            minHeight: 200,
-            minWidth: '40%',
-          },
-
-          menu: lazyMenu,
+        new SceneFlexItem({
+          minHeight: 200,
+          minWidth: '40%',
+          body: new VizPanel({
+            title: 'New item added to menu after it is shown',
+            pluginId: 'timeseries',
+            menu: dynamicMenu,
+          }),
         }),
-        new VizPanel({
-          title: 'New item added to menu after it is shown',
-          pluginId: 'timeseries',
-          placement: {
-            minHeight: 200,
-            minWidth: '40%',
-          },
-
-          menu: dynamicMenu,
+        new SceneFlexItem({
+          minHeight: 200,
+          minWidth: '40%',
+          body: panelWithMenu,
         }),
-        panelWithMenu,
       ],
     }),
   });

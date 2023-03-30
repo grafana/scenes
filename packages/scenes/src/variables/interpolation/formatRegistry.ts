@@ -1,7 +1,7 @@
 import { isArray, map, replace } from 'lodash';
 
 import { dateTime, Registry, RegistryItem, textUtil, escapeRegex } from '@grafana/data';
-import { VariableType } from '@grafana/schema';
+import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { VariableValue, VariableValueSingle } from '../types';
 import { ALL_VARIABLE_VALUE } from '../constants';
@@ -27,29 +27,10 @@ export interface FormatVariable {
   getValueText?(fieldPath?: string): string;
 }
 
-export enum FormatRegistryID {
-  lucene = 'lucene',
-  raw = 'raw',
-  regex = 'regex',
-  pipe = 'pipe',
-  distributed = 'distributed',
-  csv = 'csv',
-  html = 'html',
-  json = 'json',
-  percentEncode = 'percentencode',
-  singleQuote = 'singlequote',
-  doubleQuote = 'doublequote',
-  sqlString = 'sqlstring',
-  date = 'date',
-  glob = 'glob',
-  text = 'text',
-  queryParam = 'queryparam',
-}
-
 export const formatRegistry = new Registry<FormatRegistryItem>(() => {
   const formats: FormatRegistryItem[] = [
     {
-      id: FormatRegistryID.lucene,
+      id: VariableFormatID.Lucene,
       name: 'Lucene',
       description: 'Values are lucene escaped and multi-valued variables generate an OR expression',
       formatter: (value) => {
@@ -71,13 +52,13 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.raw,
+      id: VariableFormatID.Raw,
       name: 'raw',
       description: 'Keep value as is',
       formatter: (value) => String(value),
     },
     {
-      id: FormatRegistryID.regex,
+      id: VariableFormatID.Regex,
       name: 'Regex',
       description: 'Values are regex escaped and multi-valued variables generate a (<value>|<value>) expression',
       formatter: (value) => {
@@ -105,7 +86,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.pipe,
+      id: VariableFormatID.Pipe,
       name: 'Pipe',
       description: 'Values are separated by | character',
       formatter: (value) => {
@@ -121,7 +102,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.distributed,
+      id: VariableFormatID.Distributed,
       name: 'Distributed',
       description: 'Multiple values are formatted like variable=value',
       formatter: (value, args, variable) => {
@@ -145,7 +126,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.csv,
+      id: VariableFormatID.CSV,
       name: 'Csv',
       description: 'Comma-separated values',
       formatter: (value) => {
@@ -161,7 +142,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.html,
+      id: VariableFormatID.HTML,
       name: 'HTML',
       description: 'HTML escaping of values',
       formatter: (value) => {
@@ -177,7 +158,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.json,
+      id: VariableFormatID.JSON,
       name: 'JSON',
       description: 'JSON stringify value',
       formatter: (value) => {
@@ -188,7 +169,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.percentEncode,
+      id: VariableFormatID.PercentEncode,
       name: 'Percent encode',
       description: 'Useful for URL escaping values',
       formatter: (value) => {
@@ -201,7 +182,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.singleQuote,
+      id: VariableFormatID.SingleQuote,
       name: 'Single quote',
       description: 'Single quoted values',
       formatter: (value) => {
@@ -217,7 +198,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.doubleQuote,
+      id: VariableFormatID.DoubleQuote,
       name: 'Double quote',
       description: 'Double quoted values',
       formatter: (value) => {
@@ -232,7 +213,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.sqlString,
+      id: VariableFormatID.SQLString,
       name: 'SQL string',
       description: 'SQL string quoting and commas for use in IN statements and other scenarios',
       formatter: (value) => {
@@ -247,7 +228,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.date,
+      id: VariableFormatID.Date,
       name: 'Date',
       description: 'Format date in different ways',
       formatter: (value, args) => {
@@ -280,7 +261,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.glob,
+      id: VariableFormatID.Glob,
       name: 'Glob',
       description: 'Format multi-valued variables using glob syntax, example {value1,value2}',
       formatter: (value) => {
@@ -291,7 +272,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.text,
+      id: VariableFormatID.Text,
       name: 'Text',
       description: 'Format variables in their text representation. Example in multi-variable scenario A + B + C.',
       formatter: (value, _args, variable) => {
@@ -303,7 +284,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
-      id: FormatRegistryID.queryParam,
+      id: VariableFormatID.QueryParam,
       name: 'Query parameter',
       description:
         'Format variables as URL parameters. Example in multi-variable scenario A + B + C => var-foo=A&var-foo=B&var-foo=C.',

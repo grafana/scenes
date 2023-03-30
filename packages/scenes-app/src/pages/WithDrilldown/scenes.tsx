@@ -8,6 +8,7 @@ import {
   SceneTimePicker,
   SceneControlsSpacer,
   SceneRefreshPicker,
+  SceneFlexItem,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../../constants';
 import { getRoomTemperatureStatPanel } from './panels';
@@ -26,27 +27,35 @@ export function getTemperatureOverviewScene(roomName: string) {
     body: new SceneFlexLayout({
       direction: 'column',
       children: [
-        new VizPanel({
-          title: 'Temperature over time',
-          pluginId: 'timeseries',
+        new SceneFlexItem({
+          height: 500,
+          body: new VizPanel({
+            title: 'Temperature over time',
+            pluginId: 'timeseries',
 
-          placement: {
-            height: 500,
-          },
-          fieldConfig: {
-            defaults: {
-              unit: 'celsius',
+            fieldConfig: {
+              defaults: {
+                unit: 'celsius',
+              },
+              overrides: [],
             },
-            overrides: [],
-          },
+          }),
         }),
-        new SceneFlexLayout({
-          direction: 'row',
-          children: [
-            getRoomTemperatureStatPanel([ReducerID.min]),
-            getRoomTemperatureStatPanel([ReducerID.max]),
-            getRoomTemperatureStatPanel([ReducerID.mean]),
-          ],
+        new SceneFlexItem({
+          body: new SceneFlexLayout({
+            direction: 'row',
+            children: [
+              new SceneFlexItem({
+                body: getRoomTemperatureStatPanel([ReducerID.min]),
+              }),
+              new SceneFlexItem({
+                body: getRoomTemperatureStatPanel([ReducerID.max]),
+              }),
+              new SceneFlexItem({
+                body: getRoomTemperatureStatPanel([ReducerID.mean]),
+              }),
+            ],
+          }),
         }),
       ],
     }),
@@ -68,19 +77,19 @@ export function getHumidityOverviewScene(roomName: string) {
     body: new SceneFlexLayout({
       direction: 'column',
       children: [
-        new VizPanel({
-          title: 'Humidity readings over time',
-          pluginId: 'timeseries',
+        new SceneFlexItem({
+          height: 500,
+          body: new VizPanel({
+            title: 'Humidity readings over time',
+            pluginId: 'timeseries',
 
-          placement: {
-            height: 500,
-          },
-          fieldConfig: {
-            defaults: {
-              unit: 'humidity',
+            fieldConfig: {
+              defaults: {
+                unit: 'humidity',
+              },
+              overrides: [],
             },
-            overrides: [],
-          },
+          }),
         }),
       ],
     }),

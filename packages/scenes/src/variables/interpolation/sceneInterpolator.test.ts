@@ -5,7 +5,7 @@ import { TestScene } from '../TestScene';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
-import { FormatRegistryID } from './formatRegistry';
+import { VariableFormatID } from '@grafana/schema';
 
 import { sceneInterpolator } from './sceneInterpolator';
 
@@ -193,7 +193,7 @@ describe('sceneInterpolator', () => {
 
     expect(sceneInterpolator(scene, '$__all_variables')).toBe('var-cluster=A');
     // Should not url encode again if format is queryparam
-    expect(sceneInterpolator(scene, '$__all_variables', {}, FormatRegistryID.percentEncode)).toBe('var-cluster=A');
+    expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe('var-cluster=A');
   });
 
   it('Can use use $__url_time_range', () => {

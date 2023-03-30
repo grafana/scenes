@@ -1,11 +1,11 @@
 import { ScopedVars } from '@grafana/data';
-import { VariableType } from '@grafana/schema';
+import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
 import { isCustomVariableValue, VariableCustomFormatterFn, VariableValue } from '../types';
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
-import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
+import { formatRegistry, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
 import { lookupVariable } from '../lookupVariable';
 import { macrosIndex } from '../macros';
@@ -90,7 +90,7 @@ function formatValue(
   let args: string[] = [];
 
   if (!formatNameOrFn) {
-    formatNameOrFn = FormatRegistryID.glob;
+    formatNameOrFn = VariableFormatID.Glob;
   } else {
     // some formats have arguments that come after ':' character
     args = formatNameOrFn.split(':');
@@ -106,7 +106,7 @@ function formatValue(
 
   if (!formatter) {
     console.error(`Variable format ${formatNameOrFn} not found. Using glob format as fallback.`);
-    formatter = formatRegistry.get(FormatRegistryID.glob);
+    formatter = formatRegistry.get(VariableFormatID.Glob);
   }
 
   return formatter.formatter(value, args, variable);

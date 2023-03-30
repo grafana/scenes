@@ -16,7 +16,8 @@ import {
   CustomVariableValue,
   VariableCustomFormatterFn,
 } from '../types';
-import { formatRegistry, FormatRegistryID } from '../interpolation/formatRegistry';
+import { formatRegistry } from '../interpolation/formatRegistry';
+import { VariableFormatID } from '@grafana/schema';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -37,7 +38,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   extends SceneObjectBase<TState>
   implements SceneVariable<TState>
 {
-  protected _urlSync: SceneObjectUrlSyncHandler<TState> = new MultiValueUrlSyncHandler(this);
+  protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
    * The source of value options.
@@ -236,7 +237,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 }
 
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
-  implements SceneObjectUrlSyncHandler<TState>
+  implements SceneObjectUrlSyncHandler
 {
   public constructor(private _sceneObject: MultiValueVariable<TState>) {}
 
@@ -248,9 +249,9 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     return [this.getKey()];
   }
 
-  public getUrlState(state: TState): SceneObjectUrlValues {
+  public getUrlState(): SceneObjectUrlValues {
     let urlValue: string | string[] | null = null;
-    let value = state.value;
+    let value = this._sceneObject.state.value;
 
     if (Array.isArray(value)) {
       urlValue = value.map(String);
@@ -278,16 +279,16 @@ export class CustomAllValue implements CustomVariableValue {
   public constructor(private _value: string, private _variable: SceneVariable) {}
 
   public formatter(formatNameOrFn?: string | VariableCustomFormatterFn): string {
-    if (formatNameOrFn === FormatRegistryID.text) {
+    if (formatNameOrFn === VariableFormatID.Text) {
       return ALL_VARIABLE_TEXT;
     }
 
-    if (formatNameOrFn === FormatRegistryID.percentEncode) {
-      return formatRegistry.get(FormatRegistryID.percentEncode).formatter(this._value, [], this._variable);
+    if (formatNameOrFn === VariableFormatID.PercentEncode) {
+      return formatRegistry.get(VariableFormatID.PercentEncode).formatter(this._value, [], this._variable);
     }
 
-    if (formatNameOrFn === FormatRegistryID.queryParam) {
-      return formatRegistry.get(FormatRegistryID.queryParam).formatter(ALL_VARIABLE_TEXT, [], this._variable);
+    if (formatNameOrFn === VariableFormatID.QueryParam) {
+      return formatRegistry.get(VariableFormatID.QueryParam).formatter(ALL_VARIABLE_TEXT, [], this._variable);
     }
 
     return this._value;
