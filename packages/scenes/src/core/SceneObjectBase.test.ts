@@ -220,5 +220,14 @@ describe('SceneObject', () => {
       ref2();
       expect(deactivatedCounter).toBe(1);
     });
+
+    it('Cannot call deactivation function twice', () => {
+      const scene = new TestScene({ name: 'nested' });
+
+      const deactivateScene = scene.activate();
+      deactivateScene();
+
+      expect(() => deactivateScene()).toThrow();
+    });
   });
 });

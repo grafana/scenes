@@ -173,8 +173,18 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     this._refCount++;
 
+    let called = false;
+
     return () => {
       this._refCount--;
+
+      if (called) {
+        const msg = `SceneObject cancelation handler returned by activate() called a second time`;
+        console.error(msg, this);
+        throw new Error(msg);
+      }
+
+      called = true;
 
       if (this._refCount === 0) {
         this._internalDeactivate();
