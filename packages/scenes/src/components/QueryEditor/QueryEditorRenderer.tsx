@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { CoreApp, GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
@@ -8,20 +8,13 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
 
 import { QueryEditor } from './QueryEditor';
-import { getDataSource } from '../../utils/getDataSource';
 
 export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>) {
-  const { datasourceLoadErrorMessage, datasource } = model.useState();
+  const { datasource, datasourceLoadErrorMessage } = model.useState();
 
   const { data } = sceneGraph.getData(model).useState();
   const sceneQueryRunner = sceneGraph.getSceneQueryRunner(model);
-
-  useEffect(() => {
-    const queryRunnerDatasource = sceneQueryRunner?.state.datasource;
-    getDataSource(queryRunnerDatasource, {})
-      .then((d) => model.setState({ datasource: d }))
-      .catch((err) => model.setState({ datasourceLoadErrorMessage: err }));
-  }, [sceneQueryRunner?.state.datasource, model]);
+  const queries = sceneQueryRunner?.state.queries;
 
   const styles = useStyles2(getStyles);
 
@@ -37,7 +30,7 @@ export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>)
     return <div>Datasource has no query editor.</div>;
   }
 
-  if (!sceneQueryRunner || sceneQueryRunner.state.queries.length === 0) {
+  if (!queries || queries.length === 0) {
     return <div>No queries found.</div>;
   }
 
@@ -45,7 +38,7 @@ export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>)
 
   return (
     <ul className={styles.editorList}>
-      {sceneQueryRunner.state.queries.map((query) => (
+      {queries.map((query) => (
         <li key={query.refId} className={styles.queryEditor}>
           <span className={styles.refIdLabel}>{query.refId}</span>
           <QueryEditor
@@ -57,7 +50,7 @@ export function QueryEditorRenderer({ model }: SceneComponentProps<QueryEditor>)
             onAddQuery={() => {}}
             data={data}
             range={data?.timeRange}
-            queries={sceneQueryRunner.state.queries}
+            queries={queries}
             app={CoreApp.PanelEditor}
           />
         </li>

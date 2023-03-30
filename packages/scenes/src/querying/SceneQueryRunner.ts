@@ -242,7 +242,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 }
 
-function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
+export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }
 

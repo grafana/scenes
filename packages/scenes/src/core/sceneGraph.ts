@@ -4,7 +4,7 @@ import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/
 import { sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../variables/types';
 
-import { SceneDataState, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
+import { SceneDataProvider, SceneDataState, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
 import { lookupVariable } from '../variables/lookupVariable';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 
@@ -62,7 +62,22 @@ export function getLayout(scene: SceneObject): SceneLayout {
  * Will walk up the scene object graph to the closest SceneQueryRunner
  */
 export function getSceneQueryRunner(sceneObject: SceneObject): SceneQueryRunner | undefined {
-  return getClosest(sceneObject, (s) => (s.state.$data instanceof SceneQueryRunner ? s.state.$data : undefined));
+  if (sceneObject.state.$data !== undefined) {
+    let curData: SceneDataProvider | undefined = sceneObject.state.$data;
+    while (curData !== undefined) {
+      if (curData instanceof SceneQueryRunner) {
+        return curData;
+      }
+
+      curData = curData.state.$data;
+    }
+  }
+  
+  if (sceneObject.parent) {
+    return getSceneQueryRunner(sceneObject.parent);
+  }
+
+  return undefined;
 }
 
 /**
