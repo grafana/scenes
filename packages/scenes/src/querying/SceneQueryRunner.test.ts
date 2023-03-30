@@ -15,7 +15,7 @@ import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
-import { TestScene } from '../variables/interpolation/sceneInterpolator.test';
+import { TestScene } from '../variables/TestScene';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
