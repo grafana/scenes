@@ -21,7 +21,7 @@ export function seriesVisibilityConfigFactory(
   mode: SeriesVisibilityChangeMode,
   fieldConfig: FieldConfigSource,
   data: DataFrame[]
-) {
+): FieldConfigSource {
   const { overrides } = fieldConfig;
 
   const displayName = label;
