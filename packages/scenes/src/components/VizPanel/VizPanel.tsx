@@ -21,7 +21,7 @@ import { VariableCustomFormatterFn } from '../../variables/types';
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectStatePlain {
   title: string;
   description?: string;
-  pluginId: string;
+  pluginId: string | PanelPlugin;
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
@@ -57,25 +57,44 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   }
 
   private _onActivate() {
+    if (!this._plugin) {
+      if (typeof this.state.pluginId === 'string') {
+        this._loadPlugin(this.state.pluginId);
+      } else {
+        const plugin = this.state.pluginId;
+        this._pluginLoaded(plugin);
+      }
+    }
+  }
+
+  private _loadPlugin(pluginId: string) {
     const { getPanelPluginFromCache, importPanelPlugin } = getPluginImportUtils();
-    const plugin = getPanelPluginFromCache(this.state.pluginId);
+    const plugin = getPanelPluginFromCache(pluginId);
 
     if (plugin) {
-      this.pluginLoaded(plugin);
+      this._pluginLoaded(plugin);
     } else {
-      importPanelPlugin(this.state.pluginId)
-        .then((result) => this.pluginLoaded(result))
+      importPanelPlugin(pluginId)
+        .then((result) => this._pluginLoaded(result))
         .catch((err: Error) => {
           this.setState({ pluginLoadError: err.message });
         });
     }
   }
 
-  private pluginLoaded(plugin: PanelPlugin) {
-    const { options, fieldConfig, title, pluginId, pluginVersion } = this.state;
+  private _pluginLoaded(plugin: PanelPlugin) {
+    const { options, fieldConfig, title, pluginVersion } = this.state;
 
-    const panel: PanelModel = { title, options, fieldConfig, id: 1, type: pluginId, pluginVersion: pluginVersion };
-    const currentVersion = this.getPluginVersion(plugin);
+    const panel: PanelModel = {
+      title,
+      options,
+      fieldConfig,
+      id: 1,
+      type: plugin.meta.id,
+      pluginVersion: pluginVersion,
+    };
+
+    const currentVersion = this._getPluginVersion(plugin);
 
     if (plugin.onPanelMigration) {
       if (currentVersion !== this.state.pluginVersion) {
@@ -100,7 +119,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     });
   }
 
-  private getPluginVersion(plugin: PanelPlugin): string {
+  private _getPluginVersion(plugin: PanelPlugin): string {
     return plugin && plugin.meta.info.version ? plugin.meta.info.version : config.buildInfo.version;
   }
 

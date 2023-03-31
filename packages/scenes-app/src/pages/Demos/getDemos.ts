@@ -1,4 +1,5 @@
 import { EmbeddedScene, SceneCanvasText, SceneFlexItem, SceneFlexLayout } from '@grafana/scenes';
+import { getCustomVizScene } from './scenes/customViz';
 import { getFlexLayoutTest } from './scenes/flexLayout';
 import { getGridLayoutTest } from './scenes/grid';
 import { getGridWithRowLayoutTest } from './scenes/gridWithRow';
@@ -19,6 +20,7 @@ export function getDemos(): SceneDef[] {
     { title: 'Grid layout', getScene: getGridLayoutTest },
     { title: 'Grid layout with rows', getScene: getGridWithRowLayoutTest },
     { title: 'Nested scene', getScene: getNestedScene },
+    { title: 'Custom visualization panel plugin', getScene: getCustomVizScene },
   ];
 }
 
