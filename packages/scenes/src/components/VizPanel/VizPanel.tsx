@@ -52,10 +52,11 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       pluginId: 'timeseries',
       ...state,
     });
+
+    this.addActivationHandler(() => this._onActivate());
   }
 
-  public activate() {
-    super.activate();
+  private _onActivate() {
     const { getPanelPluginFromCache, importPanelPlugin } = getPluginImportUtils();
     const plugin = getPanelPluginFromCache(this.state.pluginId);
 

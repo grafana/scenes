@@ -11,6 +11,7 @@ import {
   SceneStateChangedHandler,
   SceneActivationHandler,
   SceneDeactivationHandler,
+  CancelActivationHandler,
 } from './types';
 import { useForceUpdate } from '@grafana/ui';
 
@@ -30,6 +31,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
+  protected _refCount = 0;
 
   protected _variableDependency: SceneVariableDependencyConfigLike | undefined;
   protected _urlSync: SceneObjectUrlSyncHandler | undefined;
@@ -135,25 +137,21 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     return !this._parent ? this : this._parent.getRoot();
   }
 
-  /**
-   * Called by the SceneComponentWrapper when the react component is mounted.
-   * Don't override this, instead use addActivationHandler
-   */
-  public activate() {
+  private _internalActivate() {
     this._isActive = true;
 
     const { $data, $variables, $timeRange } = this.state;
 
     if ($timeRange && !$timeRange.isActive) {
-      $timeRange.activate();
+      this._deactivationHandlers.push($timeRange.activate());
     }
 
     if ($variables && !$variables.isActive) {
-      $variables.activate();
+      this._deactivationHandlers.push($variables.activate());
     }
 
     if ($data && !$data.isActive) {
-      $data.activate();
+      this._deactivationHandlers.push($data.activate());
     }
 
     this._activationHandlers.forEach((handler) => {
@@ -165,25 +163,42 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   }
 
   /**
+   * This is primarily called from SceneComponentWrapper when the SceneObject's Component is mounted.
+   * But in some scenarios this can also be called directly from another scene object. When called manually from another scene object
+   * make sure to call the returned function when the source scene object is deactivated.
+   */
+  public activate(): CancelActivationHandler {
+    if (!this.isActive) {
+      this._internalActivate();
+    }
+
+    this._refCount++;
+
+    let called = false;
+
+    return () => {
+      this._refCount--;
+
+      if (called) {
+        const msg = `SceneObject cancelation handler returned by activate() called a second time`;
+        console.error(msg, this);
+        throw new Error(msg);
+      }
+
+      called = true;
+
+      if (this._refCount === 0) {
+        this._internalDeactivate();
+      }
+    };
+  }
+
+  /**
    * Called by the SceneComponentWrapper when the react component is unmounted.
    * Don't override this, instead use addActivationHandler. The activation handler can return a deactivation handler.
    */
-  public deactivate(): void {
+  private _internalDeactivate(): void {
     this._isActive = false;
-
-    const { $data, $variables, $timeRange } = this.state;
-
-    if ($timeRange && $timeRange.isActive) {
-      $timeRange.deactivate();
-    }
-
-    if ($data && $data.isActive) {
-      $data.deactivate();
-    }
-
-    if ($variables && $variables.isActive) {
-      $variables.deactivate();
-    }
 
     this._deactivationHandlers.forEach((handler) => handler());
     this._deactivationHandlers = [];

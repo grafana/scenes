@@ -1,20 +1,13 @@
-import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
-import { SceneObjectStatePlain } from '../../core/types';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { TestScene } from '../TestScene';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
 import { VariableFormatID } from '@grafana/schema';
 
 import { sceneInterpolator } from './sceneInterpolator';
-
-export interface TestSceneState extends SceneObjectStatePlain {
-  nested?: TestScene;
-}
-
-export class TestScene extends SceneObjectBase<TestSceneState> {}
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {

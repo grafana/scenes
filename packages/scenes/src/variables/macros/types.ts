@@ -1,9 +1,10 @@
+import { ScopedVars } from '@grafana/data';
 import { SceneObject } from '../../core/types';
 import { FormatVariable } from '../interpolation/formatRegistry';
 import { CustomVariableValue } from '../types';
 
 export interface MacroVariableConstructor {
-  new (name: string, sceneObject: SceneObject): FormatVariable;
+  new (name: string, sceneObject: SceneObject, fullMatch: string, scopedVars?: ScopedVars): FormatVariable;
 }
 
 /**

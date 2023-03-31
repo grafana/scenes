@@ -15,6 +15,7 @@ import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
+import { TestScene } from '../variables/TestScene';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -100,7 +101,8 @@ describe('SceneQueryRunner', () => {
 
       expect(queryRunner.state.data).toBeUndefined();
 
-      queryRunner.activate();
+      const deactivateQueryRunner = queryRunner.activate();
+
       // When consumer viz is rendered with width 1000
       await new Promise((r) => setTimeout(r, 1));
 
@@ -109,7 +111,8 @@ describe('SceneQueryRunner', () => {
       expect(runRequestCall1[1].maxDataPoints).toEqual(500);
 
       queryRunner.setContainerWidth(1000);
-      queryRunner.deactivate();
+      deactivateQueryRunner();
+
       // When width is externally set to 0 before the consumer container has not yet rendered with expected width
       queryRunner.setContainerWidth(0);
       queryRunner.activate();
@@ -253,16 +256,18 @@ describe('SceneQueryRunner', () => {
         queries: [{ refId: 'A', query: '$A' }],
       });
 
-      const timeRange = new SceneTimeRange();
-
-      const scene = new SceneFlexLayout({
-        $variables: new SceneVariableSet({ variables: [variable] }),
-        $timeRange: timeRange,
+      const innerScene = new TestScene({
         $data: queryRunner,
-        children: [],
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        nested: innerScene,
       });
 
       scene.activate();
+      const deactivateInnerScene = innerScene.activate();
 
       // should execute query when variable completes update
       variable.signalUpdateCompleted();
@@ -270,7 +275,7 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
 
       // simulate we collapse a part of the scene where this query runner is
-      queryRunner.deactivate();
+      deactivateInnerScene();
 
       variable.changeValueTo('AB');
 
@@ -294,16 +299,13 @@ describe('SceneQueryRunner', () => {
         queries: [{ refId: 'A', query: '$A' }],
       });
 
-      const timeRange = new SceneTimeRange();
-
-      const scene = new SceneFlexLayout({
+      const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [variable] }),
-        $timeRange: timeRange,
+        $timeRange: new SceneTimeRange(),
         $data: queryRunner,
-        children: [],
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
 
       // should execute query when variable completes update
       variable.signalUpdateCompleted();
@@ -311,7 +313,7 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
 
       // Deactivate scene which deactivates SceneVariableSet
-      scene.deactivate();
+      deactivateScene();
 
       // Now change value
       variable.changeValueTo('AB');
