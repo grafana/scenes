@@ -1,4 +1,4 @@
-import { ArrayVector, DataFrame, FieldColorModeId, FieldConfigSource, FieldMatcherID, FieldType } from '@grafana/data';
+import { ArrayVector, DataFrame, FieldConfigSource, FieldMatcherID, FieldType } from '@grafana/data';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
 
 import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';

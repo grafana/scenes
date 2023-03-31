@@ -1,4 +1,3 @@
-import { getDefaultTimeRange, LoadingState } from '@grafana/data';
 import { SceneDataNode } from '../../core/SceneDataNode';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
