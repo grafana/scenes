@@ -8,6 +8,7 @@ export function getQueryEditorDemo(): EmbeddedScene {
       direction: 'column',
       children: [
         new SceneFlexItem({
+          ySizing: 'content',
           body: new QueryEditor(),
         }),
         new SceneFlexItem({
