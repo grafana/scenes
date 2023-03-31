@@ -14,7 +14,7 @@ import {
   compareDataFrameStructures,
   applyFieldOverrides,
 } from '@grafana/data';
-import { PanelContext, SeriesVisibilityChangeMode } from '@grafana/ui';
+import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
@@ -25,7 +25,6 @@ import { VizPanelMenu } from './VizPanelMenu';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { VariableCustomFormatterFn } from '../../variables/types';
 import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';
-import { Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 
@@ -43,6 +42,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   isResizable?: boolean;
   // internal state
   pluginLoadError?: string;
+  pluginInstanceState?: any;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>> {
@@ -55,7 +55,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   // Not part of state as this is not serializable
   private _plugin?: PanelPlugin;
   private _panelContext: PanelContext;
-  private _dataSub?: Unsubscribable;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
 
@@ -74,11 +73,11 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       sync: () => DashboardCursorSync.Off, // TODO
       onSeriesColorChange: this._onSeriesColorChange,
       onToggleSeriesVisibility: this._onSeriesVisibilityChange,
+      onToggleLegendSort: this._onToggleLegendSort,
+      onInstanceStateChange: this._onInstanceStateChange,
       // onAnnotationCreate: this.onAnnotationCreate,
       // onAnnotationUpdate: this.onAnnotationUpdate,
       // onAnnotationDelete: this.onAnnotationDelete,
-      // onInstanceStateChange: this.onInstanceStateChange,
-      // onToggleLegendSort: this.onToggleLegendSort,
       // canAddAnnotations: props.dashboard.canAddAnnotations.bind(props.dashboard),
       // canEditAnnotations: props.dashboard.canEditAnnotations.bind(props.dashboard),
       // canDeleteAnnotations: props.dashboard.canDeleteAnnotations.bind(props.dashboard),
@@ -86,12 +85,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
 
     this.addActivationHandler(() => {
       this._onActivate();
-
-      return () => {
-        if (this._dataSub) {
-          this._dataSub.unsubscribe();
-        }
-      };
     });
   }
 
@@ -144,20 +137,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       pluginVersion: currentVersion,
     });
   }
-
-  private _onSeriesColorChange = (label: string, color: string) => {
-    this.onFieldConfigChange(changeSeriesColorConfigFactory(label, color, this.state.fieldConfig));
-  };
-
-  private _onSeriesVisibilityChange = (label: string, mode: SeriesVisibilityChangeMode) => {
-    if (!this._dataWithFieldConfig) {
-      return;
-    }
-
-    this.onFieldConfigChange(
-      seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, this._dataWithFieldConfig.series)
-    );
-  };
 
   private _getPluginVersion(plugin: PanelPlugin): string {
     return plugin && plugin.meta.info.version ? plugin.meta.info.version : config.buildInfo.version;
@@ -237,4 +216,54 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
 
     return this._dataWithFieldConfig;
   }
+
+  /**
+   * Panel context functions
+   */
+  private _onSeriesColorChange = (label: string, color: string) => {
+    this.onFieldConfigChange(changeSeriesColorConfigFactory(label, color, this.state.fieldConfig));
+  };
+
+  private _onSeriesVisibilityChange = (label: string, mode: SeriesVisibilityChangeMode) => {
+    if (!this._dataWithFieldConfig) {
+      return;
+    }
+
+    this.onFieldConfigChange(
+      seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, this._dataWithFieldConfig.series)
+    );
+  };
+
+  private _onInstanceStateChange = (state: any) => {
+    this.setState({ pluginInstanceState: state });
+  };
+
+  private _onToggleLegendSort = (sortKey: string) => {
+    const legendOptions: VizLegendOptions = (this.state.options as any).legend;
+
+    // We don't want to do anything when legend options are not available
+    if (!legendOptions) {
+      return;
+    }
+
+    let sortDesc = legendOptions.sortDesc;
+    let sortBy = legendOptions.sortBy;
+    if (sortKey !== sortBy) {
+      sortDesc = undefined;
+    }
+
+    // if already sort ascending, disable sorting
+    if (sortDesc === false) {
+      sortBy = undefined;
+      sortDesc = undefined;
+    } else {
+      sortDesc = !sortDesc;
+      sortBy = sortKey;
+    }
+
+    this.onOptionsChange({
+      ...this.state.options,
+      legend: { ...legendOptions, sortBy, sortDesc },
+    } as TOptions);
+  };
 }
