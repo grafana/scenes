@@ -109,10 +109,10 @@ describe('SceneVariableList', () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A] }) });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
       expect(A.isGettingValues).toBe(true);
 
-      scene.deactivate();
+      deactivateScene();
       expect(A.isGettingValues).toBe(false);
     });
 
@@ -121,11 +121,11 @@ describe('SceneVariableList', () => {
       const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A] }) });
 
       // Active and complete first variable
-      scene.activate();
+      const deactivateScene = scene.activate();
       expect(A.isGettingValues).toBe(true);
 
-      // Deactivate and reactivate
-      scene.deactivate();
+      // Deactivate
+      deactivateScene();
       expect(A.isGettingValues).toBe(false);
 
       // Reactivate and complete A again
@@ -203,14 +203,14 @@ describe('SceneVariableList', () => {
         $variables: new SceneVariableSet({ variables: [A, B] }),
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
 
       A.signalUpdateCompleted();
       B.signalUpdateCompleted();
 
       expect(A.getValueOptionsCount).toBe(1);
 
-      scene.deactivate();
+      deactivateScene();
       scene.activate();
 
       expect(A.state.loading).toBe(false);
@@ -224,11 +224,11 @@ describe('SceneVariableList', () => {
         $variables: new SceneVariableSet({ variables: [A] }),
       });
 
-      scene.activate();
+      const deactivate = scene.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      deactivate();
 
       A.changeValueTo('AB');
 
@@ -246,14 +246,14 @@ describe('SceneVariableList', () => {
         $variables: new SceneVariableSet({ variables: [A, B] }),
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
 
       A.signalUpdateCompleted();
       B.signalUpdateCompleted();
 
       expect(A.getValueOptionsCount).toBe(1);
 
-      scene.deactivate();
+      deactivateScene();
 
       A.changeValueTo('AB');
 
@@ -271,11 +271,12 @@ describe('SceneVariableList', () => {
         $variables: new SceneVariableSet({ variables: [A, B] }),
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      deactivateScene();
+
       scene.activate();
 
       expect(A.state.loading).toBe(false);
@@ -295,16 +296,20 @@ describe('SceneVariableList', () => {
         hidden: inActiveSceneObject,
       });
 
-      scene.activate();
-      nestedObj.activate();
+      const deactivateScene = scene.activate();
+      const deactivateNestedScene = nestedObj.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      // Deactivate scene and nested object
+      deactivateScene();
+      deactivateNestedScene();
 
       A.changeValueTo('AB');
 
+      // reactivate
       scene.activate();
+      nestedObj.activate();
 
       // Should not start loadaing A again, it has options already
       expect(A.state.loading).toBe(false);
@@ -322,13 +327,16 @@ describe('SceneVariableList', () => {
         nested: nestedSceneObject,
       });
 
-      scene.activate();
-      nestedSceneObject.activate();
+      const deactivateScene = scene.activate();
+      const deactivateNestedScene = nestedSceneObject.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      deactivateScene();
+      deactivateNestedScene();
+
       scene.activate();
+      nestedSceneObject.activate();
 
       B.signalUpdateCompleted();
 
@@ -345,8 +353,9 @@ describe('SceneVariableList', () => {
         nested: sceneObject,
       });
 
-      scene.activate();
-      scene.deactivate();
+      const deactivateScene = scene.activate();
+      deactivateScene();
+
       scene.activate();
 
       A.signalUpdateCompleted();
@@ -372,12 +381,12 @@ describe('SceneVariableList', () => {
         nested: nestedSceneObject,
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
       nestedSceneObject.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      deactivateScene();
       scene.activate();
 
       expect(A.state.loading).toBe(false);

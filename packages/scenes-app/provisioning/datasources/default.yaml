@@ -1,6 +1,6 @@
 apiVersion: 1
 
 datasources:
-  - name: scenes-app-testdata
+  - name: gdev-testdata
     isDefault: true
     type: testdata
