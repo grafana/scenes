@@ -39,11 +39,6 @@ export class NestedScene extends SceneObjectBase<NestedSceneState> {
   /** Removes itself from its parent's children array */
   public onRemove = () => {
     const parent = this.parent!;
-    if ('children' in parent.state) {
-      parent.setState({
-        // children: parent.state.children.filter((x) => x !== this),
-      });
-    }
 
     if (isSceneLayoutItem(parent)) {
       parent.setState({
