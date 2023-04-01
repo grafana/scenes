@@ -114,6 +114,12 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * to wire up scene objects that need to respond to state changes in other objects from the outside.
    **/
   addActivationHandler(handler: SceneActivationHandler): void;
+
+  /**
+   * Loop through state and call callback for each direct child scene object.
+   * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
+   */
+  forEachChild(callback: (child: SceneObject) => void): void;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;
