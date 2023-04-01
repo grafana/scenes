@@ -8,13 +8,13 @@ import { Button, ToolbarButton, useStyles2 } from '@grafana/ui';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import {
   SceneObject,
-  SceneLayoutChildState,
   SceneComponentProps,
   SceneLayout,
   SceneLayoutItemState,
+  SceneObjectStatePlain,
 } from '../core/types';
 
-interface NestedSceneState extends SceneLayoutChildState {
+interface NestedSceneState extends SceneObjectStatePlain {
   title: string;
   isCollapsed?: boolean;
   canCollapse?: boolean;
@@ -33,10 +33,6 @@ export class NestedScene extends SceneObjectBase<NestedSceneState> {
   public onToggle = () => {
     this.setState({
       isCollapsed: !this.state.isCollapsed,
-      placement: {
-        ...this.state.placement,
-        ySizing: this.state.isCollapsed ? 'fill' : 'content',
-      },
     });
   };
 
@@ -45,7 +41,7 @@ export class NestedScene extends SceneObjectBase<NestedSceneState> {
     const parent = this.parent!;
     if ('children' in parent.state) {
       parent.setState({
-        children: parent.state.children.filter((x) => x !== this),
+        // children: parent.state.children.filter((x) => x !== this),
       });
     }
 
