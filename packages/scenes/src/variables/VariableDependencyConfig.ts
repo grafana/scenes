@@ -1,9 +1,9 @@
-import { SceneObject, SceneObjectState } from '../core/types';
+import { SceneObject, SceneObjectStatePlain } from '../core/types';
 import { VARIABLE_REGEX } from './constants';
 
 import { SceneVariable, SceneVariableDependencyConfigLike } from './types';
 
-interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
+interface VariableDependencyConfigOptions<TState extends SceneObjectStatePlain> {
   /**
    * State paths to scan / extract variable dependencies from. Leave empty to scan all paths.
    */
@@ -20,7 +20,9 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   onVariableUpdatesCompleted?: (changedVariables: Set<SceneVariable>, dependencyChanged: boolean) => void;
 }
 
-export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
+export class VariableDependencyConfig<TState extends SceneObjectStatePlain>
+  implements SceneVariableDependencyConfigLike
+{
   private _state: TState | undefined;
   private _dependencies = new Set<string>();
   private _statePaths?: Array<keyof TState>;

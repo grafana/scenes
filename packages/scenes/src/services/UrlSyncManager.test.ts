@@ -5,12 +5,12 @@ import { locationService } from '@grafana/runtime';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneTimeRange } from '../core/SceneTimeRange';
-import { SceneLayoutChildState, SceneObject, SceneObjectUrlValues } from '../core/types';
+import { SceneObjectStatePlain, SceneObject, SceneObjectUrlValues } from '../core/types';
 
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
 import { isUrlValueEqual, UrlSyncManager } from './UrlSyncManager';
 
-interface TestObjectState extends SceneLayoutChildState {
+interface TestObjectState extends SceneObjectStatePlain {
   name: string;
   optional?: string;
   array?: string[];

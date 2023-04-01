@@ -1,4 +1,4 @@
-import { SceneObjectState, SceneObjectStatePlain } from './types';
+import { SceneObjectStatePlain } from './types';
 
 import { SceneObjectBase } from './SceneObjectBase';
 
@@ -24,7 +24,7 @@ export function forEachSceneObjectInState(state: SceneObjectStatePlain, callback
 /**
  * Will create new SceneItem with shalled cloned state, but all states items of type SceneObject are deep cloned
  */
-export function cloneSceneObject<T extends SceneObjectBase<TState>, TState extends SceneObjectState>(
+export function cloneSceneObject<T extends SceneObjectBase<TState>, TState extends SceneObjectStatePlain>(
   sceneObject: SceneObjectBase<TState>,
   withState?: Partial<TState>
 ): T {
