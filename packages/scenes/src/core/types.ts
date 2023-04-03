@@ -21,15 +21,9 @@ export interface SceneObjectStatePlain {
   $variables?: SceneVariables;
 }
 
-export interface SceneLayoutChildState extends SceneObjectStatePlain {
-  placement?: SceneLayoutChildOptions;
-}
-
 export interface SceneLayoutItemState extends SceneObjectStatePlain {
   body: SceneObject | undefined;
 }
-
-export type SceneObjectState = SceneObjectStatePlain | SceneLayoutState | SceneLayoutChildState;
 
 export interface SceneLayoutChildOptions {
   width?: number | string;
@@ -54,7 +48,7 @@ export interface SceneDataState extends SceneObjectStatePlain {
   data?: PanelData;
 }
 
-export interface SceneObject<TState extends SceneObjectState = SceneObjectState> {
+export interface SceneObject<TState extends SceneObjectStatePlain = SceneObjectStatePlain> {
   /** The current state */
   readonly state: TState;
 
@@ -108,6 +102,12 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * to wire up scene objects that need to respond to state changes in other objects from the outside.
    **/
   addActivationHandler(handler: SceneActivationHandler): void;
+
+  /**
+   * Loop through state and call callback for each direct child scene object.
+   * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
+   */
+  forEachChild(callback: (child: SceneObject) => void): void;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;
@@ -118,9 +118,7 @@ export type SceneDeactivationHandler = () => void;
  **/
 export type CancelActivationHandler = () => void;
 
-export type SceneLayoutChild = SceneObject<SceneLayoutChildState | SceneLayoutState>;
-
-export interface SceneLayoutState extends SceneLayoutChildState {
+export interface SceneLayoutState extends SceneObjectStatePlain {
   children: SceneObject[];
 }
 

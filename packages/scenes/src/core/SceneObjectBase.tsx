@@ -6,21 +6,21 @@ import { BusEvent, BusEventHandler, BusEventType, EventBusSrv } from '@grafana/d
 import {
   SceneObject,
   SceneComponent,
-  SceneObjectState,
   SceneObjectUrlSyncHandler,
   SceneStateChangedHandler,
   SceneActivationHandler,
   SceneDeactivationHandler,
   CancelActivationHandler,
+  SceneObjectStatePlain,
 } from './types';
 import { useForceUpdate } from '@grafana/ui';
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
 import { SceneObjectStateChangedEvent } from './events';
-import { cloneSceneObject, forEachSceneObjectInState } from './utils';
+import { cloneSceneObject } from './utils';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
 
-export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState>
+export abstract class SceneObjectBase<TState extends SceneObjectStatePlain = SceneObjectStatePlain>
   implements SceneObject<TState>
 {
   private _isActive = false;
@@ -42,7 +42,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     }
 
     this._state = Object.freeze(state);
-    this.setParent();
+    this._setParent();
   }
 
   /** Current state */
@@ -78,8 +78,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     return SceneComponentWrapper;
   }
 
-  private setParent() {
-    forEachSceneObjectInState(this._state, (child) => (child._parent = this));
+  private _setParent() {
+    this.forEachChild((child) => (child._parent = this));
   }
 
   /**
@@ -109,7 +109,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     this._state = Object.freeze(newState);
 
-    this.setParent();
+    this._setParent();
 
     // Bubble state change event. This is event is subscribed to by UrlSyncManager and UndoManager
     this.publishEvent(
@@ -236,13 +236,33 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   public addActivationHandler(handler: SceneActivationHandler) {
     this._activationHandlers.push(handler);
   }
+
+  /**
+   * Loop through state and call callback for each direct child scene object.
+   * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
+   */
+  public forEachChild(callback: (child: SceneObjectBase) => void) {
+    for (const propValue of Object.values(this.state)) {
+      if (propValue instanceof SceneObjectBase) {
+        callback(propValue);
+      }
+
+      if (Array.isArray(propValue)) {
+        for (const child of propValue) {
+          if (child instanceof SceneObjectBase) {
+            callback(child);
+          }
+        }
+      }
+    }
+  }
 }
 
 /**
  * This hook is always returning model.state instead of a useState that remembers the last state emitted on the subject
  * The reason for this is so that if the model instance change this function will always return the latest state.
  */
-function useSceneObjectState<TState extends SceneObjectState>(model: SceneObjectBase<TState>): TState {
+function useSceneObjectState<TState extends SceneObjectStatePlain>(model: SceneObjectBase<TState>): TState {
   const forceUpdate = useForceUpdate();
 
   useEffect(() => {

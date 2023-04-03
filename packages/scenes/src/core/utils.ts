@@ -1,30 +1,11 @@
-import { SceneObjectState, SceneObjectStatePlain } from './types';
+import { SceneObjectStatePlain } from './types';
 
 import { SceneObjectBase } from './SceneObjectBase';
 
 /**
- * Will call callback for all first level child scene objects and scene objects inside arrays
- */
-export function forEachSceneObjectInState(state: SceneObjectStatePlain, callback: (scene: SceneObjectBase) => void) {
-  for (const propValue of Object.values(state)) {
-    if (propValue instanceof SceneObjectBase) {
-      callback(propValue);
-    }
-
-    if (Array.isArray(propValue)) {
-      for (const child of propValue) {
-        if (child instanceof SceneObjectBase) {
-          callback(child);
-        }
-      }
-    }
-  }
-}
-
-/**
  * Will create new SceneItem with shalled cloned state, but all states items of type SceneObject are deep cloned
  */
-export function cloneSceneObject<T extends SceneObjectBase<TState>, TState extends SceneObjectState>(
+export function cloneSceneObject<T extends SceneObjectBase<TState>, TState extends SceneObjectStatePlain>(
   sceneObject: SceneObjectBase<TState>,
   withState?: Partial<TState>
 ): T {
