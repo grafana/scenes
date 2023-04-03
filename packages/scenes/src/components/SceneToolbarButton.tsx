@@ -3,9 +3,9 @@ import React from 'react';
 import { IconName, Input, ToolbarButton } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectStatePlain } from '../core/types';
+import { SceneComponentProps, SceneObjectState } from '../core/types';
 
-export interface ToolbarButtonState extends SceneObjectStatePlain {
+export interface ToolbarButtonState extends SceneObjectState {
   icon: IconName;
   onClick: () => void;
 }
@@ -18,7 +18,7 @@ export class SceneToolbarButton extends SceneObjectBase<ToolbarButtonState> {
   };
 }
 
-export interface SceneToolbarInputState extends SceneObjectStatePlain {
+export interface SceneToolbarInputState extends SceneObjectState {
   value?: string;
   onChange: (value: number) => void;
 }

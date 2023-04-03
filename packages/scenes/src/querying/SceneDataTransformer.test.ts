@@ -16,7 +16,7 @@ import { SceneDataNode } from '../core/SceneDataNode';
 import { SceneDataTransformer } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { CustomTransformOperator, SceneObjectStatePlain } from '../core/types';
+import { CustomTransformOperator, SceneObjectState } from '../core/types';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
 import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneTimeRange } from '../core/SceneTimeRange';
@@ -490,7 +490,7 @@ describe('SceneDataTransformer', () => {
   });
 });
 
-export interface SceneObjectSearchBoxState extends SceneObjectStatePlain {
+export interface SceneObjectSearchBoxState extends SceneObjectState {
   value: string;
 }
 

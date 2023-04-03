@@ -2,9 +2,9 @@ import React from 'react';
 import { PanelMenuItem } from '@grafana/data';
 import { Menu } from '@grafana/ui';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectStatePlain } from '../../core/types';
+import { SceneComponentProps, SceneObjectState } from '../../core/types';
 
-interface VizPanelMenuState extends SceneObjectStatePlain {
+interface VizPanelMenuState extends SceneObjectState {
   items?: PanelMenuItem[];
 }
 

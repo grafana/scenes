@@ -2,9 +2,9 @@ import { getDefaultTimeRange, PanelData } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
 
 import { SceneObjectBase } from './SceneObjectBase';
-import { SceneDataProvider, SceneObjectStatePlain } from './types';
+import { SceneDataProvider, SceneDataState } from './types';
 
-export interface SceneDataNodeState extends SceneObjectStatePlain {
+export interface SceneDataNodeState extends SceneDataState {
   data: PanelData;
 }
 

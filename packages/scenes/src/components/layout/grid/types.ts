@@ -1,4 +1,4 @@
-import { SceneObject, SceneObjectStatePlain } from '../../../core/types';
+import { SceneObject, SceneObjectState } from '../../../core/types';
 
 export interface SceneGridItemPlacement {
   x?: number;
@@ -7,7 +7,7 @@ export interface SceneGridItemPlacement {
   height?: number;
 }
 
-export interface SceneGridItemStateLike extends SceneGridItemPlacement, SceneObjectStatePlain {
+export interface SceneGridItemStateLike extends SceneGridItemPlacement, SceneObjectState {
   isResizable: boolean;
   isDraggable: boolean;
 }

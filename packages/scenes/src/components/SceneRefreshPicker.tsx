@@ -5,12 +5,12 @@ import { RefreshPicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneComponentProps, SceneObjectStatePlain, SceneObjectUrlValues } from '../core/types';
+import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
 export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'];
 
-export interface SceneRefreshPickerState extends SceneObjectStatePlain {
+export interface SceneRefreshPickerState extends SceneObjectState {
   // Refresh interval, e.g. 5s, 1m, 2h
   refresh: string;
   // List of allowed refresh intervals, e.g. ['5s', '1m']

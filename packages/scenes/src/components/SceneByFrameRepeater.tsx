@@ -4,10 +4,10 @@ import { LoadingState, PanelData, DataFrame } from '@grafana/data';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneComponentProps, SceneObjectStatePlain } from '../core/types';
+import { SceneComponentProps, SceneObjectState } from '../core/types';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 
-interface SceneByFrameRepeaterState extends SceneObjectStatePlain {
+interface SceneByFrameRepeaterState extends SceneObjectState {
   body: SceneFlexLayout;
   getLayoutChild(data: PanelData, frame: DataFrame, frameIndex: number): SceneFlexItem;
 }

@@ -18,7 +18,7 @@ import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@gra
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DeepPartial, SceneObjectStatePlain } from '../../core/types';
+import { DeepPartial, SceneObjectState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
@@ -28,7 +28,7 @@ import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';
 import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 
-export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectStatePlain {
+export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   title: string;
   description?: string;
   pluginId: string;

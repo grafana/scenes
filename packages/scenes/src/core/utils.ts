@@ -1,11 +1,11 @@
-import { SceneObjectStatePlain } from './types';
+import { SceneObjectState } from './types';
 
 import { SceneObjectBase } from './SceneObjectBase';
 
 /**
  * Will create new SceneItem with shalled cloned state, but all states items of type SceneObject are deep cloned
  */
-export function cloneSceneObject<T extends SceneObjectBase<TState>, TState extends SceneObjectStatePlain>(
+export function cloneSceneObject<T extends SceneObjectBase<TState>, TState extends SceneObjectState>(
   sceneObject: SceneObjectBase<TState>,
   withState?: Partial<TState>
 ): T {
