@@ -42,13 +42,7 @@ export interface SceneComponentProps<T> {
   model: T;
 }
 
-export interface SceneComponentWrapperProps {
-  model: SceneObject;
-  children: React.ReactNode;
-}
-
 export type SceneComponent<TModel> = (props: SceneComponentProps<TModel>) => React.ReactElement | null;
-export type SceneComponentCustomWrapper = (props: SceneComponentWrapperProps) => React.ReactElement | null;
 
 export interface SceneDataState extends SceneObjectState {
   data?: PanelData;

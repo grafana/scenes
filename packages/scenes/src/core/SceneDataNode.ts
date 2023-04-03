@@ -1,10 +1,24 @@
-import { PanelData } from '@grafana/data';
+import { getDefaultTimeRange, PanelData } from '@grafana/data';
+import { LoadingState } from '@grafana/schema';
 
 import { SceneObjectBase } from './SceneObjectBase';
-import { SceneDataProvider, SceneObjectState } from './types';
+import { SceneDataProvider, SceneDataState } from './types';
 
-export interface SceneDataNodeState extends SceneObjectState {
-  data?: PanelData;
+export interface SceneDataNodeState extends SceneDataState {
+  data: PanelData;
 }
 
-export class SceneDataNode extends SceneObjectBase<SceneDataNodeState> implements SceneDataProvider {}
+export class SceneDataNode extends SceneObjectBase<SceneDataNodeState> implements SceneDataProvider {
+  public constructor(state?: Partial<SceneDataNodeState>) {
+    super({
+      data: emptyPanelData,
+      ...state,
+    });
+  }
+}
+
+export const emptyPanelData = {
+  state: LoadingState.Done,
+  series: [],
+  timeRange: getDefaultTimeRange(),
+};
