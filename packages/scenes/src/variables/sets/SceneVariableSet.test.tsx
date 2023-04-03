@@ -4,7 +4,7 @@ import { act } from 'react-dom/test-utils';
 
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObjectStatePlain, SceneObject, SceneComponentProps } from '../../core/types';
+import { SceneObjectState, SceneObject, SceneComponentProps } from '../../core/types';
 import { TestVariable } from '../variants/TestVariable';
 
 import { SceneVariableSet } from './SceneVariableSet';
@@ -12,7 +12,7 @@ import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
 
-interface TestSceneState extends SceneObjectStatePlain {
+interface TestSceneState extends SceneObjectState {
   nested?: SceneObject;
   /** To test logic for inactive scene objects  */
   hidden?: SceneObject;
@@ -20,7 +20,7 @@ interface TestSceneState extends SceneObjectStatePlain {
 
 class TestScene extends SceneObjectBase<TestSceneState> {}
 
-interface SceneTextItemState extends SceneObjectStatePlain {
+interface SceneTextItemState extends SceneObjectState {
   text: string;
 }
 
@@ -430,7 +430,7 @@ describe('SceneVariableList', () => {
   });
 });
 
-interface TestSceneObjectState extends SceneObjectStatePlain {
+interface TestSceneObjectState extends SceneObjectState {
   title: string;
   variableValueChanged: number;
 }

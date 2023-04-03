@@ -3,9 +3,9 @@ import { Observable } from 'rxjs';
 import { BusEventWithPayload } from '@grafana/data';
 import { VariableType, VariableHide } from '@grafana/schema';
 
-import { SceneObject, SceneObjectStatePlain } from '../core/types';
+import { SceneObject, SceneObjectState } from '../core/types';
 
-export interface SceneVariableState extends SceneObjectStatePlain {
+export interface SceneVariableState extends SceneObjectState {
   type: VariableType;
   name: string;
   label?: string;
@@ -56,7 +56,7 @@ export interface VariableValueOption {
   value: VariableValueSingle;
 }
 
-export interface SceneVariableSetState extends SceneObjectStatePlain {
+export interface SceneVariableSetState extends SceneObjectState {
   variables: SceneVariable[];
 }
 

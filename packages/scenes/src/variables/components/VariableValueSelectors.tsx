@@ -6,11 +6,11 @@ import { Tooltip, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { SceneComponentProps, SceneObject, SceneObjectStatePlain } from '../../core/types';
+import { SceneComponentProps, SceneObject, SceneObjectState } from '../../core/types';
 import { SceneVariableState } from '../types';
 import { css } from '@emotion/css';
 
-export class VariableValueSelectors extends SceneObjectBase<SceneObjectStatePlain> {
+export class VariableValueSelectors extends SceneObjectBase<SceneObjectState> {
   public static Component = VariableValueSelectorsRenderer;
 }
 

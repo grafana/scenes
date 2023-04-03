@@ -3,10 +3,10 @@ import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { SceneDataNode } from './SceneDataNode';
 import { SceneObjectBase } from './SceneObjectBase';
 import { SceneObjectStateChangedEvent } from './events';
-import { SceneObject, SceneObjectStatePlain } from './types';
+import { SceneObject, SceneObjectState } from './types';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 
-interface TestSceneState extends SceneObjectStatePlain {
+interface TestSceneState extends SceneObjectState {
   name?: string;
   nested?: SceneObject<TestSceneState>;
   children?: TestScene[];

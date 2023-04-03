@@ -1,10 +1,10 @@
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObjectStatePlain } from '../core/types';
+import { SceneObjectState } from '../core/types';
 
 import { VariableDependencyConfig } from './VariableDependencyConfig';
 import { ConstantVariable } from './variants/ConstantVariable';
 
-interface TestState extends SceneObjectStatePlain {
+interface TestState extends SceneObjectState {
   query: string;
   otherProp: string;
   nested: {

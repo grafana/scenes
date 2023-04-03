@@ -1,8 +1,8 @@
 import React from 'react';
-import { SceneComponentProps, SceneObjectBase, SceneObjectStatePlain } from '@grafana/scenes';
+import { SceneComponentProps, SceneObjectBase, SceneObjectState } from '@grafana/scenes';
 import { Input } from '@grafana/ui';
 
-export interface CustomSceneObjectState extends SceneObjectStatePlain {
+export interface CustomSceneObjectState extends SceneObjectState {
   value?: string;
   onChange: (value: number) => void;
 }

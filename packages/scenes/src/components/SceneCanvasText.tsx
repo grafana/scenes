@@ -2,10 +2,10 @@ import React, { CSSProperties } from 'react';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneComponentProps, SceneObjectStatePlain } from '../core/types';
+import { SceneComponentProps, SceneObjectState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 
-export interface SceneCanvasTextState extends SceneObjectStatePlain {
+export interface SceneCanvasTextState extends SceneObjectState {
   text: string;
   fontSize?: number;
   align?: 'left' | 'center' | 'right';

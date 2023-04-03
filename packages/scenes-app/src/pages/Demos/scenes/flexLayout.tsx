@@ -5,7 +5,7 @@ import {
   SceneFlexItem,
   SceneFlexLayout,
   SceneObjectBase,
-  SceneObjectStatePlain,
+  SceneObjectState,
   VizPanel,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from '../utils';
@@ -109,7 +109,7 @@ export function getFlexLayoutTest() {
   });
 }
 
-class DebugItem extends SceneObjectBase<SceneObjectStatePlain> {
+class DebugItem extends SceneObjectBase<SceneObjectState> {
   public static Component = DebugItemRenderer;
 }
 

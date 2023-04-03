@@ -1,9 +1,9 @@
 import { PanelData } from '@grafana/data';
 
 import { SceneObjectBase } from './SceneObjectBase';
-import { SceneDataProvider, SceneObjectStatePlain } from './types';
+import { SceneDataProvider, SceneObjectState } from './types';
 
-export interface SceneDataNodeState extends SceneObjectStatePlain {
+export interface SceneDataNodeState extends SceneObjectState {
   data?: PanelData;
 }
 

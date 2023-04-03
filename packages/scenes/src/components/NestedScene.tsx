@@ -6,15 +6,9 @@ import { Stack } from '@grafana/experimental';
 import { Button, ToolbarButton, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import {
-  SceneObject,
-  SceneComponentProps,
-  SceneLayout,
-  SceneLayoutItemState,
-  SceneObjectStatePlain,
-} from '../core/types';
+import { SceneObject, SceneComponentProps, SceneLayout, SceneLayoutItemState, SceneObjectState } from '../core/types';
 
-interface NestedSceneState extends SceneObjectStatePlain {
+interface NestedSceneState extends SceneObjectState {
   title: string;
   isCollapsed?: boolean;
   canCollapse?: boolean;

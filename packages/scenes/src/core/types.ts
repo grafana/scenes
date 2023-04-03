@@ -14,14 +14,14 @@ import {
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 
-export interface SceneObjectStatePlain {
+export interface SceneObjectState {
   key?: string;
   $timeRange?: SceneTimeRangeLike;
   $data?: SceneDataProvider;
   $variables?: SceneVariables;
 }
 
-export interface SceneLayoutItemState extends SceneObjectStatePlain {
+export interface SceneLayoutItemState extends SceneObjectState {
   body: SceneObject | undefined;
 }
 
@@ -50,11 +50,11 @@ export interface SceneComponentWrapperProps {
 export type SceneComponent<TModel> = (props: SceneComponentProps<TModel>) => React.ReactElement | null;
 export type SceneComponentCustomWrapper = (props: SceneComponentWrapperProps) => React.ReactElement | null;
 
-export interface SceneDataState extends SceneObjectStatePlain {
+export interface SceneDataState extends SceneObjectState {
   data?: PanelData;
 }
 
-export interface SceneObject<TState extends SceneObjectStatePlain = SceneObjectStatePlain> {
+export interface SceneObject<TState extends SceneObjectState = SceneObjectState> {
   /** The current state */
   readonly state: TState;
 
@@ -124,7 +124,7 @@ export type SceneDeactivationHandler = () => void;
  **/
 export type CancelActivationHandler = () => void;
 
-export interface SceneLayoutState extends SceneObjectStatePlain {
+export interface SceneLayoutState extends SceneObjectState {
   children: SceneObject[];
 }
 
@@ -134,7 +134,7 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
   getDragClassCancel?(): string;
 }
 
-export interface SceneTimeRangeState extends SceneObjectStatePlain {
+export interface SceneTimeRangeState extends SceneObjectState {
   from: string;
   to: string;
   timeZone: TimeZone;
