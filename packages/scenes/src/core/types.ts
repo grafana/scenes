@@ -21,15 +21,9 @@ export interface SceneObjectStatePlain {
   $variables?: SceneVariables;
 }
 
-export interface SceneLayoutChildState extends SceneObjectStatePlain {
-  placement?: SceneLayoutChildOptions;
-}
-
 export interface SceneLayoutItemState extends SceneObjectStatePlain {
   body: SceneObject | undefined;
 }
-
-export type SceneObjectState = SceneObjectStatePlain | SceneLayoutState | SceneLayoutChildState;
 
 export interface SceneLayoutChildOptions {
   width?: number | string;
@@ -60,7 +54,7 @@ export interface SceneDataState extends SceneObjectStatePlain {
   data?: PanelData;
 }
 
-export interface SceneObject<TState extends SceneObjectState = SceneObjectState> {
+export interface SceneObject<TState extends SceneObjectStatePlain = SceneObjectStatePlain> {
   /** The current state */
   readonly state: TState;
 
@@ -130,9 +124,7 @@ export type SceneDeactivationHandler = () => void;
  **/
 export type CancelActivationHandler = () => void;
 
-export type SceneLayoutChild = SceneObject<SceneLayoutChildState | SceneLayoutState>;
-
-export interface SceneLayoutState extends SceneLayoutChildState {
+export interface SceneLayoutState extends SceneObjectStatePlain {
   children: SceneObject[];
 }
 
