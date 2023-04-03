@@ -57,6 +57,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   private _panelContext: PanelContext;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
+  private _structureRev: number = 0;
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
@@ -186,9 +187,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     }
 
     const fieldConfigRegistry = plugin.fieldConfigRegistry;
-
-    let structureRev = 0;
-
     const prevFrames = this._prevData?.series;
     const newFrames = rawData?.series;
 
@@ -198,12 +196,12 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       prevFrames &&
       !compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)
     ) {
-      structureRev++;
+      this._structureRev++;
     }
 
     this._dataWithFieldConfig = {
       ...rawData,
-      structureRev: structureRev,
+      structureRev: this._structureRev,
       series: applyFieldOverrides({
         data: newFrames,
         fieldConfig: this.state.fieldConfig,
