@@ -1,12 +1,11 @@
 import { DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
 import { map, Unsubscribable } from 'rxjs';
-import { SceneDataNodeState } from '../core/SceneDataNode';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { CustomTransformOperator, SceneDataProvider } from '../core/types';
+import { CustomTransformOperator, SceneDataProvider, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 
-export interface SceneDataTransformerState extends SceneDataNodeState {
+export interface SceneDataTransformerState extends SceneDataState {
   /**
    * Array of standard transformation configs and custom transform operators
    */
