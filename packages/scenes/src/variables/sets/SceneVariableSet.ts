@@ -2,7 +2,6 @@ import { Unsubscribable } from 'rxjs';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObject } from '../../core/types';
-import { forEachSceneObjectInState } from '../../core/utils';
 import { writeSceneLog } from '../../utils/writeSceneLog';
 import { SceneVariable, SceneVariables, SceneVariableSetState, SceneVariableValueChangedEvent } from '../types';
 import { VariableValueRecorder } from '../VariableValueRecorder';
@@ -36,22 +35,22 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   private _onActivate = () => {
     // Subscribe to changes to child variables
     this._subs.add(
-      this.subscribeToEvent(SceneVariableValueChangedEvent, (event) => this.handleVariableValueChanged(event.payload))
+      this.subscribeToEvent(SceneVariableValueChangedEvent, (event) => this._handleVariableValueChanged(event.payload))
     );
 
     // Subscribe to state changes
-    this._subs.add(this.subscribeToState(this.handleStateChanged));
+    this._subs.add(this.subscribeToState(this._onStateChanged));
 
-    this.checkForVariablesThatChangedWhileInactive();
+    this._checkForVariablesThatChangedWhileInactive();
 
     // Add all variables that need updating to queue
     for (const variable of this.state.variables) {
-      if (this.variableNeedsUpdate(variable)) {
+      if (this._variableNeedsUpdate(variable)) {
         this._variablesToUpdate.add(variable);
       }
     }
 
-    this.updateNextBatch();
+    this._updateNextBatch();
 
     // Return deactivation handler;
     return this._onDeactivate;
@@ -80,7 +79,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   /**
    * Look for new variables that need to be initialized
    */
-  private handleStateChanged = (newState: SceneVariableSetState, oldState: SceneVariableSetState) => {
+  private _onStateChanged = (newState: SceneVariableSetState, oldState: SceneVariableSetState) => {
     const variablesToUpdateCountStart = this._variablesToUpdate.size;
 
     // Check for removed variables
@@ -98,7 +97,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     // Check for new variables
     for (const variable of newState.variables) {
       if (!oldState.variables.includes(variable)) {
-        if (this.variableNeedsUpdate(variable)) {
+        if (this._variableNeedsUpdate(variable)) {
           this._variablesToUpdate.add(variable);
         }
       }
@@ -106,14 +105,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     // Only start a new batch if there was no batch already running
     if (variablesToUpdateCountStart === 0 && this._variablesToUpdate.size > 0) {
-      this.updateNextBatch();
+      this._updateNextBatch();
     }
   };
 
   /**
    * If variables changed while in in-active state we don't get any change events, so we need to check for that here.
    */
-  private checkForVariablesThatChangedWhileInactive() {
+  private _checkForVariablesThatChangedWhileInactive() {
     if (!this._variableValueRecorder.hasValues()) {
       return;
     }
@@ -121,12 +120,12 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     for (const variable of this.state.variables) {
       if (this._variableValueRecorder.hasValueChanged(variable)) {
         writeVariableTraceLog(variable, 'Changed while in-active');
-        this.addDependentVariablesToUpdateQueue(variable);
+        this._addDependentVariablesToUpdateQueue(variable);
       }
     }
   }
 
-  private variableNeedsUpdate(variable: SceneVariable): boolean {
+  private _variableNeedsUpdate(variable: SceneVariable): boolean {
     if (!variable.validateAndUpdate) {
       return false;
     }
@@ -144,10 +143,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * This loops through variablesToUpdate and update all that that can.
    * If one has a dependency that is currently in variablesToUpdate it will be skipped for now.
    */
-  private updateNextBatch() {
+  private _updateNextBatch() {
     // If we have nothing more to update and variable values changed we need to update scene objects that depend on these variables
     if (this._variablesToUpdate.size === 0) {
-      this.notifyDependentSceneObjects();
+      this._notifyDependentSceneObjects();
       return;
     }
 
@@ -162,7 +161,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       }
 
       // Wait for variables that has dependencies that also needs updates
-      if (this.hasDependendencyInUpdateQueue(variable)) {
+      if (this._hasDependendencyInUpdateQueue(variable)) {
         continue;
       }
 
@@ -174,8 +173,8 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       writeVariableTraceLog(variable, 'updateAndValidate started');
 
       variableToUpdate.subscription = variable.validateAndUpdate().subscribe({
-        next: () => this.validateAndUpdateCompleted(variable),
-        error: (err) => this.handleVariableError(variable, err),
+        next: () => this._validateAndUpdateCompleted(variable),
+        error: (err) => this._handleVariableError(variable, err),
       });
     }
   }
@@ -183,7 +182,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   /**
    * A variable has completed it's update process. This could mean that variables that depend on it can now be updated in turn.
    */
-  private validateAndUpdateCompleted(variable: SceneVariable) {
+  private _validateAndUpdateCompleted(variable: SceneVariable) {
     const update = this._updating.get(variable);
     update?.subscription?.unsubscribe();
 
@@ -192,14 +191,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     writeVariableTraceLog(variable, 'updateAndValidate completed');
 
-    this.updateNextBatch();
+    this._updateNextBatch();
   }
 
   /**
    * TODO handle this properly (and show error in UI).
    * Not sure if this should be handled here on in MultiValueVariable
    */
-  private handleVariableError(variable: SceneVariable, err: Error) {
+  private _handleVariableError(variable: SceneVariable, err: Error) {
     const update = this._updating.get(variable);
     update?.subscription?.unsubscribe();
 
@@ -213,7 +212,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   /**
    * Checks if the variable has any dependencies that is currently in variablesToUpdate
    */
-  private hasDependendencyInUpdateQueue(variable: SceneVariable) {
+  private _hasDependendencyInUpdateQueue(variable: SceneVariable) {
     if (!variable.variableDependency) {
       return false;
     }
@@ -227,7 +226,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     return false;
   }
 
-  private handleVariableValueChanged(variableThatChanged: SceneVariable) {
+  private _handleVariableValueChanged(variableThatChanged: SceneVariable) {
     this._variablesThatHaveChanged.add(variableThatChanged);
 
     // Ignore this change if it is currently updating
@@ -235,11 +234,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return;
     }
 
-    this.addDependentVariablesToUpdateQueue(variableThatChanged);
-    this.updateNextBatch();
+    this._addDependentVariablesToUpdateQueue(variableThatChanged);
+    this._updateNextBatch();
   }
 
-  private addDependentVariablesToUpdateQueue(variableThatChanged: SceneVariable) {
+  private _addDependentVariablesToUpdateQueue(variableThatChanged: SceneVariable) {
     for (const otherVariable of this.state.variables) {
       if (otherVariable.variableDependency) {
         if (otherVariable.variableDependency.hasDependencyOn(variableThatChanged.state.name)) {
@@ -253,19 +252,19 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   /**
    * Walk scene object graph and update all objects that depend on variables that have changed
    */
-  private notifyDependentSceneObjects() {
+  private _notifyDependentSceneObjects() {
     if (!this.parent) {
       return;
     }
 
-    this.traverseSceneAndNotify(this.parent);
+    this._traverseSceneAndNotify(this.parent);
     this._variablesThatHaveChanged.clear();
   }
 
   /**
    * Recursivly walk the full scene object graph and notify all objects with dependencies that include any of changed variables
    */
-  private traverseSceneAndNotify(sceneObject: SceneObject) {
+  private _traverseSceneAndNotify(sceneObject: SceneObject) {
     // No need to notify variables under this SceneVariableSet
     if (this === sceneObject) {
       return;
@@ -280,7 +279,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       sceneObject.variableDependency.variableUpdatesCompleted(this._variablesThatHaveChanged);
     }
 
-    forEachSceneObjectInState(sceneObject.state, (child) => this.traverseSceneAndNotify(child));
+    sceneObject.forEachChild((child) => this._traverseSceneAndNotify(child));
   }
 
   /**
