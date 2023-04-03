@@ -72,7 +72,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     panelMenu = <menu.Component model={menu} />;
   }
 
-  // We always set this in constructor, and even for non data panels we init this to an empty panel data
+  // Data is always returned. For non-data panels, empty PanelData is returned.
   const data = dataWithFieldConfig!;
 
   return (
