@@ -6,12 +6,12 @@ import { BusEvent, BusEventHandler, BusEventType, EventBusSrv } from '@grafana/d
 import {
   SceneObject,
   SceneComponent,
-  SceneObjectState,
   SceneObjectUrlSyncHandler,
   SceneStateChangedHandler,
   SceneActivationHandler,
   SceneDeactivationHandler,
   CancelActivationHandler,
+  SceneObjectStatePlain,
 } from './types';
 import { useForceUpdate } from '@grafana/ui';
 
@@ -20,7 +20,7 @@ import { SceneObjectStateChangedEvent } from './events';
 import { cloneSceneObject, forEachSceneObjectInState } from './utils';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
 
-export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState>
+export abstract class SceneObjectBase<TState extends SceneObjectStatePlain = SceneObjectStatePlain>
   implements SceneObject<TState>
 {
   private _isActive = false;
@@ -242,7 +242,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
  * This hook is always returning model.state instead of a useState that remembers the last state emitted on the subject
  * The reason for this is so that if the model instance change this function will always return the latest state.
  */
-function useSceneObjectState<TState extends SceneObjectState>(model: SceneObjectBase<TState>): TState {
+function useSceneObjectState<TState extends SceneObjectStatePlain>(model: SceneObjectBase<TState>): TState {
   const forceUpdate = useForceUpdate();
 
   useEffect(() => {
