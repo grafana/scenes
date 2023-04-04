@@ -1,4 +1,4 @@
-import { SceneObjectBase, SceneLayoutChildState, SceneQueryRunner, getDataSource, SceneDataProvider, SceneObject } from '@grafana/scenes';
+import { SceneObjectBase, SceneQueryRunner, getDataSource, SceneDataProvider, SceneObject, SceneObjectState } from '@grafana/scenes';
 
 
 import { QueryEditorRenderer } from './QueryEditorRenderer';
@@ -6,7 +6,7 @@ import { DataQuery } from '@grafana/schema';
 
 import { DataSourceApi } from '@grafana/data';
 
-export interface QueryEditorState extends SceneLayoutChildState {
+export interface QueryEditorState extends SceneObjectState {
   datasource?: DataSourceApi;
   datasourceLoadErrorMessage?: string;
 }
@@ -14,7 +14,7 @@ export interface QueryEditorState extends SceneLayoutChildState {
 export class QueryEditor extends SceneObjectBase<QueryEditorState> {
   public static Component = QueryEditorRenderer;
 
-  public constructor(state?: Partial<SceneLayoutChildState>) {
+  public constructor(state?: Partial<QueryEditorState>) {
     super({ ...state });
 
     this.addActivationHandler(this._onActivate);
