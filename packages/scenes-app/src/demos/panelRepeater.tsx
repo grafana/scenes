@@ -6,6 +6,7 @@ import {
   SceneDataNode,
   SceneFlexItem,
   SceneFlexLayout,
+  SceneRefreshPicker,
   SceneTimePicker,
   SceneTimeRange,
   SceneToolbarInput,
@@ -88,6 +89,7 @@ export function getPanelRepeaterTest() {
           }),
           new SceneControlsSpacer(),
           new SceneTimePicker({ isOnCanvas: true }),
+          new SceneRefreshPicker({ isOnCanvas: true }),
         ],
       });
     },
