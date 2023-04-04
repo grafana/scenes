@@ -1,5 +1,5 @@
 import { QueryRunnerState, SceneQueryRunner } from '@grafana/scenes';
-import { DATASOURCE_REF } from '../../constants';
+import { DATASOURCE_REF } from '../constants';
 
 export function getQueryRunnerWithRandomWalkQuery(
   overrides?: Partial<any>,
