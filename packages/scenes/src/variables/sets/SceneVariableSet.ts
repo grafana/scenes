@@ -1,4 +1,6 @@
+import { VariableRefresh } from '@grafana/data';
 import { Unsubscribable } from 'rxjs';
+import { sceneGraph } from '../../core/sceneGraph';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObject } from '../../core/types';
@@ -33,9 +35,16 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * Subscribes to child variable value changes, and starts the variable value validation process
    */
   private _onActivate = () => {
+    const timeRange = sceneGraph.getTimeRange(this);
     // Subscribe to changes to child variables
     this._subs.add(
       this.subscribeToEvent(SceneVariableValueChangedEvent, (event) => this._handleVariableValueChanged(event.payload))
+    );
+
+    this._subs.add(
+      timeRange.subscribeToState(() => {
+        this._refreshTimeRangeBasedVariables();
+      })
     );
 
     // Subscribe to state changes
@@ -55,6 +64,19 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     // Return deactivation handler;
     return this._onDeactivate;
   };
+
+  /**
+   * Add all variables that depend on the changed variable to the update queue
+   */
+  private _refreshTimeRangeBasedVariables() {
+    for (const variable of this.state.variables) {
+      if ('refresh' in variable.state && variable.state.refresh === VariableRefresh.onTimeRangeChanged) {
+        this._variablesToUpdate.add(variable);
+      }
+    }
+
+    this._updateNextBatch();
+  }
 
   /**
    * Cancel all currently running updates
@@ -140,7 +162,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   /**
-   * This loops through variablesToUpdate and update all that that can.
+   * This loops through variablesToUpdate and update all that can.
    * If one has a dependency that is currently in variablesToUpdate it will be skipped for now.
    */
   private _updateNextBatch() {
@@ -242,7 +264,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     for (const otherVariable of this.state.variables) {
       if (otherVariable.variableDependency) {
         if (otherVariable.variableDependency.hasDependencyOn(variableThatChanged.state.name)) {
-          writeVariableTraceLog(otherVariable, 'Added to update quee, dependant variable value changed');
+          writeVariableTraceLog(otherVariable, 'Added to update queue, dependant variable value changed');
           this._variablesToUpdate.add(otherVariable);
         }
       }

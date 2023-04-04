@@ -5,6 +5,7 @@ import { getGridWithRowLayoutTest } from './scenes/gridWithRow';
 import { getNestedScene } from './scenes/nestedScene';
 import { getPanelMenuTest } from './scenes/panelMenu';
 import { getPanelRepeaterTest } from './scenes/panelRepeater';
+import { getVariablesDemo } from './scenes/variables';
 
 interface SceneDef {
   title: string;
@@ -19,6 +20,7 @@ export function getDemos(): SceneDef[] {
     { title: 'Grid layout', getScene: getGridLayoutTest },
     { title: 'Grid layout with rows', getScene: getGridWithRowLayoutTest },
     { title: 'Nested scene', getScene: getNestedScene },
+    { title: 'Variables', getScene: getVariablesDemo },
   ];
 }
 
