@@ -15,7 +15,6 @@ import {
   NestedScene,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from '../utils';
-// import { getQueryRunnerWithRandomWalkQuery } from '../utils';
 
 export function getVariablesDemo(): EmbeddedScene {
   return new EmbeddedScene({
