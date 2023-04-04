@@ -5,7 +5,6 @@ import { locationService } from '@grafana/runtime';
 
 import { SceneObjectStateChangedEvent } from '../core/events';
 import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/types';
-import { forEachSceneObjectInState } from '../core/utils';
 
 export class UrlSyncManager {
   private urlKeyMapper = new UniqueUrlKeyMapper();
@@ -17,8 +16,8 @@ export class UrlSyncManager {
    */
   public initSync() {
     this.sceneRoot.addActivationHandler(() => {
-      const stateChangeSub = this.sceneRoot.subscribeToEvent(SceneObjectStateChangedEvent, this.onStateChanged);
-      const locationListenerUnsub = locationService.getHistory().listen(this.onLocationUpdate);
+      const stateChangeSub = this.sceneRoot.subscribeToEvent(SceneObjectStateChangedEvent, this._onStateChanged);
+      const locationListenerUnsub = locationService.getHistory().listen(this._onLocationUpdate);
 
       return () => {
         stateChangeSub.unsubscribe();
@@ -28,18 +27,18 @@ export class UrlSyncManager {
 
     const urlParams = locationService.getSearch();
     this.urlKeyMapper.rebuldIndex(this.sceneRoot);
-    this.syncSceneStateFromUrl(this.sceneRoot, urlParams);
+    this._syncSceneStateFromUrl(this.sceneRoot, urlParams);
   }
 
-  private onLocationUpdate = (location: Location) => {
+  private _onLocationUpdate = (location: Location) => {
     const urlParams = new URLSearchParams(location.search);
     // Rebuild key mapper index before starting sync
     this.urlKeyMapper.rebuldIndex(this.sceneRoot);
     // Sync scene state tree from url
-    this.syncSceneStateFromUrl(this.sceneRoot, urlParams);
+    this._syncSceneStateFromUrl(this.sceneRoot, urlParams);
   };
 
-  private onStateChanged = ({ payload }: SceneObjectStateChangedEvent) => {
+  private _onStateChanged = ({ payload }: SceneObjectStateChangedEvent) => {
     const changedObject = payload.changedObject;
 
     if (changedObject.urlSync) {
@@ -65,7 +64,7 @@ export class UrlSyncManager {
     }
   };
 
-  private syncSceneStateFromUrl(sceneObject: SceneObject, urlParams: URLSearchParams) {
+  private _syncSceneStateFromUrl(sceneObject: SceneObject, urlParams: URLSearchParams) {
     if (sceneObject.urlSync) {
       const urlState: SceneObjectUrlValues = {};
       const currentState = sceneObject.urlSync.getUrlState();
@@ -96,7 +95,7 @@ export class UrlSyncManager {
       }
     }
 
-    forEachSceneObjectInState(sceneObject.state, (obj) => this.syncSceneStateFromUrl(obj, urlParams));
+    sceneObject.forEachChild((child) => this._syncSceneStateFromUrl(child, urlParams));
   }
 }
 
@@ -139,7 +138,7 @@ class UniqueUrlKeyMapper {
       }
     }
 
-    forEachSceneObjectInState(sceneObject.state, (obj) => this.buildIndex(obj, depth + 1));
+    sceneObject.forEachChild((child) => this.buildIndex(child, depth + 1));
   }
 }
 

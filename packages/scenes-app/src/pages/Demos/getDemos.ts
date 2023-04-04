@@ -3,9 +3,11 @@ import { getFlexLayoutTest } from './scenes/flexLayout';
 import { getGridLayoutTest } from './scenes/grid';
 import { getGridWithRowLayoutTest } from './scenes/gridWithRow';
 import { getNestedScene } from './scenes/nestedScene';
+import { getPanelContextDemoScene } from './scenes/panelContext';
 import { getPanelMenuTest } from './scenes/panelMenu';
 import { getPanelRepeaterTest } from './scenes/panelRepeater';
 import { getQueryEditorDemo } from './scenes/queryEditor';
+import { getVariablesDemo } from './scenes/variables';
 
 interface SceneDef {
   title: string;
@@ -16,11 +18,13 @@ export function getDemos(): SceneDef[] {
   return [
     { title: 'Panel menu', getScene: getPanelMenuTest },
     { title: 'Flex layout', getScene: getFlexLayoutTest },
+    { title: 'Panel context', getScene: getPanelContextDemoScene },
     { title: 'Panel repeater', getScene: getPanelRepeaterTest },
     { title: 'Grid layout', getScene: getGridLayoutTest },
     { title: 'Grid layout with rows', getScene: getGridWithRowLayoutTest },
     { title: 'Nested scene', getScene: getNestedScene },
     { title: 'Query editor demo', getScene: getQueryEditorDemo },
+    { title: 'Variables', getScene: getVariablesDemo },
   ];
 }
 

@@ -4,14 +4,14 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import {
   SceneComponentProps,
   SceneLayout,
-  SceneObjectStatePlain,
+  SceneObjectState,
   SceneObject,
   SceneLayoutItemState,
 } from '../../core/types';
 
 export interface SceneFlexItemLike extends SceneObject<SceneFlexItemState> {}
 
-interface SceneFlexLayoutState extends SceneObjectStatePlain {
+interface SceneFlexLayoutState extends SceneObjectState {
   direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
   children: SceneFlexItemLike[];

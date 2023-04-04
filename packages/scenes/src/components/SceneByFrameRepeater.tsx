@@ -4,17 +4,12 @@ import { LoadingState, PanelData, DataFrame } from '@grafana/data';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import {
-  SceneComponentProps,
-  SceneObject,
-  SceneObjectStatePlain,
-  SceneLayoutState,
-  SceneLayoutChild,
-} from '../core/types';
+import { SceneComponentProps, SceneObjectState } from '../core/types';
+import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 
-interface SceneByFrameRepeaterState extends SceneObjectStatePlain {
-  body: SceneObject<SceneLayoutState>;
-  getLayoutChild(data: PanelData, frame: DataFrame, frameIndex: number): SceneLayoutChild;
+interface SceneByFrameRepeaterState extends SceneObjectState {
+  body: SceneFlexLayout;
+  getLayoutChild(data: PanelData, frame: DataFrame, frameIndex: number): SceneFlexItem;
 }
 
 export class SceneByFrameRepeater extends SceneObjectBase<SceneByFrameRepeaterState> {
@@ -33,7 +28,7 @@ export class SceneByFrameRepeater extends SceneObjectBase<SceneByFrameRepeaterSt
   }
 
   private performRepeat(data: PanelData) {
-    const newChildren: SceneLayoutChild[] = [];
+    const newChildren: SceneFlexItem[] = [];
 
     for (let seriesIndex = 0; seriesIndex < data.series.length; seriesIndex++) {
       const layoutChild = this.state.getLayoutChild(data, data.series[seriesIndex], seriesIndex);

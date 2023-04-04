@@ -18,7 +18,7 @@ import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { CustomTransformOperator, SceneDataProvider, SceneObject, SceneObjectStatePlain } from '../core/types';
+import { CustomTransformOperator, SceneDataProvider, SceneObject, SceneObjectState } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -31,7 +31,7 @@ export function getNextRequestId() {
   return 'SQR' + counter++;
 }
 
-export interface QueryRunnerState extends SceneObjectStatePlain {
+export interface QueryRunnerState extends SceneObjectState {
   data?: PanelData;
   dataPreTransforms?: PanelData;
   queries: DataQueryExtended[];

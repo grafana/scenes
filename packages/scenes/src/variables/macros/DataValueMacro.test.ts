@@ -41,6 +41,20 @@ describe('DataValueMacro', () => {
     expect(sceneInterpolator(scene, '${__value.time}', scopedVars)).toBe('10000');
   });
 
+  it('Can use use ${__value.*} when rowIndex is 0', () => {
+    const scene = new TestScene({});
+    const dataContext: DataContextScopedVar = {
+      value: {
+        frame: data,
+        field: data.fields[0],
+        rowIndex: 0,
+      },
+    };
+
+    const scopedVars = { __dataContext: dataContext };
+    expect(sceneInterpolator(scene, '${__value.raw}', scopedVars)).toBe('5');
+  });
+
   it('Can use use ${__value.*} with calculatedValue', () => {
     const scene = new TestScene({});
     const dataContext: DataContextScopedVar = {

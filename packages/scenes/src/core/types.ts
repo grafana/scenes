@@ -14,22 +14,16 @@ import {
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 
-export interface SceneObjectStatePlain {
+export interface SceneObjectState {
   key?: string;
   $timeRange?: SceneTimeRangeLike;
   $data?: SceneDataProvider;
   $variables?: SceneVariables;
 }
 
-export interface SceneLayoutChildState extends SceneObjectStatePlain {
-  placement?: SceneLayoutChildOptions;
-}
-
-export interface SceneLayoutItemState extends SceneObjectStatePlain {
+export interface SceneLayoutItemState extends SceneObjectState {
   body: SceneObject | undefined;
 }
-
-export type SceneObjectState = SceneObjectStatePlain | SceneLayoutState | SceneLayoutChildState;
 
 export interface SceneLayoutChildOptions {
   width?: number | string;
@@ -48,15 +42,9 @@ export interface SceneComponentProps<T> {
   model: T;
 }
 
-export interface SceneComponentWrapperProps {
-  model: SceneObject;
-  children: React.ReactNode;
-}
-
 export type SceneComponent<TModel> = (props: SceneComponentProps<TModel>) => React.ReactElement | null;
-export type SceneComponentCustomWrapper = (props: SceneComponentWrapperProps) => React.ReactElement | null;
 
-export interface SceneDataState extends SceneObjectStatePlain {
+export interface SceneDataState extends SceneObjectState {
   data?: PanelData;
 }
 
@@ -114,6 +102,12 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * to wire up scene objects that need to respond to state changes in other objects from the outside.
    **/
   addActivationHandler(handler: SceneActivationHandler): void;
+
+  /**
+   * Loop through state and call callback for each direct child scene object.
+   * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
+   */
+  forEachChild(callback: (child: SceneObject) => void): void;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;
@@ -124,9 +118,7 @@ export type SceneDeactivationHandler = () => void;
  **/
 export type CancelActivationHandler = () => void;
 
-export type SceneLayoutChild = SceneObject<SceneLayoutChildState | SceneLayoutState>;
-
-export interface SceneLayoutState extends SceneLayoutChildState {
+export interface SceneLayoutState extends SceneObjectState {
   children: SceneObject[];
 }
 
@@ -136,7 +128,7 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
   getDragClassCancel?(): string;
 }
 
-export interface SceneTimeRangeState extends SceneObjectStatePlain {
+export interface SceneTimeRangeState extends SceneObjectState {
   from: string;
   to: string;
   timeZone: TimeZone;

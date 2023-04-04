@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import { SceneComponentProps, SceneLayoutChildState } from '../../../core/types';
+import { SceneComponentProps, SceneObjectState } from '../../../core/types';
 import { EmbeddedScene } from '../../EmbeddedScene';
 
 import { SceneGridItem, SceneGridLayout } from './SceneGridLayout';
@@ -16,7 +16,7 @@ jest.mock(
       children({ height: 600, width: 600 })
 );
 
-class TestObject extends SceneObjectBase<SceneLayoutChildState> {
+class TestObject extends SceneObjectBase<SceneObjectState> {
   public static Component = (m: SceneComponentProps<TestObject>) => {
     return <div data-testid="test-object">TestObject</div>;
   };

@@ -8,14 +8,14 @@ import {
   SceneLayout,
   SceneLayoutItemState,
   SceneObject,
-  SceneObjectStatePlain,
+  SceneObjectState,
 } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN, GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
 
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement, SceneGridItemStateLike } from './types';
 
-interface SceneGridLayoutState extends SceneObjectStatePlain {
+interface SceneGridLayoutState extends SceneObjectState {
   /**
    * Turn on or off dragging for all items. Indiviadual items can still disabled via isDraggable property
    **/

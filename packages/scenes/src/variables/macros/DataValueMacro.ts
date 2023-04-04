@@ -43,7 +43,7 @@ export class DataValueMacro implements FormatVariable {
       }
     }
 
-    if (!rowIndex) {
+    if (rowIndex == null) {
       return this._match;
     }
 
