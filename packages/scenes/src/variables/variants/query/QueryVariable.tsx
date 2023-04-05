@@ -20,12 +20,12 @@ import { SceneComponentProps } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
 import { VariableValueSelect } from '../../components/VariableValueSelect';
 import { VariableValueOption } from '../../types';
-import { getDataSource } from '../../../utils/getDataSource';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../MultiValueVariable';
 
 import { createQueryVariableRunner } from './createQueryVariableRunner';
 import { metricNamesToVariableValues } from './utils';
 import { toMetricFindValues } from './toMetricFindValues';
+import { getDataSource } from '../../../utils/getDataSource';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';

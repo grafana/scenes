@@ -4,7 +4,6 @@ import React from 'react';
 import { CoreApp, GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 
-
 import { getSceneQueryRunner, QueryEditor } from './QueryEditor';
 import { SceneComponentProps, sceneGraph } from '@grafana/scenes';
 

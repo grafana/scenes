@@ -49,7 +49,7 @@ function isSceneLayout(s: SceneObject): s is SceneLayout {
  * Will walk up the scene object graph to the closest $layout scene object
  */
 export function getLayout(scene: SceneObject): SceneLayout {
-  const parent = getClosest(scene, (s) => isSceneLayout(s) ? s : undefined);
+  const parent = getClosest(scene, (s) => (isSceneLayout(s) ? s : undefined));
   if (parent) {
     return parent;
   }

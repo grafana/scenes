@@ -8,7 +8,7 @@ import {
   VizPanel,
 } from '@grafana/scenes';
 import { ROUTES } from '../../constants';
-import { prefixRoute } from '../../utils/utils.routing';
+import { demoUrl, prefixRoute } from '../../utils/utils.routing';
 
 export function getRoomsTemperatureTable() {
   return new VizPanel({
@@ -110,7 +110,7 @@ export function getRoomsTemperatureTable() {
               value: [
                 {
                   title: 'Go to room overview',
-                  url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__value.text}/temperature',
+                  url: `${demoUrl('with-drilldown')}/room/\${__value.text}/temperature`,
                 },
               ],
             },

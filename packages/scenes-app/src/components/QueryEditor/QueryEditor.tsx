@@ -1,10 +1,10 @@
-import { SceneObjectBase, SceneQueryRunner, getDataSource, SceneDataProvider, SceneObject, SceneObjectState } from '@grafana/scenes';
-
+import { SceneObjectBase, SceneQueryRunner, SceneDataProvider, SceneObject, SceneObjectState } from '@grafana/scenes';
 
 import { QueryEditorRenderer } from './QueryEditorRenderer';
-import { DataQuery } from '@grafana/schema';
+import { DataQuery, DataSourceRef } from '@grafana/schema';
 
-import { DataSourceApi } from '@grafana/data';
+import { DataSourceApi, ScopedVars } from '@grafana/data';
+import { getDataSourceSrv } from '@grafana/runtime';
 
 export interface QueryEditorState extends SceneObjectState {
   datasource?: DataSourceApi;
@@ -62,7 +62,7 @@ export function getSceneQueryRunner(sceneObject: SceneObject): SceneQueryRunner 
       curData = curData.state.$data;
     }
   }
-  
+
   if (sceneObject.parent) {
     return getSceneQueryRunner(sceneObject.parent);
   }
@@ -71,5 +71,12 @@ export function getSceneQueryRunner(sceneObject: SceneObject): SceneQueryRunner 
 }
 
 function findFirstDatasource(targets: DataQuery[]) {
-  return targets.find((t) => t.datasource !== null)?.datasource ?? undefined
+  return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
+}
+
+async function getDataSource(datasource: DataSourceRef | undefined, scopedVars: ScopedVars): Promise<DataSourceApi> {
+  if (datasource && (datasource as any).query) {
+    return datasource as DataSourceApi;
+  }
+  return await getDataSourceSrv().get(datasource as string, scopedVars);
 }
