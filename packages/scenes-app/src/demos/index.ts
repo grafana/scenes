@@ -6,6 +6,8 @@ import { getNestedScene } from './nestedScene';
 import { getPanelContextDemoScene } from './panelContext';
 import { getPanelMenuTest } from './panelMenu';
 import { getPanelRepeaterTest } from './panelRepeater';
+import { getQueryEditorDemo } from './queryEditor';
+import { getVariablesDemo } from './variables';
 import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
 
 export function getDemos(): SceneAppPage[] {
@@ -16,7 +18,9 @@ export function getDemos(): SceneAppPage[] {
     getPanelRepeaterTest(),
     getGridLayoutTest(),
     getGridWithRowLayoutTest(),
+    getVariablesDemo(),
     getNestedScene(),
     getDrilldownsAppPageScene(),
+    getQueryEditorDemo(),
   ];
 }

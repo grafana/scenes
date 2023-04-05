@@ -8,11 +8,13 @@ import { renderSelectForVariable } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
+import { VariableRefresh } from '@grafana/data';
 
 export interface TestVariableState extends MultiValueVariableState {
   query: string;
   delayMs?: number;
   issuedQuery?: string;
+  refresh?: VariableRefresh;
 }
 
 /**
@@ -35,6 +37,7 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       text: 'Text',
       query: 'Query',
       options: [],
+      refresh: VariableRefresh.onDashboardLoad,
       ...initialState,
     });
   }

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
+import { VariableRefresh } from '@grafana/data';
 
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -11,6 +12,7 @@ import { SceneVariableSet } from './SceneVariableSet';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
+import { SceneTimeRange } from '../../core/SceneTimeRange';
 
 interface TestSceneState extends SceneObjectState {
   nested?: SceneObject;
@@ -426,6 +428,59 @@ describe('SceneVariableList', () => {
 
       // Depenedent scene object notified of change
       expect(nestedObj.state.variableValueChanged).toBe(1);
+    });
+  });
+
+  describe('Refreshing time range dependant variables', () => {
+    it('updates variables in order', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        refresh: VariableRefresh.onTimeRangeChanged,
+      });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+      const C = new TestVariable({
+        name: 'C',
+        query: 'A.$A.$B.*',
+        value: '',
+        text: '',
+        options: [],
+        refresh: VariableRefresh.onTimeRangeChanged,
+      });
+
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [C, B, A] }),
+        $timeRange: timeRange,
+      });
+
+      scene.activate();
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+      C.signalUpdateCompleted();
+
+      expect(A.state.loading).toBe(false);
+      expect(B.state.loading).toBe(false);
+      expect(C.state.loading).toBe(false);
+
+      timeRange.setState({ from: 'now-2h', to: 'now' });
+
+      expect(A.state.loading).toBe(true);
+      expect(B.state.loading).toBe(false);
+      expect(C.state.loading).toBe(false);
+
+      A.signalUpdateCompleted();
+      expect(A.state.loading).toBe(false);
+      expect(B.state.loading).toBe(false);
+      expect(C.state.loading).toBe(true);
+
+      C.signalUpdateCompleted();
+      expect(A.state.loading).toBe(false);
+      expect(B.state.loading).toBe(false);
+      expect(C.state.loading).toBe(false);
     });
   });
 });
