@@ -109,6 +109,11 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * If callback returns true the loop will be stop (break).
    */
   forEachChild(callback: (child: SceneObject) => boolean | void): void;
+
+  /**
+   * Loop through state and call check for each direct child
+   */
+  findChild(callback: (child: SceneObject) => boolean): SceneObject | null;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;

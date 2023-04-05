@@ -115,25 +115,17 @@ function findObjectInternal(
     return scene;
   }
 
-  let found: SceneObject | null = null;
-
-  scene.forEachChild((child) => {
+  const foundChild = scene.findChild((child) => {
     if (child === alreadySearchedChild) {
-      return;
+      return false;
     }
 
-    let maybe = findObject(child, check);
-    if (maybe) {
-      found = maybe;
-      // returning true will "break" the loop
-      return true;
-    }
-
-    return;
+    // this does not work as the check function can only return true or false.
+    return child.findChild(check);
   });
 
-  if (found) {
-    return found;
+  if (foundChild) {
+    return foundChild;
   }
 
   if (scene.parent) {
