@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneComponentProps, SceneLayoutChildState } from '../core/types';
+import { SceneComponentProps, SceneObjectState } from '../core/types';
 
-export interface SceneReactObjectState<TProps = {}> extends SceneLayoutChildState {
+export interface SceneReactObjectState<TProps = {}> extends SceneObjectState {
   /**
    * React component to render
    */

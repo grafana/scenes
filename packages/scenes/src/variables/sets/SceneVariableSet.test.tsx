@@ -1,18 +1,20 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
+import { VariableRefresh } from '@grafana/data';
 
-import { SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObjectStatePlain, SceneLayoutChildState, SceneObject, SceneComponentProps } from '../../core/types';
+import { SceneObjectState, SceneObject, SceneComponentProps } from '../../core/types';
 import { TestVariable } from '../variants/TestVariable';
 
 import { SceneVariableSet } from './SceneVariableSet';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
+import { SceneTimeRange } from '../../core/SceneTimeRange';
 
-interface TestSceneState extends SceneObjectStatePlain {
+interface TestSceneState extends SceneObjectState {
   nested?: SceneObject;
   /** To test logic for inactive scene objects  */
   hidden?: SceneObject;
@@ -20,7 +22,7 @@ interface TestSceneState extends SceneObjectStatePlain {
 
 class TestScene extends SceneObjectBase<TestSceneState> {}
 
-interface SceneTextItemState extends SceneObjectStatePlain {
+interface SceneTextItemState extends SceneObjectState {
   text: string;
 }
 
@@ -109,10 +111,10 @@ describe('SceneVariableList', () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A] }) });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
       expect(A.isGettingValues).toBe(true);
 
-      scene.deactivate();
+      deactivateScene();
       expect(A.isGettingValues).toBe(false);
     });
 
@@ -121,11 +123,11 @@ describe('SceneVariableList', () => {
       const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A] }) });
 
       // Active and complete first variable
-      scene.activate();
+      const deactivateScene = scene.activate();
       expect(A.isGettingValues).toBe(true);
 
-      // Deactivate and reactivate
-      scene.deactivate();
+      // Deactivate
+      deactivateScene();
       expect(A.isGettingValues).toBe(false);
 
       // Reactivate and complete A again
@@ -143,7 +145,7 @@ describe('SceneVariableList', () => {
 
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [B, A] }),
-          children: [helloText, sceneObjectWithVariable],
+          children: [new SceneFlexItem({ body: helloText }), new SceneFlexItem({ body: sceneObjectWithVariable })],
         });
 
         render(<scene.Component model={scene} />);
@@ -203,14 +205,14 @@ describe('SceneVariableList', () => {
         $variables: new SceneVariableSet({ variables: [A, B] }),
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
 
       A.signalUpdateCompleted();
       B.signalUpdateCompleted();
 
       expect(A.getValueOptionsCount).toBe(1);
 
-      scene.deactivate();
+      deactivateScene();
       scene.activate();
 
       expect(A.state.loading).toBe(false);
@@ -224,11 +226,11 @@ describe('SceneVariableList', () => {
         $variables: new SceneVariableSet({ variables: [A] }),
       });
 
-      scene.activate();
+      const deactivate = scene.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      deactivate();
 
       A.changeValueTo('AB');
 
@@ -246,14 +248,14 @@ describe('SceneVariableList', () => {
         $variables: new SceneVariableSet({ variables: [A, B] }),
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
 
       A.signalUpdateCompleted();
       B.signalUpdateCompleted();
 
       expect(A.getValueOptionsCount).toBe(1);
 
-      scene.deactivate();
+      deactivateScene();
 
       A.changeValueTo('AB');
 
@@ -271,11 +273,12 @@ describe('SceneVariableList', () => {
         $variables: new SceneVariableSet({ variables: [A, B] }),
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      deactivateScene();
+
       scene.activate();
 
       expect(A.state.loading).toBe(false);
@@ -295,16 +298,20 @@ describe('SceneVariableList', () => {
         hidden: inActiveSceneObject,
       });
 
-      scene.activate();
-      nestedObj.activate();
+      const deactivateScene = scene.activate();
+      const deactivateNestedScene = nestedObj.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      // Deactivate scene and nested object
+      deactivateScene();
+      deactivateNestedScene();
 
       A.changeValueTo('AB');
 
+      // reactivate
       scene.activate();
+      nestedObj.activate();
 
       // Should not start loadaing A again, it has options already
       expect(A.state.loading).toBe(false);
@@ -322,13 +329,16 @@ describe('SceneVariableList', () => {
         nested: nestedSceneObject,
       });
 
-      scene.activate();
-      nestedSceneObject.activate();
+      const deactivateScene = scene.activate();
+      const deactivateNestedScene = nestedSceneObject.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      deactivateScene();
+      deactivateNestedScene();
+
       scene.activate();
+      nestedSceneObject.activate();
 
       B.signalUpdateCompleted();
 
@@ -345,8 +355,9 @@ describe('SceneVariableList', () => {
         nested: sceneObject,
       });
 
-      scene.activate();
-      scene.deactivate();
+      const deactivateScene = scene.activate();
+      deactivateScene();
+
       scene.activate();
 
       A.signalUpdateCompleted();
@@ -372,21 +383,109 @@ describe('SceneVariableList', () => {
         nested: nestedSceneObject,
       });
 
-      scene.activate();
+      const deactivateScene = scene.activate();
       nestedSceneObject.activate();
 
       A.signalUpdateCompleted();
 
-      scene.deactivate();
+      deactivateScene();
       scene.activate();
 
       expect(A.state.loading).toBe(false);
       expect(nestedSceneObject.state.variableValueChanged).toBe(1);
     });
   });
+
+  describe('When variables array changes', () => {
+    it('Should start update process', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.*', value: '', text: '', options: [] });
+      const nestedObj = new TestSceneObect({ title: '$B', variableValueChanged: 0 });
+      const set = new SceneVariableSet({ variables: [A] });
+
+      const scene = new TestScene({
+        $variables: set,
+        nested: nestedObj,
+      });
+
+      scene.activate();
+      nestedObj.activate();
+
+      A.signalUpdateCompleted();
+
+      // No  variable value changed for B yet as it is not part of scene yet
+      expect(nestedObj.state.variableValueChanged).toBe(0);
+
+      // Update state with a new variable
+      set.setState({ variables: [A, B] });
+
+      // Should not start loading A again, it has options already
+      expect(A.state.loading).toBe(false);
+      // Should start B
+      expect(B.state.loading).toBe(true);
+
+      B.signalUpdateCompleted();
+
+      // Depenedent scene object notified of change
+      expect(nestedObj.state.variableValueChanged).toBe(1);
+    });
+  });
+
+  describe('Refreshing time range dependant variables', () => {
+    it('updates variables in order', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        refresh: VariableRefresh.onTimeRangeChanged,
+      });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+      const C = new TestVariable({
+        name: 'C',
+        query: 'A.$A.$B.*',
+        value: '',
+        text: '',
+        options: [],
+        refresh: VariableRefresh.onTimeRangeChanged,
+      });
+
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [C, B, A] }),
+        $timeRange: timeRange,
+      });
+
+      scene.activate();
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+      C.signalUpdateCompleted();
+
+      expect(A.state.loading).toBe(false);
+      expect(B.state.loading).toBe(false);
+      expect(C.state.loading).toBe(false);
+
+      timeRange.setState({ from: 'now-2h', to: 'now' });
+
+      expect(A.state.loading).toBe(true);
+      expect(B.state.loading).toBe(false);
+      expect(C.state.loading).toBe(false);
+
+      A.signalUpdateCompleted();
+      expect(A.state.loading).toBe(false);
+      expect(B.state.loading).toBe(false);
+      expect(C.state.loading).toBe(true);
+
+      C.signalUpdateCompleted();
+      expect(A.state.loading).toBe(false);
+      expect(B.state.loading).toBe(false);
+      expect(C.state.loading).toBe(false);
+    });
+  });
 });
 
-interface TestSceneObjectState extends SceneLayoutChildState {
+interface TestSceneObjectState extends SceneObjectState {
   title: string;
   variableValueChanged: number;
 }

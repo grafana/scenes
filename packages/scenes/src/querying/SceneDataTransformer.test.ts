@@ -10,13 +10,13 @@ import {
   DataSourceApi,
 } from '@grafana/data';
 
-import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
 import { SceneDataTransformer } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { CustomTransformOperator, SceneObjectStatePlain } from '../core/types';
+import { CustomTransformOperator, SceneObjectState } from '../core/types';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
 import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneTimeRange } from '../core/SceneTimeRange';
@@ -76,11 +76,8 @@ const runRequestMock = jest.fn().mockReturnValue(
   })
 );
 
-let sentRequest: DataQueryRequest | undefined;
-
 jest.mock('@grafana/runtime', () => ({
   getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
-    sentRequest = request;
     return runRequestMock(ds, request);
   },
   getDataSourceSrv: () => {
@@ -178,7 +175,7 @@ describe('SceneDataTransformer', () => {
     // @ts-expect-error
     const scene = new SceneFlexLayout({
       $data: sourceDataNode,
-      children: [consumer],
+      children: [new SceneFlexItem({ body: consumer })],
     });
 
     sourceDataNode.activate();
@@ -226,7 +223,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [consumer],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -276,7 +273,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [consumer],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -326,7 +323,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [consumer],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -376,7 +373,7 @@ describe('SceneDataTransformer', () => {
       // @ts-expect-error
       const scene = new SceneFlexLayout({
         $data: sourceDataNode,
-        children: [consumer],
+        children: [new SceneFlexItem({ body: consumer })],
       });
 
       sourceDataNode.activate();
@@ -472,9 +469,7 @@ describe('SceneDataTransformer', () => {
         });
 
         // This could potentially be done by QueryRunnerWithTransformations if we passed it "dependencies" (object it should subscribe to and re-run transformations on change)
-        someObject.subscribeToState({
-          next: () => queryRunner.reprocessTransformations(),
-        });
+        someObject.subscribeToState(() => queryRunner.reprocessTransformations());
 
         queryRunner.activate();
 
@@ -495,7 +490,7 @@ describe('SceneDataTransformer', () => {
   });
 });
 
-export interface SceneObjectSearchBoxState extends SceneObjectStatePlain {
+export interface SceneObjectSearchBoxState extends SceneObjectState {
   value: string;
 }
 

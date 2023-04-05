@@ -16,10 +16,7 @@ import {
   VariableRefresh,
   VariableSupportType,
 } from '@grafana/data';
-import { SceneFlexLayout } from '../../../components/layout/SceneFlexLayout';
 import { SceneTimeRange } from '../../../core/SceneTimeRange';
-
-import { SceneVariableSet } from '../../sets/SceneVariableSet';
 
 import { QueryVariable } from './QueryVariable';
 import { QueryRunner, RunnerArgs, setCreateQueryVariableRunnerFactory } from './createQueryVariableRunner';
@@ -230,73 +227,6 @@ describe('QueryVariable', () => {
         await Promise.resolve();
 
         expect(runRequestMock).toBeCalledTimes(1);
-      });
-    });
-
-    describe('when refresh on time range change set', () => {
-      it('Should issue variable query with closes time range if refresh on time range change set', async () => {
-        const variable = new QueryVariable({
-          name: 'test',
-          datasource: { uid: 'fake-std', type: 'fake-std' },
-          query: 'query',
-          refresh: VariableRefresh.onTimeRangeChanged,
-        });
-
-        // @ts-expect-error
-        const scene = new SceneFlexLayout({
-          $timeRange: new SceneTimeRange({ from: 'now-1h', to: 'now' }),
-          $variables: new SceneVariableSet({
-            variables: [variable],
-          }),
-          children: [],
-        });
-
-        await lastValueFrom(variable.validateAndUpdate());
-
-        expect(runRequestMock).toBeCalledTimes(1);
-        const call = runRequestMock.mock.calls[0];
-
-        expect(call[1].range.raw).toEqual({
-          from: 'now-1h',
-          to: 'now',
-        });
-      });
-
-      it('Should issue variable query when time range changes if refresh on time range change is set', async () => {
-        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
-        const variable = new QueryVariable({
-          name: 'test',
-          datasource: { uid: 'fake-std', type: 'fake-std' },
-          query: 'query',
-          refresh: VariableRefresh.onTimeRangeChanged,
-          $timeRange: timeRange,
-        });
-
-        variable.activate();
-
-        await lastValueFrom(variable.validateAndUpdate());
-
-        expect(runRequestMock).toBeCalledTimes(1);
-        const call1 = runRequestMock.mock.calls[0];
-        expect(call1[1].range.raw).toEqual({
-          from: 'now-1h',
-          to: 'now',
-        });
-
-        timeRange.onTimeRangeChange({
-          from: toUtc('2020-01-01'),
-          to: toUtc('2020-01-02'),
-          raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
-        });
-
-        await new Promise((r) => setTimeout(r, 1));
-
-        expect(runRequestMock).toBeCalledTimes(2);
-        const call2 = runRequestMock.mock.calls[1];
-        expect(call2[1].range.raw).toEqual({
-          from: '2020-01-01T00:00:00.000Z',
-          to: '2020-01-02T00:00:00.000Z',
-        });
       });
     });
   });

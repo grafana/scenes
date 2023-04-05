@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonoTypeOperatorFunction, Observer, SubscriptionLike, Unsubscribable } from 'rxjs';
+import { MonoTypeOperatorFunction, Unsubscribable } from 'rxjs';
 
 import {
   BusEvent,
@@ -14,19 +14,16 @@ import {
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 
-export interface SceneObjectStatePlain {
+export interface SceneObjectState {
   key?: string;
   $timeRange?: SceneTimeRangeLike;
   $data?: SceneDataProvider;
-  $editor?: SceneEditor;
   $variables?: SceneVariables;
 }
 
-export interface SceneLayoutChildState extends SceneObjectStatePlain {
-  placement?: SceneLayoutChildOptions;
+export interface SceneLayoutItemState extends SceneObjectState {
+  body: SceneObject | undefined;
 }
-
-export type SceneObjectState = SceneObjectStatePlain | SceneLayoutState | SceneLayoutChildState;
 
 export interface SceneLayoutChildOptions {
   width?: number | string;
@@ -43,12 +40,11 @@ export interface SceneLayoutChildOptions {
 
 export interface SceneComponentProps<T> {
   model: T;
-  isEditing?: boolean;
 }
 
-export type SceneComponent<TModel> = React.FunctionComponent<SceneComponentProps<TModel>>;
+export type SceneComponent<TModel> = (props: SceneComponentProps<TModel>) => React.ReactElement | null;
 
-export interface SceneDataState extends SceneObjectStatePlain {
+export interface SceneDataState extends SceneObjectState {
   data?: PanelData;
 }
 
@@ -66,10 +62,10 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   readonly variableDependency?: SceneVariableDependencyConfigLike;
 
   /** This abstraction declares URL sync dependencies of a scene object. **/
-  readonly urlSync?: SceneObjectUrlSyncHandler<TState>;
+  readonly urlSync?: SceneObjectUrlSyncHandler;
 
   /** Subscribe to state changes */
-  subscribeToState(observer?: Partial<Observer<TState>>): SubscriptionLike;
+  subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable;
 
   /** Subscribe to a scene event */
   subscribeToEvent<T extends BusEvent>(typeFilter: BusEventType<T>, handler: BusEventHandler<T>): Unsubscribable;
@@ -83,11 +79,11 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** How to modify state */
   setState(state: Partial<TState>): void;
 
-  /** Called when the Component is mounted. A place to register event listeners add subscribe to state changes */
-  activate(): void;
-
-  /** Called when component unmounts. Unsubscribe and closes all subscriptions  */
-  deactivate(): void;
+  /**
+   * Called when the Component is mounted. This will also activate any $data, $variables or $timeRange scene object on this level.
+   * Don't override this in your custom SceneObjects, instead use addActivationHandler from the constructor.
+   **/
+  activate(): CancelActivationHandler;
 
   /** Get the scene root */
   getRoot(): SceneObject;
@@ -98,17 +94,32 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** A React component to use for rendering the object */
   Component(props: SceneComponentProps<SceneObject<TState>>): React.ReactElement | null;
 
-  /** To be replaced by declarative method */
-  Editor(props: SceneComponentProps<SceneObject<TState>>): React.ReactElement | null;
-
   /** Force a re-render, should only be needed when variable values change */
   forceRender(): void;
+
+  /**
+   * Allows external code to register code that is executed on activate and deactivate. This allow you
+   * to wire up scene objects that need to respond to state changes in other objects from the outside.
+   **/
+  addActivationHandler(handler: SceneActivationHandler): void;
+
+  /**
+   * Loop through state and call callback for each direct child scene object.
+   * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
+   */
+  forEachChild(callback: (child: SceneObject) => void): void;
 }
 
-export type SceneLayoutChild = SceneObject<SceneLayoutChildState | SceneLayoutState>;
+export type SceneActivationHandler = () => SceneDeactivationHandler | void;
+export type SceneDeactivationHandler = () => void;
 
-export interface SceneLayoutState extends SceneLayoutChildState {
-  children: SceneLayoutChild[];
+/**
+ * Function returned by activate() that when called will deactivate the object if it's the last activator
+ **/
+export type CancelActivationHandler = () => void;
+
+export interface SceneLayoutState extends SceneObjectState {
+  children: SceneObject[];
 }
 
 export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> extends SceneObject<T> {
@@ -117,25 +128,7 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
   getDragClassCancel?(): string;
 }
 
-export interface SceneEditorState extends SceneObjectStatePlain {
-  hoverObject?: SceneObjectRef;
-  selectedObject?: SceneObjectRef;
-}
-
-export interface SceneEditor extends SceneObject<SceneEditorState> {
-  onMouseEnterObject(model: SceneObject): void;
-  onMouseLeaveObject(model: SceneObject): void;
-  onSelectObject(model: SceneObject): void;
-  getEditComponentWrapper(): React.ComponentType<SceneComponentEditWrapperProps>;
-}
-
-interface SceneComponentEditWrapperProps {
-  editor: SceneEditor;
-  model: SceneObject;
-  children: React.ReactNode;
-}
-
-export interface SceneTimeRangeState extends SceneObjectStatePlain {
+export interface SceneTimeRangeState extends SceneObjectState {
   from: string;
   to: string;
   timeZone: TimeZone;
@@ -156,14 +149,14 @@ export function isSceneObject(obj: any): obj is SceneObject {
   return obj.useState !== undefined;
 }
 
-export interface SceneObjectWithUrlSync<TState> extends SceneObject {
-  getUrlState(state: TState): SceneObjectUrlValues;
+export interface SceneObjectWithUrlSync extends SceneObject {
+  getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
 }
 
-export interface SceneObjectUrlSyncHandler<TState> {
+export interface SceneObjectUrlSyncHandler {
   getKeys(): string[];
-  getUrlState(state: TState): SceneObjectUrlValues;
+  getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
 }
 
@@ -171,6 +164,7 @@ export type SceneObjectUrlValue = string | string[] | undefined | null;
 export type SceneObjectUrlValues = Record<string, SceneObjectUrlValue>;
 
 export type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
+export type SceneStateChangedHandler<TState> = (newState: TState, prevState: TState) => void;
 
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];

@@ -61,7 +61,7 @@ let scopedVarsVariable: ScopedVarsVariable | undefined;
 /**
  * Reuses a single instance to avoid unnecessary memory allocations
  */
-export function getSceneVariableForScopedVar(name: string, value: ScopedVar) {
+export function getSceneVariableForScopedVar(name: string, value: ScopedVar): FormatVariable {
   if (!scopedVarsVariable) {
     scopedVarsVariable = new ScopedVarsVariable(name, value);
   } else {

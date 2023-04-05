@@ -3,9 +3,9 @@ import { Observable } from 'rxjs';
 import { BusEventWithPayload } from '@grafana/data';
 import { VariableType, VariableHide } from '@grafana/schema';
 
-import { SceneObject, SceneObjectStatePlain } from '../core/types';
+import { SceneObject, SceneObjectState } from '../core/types';
 
-export interface SceneVariableState extends SceneObjectStatePlain {
+export interface SceneVariableState extends SceneObjectState {
   type: VariableType;
   name: string;
   label?: string;
@@ -37,15 +37,17 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
 
 export type VariableValue = VariableValueSingle | VariableValueSingle[];
 
-export type VariableValueSingle = string | boolean | number | VariableValueCustom;
+export type VariableValueSingle = string | boolean | number | CustomVariableValue;
 
 /**
- * This is for edge case values like the custom "allValue" that should not be escaped/formatted like other values.
+ * This is for edge case values like the custom "allValue" that should not be escaped/formatted like other values
  * The custom all value usually contain wildcards that should not be escaped.
  */
-export interface VariableValueCustom {
-  isCustomValue: true;
-  toString(): string;
+export interface CustomVariableValue {
+  /**
+   * The format name or function used in the expression
+   */
+  formatter(formatNameOrFn?: string | VariableCustomFormatterFn): string;
 }
 
 export interface ValidateAndUpdateResult {}
@@ -54,7 +56,7 @@ export interface VariableValueOption {
   value: VariableValueSingle;
 }
 
-export interface SceneVariableSetState extends SceneObjectStatePlain {
+export interface SceneVariableSetState extends SceneObjectState {
   variables: SceneVariable[];
 }
 
@@ -84,4 +86,26 @@ export interface SceneVariableDependencyConfigLike {
    * Will be called when the VariableSet have completed an update process
    **/
   variableUpdatesCompleted(changedVariables: Set<SceneVariable>): void;
+}
+
+/**
+ * Used in CustomFormatterFn
+ */
+export interface CustomFormatterVariable {
+  name: string;
+  type: VariableType;
+  multi?: boolean;
+  includeAll?: boolean;
+}
+
+export type VariableCustomFormatterFn = (
+  value: unknown,
+  legacyVariableModel: Partial<CustomFormatterVariable>,
+  legacyDefaultFormatter?: VariableCustomFormatterFn
+) => string;
+
+export type InterpolationFormatParameter = string | VariableCustomFormatterFn | undefined;
+
+export function isCustomVariableValue(value: VariableValue): value is CustomVariableValue {
+  return typeof value === 'object' && 'formatter' in value;
 }

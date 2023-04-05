@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes",
-  "version": "0.0.20",
+  "version": "0.3.0",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
@@ -37,7 +37,7 @@
     "url": "https://github.com/grafana/scenes/issues"
   },
   "dependencies": {
-    "@grafana/e2e-selectors": "^9.4.3",
+    "@grafana/e2e-selectors": "canary",
     "@grafana/experimental": "1.0.1",
     "react-grid-layout": "1.3.4",
     "react-use": "17.4.0",
@@ -95,6 +95,7 @@
     "rollup": "2.79.1",
     "rollup-plugin-dts": "^5.0.0",
     "rollup-plugin-esbuild": "5.0.0",
+    "rollup-plugin-fork-ts-checker": "^0.0.6",
     "rollup-plugin-node-externals": "^5.0.0",
     "rollup-plugin-svg-import": "^1.6.0",
     "rxjs": "7.8.0",

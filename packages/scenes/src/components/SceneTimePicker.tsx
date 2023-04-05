@@ -4,9 +4,9 @@ import { TimeRangePicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneComponentProps, SceneObjectStatePlain } from '../core/types';
+import { SceneComponentProps, SceneObjectState } from '../core/types';
 
-export interface SceneTimePickerState extends SceneObjectStatePlain {
+export interface SceneTimePickerState extends SceneObjectState {
   hidePicker?: boolean;
   isOnCanvas?: boolean;
 }

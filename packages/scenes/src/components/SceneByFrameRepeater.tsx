@@ -4,36 +4,31 @@ import { LoadingState, PanelData, DataFrame } from '@grafana/data';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import {
-  SceneComponentProps,
-  SceneObject,
-  SceneObjectStatePlain,
-  SceneLayoutState,
-  SceneLayoutChild,
-} from '../core/types';
+import { SceneComponentProps, SceneObjectState } from '../core/types';
+import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 
-interface RepeatOptions extends SceneObjectStatePlain {
-  body: SceneObject<SceneLayoutState>;
-  getLayoutChild(data: PanelData, frame: DataFrame, frameIndex: number): SceneLayoutChild;
+interface SceneByFrameRepeaterState extends SceneObjectState {
+  body: SceneFlexLayout;
+  getLayoutChild(data: PanelData, frame: DataFrame, frameIndex: number): SceneFlexItem;
 }
 
-export class SceneByFrameRepeater extends SceneObjectBase<RepeatOptions> {
-  public activate(): void {
-    super.activate();
+export class SceneByFrameRepeater extends SceneObjectBase<SceneByFrameRepeaterState> {
+  public constructor(state: SceneByFrameRepeaterState) {
+    super(state);
 
-    this._subs.add(
-      sceneGraph.getData(this).subscribeToState({
-        next: (data) => {
+    this.addActivationHandler(() => {
+      this._subs.add(
+        sceneGraph.getData(this).subscribeToState((data) => {
           if (data.data?.state === LoadingState.Done) {
             this.performRepeat(data.data);
           }
-        },
-      })
-    );
+        })
+      );
+    });
   }
 
   private performRepeat(data: PanelData) {
-    const newChildren: SceneLayoutChild[] = [];
+    const newChildren: SceneFlexItem[] = [];
 
     for (let seriesIndex = 0; seriesIndex < data.series.length; seriesIndex++) {
       const layoutChild = this.state.getLayoutChild(data, data.series[seriesIndex], seriesIndex);
@@ -43,8 +38,8 @@ export class SceneByFrameRepeater extends SceneObjectBase<RepeatOptions> {
     this.state.body.setState({ children: newChildren });
   }
 
-  public static Component = ({ model, isEditing }: SceneComponentProps<SceneByFrameRepeater>) => {
+  public static Component = ({ model }: SceneComponentProps<SceneByFrameRepeater>) => {
     const { body } = model.useState();
-    return <body.Component model={body} isEditing={isEditing} />;
+    return <body.Component model={body} />;
   };
 }

@@ -1,18 +1,13 @@
-import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObjectStatePlain } from '../../core/types';
+import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { TestScene } from '../TestScene';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
+import { VariableFormatID } from '@grafana/schema';
 
 import { sceneInterpolator } from './sceneInterpolator';
-
-interface TestSceneState extends SceneObjectStatePlain {
-  nested?: TestScene;
-}
-
-class TestScene extends SceneObjectBase<TestSceneState> {}
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {
@@ -166,5 +161,46 @@ describe('sceneInterpolator', () => {
 
     const scopedVars = { __data: { value: { name: 'Main org' }, text: '' } };
     expect(sceneInterpolator(scene, '${__data.name}', scopedVars)).toBe('Main org');
+  });
+
+  it('Can use custom formatter', () => {
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [
+          new TestVariable({
+            name: 'cluster',
+            value: ['1', '2'],
+            text: ['hello', 'world'],
+            isMulti: true,
+            includeAll: true,
+          }),
+        ],
+      }),
+    });
+
+    const formatter = jest.fn().mockReturnValue('custom');
+
+    expect(sceneInterpolator(scene, '$cluster', undefined, formatter)).toBe('custom');
+    expect(formatter.mock.calls[0][1]).toEqual({ name: 'cluster', type: 'custom', multi: true, includeAll: true });
+  });
+
+  it('Can use use $__all_variables', () => {
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [new TestVariable({ name: 'cluster', value: 'A', text: 'A' })],
+      }),
+    });
+
+    expect(sceneInterpolator(scene, '$__all_variables')).toBe('var-cluster=A');
+    // Should not url encode again if format is queryparam
+    expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe('var-cluster=A');
+  });
+
+  it('Can use use $__url_time_range', () => {
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+    });
+
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
   });
 });

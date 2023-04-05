@@ -39,14 +39,19 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     this.setState({ value: evaluateTimeRange(this.state.from, this.state.to, this.state.timeZone) });
   };
 
-  public getUrlState(state: SceneTimeRangeState) {
-    return { from: state.from, to: state.to };
+  public getUrlState() {
+    return { from: this.state.from, to: this.state.to };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
-    const update: Partial<SceneTimeRangeState> = {};
+    // ignore if both are missing
+    if (!values.to && !values.from) {
+      return;
+    }
 
+    const update: Partial<SceneTimeRangeState> = {};
     const from = parseUrlParam(values.from);
+
     if (from) {
       update.from = from;
     }

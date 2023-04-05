@@ -4,10 +4,10 @@ import { useStyles2 } from '@grafana/ui';
 import React from 'react';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectStatePlain, SceneObject } from '../core/types';
+import { SceneComponentProps, SceneObjectState, SceneObject } from '../core/types';
 import { UrlSyncManager } from '../services/UrlSyncManager';
 
-export interface EmbeddedSceneState extends SceneObjectStatePlain {
+export interface EmbeddedSceneState extends SceneObjectState {
   /**
    * The main content of the scene (usually a SceneFlexLayout)
    */
@@ -29,19 +29,11 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
    * queries are issued as needed.
    */
   public initUrlSync() {
-    this.urlSyncManager = new UrlSyncManager(this);
-    this.urlSyncManager.initSync();
-  }
-
-  public activate() {
-    super.activate();
-  }
-
-  public deactivate() {
-    super.deactivate();
-    if (this.urlSyncManager) {
-      this.urlSyncManager!.cleanUp();
+    if (!this.urlSyncManager) {
+      this.urlSyncManager = new UrlSyncManager(this);
     }
+
+    this.urlSyncManager.initSync();
   }
 }
 

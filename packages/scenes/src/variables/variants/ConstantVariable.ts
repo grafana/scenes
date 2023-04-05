@@ -15,6 +15,7 @@ export class ConstantVariable
       value: '',
       name: '',
       ...initialState,
+      skipUrlSync: true,
     });
   }
   public getValue(): VariableValue {

@@ -1,7 +1,7 @@
 {
   "name": "scenes-app",
   "private": true,
-  "version": "0.0.20",
+  "version": "0.3.0",
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
   "description": "A basic grafana app plugin",
@@ -19,7 +19,7 @@
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@grafana/e2e": "9.2.1",
-    "@grafana/e2e-selectors": "9.2.1",
+    "@grafana/e2e-selectors": "canary",
     "@grafana/eslint-config": "5.0.0",
     "@grafana/tsconfig": "1.2.0-rc1",
     "@swc/core": "^1.2.144",
@@ -62,7 +62,7 @@
     "@emotion/css": "^11.1.3",
     "@grafana/data": "canary",
     "@grafana/runtime": "canary",
-    "@grafana/scenes": "^0.0.20",
+    "@grafana/scenes": "workspace:*",
     "@grafana/schema": "canary",
     "@grafana/ui": "canary",
     "@types/lodash": "latest",

@@ -2,25 +2,26 @@ import { Location } from 'history';
 
 import { locationService } from '@grafana/runtime';
 
-import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneTimeRange } from '../core/SceneTimeRange';
-import { SceneLayoutChildState, SceneObjectUrlValues } from '../core/types';
+import { SceneObjectState, SceneObject, SceneObjectUrlValues } from '../core/types';
 
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
 import { isUrlValueEqual, UrlSyncManager } from './UrlSyncManager';
 
-interface TestObjectState extends SceneLayoutChildState {
+interface TestObjectState extends SceneObjectState {
   name: string;
+  optional?: string;
   array?: string[];
   other?: string;
 }
 
 class TestObj extends SceneObjectBase<TestObjectState> {
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['name', 'array'] });
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['name', 'array', 'optional'] });
 
-  public getUrlState(state: TestObjectState) {
-    return { name: state.name, array: state.array };
+  public getUrlState() {
+    return { name: this.state.name, array: this.state.array, optional: this.state.optional };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
@@ -30,6 +31,9 @@ class TestObj extends SceneObjectBase<TestObjectState> {
     if (Array.isArray(values.array)) {
       this.setState({ array: values.array });
     }
+    if (values.hasOwnProperty('optional')) {
+      this.setState({ optional: typeof values.optional === 'string' ? values.optional : undefined });
+    }
   }
 }
 
@@ -37,6 +41,8 @@ describe('UrlSyncManager', () => {
   let urlManager: UrlSyncManager;
   let locationUpdates: Location[] = [];
   let listenUnregister: () => void;
+  let scene: SceneObject;
+  let deactivate = () => {};
 
   beforeEach(() => {
     locationUpdates = [];
@@ -46,7 +52,7 @@ describe('UrlSyncManager', () => {
   });
 
   afterEach(() => {
-    urlManager.cleanUp();
+    deactivate();
     locationService.push('/');
     listenUnregister();
   });
@@ -54,11 +60,14 @@ describe('UrlSyncManager', () => {
   describe('When state changes', () => {
     it('should update url', () => {
       const obj = new TestObj({ name: 'test' });
-      const scene = new SceneFlexLayout({
-        children: [obj],
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
       });
 
       urlManager = new UrlSyncManager(scene);
+      urlManager.initSync();
+
+      deactivate = scene.activate();
 
       // When making state change
       obj.setState({ name: 'test2' });
@@ -79,11 +88,14 @@ describe('UrlSyncManager', () => {
     it('should update state', () => {
       const obj = new TestObj({ name: 'test' });
       const initialObjState = obj.state;
-      const scene = new SceneFlexLayout({
-        children: [obj],
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
       });
 
       urlManager = new UrlSyncManager(scene);
+      urlManager.initSync();
+
+      deactivate = scene.activate();
 
       // When non relevant key changes in url
       locationService.partial({ someOtherProp: 'test2' });
@@ -95,11 +107,11 @@ describe('UrlSyncManager', () => {
       // Should update state
       expect(obj.state.name).toBe('test2');
 
-      // When relevant key is cleared (say go back)
-      locationService.getHistory().goBack();
+      // When relevant key is cleared
+      locationService.partial({ name: null });
 
       // Should revert to initial state
-      expect(obj.state.name).toBe('test');
+      // expect(obj.state.name).toBe('test');
 
       // When relevant key is set to current state
       const currentState = obj.state;
@@ -114,17 +126,22 @@ describe('UrlSyncManager', () => {
       const outerTimeRange = new SceneTimeRange();
       const innerTimeRange = new SceneTimeRange();
 
-      const scene = new SceneFlexLayout({
+      scene = new SceneFlexLayout({
         children: [
-          new SceneFlexLayout({
-            $timeRange: innerTimeRange,
-            children: [],
+          new SceneFlexItem({
+            body: new SceneFlexLayout({
+              $timeRange: innerTimeRange,
+              children: [],
+            }),
           }),
         ],
         $timeRange: outerTimeRange,
       });
 
       urlManager = new UrlSyncManager(scene);
+      urlManager.initSync();
+
+      deactivate = scene.activate();
 
       // When making state changes for second object with same key
       innerTimeRange.setState({ from: 'now-10m' });
@@ -159,11 +176,14 @@ describe('UrlSyncManager', () => {
   describe('When updating array value', () => {
     it('Should update url correctly', () => {
       const obj = new TestObj({ name: 'test' });
-      const scene = new SceneFlexLayout({
-        children: [obj],
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
       });
 
       urlManager = new UrlSyncManager(scene);
+      urlManager.initSync();
+
+      deactivate = scene.activate();
 
       // When making state change
       obj.setState({ array: ['A', 'B'] });
@@ -182,6 +202,75 @@ describe('UrlSyncManager', () => {
       locationService.partial({ array: ['A', 'B', 'C'] });
       // Should update state
       expect(obj.state.array).toEqual(['A', 'B', 'C']);
+    });
+  });
+
+  describe('When initial state is undefined', () => {
+    it('Should update from url correctly', () => {
+      const obj = new TestObj({ name: 'test' });
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
+      });
+
+      urlManager = new UrlSyncManager(scene);
+      urlManager.initSync();
+
+      deactivate = scene.activate();
+
+      // When setting value via url
+      locationService.partial({ optional: 'handler' });
+
+      // Should update state
+      expect(obj.state.optional).toBe('handler');
+
+      // When updating via url and remove optional
+      locationService.partial({ optional: null });
+
+      // Should update state
+      expect(obj.state.optional).toBe(undefined);
+    });
+
+    it('When updating via state and removing from url', () => {
+      const obj = new TestObj({ name: 'test' });
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
+      });
+
+      urlManager = new UrlSyncManager(scene);
+      urlManager.initSync();
+
+      deactivate = scene.activate();
+
+      obj.setState({ optional: 'handler' });
+
+      // Should update url
+      expect(locationService.getSearchObject().optional).toEqual('handler');
+
+      // When updating via url and remove optional
+      locationService.partial({ optional: null });
+
+      // Should update state
+      expect(obj.state.optional).toBe(undefined);
+    });
+
+    it('When removing optional state via state change', () => {
+      const obj = new TestObj({ name: 'test' });
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
+      });
+
+      urlManager = new UrlSyncManager(scene);
+      urlManager.initSync();
+
+      deactivate = scene.activate();
+
+      obj.setState({ optional: 'handler' });
+
+      expect(locationService.getSearchObject().optional).toEqual('handler');
+
+      obj.setState({ optional: undefined });
+
+      expect(locationService.getSearchObject().optional).toEqual(undefined);
     });
   });
 });

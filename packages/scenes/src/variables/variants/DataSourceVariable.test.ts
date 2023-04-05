@@ -3,9 +3,9 @@ import { lastValueFrom } from 'rxjs';
 import { DataSourceInstanceSettings, ScopedVars, PluginType } from '@grafana/data';
 
 import { SceneObject } from '../../core/types';
-import { CustomFormatterFn } from '../interpolation/sceneInterpolator';
 
 import { DataSourceVariable } from './DataSourceVariable';
+import { VariableCustomFormatterFn } from '../types';
 
 function getDataSource(name: string, type: string, isDefault = false): DataSourceInstanceSettings {
   return {
@@ -58,7 +58,7 @@ jest.mock('../../core/sceneGraph', () => {
         sceneObject: SceneObject,
         value: string | undefined | null,
         scopedVars?: ScopedVars,
-        format?: string | CustomFormatterFn
+        format?: string | VariableCustomFormatterFn
       ) => {
         return value?.replace('$variable-1', 'slow');
       },
@@ -74,7 +74,7 @@ describe('DataSourceVariable', () => {
         options: [],
         value: '',
         text: '',
-        query: '',
+        pluginId: '',
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -92,7 +92,7 @@ describe('DataSourceVariable', () => {
         options: [],
         value: '',
         text: '',
-        query: 'non-existant-datasource',
+        pluginId: 'non-existant-datasource',
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -113,7 +113,7 @@ describe('DataSourceVariable', () => {
         options: [],
         value: '',
         text: '',
-        query: 'prometheus',
+        pluginId: 'prometheus',
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -142,7 +142,7 @@ describe('DataSourceVariable', () => {
         options: [],
         value: '',
         text: '',
-        query: 'prometheus',
+        pluginId: 'prometheus',
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -164,7 +164,7 @@ describe('DataSourceVariable', () => {
         options: [],
         value: '',
         text: '',
-        query: 'prometheus',
+        pluginId: 'prometheus',
         regex: 'slow.*',
       });
 
@@ -181,7 +181,7 @@ describe('DataSourceVariable', () => {
         options: [],
         value: '',
         text: '',
-        query: 'prometheus',
+        pluginId: 'prometheus',
         regex: '$variable-1.*',
       });
 
@@ -198,7 +198,7 @@ describe('DataSourceVariable', () => {
       const variable = new DataSourceVariable({
         name: 'test',
         options: [],
-        query: 'prometheus',
+        pluginId: 'prometheus',
         value: 'slow-prometheus-mocked',
         text: 'slow-prometheus-mocked',
       });
@@ -214,7 +214,7 @@ describe('DataSourceVariable', () => {
         name: 'test',
         options: [],
         isMulti: true,
-        query: 'prometheus',
+        pluginId: 'prometheus',
         value: ['prometheus-mocked', 'slow-prometheus-mocked', 'elastic-mocked'],
         text: ['prometheus-mocked', 'slow-prometheus-mocked', 'elastic-mocked'],
       });
@@ -230,7 +230,7 @@ describe('DataSourceVariable', () => {
         name: 'test',
         options: [],
         isMulti: true,
-        query: 'elastic',
+        pluginId: 'elastic',
         value: ['prometheus-mocked', 'slow-prometheus-mocked'],
         text: ['prometheus-mocked', 'slow-prometheus-mocked'],
       });

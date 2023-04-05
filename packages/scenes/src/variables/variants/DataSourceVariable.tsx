@@ -12,7 +12,13 @@ import { VariableValueOption } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 
 export interface DataSourceVariableState extends MultiValueVariableState {
-  query: string;
+  /**
+   * Include all data source instances with this plugin id
+   */
+  pluginId: string;
+  /**
+   * Filter data source instances based on name
+   */
   regex: string;
 }
 
@@ -29,13 +35,13 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
       options: [],
       name: '',
       regex: '',
-      query: '',
+      pluginId: '',
       ...initialState,
     });
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
-    if (!this.state.query) {
+    if (!this.state.pluginId) {
       return of([]);
     }
 
@@ -52,7 +58,7 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
     for (let i = 0; i < dataSourceTypes.length; i++) {
       const source = dataSourceTypes[i];
       // must match on type
-      if (source.meta.id !== this.state.query) {
+      if (source.meta.id !== this.state.pluginId) {
         continue;
       }
 

@@ -10,8 +10,7 @@ export { SceneDataTransformer } from './querying/SceneDataTransformer';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
-export { formatRegistry, FormatRegistryID, type FormatVariable } from './variables/interpolation/formatRegistry';
-export { type CustomFormatterFn } from './variables/interpolation/sceneInterpolator';
+export { formatRegistry, type FormatVariable } from './variables/interpolation/formatRegistry';
 export { VariableValueSelectors } from './variables/components/VariableValueSelectors';
 export { SceneVariableSet } from './variables/sets/SceneVariableSet';
 export { ConstantVariable } from './variables/variants/ConstantVariable';
@@ -26,6 +25,7 @@ export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
+export { VizPanelMenu } from './components/VizPanel/VizPanelMenu';
 export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
@@ -33,9 +33,9 @@ export { SceneTimePicker } from './components/SceneTimePicker';
 export { SceneRefreshPicker } from './components/SceneRefreshPicker';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
-export { SceneFlexLayout } from './components/layout/SceneFlexLayout';
-export { SceneGridLayout } from './components/layout/SceneGridLayout';
-export { SceneGridRow } from './components/layout/SceneGridRow';
+export { SceneFlexLayout, SceneFlexItem } from './components/layout/SceneFlexLayout';
+export { SceneGridLayout, SceneGridItem } from './components/layout/grid/SceneGridLayout';
+export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,
@@ -45,4 +45,4 @@ export {
 } from './components/SceneApp/types';
 export { SceneApp } from './components/SceneApp/SceneApp';
 export { SceneAppPage } from './components/SceneApp/SceneAppPage';
-export { SceneControlWrapper } from './components/SceneControlWrapper';
+export { SceneReactObject } from './components/SceneReactObject';

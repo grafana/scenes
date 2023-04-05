@@ -1,19 +1,14 @@
 import { ScopedVars } from '@grafana/data';
-import { VariableModel, VariableType } from '@grafana/schema';
+import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
-import { VariableValue } from '../types';
+import { InterpolationFormatParameter, isCustomVariableValue, VariableValue } from '../types';
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
-import { formatRegistry, FormatRegistryID, FormatVariable } from './formatRegistry';
+import { formatRegistry, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
 import { lookupVariable } from '../lookupVariable';
-
-export type CustomFormatterFn = (
-  value: unknown,
-  legacyVariableModel: Partial<VariableModel>,
-  legacyDefaultFormatter?: CustomFormatterFn
-) => string;
+import { macrosIndex } from '../macros';
 
 /**
  * This function will try to parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
@@ -26,7 +21,7 @@ export function sceneInterpolator(
   sceneObject: SceneObject,
   target: string | undefined | null,
   scopedVars?: ScopedVars,
-  format?: string | CustomFormatterFn
+  format?: InterpolationFormatParameter
 ): string {
   if (!target) {
     return target ?? '';
@@ -37,13 +32,7 @@ export function sceneInterpolator(
   return target.replace(VARIABLE_REGEX, (match, var1, var2, fmt2, var3, fieldPath, fmt3) => {
     const variableName = var1 || var2 || var3;
     const fmt = fmt2 || fmt3 || format;
-    let variable: FormatVariable | undefined | null;
-
-    if (scopedVars && scopedVars[variableName]) {
-      variable = getSceneVariableForScopedVar(variableName, scopedVars[variableName]);
-    } else {
-      variable = lookupVariable(variableName, sceneObject);
-    }
+    const variable = lookupFormatVariable(variableName, match, scopedVars, sceneObject);
 
     if (!variable) {
       return match;
@@ -53,24 +42,44 @@ export function sceneInterpolator(
   });
 }
 
+function lookupFormatVariable(
+  name: string,
+  match: string,
+  scopedVars: ScopedVars | undefined,
+  sceneObject: SceneObject
+): FormatVariable | null {
+  const scopedVar = scopedVars?.[name];
+
+  if (scopedVar) {
+    return getSceneVariableForScopedVar(name, scopedVar);
+  }
+
+  const variable = lookupVariable(name, sceneObject);
+  if (variable) {
+    return variable;
+  }
+
+  if (macrosIndex[name]) {
+    return new macrosIndex[name](name, sceneObject, match, scopedVars);
+  }
+
+  return null;
+}
+
 function formatValue(
   variable: FormatVariable,
   value: VariableValue | undefined | null,
-  formatNameOrFn?: string | CustomFormatterFn
+  formatNameOrFn?: InterpolationFormatParameter
 ): string {
   if (value === null || value === undefined) {
     return '';
   }
 
-  // Special handling for custom values that should not be formatted / escaped
-  // This is used by the custom allValue that usually contain wildcards and therefore should not be escaped
-  if (typeof value === 'object' && 'isCustomValue' in value && formatNameOrFn !== FormatRegistryID.text) {
-    return value.toString();
+  // Variable can return a custom value that handles formatting
+  // This is useful for customAllValue and macros that return values that are already formatted or need special formatting
+  if (isCustomVariableValue(value)) {
+    return value.formatter(formatNameOrFn);
   }
-
-  // if (isAdHoc(variable) && format !== FormatRegistryID.queryParam) {
-  //   return '';
-  // }
 
   // if it's an object transform value to string
   if (!Array.isArray(value) && typeof value === 'object') {
@@ -81,13 +90,15 @@ function formatValue(
     return formatNameOrFn(value, {
       name: variable.state.name,
       type: variable.state.type as VariableType,
+      multi: variable.state.isMulti,
+      includeAll: variable.state.includeAll,
     });
   }
 
   let args: string[] = [];
 
   if (!formatNameOrFn) {
-    formatNameOrFn = FormatRegistryID.glob;
+    formatNameOrFn = VariableFormatID.Glob;
   } else {
     // some formats have arguments that come after ':' character
     args = formatNameOrFn.split(':');
@@ -103,7 +114,7 @@ function formatValue(
 
   if (!formatter) {
     console.error(`Variable format ${formatNameOrFn} not found. Using glob format as fallback.`);
-    formatter = formatRegistry.get(FormatRegistryID.glob);
+    formatter = formatRegistry.get(VariableFormatID.Glob);
   }
 
   return formatter.formatter(value, args, variable);

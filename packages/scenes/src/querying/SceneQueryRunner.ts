@@ -1,11 +1,11 @@
 import { cloneDeep } from 'lodash';
 import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of } from 'rxjs';
 
+import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
+
 import {
   CoreApp,
-  DataQuery,
   DataQueryRequest,
-  DataSourceRef,
   DataTransformerConfig,
   PanelData,
   preProcessPanelData,
@@ -18,7 +18,7 @@ import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { CustomTransformOperator, SceneDataProvider, SceneObject, SceneObjectStatePlain } from '../core/types';
+import { CustomTransformOperator, SceneDataProvider, SceneObject, SceneObjectState } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -28,10 +28,10 @@ import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 let counter = 100;
 
 export function getNextRequestId() {
-  return 'QS' + counter++;
+  return 'SQR' + counter++;
 }
 
-export interface QueryRunnerState extends SceneObjectStatePlain {
+export interface QueryRunnerState extends SceneObjectState {
   data?: PanelData;
   dataPreTransforms?: PanelData;
   queries: DataQueryExtended[];
@@ -58,22 +58,26 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.onVariableUpdatesCompleted(variables, dependencyChanged),
   });
 
-  public activate() {
-    super.activate();
+  public constructor(initialState: QueryRunnerState) {
+    super(initialState);
 
+    this.addActivationHandler(() => this._onActivate());
+  }
+
+  private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._subs.add(
-      timeRange.subscribeToState({
-        next: (timeRange) => {
-          this.runWithTimeRange(timeRange.value);
-        },
+      timeRange.subscribeToState((timeRange) => {
+        this.runWithTimeRange(timeRange.value);
       })
     );
 
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
     }
+
+    return () => this._onDeactivate();
   }
 
   /**
@@ -114,9 +118,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return true;
   }
 
-  public deactivate(): void {
-    super.deactivate();
-
+  private _onDeactivate(): void {
     if (this._querySub) {
       this._querySub.unsubscribe();
       this._querySub = undefined;
@@ -169,10 +171,19 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.setState({ isWaitingForVariables: false });
     }
 
-    const { datasource, minInterval, queries } = this.state;
+    const { minInterval, queries } = this.state;
     const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
       __sceneObject: { text: '__sceneObject', value: this },
     };
+
+    // Simple path when no queries exist
+    if (!queries?.length) {
+      this.onDataReceived({
+        state: LoadingState.Done,
+        series: [],
+        timeRange,
+      });
+    }
 
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
@@ -190,6 +201,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     };
 
     try {
+      const datasource = this.state.datasource ?? findFirstDatasource(request.targets);
       const ds = await getDataSource(datasource, request.scopedVars);
 
       // Attach the data source name to each query
@@ -228,6 +240,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const preProcessedData = preProcessPanelData(data, this.state.data);
     this.setState({ data: preProcessedData });
   };
+}
+
+export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
+  return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }
 
 export function getTransformationsStream(

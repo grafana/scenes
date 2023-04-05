@@ -1,4 +1,4 @@
-import { SceneObject, SceneObjectStatePlain } from '../../core/types';
+import { SceneObject, SceneObjectState } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { IconName } from '@grafana/data';
 
@@ -9,7 +9,7 @@ export interface SceneRouteMatch<Params extends { [K in keyof Params]?: string }
   url: string;
 }
 
-export interface SceneAppState extends SceneObjectStatePlain {
+export interface SceneAppState extends SceneObjectState {
   // Array of SceneAppPage objects that are considered app's top level pages
   pages: SceneAppPageLike[];
 }
@@ -20,7 +20,7 @@ export interface SceneAppRoute {
   drilldown?: SceneAppDrilldownView;
 }
 
-export interface SceneAppPageState extends SceneObjectStatePlain {
+export interface SceneAppPageState extends SceneObjectState {
   /** Page title */
   title: string;
   /** Page subTitle */

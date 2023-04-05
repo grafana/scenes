@@ -6,9 +6,9 @@ import { Stack } from '@grafana/experimental';
 import { Button, ToolbarButton, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObject, SceneLayoutChildState, SceneComponentProps, SceneLayout } from '../core/types';
+import { SceneObject, SceneComponentProps, SceneLayout, SceneLayoutItemState, SceneObjectState } from '../core/types';
 
-interface NestedSceneState extends SceneLayoutChildState {
+interface NestedSceneState extends SceneObjectState {
   title: string;
   isCollapsed?: boolean;
   canCollapse?: boolean;
@@ -27,25 +27,22 @@ export class NestedScene extends SceneObjectBase<NestedSceneState> {
   public onToggle = () => {
     this.setState({
       isCollapsed: !this.state.isCollapsed,
-      placement: {
-        ...this.state.placement,
-        ySizing: this.state.isCollapsed ? 'fill' : 'content',
-      },
     });
   };
 
   /** Removes itself from its parent's children array */
   public onRemove = () => {
     const parent = this.parent!;
-    if ('children' in parent.state) {
+
+    if (isSceneLayoutItem(parent)) {
       parent.setState({
-        children: parent.state.children.filter((x) => x !== this),
+        body: undefined,
       });
     }
   };
 }
 
-export function NestedSceneRenderer({ model, isEditing }: SceneComponentProps<NestedScene>) {
+export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>) {
   const { title, isCollapsed, canCollapse, canRemove, body, actions } = model.useState();
   const styles = useStyles2(getStyles);
 
@@ -85,7 +82,7 @@ export function NestedSceneRenderer({ model, isEditing }: SceneComponentProps<Ne
         </Stack>
         <div className={styles.actions}>{toolbarActions}</div>
       </div>
-      {!isCollapsed && <body.Component model={body} isEditing={isEditing} />}
+      {!isCollapsed && <body.Component model={body} />}
     </div>
   );
 }
@@ -115,3 +112,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flexGrow: 1,
   }),
 });
+
+function isSceneLayoutItem(x: SceneObject): x is SceneObject<SceneLayoutItemState> {
+  return 'body' in x.state;
+}

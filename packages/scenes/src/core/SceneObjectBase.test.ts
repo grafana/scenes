@@ -3,13 +3,13 @@ import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { SceneDataNode } from './SceneDataNode';
 import { SceneObjectBase } from './SceneObjectBase';
 import { SceneObjectStateChangedEvent } from './events';
-import { SceneLayoutChild, SceneObject, SceneObjectStatePlain } from './types';
+import { SceneObject, SceneObjectState } from './types';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 
-interface TestSceneState extends SceneObjectStatePlain {
+interface TestSceneState extends SceneObjectState {
   name?: string;
   nested?: SceneObject<TestSceneState>;
-  children?: SceneLayoutChild[];
+  children?: TestScene[];
   actions?: SceneObject[];
 }
 
@@ -123,16 +123,16 @@ describe('SceneObject', () => {
       $variables: new SceneVariableSet({ variables: [] }),
     });
 
-    scene.activate();
+    const deactivateScene = scene.activate();
 
     // Subscribe to state change and to event
-    const stateSub = scene.subscribeToState({ next: () => {} });
+    const stateSub = scene.subscribeToState(() => {});
     const eventSub = scene.subscribeToEvent(SceneObjectStateChangedEvent, () => {});
 
-    scene.deactivate();
+    deactivateScene();
 
     it('Should close subscriptions', () => {
-      expect(stateSub.closed).toBe(true);
+      expect((stateSub as any).closed).toBe(true);
       expect((eventSub as any).closed).toBe(true);
     });
 
@@ -146,6 +146,88 @@ describe('SceneObject', () => {
 
     it('Should deactivate $variables', () => {
       expect(scene.state.$variables!.isActive).toBe(false);
+    });
+  });
+
+  describe('Can wire up objects', () => {
+    it('State handle activation handlers', () => {
+      const nestedScene = new TestScene({ name: 'nested' });
+      const scene = new TestScene({
+        name: 'root',
+        nested: nestedScene,
+      });
+
+      // This is just a dummy example of subscribing and reacting to scene object state change from outside the scene objects
+      // This should allow more custom behaviors without needing custom scene objects
+      let unsubscribed = false;
+
+      scene.addActivationHandler(() => {
+        const sub = nestedScene.subscribeToState((state) => scene.setState({ name: state.name }));
+
+        return () => {
+          sub.unsubscribe();
+          unsubscribed = true;
+        };
+      });
+
+      const deactivateScene = scene.activate();
+
+      expect(scene.state.name).toBe('root');
+
+      nestedScene.setState({ name: 'new name' });
+
+      expect(scene.state.name).toBe('new name');
+
+      deactivateScene();
+
+      expect(unsubscribed).toBe(true);
+
+      nestedScene.setState({ name: 'new name 2' });
+
+      // Nothing should happen when state change while inactive
+      expect(scene.state.name).toBe('new name');
+
+      // Activate scene again
+      scene.activate();
+
+      // verify that the wiring is back
+      nestedScene.setState({ name: 'new name 3' });
+      expect(scene.state.name).toBe('new name 3');
+    });
+  });
+
+  describe('Ref counting activations', () => {
+    it('Should deactivate after last activation caller is deactived', () => {
+      const scene = new TestScene({ name: 'nested' });
+      let activateCounter = 0;
+      let deactivatedCounter = 0;
+
+      scene.addActivationHandler(() => {
+        activateCounter++;
+        return () => deactivatedCounter++;
+      });
+
+      const ref1 = scene.activate();
+      expect(activateCounter).toBe(1);
+      expect(scene.isActive).toBe(true);
+
+      const ref2 = scene.activate();
+      expect(activateCounter).toBe(1);
+
+      ref1();
+      expect(deactivatedCounter).toBe(0);
+
+      ref2();
+      expect(deactivatedCounter).toBe(1);
+    });
+
+    it('Cannot call deactivation function twice', () => {
+      const scene = new TestScene({ name: 'nested' });
+
+      const deactivateScene = scene.activate();
+      deactivateScene();
+
+      expect(() => deactivateScene()).toThrow();
     });
   });
 });

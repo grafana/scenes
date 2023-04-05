@@ -3,7 +3,7 @@
   "license": "AGPL-3.0-only",
   "private": true,
   "name": "grafana-scenes",
-  "version": "0.0.20",
+  "version": "0.3.0",
   "description": "Grafana framework for building dynamic dashboards",
   "keywords": [
     "typescript"
@@ -28,7 +28,8 @@
   "scripts": {
     "precommit": "yarn run lint-staged",
     "prepare": "husky install",
-    "packages:publish": "lerna exec --no-private -- npm publish"
+    "packages:publish": "lerna exec --no-private -- npm publish",
+    "test:scenes": "lerna run test --scope '@grafana/scenes' --"
   },
   "resolutions": {
     "@types/react": "17.0.42"
@@ -39,6 +40,9 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@auto-it/omit-commits": "^10.43.0",
+    "@auto-it/released": "^10.43.0",
+    "auto": "^10.43.0",
     "lerna": "^6.5.1",
     "lint-staged": "^13.2.0"
   }

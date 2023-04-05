@@ -13,6 +13,7 @@ import { VizPanel } from './VizPanel';
 let pluginToLoad: PanelPlugin | undefined;
 
 jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
   getPluginImportUtils: () => ({
     getPanelPluginFromCache: jest.fn(() => pluginToLoad),
   }),
@@ -179,6 +180,28 @@ describe('VizPanel', () => {
 
     it('should call onPanelMigration with pluginVersion set to initial state (undefined)', () => {
       expect(onPanelMigration.mock.calls[0][0].pluginVersion).toBe(undefined);
+    });
+  });
+
+  describe('Should provide a panel context', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeAll(async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+    });
+
+    it('Should have a panel context', () => {
+      expect(panel.getPanelContext()).toBeDefined();
+    });
+
+    it('Can change series color', () => {
+      panel.getPanelContext().onSeriesColorChange?.('A', 'red');
+      expect(panel.state.fieldConfig.overrides[0]).toEqual({
+        matcher: { id: 'byName', options: 'A' },
+        properties: [{ id: 'color', value: { mode: 'fixed', fixedColor: 'red' } }],
+      });
     });
   });
 });

@@ -1,85 +1,57 @@
 import { ScopedVars } from '@grafana/data';
 import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/interpolation/defaults';
 
-import { CustomFormatterFn, sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
-import { SceneVariables } from '../variables/types';
+import { sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
+import { VariableCustomFormatterFn, SceneVariables } from '../variables/types';
 
-import { SceneDataState, SceneEditor, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
+import { SceneDataState, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
 import { lookupVariable } from '../variables/lookupVariable';
+
+/** Walks up the scene graph, returning the first non-undefined result of `extract` */
+function getClosest<T>(sceneObject: SceneObject, extract: (s: SceneObject) => T | undefined): T | undefined {
+  let curSceneObject: SceneObject | undefined = sceneObject;
+  let extracted: T | undefined = undefined;
+
+  while (curSceneObject && !extracted) {
+    extracted = extract(curSceneObject);
+    curSceneObject = curSceneObject.parent;
+  }
+
+  return extracted;
+}
 
 /**
  * Get the closest node with variables
  */
 export function getVariables(sceneObject: SceneObject): SceneVariables {
-  if (sceneObject.state.$variables) {
-    return sceneObject.state.$variables;
-  }
-
-  if (sceneObject.parent) {
-    return getVariables(sceneObject.parent);
-  }
-
-  return EmptyVariableSet;
+  return getClosest(sceneObject, (s) => s.state.$variables) ?? EmptyVariableSet;
 }
 
 /**
  * Will walk up the scene object graph to the closest $data scene object
  */
 export function getData(sceneObject: SceneObject): SceneObject<SceneDataState> {
-  const { $data } = sceneObject.state;
-  if ($data) {
-    return $data;
-  }
-
-  if (sceneObject.parent) {
-    return getData(sceneObject.parent);
-  }
-
-  return EmptyDataNode;
+  return getClosest(sceneObject, (s) => s.state.$data) ?? EmptyDataNode;
 }
 
 /**
  * Will walk up the scene object graph to the closest $timeRange scene object
  */
 export function getTimeRange(sceneObject: SceneObject): SceneTimeRangeLike {
-  const { $timeRange } = sceneObject.state;
-  if ($timeRange) {
-    return $timeRange;
-  }
-
-  if (sceneObject.parent) {
-    return getTimeRange(sceneObject.parent);
-  }
-
-  return DefaultTimeRange;
+  return getClosest(sceneObject, (s) => s.state.$timeRange) ?? DefaultTimeRange;
 }
 
-/**
- * Will walk up the scene object graph to the closest $editor scene object
- */
-export function getSceneEditor(sceneObject: SceneObject): SceneEditor {
-  const { $editor } = sceneObject.state;
-  if ($editor) {
-    return $editor;
-  }
-
-  if (sceneObject.parent) {
-    return getSceneEditor(sceneObject.parent);
-  }
-
-  throw new Error('No editor found in scene tree');
+function isSceneLayout(s: SceneObject): s is SceneLayout {
+  return 'isDraggable' in s;
 }
 
 /**
  * Will walk up the scene object graph to the closest $layout scene object
  */
 export function getLayout(scene: SceneObject): SceneLayout {
-  if ('isDraggable' in scene) {
-    return scene as SceneLayout;
-  }
-
-  if (scene.parent) {
-    return getLayout(scene.parent);
+  const parent = getClosest(scene, (s) => (isSceneLayout(s) ? s : undefined));
+  if (parent) {
+    return parent;
   }
 
   throw new Error('No layout found in scene tree');
@@ -92,7 +64,7 @@ export function interpolate(
   sceneObject: SceneObject,
   value: string | undefined | null,
   scopedVars?: ScopedVars,
-  format?: string | CustomFormatterFn
+  format?: string | VariableCustomFormatterFn
 ): string {
   if (value === '' || value == null) {
     return '';
@@ -126,7 +98,6 @@ export const sceneGraph = {
   getVariables,
   getData,
   getTimeRange,
-  getSceneEditor,
   getLayout,
   interpolate,
   lookupVariable,

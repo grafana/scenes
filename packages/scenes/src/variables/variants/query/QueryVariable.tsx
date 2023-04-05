@@ -1,5 +1,5 @@
 import React from 'react';
-import { Observable, of, Unsubscribable, filter, take, mergeMap, catchError, throwError, from } from 'rxjs';
+import { Observable, of, filter, take, mergeMap, catchError, throwError, from } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -20,12 +20,12 @@ import { SceneComponentProps } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
 import { VariableValueSelect } from '../../components/VariableValueSelect';
 import { VariableValueOption } from '../../types';
-import { getDataSource } from '../../../utils/getDataSource';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../MultiValueVariable';
 
 import { createQueryVariableRunner } from './createQueryVariableRunner';
 import { metricNamesToVariableValues } from './utils';
 import { toMetricFindValues } from './toMetricFindValues';
+import { getDataSource } from '../../../utils/getDataSource';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -37,8 +37,6 @@ export interface QueryVariableState extends MultiValueVariableState {
 }
 
 export class QueryVariable extends MultiValueVariable<QueryVariableState> {
-  private updateSubscription?: Unsubscribable;
-
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['regex', 'query', 'datasource'],
   });
@@ -57,29 +55,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       sort: VariableSort.alphabeticalAsc,
       ...initialState,
     });
-  }
-
-  public activate(): void {
-    super.activate();
-    const timeRange = sceneGraph.getTimeRange(this);
-
-    if (this.state.refresh === VariableRefresh.onTimeRangeChanged) {
-      this._subs.add(
-        timeRange.subscribeToState({
-          next: () => {
-            this.updateSubscription = this.validateAndUpdate().subscribe();
-          },
-        })
-      );
-    }
-  }
-
-  public deactivate(): void {
-    super.deactivate();
-
-    if (this.updateSubscription) {
-      this.updateSubscription.unsubscribe();
-    }
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
