@@ -6,6 +6,7 @@ import { getNestedScene } from './scenes/nestedScene';
 import { getPanelContextDemoScene } from './scenes/panelContext';
 import { getPanelMenuTest } from './scenes/panelMenu';
 import { getPanelRepeaterTest } from './scenes/panelRepeater';
+import { getQueryEditorDemo } from './scenes/queryEditor';
 import { getVariablesDemo } from './scenes/variables';
 
 interface SceneDef {
@@ -22,6 +23,7 @@ export function getDemos(): SceneDef[] {
     { title: 'Grid layout', getScene: getGridLayoutTest },
     { title: 'Grid layout with rows', getScene: getGridWithRowLayoutTest },
     { title: 'Nested scene', getScene: getNestedScene },
+    { title: 'Query editor demo', getScene: getQueryEditorDemo },
     { title: 'Variables', getScene: getVariablesDemo },
   ];
 }
