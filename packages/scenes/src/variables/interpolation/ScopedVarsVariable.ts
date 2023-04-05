@@ -1,5 +1,3 @@
-import { property } from 'lodash';
-
 import { ScopedVar } from '@grafana/data';
 
 import { VariableValue } from '../types';
