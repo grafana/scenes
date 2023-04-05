@@ -7,12 +7,6 @@ import { DemoListPage } from '../../pages/DemoListPage';
 export const Routes = () => {
   return (
     <Switch>
-      {/* <Route path={prefixRoute(`${ROUTES.WithTabs}`)} component={PageWithTabs} />
-      <Route path={prefixRoute(`${ROUTES.WithDrilldown}`)} component={WithDrilldown} />
-      <Route path={prefixRoute(`${ROUTES.Demos}`)} component={DemoPage} /> */}
-
-      {/* Full-width page (this page will have no navigation bar) */}
-
       {/* Default page */}
       <Route path={prefixRoute(`${ROUTES.Demos}`)} component={DemoListPage} />
       <Redirect to={prefixRoute(ROUTES.Demos)} />
