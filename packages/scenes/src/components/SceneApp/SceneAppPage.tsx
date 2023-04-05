@@ -5,7 +5,7 @@ import { Route, Switch, useRouteMatch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
-import { SceneAppDrilldownView, SceneAppPageLike, SceneAppPageState } from './types';
+import { SceneAppDrilldownView, SceneAppPageLike, SceneAppPageState, SceneRouteMatch } from './types';
 import { getLinkUrlWithAppUrlState, useAppQueryParams } from './utils';
 
 const sceneCache = new Map<string, EmbeddedScene>();
@@ -50,6 +50,7 @@ function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
       }
     }
 
+    console.log('routes', routes);
     return <Switch>{routes}</Switch>;
   }
 
@@ -102,13 +103,7 @@ function ScenePageRenderer({ page, activeTab }: ScenePageRenderProps) {
   const pageState = page.useState();
   const params = useAppQueryParams();
   const routeMatch = useRouteMatch();
-
-  let scene = sceneCache.get(routeMatch!.url);
-  if (!scene) {
-    // If we are rendering a tab, we need to get the scene f  rom the tab, otherwise, use page's scene
-    scene = activeTab ? activeTab.state.getScene(routeMatch) : page.state.getScene(routeMatch);
-    sceneCache.set(routeMatch!.url, scene);
-  }
+  const scene = getSceneForPage(routeMatch, page, activeTab);
 
   const { initializedScene } = pageState;
   const isInitialized = !initializedScene || initializedScene !== scene;
@@ -178,4 +173,27 @@ function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryM
   }
 
   return undefined;
+}
+
+function getSceneForPage(
+  routeMatch: SceneRouteMatch,
+  page: SceneAppPageLike,
+  activeTab: SceneAppPageLike | undefined
+): EmbeddedScene {
+  let scene = sceneCache.get(routeMatch!.url);
+
+  if (scene) {
+    return scene;
+  }
+
+  let pageToShow = activeTab ?? page;
+
+  if (!pageToShow.state.getScene) {
+    throw new Error('Missing getScene on SceneAppPage ' + pageToShow.state.title);
+  }
+
+  scene = pageToShow.state.getScene(routeMatch);
+  sceneCache.set(routeMatch!.url, scene);
+
+  return scene;
 }

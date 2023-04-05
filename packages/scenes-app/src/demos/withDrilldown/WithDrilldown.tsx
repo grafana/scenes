@@ -55,9 +55,6 @@ export function getDrilldownsAppPageScene() {
             title: `${roomName} overview`,
             subTitle: 'This scene is a particular room drilldown. It implements two tabs to organise the data.',
             getParentPage: () => parent,
-            getScene: () => {
-              return new EmbeddedScene({ body: new SceneFlexLayout({ children: [] }) });
-            },
             tabs: [
               new SceneAppPage({
                 title: 'Temperature',

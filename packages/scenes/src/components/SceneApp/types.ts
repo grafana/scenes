@@ -40,7 +40,7 @@ export interface SceneAppPageState extends SceneObjectState {
   // Array of SceneAppPage objects that are used as page tabs displayed on top of the page
   tabs?: SceneAppPageLike[];
   // Function that returns a scene object for the page
-  getScene: (routeMatch: SceneRouteMatch) => EmbeddedScene;
+  getScene?: (routeMatch: SceneRouteMatch) => EmbeddedScene;
   // Array of scenes used for drilldown views
   drilldowns?: SceneAppDrilldownView[];
   // Function that returns a parent page object, used to create breadcrumbs structure
