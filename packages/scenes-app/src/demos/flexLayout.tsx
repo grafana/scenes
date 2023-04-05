@@ -9,7 +9,7 @@ import {
   SceneObjectState,
   VizPanel,
 } from '@grafana/scenes';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
 import { demoUrl } from '../utils/utils.routing';
 
 export function getFlexLayoutTest() {
@@ -19,6 +19,7 @@ export function getFlexLayoutTest() {
     url: `${demoUrl('flex-layout')}`,
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
         body: new SceneFlexLayout({
           direction: 'column',
           children: [

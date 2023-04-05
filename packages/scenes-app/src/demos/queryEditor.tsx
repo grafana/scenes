@@ -1,5 +1,5 @@
-import { EmbeddedScene, SceneAppPage, SceneFlexItem, SceneFlexLayout, SceneTimeRange, VizPanel } from '@grafana/scenes';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { EmbeddedScene, SceneAppPage, SceneFlexItem, SceneFlexLayout, VizPanel } from '@grafana/scenes';
+import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 import { QueryEditor } from '../components/QueryEditor/QueryEditor';
 import { demoUrl } from '../utils/utils.routing';
 
@@ -10,6 +10,7 @@ export function getQueryEditorDemo() {
     url: `${demoUrl('query-editor')}`,
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
         body: new SceneFlexLayout({
           direction: 'column',
           children: [
@@ -27,7 +28,6 @@ export function getQueryEditorDemo() {
             }),
           ],
         }),
-        $timeRange: new SceneTimeRange(),
         $data: getQueryRunnerWithRandomWalkQuery(),
       });
     },
