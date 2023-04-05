@@ -8,6 +8,8 @@ import {
   SceneFlexLayout,
   SceneFlexItem,
   SceneAppPage,
+  SceneControlsSpacer,
+  SceneRefreshPicker,
 } from '@grafana/scenes';
 import { demoUrl } from '../utils/utils.routing';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
@@ -77,7 +79,11 @@ export function getGridLayoutTest(): SceneAppPage {
         }),
         $timeRange: new SceneTimeRange(),
         $data: getQueryRunnerWithRandomWalkQuery(),
-        controls: [new SceneTimePicker({})],
+        controls: [
+          new SceneControlsSpacer(),
+          new SceneTimePicker({ isOnCanvas: true }),
+          new SceneRefreshPicker({ isOnCanvas: true }),
+        ],
       });
     },
   });

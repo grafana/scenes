@@ -8,6 +8,7 @@ import {
   SceneQueryRunner,
   SceneRefreshPicker,
   SceneAppPage,
+  SceneControlsSpacer,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
 import { demoUrl } from '../utils/utils.routing';
@@ -38,7 +39,11 @@ export function getPanelContextDemoScene(): SceneAppPage {
           ],
         }),
         $timeRange: new SceneTimeRange(),
-        controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
+        controls: [
+          new SceneControlsSpacer(),
+          new SceneTimePicker({ isOnCanvas: true }),
+          new SceneRefreshPicker({ isOnCanvas: true }),
+        ],
       });
     },
   });
