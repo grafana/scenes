@@ -26,6 +26,7 @@ describe('DataValueMacro', () => {
     const scene = new TestScene({});
     const dataContext: DataContextScopedVar = {
       value: {
+        data: [data],
         frame: data,
         field: data.fields[0],
         rowIndex: 1,
@@ -45,6 +46,7 @@ describe('DataValueMacro', () => {
     const scene = new TestScene({});
     const dataContext: DataContextScopedVar = {
       value: {
+        data: [data],
         frame: data,
         field: data.fields[0],
         rowIndex: 0,
@@ -59,6 +61,7 @@ describe('DataValueMacro', () => {
     const scene = new TestScene({});
     const dataContext: DataContextScopedVar = {
       value: {
+        data: [data],
         frame: data,
         field: data.fields[0],
         calculatedValue: {
