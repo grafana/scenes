@@ -5,10 +5,9 @@ import { ScopedVar } from '@grafana/data';
 import { VariableValue } from '../types';
 
 import { FormatVariable } from './formatRegistry';
+import { getFieldAccessor } from './fieldAccessorCache';
 
 export class ScopedVarsVariable implements FormatVariable {
-  private static fieldAccessorCache: FieldAccessorCache = {};
-
   public state: { name: string; value: ScopedVar; type: string };
 
   public constructor(name: string, value: ScopedVar) {
@@ -20,7 +19,7 @@ export class ScopedVarsVariable implements FormatVariable {
     let realValue = value.value;
 
     if (fieldPath) {
-      realValue = this.getFieldAccessor(fieldPath)(value.value);
+      realValue = getFieldAccessor(fieldPath)(value.value);
     } else {
       realValue = value.value;
     }
@@ -41,19 +40,6 @@ export class ScopedVarsVariable implements FormatVariable {
 
     return String(value);
   }
-
-  private getFieldAccessor(fieldPath: string) {
-    const accessor = ScopedVarsVariable.fieldAccessorCache[fieldPath];
-    if (accessor) {
-      return accessor;
-    }
-
-    return (ScopedVarsVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
-  }
-}
-
-interface FieldAccessorCache {
-  [key: string]: (obj: unknown) => unknown;
 }
 
 let scopedVarsVariable: ScopedVarsVariable | undefined;
