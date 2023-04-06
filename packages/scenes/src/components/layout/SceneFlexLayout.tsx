@@ -14,7 +14,7 @@ export interface SceneFlexItemLike extends SceneObject<SceneFlexItemState> {}
 interface SceneFlexLayoutState extends SceneObjectState {
   direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
-  children: SceneFlexItemLike[];
+  children: Array<SceneFlexItemLike | SceneFlexLayout>;
 }
 
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
@@ -45,9 +45,12 @@ function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>
 
   return (
     <div style={style}>
-      {children.map((item) => (
-        <item.Component key={item.state.key} model={item} />
-      ))}
+      {children.map((item) => {
+        if (isSceneFlexLayout(item)) {
+          return <item.Component key={item.state.key} model={item} />;
+        }
+        return <item.Component key={item.state.key} model={item} />;
+      })}
     </div>
   );
 }
