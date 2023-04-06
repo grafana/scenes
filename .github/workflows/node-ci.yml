@@ -58,6 +58,9 @@ jobs:
       - name: Git status
         run: git status --porcelain
 
+      - name: Git diff
+        run: git --no-pager diff
+
       - name: Run auto shipit
         run: yarn auto shipit
         env:
