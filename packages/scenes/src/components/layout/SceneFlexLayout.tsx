@@ -9,12 +9,25 @@ import {
   SceneLayoutItemState,
 } from '../../core/types';
 
-export interface SceneFlexItemLike extends SceneObject<SceneFlexItemState> {}
+export interface SceneFlexItemLikeState extends SceneObjectState {
+  flexGrow?: CSSProperties['flexGrow'];
+  alignSelf?: CSSProperties['alignSelf'];
+  width?: CSSProperties['width'];
+  height?: CSSProperties['height'];
+  minWidth?: CSSProperties['minWidth'];
+  minHeight?: CSSProperties['minHeight'];
+  maxWidth?: CSSProperties['maxWidth'];
+  maxHeight?: CSSProperties['maxHeight'];
+  xSizing?: 'fill' | 'content';
+  ySizing?: 'fill' | 'content';
+}
 
-interface SceneFlexLayoutState extends SceneObjectState {
+export type SceneFlexItemLike = SceneObject<SceneFlexItemLikeState>;
+
+interface SceneFlexLayoutState extends SceneFlexItemLikeState {
   direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
-  children: Array<SceneFlexItemLike | SceneFlexLayout>;
+  children: SceneFlexItemLike[];
 }
 
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
@@ -45,28 +58,14 @@ function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>
 
   return (
     <div style={style}>
-      {children.map((item) => {
-        if (isSceneFlexLayout(item)) {
-          return <item.Component key={item.state.key} model={item} />;
-        }
-        return <item.Component key={item.state.key} model={item} />;
-      })}
+      {children.map((item) => (
+        <item.Component key={item.state.key} model={item} />
+      ))}
     </div>
   );
 }
 
-interface SceneFlexItemState extends SceneLayoutItemState {
-  flexGrow?: CSSProperties['flexGrow'];
-  alignSelf?: CSSProperties['alignSelf'];
-  width?: CSSProperties['width'];
-  height?: CSSProperties['height'];
-  minWidth?: CSSProperties['minWidth'];
-  minHeight?: CSSProperties['minHeight'];
-  maxWidth?: CSSProperties['maxWidth'];
-  maxHeight?: CSSProperties['maxHeight'];
-  xSizing?: 'fill' | 'content';
-  ySizing?: 'fill' | 'content';
-}
+interface SceneFlexItemState extends SceneFlexItemLikeState, SceneLayoutItemState {}
 
 export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
   public static Component = SceneFlexItemRenderer;
