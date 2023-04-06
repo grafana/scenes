@@ -53,7 +53,9 @@ export interface SceneAppPageState extends SceneObjectState {
   initializedScene?: SceneObject;
 }
 
-export type SceneAppPageLike = SceneObject<SceneAppPageState>;
+export interface SceneAppPageLike extends SceneObject<SceneAppPageState> {
+  initializeScene(scene: SceneObject): void;
+}
 
 export interface SceneAppDrilldownView {
   // Use to provide parametrized drilldown URL, i.e. /app/clusters/:clusterId
