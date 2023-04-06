@@ -3,9 +3,9 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { isSceneObject, SceneComponentProps, SceneObject, SceneObjectStatePlain } from '../core/types';
+import { isSceneObject, SceneComponentProps, SceneObject, SceneObjectState } from '../core/types';
 
-export interface SceneControlWrapperState extends SceneObjectStatePlain {
+export interface SceneControlWrapperState extends SceneObjectState {
   label: string;
   component?: SceneObject;
   value: SceneObject | React.ReactNode;

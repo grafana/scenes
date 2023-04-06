@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { NavModelItem, UrlQueryMap } from '@grafana/data';
 import { PluginPage } from '@grafana/runtime';
-import { Route, Switch, useRouteMatch } from 'react-router-dom';
+import { Route, RouteComponentProps, Switch, useRouteMatch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneAppDrilldownView, SceneAppPageLike, SceneAppPageState, SceneRouteMatch } from './types';
-import { getLinkUrlWithAppUrlState, useAppQueryParams } from './utils';
+import { getLinkUrlWithAppUrlState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
 
 const sceneCache = new Map<string, EmbeddedScene>();
 
@@ -17,40 +17,53 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> {
   public static Component = SceneAppPageRenderer;
 }
 
-function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
-  const { tabs, drilldowns, url, routePath } = model.useState();
+export interface SceneAppPageRendererProps extends SceneComponentProps<SceneAppPage> {
+  routeProps: RouteComponentProps;
+}
+
+function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) {
+  const { tabs, drilldowns } = model.useState();
   const routes: React.ReactNode[] = [];
 
   if (tabs) {
-    for (const page of tabs) {
+    for (let tabIndex = 0; tabIndex < tabs.length; tabIndex++) {
+      const tab = tabs[tabIndex];
+
+      // Add first tab as a default route, this makes it possible for the first tab to render with the url of the parent page
+      if (tabIndex === 0) {
+        routes.push(
+          <Route
+            exact={true}
+            key={model.state.url}
+            path={model.state.routePath ?? model.state.url}
+            render={(props) => renderSceneComponentWithRouteProps(tab, props)}
+          ></Route>
+        );
+      }
+
       routes.push(
         <Route
           exact={true}
-          key={page.state.url}
-          path={page.state.routePath ?? page.state.url}
-          render={() => {
-            return <page.Component model={page} />;
-          }}
+          key={tab.state.url}
+          path={tab.state.routePath ?? tab.state.url}
+          render={(props) => renderSceneComponentWithRouteProps(tab, props)}
         ></Route>
       );
 
-      if (page.state.drilldowns) {
-        for (const drilldown of page.state.drilldowns) {
+      if (tab.state.drilldowns) {
+        for (const drilldown of tab.state.drilldowns) {
           routes.push(
             <Route
               exact={false}
               key={drilldown.routePath}
               path={drilldown.routePath}
-              render={() => {
-                return <SceneAppDrilldownViewRender drilldown={drilldown} parent={page} />;
-              }}
+              render={(props) => <SceneAppDrilldownViewRender drilldown={drilldown} parent={tab} routeProps={props} />}
             ></Route>
           );
         }
       }
     }
 
-    console.log('routes', routes);
     return <Switch>{routes}</Switch>;
   }
 
@@ -61,36 +74,38 @@ function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
           key={drilldown.routePath}
           exact={false}
           path={drilldown.routePath}
-          render={() => {
-            return <SceneAppDrilldownViewRender drilldown={drilldown} parent={model} />;
-          }}
+          render={(props) => <SceneAppDrilldownViewRender drilldown={drilldown} parent={model} routeProps={props} />}
         ></Route>
       );
     }
   }
 
-  let page = <ScenePageRenderer page={model} />;
+  let page: ReactNode = undefined;
+  let isFirstTab = false;
+  let parentUrl = '';
 
   // if parent is a SceneAppPage we are a tab
   if (model.parent instanceof SceneAppPage) {
     page = <ScenePageRenderer page={model.parent} activeTab={model} />;
+
+    // Check if we are the first tab
+    if (model.parent.state.tabs) {
+      isFirstTab = model.parent.state.tabs[0] === model;
+      parentUrl = model.parent.state.url;
+    }
+  } else {
+    page = <ScenePageRenderer page={model} />;
   }
 
-  return (
-    <Switch>
-      {/* page route */}
-      <Route
-        key={url}
-        exact={true}
-        path={routePath ?? url}
-        render={() => {
-          return page;
-        }}
-      ></Route>
+  const { match } = routeProps;
+  const currentPageIsRouteMatch =
+    match.isExact && (match.url === model.state.url || (isFirstTab && match.url === parentUrl));
 
-      {/* drilldown routes */}
-      {routes}
-    </Switch>
+  return (
+    <>
+      <Switch>{routes}</Switch>
+      {currentPageIsRouteMatch && page}
+    </>
   );
 }
 
@@ -153,10 +168,15 @@ function ScenePageRenderer({ page, activeTab }: ScenePageRenderProps) {
   );
 }
 
-function SceneAppDrilldownViewRender(props: { drilldown: SceneAppDrilldownView; parent: SceneAppPageLike }) {
-  const routeMatch = useRouteMatch();
-  const scene = props.drilldown.getPage(routeMatch, props.parent);
-  return <scene.Component model={scene} />;
+export interface SceneAppDrilldownViewRenderProps {
+  drilldown: SceneAppDrilldownView;
+  parent: SceneAppPageLike;
+  routeProps: RouteComponentProps;
+}
+
+function SceneAppDrilldownViewRender({ drilldown, parent, routeProps }: SceneAppDrilldownViewRenderProps) {
+  const scene = drilldown.getPage(routeProps.match, parent);
+  return renderSceneComponentWithRouteProps(scene, routeProps);
 }
 
 function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryMap): NavModelItem | undefined {
