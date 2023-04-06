@@ -1,20 +1,14 @@
 import React, { CSSProperties } from 'react';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import {
-  SceneComponentProps,
-  SceneLayout,
-  SceneObjectState,
-  SceneObject,
-  SceneLayoutItemState,
-} from '../../core/types';
+import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../core/types';
 
-export interface SceneFlexItemLike extends SceneObject<SceneFlexItemState> {}
+export interface SceneFlexItemLike extends SceneObject<SceneFlexItemSizeState> {}
 
-interface SceneFlexLayoutState extends SceneObjectState {
+interface SceneFlexLayoutState extends SceneObjectState, SceneFlexItemSizeState {
   direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
-  children: Array<SceneFlexItemLike | SceneFlexLayout>;
+  children: SceneFlexItemLike[];
 }
 
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
@@ -33,7 +27,8 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
 
 function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>) {
   const { direction = 'row', children, wrap } = model.useState();
-  const style: CSSProperties = {
+  const parent = model.parent;
+  let style: CSSProperties = {
     display: 'flex',
     flexGrow: 1,
     flexDirection: direction,
@@ -43,19 +38,23 @@ function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>
     minHeight: 0,
   };
 
+  if (parent && isSceneFlexLayout(parent)) {
+    style = {
+      ...getFlexItemItemStyles(parent.state.direction || 'row', model),
+      ...style,
+    };
+  }
+
   return (
     <div style={style}>
       {children.map((item) => {
-        if (isSceneFlexLayout(item)) {
-          return <item.Component key={item.state.key} model={item} />;
-        }
         return <item.Component key={item.state.key} model={item} />;
       })}
     </div>
   );
 }
 
-interface SceneFlexItemState extends SceneLayoutItemState {
+interface SceneFlexItemSizeState extends SceneObjectState {
   flexGrow?: CSSProperties['flexGrow'];
   alignSelf?: CSSProperties['alignSelf'];
   width?: CSSProperties['width'];
@@ -67,6 +66,10 @@ interface SceneFlexItemState extends SceneLayoutItemState {
   xSizing?: 'fill' | 'content';
   ySizing?: 'fill' | 'content';
 }
+
+type SceneFlexItemState = SceneFlexItemSizeState & {
+  body: SceneObject | undefined;
+};
 
 export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
   public static Component = SceneFlexItemRenderer;
@@ -93,7 +96,7 @@ function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
     </div>
   );
 }
-function getFlexItemItemStyles(direction: CSSProperties['flexDirection'], item: SceneFlexItem) {
+function getFlexItemItemStyles(direction: CSSProperties['flexDirection'], item: SceneFlexItemLike) {
   const { xSizing = 'fill', ySizing = 'fill' } = item.state;
 
   const style: CSSProperties = {

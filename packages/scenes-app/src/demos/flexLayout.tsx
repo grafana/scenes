@@ -81,6 +81,7 @@ export function getFlexLayoutTest() {
 
             new SceneFlexLayout({
               direction: 'row',
+              maxWidth: '50%',
               children: [
                 new SceneFlexItem({
                   width: 50,
