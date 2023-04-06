@@ -55,6 +55,9 @@ jobs:
       - name: Build library
         run: lerna run build --no-private
 
+      - name: Git status
+        run: git status --porcelain
+
       - name: Run auto shipit
         run: yarn auto shipit
         env:
