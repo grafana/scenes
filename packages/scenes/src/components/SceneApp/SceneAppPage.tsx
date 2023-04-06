@@ -15,6 +15,16 @@ const sceneCache = new Map<string, EmbeddedScene>();
  */
 export class SceneAppPage extends SceneObjectBase<SceneAppPageState> {
   public static Component = SceneAppPageRenderer;
+
+  public constructor(state: SceneAppPageState) {
+    super(state);
+    this.addActivationHandler(() => {
+      console.log('page activated', this.state.title);
+      return () => {
+        console.log('page deactivated', this.state.title);
+      };
+    });
+  }
 }
 
 export interface SceneAppPageRendererProps extends SceneComponentProps<SceneAppPage> {
@@ -121,7 +131,7 @@ function ScenePageRenderer({ page, activeTab }: ScenePageRenderProps) {
   const scene = getSceneForPage(routeMatch, page, activeTab);
 
   const { initializedScene } = pageState;
-  const isInitialized = !initializedScene || initializedScene !== scene;
+  const isInitialized = initializedScene === scene;
 
   useEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
