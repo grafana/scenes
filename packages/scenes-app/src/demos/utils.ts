@@ -1,4 +1,11 @@
-import { QueryRunnerState, SceneQueryRunner } from '@grafana/scenes';
+import {
+  QueryRunnerState,
+  SceneControlsSpacer,
+  SceneQueryRunner,
+  SceneRefreshPicker,
+  SceneTimePicker,
+  SceneTimeRange,
+} from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
 
 export function getQueryRunnerWithRandomWalkQuery(
@@ -16,4 +23,15 @@ export function getQueryRunnerWithRandomWalkQuery(
     ],
     ...queryRunnerOverrides,
   });
+}
+
+export function getEmbeddedSceneDefaults() {
+  return {
+    $timeRange: new SceneTimeRange(),
+    controls: [
+      new SceneControlsSpacer(),
+      new SceneTimePicker({ isOnCanvas: true }),
+      new SceneRefreshPicker({ isOnCanvas: true }),
+    ],
+  };
 }

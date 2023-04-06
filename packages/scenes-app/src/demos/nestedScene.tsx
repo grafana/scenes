@@ -4,14 +4,12 @@ import {
   SceneTimePicker,
   SceneFlexLayout,
   SceneTimeRange,
-  EmbeddedScene,
   SceneFlexItem,
   SceneAppPage,
-  SceneControlsSpacer,
-  SceneRefreshPicker,
+  EmbeddedScene,
 } from '@grafana/scenes';
 import { demoUrl } from '../utils/utils.routing';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getNestedScene(): SceneAppPage {
   return new SceneAppPage({
@@ -20,6 +18,8 @@ export function getNestedScene(): SceneAppPage {
     url: `${demoUrl('nested-scene')}`,
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
+        $data: getQueryRunnerWithRandomWalkQuery(),
         body: new SceneFlexLayout({
           direction: 'column',
           children: [
@@ -35,13 +35,6 @@ export function getNestedScene(): SceneAppPage {
             }),
           ],
         }),
-        $timeRange: new SceneTimeRange(),
-        $data: getQueryRunnerWithRandomWalkQuery(),
-        controls: [
-          new SceneControlsSpacer(),
-          new SceneTimePicker({ isOnCanvas: true }),
-          new SceneRefreshPicker({ isOnCanvas: true }),
-        ],
       });
     },
   });

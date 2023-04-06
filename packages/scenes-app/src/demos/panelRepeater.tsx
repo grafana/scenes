@@ -2,18 +2,14 @@ import {
   EmbeddedScene,
   SceneAppPage,
   SceneByFrameRepeater,
-  SceneControlsSpacer,
   SceneDataNode,
   SceneFlexItem,
   SceneFlexLayout,
-  SceneRefreshPicker,
-  SceneTimePicker,
-  SceneTimeRange,
   SceneToolbarInput,
   VizPanel,
 } from '@grafana/scenes';
 import { demoUrl } from '../utils/utils.routing';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getPanelRepeaterTest() {
   const queryRunner = getQueryRunnerWithRandomWalkQuery({
@@ -28,6 +24,7 @@ export function getPanelRepeaterTest() {
     url: `${demoUrl('panel-repeater')}`,
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
         body: new SceneByFrameRepeater({
           body: new SceneFlexLayout({
             direction: 'column',
@@ -70,7 +67,6 @@ export function getPanelRepeaterTest() {
             });
           },
         }),
-        $timeRange: new SceneTimeRange(),
         $data: queryRunner,
         controls: [
           new SceneToolbarInput({
@@ -87,9 +83,7 @@ export function getPanelRepeaterTest() {
               queryRunner.runQueries();
             },
           }),
-          new SceneControlsSpacer(),
-          new SceneTimePicker({ isOnCanvas: true }),
-          new SceneRefreshPicker({ isOnCanvas: true }),
+          ...getEmbeddedSceneDefaults().controls,
         ],
       });
     },

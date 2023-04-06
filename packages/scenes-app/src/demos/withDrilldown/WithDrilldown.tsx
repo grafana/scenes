@@ -3,6 +3,7 @@ import { DATASOURCE_REF } from '../../constants';
 import { EmbeddedScene, SceneAppPage, SceneFlexItem, SceneFlexLayout, SceneQueryRunner } from '@grafana/scenes';
 import { getHumidityOverviewScene, getTemperatureOverviewScene } from './scenes';
 import { getRoomsTemperatureStats, getRoomsTemperatureTable } from './panels';
+import { getEmbeddedSceneDefaults } from '../utils';
 
 const roomsTemperatureQuery = {
   refId: 'Rooms temperature',
@@ -16,12 +17,12 @@ const roomsTemperatureQuery = {
 
 const getScene = () =>
   new EmbeddedScene({
+    ...getEmbeddedSceneDefaults(),
     $data: new SceneQueryRunner({
       datasource: DATASOURCE_REF,
       queries: [roomsTemperatureQuery],
       maxDataPoints: 100,
     }),
-
     body: new SceneFlexLayout({
       direction: 'column',
       children: [

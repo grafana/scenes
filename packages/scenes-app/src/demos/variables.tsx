@@ -1,14 +1,11 @@
 import { VariableRefresh } from '@grafana/data';
 import {
-  SceneTimePicker,
   SceneFlexLayout,
   SceneTimeRange,
   VariableValueSelectors,
   SceneVariableSet,
   TestVariable,
   EmbeddedScene,
-  SceneControlsSpacer,
-  SceneRefreshPicker,
   SceneFlexItem,
   VizPanel,
   SceneCanvasText,
@@ -16,7 +13,7 @@ import {
   SceneAppPage,
 } from '@grafana/scenes';
 import { demoUrl } from '../utils/utils.routing';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getVariablesDemo() {
   return new SceneAppPage({
@@ -25,6 +22,7 @@ export function getVariablesDemo() {
     url: `${demoUrl('variables')}`,
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
         $variables: new SceneVariableSet({
           variables: [
             new TestVariable({
@@ -130,12 +128,7 @@ export function getVariablesDemo() {
           ],
         }),
         $timeRange: new SceneTimeRange(),
-        controls: [
-          new VariableValueSelectors({}),
-          new SceneControlsSpacer(),
-          new SceneTimePicker({ isOnCanvas: true }),
-          new SceneRefreshPicker({ isOnCanvas: true }),
-        ],
+        controls: [new VariableValueSelectors({}), ...getEmbeddedSceneDefaults().controls],
       });
     },
   });

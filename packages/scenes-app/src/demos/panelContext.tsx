@@ -1,17 +1,14 @@
 import {
   SceneFlexLayout,
-  SceneTimeRange,
-  SceneTimePicker,
   SceneFlexItem,
-  EmbeddedScene,
   VizPanel,
   SceneQueryRunner,
-  SceneRefreshPicker,
   SceneAppPage,
-  SceneControlsSpacer,
+  EmbeddedScene,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
 import { demoUrl } from '../utils/utils.routing';
+import { getEmbeddedSceneDefaults } from './utils';
 
 export function getPanelContextDemoScene(): SceneAppPage {
   return new SceneAppPage({
@@ -20,6 +17,7 @@ export function getPanelContextDemoScene(): SceneAppPage {
     url: `${demoUrl('panel-context')}`,
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
         body: new SceneFlexLayout({
           direction: 'column',
           children: [
@@ -38,12 +36,6 @@ export function getPanelContextDemoScene(): SceneAppPage {
             }),
           ],
         }),
-        $timeRange: new SceneTimeRange(),
-        controls: [
-          new SceneControlsSpacer(),
-          new SceneTimePicker({ isOnCanvas: true }),
-          new SceneRefreshPicker({ isOnCanvas: true }),
-        ],
       });
     },
   });

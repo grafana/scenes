@@ -9,7 +9,9 @@
     "declaration": false,
     "rootDir": "../src",
     "typeRoots": ["../node_modules/@types"],
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "lib": ["dom", "dom.iterable", "es2020"]
   },
   "include": ["../src", "./types"],
   "extends": "@grafana/tsconfig"
