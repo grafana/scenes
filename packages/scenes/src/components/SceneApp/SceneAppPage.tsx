@@ -7,6 +7,7 @@ import { SceneComponentProps, SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneAppDrilldownView, SceneAppPageLike, SceneAppPageState, SceneRouteMatch } from './types';
 import { getLinkUrlWithAppUrlState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
+import { UrlSyncManager } from '../../services/UrlSyncManager';
 
 const sceneCache = new Map<string, EmbeddedScene>();
 
@@ -15,6 +16,7 @@ const sceneCache = new Map<string, EmbeddedScene>();
  */
 export class SceneAppPage extends SceneObjectBase<SceneAppPageState> {
   public static Component = SceneAppPageRenderer;
+  private urlSyncManager?: UrlSyncManager;
 
   public constructor(state: SceneAppPageState) {
     super(state);
@@ -24,6 +26,19 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> {
         console.log('page deactivated', this.state.title);
       };
     });
+  }
+
+  /**
+   * initUrlSync should be called before the scene is rendered to ensure that objects are in sync
+   * before they get activated. This saves some unnecessary re-renders and makes sure variables
+   * queries are issued as needed.
+   */
+  public initUrlSync() {
+    if (!this.urlSyncManager) {
+      this.urlSyncManager = new UrlSyncManager(this);
+    }
+
+    this.urlSyncManager.initSync();
   }
 }
 

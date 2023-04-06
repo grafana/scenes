@@ -43,7 +43,6 @@ export function getDrilldownsAppPageScene() {
     title: 'Page with drilldown',
     subTitle: 'This scene showcases a basic drilldown functionality. Interact with room to see room details scene.',
     url: demoUrl('with-drilldown'),
-    hideFromBreadcrumbs: true,
     getScene,
     drilldowns: [
       {
