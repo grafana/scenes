@@ -1,5 +1,6 @@
-import { DataSourceApi, DataSourceRef, ScopedVars } from '@grafana/data';
+import { DataSourceApi, ScopedVars } from '@grafana/data';
 import { getDataSourceSrv } from '@grafana/runtime';
+import { DataSourceRef } from '@grafana/schema';
 
 export async function getDataSource(
   datasource: DataSourceRef | undefined,
@@ -8,5 +9,6 @@ export async function getDataSource(
   if (datasource && (datasource as any).query) {
     return datasource as DataSourceApi;
   }
+
   return await getDataSourceSrv().get(datasource as string, scopedVars);
 }

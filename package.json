@@ -29,9 +29,11 @@
     "precommit": "yarn run lint-staged",
     "prepare": "husky install",
     "packages:publish": "lerna exec --no-private -- npm publish",
-    "test:scenes": "lerna run test --scope '@grafana/scenes' --",
     "docs": "yarn workspace website run start --port 8080",
-    "docs:build": "yarn workspace website run build"
+    "docs:build": "yarn workspace website run build",
+    "test:lib": "lerna run test --scope '@grafana/scenes' --",
+    "dev:lib": "lerna run dev --scope '@grafana/scenes' --",
+    "dev:app": "lerna run dev --scope 'scenes-app' --"
   },
   "resolutions": {
     "@types/react": "17.0.42"
