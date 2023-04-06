@@ -3,9 +3,11 @@ import React, { CSSProperties } from 'react';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../core/types';
 
-export interface SceneFlexItemLike extends SceneObject<SceneFlexItemSizeState> {}
+export interface SceneFlexItemStateLike extends SceneFlexItemPlacement, SceneObjectState {}
 
-interface SceneFlexLayoutState extends SceneObjectState, SceneFlexItemSizeState {
+export interface SceneFlexItemLike extends SceneObject<SceneFlexItemStateLike> {}
+
+interface SceneFlexLayoutState extends SceneObjectState, SceneFlexItemPlacement {
   direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
   children: SceneFlexItemLike[];
@@ -54,7 +56,7 @@ function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>
   );
 }
 
-interface SceneFlexItemSizeState extends SceneObjectState {
+interface SceneFlexItemPlacement {
   flexGrow?: CSSProperties['flexGrow'];
   alignSelf?: CSSProperties['alignSelf'];
   width?: CSSProperties['width'];
@@ -67,9 +69,9 @@ interface SceneFlexItemSizeState extends SceneObjectState {
   ySizing?: 'fill' | 'content';
 }
 
-type SceneFlexItemState = SceneFlexItemSizeState & {
+interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
   body: SceneObject | undefined;
-};
+}
 
 export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
   public static Component = SceneFlexItemRenderer;
