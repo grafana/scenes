@@ -29,6 +29,8 @@
     "precommit": "yarn run lint-staged",
     "prepare": "husky install",
     "packages:publish": "lerna exec --no-private -- npm publish",
+    "docs": "yarn workspace website run start --port 8080",
+    "docs:build": "yarn workspace website run build",
     "test:lib": "lerna run test --scope '@grafana/scenes' --",
     "dev:lib": "lerna run dev --scope '@grafana/scenes' --",
     "dev:app": "lerna run dev --scope 'scenes-app' --"
@@ -39,7 +41,8 @@
   "packageManager": "yarn@3.3.1",
   "workspaces": [
     ".",
-    "packages/*"
+    "packages/*",
+    "docusaurus/website"
   ],
   "devDependencies": {
     "@auto-it/omit-commits": "^10.43.0",

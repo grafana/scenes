@@ -1,0 +1,11 @@
+.gettingStartedSection {
+  background-color: #f7f7f7;
+}
+
+html[data-theme='dark'] .gettingStartedSection {
+  background-color: var(--ifm-navbar-background-color);
+}
+
+.featureImage {
+  margin: 0 auto;
+}
