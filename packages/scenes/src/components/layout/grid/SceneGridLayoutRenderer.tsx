@@ -55,15 +55,15 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                 const sceneChild = model.getSceneLayoutChild(gridItem.i)!;
                 const pixelWidth = cellToPixelSize(sceneChild.state.width ?? 0, cellWidth, GRID_CELL_VMARGIN);
                 const pixelHeight = cellToPixelSize(sceneChild.state.height ?? 0, GRID_CELL_HEIGHT, GRID_CELL_VMARGIN);
+
+                // Need a wrapper around LazyLoader as ReactGridLayout expects a
+                // class component to give a ref to.
                 return (
-                  <LazyLoader
-                    key={sceneChild.state.key}
-                    width={pixelWidth}
-                    height={pixelHeight}
-                    style={{ display: 'flex' }}
-                  >
-                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
-                  </LazyLoader>
+                  <div style={{ display: 'flex' }} key={sceneChild.state.key}>
+                    <LazyLoader width={pixelWidth} height={pixelHeight} style={{ display: 'flex' }} >
+                      <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
+                    </LazyLoader>
+                  </div>
                 );
               })}
             </ReactGridLayout>

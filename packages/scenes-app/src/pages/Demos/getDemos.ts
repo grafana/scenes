@@ -2,6 +2,7 @@ import { EmbeddedScene, SceneCanvasText, SceneFlexItem, SceneFlexLayout } from '
 import { getFlexLayoutTest } from './scenes/flexLayout';
 import { getGridLayoutTest } from './scenes/grid';
 import { getGridWithRowLayoutTest } from './scenes/gridWithRow';
+import { getLazyLoadDemo } from './scenes/lazyLoad';
 import { getNestedScene } from './scenes/nestedScene';
 import { getPanelContextDemoScene } from './scenes/panelContext';
 import { getPanelMenuTest } from './scenes/panelMenu';
@@ -23,6 +24,7 @@ export function getDemos(): SceneDef[] {
     { title: 'Grid layout with rows', getScene: getGridWithRowLayoutTest },
     { title: 'Nested scene', getScene: getNestedScene },
     { title: 'Variables', getScene: getVariablesDemo },
+    { title: 'Lazy loading', getScene: getLazyLoadDemo },
   ];
 }
 
