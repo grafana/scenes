@@ -1,6 +1,6 @@
 import { EmbeddedScene, SceneAppPage, SceneFlexItem, SceneFlexLayout, VizPanel, VizPanelMenu } from '@grafana/scenes';
 import { demoUrl } from '../utils/utils.routing';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getPanelMenuTest(): SceneAppPage {
   const data = getQueryRunnerWithRandomWalkQuery();
@@ -95,6 +95,7 @@ export function getPanelMenuTest(): SceneAppPage {
     url: `${demoUrl('panel-menui')}`,
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
         body: new SceneFlexLayout({
           $data: data,
           direction: 'row',

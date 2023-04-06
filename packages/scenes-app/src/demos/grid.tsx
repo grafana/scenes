@@ -1,18 +1,14 @@
 import {
   VizPanel,
-  SceneTimePicker,
   SceneGridLayout,
-  SceneTimeRange,
-  EmbeddedScene,
   SceneGridItem,
   SceneFlexLayout,
   SceneFlexItem,
   SceneAppPage,
-  SceneControlsSpacer,
-  SceneRefreshPicker,
+  EmbeddedScene,
 } from '@grafana/scenes';
 import { demoUrl } from '../utils/utils.routing';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
 
 export function getGridLayoutTest(): SceneAppPage {
   return new SceneAppPage({
@@ -21,6 +17,8 @@ export function getGridLayoutTest(): SceneAppPage {
     url: `${demoUrl('grid-layout')}`,
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
+        $data: getQueryRunnerWithRandomWalkQuery(),
         body: new SceneGridLayout({
           children: [
             new SceneGridItem({
@@ -77,13 +75,6 @@ export function getGridLayoutTest(): SceneAppPage {
             }),
           ],
         }),
-        $timeRange: new SceneTimeRange(),
-        $data: getQueryRunnerWithRandomWalkQuery(),
-        controls: [
-          new SceneControlsSpacer(),
-          new SceneTimePicker({ isOnCanvas: true }),
-          new SceneRefreshPicker({ isOnCanvas: true }),
-        ],
       });
     },
   });

@@ -1,17 +1,6 @@
-import {
-  VizPanel,
-  SceneGridLayout,
-  SceneGridRow,
-  SceneTimePicker,
-  SceneTimeRange,
-  EmbeddedScene,
-  SceneGridItem,
-  SceneAppPage,
-  SceneControlsSpacer,
-  SceneRefreshPicker,
-} from '@grafana/scenes';
+import { VizPanel, SceneGridLayout, SceneGridRow, SceneGridItem, SceneAppPage, EmbeddedScene } from '@grafana/scenes';
 import { demoUrl } from '../utils/utils.routing';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getGridWithRowLayoutTest(): SceneAppPage {
   return new SceneAppPage({
@@ -20,6 +9,8 @@ export function getGridWithRowLayoutTest(): SceneAppPage {
     url: `${demoUrl('grid-layout-with-rows')}`,
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
+        $data: getQueryRunnerWithRandomWalkQuery(),
         body: new SceneGridLayout({
           children: [
             new SceneGridRow({
@@ -108,13 +99,6 @@ export function getGridWithRowLayoutTest(): SceneAppPage {
             }),
           ],
         }),
-        $timeRange: new SceneTimeRange(),
-        $data: getQueryRunnerWithRandomWalkQuery(),
-        controls: [
-          new SceneControlsSpacer(),
-          new SceneTimePicker({ isOnCanvas: true }),
-          new SceneRefreshPicker({ isOnCanvas: true }),
-        ],
       });
     },
   });
