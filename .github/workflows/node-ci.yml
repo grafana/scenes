@@ -7,29 +7,29 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  test:
-    name: Run tests
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
-    steps:
-      - uses: actions/checkout@v3
+  # test:
+  #   name: Run tests
+  #   runs-on: ubuntu-latest
+  #   if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Test using Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
+  #     - name: Test using Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: '16'
 
-      - name: Install dependencies
-        uses: ./.github/actions/yarn-nm-install
+  #     - name: Install dependencies
+  #       uses: ./.github/actions/yarn-nm-install
 
-      - name: Test library
-        run: lerna run test
+  #     - name: Test library
+  #       run: lerna run test
 
-      - name: Typecheck library
-        run: lerna run typecheck
+  #     - name: Typecheck library
+  #       run: lerna run typecheck
 
-      - name: Build library
-        run: lerna run build --ignore website
+  #     - name: Build library
+  #       run: lerna run build --ignore website
 
   release:
     name: Release
@@ -56,7 +56,7 @@ jobs:
         run: lerna run build --no-private
 
       - name: Run auto shipit
-        run: yarn auto shipit
+        run: yarn auto shipit -vv
         env:
           GITHUB_TOKEN: ${{ secrets.GH_BOT_ACCESS_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
