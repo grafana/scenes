@@ -1,6 +1,6 @@
 <div align="center">
   <img
-    src="./docusaurus/website/static/img/logo.svg"
+    src="./docs/img/grafana_icon.svg"
     alt="Grafana Logo"
     width="100px"
     padding="40px"

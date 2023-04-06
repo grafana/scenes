@@ -29,7 +29,7 @@ jobs:
         run: lerna run typecheck
 
       - name: Build library
-        run: lerna run build --ignore website
+        run: lerna run build
 
   release:
     name: Release
@@ -53,7 +53,7 @@ jobs:
         uses: ./.github/actions/yarn-nm-install
 
       - name: Build library
-        run: lerna run build --no-private
+        run: lerna run build
 
       - name: Run auto shipit
         run: yarn auto shipit
