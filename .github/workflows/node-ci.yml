@@ -55,12 +55,6 @@ jobs:
       - name: Build library
         run: lerna run build --no-private
 
-      - name: Git status
-        run: git status --porcelain
-
-      - name: Git diff
-        run: git --no-pager diff
-
       - name: Run auto shipit
         run: yarn auto shipit
         env:
