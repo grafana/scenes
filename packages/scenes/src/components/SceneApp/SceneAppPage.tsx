@@ -20,6 +20,7 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> {
 
   public constructor(state: SceneAppPageState) {
     super(state);
+
     this.addActivationHandler(() => {
       console.log('page activated', this.state.title);
       return () => {
@@ -28,17 +29,14 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> {
     });
   }
 
-  /**
-   * initUrlSync should be called before the scene is rendered to ensure that objects are in sync
-   * before they get activated. This saves some unnecessary re-renders and makes sure variables
-   * queries are issued as needed.
-   */
-  public initUrlSync() {
+  public initializeScene(scene: EmbeddedScene) {
     if (!this.urlSyncManager) {
       this.urlSyncManager = new UrlSyncManager(this);
+      this.urlSyncManager.initSync();
     }
 
-    this.urlSyncManager.initSync();
+    this.urlSyncManager!.syncFrom(scene);
+    this.setState({ initializedScene: scene });
   }
 }
 
