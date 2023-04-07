@@ -1,6 +1,7 @@
 import {
   EmbeddedScene,
   SceneAppPage,
+  SceneAppPageState,
   SceneByFrameRepeater,
   SceneDataNode,
   SceneFlexItem,
@@ -8,10 +9,9 @@ import {
   SceneToolbarInput,
   VizPanel,
 } from '@grafana/scenes';
-import { demoUrl } from '../utils/utils.routing';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
-export function getPanelRepeaterTest() {
+export function getPanelRepeaterTest(defaults: SceneAppPageState) {
   const queryRunner = getQueryRunnerWithRandomWalkQuery({
     seriesCount: 2,
     alias: '__server_names',
@@ -19,9 +19,8 @@ export function getPanelRepeaterTest() {
   });
 
   return new SceneAppPage({
-    title: 'Panel repeater',
+    ...defaults,
     subTitle: 'Here we use the SceneByFrameRepeater to dynamically build a layout for each frame',
-    url: `${demoUrl('panel-repeater')}`,
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

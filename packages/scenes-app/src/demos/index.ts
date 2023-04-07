@@ -1,4 +1,4 @@
-import { SceneAppPage } from '@grafana/scenes';
+import { SceneAppPage, SceneAppPageState } from '@grafana/scenes';
 import { getDynamicPageDemo } from './dynamicPage';
 import { getFlexLayoutTest } from './flexLayout';
 import { getGridLayoutTest } from './grid';
@@ -11,18 +11,23 @@ import { getQueryEditorDemo } from './queryEditor';
 import { getVariablesDemo } from './variables';
 import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
 
-export function getDemos(): SceneAppPage[] {
+export interface DemoDescriptor {
+  title: string;
+  getPage: (defaults: SceneAppPageState) => SceneAppPage;
+}
+
+export function getDemos(): DemoDescriptor[] {
   return [
-    getFlexLayoutTest(),
-    getPanelMenuTest(),
-    getPanelContextDemoScene(),
-    getPanelRepeaterTest(),
-    getGridLayoutTest(),
-    getGridWithRowLayoutTest(),
-    getVariablesDemo(),
-    getNestedScene(),
-    getDrilldownsAppPageScene(),
-    getQueryEditorDemo(),
-    getDynamicPageDemo(),
+    { title: 'Flex layout', getPage: getFlexLayoutTest },
+    { title: 'Panel menu', getPage: getPanelMenuTest },
+    { title: 'Panel context', getPage: getPanelContextDemoScene },
+    { title: 'Repeat layout by series', getPage: getPanelRepeaterTest },
+    { title: 'Grid layout', getPage: getGridLayoutTest },
+    { title: 'Grid with rows', getPage: getGridWithRowLayoutTest },
+    { title: 'Variables', getPage: getVariablesDemo },
+    { title: 'Nested scene', getPage: getNestedScene },
+    { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
+    // getQueryEditorDemo(),
+    // getDynamicPageDemo(),
   ];
 }

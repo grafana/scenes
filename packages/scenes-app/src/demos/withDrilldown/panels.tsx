@@ -110,7 +110,7 @@ export function getRoomsTemperatureTable() {
               value: [
                 {
                   title: 'Go to room overview',
-                  url: `${demoUrl('with-drilldown')}/room/\${__value.text}/temperature`,
+                  url: `${demoUrl('with-drilldowns')}/room/\${__value.text}/temperature`,
                 },
               ],
             },

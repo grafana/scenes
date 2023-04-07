@@ -5,16 +5,15 @@ import {
   SceneQueryRunner,
   SceneAppPage,
   EmbeddedScene,
+  SceneAppPageState,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
-import { demoUrl } from '../utils/utils.routing';
 import { getEmbeddedSceneDefaults } from './utils';
 
-export function getPanelContextDemoScene(): SceneAppPage {
+export function getPanelContextDemoScene(defaults: SceneAppPageState): SceneAppPage {
   return new SceneAppPage({
-    title: 'Panel context demo',
+    ...defaults,
     subTitle: 'Here you can test changing series color and toggle series visiblity. ',
-    url: `${demoUrl('panel-context')}`,
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

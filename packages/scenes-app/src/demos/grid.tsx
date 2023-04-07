@@ -6,15 +6,14 @@ import {
   SceneFlexItem,
   SceneAppPage,
   EmbeddedScene,
+  SceneAppPageState,
 } from '@grafana/scenes';
-import { demoUrl } from '../utils/utils.routing';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
 
-export function getGridLayoutTest(): SceneAppPage {
+export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
   return new SceneAppPage({
-    title: 'Grid layout ',
+    ...defaults,
     subTitle: 'Demo of the SceneGridLayout',
-    url: `${demoUrl('grid-layout')}`,
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
