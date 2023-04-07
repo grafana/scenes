@@ -1,4 +1,5 @@
 import { SceneAppPage } from '@grafana/scenes';
+import { getDynamicPageDemo } from './dynamicPage';
 import { getFlexLayoutTest } from './flexLayout';
 import { getGridLayoutTest } from './grid';
 import { getGridWithRowLayoutTest } from './gridWithRow';
@@ -22,5 +23,6 @@ export function getDemos(): SceneAppPage[] {
     getNestedScene(),
     getDrilldownsAppPageScene(),
     getQueryEditorDemo(),
+    getDynamicPageDemo(),
   ];
 }

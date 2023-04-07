@@ -21,7 +21,8 @@ const getScene = () => {
   return new SceneApp({
     pages: [
       new SceneAppPage({
-        title: 'Scene demos',
+        title: 'Demos',
+        hideFromBreadcrumbs: true,
         url: prefixRoute(ROUTES.Demos),
         getScene: () => {
           return new EmbeddedScene({
