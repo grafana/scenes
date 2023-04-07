@@ -7,7 +7,6 @@ import { isSceneObject, SceneComponentProps, SceneObject, SceneObjectState } fro
 
 export interface SceneControlWrapperState extends SceneObjectState {
   label: string;
-  component?: SceneObject;
   value: SceneObject | React.ReactNode;
   separator?: boolean;
 }
