@@ -18,7 +18,7 @@
 #### 🐛 Bug Fix
 
 - LayoutTypes: Cleanup old types that are no longer needed [#120](https://github.com/grafana/scenes/pull/120) ([@torkelo](https://github.com/torkelo))
-- Interpolation: Add support for __value.* macro that uses new scopedVar data context [#103](https://github.com/grafana/scenes/pull/103) ([@torkelo](https://github.com/torkelo))
+- Interpolation: Add support for \_\_value.\* macro that uses new scopedVar data context [#103](https://github.com/grafana/scenes/pull/103) ([@torkelo](https://github.com/torkelo))
 
 #### ⚠️ Pushed to `main`
 
@@ -39,12 +39,14 @@
 #### Layout: Create atomic, layout specific objects ([#97](https://github.com/grafana/scenes/pull/97))
 
 The interface of `SceneFlexLayout` and `SceneGridLayout` has changed. These scene objects now accept only dedicated layout item objects as children:
+
 - `SceneFlexItem` for `SceneFlexLayout`
 - `SceneGridItem` and `SceneGridRow` for `SceneGridLayout`
 
-`placement` property has been replaced by those layout-specific objects. 
+`placement` property has been replaced by those layout-specific objects.
 
 Example
+
 ```tsx
 // BEFORE
 const layout = new SceneFlexLayout({
@@ -65,8 +67,8 @@ const layout = new SceneFlexLayout({
 // AFTER
 const layout = new SceneFlexLayout({
   direction: 'column',
-  children: [ 
-    new SceneFlexItem({ 
+  children: [
+    new SceneFlexItem({
       width: '50%',
       height: '400',
       body: new VizPanel({ ... }),
@@ -98,7 +100,7 @@ const layout = new SceneFlexLayout({
 
 #### UrlSync: Simplify url sync interface ([#100](https://github.com/grafana/scenes/pull/100))
 
-The  SceneObjectUrlSyncHandler interface has changed. The function `getUrlState` no longer takes state as parameter. The implementation needs to use the current scene object state instead.
+The SceneObjectUrlSyncHandler interface has changed. The function `getUrlState` no longer takes state as parameter. The implementation needs to use the current scene object state instead.
 
 ---
 
