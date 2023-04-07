@@ -5,7 +5,7 @@ import React from 'react';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObject } from '../core/types';
-import { UrlSyncManager } from '../services/UrlSyncManager';
+import { getUrlSyncManager } from '../services/UrlSyncManager';
 
 export interface EmbeddedSceneState extends SceneObjectState {
   /**
@@ -21,19 +21,13 @@ export interface EmbeddedSceneState extends SceneObjectState {
 export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
   public static Component = EmbeddedSceneRenderer;
 
-  private urlSyncManager?: UrlSyncManager;
-
   /**
    * initUrlSync should be called before the scene is rendered to ensure that objects are in sync
    * before they get activated. This saves some unnecessary re-renders and makes sure variables
    * queries are issued as needed.
    */
   public initUrlSync() {
-    if (!this.urlSyncManager) {
-      this.urlSyncManager = new UrlSyncManager(this);
-    }
-
-    this.urlSyncManager.initSync();
+    getUrlSyncManager().initSync(this);
   }
 }
 

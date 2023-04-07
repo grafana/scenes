@@ -2,6 +2,7 @@ import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps } from '../../core/types';
+import { getUrlSyncManager } from '../../services/UrlSyncManager';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneReactObject } from '../SceneReactObject';
@@ -18,8 +19,9 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   private _drilldownCache = new Map<string, SceneAppPageLike>();
 
   public initializeScene(scene: EmbeddedScene) {
-    scene.initUrlSync();
     this.setState({ initializedScene: scene });
+    const urlManager = getUrlSyncManager();
+    urlManager.initSync(this);
   }
 
   public getScene(routeMatch: SceneRouteMatch): EmbeddedScene {
