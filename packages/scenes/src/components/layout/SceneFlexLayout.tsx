@@ -63,6 +63,11 @@ interface SceneFlexItemState extends SceneLayoutItemState {
   maxHeight?: CSSProperties['maxHeight'];
   xSizing?: 'fill' | 'content';
   ySizing?: 'fill' | 'content';
+  /**
+   * True when the item should rendered but not visible.
+   * Useful for conditional display of layout items
+   */
+  isHidden?: boolean;
 }
 
 export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
@@ -70,18 +75,18 @@ export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
 }
 
 function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
-  const { body } = model.useState();
+  const { body, isHidden } = model.useState();
   const parent = model.parent;
   let style: CSSProperties = {};
+
+  if (!body || isHidden) {
+    return null;
+  }
 
   if (parent && isSceneFlexLayout(parent)) {
     style = getFlexItemItemStyles(parent.state.direction || 'row', model);
   } else {
     throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
-  }
-
-  if (!body) {
-    return null;
   }
 
   return (

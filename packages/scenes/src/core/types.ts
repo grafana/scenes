@@ -19,6 +19,11 @@ export interface SceneObjectState {
   $timeRange?: SceneTimeRangeLike;
   $data?: SceneDataProvider;
   $variables?: SceneVariables;
+  /**
+   * Can be used to add extra behaviors to a scene object.
+   * These are activated when the their parent scene object is activated.
+   */
+  $behaviors?: SceneObject[];
 }
 
 export interface SceneLayoutItemState extends SceneObjectState {
