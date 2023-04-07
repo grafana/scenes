@@ -15,6 +15,7 @@ export class HiddenForTimeRangeBehavior extends HiddenLayoutItemBehavior<HiddenF
 
     this.addActivationHandler(() => {
       this._subs.add(sceneGraph.getTimeRange(this).subscribeToState(this._onTimeRangeChange));
+      this._onTimeRangeChange(sceneGraph.getTimeRange(this).state);
     });
   }
 

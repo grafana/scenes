@@ -5,12 +5,14 @@ import {
   SceneFlexItem,
   SceneFlexLayout,
   SceneObject,
+  SceneQueryRunner,
   SceneTimePicker,
   SceneTimeRange,
   SceneToolbarInput,
   VizPanel,
 } from '@grafana/scenes';
 import { SceneRadioToggle } from '../../components/SceneRadioToggle';
+import { DATASOURCE_REF } from '../../constants';
 import { demoUrl } from '../../utils/utils.routing';
 import { getQueryRunnerWithRandomWalkQuery, newTimeSeriesPanel } from '../utils';
 import { HiddenForTimeRangeBehavior } from './HiddenForTimeRangeBehavior';
@@ -65,7 +67,6 @@ export function getBehaviorsDemo() {
               $behaviors: [new ShowBasedOnConditionBehavior({ getCondition: getTextPanelToggle(showHideToggle) })],
               body: new VizPanel({
                 pluginId: 'text',
-                $behaviors: [logWhenActivatedBehavior],
                 options: { content: 'This panel can be hidden with a toggle!' },
               }),
             }),
@@ -74,7 +75,19 @@ export function getBehaviorsDemo() {
               body: newTimeSeriesPanel(
                 {
                   title: 'Hidden for time ranges > 2d',
-                  $data: getQueryRunnerWithRandomWalkQuery(),
+                  key: 'Hidden for time ranges > 2d',
+                  $data: new SceneQueryRunner({
+                    key: 'Hidden for time range query runner',
+                    $behaviors: [logEventsBehavior],
+                    queries: [
+                      {
+                        refId: 'A',
+                        datasource: DATASOURCE_REF,
+                        scenarioId: 'random_walk',
+                      },
+                    ],
+                  }),
+                  $behaviors: [logEventsBehavior],
                 },
                 { fillOpacity: 20 }
               ),
@@ -95,9 +108,14 @@ function getTextPanelToggle(toggle: SceneRadioToggle) {
   return () => ({ references: [toggle], condition: () => toggle.state.value === 'visible' });
 }
 
-function logWhenActivatedBehavior(sceneObject: SceneObject) {
-  console.log(`${sceneObject.constructor?.name} ${sceneObject.state.key} activated!`);
+function logEventsBehavior(sceneObject: SceneObject) {
+  console.log(`[SceneObjectEvent]: ${sceneObject.constructor?.name} ${sceneObject.state.key} activated!`);
+
+  sceneObject.subscribeToState((state) => {
+    console.log(`[SceneObjectEvent]: ${sceneObject.constructor?.name} ${sceneObject.state.key} state changed!`, state);
+  });
+
   return () => {
-    console.log(`${sceneObject.constructor?.name} ${sceneObject.state.key} deactivated!`);
+    console.log(`[SceneObjectEvent]: ${sceneObject.constructor?.name} ${sceneObject.state.key} deactivated!`);
   };
 }
