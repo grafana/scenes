@@ -103,12 +103,11 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
   const currentPageIsRouteMatch =
     match.isExact && (match.url === model.state.url || (isFirstTab && match.url === parentUrl));
 
-  return (
-    <>
-      <Switch>{routes}</Switch>
-      {currentPageIsRouteMatch && page}
-    </>
-  );
+  if (currentPageIsRouteMatch) {
+    return page;
+  }
+
+  return <Switch>{routes}</Switch>;
 }
 
 export interface SceneAppDrilldownViewRenderProps {
