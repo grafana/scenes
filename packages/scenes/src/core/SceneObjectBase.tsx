@@ -156,7 +156,11 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     if ($behaviors) {
       for (const behavior of $behaviors) {
-        this._deactivationHandlers.push(behavior.activate());
+        if (behavior instanceof SceneObjectBase) {
+          this._deactivationHandlers.push(behavior.activate());
+        } else if (typeof behavior === 'function') {
+          this._deactivationHandlers.push(behavior(this));
+        }
       }
     }
 

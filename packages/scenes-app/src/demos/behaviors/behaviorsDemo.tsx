@@ -4,6 +4,7 @@ import {
   SceneControlsSpacer,
   SceneFlexItem,
   SceneFlexLayout,
+  SceneObject,
   SceneTimePicker,
   SceneTimeRange,
   SceneToolbarInput,
@@ -64,6 +65,7 @@ export function getBehaviorsDemo() {
               $behaviors: [new ShowBasedOnConditionBehavior({ getCondition: getTextPanelToggle(showHideToggle) })],
               body: new VizPanel({
                 pluginId: 'text',
+                $behaviors: [logWhenActivatedBehavior],
                 options: { content: 'This panel can be hidden with a toggle!' },
               }),
             }),
@@ -91,4 +93,11 @@ export function getBehaviorsDemo() {
 
 function getTextPanelToggle(toggle: SceneRadioToggle) {
   return () => ({ references: [toggle], condition: () => toggle.state.value === 'visible' });
+}
+
+function logWhenActivatedBehavior(sceneObject: SceneObject) {
+  console.log(`${sceneObject.constructor?.name} ${sceneObject.state.key} activated!`);
+  return () => {
+    console.log(`${sceneObject.constructor?.name} ${sceneObject.state.key} deactivated!`);
+  };
 }
