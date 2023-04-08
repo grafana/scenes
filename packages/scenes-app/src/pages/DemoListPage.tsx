@@ -114,7 +114,7 @@ function slugify(title: string) {
   return encodeURIComponent(simplified);
 }
 
-function getDemoNotFoundPage(url: string): SceneAppPage {
+export function getDemoNotFoundPage(url: string): SceneAppPage {
   return new SceneAppPage({
     title: 'Demo not found',
     subTitle: 'So sorry sir but the demo cannot be found.',

@@ -7,17 +7,17 @@ import {
   SceneFlexItem,
   SceneAppPage,
   SceneRefreshPicker,
+  SceneAppPageState,
 } from '@grafana/scenes';
 import { demoUrl } from '../utils/utils.routing';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
-export function getDynamicPageDemo(): SceneAppPage {
+export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
   const defaultTabs = [getSceneAppPage('/tab1', 'Temperature')];
 
   const page = new SceneAppPage({
-    title: 'Dynamic page',
+    ...defaults,
     subTitle: 'Dynamic tabs, and drilldowns. Adds a tab with drilldown after 2 seconds.',
-    url: `${demoUrl('dynamic-page')}`,
     $timeRange: new SceneTimeRange(),
     controls: [new SceneTimePicker({ isOnCanvas: true }), new SceneRefreshPicker({ isOnCanvas: true })],
     tabs: defaultTabs,

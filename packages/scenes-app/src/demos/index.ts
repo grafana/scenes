@@ -27,7 +27,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Variables', getPage: getVariablesDemo },
     { title: 'Nested scene', getPage: getNestedScene },
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
-    // getQueryEditorDemo(),
-    // getDynamicPageDemo(),
+    { title: 'Query editor', getPage: getQueryEditorDemo },
+    { title: 'Dynamic page', getPage: getDynamicPageDemo },
   ];
 }
