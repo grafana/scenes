@@ -6,8 +6,8 @@ import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneAppPage } from './SceneAppPage';
-import { SceneAppPageLike, SceneRouteMatch } from './types';
-import { getLinkUrlWithAppUrlState, useAppQueryParams } from './utils';
+import { SceneAppDrilldownView, SceneAppPageLike, SceneRouteMatch } from './types';
+import { getLinkUrlWithAppUrlState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
 
 export interface Props {
   page: SceneAppPageLike;
@@ -18,7 +18,7 @@ export interface Props {
 export function SceneAppPageView({ page, activeTab, routeProps }: Props) {
   const pageState = page.useState();
   const params = useAppQueryParams();
-  const scene = getSceneForPage(routeProps.match, page, activeTab);
+  const scene = getEmbeddedSceneCached(routeProps.match, page, activeTab);
 
   const { initializedScene } = pageState;
   const isInitialized = initializedScene === scene;
@@ -85,7 +85,7 @@ function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryM
 
 const sceneCache = new Map<string, EmbeddedScene>();
 
-function getSceneForPage(
+function getEmbeddedSceneCached(
   routeMatch: SceneRouteMatch,
   page: SceneAppPageLike,
   activeTab: SceneAppPageLike | undefined
@@ -106,4 +106,33 @@ function getSceneForPage(
   sceneCache.set(routeMatch!.url, scene);
 
   return scene;
+}
+
+const drilldownCache = new Map<string, SceneAppPageLike>();
+
+function getDrilldownPageCached(
+  drilldown: SceneAppDrilldownView,
+  parent: SceneAppPageLike,
+  routeMatch: SceneRouteMatch
+) {
+  let page = drilldownCache.get(routeMatch!.url);
+  if (page) {
+    return page;
+  }
+
+  page = drilldown.getPage(routeMatch, parent);
+  drilldownCache.set(routeMatch!.url, page);
+
+  return page;
+}
+
+export interface SceneAppDrilldownViewRenderProps {
+  drilldown: SceneAppDrilldownView;
+  parent: SceneAppPageLike;
+  routeProps: RouteComponentProps;
+}
+
+export function SceneAppDrilldownViewRender({ drilldown, parent, routeProps }: SceneAppDrilldownViewRenderProps) {
+  const scene = getDrilldownPageCached(drilldown, parent, routeProps.match);
+  return renderSceneComponentWithRouteProps(scene, routeProps);
 }
