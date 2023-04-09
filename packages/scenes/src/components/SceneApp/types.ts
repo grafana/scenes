@@ -60,7 +60,6 @@ export interface SceneAppPageLike extends SceneObject<SceneAppPageState> {
 export interface SceneAppDrilldownView {
   // Use to provide parametrized drilldown URL, i.e. /app/clusters/:clusterId
   routePath: string;
-  defaultRoute?: boolean;
   // Function that returns a page object for a given drilldown route match. Use parent to configure drilldown view parent SceneAppPage via getParentPage method.
   getPage: (routeMatch: SceneRouteMatch<any>, parent: SceneAppPageLike) => SceneAppPageLike;
 }
