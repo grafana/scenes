@@ -79,7 +79,9 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   }
 
   private _setParent() {
-    this.forEachChild((child) => (child._parent = this));
+    this.forEachChild((child) => {
+      child._parent = this;
+    });
   }
 
   /**
