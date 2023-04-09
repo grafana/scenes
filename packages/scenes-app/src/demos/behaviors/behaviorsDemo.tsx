@@ -14,7 +14,7 @@ import {
 import { SceneRadioToggle } from '../../components/SceneRadioToggle';
 import { DATASOURCE_REF } from '../../constants';
 import { demoUrl } from '../../utils/utils.routing';
-import { getQueryRunnerWithRandomWalkQuery, newTimeSeriesPanel } from '../utils';
+import { getQueryRunnerWithRandomWalkQuery } from '../utils';
 import { HiddenForTimeRangeBehavior } from './HiddenForTimeRangeBehavior';
 import { HiddenWhenNoDataBehavior } from './HiddenWhenNoDataBehavior';
 import { ShowBasedOnConditionBehavior } from './ShowBasedOnConditionBehavior';
@@ -29,14 +29,6 @@ export function getBehaviorsDemo() {
         seriesCount: 2,
         alias: '__server_names',
         scenarioId: 'random_walk',
-      });
-
-      const showHideToggle = new SceneRadioToggle({
-        options: [
-          { value: 'visible', label: 'Show text panel' },
-          { value: 'hidden', label: 'Hide text panel' },
-        ],
-        value: 'hidden',
       });
 
       return new EmbeddedScene({
@@ -56,7 +48,14 @@ export function getBehaviorsDemo() {
               queryRunner.runQueries();
             },
           }),
-          showHideToggle,
+          new SceneRadioToggle({
+            key: 'toggle',
+            options: [
+              { value: 'visible', label: 'Show text panel' },
+              { value: 'hidden', label: 'Hide text panel' },
+            ],
+            value: 'hidden',
+          }),
           new SceneControlsSpacer(),
           new SceneTimePicker({ isOnCanvas: true }),
         ],
@@ -64,7 +63,12 @@ export function getBehaviorsDemo() {
           direction: 'column',
           children: [
             new SceneFlexItem({
-              $behaviors: [new ShowBasedOnConditionBehavior({ getCondition: getTextPanelToggle(showHideToggle) })],
+              $behaviors: [
+                new ShowBasedOnConditionBehavior({
+                  references: ['toggle'],
+                  condition: (toogle: SceneRadioToggle) => toogle.state.value === 'visible',
+                }),
+              ],
               body: new VizPanel({
                 pluginId: 'text',
                 options: { content: 'This panel can be hidden with a toggle!' },
@@ -72,40 +76,35 @@ export function getBehaviorsDemo() {
             }),
             new SceneFlexItem({
               $behaviors: [new HiddenForTimeRangeBehavior({ greaterThan: 'now-2d' })],
-              body: newTimeSeriesPanel(
-                {
-                  title: 'Hidden for time ranges > 2d',
-                  key: 'Hidden for time ranges > 2d',
-                  $data: new SceneQueryRunner({
-                    key: 'Hidden for time range query runner',
-                    $behaviors: [logEventsBehavior],
-                    queries: [
-                      {
-                        refId: 'A',
-                        datasource: DATASOURCE_REF,
-                        scenarioId: 'random_walk',
-                      },
-                    ],
-                  }),
+              // this needs to start out hidden as the behavior activates after the body
+              isHidden: true,
+              body: new VizPanel({
+                title: 'Hidden for time ranges > 2d',
+                key: 'Hidden for time ranges > 2d',
+                $behaviors: [logEventsBehavior],
+                $data: new SceneQueryRunner({
+                  key: 'Hidden for time range query runner',
                   $behaviors: [logEventsBehavior],
-                },
-                { fillOpacity: 20 }
-              ),
+                  queries: [
+                    {
+                      refId: 'A',
+                      datasource: DATASOURCE_REF,
+                      scenarioId: 'random_walk',
+                    },
+                  ],
+                }),
+              }),
             }),
             new SceneFlexItem({
               $behaviors: [new HiddenWhenNoDataBehavior()],
               $data: queryRunner,
-              body: newTimeSeriesPanel({ title: 'Hidden when no time series' }),
+              body: new VizPanel({ title: 'Hidden when no time series' }),
             }),
           ],
         }),
       });
     },
   });
-}
-
-function getTextPanelToggle(toggle: SceneRadioToggle) {
-  return () => ({ references: [toggle], condition: () => toggle.state.value === 'visible' });
 }
 
 function logEventsBehavior(sceneObject: SceneObject) {

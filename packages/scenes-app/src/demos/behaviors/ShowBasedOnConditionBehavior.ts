@@ -1,8 +1,9 @@
-import { SceneObject, SceneObjectState } from '@grafana/scenes';
+import { sceneGraph, SceneObject, SceneObjectState } from '@grafana/scenes';
 import { HiddenLayoutItemBehavior } from './HiddenLayoutItemBehavior';
 
 export interface ShowBasedOnConditionBehaviorState extends SceneObjectState {
-  getCondition: () => ShowBasedCondition;
+  references: string[];
+  condition: (...args: any[]) => boolean;
 }
 
 export interface ShowBasedCondition {
@@ -11,7 +12,7 @@ export interface ShowBasedCondition {
 }
 
 export class ShowBasedOnConditionBehavior extends HiddenLayoutItemBehavior<ShowBasedOnConditionBehaviorState> {
-  private _condition: ShowBasedCondition | undefined;
+  private _resolvedRefs: SceneObject[] = [];
 
   public constructor(state: ShowBasedOnConditionBehaviorState) {
     super(state);
@@ -20,17 +21,22 @@ export class ShowBasedOnConditionBehavior extends HiddenLayoutItemBehavior<ShowB
   }
 
   private _onActivate() {
-    this._condition = this.state.getCondition();
+    // Subscribe to references
+    for (const objectKey of this.state.references) {
+      const solvedRef = sceneGraph.findObject(this, (obj) => obj.state.key === objectKey);
+      if (!solvedRef) {
+        throw new Error(`SceneObject with key ${objectKey} not found in scene graph`);
+      }
 
-    for (const ref of this._condition.references) {
-      this._subs.add(ref.subscribeToState(() => this._onReferenceChanged()));
+      this._resolvedRefs.push(solvedRef);
+      this._subs.add(solvedRef.subscribeToState(() => this._onReferenceChanged()));
     }
 
     this._onReferenceChanged();
   }
 
   private _onReferenceChanged() {
-    if (this._condition!.condition()) {
+    if (this.state.condition(...this._resolvedRefs)) {
       this.setVisible();
     } else {
       this.setHidden();

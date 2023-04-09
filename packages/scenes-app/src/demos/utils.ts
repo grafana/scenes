@@ -5,10 +5,7 @@ import {
   SceneRefreshPicker,
   SceneTimePicker,
   SceneTimeRange,
-  VizPanel,
-  VizPanelState,
 } from '@grafana/scenes';
-import { GraphFieldConfig } from '@grafana/schema';
 import { DATASOURCE_REF } from '../constants';
 
 export function getQueryRunnerWithRandomWalkQuery(
@@ -37,24 +34,4 @@ export function getEmbeddedSceneDefaults() {
       new SceneRefreshPicker({ isOnCanvas: true }),
     ],
   };
-}
-
-export function newTimeSeriesPanel(
-  overrides: Partial<VizPanelState> = {},
-  customStyles: Partial<GraphFieldConfig> = {}
-) {
-  return new VizPanel({
-    pluginId: 'timeseries',
-    title: 'Graph',
-    options: {},
-    fieldConfig: {
-      defaults: {
-        custom: {
-          ...customStyles,
-        },
-      },
-      overrides: [],
-    },
-    ...overrides,
-  });
 }
