@@ -246,21 +246,43 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   public forEachChild(callback: (child: SceneObjectBase) => boolean | void) {
     for (const propValue of Object.values(this.state)) {
       if (propValue instanceof SceneObjectBase) {
-        if (callback(propValue) === true) {
-          break;
+        callback(propValue);
+      }
+
+      if (Array.isArray(propValue)) {
+        for (const child of propValue) {
+          if (child instanceof SceneObjectBase) {
+            callback(child);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Loop through state and call callback for each direct child scene object.
+   * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
+   */
+  public findChild(check: (child: SceneObjectBase) => boolean): SceneObject | null {
+    for (const propValue of Object.values(this.state)) {
+      if (propValue instanceof SceneObjectBase) {
+        if (check(propValue)) {
+          return propValue;
         }
       }
 
       if (Array.isArray(propValue)) {
         for (const child of propValue) {
           if (child instanceof SceneObjectBase) {
-            if (callback(child) === true) {
-              break;
+            if (check(child)) {
+              return child;
             }
           }
         }
       }
     }
+
+    return null;
   }
 }
 

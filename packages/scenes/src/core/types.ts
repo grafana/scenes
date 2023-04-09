@@ -108,7 +108,12 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
    * If callback returns true the loop will be stop (break).
    */
-  forEachChild(callback: (child: SceneObject) => boolean | void): void;
+  forEachChild(callback: (child: SceneObject) => void): void;
+
+  /**
+   * Loop through state and returns the first child for which the check returns true.
+   */
+  findChild(check: (child: SceneObject) => boolean): SceneObject | null;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;

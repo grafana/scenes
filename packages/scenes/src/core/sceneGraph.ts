@@ -105,9 +105,9 @@ function findObjectInternal(
 
   let found: SceneObject | null = null;
 
-  scene.forEachChild((child) => {
+  scene.findChild((child) => {
     if (child === alreadySearchedChild) {
-      return;
+      return false;
     }
 
     let maybe = findObject(child, check);
@@ -117,7 +117,7 @@ function findObjectInternal(
       return true;
     }
 
-    return;
+    return false;
   });
 
   if (found) {
