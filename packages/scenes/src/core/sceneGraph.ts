@@ -113,11 +113,7 @@ function findObjectInternal(
     let maybe = findObject(child, check);
     if (maybe) {
       found = maybe;
-      // returning true will "break" the loop
-      return true;
     }
-
-    return;
   });
 
   if (found) {
