@@ -68,7 +68,7 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
       }
     }
 
-    routes.push(getFallbackRoute(model, routeProps));
+    // routes.push(getFallbackRoute(model, routeProps));
 
     return <Switch>{routes}</Switch>;
   }

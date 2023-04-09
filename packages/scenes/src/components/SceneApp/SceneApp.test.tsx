@@ -52,7 +52,7 @@ describe('SceneApp', () => {
     );
   });
 
-  it('should render a top level page', async () => {
+  describe('Given an app with two pages', () => {
     const p1Object = new SceneCanvasText({ text: 'Page 1' });
     const p2Object = new SceneCanvasText({ text: 'Page 2' });
     const page1Scene = setupScene(p1Object);
@@ -77,31 +77,38 @@ describe('SceneApp', () => {
       ],
     });
 
-    history.push('/test');
-    render(
-      <Router history={history}>
-        <app.Component model={app} />
-      </Router>
-    );
-    expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
-    expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
+    beforeEach(() => {
+      history.push('/test');
+      render(
+        <Router history={history}>
+          <app.Component model={app} />
+        </Router>
+      );
+    });
 
-    history.push('/test1');
-    await new Promise((r) => setTimeout(r, 1));
+    it('should render correct page on mount', async () => {
+      expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
+      expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
+    });
 
-    expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-    expect(screen.queryByTestId(p2Object.state.key!)).toBeInTheDocument();
+    it('Can navigate to other page', async () => {
+      history.push('/test1');
+      await new Promise((r) => setTimeout(r, 1));
+      expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(p2Object.state.key!)).toBeInTheDocument();
+    });
+
+    // it('When url does not match any page show fallback route', async () => {
+    //   history.push('/asdsad');
+    //   await new Promise((r) => setTimeout(r, 1));
+    //   expect(await screen.findByText('Not found')).toBeInTheDocument();
+    // });
   });
 
-  it('should render a sub page (tab)', async () => {
-    const p1Object = new SceneCanvasText({ text: 'Page 1' });
+  describe('Given a page with two tabs', () => {
     const p2Object = new SceneCanvasText({ text: 'Page 2' });
-    const page2Scene = setupScene(p2Object);
-
     const t1Object = new SceneCanvasText({ text: 'Tab 1' });
     const t2Object = new SceneCanvasText({ text: 'Tab 2' });
-    const tab1Scene = setupScene(t1Object);
-    const tab2Scene = setupScene(t2Object);
 
     const app = new SceneApp({
       pages: [
@@ -109,54 +116,55 @@ describe('SceneApp', () => {
         new SceneAppPage({
           title: 'Test',
           url: '/test',
-          getScene: () => {
-            return tab1Scene;
-          },
           tabs: [
             new SceneAppPage({
               title: 'Test',
               url: '/test/tab1',
-              getScene: () => {
-                return tab1Scene;
-              },
+              getScene: () => setupScene(t1Object),
             }),
             new SceneAppPage({
               title: 'Test',
               url: '/test/tab2',
-              getScene: () => {
-                return tab2Scene;
-              },
+              getScene: () => setupScene(t2Object),
             }),
           ],
         }),
         new SceneAppPage({
           title: 'Test',
           url: '/test1',
-          getScene: () => {
-            return page2Scene;
-          },
+          getScene: () => setupScene(p2Object),
         }),
       ],
     });
 
-    history.push('/test/tab1');
-    render(
-      <Router history={history}>
-        <app.Component model={app} />
-      </Router>
-    );
-    expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-    expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
-    expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
-    expect(screen.queryByTestId(t2Object.state.key!)).not.toBeInTheDocument();
+    beforeEach(() => {
+      history.push('/test');
+      render(
+        <Router history={history}>
+          <app.Component model={app} />
+        </Router>
+      );
+    });
 
-    history.push('/test/tab2');
-    await new Promise((r) => setTimeout(r, 1));
+    it('Render first tab with the url of the parent', async () => {
+      expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
+      expect(screen.queryByTestId(t2Object.state.key!)).not.toBeInTheDocument();
+    });
 
-    expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-    expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
-    expect(screen.queryByTestId(t1Object.state.key!)).not.toBeInTheDocument();
-    expect(screen.queryByTestId(t2Object.state.key!)).toBeInTheDocument();
+    it('Render first tab with its own url', async () => {
+      history.push('/test/tab1');
+      await new Promise((r) => setTimeout(r, 1));
+      expect(await screen.findByTestId(t1Object.state.key!)).toBeInTheDocument();
+    });
+
+    it('Can render second tab', async () => {
+      history.push('/test/tab2');
+      await new Promise((r) => setTimeout(r, 1));
+      expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(t1Object.state.key!)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(t2Object.state.key!)).toBeInTheDocument();
+    });
   });
 
   describe('drilldown', () => {
