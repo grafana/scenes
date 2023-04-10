@@ -3,8 +3,6 @@ import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
-import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
-import { SceneReactObject } from '../SceneReactObject';
 import { SceneAppDrilldownViewRender, SceneAppPageView } from './SceneAppPageView';
 import { SceneAppPageLike, SceneAppPageState } from './types';
 import { renderSceneComponentWithRouteProps } from './utils';
@@ -68,8 +66,6 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
       }
     }
 
-    // routes.push(getFallbackRoute(model, routeProps));
-
     return <Switch>{routes}</Switch>;
   }
 
@@ -111,46 +107,5 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
     return page;
   }
 
-  routes.push(getFallbackRoute(model, routeProps));
-
   return <Switch>{routes}</Switch>;
-}
-
-function getFallbackRoute(page: SceneAppPage, routeProps: RouteComponentProps) {
-  return (
-    <Route
-      key={'fallback route'}
-      render={(props) => {
-        const fallbackPage = getDefaultFallbackPage();
-        return <SceneAppPageView page={fallbackPage} routeProps={routeProps} />;
-      }}
-    ></Route>
-  );
-}
-
-function getDefaultFallbackPage() {
-  return new SceneAppPage({
-    url: '',
-    title: 'Not found',
-    subTitle: 'The url did not match any page',
-    getScene: () => {
-      return new EmbeddedScene({
-        body: new SceneFlexLayout({
-          direction: 'column',
-          children: [
-            new SceneFlexItem({
-              flexGrow: 1,
-              body: new SceneReactObject({
-                component: () => {
-                  return (
-                    <div>If you found your way here using a link then there might be a bug in this application.</div>
-                  );
-                },
-              }),
-            }),
-          ],
-        }),
-      });
-    },
-  });
 }
