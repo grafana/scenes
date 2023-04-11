@@ -21,10 +21,6 @@ export interface SceneObjectState {
   $variables?: SceneVariables;
 }
 
-export interface SceneLayoutItemState extends SceneObjectState {
-  body: SceneObject | undefined;
-}
-
 export interface SceneLayoutChildOptions {
   width?: number | string;
   height?: number | string;

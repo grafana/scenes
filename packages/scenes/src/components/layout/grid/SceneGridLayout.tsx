@@ -3,13 +3,7 @@ import ReactGridLayout from 'react-grid-layout';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import {
-  SceneComponentProps,
-  SceneLayout,
-  SceneLayoutItemState,
-  SceneObject,
-  SceneObjectState,
-} from '../../../core/types';
+import { SceneComponentProps, SceneLayout, SceneObject, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN, GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
 
 import { SceneGridRow } from './SceneGridRow';
@@ -378,7 +372,9 @@ function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>
   );
 }
 
-interface SceneGridItemState extends SceneGridItemStateLike, SceneLayoutItemState {}
+interface SceneGridItemState extends SceneGridItemStateLike {
+  body: SceneObject | undefined;
+}
 
 export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implements SceneGridItemLike {
   static Component = SceneGridItemRenderer;
