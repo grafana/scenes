@@ -97,7 +97,8 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
 function findObjectInternal(
   scene: SceneObject,
   check: (obj: SceneObject) => boolean,
-  alreadySearchedChild?: SceneObject
+  alreadySearchedChild?: SceneObject,
+  shouldSearchUp?: boolean
 ): SceneObject | null {
   if (check(scene)) {
     return scene;
@@ -110,7 +111,7 @@ function findObjectInternal(
       return;
     }
 
-    let maybe = findObject(child, check);
+    let maybe = findObjectInternal(child, check);
     if (maybe) {
       found = maybe;
     }
@@ -120,8 +121,8 @@ function findObjectInternal(
     return found;
   }
 
-  if (scene.parent) {
-    return findObjectInternal(scene.parent, check, scene);
+  if (shouldSearchUp && scene.parent) {
+    return findObjectInternal(scene.parent, check, scene, true);
   }
 
   return null;
@@ -131,7 +132,7 @@ function findObjectInternal(
  * This will search the full scene graph, starting with the scene node passed in, then walking up the parent chain. *
  */
 export function findObject(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject | null {
-  return findObjectInternal(scene, check);
+  return findObjectInternal(scene, check, undefined, true);
 }
 
 export const sceneGraph = {
