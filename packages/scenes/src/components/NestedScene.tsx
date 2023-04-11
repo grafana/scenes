@@ -6,7 +6,7 @@ import { Stack } from '@grafana/experimental';
 import { Button, ToolbarButton, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObject, SceneComponentProps, SceneLayout, SceneLayoutItemState, SceneObjectState } from '../core/types';
+import { SceneObject, SceneComponentProps, SceneLayout, SceneObjectState } from '../core/types';
 
 interface NestedSceneState extends SceneObjectState {
   title: string;
@@ -113,6 +113,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
-function isSceneLayoutItem(x: SceneObject): x is SceneObject<SceneLayoutItemState> {
+function isSceneLayoutItem(x: SceneObject): x is SceneObject<SceneObjectState & { body: SceneObject | undefined }> {
   return 'body' in x.state;
 }

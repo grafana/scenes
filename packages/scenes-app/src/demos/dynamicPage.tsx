@@ -13,8 +13,7 @@ import { demoUrl } from '../utils/utils.routing';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
-  const defaultTabs = [getSceneAppPage('', 'Temperature')];
-  console.log('get dynamic page demo');
+  const defaultTabs = [getSceneAppPage('/tab1', 'Temperature')];
 
   const page = new SceneAppPage({
     ...defaults,
