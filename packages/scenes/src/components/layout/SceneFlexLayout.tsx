@@ -40,7 +40,7 @@ function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>
     minHeight: 0,
   };
 
-  if (parent && isSceneFlexLayout(parent)) {
+  if (parent && parent instanceof SceneFlexLayout) {
     style = {
       ...getFlexItemItemStyles(parent.state.direction || 'row', model),
       ...style,
@@ -82,7 +82,7 @@ function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
   const parent = model.parent;
   let style: CSSProperties = {};
 
-  if (parent && isSceneFlexLayout(parent)) {
+  if (parent && parent instanceof SceneFlexLayout) {
     style = getFlexItemItemStyles(parent.state.direction || 'row', model);
   } else {
     throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
@@ -138,8 +138,4 @@ function getFlexItemItemStyles(direction: CSSProperties['flexDirection'], item: 
   }
 
   return style;
-}
-
-function isSceneFlexLayout(model: SceneObject): model is SceneFlexLayout {
-  return model instanceof SceneFlexLayout;
 }
