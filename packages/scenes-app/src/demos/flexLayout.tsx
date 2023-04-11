@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import {
   EmbeddedScene,
   SceneAppPage,
+  SceneAppPageState,
   SceneCanvasText,
   SceneFlexItem,
   SceneFlexLayout,
@@ -10,13 +11,11 @@ import {
   VizPanel,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
-import { demoUrl } from '../utils/utils.routing';
 
-export function getFlexLayoutTest() {
+export function getFlexLayoutTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
-    title: 'Flex layout',
+    ...defaults,
     subTitle: 'A simple demo of different flex layout options',
-    url: `${demoUrl('flex-layout')}`,
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

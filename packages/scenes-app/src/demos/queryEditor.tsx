@@ -1,13 +1,18 @@
-import { EmbeddedScene, SceneAppPage, SceneFlexItem, SceneFlexLayout, VizPanel } from '@grafana/scenes';
+import {
+  EmbeddedScene,
+  SceneAppPage,
+  SceneAppPageState,
+  SceneFlexItem,
+  SceneFlexLayout,
+  VizPanel,
+} from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 import { QueryEditor } from '../components/QueryEditor/QueryEditor';
-import { demoUrl } from '../utils/utils.routing';
 
-export function getQueryEditorDemo() {
+export function getQueryEditorDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
-    title: 'Query editor demo',
+    ...defaults,
     subTitle: 'Example of how to to build a component that uses the QueryEditor',
-    url: `${demoUrl('query-editor')}`,
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

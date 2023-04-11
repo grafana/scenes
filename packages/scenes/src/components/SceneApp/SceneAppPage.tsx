@@ -3,8 +3,8 @@ import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
-import { SceneAppPageView } from './SceneAppPageView';
-import { SceneAppDrilldownView, SceneAppPageLike, SceneAppPageState } from './types';
+import { SceneAppDrilldownViewRender, SceneAppPageView } from './SceneAppPageView';
+import { SceneAppPageLike, SceneAppPageState } from './types';
 import { renderSceneComponentWithRouteProps } from './utils';
 
 /**
@@ -108,15 +108,4 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
   }
 
   return <Switch>{routes}</Switch>;
-}
-
-export interface SceneAppDrilldownViewRenderProps {
-  drilldown: SceneAppDrilldownView;
-  parent: SceneAppPageLike;
-  routeProps: RouteComponentProps;
-}
-
-function SceneAppDrilldownViewRender({ drilldown, parent, routeProps }: SceneAppDrilldownViewRenderProps) {
-  const scene = drilldown.getPage(routeProps.match, parent);
-  return renderSceneComponentWithRouteProps(scene, routeProps);
 }
