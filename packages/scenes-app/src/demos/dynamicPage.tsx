@@ -14,7 +14,6 @@ import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
   const defaultTabs = [getSceneAppPage('/tab1', 'Temperature')];
-  console.log('get dynamic page demo');
 
   const page = new SceneAppPage({
     ...defaults,
