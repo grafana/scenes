@@ -20,35 +20,18 @@
   "includes": [
     {
       "type": "page",
-      "name": "Home",
-      "path": "/a/%PLUGIN_ID%/home",
+      "name": "'Home'",
+      "path": "/a/%PLUGIN_ID%",
       "role": "Admin",
       "addToNav": true,
       "defaultNav": true
     },
     {
       "type": "page",
-      "name": "Page with tabs",
-      "path": "/a/%PLUGIN_ID%/page-with-tabs",
-      "role": "Admin",
-      "addToNav": true,
-      "defaultNav": false
-    },
-    {
-      "type": "page",
-      "name": "Page with drilldown",
-      "path": "/a/%PLUGIN_ID%/page-with-drilldown",
-      "role": "Admin",
-      "addToNav": true,
-      "defaultNav": false
-    },
-    {
-      "type": "page",
       "name": "Demos",
       "path": "/a/%PLUGIN_ID%/demos",
       "role": "Admin",
-      "addToNav": true,
-      "defaultNav": false
+      "addToNav": true
     }
   ],
   "dependencies": {

@@ -2,13 +2,7 @@ import React from 'react';
 import ReactGridLayout from 'react-grid-layout';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import {
-  SceneComponentProps,
-  SceneLayout,
-  SceneLayoutItemState,
-  SceneObject,
-  SceneObjectState,
-} from '../../../core/types';
+import { SceneComponentProps, SceneLayout, SceneObject, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
@@ -319,8 +313,9 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 }
 
-interface SceneGridItemState extends SceneGridItemStateLike, SceneLayoutItemState {}
-
+interface SceneGridItemState extends SceneGridItemStateLike {
+  body: SceneObject | undefined;
+}
 export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implements SceneGridItemLike {
   static Component = SceneGridItemRenderer;
 }

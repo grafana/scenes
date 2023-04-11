@@ -1,6 +1,6 @@
 <div align="center">
   <img
-    src="https://raw.githubusercontent.com/grafana/scenes/main/docs/img/grafana_icon.svg"
+    src="https://raw.githubusercontent.com/grafana/scenes/main/docusaurus/website/static/img/logo.svg"
     alt="Grafana Logo"
     width="100px"
     padding="40px"

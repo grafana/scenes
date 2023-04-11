@@ -242,13 +242,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 }
 
-function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
-  for (const t of targets) {
-    if (t.datasource != null) {
-      return t.datasource;
-    }
-  }
-  return undefined;
+export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
+  return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }
 
 export function getTransformationsStream(

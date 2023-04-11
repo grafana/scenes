@@ -4,6 +4,7 @@ import { Route, Switch } from 'react-router-dom';
 import { SceneComponentProps } from '../../core/types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneAppState } from './types';
+import { renderSceneComponentWithRouteProps } from './utils';
 
 /**
  * Responsible for top level pages routing
@@ -19,9 +20,7 @@ export class SceneApp extends SceneObjectBase<SceneAppState> {
             key={page.state.url}
             exact={false}
             path={page.state.url}
-            render={() => {
-              return page && <page.Component model={page} />;
-            }}
+            render={(props) => renderSceneComponentWithRouteProps(page, props)}
           ></Route>
         ))}
       </Switch>
