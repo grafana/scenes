@@ -93,7 +93,7 @@ function CounterRenderer({ model }: SceneComponentProps<Counter>) {
 }
 ```
 
-Or in the scene object implementation:
+Or in the scene object class:
 
 ```tsx
 export class Counter extends SceneObjectBase<CounterState> {
