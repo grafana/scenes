@@ -56,9 +56,15 @@ export interface SceneAppPageState extends SceneObjectState {
 export interface SceneAppPageLike extends SceneObject<SceneAppPageState> {
   initializeScene(scene: SceneObject): void;
   /**
-   *
+   * @internal. Please don't call this from plugin code.
+   * Will call the state.getScene function with the current routeMatch and will cache the resulting Scene using the routeMatch.url as key.
    */
   getScene(routeMatch: SceneRouteMatch): EmbeddedScene;
+  /**
+   * @internal. Please don't call this from plugin code.
+   * Get drilldown scene. Will call the drilldown.getPage function with the current routeMatch and will cache the resulting page using the routeMatch.url as key.
+   */
+  getDrilldownPage(drilldown: SceneAppDrilldownView, routeMatch: SceneRouteMatch): SceneAppPageLike;
 }
 
 export interface SceneAppDrilldownView {

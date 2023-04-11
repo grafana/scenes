@@ -76,16 +76,10 @@ describe('SceneApp', () => {
 
     it('Can navigate to other page', async () => {
       history.push('/test1');
-      await new Promise((r) => setTimeout(r, 1));
-      expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-      expect(screen.queryByTestId(p2Object.state.key!)).toBeInTheDocument();
-    });
 
-    // it('When url does not match any page show fallback route', async () => {
-    //   history.push('/asdsad');
-    //   await new Promise((r) => setTimeout(r, 1));
-    //   expect(await screen.findByText('Not found')).toBeInTheDocument();
-    // });
+      expect(await screen.findByTestId(p2Object.state.key!)).toBeInTheDocument();
+      expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
+    });
   });
 
   describe('Given a page with two tabs', () => {
@@ -130,16 +124,15 @@ describe('SceneApp', () => {
 
     it('Render first tab with its own url', async () => {
       history.push('/test/tab1');
-      await new Promise((r) => setTimeout(r, 1));
       expect(await screen.findByTestId(t1Object.state.key!)).toBeInTheDocument();
     });
 
     it('Can render second tab', async () => {
       history.push('/test/tab2');
-      await new Promise((r) => setTimeout(r, 1));
+
+      expect(await screen.findByTestId(t2Object.state.key!)).toBeInTheDocument();
       expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
       expect(screen.queryByTestId(t1Object.state.key!)).not.toBeInTheDocument();
-      expect(screen.queryByTestId(t2Object.state.key!)).toBeInTheDocument();
     });
   });
 
@@ -179,15 +172,20 @@ describe('SceneApp', () => {
         expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
 
         history.push('/test-drilldown/some-id');
-        await new Promise((r) => setTimeout(r, 1));
+
+        expect(await screen.findByText('some-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-        expect(screen.queryByText('some-id drilldown!')).toBeInTheDocument();
 
         history.push('/test-drilldown/some-other-id');
-        await new Promise((r) => setTimeout(r, 1));
+
+        expect(await screen.findByText('some-other-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
         expect(screen.queryByText('some-id drilldown!')).not.toBeInTheDocument();
-        expect(screen.queryByText('some-other-id drilldown!')).toBeInTheDocument();
+      });
+
+      it('When url does not match any drilldown sub page show fallback route', async () => {
+        history.push('/test-drilldown/some-id/does-not-exist');
+        expect(await screen.findByTestId('default-fallback-content')).toBeInTheDocument();
       });
     });
 
@@ -196,6 +194,7 @@ describe('SceneApp', () => {
       const page1Scene = setupScene(p1Object);
       const t1Object = new SceneCanvasText({ text: 'Tab 1' });
       const tab1Scene = setupScene(t1Object);
+      let drillDownScenesGenerated = 0;
 
       const app = new SceneApp({
         pages: [
@@ -217,6 +216,8 @@ describe('SceneApp', () => {
                   {
                     routePath: '/test/tab/:id',
                     getPage: (match: SceneRouteMatch<{ id: string }>) => {
+                      drillDownScenesGenerated++;
+
                       return new SceneAppPage({
                         title: 'drilldown',
                         url: `/test/tab/${match.params.id}`,
@@ -237,15 +238,27 @@ describe('SceneApp', () => {
         expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
 
         history.push('/test/tab/some-id');
-        await new Promise((r) => setTimeout(r, 1));
+
+        expect(await screen.findByText('some-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-        expect(screen.queryByText('some-id drilldown!')).toBeInTheDocument();
 
         history.push('/test/tab/some-other-id');
-        await new Promise((r) => setTimeout(r, 1));
+
+        expect(await screen.findByText('some-other-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
         expect(screen.queryByText('some-id drilldown!')).not.toBeInTheDocument();
-        expect(screen.queryByText('some-other-id drilldown!')).toBeInTheDocument();
+
+        // go back to the first drilldown
+        history.push('/test/tab/some-id');
+        expect(await screen.findByText('some-id drilldown!')).toBeInTheDocument();
+
+        // Verify that drilldown page was cached (getPage should not have been called again)
+        expect(drillDownScenesGenerated).toBe(2);
+      });
+
+      it('When url does not match any drilldown sub page show fallback route', async () => {
+        history.push('/test/tab/drilldown-id/does-not-exist');
+        expect(await screen.findByTestId('default-fallback-content')).toBeInTheDocument();
       });
     });
   });

@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
 import { SceneAppPage } from './SceneAppPage';
-import { SceneAppDrilldownView, SceneAppPageLike, SceneRouteMatch } from './types';
+import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getLinkUrlWithAppUrlState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
 
 export interface Props {
@@ -99,24 +99,6 @@ function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryM
   return undefined;
 }
 
-const drilldownCache = new Map<string, SceneAppPageLike>();
-
-function getDrilldownPageCached(
-  drilldown: SceneAppDrilldownView,
-  parent: SceneAppPageLike,
-  routeMatch: SceneRouteMatch
-) {
-  let page = drilldownCache.get(routeMatch!.url);
-  if (page) {
-    return page;
-  }
-
-  page = drilldown.getPage(routeMatch, parent);
-  drilldownCache.set(routeMatch!.url, page);
-
-  return page;
-}
-
 export interface SceneAppDrilldownViewRenderProps {
   drilldown: SceneAppDrilldownView;
   parent: SceneAppPageLike;
@@ -124,6 +106,5 @@ export interface SceneAppDrilldownViewRenderProps {
 }
 
 export function SceneAppDrilldownViewRender({ drilldown, parent, routeProps }: SceneAppDrilldownViewRenderProps) {
-  const scene = getDrilldownPageCached(drilldown, parent, routeProps.match);
-  return renderSceneComponentWithRouteProps(scene, routeProps);
+  return renderSceneComponentWithRouteProps(parent.getDrilldownPage(drilldown, routeProps.match), routeProps);
 }

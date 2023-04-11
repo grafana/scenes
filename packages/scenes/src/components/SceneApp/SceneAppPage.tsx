@@ -6,7 +6,7 @@ import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneReactObject } from '../SceneReactObject';
 import { SceneAppDrilldownViewRender, SceneAppPageView } from './SceneAppPageView';
-import { SceneAppPageLike, SceneAppPageState, SceneRouteMatch } from './types';
+import { SceneAppDrilldownView, SceneAppPageLike, SceneAppPageState, SceneRouteMatch } from './types';
 import { renderSceneComponentWithRouteProps } from './utils';
 
 /**
@@ -15,6 +15,7 @@ import { renderSceneComponentWithRouteProps } from './utils';
 export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements SceneAppPageLike {
   public static Component = SceneAppPageRenderer;
   private _sceneCache = new Map<string, EmbeddedScene>();
+  private _drilldownCache = new Map<string, SceneAppPageLike>();
 
   public initializeScene(scene: EmbeddedScene) {
     scene.initUrlSync();
@@ -37,6 +38,18 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
 
     return scene;
   }
+
+  public getDrilldownPage(drilldown: SceneAppDrilldownView, routeMatch: SceneRouteMatch<{}>): SceneAppPageLike {
+    let page = this._drilldownCache.get(routeMatch!.url);
+    if (page) {
+      return page;
+    }
+
+    page = drilldown.getPage(routeMatch, this);
+    this._drilldownCache.set(routeMatch!.url, page);
+
+    return page;
+  }
 }
 
 export interface SceneAppPageRendererProps extends SceneComponentProps<SceneAppPage> {
@@ -47,7 +60,7 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
   const { tabs, drilldowns } = model.useState();
   const routes: React.ReactNode[] = [];
 
-  if (tabs) {
+  if (tabs && tabs.length > 0) {
     for (let tabIndex = 0; tabIndex < tabs.length; tabIndex++) {
       const tab = tabs[tabIndex];
 
@@ -86,7 +99,7 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
       }
     }
 
-    //routes.push(getFallbackRoute(model, routeProps));
+    routes.push(getFallbackRoute(model, routeProps));
 
     return <Switch>{routes}</Switch>;
   }
@@ -108,7 +121,7 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
     return <SceneAppPageView page={model} routeProps={routeProps} />;
   }
 
-  //routes.push(getFallbackRoute(model, routeProps));
+  routes.push(getFallbackRoute(model, routeProps));
 
   return <Switch>{routes}</Switch>;
 }
@@ -162,7 +175,9 @@ function getDefaultFallbackPage() {
               body: new SceneReactObject({
                 component: () => {
                   return (
-                    <div>If you found your way here using a link then there might be a bug in this application.</div>
+                    <div data-testid="default-fallback-content">
+                      If you found your way here using a link then there might be a bug in this application.
+                    </div>
                   );
                 },
               }),
