@@ -10,17 +10,7 @@ import { SceneApp } from './SceneApp';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneRouteMatch } from './types';
 
-const setupScene = (inspectableObject: SceneObject) => {
-  return new EmbeddedScene({
-    body: new SceneFlexLayout({
-      children: [new SceneFlexItem({ body: inspectableObject })],
-    }),
-  });
-};
-
 let history = createMemoryHistory();
-const getDrilldownScene = (match: SceneRouteMatch<{ id: string }>) =>
-  setupScene(new SceneCanvasText({ text: `${match.params.id} drilldown!` }));
 
 describe('SceneApp', () => {
   const original = console.error;
@@ -77,14 +67,7 @@ describe('SceneApp', () => {
       ],
     });
 
-    beforeEach(() => {
-      history.push('/test');
-      render(
-        <Router history={history}>
-          <app.Component model={app} />
-        </Router>
-      );
-    });
+    beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test'));
 
     it('should render correct page on mount', async () => {
       expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
@@ -137,16 +120,9 @@ describe('SceneApp', () => {
       ],
     });
 
-    beforeEach(() => {
-      history.push('/test');
-      render(
-        <Router history={history}>
-          <app.Component model={app} />
-        </Router>
-      );
-    });
+    beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test'));
 
-    it('Render first tab with the url of the parent', async () => {
+    it('Render first tab with the url of the parent', () => {
       expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
       expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
       expect(screen.queryByTestId(t2Object.state.key!)).not.toBeInTheDocument();
@@ -167,8 +143,8 @@ describe('SceneApp', () => {
     });
   });
 
-  describe('drilldown', () => {
-    it('should render a drilldown page', async () => {
+  describe('drilldowns', () => {
+    describe('Drilldowns on page level', () => {
       const p1Object = new SceneCanvasText({ text: 'Page 1' });
       const page1Scene = setupScene(p1Object);
 
@@ -197,27 +173,25 @@ describe('SceneApp', () => {
         ],
       });
 
-      history.push('/test-drilldown');
-      render(
-        <Router history={history}>
-          <app.Component model={app} />
-        </Router>
-      );
-      expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
+      beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test-drilldown'));
 
-      history.push('/test-drilldown/some-id');
-      await new Promise((r) => setTimeout(r, 1));
-      expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-      expect(screen.queryByText('some-id drilldown!')).toBeInTheDocument();
+      it('should render a drilldown page', async () => {
+        expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
 
-      history.push('/test-drilldown/some-other-id');
-      await new Promise((r) => setTimeout(r, 1));
-      expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-      expect(screen.queryByText('some-id drilldown!')).not.toBeInTheDocument();
-      expect(screen.queryByText('some-other-id drilldown!')).toBeInTheDocument();
+        history.push('/test-drilldown/some-id');
+        await new Promise((r) => setTimeout(r, 1));
+        expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
+        expect(screen.queryByText('some-id drilldown!')).toBeInTheDocument();
+
+        history.push('/test-drilldown/some-other-id');
+        await new Promise((r) => setTimeout(r, 1));
+        expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
+        expect(screen.queryByText('some-id drilldown!')).not.toBeInTheDocument();
+        expect(screen.queryByText('some-other-id drilldown!')).toBeInTheDocument();
+      });
     });
 
-    it('should render a drilldown that is part of tab page', async () => {
+    describe('Drilldowns on tab level', () => {
       const p1Object = new SceneCanvasText({ text: 'Page 1' });
       const page1Scene = setupScene(p1Object);
       const t1Object = new SceneCanvasText({ text: 'Tab 1' });
@@ -257,24 +231,43 @@ describe('SceneApp', () => {
         ],
       });
 
-      history.push('/test/tab');
-      render(
-        <Router history={history}>
-          <app.Component model={app} />
-        </Router>
-      );
-      expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
+      beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test/tab'));
 
-      history.push('/test/tab/some-id');
-      await new Promise((r) => setTimeout(r, 1));
-      expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-      expect(screen.queryByText('some-id drilldown!')).toBeInTheDocument();
+      it('should render a drilldown that is part of tab page', async () => {
+        expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
 
-      history.push('/test/tab/some-other-id');
-      await new Promise((r) => setTimeout(r, 1));
-      expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
-      expect(screen.queryByText('some-id drilldown!')).not.toBeInTheDocument();
-      expect(screen.queryByText('some-other-id drilldown!')).toBeInTheDocument();
+        history.push('/test/tab/some-id');
+        await new Promise((r) => setTimeout(r, 1));
+        expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
+        expect(screen.queryByText('some-id drilldown!')).toBeInTheDocument();
+
+        history.push('/test/tab/some-other-id');
+        await new Promise((r) => setTimeout(r, 1));
+        expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
+        expect(screen.queryByText('some-id drilldown!')).not.toBeInTheDocument();
+        expect(screen.queryByText('some-other-id drilldown!')).toBeInTheDocument();
+      });
     });
   });
 });
+
+function setupScene(inspectableObject: SceneObject) {
+  return new EmbeddedScene({
+    body: new SceneFlexLayout({
+      children: [new SceneFlexItem({ body: inspectableObject })],
+    }),
+  });
+}
+
+function getDrilldownScene(match: SceneRouteMatch<{ id: string }>) {
+  return setupScene(new SceneCanvasText({ text: `${match.params.id} drilldown!` }));
+}
+
+function renderAppInsideRouterWithStartingUrl(app: SceneApp, startingUrl: string) {
+  history.push(startingUrl);
+  render(
+    <Router history={history}>
+      <app.Component model={app} />
+    </Router>
+  );
+}

@@ -55,6 +55,10 @@ export interface SceneAppPageState extends SceneObjectState {
 
 export interface SceneAppPageLike extends SceneObject<SceneAppPageState> {
   initializeScene(scene: SceneObject): void;
+  /**
+   *
+   */
+  getScene(routeMatch: SceneRouteMatch): EmbeddedScene;
 }
 
 export interface SceneAppDrilldownView {
