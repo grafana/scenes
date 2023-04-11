@@ -25,9 +25,14 @@ export class UrlSyncManager {
       };
     });
 
+    this.syncFrom(this.sceneRoot);
+  }
+
+  public syncFrom(sceneObj: SceneObject) {
     const urlParams = locationService.getSearch();
+    // The index is always from the root
     this.urlKeyMapper.rebuldIndex(this.sceneRoot);
-    this._syncSceneStateFromUrl(this.sceneRoot, urlParams);
+    this._syncSceneStateFromUrl(sceneObj, urlParams);
   }
 
   private _onLocationUpdate = (location: Location) => {
