@@ -3,14 +3,15 @@ import ReactGridLayout from 'react-grid-layout';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { SceneComponentProps } from '../../../core/types';
 import { GRID_CELL_VMARGIN, GRID_COLUMN_COUNT, GRID_CELL_HEIGHT } from './constants';
-import { LazyLoader } from './LazyLoader';
+import { LazyLoader, Props } from './LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
-  const { children } = model.useState();
+  const { children, lazy } = model.useState();
+  const LazyWrapper = lazy ? LazyLoader : ({ style, children }: Props) => <div style={style}>{children}</div>;
   validateChildrenSize(children);
-
+  
   return (
     <AutoSizer disableHeight>
       {({ width }) => {
@@ -60,9 +61,9 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                 // class component to give a ref to.
                 return (
                   <div style={{ display: 'flex' }} key={sceneChild.state.key}>
-                    <LazyLoader width={pixelWidth} height={pixelHeight} style={{ display: 'flex' }} >
+                    <LazyWrapper width={pixelWidth} height={pixelHeight} style={{ display: 'flex' }}>
                       <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
-                    </LazyLoader>
+                    </LazyWrapper>
                   </div>
                 );
               })}
