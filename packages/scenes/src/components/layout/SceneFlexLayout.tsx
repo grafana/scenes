@@ -1,4 +1,4 @@
-import React, { CSSProperties } from 'react';
+import React, { ComponentType, CSSProperties } from 'react';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../core/types';
@@ -27,9 +27,9 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
   }
 }
 
-function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>) {
+function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexLayout>) {
   const { direction = 'row', children, wrap } = model.useState();
-  const parent = model.parent;
+
   let style: CSSProperties = {
     display: 'flex',
     flexGrow: 1,
@@ -40,9 +40,9 @@ function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>
     minHeight: 0,
   };
 
-  if (parent && parent instanceof SceneFlexLayout) {
+  if (parentDirection) {
     style = {
-      ...getFlexItemItemStyles(parent.state.direction || 'row', model),
+      ...getFlexItemItemStyles(parentDirection || 'row', model),
       ...style,
     };
   }
@@ -50,7 +50,8 @@ function SceneFlexLayoutRenderer({ model }: SceneComponentProps<SceneFlexLayout>
   return (
     <div style={style}>
       {children.map((item) => {
-        return <item.Component key={item.state.key} model={item} />;
+        const Component = item.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
+        return <Component key={item.state.key} model={item} parentDirection={direction} />;
       })}
     </div>
   );
@@ -73,20 +74,23 @@ interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
   body: SceneObject | undefined;
 }
 
+interface SceneFlexItemRenderProps<T> extends SceneComponentProps<T> {
+  parentDirection?: CSSProperties['flexDirection'];
+}
+
 export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
   public static Component = SceneFlexItemRenderer;
 }
 
-function SceneFlexItemRenderer({ model }: SceneComponentProps<SceneFlexItem>) {
+function SceneFlexItemRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexItem>) {
   const { body } = model.useState();
-  const parent = model.parent;
   let style: CSSProperties = {};
 
-  if (parent && parent instanceof SceneFlexLayout) {
-    style = getFlexItemItemStyles(parent.state.direction || 'row', model);
-  } else {
+  if (!parentDirection) {
     throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
   }
+
+  style = getFlexItemItemStyles(parentDirection, model);
 
   if (!body) {
     return null;
