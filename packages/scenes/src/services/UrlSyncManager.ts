@@ -40,7 +40,7 @@ export class UrlSyncManagerImpl implements UrlSyncManager {
   }
 
   public cleanUp(root: SceneObject) {
-    // Ignore this if we have a new or differnt root
+    // Ignore this if we have a new or different root
     if (this._sceneRoot !== root) {
       return;
     }
