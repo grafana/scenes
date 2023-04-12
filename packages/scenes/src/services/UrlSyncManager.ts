@@ -8,12 +8,12 @@ import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { Unsubscribable } from 'rxjs';
 
-export interface UrlSyncManager {
+export interface UrlSyncManagerLike {
   initSync(root: SceneObject): void;
   cleanUp(root: SceneObject): void;
 }
 
-export class UrlSyncManagerImpl implements UrlSyncManager {
+export class UrlSyncManager implements UrlSyncManagerLike {
   private urlKeyMapper = new UniqueUrlKeyMapper();
   private _sceneRoot!: SceneObject;
   private _stateSub: Unsubscribable | null = null;
@@ -201,11 +201,11 @@ export function isUrlValueEqual(currentUrlValue: string[], newUrlValue: SceneObj
   return isEqual(currentUrlValue, newUrlValue);
 }
 
-let urlSyncManager: UrlSyncManager | undefined;
+let urlSyncManager: UrlSyncManagerLike | undefined;
 
-export function getUrlSyncManager(): UrlSyncManager {
+export function getUrlSyncManager(): UrlSyncManagerLike {
   if (!urlSyncManager) {
-    urlSyncManager = new UrlSyncManagerImpl();
+    urlSyncManager = new UrlSyncManager();
   }
 
   return urlSyncManager;

@@ -8,7 +8,7 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneObjectState, SceneObject, SceneObjectUrlValues } from '../core/types';
 
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
-import { isUrlValueEqual, UrlSyncManagerImpl } from './UrlSyncManager';
+import { isUrlValueEqual, UrlSyncManager } from './UrlSyncManager';
 
 interface TestObjectState extends SceneObjectState {
   name: string;
@@ -38,7 +38,7 @@ class TestObj extends SceneObjectBase<TestObjectState> {
 }
 
 describe('UrlSyncManager', () => {
-  let urlManager: UrlSyncManagerImpl;
+  let urlManager: UrlSyncManager;
   let locationUpdates: Location[] = [];
   let listenUnregister: () => void;
   let scene: SceneObject;
@@ -64,7 +64,7 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManagerImpl();
+      urlManager = new UrlSyncManager();
       urlManager.initSync(scene);
 
       deactivate = scene.activate();
@@ -92,7 +92,7 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManagerImpl();
+      urlManager = new UrlSyncManager();
       urlManager.initSync(scene);
 
       deactivate = scene.activate();
@@ -138,7 +138,7 @@ describe('UrlSyncManager', () => {
         $timeRange: outerTimeRange,
       });
 
-      urlManager = new UrlSyncManagerImpl();
+      urlManager = new UrlSyncManager();
       urlManager.initSync(scene);
 
       deactivate = scene.activate();
@@ -180,7 +180,7 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManagerImpl();
+      urlManager = new UrlSyncManager();
       urlManager.initSync(scene);
 
       deactivate = scene.activate();
@@ -212,7 +212,7 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManagerImpl();
+      urlManager = new UrlSyncManager();
       urlManager.initSync(scene);
 
       deactivate = scene.activate();
@@ -236,7 +236,7 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManagerImpl();
+      urlManager = new UrlSyncManager();
       urlManager.initSync(scene);
 
       deactivate = scene.activate();
@@ -259,7 +259,7 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManagerImpl();
+      urlManager = new UrlSyncManager();
       urlManager.initSync(scene);
 
       deactivate = scene.activate();
@@ -281,7 +281,7 @@ describe('UrlSyncManager', () => {
         children: [obj1],
       });
 
-      urlManager = new UrlSyncManagerImpl();
+      urlManager = new UrlSyncManager();
       urlManager.initSync(scene1);
 
       deactivate = scene1.activate();
@@ -310,7 +310,7 @@ describe('UrlSyncManager', () => {
         children: [obj1],
       });
 
-      urlManager = new UrlSyncManagerImpl();
+      urlManager = new UrlSyncManager();
       urlManager.initSync(scene1);
 
       deactivate = scene1.activate();

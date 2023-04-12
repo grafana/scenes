@@ -32,8 +32,8 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
   /**
    * initUrlSync should be called before the scene is rendered to ensure that objects are in sync
    * before they get activated. This saves some unnecessary re-renders and makes sure variables
-   * queries are issued as needed. If your using SceneAppPage you will not need to call this as that is
-   * handled by the SceneAppPage component.
+   * queries are issued as needed. If your using SceneAppPage you will not need to call this as
+   * url sync is handled on the SceneAppPage level not this level.
    */
   public initUrlSync() {
     getUrlSyncManager().initSync(this);
