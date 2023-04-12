@@ -8,8 +8,8 @@ import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
-  const { children, lazy } = model.useState();
-  const LazyWrapper = lazy ? LazyLoader : ({ style, children }: Props) => <div style={style}>{children}</div>;
+  const { children, isLazy } = model.useState();
+  const LazyWrapper = isLazy ? LazyLoader : ({ style, children }: Props) => <div style={style}>{children}</div>;
   validateChildrenSize(children);
   
   return (

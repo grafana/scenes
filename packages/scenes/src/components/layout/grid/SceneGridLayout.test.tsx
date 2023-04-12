@@ -47,7 +47,7 @@ describe('SceneGridLayout', () => {
               body: new TestObject({}),
             }),
           ],
-          lazy: false,
+          isLazy: false,
         }),
       });
 
@@ -97,7 +97,7 @@ describe('SceneGridLayout', () => {
               ],
             }),
           ],
-          lazy: false,
+          isLazy: false,
         }),
       });
 
@@ -147,7 +147,7 @@ describe('SceneGridLayout', () => {
               ],
             }),
           ],
-          lazy: false
+          isLazy: false
         }),
       });
 
@@ -192,7 +192,7 @@ describe('SceneGridLayout', () => {
             body: new TestObject({}),
           }),
         ],
-        lazy: false
+        isLazy: false
       });
       layout.onDragStop(
         [
@@ -268,7 +268,7 @@ describe('SceneGridLayout', () => {
 
       const layout = new SceneGridLayout({
         children: [sourceRow],
-        lazy: false,
+        isLazy: false,
       });
 
       const updatedLayout = layout.moveChildTo(rowAChild1, layout);
@@ -331,7 +331,7 @@ describe('SceneGridLayout', () => {
       });
       const layout = new SceneGridLayout({
         children: [panelOutsideARow, sourceRow, targetRow],
-        lazy: false,
+        isLazy: false,
       });
 
       const updatedLayout = layout.moveChildTo(rowAChild1, targetRow);
@@ -412,7 +412,7 @@ describe('SceneGridLayout', () => {
 
       const layout = new SceneGridLayout({
         children: [rowA, panelOutsideARow, rowB],
-        lazy: false
+        isLazy: false
       });
 
       layout.toggleRow(rowA);

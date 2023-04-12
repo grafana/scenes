@@ -14,7 +14,7 @@ interface SceneGridLayoutState extends SceneObjectState {
    * Turn on or off dragging for all items. Indiviadual items can still disabled via isDraggable property
    **/
   isDraggable?: boolean;
-  lazy?: boolean;
+  isLazy?: boolean;
   children: SceneGridItemLike[];
 }
 
