@@ -1,10 +1,12 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
+import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
+import { SceneReactObject } from '../SceneReactObject';
 import { SceneAppDrilldownViewRender, SceneAppPageView } from './SceneAppPageView';
-import { SceneAppPageLike, SceneAppPageState } from './types';
+import { SceneAppDrilldownView, SceneAppPageLike, SceneAppPageState, SceneRouteMatch } from './types';
 import { renderSceneComponentWithRouteProps } from './utils';
 
 /**
@@ -12,10 +14,41 @@ import { renderSceneComponentWithRouteProps } from './utils';
  */
 export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements SceneAppPageLike {
   public static Component = SceneAppPageRenderer;
+  private _sceneCache = new Map<string, EmbeddedScene>();
+  private _drilldownCache = new Map<string, SceneAppPageLike>();
 
   public initializeScene(scene: EmbeddedScene) {
     scene.initUrlSync();
     this.setState({ initializedScene: scene });
+  }
+
+  public getScene(routeMatch: SceneRouteMatch): EmbeddedScene {
+    let scene = this._sceneCache.get(routeMatch.url);
+
+    if (scene) {
+      return scene;
+    }
+
+    if (!this.state.getScene) {
+      throw new Error('Missing getScene on SceneAppPage ' + this.state.title);
+    }
+
+    scene = this.state.getScene(routeMatch);
+    this._sceneCache.set(routeMatch.url, scene);
+
+    return scene;
+  }
+
+  public getDrilldownPage(drilldown: SceneAppDrilldownView, routeMatch: SceneRouteMatch<{}>): SceneAppPageLike {
+    let page = this._drilldownCache.get(routeMatch!.url);
+    if (page) {
+      return page;
+    }
+
+    page = drilldown.getPage(routeMatch, this);
+    this._drilldownCache.set(routeMatch!.url, page);
+
+    return page;
   }
 }
 
@@ -27,7 +60,7 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
   const { tabs, drilldowns } = model.useState();
   const routes: React.ReactNode[] = [];
 
-  if (tabs) {
+  if (tabs && tabs.length > 0) {
     for (let tabIndex = 0; tabIndex < tabs.length; tabIndex++) {
       const tab = tabs[tabIndex];
 
@@ -66,6 +99,8 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
       }
     }
 
+    routes.push(getFallbackRoute(model, routeProps));
+
     return <Switch>{routes}</Switch>;
   }
 
@@ -82,30 +117,74 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
     }
   }
 
-  let page: ReactNode = undefined;
-  let isFirstTab = false;
-  let parentUrl = '';
-
-  // if parent is a SceneAppPage we are a tab
-  if (model.parent instanceof SceneAppPage) {
-    page = <SceneAppPageView page={model.parent} activeTab={model} routeProps={routeProps} />;
-
-    // Check if we are the first tab
-    if (model.parent.state.tabs) {
-      isFirstTab = model.parent.state.tabs[0] === model;
-      parentUrl = model.parent.state.url;
-    }
-  } else {
-    page = <SceneAppPageView page={model} routeProps={routeProps} />;
+  if (isCurrentPageRouteMatch(model, routeProps.match)) {
+    return <SceneAppPageView page={model} routeProps={routeProps} />;
   }
 
-  const { match } = routeProps;
-  const currentPageIsRouteMatch =
-    match.isExact && (match.url === model.state.url || (isFirstTab && match.url === parentUrl));
-
-  if (currentPageIsRouteMatch) {
-    return page;
-  }
+  routes.push(getFallbackRoute(model, routeProps));
 
   return <Switch>{routes}</Switch>;
+}
+
+function getFallbackRoute(page: SceneAppPage, routeProps: RouteComponentProps) {
+  return (
+    <Route
+      key={'fallback route'}
+      render={(props) => {
+        const fallbackPage = getDefaultFallbackPage();
+        return <SceneAppPageView page={fallbackPage} routeProps={routeProps} />;
+      }}
+    ></Route>
+  );
+}
+
+function isCurrentPageRouteMatch(page: SceneAppPage, match: SceneRouteMatch) {
+  if (!match.isExact) {
+    return false;
+  }
+
+  // current page matches the route url
+  if (match.url === page.state.url) {
+    return true;
+  }
+
+  // check if we are a tab and the first tab, then we should also render on the parent url
+  if (
+    page.parent instanceof SceneAppPage &&
+    page.parent.state.tabs![0] === page &&
+    page.parent.state.url === match.url
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function getDefaultFallbackPage() {
+  return new SceneAppPage({
+    url: '',
+    title: 'Not found',
+    subTitle: 'The url did not match any page',
+    getScene: () => {
+      return new EmbeddedScene({
+        body: new SceneFlexLayout({
+          direction: 'column',
+          children: [
+            new SceneFlexItem({
+              flexGrow: 1,
+              body: new SceneReactObject({
+                component: () => {
+                  return (
+                    <div data-testid="default-fallback-content">
+                      If you found your way here using a link then there might be a bug in this application.
+                    </div>
+                  );
+                },
+              }),
+            }),
+          ],
+        }),
+      });
+    },
+  });
 }

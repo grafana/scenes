@@ -4,51 +4,54 @@ import React, { useEffect } from 'react';
 
 import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
-import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneAppPage } from './SceneAppPage';
-import { SceneAppDrilldownView, SceneAppPageLike, SceneRouteMatch } from './types';
+import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getLinkUrlWithAppUrlState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
 
 export interface Props {
   page: SceneAppPageLike;
-  activeTab?: SceneAppPageLike;
+  //   activeTab?: SceneAppPageLike;
   routeProps: RouteComponentProps;
 }
 
-export function SceneAppPageView({ page, activeTab, routeProps }: Props) {
-  const pageState = page.useState();
+export function SceneAppPageView({ page, routeProps }: Props) {
+  const containerPage = getParentPageIfTab(page);
+  const containerState = containerPage.useState();
   const params = useAppQueryParams();
-  const scene = getEmbeddedSceneCached(routeProps.match, page, activeTab);
+  const scene = page.getScene(routeProps.match);
 
-  const { initializedScene } = pageState;
+  const { initializedScene } = containerState;
   const isInitialized = initializedScene === scene;
 
   useEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
     if (!isInitialized && scene) {
-      page.initializeScene(scene);
+      containerPage.initializeScene(scene);
     }
-  }, [isInitialized, scene, page]);
+  }, [isInitialized, scene, containerPage]);
 
   if (!isInitialized) {
     return null;
   }
 
   const pageNav: NavModelItem = {
-    text: pageState.title,
-    subTitle: pageState.subTitle,
-    img: pageState.titleImg,
-    icon: pageState.titleIcon,
-    url: getLinkUrlWithAppUrlState(pageState.url, params, pageState.preserveUrlKeys),
-    hideFromBreadcrumbs: pageState.hideFromBreadcrumbs,
-    parentItem: getParentBreadcrumbs(pageState.getParentPage ? pageState.getParentPage() : page.parent, params),
+    text: containerState.title,
+    subTitle: containerState.subTitle,
+    img: containerState.titleImg,
+    icon: containerState.titleIcon,
+    url: getLinkUrlWithAppUrlState(containerState.url, params, containerState.preserveUrlKeys),
+    hideFromBreadcrumbs: containerState.hideFromBreadcrumbs,
+    parentItem: getParentBreadcrumbs(
+      containerState.getParentPage ? containerState.getParentPage() : page.parent,
+      params
+    ),
   };
 
-  if (pageState.tabs) {
-    pageNav.children = pageState.tabs.map((tab) => {
+  if (containerState.tabs) {
+    pageNav.children = containerState.tabs.map((tab) => {
       return {
         text: tab.state.title,
-        active: activeTab === tab,
+        active: page === tab,
         url: getLinkUrlWithAppUrlState(tab.state.url, params, tab.state.preserveUrlKeys),
         parentItem: pageNav,
       };
@@ -56,8 +59,10 @@ export function SceneAppPageView({ page, activeTab, routeProps }: Props) {
   }
 
   let pageActions: React.ReactNode = undefined;
-  if (pageState.controls) {
-    pageActions = pageState.controls.map((control) => <control.Component model={control} key={control.state.key} />);
+  if (containerState.controls) {
+    pageActions = containerState.controls.map((control) => (
+      <control.Component model={control} key={control.state.key} />
+    ));
   }
 
   return (
@@ -65,6 +70,17 @@ export function SceneAppPageView({ page, activeTab, routeProps }: Props) {
       <scene.Component model={scene} />
     </PluginPage>
   );
+}
+
+/**
+ * For pages that are "tabs" this will return the parent page
+ */
+function getParentPageIfTab(page: SceneAppPageLike) {
+  if (page.parent instanceof SceneAppPage) {
+    return page.parent;
+  }
+
+  return page;
 }
 
 function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryMap): NavModelItem | undefined {
@@ -83,49 +99,6 @@ function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryM
   return undefined;
 }
 
-const sceneCache = new Map<string, EmbeddedScene>();
-
-function getEmbeddedSceneCached(
-  routeMatch: SceneRouteMatch,
-  page: SceneAppPageLike,
-  activeTab: SceneAppPageLike | undefined
-): EmbeddedScene {
-  let scene = sceneCache.get(routeMatch!.url);
-
-  if (scene) {
-    return scene;
-  }
-
-  let pageToShow = activeTab ?? page;
-
-  if (!pageToShow.state.getScene) {
-    throw new Error('Missing getScene on SceneAppPage ' + pageToShow.state.title);
-  }
-
-  scene = pageToShow.state.getScene(routeMatch);
-  sceneCache.set(routeMatch!.url, scene);
-
-  return scene;
-}
-
-const drilldownCache = new Map<string, SceneAppPageLike>();
-
-function getDrilldownPageCached(
-  drilldown: SceneAppDrilldownView,
-  parent: SceneAppPageLike,
-  routeMatch: SceneRouteMatch
-) {
-  let page = drilldownCache.get(routeMatch!.url);
-  if (page) {
-    return page;
-  }
-
-  page = drilldown.getPage(routeMatch, parent);
-  drilldownCache.set(routeMatch!.url, page);
-
-  return page;
-}
-
 export interface SceneAppDrilldownViewRenderProps {
   drilldown: SceneAppDrilldownView;
   parent: SceneAppPageLike;
@@ -133,6 +106,5 @@ export interface SceneAppDrilldownViewRenderProps {
 }
 
 export function SceneAppDrilldownViewRender({ drilldown, parent, routeProps }: SceneAppDrilldownViewRenderProps) {
-  const scene = getDrilldownPageCached(drilldown, parent, routeProps.match);
-  return renderSceneComponentWithRouteProps(scene, routeProps);
+  return renderSceneComponentWithRouteProps(parent.getDrilldownPage(drilldown, routeProps.match), routeProps);
 }
