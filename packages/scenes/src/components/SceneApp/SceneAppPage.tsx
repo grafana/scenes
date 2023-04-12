@@ -22,17 +22,13 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
     super(state);
 
     this.addActivationHandler(() => {
-      return () => {
-        const urlManager = getUrlSyncManager();
-        urlManager.cleanUp(this);
-      };
+      return () => getUrlSyncManager().cleanUp(this);
     });
   }
 
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });
-    const urlManager = getUrlSyncManager();
-    urlManager.initSync(this);
+    getUrlSyncManager().initSync(this);
   }
 
   public getScene(routeMatch: SceneRouteMatch): EmbeddedScene {
