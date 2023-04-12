@@ -20,7 +20,7 @@ export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 
-export { UrlSyncManager } from './services/UrlSyncManager';
+export { type UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';

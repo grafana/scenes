@@ -18,6 +18,17 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   private _sceneCache = new Map<string, EmbeddedScene>();
   private _drilldownCache = new Map<string, SceneAppPageLike>();
 
+  public constructor(state: SceneAppPageState) {
+    super(state);
+
+    this.addActivationHandler(() => {
+      return () => {
+        const urlManager = getUrlSyncManager();
+        urlManager.cleanUp(this);
+      };
+    });
+  }
+
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });
     const urlManager = getUrlSyncManager();

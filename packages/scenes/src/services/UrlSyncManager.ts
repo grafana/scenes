@@ -8,7 +8,12 @@ import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { Unsubscribable } from 'rxjs';
 
-export class UrlSyncManager {
+export interface UrlSyncManager {
+  initSync(root: SceneObject): void;
+  cleanUp(root: SceneObject): void;
+}
+
+export class UrlSyncManagerImpl implements UrlSyncManager {
   private urlKeyMapper = new UniqueUrlKeyMapper();
   private _sceneRoot!: SceneObject;
   private _stateSub: Unsubscribable | null = null;
@@ -24,37 +29,40 @@ export class UrlSyncManager {
     }
 
     if (this._stateSub) {
-      writeSceneLog('UrlSyncManager', 'Unregister to previous scene root', this._sceneRoot.state.key);
+      writeSceneLog('UrlSyncManager', 'Unregister previous scene state subscription', this._sceneRoot.state.key);
       this._stateSub.unsubscribe();
     }
 
     this._sceneRoot = root;
     this._stateSub = root.subscribeToEvent(SceneObjectStateChangedEvent, this._onStateChanged);
 
-    this._sceneRoot.addActivationHandler(() => {
-      return () => {
-        writeSceneLog('UrlSyncManager', 'Current root deactivated');
-
-        if (this._locationSub) {
-          this._locationSub();
-          writeSceneLog('UrlSyncManager', 'Unregister history listen');
-          this._locationSub = null;
-        }
-
-        if (this._stateSub) {
-          this._stateSub.unsubscribe();
-          this._stateSub = null;
-          writeSceneLog(
-            'UrlSyncManager',
-            'Root deactived, unsub to state',
-            'same key',
-            this._sceneRoot.state.key === root.state.key
-          );
-        }
-      };
-    });
-
     this.syncFrom(this._sceneRoot);
+  }
+
+  public cleanUp(root: SceneObject) {
+    // Ignore this if we have a new or differnt root
+    if (this._sceneRoot !== root) {
+      return;
+    }
+
+    writeSceneLog('UrlSyncManager', 'Clean up');
+
+    if (this._locationSub) {
+      this._locationSub();
+      writeSceneLog('UrlSyncManager', 'Unregister history listen');
+      this._locationSub = null;
+    }
+
+    if (this._stateSub) {
+      this._stateSub.unsubscribe();
+      this._stateSub = null;
+      writeSceneLog(
+        'UrlSyncManager',
+        'Root deactived, unsub to state',
+        'same key',
+        this._sceneRoot.state.key === root.state.key
+      );
+    }
   }
 
   public syncFrom(sceneObj: SceneObject) {
@@ -197,7 +205,7 @@ let urlSyncManager: UrlSyncManager | undefined;
 
 export function getUrlSyncManager(): UrlSyncManager {
   if (!urlSyncManager) {
-    urlSyncManager = new UrlSyncManager();
+    urlSyncManager = new UrlSyncManagerImpl();
   }
 
   return urlSyncManager;
