@@ -64,8 +64,8 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManager(scene);
-      urlManager.initSync();
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
 
       deactivate = scene.activate();
 
@@ -92,8 +92,8 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManager(scene);
-      urlManager.initSync();
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
 
       deactivate = scene.activate();
 
@@ -138,8 +138,8 @@ describe('UrlSyncManager', () => {
         $timeRange: outerTimeRange,
       });
 
-      urlManager = new UrlSyncManager(scene);
-      urlManager.initSync();
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
 
       deactivate = scene.activate();
 
@@ -180,8 +180,8 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManager(scene);
-      urlManager.initSync();
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
 
       deactivate = scene.activate();
 
@@ -212,8 +212,8 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManager(scene);
-      urlManager.initSync();
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
 
       deactivate = scene.activate();
 
@@ -236,8 +236,8 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManager(scene);
-      urlManager.initSync();
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
 
       deactivate = scene.activate();
 
@@ -259,8 +259,8 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManager(scene);
-      urlManager.initSync();
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
 
       deactivate = scene.activate();
 
@@ -271,6 +271,62 @@ describe('UrlSyncManager', () => {
       obj.setState({ optional: undefined });
 
       expect(locationService.getSearchObject().optional).toEqual(undefined);
+    });
+  });
+
+  describe('When moving between scene roots', () => {
+    it('Should unsub from previous scene', () => {
+      const obj1 = new TestObj({ name: 'A' });
+      const scene1 = new SceneFlexLayout({
+        children: [obj1],
+      });
+
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene1);
+
+      deactivate = scene1.activate();
+
+      obj1.setState({ name: 'B' });
+
+      // Should update url
+      expect(locationService.getSearchObject().name).toEqual('B');
+
+      const obj2 = new TestObj({ name: 'test' });
+      const scene2 = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj2 })],
+      });
+
+      urlManager.initSync(scene2);
+
+      obj1.setState({ name: 'new name' });
+
+      // Should not update url
+      expect(locationService.getSearchObject().name).toEqual('B');
+    });
+
+    it('cleanUp should unsub from state and history', () => {
+      const obj1 = new TestObj({ name: 'A' });
+      const scene1 = new SceneFlexLayout({
+        children: [obj1],
+      });
+
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene1);
+
+      deactivate = scene1.activate();
+
+      urlManager.cleanUp(scene1);
+
+      obj1.setState({ name: 'B' });
+
+      // Should not update url
+      expect(locationService.getSearchObject().name).toBeUndefined();
+
+      // When updating via url
+      locationService.partial({ name: 'Hello' });
+
+      // Should not update state
+      expect(obj1.state.name).toBe('B');
     });
   });
 });

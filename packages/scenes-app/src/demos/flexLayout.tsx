@@ -19,6 +19,7 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
+        key: 'Flex layout embedded scene',
         body: new SceneFlexLayout({
           direction: 'column',
           children: [

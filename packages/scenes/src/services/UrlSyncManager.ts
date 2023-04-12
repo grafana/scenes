@@ -1,46 +1,83 @@
-import { Location } from 'history';
+import { Location, UnregisterCallback } from 'history';
 import { isEqual } from 'lodash';
 
 import { locationService } from '@grafana/runtime';
 
 import { SceneObjectStateChangedEvent } from '../core/events';
 import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/types';
+import { writeSceneLog } from '../utils/writeSceneLog';
+import { Unsubscribable } from 'rxjs';
 
-export class UrlSyncManager {
+export interface UrlSyncManagerLike {
+  initSync(root: SceneObject): void;
+  cleanUp(root: SceneObject): void;
+}
+
+export class UrlSyncManager implements UrlSyncManagerLike {
   private urlKeyMapper = new UniqueUrlKeyMapper();
-
-  public constructor(private sceneRoot: SceneObject) {}
+  private _sceneRoot!: SceneObject;
+  private _stateSub: Unsubscribable | null = null;
+  private _locationSub?: UnregisterCallback | null = null;
 
   /**
    * Updates the current scene state to match URL state.
    */
-  public initSync() {
-    this.sceneRoot.addActivationHandler(() => {
-      const stateChangeSub = this.sceneRoot.subscribeToEvent(SceneObjectStateChangedEvent, this._onStateChanged);
-      const locationListenerUnsub = locationService.getHistory().listen(this._onLocationUpdate);
+  public initSync(root: SceneObject) {
+    if (!this._locationSub) {
+      writeSceneLog('UrlSyncManager', 'New location listen');
+      this._locationSub = locationService.getHistory().listen(this._onLocationUpdate);
+    }
 
-      return () => {
-        stateChangeSub.unsubscribe();
-        locationListenerUnsub();
-      };
-    });
+    if (this._stateSub) {
+      writeSceneLog('UrlSyncManager', 'Unregister previous scene state subscription', this._sceneRoot.state.key);
+      this._stateSub.unsubscribe();
+    }
 
-    this.syncFrom(this.sceneRoot);
+    this._sceneRoot = root;
+    this._stateSub = root.subscribeToEvent(SceneObjectStateChangedEvent, this._onStateChanged);
+
+    this.syncFrom(this._sceneRoot);
+  }
+
+  public cleanUp(root: SceneObject) {
+    // Ignore this if we have a new or different root
+    if (this._sceneRoot !== root) {
+      return;
+    }
+
+    writeSceneLog('UrlSyncManager', 'Clean up');
+
+    if (this._locationSub) {
+      this._locationSub();
+      writeSceneLog('UrlSyncManager', 'Unregister history listen');
+      this._locationSub = null;
+    }
+
+    if (this._stateSub) {
+      this._stateSub.unsubscribe();
+      this._stateSub = null;
+      writeSceneLog(
+        'UrlSyncManager',
+        'Root deactived, unsub to state',
+        'same key',
+        this._sceneRoot.state.key === root.state.key
+      );
+    }
   }
 
   public syncFrom(sceneObj: SceneObject) {
     const urlParams = locationService.getSearch();
     // The index is always from the root
-    this.urlKeyMapper.rebuldIndex(this.sceneRoot);
+    this.urlKeyMapper.rebuldIndex(this._sceneRoot);
     this._syncSceneStateFromUrl(sceneObj, urlParams);
   }
 
   private _onLocationUpdate = (location: Location) => {
     const urlParams = new URLSearchParams(location.search);
     // Rebuild key mapper index before starting sync
-    this.urlKeyMapper.rebuldIndex(this.sceneRoot);
+    this.urlKeyMapper.rebuldIndex(this._sceneRoot);
     // Sync scene state tree from url
-    this._syncSceneStateFromUrl(this.sceneRoot, urlParams);
+    this._syncSceneStateFromUrl(this._sceneRoot, urlParams);
   };
 
   private _onStateChanged = ({ payload }: SceneObjectStateChangedEvent) => {
@@ -52,7 +89,7 @@ export class UrlSyncManager {
       const searchParams = locationService.getSearch();
       const mappedUpdated: SceneObjectUrlValues = {};
 
-      this.urlKeyMapper.rebuldIndex(this.sceneRoot);
+      this.urlKeyMapper.rebuldIndex(this._sceneRoot);
 
       for (const [key, newUrlValue] of Object.entries(newUrlState)) {
         const uniqueKey = this.urlKeyMapper.getUniqueKey(key, changedObject);
@@ -162,4 +199,14 @@ export function isUrlValueEqual(currentUrlValue: string[], newUrlValue: SceneObj
 
   // We have two arrays, lets compare them
   return isEqual(currentUrlValue, newUrlValue);
+}
+
+let urlSyncManager: UrlSyncManagerLike | undefined;
+
+export function getUrlSyncManager(): UrlSyncManagerLike {
+  if (!urlSyncManager) {
+    urlSyncManager = new UrlSyncManager();
+  }
+
+  return urlSyncManager;
 }

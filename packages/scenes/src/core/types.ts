@@ -102,7 +102,6 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /**
    * Loop through state and call callback for each direct child scene object.
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
-   * If callback returns true the loop will be stop (break).
    */
   forEachChild(callback: (child: SceneObject) => void): void;
 }

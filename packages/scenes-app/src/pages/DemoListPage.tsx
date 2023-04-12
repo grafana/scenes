@@ -21,10 +21,12 @@ const getScene = () => {
     pages: [
       new SceneAppPage({
         title: 'Demos',
+        key: 'SceneAppPage Demos',
         hideFromBreadcrumbs: true,
         url: prefixRoute(ROUTES.Demos),
         getScene: () => {
           return new EmbeddedScene({
+            key: 'Demos EmbeddedScene',
             body: new SceneFlexLayout({
               direction: 'column',
               children: [

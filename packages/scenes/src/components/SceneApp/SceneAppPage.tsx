@@ -2,6 +2,7 @@ import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps } from '../../core/types';
+import { getUrlSyncManager } from '../../services/UrlSyncManager';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneReactObject } from '../SceneReactObject';
@@ -17,9 +18,17 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   private _sceneCache = new Map<string, EmbeddedScene>();
   private _drilldownCache = new Map<string, SceneAppPageLike>();
 
+  public constructor(state: SceneAppPageState) {
+    super(state);
+
+    this.addActivationHandler(() => {
+      return () => getUrlSyncManager().cleanUp(this);
+    });
+  }
+
   public initializeScene(scene: EmbeddedScene) {
-    scene.initUrlSync();
     this.setState({ initializedScene: scene });
+    getUrlSyncManager().initSync(this);
   }
 
   public getScene(routeMatch: SceneRouteMatch): EmbeddedScene {
