@@ -3,6 +3,7 @@ import { getDynamicPageDemo } from './dynamicPage';
 import { getFlexLayoutTest } from './flexLayout';
 import { getGridLayoutTest } from './grid';
 import { getGridWithRowLayoutTest } from './gridWithRow';
+import { getLazyLoadDemo } from './lazyLoad';
 import { getNestedScene } from './nestedScene';
 import { getPanelContextDemoScene } from './panelContext';
 import { getPanelMenuTest } from './panelMenu';
@@ -24,6 +25,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Repeat layout by series', getPage: getPanelRepeaterTest },
     { title: 'Grid layout', getPage: getGridLayoutTest },
     { title: 'Grid with rows', getPage: getGridWithRowLayoutTest },
+    { title: 'Lazy load', getPage: getLazyLoadDemo },
     { title: 'Variables', getPage: getVariablesDemo },
     { title: 'Nested scene', getPage: getNestedScene },
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },

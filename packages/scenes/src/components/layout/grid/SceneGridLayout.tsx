@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactGridLayout from 'react-grid-layout';
-import AutoSizer from 'react-virtualized-auto-sizer';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObject, SceneObjectState } from '../../../core/types';
-import { DEFAULT_PANEL_SPAN, GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
+import { DEFAULT_PANEL_SPAN } from './constants';
+import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement, SceneGridItemStateLike } from './types';
@@ -14,6 +14,7 @@ interface SceneGridLayoutState extends SceneObjectState {
    * Turn on or off dragging for all items. Indiviadual items can still disabled via isDraggable property
    **/
   isDraggable?: boolean;
+  isLazy?: boolean;
   children: SceneGridItemLike[];
 }
 
@@ -313,69 +314,9 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 }
 
-function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
-  const { children } = model.useState();
-  validateChildrenSize(children);
-
-  return (
-    <AutoSizer disableHeight>
-      {({ width }) => {
-        if (width === 0) {
-          return null;
-        }
-
-        const layout = model.buildGridLayout(width);
-
-        return (
-          /**
-           * The children is using a width of 100% so we need to guarantee that it is wrapped
-           * in an element that has the calculated size given by the AutoSizer. The AutoSizer
-           * has a width of 0 and will let its content overflow its div.
-           */
-          <div style={{ width: `${width}px`, height: '100%' }}>
-            <ReactGridLayout
-              width={width}
-              /*
-                  Disable draggable if mobile device, solving an issue with unintentionally
-                  moving panels. https://github.com/grafana/grafana/issues/18497
-                  theme.breakpoints.md = 769
-                */
-              isDraggable={width > 768}
-              isResizable={false}
-              containerPadding={[0, 0]}
-              useCSSTransforms={false}
-              margin={[GRID_CELL_VMARGIN, GRID_CELL_VMARGIN]}
-              cols={GRID_COLUMN_COUNT}
-              rowHeight={GRID_CELL_HEIGHT}
-              draggableHandle={`.grid-drag-handle-${model.state.key}`}
-              draggableCancel=".grid-drag-cancel"
-              // @ts-ignore: ignoring for now until we make the size type numbers-only
-              layout={layout}
-              onDragStop={model.onDragStop}
-              onResizeStop={model.onResizeStop}
-              onLayoutChange={model.onLayoutChange}
-              isBounded={false}
-            >
-              {layout.map((gridItem) => {
-                const sceneChild = model.getSceneLayoutChild(gridItem.i)!;
-                return (
-                  <div key={sceneChild.state.key} style={{ display: 'flex' }}>
-                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
-                  </div>
-                );
-              })}
-            </ReactGridLayout>
-          </div>
-        );
-      }}
-    </AutoSizer>
-  );
-}
-
 interface SceneGridItemState extends SceneGridItemStateLike {
   body: SceneObject | undefined;
 }
-
 export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implements SceneGridItemLike {
   static Component = SceneGridItemRenderer;
 }
@@ -393,20 +334,6 @@ function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
   }
 
   return <body.Component model={body} />;
-}
-
-function validateChildrenSize(children: SceneGridItemLike[]) {
-  if (
-    children.find(
-      (c) =>
-        c.state.height === undefined ||
-        c.state.width === undefined ||
-        c.state.x === undefined ||
-        c.state.y === undefined
-    )
-  ) {
-    throw new Error('All children must have a size specified');
-  }
 }
 
 function isItemSizeEqual(a: SceneGridItemPlacement, b: SceneGridItemPlacement) {
