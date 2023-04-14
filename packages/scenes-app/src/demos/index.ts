@@ -1,4 +1,5 @@
 import { SceneAppPage, SceneAppPageState } from '@grafana/scenes';
+import { getAnnotationsDemo } from './annotations';
 import { getDynamicPageDemo } from './dynamicPage';
 import { getFlexLayoutTest } from './flexLayout';
 import { getGridLayoutTest } from './grid';
@@ -27,6 +28,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Grid with rows', getPage: getGridWithRowLayoutTest },
     { title: 'Lazy load', getPage: getLazyLoadDemo },
     { title: 'Variables', getPage: getVariablesDemo },
+    { title: 'Annotations', getPage: getAnnotationsDemo },
     { title: 'Nested scene', getPage: getNestedScene },
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
     { title: 'Query editor', getPage: getQueryEditorDemo },

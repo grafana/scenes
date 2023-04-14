@@ -188,6 +188,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
       requestId: getNextRequestId(),
+      // TODO pass correct timezone
       timezone: 'browser',
       panelId: 1,
       dashboardId: 1,

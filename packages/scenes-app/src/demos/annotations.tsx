@@ -20,16 +20,15 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
           direction: 'column',
           children: [
             new SceneFlexItem({
-              minWidth: '70%',
               body: new VizPanel({
                 pluginId: 'timeseries',
-                title: 'Dynamic height and width',
+                title: 'Time series',
                 $data: getQueryRunnerWithRandomWalkQuery({}),
               }),
             }),
             new SceneFlexItem({
               body: new VizPanel({
-                title: 'Panel 1',
+                title: 'Time series',
                 pluginId: 'timeseries',
                 $data: getQueryRunnerWithRandomWalkQuery(),
               }),
