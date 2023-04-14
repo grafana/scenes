@@ -24,6 +24,7 @@ import { VariableDependencyConfig } from '../variables/VariableDependencyConfig'
 import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
+import { emptyPanelData } from '../core/SceneDataNode';
 
 let counter = 100;
 
@@ -33,7 +34,6 @@ export function getNextRequestId() {
 
 export interface QueryRunnerState extends SceneObjectState {
   data?: PanelData;
-  dataPreTransforms?: PanelData;
   queries: DataQueryExtended[];
   datasource?: DataSourceRef;
   minInterval?: string;
@@ -178,11 +178,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     // Simple path when no queries exist
     if (!queries?.length) {
-      this.onDataReceived({
-        state: LoadingState.Done,
-        series: [],
-        timeRange,
-      });
+      this._setNoDataState();
+      return;
     }
 
     const request: DataQueryRequest = {
@@ -240,6 +237,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const preProcessedData = preProcessPanelData(data, this.state.data);
     this.setState({ data: preProcessedData });
   };
+
+  private _setNoDataState() {
+    if (this.state.data !== emptyPanelData) {
+      this.setState({ data: emptyPanelData });
+    }
+  }
 }
 
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
