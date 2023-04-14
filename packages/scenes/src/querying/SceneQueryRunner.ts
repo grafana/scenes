@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of } from 'rxjs';
 
-import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef } from '@grafana/schema';
 
 import {
   CoreApp,
