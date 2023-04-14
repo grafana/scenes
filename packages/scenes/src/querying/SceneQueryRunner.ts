@@ -1,24 +1,22 @@
 import { cloneDeep } from 'lodash';
-import { mergeMap, MonoTypeOperatorFunction, Unsubscribable, map, of } from 'rxjs';
+import { Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef } from '@grafana/schema';
 
 import {
   CoreApp,
   DataQueryRequest,
-  DataTransformerConfig,
   PanelData,
   preProcessPanelData,
   rangeUtil,
   ScopedVar,
   TimeRange,
-  transformDataFrame,
 } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { CustomTransformOperator, SceneDataProvider, SceneObject, SceneObjectState } from '../core/types';
+import { SceneDataProvider, SceneObjectState } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -247,30 +245,4 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
-}
-
-export function getTransformationsStream(
-  sceneObject: SceneObject,
-  transformations?: Array<DataTransformerConfig | CustomTransformOperator>,
-  lastResult?: PanelData
-): MonoTypeOperatorFunction<PanelData> {
-  return (inputStream) => {
-    return inputStream.pipe(
-      mergeMap((data) => {
-        const preProcessedData = preProcessPanelData(data, lastResult);
-
-        if (!transformations || transformations.length === 0) {
-          return of(preProcessedData);
-        }
-
-        const ctx = {
-          interpolate: (value: string) => {
-            return sceneGraph.interpolate(sceneObject, value, preProcessedData?.request?.scopedVars);
-          },
-        };
-
-        return transformDataFrame(transformations, data.series, ctx).pipe(map((series) => ({ ...data, series })));
-      })
-    );
-  };
 }
