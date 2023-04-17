@@ -30,6 +30,10 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
 function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexLayout>) {
   const { direction = 'row', children, wrap, isHidden } = model.useState();
 
+  if (isHidden) {
+    return null;
+  }
+
   let style: CSSProperties = {
     display: 'flex',
     flexGrow: 1,
@@ -39,10 +43,6 @@ function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRender
     alignContent: 'baseline',
     minHeight: 0,
   };
-
-  if (isHidden) {
-    return null;
-  }
 
   if (parentDirection) {
     style = {
@@ -94,6 +94,11 @@ export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
 
 function SceneFlexItemRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexItem>) {
   const { body, isHidden } = model.useState();
+
+  if (!body || isHidden) {
+    return null;
+  }
+
   let style: CSSProperties = {};
 
   if (!parentDirection) {
@@ -101,10 +106,6 @@ function SceneFlexItemRenderer({ model, parentDirection }: SceneFlexItemRenderPr
   }
 
   style = getFlexItemItemStyles(parentDirection, model);
-
-  if (!body || isHidden) {
-    return null;
-  }
 
   return (
     <div style={style}>
