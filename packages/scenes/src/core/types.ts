@@ -20,6 +20,7 @@ export interface SceneObjectState {
   $data?: SceneDataProvider;
   $variables?: SceneVariables;
   /**
+   * @experimental
    * Can be used to add extra behaviors to a scene object.
    * These are activated when the their parent scene object is activated.
    */
