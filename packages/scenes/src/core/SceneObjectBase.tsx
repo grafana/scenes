@@ -161,7 +161,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
         if (behavior instanceof SceneObjectBase) {
           this._deactivationHandlers.push(behavior.activate());
         } else if (typeof behavior === 'function') {
-          this._deactivationHandlers.push(behavior(this));
+          const deactivationHandler = behavior(this);
+          if (deactivationHandler) {
+            this._deactivationHandlers.push();
+          }
         }
       }
     }

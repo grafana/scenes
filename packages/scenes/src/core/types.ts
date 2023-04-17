@@ -175,4 +175,4 @@ export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
 }
 
-export type SceneStatelessBehavior = (sceneObject: SceneObject) => CancelActivationHandler;
+export type SceneStatelessBehavior = (sceneObject: SceneObject) => CancelActivationHandler | void;
