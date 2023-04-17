@@ -33,25 +33,44 @@ export interface SceneAppPageState extends SceneObjectState {
   url: string;
   // Use to provide parametrized page URL, i.e. /app/overview/:clusterId
   routePath?: string;
+  /** Shown in the top right inline with the page title */
+  controls?: SceneObject[];
   // Whether or not page should be visible in the breadcrumbs path
   hideFromBreadcrumbs?: boolean;
   // Array of SceneAppPage objects that are used as page tabs displayed on top of the page
   tabs?: SceneAppPageLike[];
   // Function that returns a scene object for the page
-  getScene: (routeMatch: SceneRouteMatch) => EmbeddedScene;
+  getScene?: (routeMatch: SceneRouteMatch) => EmbeddedScene;
   // Array of scenes used for drilldown views
   drilldowns?: SceneAppDrilldownView[];
   // Function that returns a parent page object, used to create breadcrumbs structure
   getParentPage?: () => SceneAppPageLike;
   // Array of query params that will be preserved in breadcrumb and page tab links, i.e. ['from', 'to', 'var-datacenter',...]
   preserveUrlKeys?: string[];
+  /**
+   * The current initialized scene, this is set by the framework after scene url initialization
+   **/
+  initializedScene?: SceneObject;
 }
 
-export type SceneAppPageLike = SceneObject<SceneAppPageState>;
+export interface SceneAppPageLike extends SceneObject<SceneAppPageState> {
+  initializeScene(scene: SceneObject): void;
+  /**
+   * @internal. Please don't call this from plugin code.
+   * Will call the state.getScene function with the current routeMatch and will cache the resulting Scene using the routeMatch.url as key.
+   */
+  getScene(routeMatch: SceneRouteMatch): EmbeddedScene;
+  /**
+   * @internal. Please don't call this from plugin code.
+   * Get drilldown scene. Will call the drilldown.getPage function with the current routeMatch and will cache the resulting page using the routeMatch.url as key.
+   */
+  getDrilldownPage(drilldown: SceneAppDrilldownView, routeMatch: SceneRouteMatch): SceneAppPageLike;
+}
 
 export interface SceneAppDrilldownView {
   // Use to provide parametrized drilldown URL, i.e. /app/clusters/:clusterId
   routePath: string;
+  defaultRoute?: boolean;
   // Function that returns a page object for a given drilldown route match. Use parent to configure drilldown view parent SceneAppPage via getParentPage method.
   getPage: (routeMatch: SceneRouteMatch<any>, parent: SceneAppPageLike) => SceneAppPageLike;
 }

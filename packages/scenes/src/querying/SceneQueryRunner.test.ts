@@ -345,7 +345,9 @@ describe('SceneQueryRunner', () => {
 
       scene.activate();
 
+      await new Promise((r) => setTimeout(r, 1));
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(runRequestMock.mock.calls.length).toBe(0);
     });
 
     it('if datasource not set check queries for datasource', async () => {

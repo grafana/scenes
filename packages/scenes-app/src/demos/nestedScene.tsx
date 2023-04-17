@@ -7,15 +7,14 @@ import {
   SceneFlexItem,
   SceneAppPage,
   EmbeddedScene,
+  SceneAppPageState,
 } from '@grafana/scenes';
-import { demoUrl } from '../utils/utils.routing';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
-export function getNestedScene(): SceneAppPage {
+export function getNestedScene(defaults: SceneAppPageState): SceneAppPage {
   return new SceneAppPage({
-    title: 'Nested scene ',
+    ...defaults,
     subTitle: 'Example of a scene containing a NestedScene component.',
-    url: `${demoUrl('nested-scene')}`,
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

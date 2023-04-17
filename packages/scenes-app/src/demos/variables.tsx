@@ -11,15 +11,14 @@ import {
   SceneCanvasText,
   NestedScene,
   SceneAppPage,
+  SceneAppPageState,
 } from '@grafana/scenes';
-import { demoUrl } from '../utils/utils.routing';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
-export function getVariablesDemo() {
+export function getVariablesDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
-    title: 'Variables demo',
+    ...defaults,
     subTitle: 'Test of variable cascading updates and refresh on time range change',
-    url: `${demoUrl('variables')}`,
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

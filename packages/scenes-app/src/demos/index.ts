@@ -1,8 +1,10 @@
-import { SceneAppPage } from '@grafana/scenes';
+import { SceneAppPage, SceneAppPageState } from '@grafana/scenes';
 import { getBehaviorsDemo } from './behaviors/behaviorsDemo';
+import { getDynamicPageDemo } from './dynamicPage';
 import { getFlexLayoutTest } from './flexLayout';
 import { getGridLayoutTest } from './grid';
 import { getGridWithRowLayoutTest } from './gridWithRow';
+import { getLazyLoadDemo } from './lazyLoad';
 import { getNestedScene } from './nestedScene';
 import { getPanelContextDemoScene } from './panelContext';
 import { getPanelMenuTest } from './panelMenu';
@@ -11,18 +13,25 @@ import { getQueryEditorDemo } from './queryEditor';
 import { getVariablesDemo } from './variables';
 import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
 
-export function getDemos(): SceneAppPage[] {
+export interface DemoDescriptor {
+  title: string;
+  getPage: (defaults: SceneAppPageState) => SceneAppPage;
+}
+
+export function getDemos(): DemoDescriptor[] {
   return [
-    getFlexLayoutTest(),
-    getPanelMenuTest(),
-    getPanelContextDemoScene(),
-    getPanelRepeaterTest(),
-    getGridLayoutTest(),
-    getGridWithRowLayoutTest(),
-    getVariablesDemo(),
-    getNestedScene(),
-    getDrilldownsAppPageScene(),
-    getQueryEditorDemo(),
-    getBehaviorsDemo(),
+    { title: 'Flex layout', getPage: getFlexLayoutTest },
+    { title: 'Panel menu', getPage: getPanelMenuTest },
+    { title: 'Panel context', getPage: getPanelContextDemoScene },
+    { title: 'Repeat layout by series', getPage: getPanelRepeaterTest },
+    { title: 'Grid layout', getPage: getGridLayoutTest },
+    { title: 'Grid with rows', getPage: getGridWithRowLayoutTest },
+    { title: 'Lazy load', getPage: getLazyLoadDemo },
+    { title: 'Variables', getPage: getVariablesDemo },
+    { title: 'Nested scene', getPage: getNestedScene },
+    { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
+    { title: 'Query editor', getPage: getQueryEditorDemo },
+    { title: 'Dynamic page', getPage: getDynamicPageDemo },
+    { title: 'Behaviors demo', getPage: getBehaviorsDemo },
   ];
 }

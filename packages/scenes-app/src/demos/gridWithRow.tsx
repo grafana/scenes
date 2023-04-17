@@ -1,12 +1,18 @@
-import { VizPanel, SceneGridLayout, SceneGridRow, SceneGridItem, SceneAppPage, EmbeddedScene } from '@grafana/scenes';
-import { demoUrl } from '../utils/utils.routing';
+import {
+  VizPanel,
+  SceneGridLayout,
+  SceneGridRow,
+  SceneGridItem,
+  SceneAppPage,
+  EmbeddedScene,
+  SceneAppPageState,
+} from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
-export function getGridWithRowLayoutTest(): SceneAppPage {
+export function getGridWithRowLayoutTest(defaults: SceneAppPageState): SceneAppPage {
   return new SceneAppPage({
-    title: 'Grid with rows',
+    ...defaults,
     subTitle: 'SceneGridLayout demo with collapsible rows',
-    url: `${demoUrl('grid-layout-with-rows')}`,
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

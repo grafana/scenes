@@ -5,13 +5,12 @@ import {
   SceneFlexLayout,
   SceneFlexItem,
   SceneReactObject,
-  SceneAppPageLike,
 } from '@grafana/scenes';
 import { Stack } from '@grafana/experimental';
 import React, { useMemo } from 'react';
-import { prefixRoute } from '../utils/utils.routing';
+import { demoUrl, prefixRoute } from '../utils/utils.routing';
 import { DATASOURCE_REF, ROUTES } from '../constants';
-import { getDemos } from '../demos';
+import { DemoDescriptor, getDemos } from '../demos';
 import { Alert, Card } from '@grafana/ui';
 import { config } from '@grafana/runtime';
 
@@ -21,10 +20,13 @@ const getScene = () => {
   return new SceneApp({
     pages: [
       new SceneAppPage({
-        title: 'Scene demos',
+        title: 'Demos',
+        key: 'SceneAppPage Demos',
+        hideFromBreadcrumbs: true,
         url: prefixRoute(ROUTES.Demos),
         getScene: () => {
           return new EmbeddedScene({
+            key: 'Demos EmbeddedScene',
             body: new SceneFlexLayout({
               direction: 'column',
               children: [
@@ -38,14 +40,25 @@ const getScene = () => {
             }),
           });
         },
-        drilldowns: demos.map((demo) => ({
-          routePath: demo.state.url,
-          getPage: (routeMatch, parent: SceneAppPageLike) => {
-            demo.setState({ getParentPage: () => parent });
+        drilldowns: [
+          {
+            routePath: `${demoUrl(':demo')}`,
+            getPage: (routeMatch, parent) => {
+              const demoSlug = decodeURIComponent(routeMatch.params.demo);
+              const demoInfo = demos.find((x) => slugify(x.title) === demoSlug);
 
-            return demo;
+              if (!demoInfo) {
+                return getDemoNotFoundPage(routeMatch.url);
+              }
+
+              return demoInfo.getPage({
+                title: demoInfo.title,
+                url: `${demoUrl(slugify(demoInfo.title))}`,
+                getParentPage: () => parent,
+              });
+            },
           },
-        })),
+        ],
       }),
     ],
   });
@@ -56,7 +69,7 @@ export const DemoListPage = () => {
   return <scene.Component model={scene} />;
 };
 
-function DemosList({ demos }: { demos: SceneAppPage[] }) {
+function DemosList({ demos }: { demos: DemoDescriptor[] }) {
   if (!config.featureToggles.topnav) {
     return (
       <Alert title="Missing topnav feature toggle">
@@ -81,11 +94,49 @@ function DemosList({ demos }: { demos: SceneAppPage[] }) {
     <Stack direction="column" gap={1} flexGrow={1}>
       <Stack direction="column" gap={0}>
         {demos.map((demo) => (
-          <Card key={demo.state.title} href={demo.state.url}>
-            <Card.Heading>{demo.state.title}</Card.Heading>
+          <Card key={demo.title} href={demoUrl(slugify(demo.title))}>
+            <Card.Heading>{demo.title}</Card.Heading>
           </Card>
         ))}
       </Stack>
     </Stack>
   );
+}
+
+function slugify(title: string) {
+  const simplified = title
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, '');
+
+  return encodeURIComponent(simplified);
+}
+
+export function getDemoNotFoundPage(url: string): SceneAppPage {
+  return new SceneAppPage({
+    title: 'Demo not found',
+    subTitle: 'So sorry sir but the demo cannot be found.',
+    url: url,
+    getScene: () => {
+      return new EmbeddedScene({
+        body: new SceneFlexLayout({
+          direction: 'column',
+          children: [
+            new SceneFlexItem({
+              flexGrow: 1,
+              body: new SceneReactObject({
+                component: () => {
+                  return <div style={{ fontSize: 50 }}>😭</div>;
+                },
+              }),
+            }),
+          ],
+        }),
+      });
+    },
+  });
 }

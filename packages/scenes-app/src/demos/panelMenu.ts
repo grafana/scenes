@@ -1,8 +1,15 @@
-import { EmbeddedScene, SceneAppPage, SceneFlexItem, SceneFlexLayout, VizPanel, VizPanelMenu } from '@grafana/scenes';
-import { demoUrl } from '../utils/utils.routing';
+import {
+  EmbeddedScene,
+  SceneAppPage,
+  SceneAppPageState,
+  SceneFlexItem,
+  SceneFlexLayout,
+  VizPanel,
+  VizPanelMenu,
+} from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
-export function getPanelMenuTest(): SceneAppPage {
+export function getPanelMenuTest(defaults: SceneAppPageState): SceneAppPage {
   const data = getQueryRunnerWithRandomWalkQuery();
   const menuItems = [
     {
@@ -90,9 +97,8 @@ export function getPanelMenuTest(): SceneAppPage {
   });
 
   return new SceneAppPage({
-    title: 'Panel menu demo',
+    ...defaults,
     subTitle: 'Different ways to use panel menu',
-    url: `${demoUrl('panel-menui')}`,
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

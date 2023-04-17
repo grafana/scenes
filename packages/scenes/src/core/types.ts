@@ -26,10 +26,6 @@ export interface SceneObjectState {
   $behaviors?: Array<SceneObject | SceneStatelessBehavior>;
 }
 
-export interface SceneLayoutItemState extends SceneObjectState {
-  body: SceneObject | undefined;
-}
-
 export interface SceneLayoutChildOptions {
   width?: number | string;
   height?: number | string;

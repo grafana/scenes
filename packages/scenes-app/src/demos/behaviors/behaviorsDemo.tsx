@@ -1,6 +1,7 @@
 import {
   EmbeddedScene,
   SceneAppPage,
+  SceneAppPageState,
   SceneControlsSpacer,
   SceneFlexItem,
   SceneFlexLayout,
@@ -13,17 +14,15 @@ import {
 } from '@grafana/scenes';
 import { SceneRadioToggle } from '../../components/SceneRadioToggle';
 import { DATASOURCE_REF } from '../../constants';
-import { demoUrl } from '../../utils/utils.routing';
 import { getQueryRunnerWithRandomWalkQuery, newTimeSeriesPanel } from '../utils';
 import { HiddenForTimeRangeBehavior } from './HiddenForTimeRangeBehavior';
 import { HiddenWhenNoDataBehavior } from './HiddenWhenNoDataBehavior';
 import { ShowBasedOnConditionBehavior } from './ShowBasedOnConditionBehavior';
 
-export function getBehaviorsDemo() {
+export function getBehaviorsDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
-    title: 'Behaviors',
+    ...defaults,
     subTitle: 'Behaviors can augments any scene object with new runtime behaviors and state logic',
-    url: `${demoUrl('behaviors')}`,
     getScene: () => {
       const queryRunner = getQueryRunnerWithRandomWalkQuery({
         seriesCount: 2,
