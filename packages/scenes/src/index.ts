@@ -7,6 +7,7 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
+export { AnnotationsQueryRunner } from './querying/AnnotationsQueryRunner';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';

@@ -1,8 +1,6 @@
 import { mergeMap, Unsubscribable, map, from, merge, ReplaySubject, mergeAll, reduce, Observable } from 'rxjs';
 
-import { AnnotationQuery, DataQuery, DataSourceRef } from '@grafana/schema';
-
-import { TimeRange } from '@grafana/data';
+import { AnnotationQuery, PanelData, TimeRange } from '@grafana/data';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -19,7 +17,7 @@ export function getNextRequestId() {
 
 export interface AnnotationsQueryRunnerState extends SceneObjectState {
   queries: AnnotationQuery[];
-  data?: any;
+  data?: PanelData;
 }
 
 export class AnnotationsQueryRunner extends SceneObjectBase<AnnotationsQueryRunnerState> implements SceneDataProvider {
@@ -110,11 +108,7 @@ export class AnnotationsQueryRunner extends SceneObjectBase<AnnotationsQueryRunn
       });
   }
 
-  public getAnnotationsStream(): Observable<AnnotationQueryResult> {
+  public getResultStream(): Observable<AnnotationQueryResult> {
     return this._results;
   }
-}
-
-export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
-  return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }

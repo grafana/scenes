@@ -1,5 +1,12 @@
-import { AlertStateInfo, AnnotationEvent, PanelData, PanelModel, TimeRange } from '@grafana/data';
-import { Dashboard } from '@grafana/schema';
+import { AlertStateInfo, AnnotationEvent, PanelData, TimeRange } from '@grafana/data';
+
+/**
+ * Filtered by panel id result
+ */
+export interface DashboardQueryRunnerResult {
+  annotations: AnnotationEvent[];
+  alertState?: AlertStateInfo;
+}
 
 export interface AnnotationQueryResult {
   annotations: AnnotationEvent[];
@@ -7,8 +14,8 @@ export interface AnnotationQueryResult {
 }
 
 export interface AnnotationQueryOptions {
-  dashboard: Dashboard;
-  panel: PanelModel;
+  //dashboard: Dashboard;
+  //panel: PanelModel;
   range: TimeRange;
 }
 

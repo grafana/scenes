@@ -3,7 +3,7 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { DataSourceRef } from '@grafana/schema';
 
 export async function getDataSource(
-  datasource: DataSourceRef | undefined,
+  datasource: DataSourceRef | undefined | null,
   scopedVars: ScopedVars
 ): Promise<DataSourceApi> {
   if (datasource && (datasource as any).query) {

@@ -1,9 +1,10 @@
 import { cloneDeep } from 'lodash';
-import { Unsubscribable } from 'rxjs';
+import { combineLatest, Observable, Unsubscribable, mergeMap, of } from 'rxjs';
 
 import { DataQuery, DataSourceRef } from '@grafana/schema';
 
 import {
+  ArrayDataFrame,
   CoreApp,
   DataQueryRequest,
   PanelData,
@@ -23,6 +24,8 @@ import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
+import { AnnotationsQueryRunner } from './AnnotationsQueryRunner';
+import { AnnotationQueryResult } from './types';
 
 let counter = 100;
 
@@ -39,6 +42,10 @@ export interface QueryRunnerState extends SceneObjectState {
   // Non persisted state
   maxDataPointsFromWidth?: boolean;
   isWaitingForVariables?: boolean;
+  /**
+   * Scene object key for SceneDataProvider
+   */
+  annotationsProviderKey?: string;
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -222,14 +229,34 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       request.interval = norm.interval;
       request.intervalMs = norm.intervalMs;
 
-      const runRequest = getRunRequest();
-
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
-      this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+      this._subscribeToRequest(getRunRequest()(ds, request));
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
     }
+  }
+
+  private _subscribeToRequest(localStream: Observable<PanelData>) {
+    let dataStream = localStream;
+
+    if (this.state.annotationsProviderKey) {
+      const annotationsQueryRunner = sceneGraph.findObject(
+        this,
+        (x) => x.state.key === this.state.annotationsProviderKey
+      );
+      if (!annotationsQueryRunner) {
+        throw new Error('Annotations provider could not be found');
+      }
+
+      if (annotationsQueryRunner instanceof AnnotationsQueryRunner) {
+        dataStream = this._mergeWithOuterAnnotationsSource(localStream, annotationsQueryRunner.getResultStream());
+      } else {
+        throw new Error('Annotations provider not of type AnnotationsQueryRunner');
+      }
+    }
+
+    this._querySub = dataStream.subscribe(this.onDataReceived);
   }
 
   private onDataReceived = (data: PanelData) => {
@@ -241,6 +268,33 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (this.state.data !== emptyPanelData) {
       this.setState({ data: emptyPanelData });
     }
+  }
+
+  private _mergeWithOuterAnnotationsSource(
+    localData: Observable<PanelData>,
+    annotationsSource: Observable<AnnotationQueryResult>
+  ): Observable<PanelData> {
+    return combineLatest([localData, annotationsSource]).pipe(
+      mergeMap((combined) => {
+        const [panelData, dashData] = combined;
+
+        if (Boolean(dashData.annotations?.length) || Boolean(dashData.alertStates)) {
+          // Todo filter by panelId?
+          // const filteredAnnotations = getAnnotationsByPanelId(dashData.annotations, panelId);
+          // const alertState = result.alertStates.find((res) => Boolean(panelId) && res.panelId === panelId);
+
+          if (!panelData.annotations) {
+            panelData.annotations = [];
+          }
+
+          const annotations = panelData.annotations.concat(new ArrayDataFrame(dashData.annotations));
+          //const alertState = dashData.alertStates;
+          return of({ ...panelData, annotations });
+        }
+
+        return of(panelData);
+      })
+    );
   }
 }
 

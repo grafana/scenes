@@ -1,12 +1,19 @@
-import { Observable, of } from 'rxjs';
+import { from, Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 
-import { CoreApp, DataQueryRequest, DataSourceApi, rangeUtil, ScopedVars, TimeRange } from '@grafana/data';
+import {
+  AnnotationQuery,
+  CoreApp,
+  DataQueryRequest,
+  DataSourceApi,
+  rangeUtil,
+  ScopedVars,
+  TimeRange,
+} from '@grafana/data';
 
-import { standardAnnotationSupport } from './standardAnnotationSupport';
+import { shouldUseLegacyRunner, standardAnnotationSupport } from './standardAnnotationSupport';
 import { AnnotationQueryResponse } from './types';
 import { getRunRequest } from '@grafana/runtime';
-import { AnnotationQuery } from '@grafana/schema';
 
 let counter = 100;
 function getNextRequestId() {
@@ -18,6 +25,18 @@ export function executeAnnotationQuery(
   timeRange: TimeRange,
   annotationQuery: AnnotationQuery
 ): Observable<AnnotationQueryResponse> {
+  // Check if we should use the old annotationQuery method
+  if (datasource.annotationQuery && shouldUseLegacyRunner(datasource)) {
+    return from(
+      datasource.annotationQuery({
+        range: timeRange,
+        rangeRaw: timeRange.raw,
+        annotation: annotationQuery,
+        dashboard: {},
+      })
+    ).pipe(map((annotationEvents) => ({ events: annotationEvents })));
+  }
+
   const processor = {
     ...standardAnnotationSupport,
     ...datasource.annotations,

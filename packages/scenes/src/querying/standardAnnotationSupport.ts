@@ -275,5 +275,5 @@ export function shouldUseMappingUI(datasource: DataSourceApi): boolean {
  */
 export function shouldUseLegacyRunner(datasource: DataSourceApi): boolean {
   const { type } = datasource;
-  return legacyRunner.includes(type);
+  return !datasource.annotations || legacyRunner.includes(type);
 }
