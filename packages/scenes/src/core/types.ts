@@ -25,6 +25,13 @@ export interface SceneObjectState {
    * These are activated when the their parent scene object is activated.
    */
   $behaviors?: Array<SceneObject | SceneStatelessBehavior>;
+  /**
+   * Set to true to disable rendering of the SceneComponent assoicated with this object.
+   * This makes it possible to have active but visually hidden SceneObjects. This property is
+   * used in the SceneComponentWrapper so SceneObjects should very rarely need to check this property, except some edge cases where
+   * the parent layout needs to know what children are hidden. Does currently not work with SceneGridLayout.
+   */
+  $hidden?: boolean;
 }
 
 export interface SceneLayoutChildOptions {

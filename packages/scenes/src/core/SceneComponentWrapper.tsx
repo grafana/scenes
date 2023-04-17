@@ -5,6 +5,7 @@ import { SceneComponentProps, SceneObject } from './types';
 function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...otherProps }: SceneComponentProps<T>) {
   const Component = (model as any).constructor['Component'] ?? EmptyRenderer;
   const [activated, setActivated] = React.useState(false);
+  const { $hidden } = model.useState();
 
   useEffect(() => {
     setActivated(true);
@@ -14,7 +15,7 @@ function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...oth
   // By not rendering the component until the model is actiavted we make sure that parent models get activated before child models
   // Otherwise child models would be activated before parents as that is the order of React mount effects.
   // This also enables static logic to happen inside activate that can change state before the first render.
-  if (!activated) {
+  if (!activated || $hidden) {
     return null;
   }
 

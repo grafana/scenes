@@ -72,11 +72,6 @@ interface SceneFlexItemPlacement {
   maxHeight?: CSSProperties['maxHeight'];
   xSizing?: 'fill' | 'content';
   ySizing?: 'fill' | 'content';
-  /**
-   * True when the item should rendered but not visible.
-   * Useful for conditional display of layout items
-   */
-  isHidden?: boolean;
 }
 
 interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {

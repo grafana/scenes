@@ -45,6 +45,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     return <div>Failed to load plugin: {pluginLoadError}</div>;
   }
 
+  console.log('VizPanelRenderer');
+
   if (!plugin || !plugin.hasPluginId(pluginId)) {
     return <div>Loading plugin panel...</div>;
   }
