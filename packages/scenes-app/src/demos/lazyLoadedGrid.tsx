@@ -8,7 +8,7 @@ import {
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
-export function getLazyLoadDemo(defaults: SceneAppPageState) {
+export function getLazyGridDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
     subTitle: 'Showcasing lazy rendering and query execution of panels that are outside viewport',
@@ -34,6 +34,7 @@ export function getLazyLoadDemo(defaults: SceneAppPageState) {
                 }),
               })
           ),
+          isLazy: true,
         }),
       });
     },
