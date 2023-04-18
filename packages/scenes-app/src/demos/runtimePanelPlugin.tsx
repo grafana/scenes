@@ -1,20 +1,17 @@
 import { PanelPlugin, PanelProps } from '@grafana/data';
 import {
   SceneFlexLayout,
-  SceneTimeRange,
-  SceneTimePicker,
   SceneFlexItem,
   EmbeddedScene,
   VizPanel,
-  SceneRefreshPicker,
   SceneAppPageState,
   SceneAppPage,
   registerRuntimePanelPlugin,
 } from '@grafana/scenes';
 import React from 'react';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
-export function getCustomPanelPluginScene(defaults: SceneAppPageState): SceneAppPage {
+export function getRuntimePanelPluginDemo(defaults: SceneAppPageState): SceneAppPage {
   registerRuntimePanelPlugin({ pluginId: 'custom-viz-panel', plugin: getCustomVizPlugin() });
 
   return new SceneAppPage({
@@ -23,25 +20,22 @@ export function getCustomPanelPluginScene(defaults: SceneAppPageState): SceneApp
     getScene: () => {
       return new EmbeddedScene({
         body: new SceneFlexLayout({
+          ...getEmbeddedSceneDefaults(),
           direction: 'column',
-          $data: getQueryRunnerWithRandomWalkQuery(),
           children: [
             new SceneFlexItem({
               body: new VizPanel({
                 title: 'Custom visualization panel plugin',
                 pluginId: 'custom-viz-panel',
+                $data: getQueryRunnerWithRandomWalkQuery(),
                 fieldConfig: {
-                  defaults: {
-                    displayName: '${__field.labels.cluster}',
-                  },
+                  defaults: {},
                   overrides: [],
                 },
               }),
             }),
           ],
         }),
-        $timeRange: new SceneTimeRange(),
-        controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
       });
     },
   });

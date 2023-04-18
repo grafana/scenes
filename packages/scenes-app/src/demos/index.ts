@@ -1,5 +1,5 @@
 import { SceneAppPage, SceneAppPageState } from '@grafana/scenes';
-import { getCustomPanelPluginScene } from './customPanelPlugin';
+import { getRuntimePanelPluginDemo } from './runtimePanelPlugin';
 import { getDynamicPageDemo } from './dynamicPage';
 import { getFlexLayoutTest } from './flexLayout';
 import { getGridLayoutTest } from './grid';
@@ -32,6 +32,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
     { title: 'Query editor', getPage: getQueryEditorDemo },
     { title: 'Dynamic page', getPage: getDynamicPageDemo },
-    { title: 'Custom visualization panel plugin', getPage: getCustomPanelPluginScene },
+    { title: 'Runtime panel plugin', getPage: getRuntimePanelPluginDemo },
   ];
 }
