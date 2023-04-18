@@ -32,8 +32,12 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
 }
 
 function SceneFlexLayoutRenderer({ model, parentDirection, isLazy: parentIsLazy }: SceneFlexItemRenderProps<SceneFlexLayout>) {
-  const { direction = 'row', children, wrap, isLazy: isLazy_ } = model.useState();
+  const { direction = 'row', children, wrap, isHidden, isLazy: isLazy_ } = model.useState();
   const isLazy = isLazy_ || parentIsLazy;
+
+  if (isHidden) {
+    return null;
+  }
 
   let style: CSSProperties = {
     display: 'flex',
@@ -62,7 +66,7 @@ function SceneFlexLayoutRenderer({ model, parentDirection, isLazy: parentIsLazy 
   );
 }
 
-interface SceneFlexItemPlacement {
+export interface SceneFlexItemPlacement {
   flexGrow?: CSSProperties['flexGrow'];
   alignSelf?: CSSProperties['alignSelf'];
   width?: CSSProperties['width'];
@@ -73,10 +77,16 @@ interface SceneFlexItemPlacement {
   maxHeight?: CSSProperties['maxHeight'];
   xSizing?: 'fill' | 'content';
   ySizing?: 'fill' | 'content';
+  /**
+   * True when the item should rendered but not visible.
+   * Useful for conditional display of layout items
+   */
+  isHidden?: boolean;
 }
 
 interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
   body: SceneObject | undefined;
+  isHidden?: boolean;
 }
 
 interface SceneFlexItemRenderProps<T> extends SceneComponentProps<T> {
@@ -89,7 +99,12 @@ export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
 }
 
 function SceneFlexItemRenderer({ model, parentDirection, isLazy }: SceneFlexItemRenderProps<SceneFlexItem>) {
-  const { body } = model.useState();
+  const { body, isHidden } = model.useState();
+
+  if (!body || isHidden) {
+    return null;
+  }
+
   let style: CSSProperties = {};
 
   if (!parentDirection) {
@@ -98,9 +113,6 @@ function SceneFlexItemRenderer({ model, parentDirection, isLazy }: SceneFlexItem
 
   style = getFlexItemItemStyles(parentDirection, model);
   const LazyWrapper = isLazy ? LazyLoader : ({ style, children }: Props) => <div style={style}>{children}</div>;
-  if (!body) {
-    return null;
-  }
 
   return (
     <LazyWrapper style={style}>

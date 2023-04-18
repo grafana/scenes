@@ -1,4 +1,5 @@
 import { SceneAppPage, SceneAppPageState } from '@grafana/scenes';
+import { getBehaviorsDemo } from './behaviors/behaviorsDemo';
 import { getDynamicPageDemo } from './dynamicPage';
 import { getFlexLayoutTest } from './flexLayout';
 import { getGridLayoutTest } from './grid';
@@ -33,5 +34,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
     { title: 'Query editor', getPage: getQueryEditorDemo },
     { title: 'Dynamic page', getPage: getDynamicPageDemo },
+    { title: 'Behaviors demo', getPage: getBehaviorsDemo },
   ];
 }
