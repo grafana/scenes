@@ -1,4 +1,4 @@
-import { SceneFlexItem, SceneObject, SceneObjectBase, SceneObjectState } from '@grafana/scenes';
+import { SceneFlexItem, SceneFlexLayout, SceneObject, SceneObjectBase, SceneObjectState } from '@grafana/scenes';
 
 /**
  * Just a proof of concept example of a behavior
@@ -27,8 +27,8 @@ export class HiddenLayoutItemBehavior<
   }
 }
 
-function getClosestLayoutItem(obj: SceneObject): SceneFlexItem {
-  if (obj instanceof SceneFlexItem) {
+function getClosestLayoutItem(obj: SceneObject): SceneFlexItem | SceneFlexLayout {
+  if (obj instanceof SceneFlexItem || obj instanceof SceneFlexLayout) {
     return obj;
   }
 

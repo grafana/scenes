@@ -61,7 +61,7 @@ function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRender
   );
 }
 
-interface SceneFlexItemPlacement {
+export interface SceneFlexItemPlacement {
   flexGrow?: CSSProperties['flexGrow'];
   alignSelf?: CSSProperties['alignSelf'];
   width?: CSSProperties['width'];
