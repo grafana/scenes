@@ -16,7 +16,7 @@ export function getRuntimePanelPluginDemo(defaults: SceneAppPageState): SceneApp
 
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Demo of the SceneGridLayout',
+    subTitle: 'Demo of a runtime registered panel plugin',
     getScene: () => {
       return new EmbeddedScene({
         body: new SceneFlexLayout({
