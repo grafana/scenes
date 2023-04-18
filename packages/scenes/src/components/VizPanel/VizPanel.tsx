@@ -27,10 +27,15 @@ import { VariableCustomFormatterFn } from '../../variables/types';
 import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';
 import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
+import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   title: string;
   description?: string;
+  /**
+   * This is usually a plugin id that references a core plugin or an external plugin. But this can also reference a
+   * runtime registered PanelPlugin registered via function registerScenePanelPlugin.
+   */
   pluginId: string;
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
@@ -91,18 +96,19 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
 
   private _onActivate() {
     if (!this._plugin) {
-      this._loadPlugin();
+      this._loadPlugin(this.state.pluginId);
     }
   }
 
-  private _loadPlugin() {
-    const { getPanelPluginFromCache, importPanelPlugin } = getPluginImportUtils();
-    const plugin = getPanelPluginFromCache(this.state.pluginId);
+  private _loadPlugin(pluginId: string) {
+    const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
       this._pluginLoaded(plugin);
     } else {
-      importPanelPlugin(this.state.pluginId)
+      const { importPanelPlugin } = getPluginImportUtils();
+
+      importPanelPlugin(pluginId)
         .then((result) => this._pluginLoaded(result))
         .catch((err: Error) => {
           this.setState({ pluginLoadError: err.message });
@@ -111,9 +117,17 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   }
 
   private _pluginLoaded(plugin: PanelPlugin) {
-    const { options, fieldConfig, title, pluginId, pluginVersion } = this.state;
+    const { options, fieldConfig, title, pluginVersion } = this.state;
 
-    const panel: PanelModel = { title, options, fieldConfig, id: 1, type: pluginId, pluginVersion: pluginVersion };
+    const panel: PanelModel = {
+      title,
+      options,
+      fieldConfig,
+      id: 1,
+      type: plugin.meta.id,
+      pluginVersion: pluginVersion,
+    };
+
     const currentVersion = this._getPluginVersion(plugin);
 
     if (plugin.onPanelMigration) {

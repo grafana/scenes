@@ -11,19 +11,8 @@ import { SceneComponentProps } from '../../core/types';
 import { VizPanel } from './VizPanel';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
-  const {
-    title,
-    description,
-    options,
-    fieldConfig,
-    pluginId,
-    pluginLoadError,
-    $data,
-    displayMode,
-    hoverHeader,
-    menu,
-    ...state
-  } = model.useState();
+  const { title, description, options, fieldConfig, pluginLoadError, $data, displayMode, hoverHeader, menu, ...state } =
+    model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
   const parentLayout = sceneGraph.getLayout(model);
@@ -45,7 +34,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     return <div>Failed to load plugin: {pluginLoadError}</div>;
   }
 
-  if (!plugin || !plugin.hasPluginId(pluginId)) {
+  if (!plugin) {
     return <div>Loading plugin panel...</div>;
   }
 
