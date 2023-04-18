@@ -295,6 +295,18 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
         return formatQueryParameter(variable.state.name, value);
       },
     },
+    {
+      id: VariableFormatID.UriEncode,
+      name: 'Percent encode as URI',
+      description: 'Useful for URL escaping values, taking into URI syntax characters',
+      formatter: (value: VariableValue) => {
+        if (isArray(value)) {
+          return encodeURIStrict('{' + value.join(',') + '}');
+        }
+
+        return encodeURIStrict(value);
+      },
+    },
   ];
 
   return formats;
@@ -318,10 +330,15 @@ function encodeURIComponentStrict(str: VariableValueSingle) {
     str = String(str);
   }
 
-  return encodeURIComponent(str).replace(/[!'()*]/g, (c) => {
-    return '%' + c.charCodeAt(0).toString(16).toUpperCase();
-  });
+  return replaceSpecialCharactersToASCII(encodeURIComponent(str));
 }
+
+const encodeURIStrict = (str: VariableValueSingle): string =>
+  replaceSpecialCharactersToASCII(encodeURI(String(str)));
+
+const replaceSpecialCharactersToASCII = (value: string): string => value.replace(/[!'()*]/g, (c) => {
+  return '%' + c.charCodeAt(0).toString(16).toUpperCase();
+});
 
 function formatQueryParameter(name: string, value: VariableValueSingle): string {
   return `var-${name}=${encodeURIComponentStrict(value)}`;
