@@ -1,4 +1,5 @@
 import { SceneAppPage, SceneAppPageState } from '@grafana/scenes';
+import { getRuntimePanelPluginDemo } from './runtimePanelPlugin';
 import { getBehaviorsDemo } from './behaviors/behaviorsDemo';
 import { getDynamicPageDemo } from './dynamicPage';
 import { getFlexLayoutTest } from './flexLayout';
@@ -32,6 +33,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
     { title: 'Query editor', getPage: getQueryEditorDemo },
     { title: 'Dynamic page', getPage: getDynamicPageDemo },
+    { title: 'Runtime panel plugin', getPage: getRuntimePanelPluginDemo },
     { title: 'Behaviors demo', getPage: getBehaviorsDemo },
   ];
 }
