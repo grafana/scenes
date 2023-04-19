@@ -2,15 +2,19 @@ import React, { ComponentType, CSSProperties } from 'react';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../core/types';
+import { LazyLoader, Props } from './grid/LazyLoader';
 
 export interface SceneFlexItemStateLike extends SceneFlexItemPlacement, SceneObjectState {}
 
-export interface SceneFlexItemLike extends SceneObject<SceneFlexItemStateLike> {}
+export interface SceneFlexItemLike extends SceneObject<SceneFlexItemStateLike> {
+  isLazy?: boolean;
+}
 
 interface SceneFlexLayoutState extends SceneObjectState, SceneFlexItemPlacement {
   direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
   children: SceneFlexItemLike[];
+  isLazy?: boolean;
 }
 
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
@@ -27,8 +31,9 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
   }
 }
 
-function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexLayout>) {
-  const { direction = 'row', children, wrap, isHidden } = model.useState();
+function SceneFlexLayoutRenderer({ model, parentDirection, isLazy: parentIsLazy }: SceneFlexItemRenderProps<SceneFlexLayout>) {
+  const { direction = 'row', children, wrap, isHidden, isLazy: isLazy_ } = model.useState();
+  const isLazy = isLazy_ || parentIsLazy;
 
   if (isHidden) {
     return null;
@@ -52,12 +57,12 @@ function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRender
   }
 
   return (
-    <div style={style}>
-      {children.map((item) => {
-        const Component = item.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
-        return <Component key={item.state.key} model={item} parentDirection={direction} />;
-      })}
-    </div>
+      <div style={style}>
+        {children.map((item) => {
+          const Component = item.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
+          return <Component key={item.state.key} model={item} parentDirection={direction} isLazy={isLazy} />;
+        })}
+      </div>
   );
 }
 
@@ -86,13 +91,14 @@ interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
 
 interface SceneFlexItemRenderProps<T> extends SceneComponentProps<T> {
   parentDirection?: CSSProperties['flexDirection'];
+  isLazy?: boolean;
 }
 
 export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
   public static Component = SceneFlexItemRenderer;
 }
 
-function SceneFlexItemRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexItem>) {
+function SceneFlexItemRenderer({ model, parentDirection, isLazy }: SceneFlexItemRenderProps<SceneFlexItem>) {
   const { body, isHidden } = model.useState();
 
   if (!body || isHidden) {
@@ -106,13 +112,15 @@ function SceneFlexItemRenderer({ model, parentDirection }: SceneFlexItemRenderPr
   }
 
   style = getFlexItemItemStyles(parentDirection, model);
+  const LazyWrapper = isLazy ? LazyLoader : ({ style, children }: Props) => <div style={style}>{children}</div>;
 
   return (
-    <div style={style}>
+    <LazyWrapper style={style}>
       <body.Component model={body} />
-    </div>
+    </LazyWrapper>
   );
 }
+
 function getFlexItemItemStyles(direction: CSSProperties['flexDirection'], item: SceneFlexItemLike) {
   const { xSizing = 'fill', ySizing = 'fill' } = item.state;
 

@@ -11,13 +11,12 @@ export function useUniqueId(): string {
 
 export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange'> {
   children: React.ReactNode | (({ isInView }: { isInView: boolean }) => React.ReactNode);
-  width?: number;
-  height?: number;
   onLoad?: () => void;
   onChange?: (isInView: boolean) => void;
+  debug?: boolean;
 }
 
-export function LazyLoader({ children, width, height, onLoad, onChange, style, ...rest }: Props) {
+export function LazyLoader({ children, onLoad, onChange, style, debug, ...rest }: Props) {
   const id = useUniqueId();
   const [loaded, setLoaded] = useState(false);
   const [isInView, setIsInView] = useState(false);
@@ -50,7 +49,7 @@ export function LazyLoader({ children, width, height, onLoad, onChange, style, .
   });
 
   return (
-    <div id={id} ref={wrapperRef} style={{ ...style, width, height }} {...rest}>
+    <div id={id} ref={wrapperRef} style={style} {...rest}>
       {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
     </div>
   );

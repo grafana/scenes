@@ -1,4 +1,3 @@
-import React, { useMemo } from 'react';
 import {
   EmbeddedScene,
   SceneAppPage,
@@ -6,16 +5,15 @@ import {
   SceneCanvasText,
   SceneFlexItem,
   SceneFlexLayout,
-  SceneObjectBase,
-  SceneObjectState,
   VizPanel,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
+import { DebugItem } from './flexLayout';
 
-export function getFlexLayoutTest(defaults: SceneAppPageState) {
+export function getLazyFlexDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A simple demo of different flex layout options',
+    subTitle: 'A simple demo of different flex layout options + lazy-loading',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
@@ -85,13 +83,13 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
               children: [
                 new SceneFlexItem({
                   width: 50,
-                  height: 50,
+                  height: 300,
                   body: new DebugItem({}),
                 }),
                 new SceneFlexItem({
                   xSizing: 'fill',
                   ySizing: 'fill',
-                  maxHeight: 200,
+                  maxHeight: 300,
                   body: new VizPanel({
                     title: 'Panel 1',
                     pluginId: 'timeseries',
@@ -105,21 +103,22 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                 }),
               ],
             }),
+            new SceneFlexLayout({
+              direction: 'row',
+              maxWidth: '100%',
+              height: 200,
+              children: [
+                new SceneFlexItem({
+                  width: '100%',
+                  height: 200,
+                  body: new DebugItem({}),
+                }),
+              ],
+            }),
           ],
+          isLazy: true,
         }),
       });
     },
   });
-}
-
-export class DebugItem extends SceneObjectBase<SceneObjectState> {
-  public static Component = DebugItemRenderer;
-}
-
-function DebugItemRenderer() {
-  const background = useMemo(() => {
-    return Math.floor(Math.random() * 16777215).toString(16);
-  }, []);
-
-  return <div style={{ background: `#${background}`, width: '100%', height: '100%' }} />;
 }

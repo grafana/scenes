@@ -61,7 +61,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                 // class component to give a ref to.
                 return (
                   <div style={{ display: 'flex' }} key={sceneChild.state.key}>
-                    <LazyWrapper width={pixelWidth} height={pixelHeight} style={{ display: 'flex' }}>
+                    <LazyWrapper style={{ display: 'flex', width: pixelWidth, height: pixelHeight }}>
                       <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                     </LazyWrapper>
                   </div>
