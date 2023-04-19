@@ -18,7 +18,7 @@ const sidebars = {
 
   docs: {
     'Getting started': ['getting-started', 'core-concepts'],
-    'Learn Scenes': [{ id: 'scene-layout', label: 'Layouts', type: 'doc' }],
+    'Learn Scenes': [{ id: 'scene-layout', label: 'Layouts', type: 'doc' }, 'visualizations'],
     // Section: [],
 
     // Distribution: [],

@@ -147,7 +147,7 @@ describe('SceneGridLayout', () => {
               ],
             }),
           ],
-          isLazy: false
+          isLazy: false,
         }),
       });
 
@@ -192,7 +192,7 @@ describe('SceneGridLayout', () => {
             body: new TestObject({}),
           }),
         ],
-        isLazy: false
+        isLazy: false,
       });
       layout.onDragStop(
         [
@@ -412,7 +412,7 @@ describe('SceneGridLayout', () => {
 
       const layout = new SceneGridLayout({
         children: [rowA, panelOutsideARow, rowB],
-        isLazy: false
+        isLazy: false,
       });
 
       layout.toggleRow(rowA);

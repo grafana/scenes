@@ -142,7 +142,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   private _internalActivate() {
     this._isActive = true;
 
-    const { $data, $variables, $timeRange } = this.state;
+    const { $data, $variables, $timeRange, $behaviors } = this.state;
 
     if ($timeRange && !$timeRange.isActive) {
       this._deactivationHandlers.push($timeRange.activate());
@@ -154,6 +154,19 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     if ($data && !$data.isActive) {
       this._deactivationHandlers.push($data.activate());
+    }
+
+    if ($behaviors) {
+      for (const behavior of $behaviors) {
+        if (behavior instanceof SceneObjectBase) {
+          this._deactivationHandlers.push(behavior.activate());
+        } else if (typeof behavior === 'function') {
+          const deactivationHandler = behavior(this);
+          if (deactivationHandler) {
+            this._deactivationHandlers.push();
+          }
+        }
+      }
     }
 
     this._activationHandlers.forEach((handler) => {
