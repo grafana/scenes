@@ -133,6 +133,10 @@ const myScene = new EmbeddedScene({
 
 The above example will render two panels, a Timeseries and a Table panel.
 
+:::note
+For `SceneFlexItems` that contain a `VizPanel`, it's usually a good idea to set `minHeight` or `minWidth` constraints so they don't get squashed too small by limited screen space.
+:::
+
 ## Grid layout
 
 `SceneGridLayout` allows building scenes as grids. This is the default behavior of Dashboards in Grafana, and grid layout enables adding a similar experience to your scene.
