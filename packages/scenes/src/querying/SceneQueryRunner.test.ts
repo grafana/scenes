@@ -1,9 +1,10 @@
-import { of } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 
 import {
   DataQueryRequest,
+  DataQueryResponse,
   DataSourceApi,
-  getDefaultTimeRange,
+  FieldType,
   LoadingState,
   PanelData,
   toDataFrame,
@@ -16,24 +17,39 @@ import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
 import { TestScene } from '../variables/TestScene';
+import { RuntimeDataSource, registerRuntimeDataSource } from './RuntimeDataSource';
+import { DataQuery } from '@grafana/schema';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
+  query: () =>
+    of({
+      data: [
+        toDataFrame([
+          [100, 1],
+          [200, 2],
+          [300, 3],
+        ]),
+      ],
+    }),
 });
 
-const runRequestMock = jest.fn().mockReturnValue(
-  of<PanelData>({
-    state: LoadingState.Done,
-    series: [
-      toDataFrame([
-        [100, 1],
-        [200, 2],
-        [300, 3],
-      ]),
-    ],
-    timeRange: getDefaultTimeRange(),
-  })
-);
+const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
+  const result: PanelData = {
+    state: LoadingState.Loading,
+    series: [],
+    timeRange: request.range,
+  };
+
+  return (ds.query(request) as Observable<DataQueryResponse>).pipe(
+    map((packet) => {
+      result.state = LoadingState.Done;
+      //@ts-ignore
+      result.series = packet.data;
+      return result;
+    })
+  );
+});
 
 let sentRequest: DataQueryRequest | undefined;
 
@@ -367,4 +383,31 @@ describe('SceneQueryRunner', () => {
       expect(getDataSourceCall[0]).toEqual({ uid: 'Muuu' });
     });
   });
+
+  describe('Supporting custom runtime data source', () => {
+    it('Should find and use runtime registered data source', async () => {
+      const uid = 'my-custom-datasource-uid';
+
+      registerRuntimeDataSource({ dataSource: new CustomDataSource(uid) });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', datasource: { uid } }],
+      });
+
+      queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.series[0].fields[0].values.get(0)).toBe(123);
+    });
+  });
 });
+
+class CustomDataSource extends RuntimeDataSource {
+  public constructor(uid: string) {
+    super('my-custom-datasource-plugin-id', uid);
+  }
+
+  public query(options: DataQueryRequest<DataQuery>): Observable<DataQueryResponse> {
+    return of({ data: [{ refId: 'A', fields: [{ name: 'time', type: FieldType.time, values: [123] }] }] });
+  }
+}
