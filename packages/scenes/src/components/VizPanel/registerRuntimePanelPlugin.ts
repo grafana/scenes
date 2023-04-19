@@ -4,11 +4,22 @@ import { getPluginImportUtils } from '@grafana/runtime';
 export const runtimePanelPlugins = new Map<string, PanelPlugin>();
 
 export interface RuntimePanelPluginOptions {
+  /**
+   * Please specify a pluginId that is unlikely to collide with other plugins.
+   */
   pluginId: string;
   plugin: PanelPlugin;
 }
 
+/**
+ * Provides a way to register runtime panel plugins.
+ * Please use a pluginId that is unlikely to collide with other plugins.
+ */
 export function registerRuntimePanelPlugin({ pluginId, plugin }: RuntimePanelPluginOptions) {
+  if (runtimePanelPlugins.has(pluginId)) {
+    throw new Error(`A runtime panel plugin with id ${pluginId} has already been registered`);
+  }
+
   plugin.meta = {
     ...plugin.meta,
     id: pluginId,
@@ -37,5 +48,5 @@ export function registerRuntimePanelPlugin({ pluginId, plugin }: RuntimePanelPlu
 export function loadPanelPluginSync(pluginId: string) {
   const { getPanelPluginFromCache } = getPluginImportUtils();
 
-  return runtimePanelPlugins.get(pluginId) ?? getPanelPluginFromCache(pluginId);
+  return getPanelPluginFromCache(pluginId) ?? runtimePanelPlugins.get(pluginId);
 }
