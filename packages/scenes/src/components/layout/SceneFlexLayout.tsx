@@ -179,17 +179,17 @@ function useLayoutStyle(state: SceneFlexLayoutState, parentDirection?: CSSProper
 
     if (parentDirection) {
       applyItemStyles(style, state, parentDirection);
+    } else {
+      style.display = 'flex';
+      style.flexGrow = 1;
     }
 
-    //style.flexGrow = 1;
-    style.display = 'flex';
     style.flexDirection = direction;
     style.gap = '8px';
-    style.flexGrow = 1;
     style.flexWrap = wrap || 'nowrap';
     style.alignContent = 'baseline';
 
-    if (state.minHeight === undefined) {
+    if (style.minHeight === undefined) {
       style.minHeight = 0;
     } else {
       // Have minHeight also apply to children so that this height also works for responsive layouts
