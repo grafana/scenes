@@ -80,7 +80,7 @@ Create `SceneQueryRunner` that will query Prometheus data source and use the con
 const queryRunner = new SceneQueryRunner({
   datasource: {
     type: 'prometheus',
-    uid: 'gdev-prometheus',
+    uid: '<PROVIDE_GRAFANA_DS_UID>',
   },
   queries: [
     {
@@ -154,7 +154,7 @@ const labels = new QueryVariable({
 const queryRunner = new SceneQueryRunner({
   datasource: {
     type: 'prometheus',
-    uid: 'gdev-prometheus',
+    uid: '<PROVIDE_GRAFANA_DS_UID>',
   },
   queries: [
     {
