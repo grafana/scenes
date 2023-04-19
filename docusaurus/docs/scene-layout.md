@@ -7,7 +7,7 @@ Scenes support two layout types: flex and grid layout. In this guide you will le
 
 ## Flexbox layout
 
-`SceneFlexLayout` allows building flexible scenes with layout driven by browser's CSS flexbox layout.
+`SceneFlexLayout` allows building flexible scenes with layout driven by browser's CSS flexbox layout. This allows for defining very dynamic layouts where panel widths and heights can adapt to the available space. 
 
 ### Step 1. Create a scene
 
