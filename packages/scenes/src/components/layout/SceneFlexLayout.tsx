@@ -9,16 +9,23 @@ export interface SceneFlexItemStateLike extends SceneFlexItemPlacement, SceneObj
 
 export interface SceneFlexItemLike extends SceneObject<SceneFlexItemStateLike> {}
 
+export interface SceneFlexItemResponsiveProps {
+  direction?: CSSProperties['flexDirection'];
+  maxWidth?: CSSProperties['maxWidth'];
+  maxHeight?: CSSProperties['minHeight'];
+  width?: CSSProperties['width'];
+  height?: CSSProperties['height'];
+}
+
 interface SceneFlexLayoutState extends SceneObjectState, SceneFlexItemPlacement {
   direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
   children: SceneFlexItemLike[];
-  breakpointSM?: {
-    direction?: CSSProperties['flexDirection'];
-  };
-  breakpointMD?: {
-    direction?: CSSProperties['flexDirection'];
-  };
+  /**
+   * Set direction for smaller screens. This defaults to column.
+   * This equals media query theme.breakpoints.down('md')
+   */
+  screenSmall?: SceneFlexItemResponsiveProps;
 }
 
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
@@ -54,8 +61,6 @@ function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRender
 }
 
 export interface SceneFlexItemPlacement {
-  flexGrow?: CSSProperties['flexGrow'];
-  alignSelf?: CSSProperties['alignSelf'];
   width?: CSSProperties['width'];
   height?: CSSProperties['height'];
   minWidth?: CSSProperties['minWidth'];
@@ -71,9 +76,13 @@ export interface SceneFlexItemPlacement {
   isHidden?: boolean;
 }
 
-interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
+export interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
   body: SceneObject | undefined;
-  isHidden?: boolean;
+
+  /**
+   * Set constrainsts for smaller screens. This equals media query theme.breakpoints.down('md').
+   */
+  smallScreen?: SceneFlexItemResponsiveProps;
 }
 
 interface SceneFlexItemRenderProps<T> extends SceneComponentProps<T> {
@@ -146,9 +155,17 @@ function applyItemStyles(
   return style;
 }
 
-function useLayoutItemStyle(state: SceneFlexItemPlacement, parentDirection: CSSProperties['flexDirection']) {
+function useLayoutItemStyle(state: SceneFlexItemState, parentDirection: CSSProperties['flexDirection']) {
   return useMemo(() => {
-    return css(applyItemStyles({}, state, parentDirection));
+    const theme = config.theme2;
+    const style = applyItemStyles({}, state, parentDirection);
+
+    // Unset maxWidth for small screens by default
+    style[theme.breakpoints.down('md')] = {
+      maxWidth: state.smallScreen?.maxWidth ?? 'unset',
+    };
+
+    return css(style);
   }, [state, parentDirection]);
 }
 
@@ -158,7 +175,7 @@ function useLayoutStyle(state: SceneFlexLayoutState, parentDirection?: CSSProper
     // only need breakpoints so accessing theme from config instead of context is ok
     const theme = config.theme2;
 
-    let style: CSSObject = {};
+    const style: CSSObject = {};
 
     if (parentDirection) {
       applyItemStyles(style, state, parentDirection);
@@ -171,9 +188,21 @@ function useLayoutStyle(state: SceneFlexLayoutState, parentDirection?: CSSProper
     style.flexGrow = 1;
     style.flexWrap = wrap || 'nowrap';
     style.alignContent = 'baseline';
-    style.minHeight = 0;
+
+    if (state.minHeight === undefined) {
+      style.minHeight = 0;
+    } else {
+      // Have minHeight also apply to children so that this height also works for responsive layouts
+      // Sadly minHeight can now not be overriden on the child anymore, as this css rule has higher specificity
+      style['& > div'] = {
+        minHeight: state.minHeight,
+      };
+    }
+
     style[theme.breakpoints.down('md')] = {
-      flexDirection: state.breakpointMD?.direction ?? 'column',
+      flexDirection: state.screenSmall?.direction ?? 'column',
+      maxWidth: state.screenSmall?.maxWidth ?? 'unset',
+      maxHeight: state.screenSmall?.maxHeight ?? 'unset',
     };
 
     return css(style);

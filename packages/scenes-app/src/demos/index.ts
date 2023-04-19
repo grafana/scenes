@@ -10,6 +10,7 @@ import { getPanelContextDemoScene } from './panelContext';
 import { getPanelMenuTest } from './panelMenu';
 import { getPanelRepeaterTest } from './panelRepeater';
 import { getQueryEditorDemo } from './queryEditor';
+import { getResponsiveLayoutDemo } from './responsiveLayout';
 import { getVariablesDemo } from './variables';
 import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
 
@@ -21,6 +22,7 @@ export interface DemoDescriptor {
 export function getDemos(): DemoDescriptor[] {
   return [
     { title: 'Flex layout', getPage: getFlexLayoutTest },
+    { title: 'Responsive layout', getPage: getResponsiveLayoutDemo },
     { title: 'Panel menu', getPage: getPanelMenuTest },
     { title: 'Panel context', getPage: getPanelContextDemoScene },
     { title: 'Repeat layout by series', getPage: getPanelRepeaterTest },

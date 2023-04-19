@@ -39,10 +39,9 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                   direction: 'column',
                   children: [
                     new SceneFlexItem({
-                      minHeight: 200,
                       body: new VizPanel({
                         pluginId: 'timeseries',
-                        title: 'Fill height with minHeight 200',
+                        title: 'Fill height',
                         options: {},
                         fieldConfig: {
                           defaults: {
@@ -52,6 +51,12 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                           },
                           overrides: [],
                         },
+                      }),
+                    }),
+                    new SceneFlexItem({
+                      body: new VizPanel({
+                        pluginId: 'timeseries',
+                        title: 'Fill height',
                       }),
                     }),
                     new SceneFlexItem({

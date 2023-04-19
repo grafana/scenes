@@ -1,14 +1,17 @@
-import React, { CSSProperties } from 'react';
+import React from 'react';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObjectState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
+import { useTheme2 } from '@grafana/ui';
+import { css } from '@emotion/css';
 
 export interface SceneCanvasTextState extends SceneObjectState {
   text: string;
   fontSize?: number;
   align?: 'left' | 'center' | 'right';
+  spacing?: number;
 }
 
 /**
@@ -19,19 +22,20 @@ export class SceneCanvasText extends SceneObjectBase<SceneCanvasTextState> {
   protected _variableDependency = new VariableDependencyConfig(this, { statePaths: ['text'] });
 
   public static Component = ({ model }: SceneComponentProps<SceneCanvasText>) => {
-    const { text, fontSize = 20, align = 'left', key } = model.useState();
+    const { text, fontSize = 20, align = 'left', key, spacing } = model.useState();
+    const theme = useTheme2();
 
-    const style: CSSProperties = {
+    const style = css({
       fontSize: fontSize,
       display: 'flex',
       flexGrow: 1,
       alignItems: 'center',
-      padding: 16,
+      padding: spacing ? theme.spacing(spacing, 0) : undefined,
       justifyContent: align,
-    };
+    });
 
     return (
-      <div style={style} data-testid={key}>
+      <div className={style} data-testid={key}>
         {sceneGraph.interpolate(model, text)}
       </div>
     );
