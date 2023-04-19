@@ -50,7 +50,7 @@ const myScene = new EmbeddedScene({
 });
 ```
 
-Both `ScenFlexLayout` and `SceneFlexItem` object types accept the following configuration options that allow setting up placement of a layout item:
+Both `ScenFlexLayout` and `SceneFlexItem` object types accept the following configuration options that allow size constraints and behaviors:
 
 ```ts
   flexGrow?: CSSProperties['flexGrow'];
