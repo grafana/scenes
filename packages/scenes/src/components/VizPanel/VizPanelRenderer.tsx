@@ -79,6 +79,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           titleItems={titleItems}
           dragClass={dragClass}
           dragClassCancel={dragClassCancel}
+          padding={plugin.noPadding ? 'none' : 'md'}
           menu={panelMenu}
         >
           {(innerWidth, innerHeight) => (

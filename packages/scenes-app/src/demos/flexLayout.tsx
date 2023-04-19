@@ -1,4 +1,3 @@
-import React, { useMemo } from 'react';
 import {
   EmbeddedScene,
   SceneAppPage,
@@ -6,8 +5,6 @@ import {
   SceneCanvasText,
   SceneFlexItem,
   SceneFlexLayout,
-  SceneObjectBase,
-  SceneObjectState,
   VizPanel,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
@@ -35,24 +32,9 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                   }),
                 }),
                 new SceneFlexLayout({
-                  $data: getQueryRunnerWithRandomWalkQuery(),
+                  $data: getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }),
                   direction: 'column',
                   children: [
-                    new SceneFlexItem({
-                      body: new VizPanel({
-                        pluginId: 'timeseries',
-                        title: 'Fill height',
-                        options: {},
-                        fieldConfig: {
-                          defaults: {
-                            custom: {
-                              fillOpacity: 20,
-                            },
-                          },
-                          overrides: [],
-                        },
-                      }),
-                    }),
                     new SceneFlexItem({
                       body: new VizPanel({
                         pluginId: 'timeseries',
@@ -70,7 +52,7 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                     new SceneFlexItem({
                       height: 300,
                       body: new VizPanel({
-                        pluginId: 'timeseries',
+                        pluginId: 'stat',
                         title: 'Fixed height',
                       }),
                     }),
@@ -78,30 +60,33 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                 }),
               ],
             }),
-
             new SceneFlexLayout({
               direction: 'row',
-              maxWidth: '50%',
               children: [
                 new SceneFlexItem({
-                  width: 50,
-                  height: 50,
-                  body: new DebugItem({}),
+                  width: 150,
+                  height: 150,
+                  body: new VizPanel({
+                    pluginId: 'text',
+                    title: '150x150',
+                    options: { content: '' },
+                  }),
                 }),
                 new SceneFlexItem({
-                  xSizing: 'fill',
-                  ySizing: 'fill',
                   maxHeight: 200,
                   body: new VizPanel({
-                    title: 'Panel 1',
+                    title: 'maxHeight 200',
                     pluginId: 'timeseries',
                     $data: getQueryRunnerWithRandomWalkQuery(),
                   }),
                 }),
                 new SceneFlexItem({
                   width: '10%',
-                  ySizing: 'fill',
-                  body: new DebugItem({}),
+                  body: new VizPanel({
+                    pluginId: 'text',
+                    title: 'Width 10%',
+                    options: { content: '' },
+                  }),
                 }),
               ],
             }),
@@ -110,16 +95,4 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
       });
     },
   });
-}
-
-class DebugItem extends SceneObjectBase<SceneObjectState> {
-  public static Component = DebugItemRenderer;
-}
-
-function DebugItemRenderer() {
-  const background = useMemo(() => {
-    return Math.floor(Math.random() * 16777215).toString(16);
-  }, []);
-
-  return <div style={{ background: `#${background}`, width: '100%', height: '100%' }} />;
 }
