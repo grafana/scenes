@@ -25,7 +25,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data);
 
   // Interpolate title
-  const titleInterpolated = model.interpolate(title, undefined, 'text');
+  const titleInterpolated = model.interpolate(title);
 
   // Not sure we need to subscribe to this state
   const timeZone = sceneGraph.getTimeRange(model).state.timeZone;
