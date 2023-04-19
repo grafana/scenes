@@ -1,6 +1,6 @@
 ---
 id: advanced-data
-title: Data in custom scene object
+title: Data and time range in custom scene object
 ---
 
 Custom scene objects can use data and time range added to scene to perform additional operations. To read more about data and time range configuration please read [Data and time range](./core-concepts#data-and-time-range) first.
