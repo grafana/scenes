@@ -11,7 +11,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
   const { children, isLazy } = model.useState();
   const LazyWrapper = isLazy ? LazyLoader : ({ style, children }: Props) => <div style={style}>{children}</div>;
   validateChildrenSize(children);
-  
+
   return (
     <AutoSizer disableHeight>
       {({ width }) => {

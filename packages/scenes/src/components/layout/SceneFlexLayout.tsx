@@ -28,7 +28,11 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
 }
 
 function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexLayout>) {
-  const { direction = 'row', children, wrap } = model.useState();
+  const { direction = 'row', children, wrap, isHidden } = model.useState();
+
+  if (isHidden) {
+    return null;
+  }
 
   let style: CSSProperties = {
     display: 'flex',
@@ -57,7 +61,7 @@ function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRender
   );
 }
 
-interface SceneFlexItemPlacement {
+export interface SceneFlexItemPlacement {
   flexGrow?: CSSProperties['flexGrow'];
   alignSelf?: CSSProperties['alignSelf'];
   width?: CSSProperties['width'];
@@ -68,10 +72,16 @@ interface SceneFlexItemPlacement {
   maxHeight?: CSSProperties['maxHeight'];
   xSizing?: 'fill' | 'content';
   ySizing?: 'fill' | 'content';
+  /**
+   * True when the item should rendered but not visible.
+   * Useful for conditional display of layout items
+   */
+  isHidden?: boolean;
 }
 
 interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
   body: SceneObject | undefined;
+  isHidden?: boolean;
 }
 
 interface SceneFlexItemRenderProps<T> extends SceneComponentProps<T> {
@@ -83,7 +93,12 @@ export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
 }
 
 function SceneFlexItemRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexItem>) {
-  const { body } = model.useState();
+  const { body, isHidden } = model.useState();
+
+  if (!body || isHidden) {
+    return null;
+  }
+
   let style: CSSProperties = {};
 
   if (!parentDirection) {
@@ -91,10 +106,6 @@ function SceneFlexItemRenderer({ model, parentDirection }: SceneFlexItemRenderPr
   }
 
   style = getFlexItemItemStyles(parentDirection, model);
-
-  if (!body) {
-    return null;
-  }
 
   return (
     <div style={style}>
