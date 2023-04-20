@@ -74,9 +74,7 @@ export class Counter extends SceneObjectBase<CounterState> {
 
 
   public onIncrement = () => {
-    this.setState({
-      count: this.state.count + 1,
-    });
+    this.setState({ count: this.state.count + 1 });
   };
 }
 ```
