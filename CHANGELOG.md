@@ -1,3 +1,25 @@
+# v0.5.0 (Thu Apr 20 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - FormatRegistry: New format added [#155](https://github.com/grafana/scenes/pull/155) ([@juanicabanas](https://github.com/juanicabanas) [@dprokop](https://github.com/dprokop))
+  - VizPanel: Support noPadding panel plugins [#158](https://github.com/grafana/scenes/pull/158) ([@torkelo](https://github.com/torkelo))
+  - VizPanel: Support runtime registered panel plugins [#154](https://github.com/grafana/scenes/pull/154) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Docs: Add variables and advanced usage docs [#157](https://github.com/grafana/scenes/pull/157) ([@dprokop](https://github.com/dprokop))
+- Docs: Layout objects [#152](https://github.com/grafana/scenes/pull/152) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 3
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- juanicabanas ([@juanicabanas](https://github.com/juanicabanas))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.4.0 (Tue Apr 18 2023)
 
 ### Release Notes
