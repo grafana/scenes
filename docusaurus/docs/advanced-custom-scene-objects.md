@@ -45,11 +45,6 @@ Set renderer for `Counter` custom object using `static Component` property:
 export class Counter extends SceneObjectBase<CounterState> {
   static Component = CounterRenderer;
 
-  public constructor() {
-    super({
-      count: 0,
-    });
-  }
 }
 ```
 
