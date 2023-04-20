@@ -22,8 +22,8 @@ Scenes support the following variable types
 Start with variable definition. The following code will create a variable that will retrieve all `handler` label values for `prometheus_http_requests_total` metric from Prometheus data source.
 
 ```ts
-const labels = new QueryVariable({
-  name: 'labels',
+const handler = new QueryVariable({
+  name: 'handler',
   datasource: {
     type: 'prometheus',
     uid: '<PROVIDE_GRAFANA_DS_UID>',
@@ -87,13 +87,13 @@ const queryRunner = new SceneQueryRunner({
       refId: 'A',
       range: true,
       format: 'time_series',
-      expr: 'rate(prometheus_http_requests_total{handler="$labels"}[5m])',
+      expr: 'rate(prometheus_http_requests_total{handler="$handler"}[5m])',
     },
   ],
 });
 ```
 
-Note the `expr` property of Prometheus query using `$labels` variable. Learn more about Grafana's variable syntax in [Grafana documentation](https://grafana.com/docs/grafana/latest/dashboards/variables/variable-syntax/).
+Note the `expr` property of Prometheus query using `$handler` variable. Learn more about Grafana's variable syntax in [Grafana documentation](https://grafana.com/docs/grafana/latest/dashboards/variables/variable-syntax/).
 
 ### Step 5. Add data to scene
 
@@ -161,7 +161,7 @@ const queryRunner = new SceneQueryRunner({
       refId: 'A',
       range: true,
       format: 'time_series',
-      expr: 'rate(prometheus_http_requests_total{handler="$labels"}[5m])',
+      expr: 'rate(prometheus_http_requests_total{handler="$handler"}[5m])',
     },
   ],
 });
