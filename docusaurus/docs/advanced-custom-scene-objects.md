@@ -72,11 +72,6 @@ Defined state-modifying method (`onIncrement`) in custom scene object:
 export class Counter extends SceneObjectBase<CounterState> {
   public static Component = CounterRenderer;
 
-  public constructor() {
-    super({
-      count: 0,
-    });
-  }
 
   public onIncrement = () => {
     this.setState({
