@@ -29,18 +29,19 @@ new VizPanel({
 })
 ```
 
+:::note
 The pluginId `timeseries` used above refers to the core Grafana panel plugin which is the standard graph visualization for time indexed data. The `options` and `fieldConfig` are the same options you would see
 in your normal dashboard panels when you view `Panel JSON` from the panel inspect drawer. You find the panel inspect drawer in the panel menu under the name `Inspect`.
+:::
 
 ## Data
 
-VizPanel will use the `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. What this means is that it will use `$data` set on it's own level or share data with other siblings and scene objects if  `$data` is set on any parent level.
+VizPanel will use the `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. What this means is that it will use `$data` set on it's own level or share data with other siblings and scene objects if `$data` is set on any parent level.
 
 ## Custom visualizations
 
 If you want to visualize data yourself in your Grafana app plugin you can do that in two ways. You always have the option to create a custom SceneObject. But then you will not get the PanelChrome with loading state and other features
 that VizPanel provides. If you want a custom visualization inside a panel frame that should look like the other panels in your scene then it's best to register a runtime panel plugin.
-
 
 Start by defining your panel options and field config.
 
@@ -54,7 +55,6 @@ interface CustomVizFieldOptions {
 }
 
 interface Props extends PanelProps<CustomVizOptions> {}
-
 ```
 
 Then you can define the react component that renders your custom PanelPlugin.
@@ -84,6 +84,3 @@ You can now use this pluginId in any `VizPanel`. Make sure you specify a pluginI
 
 For more information read the offical [tutorial on building panel plugins](https://grafana.com/tutorials/build-a-panel-plugin). Just remember that for scene runtime panel plugins
 you do not need a plugin.json file for the panel plugin. It will not be a standalone plugin that you can use in dashboards. it will only be something that can be referenced inside your scene app.
-
-
-
