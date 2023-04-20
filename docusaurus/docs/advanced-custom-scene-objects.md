@@ -9,7 +9,7 @@ Scenes comes with extensibility in mind. On top of the library primitives you ca
 
 ### Step 1. Define state type of the custom object
 
-Start with defining shape of the state of the custom object. This interface must extend `SceneObjectState` interface:
+Start with defining the state type for your custom object. This interface must extend `SceneObjectState` interface:
 
 ```ts
 interface CounterState extends SceneObjectState {
