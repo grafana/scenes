@@ -114,7 +114,7 @@ const myScene = new EmbeddedScene({
 
 ### Step 6. Add visualization to scene
 
-To show the results of the query using `labels` variable, add Timeseries panel to scene:
+To show the results of the query using `handler` variable, add a Time series visualization to scene using the `VizPanel` class.
 
 ```ts
 const myScene = new EmbeddedScene({
