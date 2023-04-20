@@ -23,10 +23,8 @@ Implement class for custom scene object. This class must extend `SceneObjectBase
 
 ```ts
 export class Counter extends SceneObjectBase<CounterState> {
-  public constructor() {
-    super({
-      count: 0,
-    });
+  public constructor(state?: Partial<CounterState>) {
+    super({count: 0, ...state});
   }
 }
 ```
