@@ -180,7 +180,6 @@ function getDefaultFallbackPage() {
           direction: 'column',
           children: [
             new SceneFlexItem({
-              flexGrow: 1,
               body: new SceneReactObject({
                 component: () => {
                   return (

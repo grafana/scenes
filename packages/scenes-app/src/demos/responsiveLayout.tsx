@@ -22,33 +22,39 @@ export function getResponsiveLayoutDemo(defaults: SceneAppPageState) {
           direction: 'column',
           children: [
             getRowWithText(
-              'Row with maxHeight 150, and minHeight 150. Overriding default responsive rule to maintain row layout even on smaller screens'
+              'Row with height 150, Default responsive behavior of switching to column layout and removing height constraint. '
             ),
             new SceneFlexLayout({
               direction: 'row',
-              maxHeight: 150,
-              minHeight: 150,
+              height: 150,
+              children: [getStatPanel({}), getStatPanel({}), getStatPanel({})],
+            }),
+            getRowWithText(
+              'Row with height 20, Overriding default responsive rule to maintain row layout even on smaller screens but with only 100px height'
+            ),
+            new SceneFlexLayout({
+              direction: 'row',
+              height: 200,
               md: {
+                height: 100,
                 direction: 'row',
               },
               children: [getStatPanel({}), getStatPanel({})],
             }),
             getRowWithText(
-              'Row with maxHeight 150,and minHeight 150. Default responsive behavior of switching to column layout and removing maxHeight constraint'
+              'Row with minHeight 300, and item with width constraint. The responsive style will remove the maxWidth by default'
             ),
             new SceneFlexLayout({
               direction: 'row',
-              maxHeight: 150,
-              minHeight: 150,
-              children: [getStatPanel({ minHeight: 100 }), getStatPanel({}), getStatPanel({})],
-            }),
-            getRowWithText(
-              'Row with minHeight 200, and width constraints. The responsive style will remove the maxWidth by default'
-            ),
-            new SceneFlexLayout({
-              direction: 'row',
-              minHeight: 200,
-              children: [getTimeSeries({}, 'No constraints'), getTimeSeries({ maxWidth: 300 }, 'maxWidth 300')],
+              minHeight: 300,
+              children: [
+                getTimeSeries({}, 'No constraints'),
+                new SceneFlexLayout({
+                  direction: 'column',
+                  maxWidth: 300,
+                  children: [getTimeSeries({}, 'maxWidth 300'), getTimeSeries({}, 'maxWidth 300')],
+                }),
+              ],
             }),
           ],
         }),
