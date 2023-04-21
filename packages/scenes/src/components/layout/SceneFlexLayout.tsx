@@ -13,11 +13,13 @@ export interface SceneFlexItemResponsiveProps {
   direction?: CSSProperties['flexDirection'];
   maxWidth?: CSSProperties['maxWidth'];
   maxHeight?: CSSProperties['minHeight'];
-  width?: CSSProperties['width'];
-  height?: CSSProperties['height'];
 }
 
 interface SceneFlexLayoutState extends SceneObjectState, SceneFlexItemPlacement {
+  /**
+   * The flexDirection for the layout. By default the there will be a media query that changes the
+   * direction to column layout using theme.breakpoints.down('md')
+   */
   direction?: CSSProperties['flexDirection'];
   wrap?: CSSProperties['flexWrap'];
   children: SceneFlexItemLike[];
@@ -25,7 +27,7 @@ interface SceneFlexLayoutState extends SceneObjectState, SceneFlexItemPlacement 
    * Set direction for smaller screens. This defaults to column.
    * This equals media query theme.breakpoints.down('md')
    */
-  screenSmall?: SceneFlexItemResponsiveProps;
+  md?: SceneFlexItemResponsiveProps;
 }
 
 export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> implements SceneLayout {
@@ -200,9 +202,9 @@ function useLayoutStyle(state: SceneFlexLayoutState, parentDirection?: CSSProper
     }
 
     style[theme.breakpoints.down('md')] = {
-      flexDirection: state.screenSmall?.direction ?? 'column',
-      maxWidth: state.screenSmall?.maxWidth ?? 'unset',
-      maxHeight: state.screenSmall?.maxHeight ?? 'unset',
+      flexDirection: state.md?.direction ?? 'column',
+      maxWidth: state.md?.maxWidth ?? 'unset',
+      maxHeight: state.md?.maxHeight ?? 'unset',
     };
 
     return css(style);

@@ -28,10 +28,10 @@ export function getResponsiveLayoutDemo(defaults: SceneAppPageState) {
               direction: 'row',
               maxHeight: 150,
               minHeight: 150,
-              children: [getStatPanel({}), getStatPanel({})],
-              screenSmall: {
+              md: {
                 direction: 'row',
               },
+              children: [getStatPanel({}), getStatPanel({})],
             }),
             getRowWithText(
               'Row with maxHeight 150,and minHeight 150. Default responsive behavior of switching to column layout and removing maxHeight constraint'
