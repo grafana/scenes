@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Subscription, Unsubscribable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -13,7 +13,6 @@ import {
   CancelActivationHandler,
   SceneObjectState,
 } from './types';
-import { useForceUpdate } from '@grafana/ui';
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
 import { SceneObjectStateChangedEvent } from './events';
@@ -278,12 +277,20 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
  * The reason for this is so that if the model instance change this function will always return the latest state.
  */
 function useSceneObjectState<TState extends SceneObjectState>(model: SceneObjectBase<TState>): TState {
-  const forceUpdate = useForceUpdate();
+  const [_, setState] = useState<TState>(model.state);
+  const stateAtFirstRender = model.state;
 
   useEffect(() => {
-    const s = model.subscribeToState(forceUpdate);
+    const s = model.subscribeToState(setState);
+
+    // Re-render component if the state changed between first render and useEffect (mount)
+    if (model.state !== stateAtFirstRender) {
+      setState(model.state);
+    }
+
     return () => s.unsubscribe();
-  }, [model, forceUpdate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model]);
 
   return model.state;
 }
