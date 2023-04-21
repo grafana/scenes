@@ -283,6 +283,7 @@ function useSceneObjectState<TState extends SceneObjectState>(model: SceneObject
   useEffect(() => {
     const s = model.subscribeToState(setState);
 
+    // Re-render component if the state changed between first render and useEffect (mount)
     if (model.state !== stateAtFirstRender) {
       setState(model.state);
     }
