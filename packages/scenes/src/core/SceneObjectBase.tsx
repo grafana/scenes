@@ -20,6 +20,8 @@ import { SceneObjectStateChangedEvent } from './events';
 import { cloneSceneObject } from './utils';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
 
+const PENDING_STATE_CHANGES_SUBSCRIBED = -1;
+
 export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState>
   implements SceneObject<TState>
 {
@@ -32,6 +34,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
   protected _refCount = 0;
+  protected _pendingStateChanges = 0;
 
   protected _variableDependency: SceneVariableDependencyConfigLike | undefined;
   protected _urlSync: SceneObjectUrlSyncHandler | undefined;
@@ -88,11 +91,20 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Subscribe to the scene state subject
    **/
   public subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable {
-    return this._events.subscribe(SceneObjectStateChangedEvent, (event) => {
+    const unsub = this._events.subscribe(SceneObjectStateChangedEvent, (event) => {
       if (event.payload.changedObject === this) {
         handler(event.payload.newState as TState, event.payload.prevState as TState);
       }
     });
+
+    // If there were some state changes before the first subscription, force a render.
+    // Otherwise consumer won't get notified about them.
+    if (this._pendingStateChanges > 0) {
+      this._pendingStateChanges = PENDING_STATE_CHANGES_SUBSCRIBED;
+      this.forceRender();
+    }
+
+    return unsub;
   }
 
   /**
@@ -103,6 +115,11 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   }
 
   public setState(update: Partial<TState>) {
+    // Count state changes until first state subscription.
+    if (this._pendingStateChanges !== PENDING_STATE_CHANGES_SUBSCRIBED) {
+      this._pendingStateChanges++;
+    }
+
     const prevState = this._state;
     const newState: TState = {
       ...this._state,
