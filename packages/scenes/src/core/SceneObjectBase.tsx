@@ -281,9 +281,7 @@ function useSceneObjectState<TState extends SceneObjectState>(model: SceneObject
   const stateAtFirstRender = model.state;
 
   useEffect(() => {
-    const s = model.subscribeToState((state) => {
-      setState(state);
-    });
+    const s = model.subscribeToState(setState);
 
     if (model.state !== stateAtFirstRender) {
       setState(model.state);
