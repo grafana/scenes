@@ -1,3 +1,15 @@
+# v0.6.0 (Fri Apr 21 2023)
+
+#### 🚀 Enhancement
+
+- SceneObjectBase: Fixes issue with useState subscription misses state change that happens between frist render and useEffect [#161](https://github.com/grafana/scenes/pull/161) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.5.0 (Thu Apr 20 2023)
 
 #### 🚀 Enhancement
