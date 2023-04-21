@@ -286,7 +286,6 @@ function useSceneObjectState<TState extends SceneObjectState>(model: SceneObject
     });
 
     if (model.state !== stateAtFirstRender) {
-      console.log('State changed between first render and useEffect', model.state);
       setState(model.state);
     }
 
