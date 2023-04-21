@@ -185,7 +185,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       requestId: getNextRequestId(),
       timezone: 'browser',
       panelId: 1,
-      dashboardId: 1,
       range: timeRange,
       interval: '1s',
       intervalMs: 1000,

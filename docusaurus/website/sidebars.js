@@ -18,7 +18,13 @@ const sidebars = {
 
   docs: {
     'Getting started': ['getting-started', 'core-concepts'],
-    // Section: [],
+    'Learn Scenes': [{ id: 'scene-layout', label: 'Layouts', type: 'doc' }, 'visualizations', 'variables'],
+    'Advanced usage': [
+      'advanced-custom-scene-objects',
+      'advanced-activation-handlers',
+      'advanced-data',
+      'advanced-variables',
+    ],
 
     // Distribution: [],
     // 'Advanced Usage': [],
