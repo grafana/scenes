@@ -6,6 +6,10 @@ scenesapppath=$(pwd)/packages/scenes-app
 
 yarn install
 
+cd $scenespath
+yarn install
+yarn build
+
 cd $scenesapppath
 docker compose up -d --build
 
