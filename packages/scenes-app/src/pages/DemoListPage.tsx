@@ -31,7 +31,6 @@ const getScene = () => {
               direction: 'column',
               children: [
                 new SceneFlexItem({
-                  flexGrow: 1,
                   body: new SceneReactObject({
                     component: () => <DemosList demos={demos} />,
                   }),
@@ -127,7 +126,6 @@ export function getDemoNotFoundPage(url: string): SceneAppPage {
           direction: 'column',
           children: [
             new SceneFlexItem({
-              flexGrow: 1,
               body: new SceneReactObject({
                 component: () => {
                   return <div style={{ fontSize: 50 }}>😭</div>;

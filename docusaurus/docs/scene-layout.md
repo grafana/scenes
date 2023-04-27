@@ -45,7 +45,7 @@ Create scene with two, equally sized layout items in a column:
 const myScene = new EmbeddedScene({
   body: new SceneFlexLayout({
     direction: 'column',
-    children: [new SceneFlexItem({}), new SceneFlexItem({})],
+    children: [new SceneFlexItem({ minHeight: 200 }), new SceneFlexItem({ minHeight: 300})],
   }),
 });
 ```
@@ -63,7 +63,12 @@ Both `ScenFlexLayout` and `SceneFlexItem` object types accept the following conf
   maxHeight?: CSSProperties['maxHeight'];
   xSizing?: 'fill' | 'content';
   ySizing?: 'fill' | 'content';
+  // For sizing constaints on smaller screens
+  md?: SceneFlexItemPlacement;
 ```
+
+We really recommend setting a minHeight on all children of layout that use `column` direction. This will make sure that they don't get squashed too much on smaller screens. If you set minHeight or height on a SceneFlexLayout you do not need
+to set it on each child as they will inherit these constraints.
 
 ### Step 4. Add panels to flex layout items
 
@@ -136,6 +141,32 @@ The above example will render two panels, a Timeseries and a Table panel.
 :::note
 For `SceneFlexItems` that contain a `VizPanel`, it's usually a good idea to set `minHeight` or `minWidth` constraints so they don't get squashed too small by limited screen space.
 :::
+
+### Responsive flex layouts
+
+By default SceneFlexLayout has some responsive behaviors for smaller screens. These kick in for screens that match the media query of Grafana's theme.breakpoints.down('md').
+
+* SceneFlexLayout direction will change from row to column.
+* SceneFlexLayout maxWidth, maxHeight, height or width constraints are removed.
+* SceneFlexLayout and SceneFlexItem will use the minHeight or height set on the parent layout (unless specified on it directly). This is to make a height or minHeight constraint set on a SceneFlexLayout with direction row also apply to it's children so that when the responsive media query that changes direction to column kicks in these constaints are still acting on the children.
+
+You can override these behaviors and set custom direction and size constraints using the `md` property that exist on both SceneFlexLayout and SceneFlexItem.
+
+Example:
+
+```ts
+new SceneFlexLayout({
+  direction: 'row',
+  minHeight: 200,
+  md: {
+    minHeight: 100,
+    direction: 'row',
+  },
+  children: [getStatPanel({}), getStatPanel({})],
+}),
+```
+
+In the above example we use the `md` property to override the default responsive behavior that changes a `row` layout to a `column` layout. We also apply a tighter minHeight constraint.
 
 ## Grid layout
 

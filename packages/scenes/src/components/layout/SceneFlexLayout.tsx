@@ -1,4 +1,6 @@
-import React, { ComponentType, CSSProperties } from 'react';
+import { css, CSSObject } from '@emotion/css';
+import { config } from '@grafana/runtime';
+import React, { ComponentType, CSSProperties, useMemo } from 'react';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../core/types';
@@ -8,8 +10,6 @@ export interface SceneFlexItemStateLike extends SceneFlexItemPlacement, SceneObj
 export interface SceneFlexItemLike extends SceneObject<SceneFlexItemStateLike> {}
 
 interface SceneFlexLayoutState extends SceneObjectState, SceneFlexItemPlacement {
-  direction?: CSSProperties['flexDirection'];
-  wrap?: CSSProperties['flexWrap'];
   children: SceneFlexItemLike[];
 }
 
@@ -27,43 +27,27 @@ export class SceneFlexLayout extends SceneObjectBase<SceneFlexLayoutState> imple
   }
 }
 
-function SceneFlexLayoutRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexLayout>) {
-  const { direction = 'row', children, wrap, isHidden } = model.useState();
+function SceneFlexLayoutRenderer({ model, parentState }: SceneFlexItemRenderProps<SceneFlexLayout>) {
+  const { children, isHidden } = model.useState();
+  const style = useLayoutStyle(model.state, parentState);
 
   if (isHidden) {
     return null;
   }
 
-  let style: CSSProperties = {
-    display: 'flex',
-    flexGrow: 1,
-    flexDirection: direction,
-    gap: '8px',
-    flexWrap: wrap || 'nowrap',
-    alignContent: 'baseline',
-    minHeight: 0,
-  };
-
-  if (parentDirection) {
-    style = {
-      ...getFlexItemItemStyles(parentDirection || 'row', model),
-      ...style,
-    };
-  }
-
   return (
-    <div style={style}>
+    <div className={style}>
       {children.map((item) => {
         const Component = item.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
-        return <Component key={item.state.key} model={item} parentDirection={direction} />;
+        return <Component key={item.state.key} model={item} parentState={model.state} />;
       })}
     </div>
   );
 }
 
 export interface SceneFlexItemPlacement {
-  flexGrow?: CSSProperties['flexGrow'];
-  alignSelf?: CSSProperties['alignSelf'];
+  wrap?: CSSProperties['flexWrap'];
+  direction?: CSSProperties['flexDirection'];
   width?: CSSProperties['width'];
   height?: CSSProperties['height'];
   minWidth?: CSSProperties['minWidth'];
@@ -77,80 +61,135 @@ export interface SceneFlexItemPlacement {
    * Useful for conditional display of layout items
    */
   isHidden?: boolean;
+
+  /**
+   * Set direction for smaller screens. This defaults to column.
+   * This equals media query theme.breakpoints.down('md')
+   */
+  md?: SceneFlexItemPlacement;
 }
 
-interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
+export interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
   body: SceneObject | undefined;
-  isHidden?: boolean;
 }
 
 interface SceneFlexItemRenderProps<T> extends SceneComponentProps<T> {
-  parentDirection?: CSSProperties['flexDirection'];
+  parentState?: SceneFlexItemPlacement;
 }
 
 export class SceneFlexItem extends SceneObjectBase<SceneFlexItemState> {
   public static Component = SceneFlexItemRenderer;
 }
 
-function SceneFlexItemRenderer({ model, parentDirection }: SceneFlexItemRenderProps<SceneFlexItem>) {
+function SceneFlexItemRenderer({ model, parentState }: SceneFlexItemRenderProps<SceneFlexItem>) {
+  if (!parentState) {
+    throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
+  }
+
   const { body, isHidden } = model.useState();
+  const style = useLayoutItemStyle(model.state, parentState);
 
   if (!body || isHidden) {
     return null;
   }
 
-  let style: CSSProperties = {};
-
-  if (!parentDirection) {
-    throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
-  }
-
-  style = getFlexItemItemStyles(parentDirection, model);
-
   return (
-    <div style={style}>
+    <div className={style}>
       <body.Component model={body} />
     </div>
   );
 }
-function getFlexItemItemStyles(direction: CSSProperties['flexDirection'], item: SceneFlexItemLike) {
-  const { xSizing = 'fill', ySizing = 'fill' } = item.state;
+function applyItemStyles(style: CSSObject, state: SceneFlexItemPlacement, parentState: SceneFlexItemPlacement) {
+  const parentDirection = parentState.direction ?? 'row';
+  const { xSizing = 'fill', ySizing = 'fill' } = state;
 
-  const style: CSSProperties = {
-    display: 'flex',
-    position: 'relative',
-    flexDirection: direction,
-    minWidth: item.state.minWidth,
-    minHeight: item.state.minHeight,
-    maxWidth: item.state.maxWidth,
-    maxHeight: item.state.maxHeight,
-  };
+  style.display = 'flex';
+  style.position = 'relative';
+  style.flexDirection = parentDirection;
 
-  if (direction === 'column') {
-    if (item.state.height) {
-      style.height = item.state.height;
+  if (parentDirection === 'column') {
+    if (state.height) {
+      style.height = state.height;
     } else {
       style.flexGrow = ySizing === 'fill' ? 1 : 0;
     }
 
-    if (item.state.width) {
-      style.width = item.state.width;
+    if (state.width) {
+      style.width = state.width;
     } else {
       style.alignSelf = xSizing === 'fill' ? 'stretch' : 'flex-start';
     }
   } else {
-    if (item.state.height) {
-      style.height = item.state.height;
+    if (state.height) {
+      style.height = state.height;
     } else {
       style.alignSelf = ySizing === 'fill' ? 'stretch' : 'flex-start';
     }
 
-    if (item.state.width) {
-      style.width = item.state.width;
+    if (state.width) {
+      style.width = state.width;
     } else {
       style.flexGrow = xSizing === 'fill' ? 1 : 0;
     }
   }
 
+  style.minWidth = state.minWidth;
+  style.maxWidth = state.maxWidth;
+  style.maxHeight = state.maxHeight;
+
+  // For responsive layouts to work we default use the minHeight or height of the parent
+  style.minHeight = state.minHeight ?? parentState.minHeight;
+  style.height = state.height ?? parentState.height;
+
   return style;
+}
+
+function useLayoutItemStyle(state: SceneFlexItemState, parentState: SceneFlexItemPlacement) {
+  return useMemo(() => {
+    const theme = config.theme2;
+    const style = applyItemStyles({}, state, parentState);
+
+    // Unset maxWidth for small screens by default
+    style[theme.breakpoints.down('md')] = {
+      maxWidth: state.md?.maxWidth ?? 'unset',
+      maxHeight: state.md?.maxHeight ?? 'unset',
+      height: state.md?.height ?? parentState.md?.height,
+      width: state.md?.width ?? parentState.md?.width,
+    };
+
+    return css(style);
+  }, [state, parentState]);
+}
+
+function useLayoutStyle(state: SceneFlexLayoutState, parentState?: SceneFlexItemPlacement) {
+  return useMemo(() => {
+    const { direction = 'row', wrap } = state;
+    // only need breakpoints so accessing theme from config instead of context is ok
+    const theme = config.theme2;
+
+    const style: CSSObject = {};
+
+    if (parentState) {
+      applyItemStyles(style, state, parentState);
+    } else {
+      style.display = 'flex';
+      style.flexGrow = 1;
+    }
+
+    style.flexDirection = direction;
+    style.gap = '8px';
+    style.flexWrap = wrap || 'nowrap';
+    style.alignContent = 'baseline';
+    style.minHeight = style.minHeight || 0;
+
+    style[theme.breakpoints.down('md')] = {
+      flexDirection: state.md?.direction ?? 'column',
+      maxWidth: state.md?.maxWidth ?? 'unset',
+      maxHeight: state.md?.maxHeight ?? 'unset',
+      height: state.md?.height ?? 'unset',
+      width: state.md?.width ?? 'unset',
+    };
+
+    return css(style);
+  }, [parentState, state]);
 }
