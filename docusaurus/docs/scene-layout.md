@@ -63,6 +63,8 @@ Both `ScenFlexLayout` and `SceneFlexItem` object types accept the following conf
   maxHeight?: CSSProperties['maxHeight'];
   xSizing?: 'fill' | 'content';
   ySizing?: 'fill' | 'content';
+  // For sizing constaints on smaller screens
+  md?: SceneFlexItemPlacement;
 ```
 
 ### Step 4. Add panels to flex layout items
@@ -136,6 +138,16 @@ The above example will render two panels, a Timeseries and a Table panel.
 :::note
 For `SceneFlexItems` that contain a `VizPanel`, it's usually a good idea to set `minHeight` or `minWidth` constraints so they don't get squashed too small by limited screen space.
 :::
+
+### Responsive flex layouts
+
+By default SceneFlexLayout has some responsive behaviors for smaller screens. These kick in for screens that match the media query of theme.breakpoints.down('md').
+
+* SceneFlexLayout direction will change from row to column.
+* SceneFlexLayout maxWidth, maxHeight, height or width constraints are removed.
+* SceneFlexLayout and SceneFlexItem will use the minHeight or height set on the parent layout (unless specified on it directly). This is to make a height or minHeight constraint set on a SceneFlexLayout with direction row also apply to it's children so that when the responsive media query that changes direction to column kicks in these constaints are still acting on the children.
+
+You can override these behaviors and set custom direction and size constraints using the `md` property that exist on both SceneFlexLayout and SceneFlexItem.
 
 ## Grid layout
 
