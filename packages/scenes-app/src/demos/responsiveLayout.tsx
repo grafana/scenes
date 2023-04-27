@@ -22,7 +22,7 @@ export function getResponsiveLayoutDemo(defaults: SceneAppPageState) {
           direction: 'column',
           children: [
             getRowWithText(
-              'Row with height 150, Default responsive behavior of switching to column layout and removing height constraint. '
+              'Row with height 150, Default responsive behavior of switching to column layout and removing height constraint on layout. Height constraints are automatically also applied to children so they work when the media query switches the flex direction to column'
             ),
             new SceneFlexLayout({
               direction: 'row',
