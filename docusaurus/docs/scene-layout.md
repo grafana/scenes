@@ -67,8 +67,8 @@ Both `ScenFlexLayout` and `SceneFlexItem` object types accept the following conf
   md?: SceneFlexItemPlacement;
 ```
 
-We really recommend setting a minHeight on all children of layout that use `column` direction. This will make sure that they don't get squashed to much on smaller screens. If you set minHeight or height on a SceneFlexLayout you do not need
-to set it on each child as they will inherit this constraint.
+We really recommend setting a minHeight on all children of layout that use `column` direction. This will make sure that they don't get squashed too much on smaller screens. If you set minHeight or height on a SceneFlexLayout you do not need
+to set it on each child as they will inherit these constraints.
 
 ### Step 4. Add panels to flex layout items
 
@@ -144,7 +144,7 @@ For `SceneFlexItems` that contain a `VizPanel`, it's usually a good idea to set 
 
 ### Responsive flex layouts
 
-By default SceneFlexLayout has some responsive behaviors for smaller screens. These kick in for screens that match the media query of theme.breakpoints.down('md').
+By default SceneFlexLayout has some responsive behaviors for smaller screens. These kick in for screens that match the media query of Grafana's theme.breakpoints.down('md').
 
 * SceneFlexLayout direction will change from row to column.
 * SceneFlexLayout maxWidth, maxHeight, height or width constraints are removed.
