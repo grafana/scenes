@@ -13,6 +13,7 @@ import { getPanelRepeaterTest } from './panelRepeater';
 import { getQueryEditorDemo } from './queryEditor';
 import { getVariablesDemo } from './variables';
 import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
+import { getTimeZoneTest } from './timeZones';
 
 export interface DemoDescriptor {
   title: string;
@@ -35,5 +36,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Dynamic page', getPage: getDynamicPageDemo },
     { title: 'Runtime panel plugin', getPage: getRuntimePanelPluginDemo },
     { title: 'Behaviors demo', getPage: getBehaviorsDemo },
+    { title: 'Time zones demo', getPage: getTimeZoneTest },
   ];
 }
