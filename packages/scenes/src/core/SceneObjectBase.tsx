@@ -23,7 +23,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   implements SceneObject<TState>
 {
   private _isActive = false;
-  private _state: TState;
+  protected _state: TState;
   private _events = new EventBusSrv();
   private _activationHandlers: SceneActivationHandler[] = [];
   private _deactivationHandlers: SceneDeactivationHandler[] = [];
@@ -40,7 +40,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       state.key = uuidv4();
     }
 
-    this._state = Object.freeze(state);
+    this._state = state;
     this._setParent();
   }
 
@@ -108,8 +108,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       ...update,
     };
 
-    this._state = Object.freeze(newState);
-
+    this._state = newState;
     this._setParent();
 
     // Bubble state change event. This is event is subscribed to by UrlSyncManager and UndoManager
