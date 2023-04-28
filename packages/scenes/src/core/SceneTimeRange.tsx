@@ -1,4 +1,5 @@
-import { dateMath, getTimeZone, TimeRange, TimeZone, toUtc } from '@grafana/data';
+import { dateMath, getTimeZone, TimeRange, toUtc } from '@grafana/data';
+import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
@@ -33,6 +34,10 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
     update.value = evaluateTimeRange(update.from, update.to, this.state.timeZone);
     this.setState(update);
+  };
+
+  public onTimeZoneChange = (timeZone: TimeZone) => {
+    this.setState({ timeZone });
   };
 
   public onRefresh = () => {
@@ -98,7 +103,12 @@ function parseUrlParam(value: SceneObjectUrlValue): string | null {
   return null;
 }
 
-function evaluateTimeRange(from: string, to: string, timeZone: TimeZone, fiscalYearStartMonth?: number): TimeRange {
+export function evaluateTimeRange(
+  from: string,
+  to: string,
+  timeZone: TimeZone,
+  fiscalYearStartMonth?: number
+): TimeRange {
   return {
     from: dateMath.parse(from, false, timeZone, fiscalYearStartMonth)!,
     to: dateMath.parse(to, true, timeZone, fiscalYearStartMonth)!,

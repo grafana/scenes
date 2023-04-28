@@ -29,12 +29,12 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       isOnCanvas={isOnCanvas}
       value={timeRangeState.value}
       onChange={timeRange.onTimeRangeChange}
-      timeZone={'browser'}
+      timeZone={timeRangeState.timeZone}
       fiscalYearStartMonth={0}
       onMoveBackward={() => {}}
       onMoveForward={() => {}}
       onZoom={() => {}}
-      onChangeTimeZone={() => {}}
+      onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={() => {}}
     />
   );

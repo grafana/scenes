@@ -9,8 +9,8 @@ import {
   DataTransformContext,
   PanelData,
   TimeRange,
-  TimeZone,
 } from '@grafana/data';
+import { TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 
@@ -139,6 +139,7 @@ export interface SceneTimeRangeState extends SceneObjectState {
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
+  onTimeZoneChange(timeZone: TimeZone): void;
   onTimeRangeChange(timeRange: TimeRange): void;
   onRefresh(): void;
 }
