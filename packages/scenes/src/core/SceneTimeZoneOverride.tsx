@@ -22,31 +22,6 @@ export class SceneTimeZoneOverride extends SceneObjectBase<SceneTimeZoneOverride
     this.addActivationHandler(this._activationHandler);
   }
 
-  private proxyTimeRange() {
-    const timeRangeObject = this.getTimeRangeObject();
-    this._state = new Proxy(this._state, {
-      get: (target, prop) => {
-        // Proxy from and to to the time range object
-        if (prop === 'from' || prop === 'to') {
-          return timeRangeObject.state[prop];
-        }
-
-        // Evaluate time range with overriden time zone
-        if (prop === 'value') {
-          return evaluateTimeRange(timeRangeObject.state.from, timeRangeObject.state.to, target.timeZone);
-        }
-
-        // Return overriden time zone
-        if (prop === 'timeZone') {
-          return target.timeZone;
-        }
-
-        // @ts-ignore
-        return target[prop];
-      },
-    });
-  }
-
   private getTimeRangeObject() {
     if (!this.parent || !this.parent.parent) {
       throw new Error('SceneTimeZoneOverride must be used within $timeRange scope');
@@ -57,21 +32,23 @@ export class SceneTimeZoneOverride extends SceneObjectBase<SceneTimeZoneOverride
 
   private _activationHandler = () => {
     const timeRangeObject = this.getTimeRangeObject();
-    this.proxyTimeRange();
+    const { from, to } = timeRangeObject.state;
+    this.setState({
+      from,
+      to,
+      value: evaluateTimeRange(from, to, this.state.timeZone),
+    });
 
     this._subs.add(
-      timeRangeObject.subscribeToState((n, p) => {
-        if (n.value.from !== p.value.from || n.value.to !== p.value.to) {
-          this.forceRender();
-        }
+      timeRangeObject.subscribeToState((n) => {
+        this.setState({
+          from: n.from,
+          to: n.to,
+          value: evaluateTimeRange(n.from, n.to, this.state.timeZone),
+        });
       })
     );
   };
-
-  public setState(update: Partial<SceneTimeZoneOverrideState>): void {
-    super.setState(update);
-    this.proxyTimeRange();
-  }
 
   public onTimeRangeChange(timeRange: TimeRange): void {
     const timeRangeObject = this.getTimeRangeObject();
@@ -79,7 +56,7 @@ export class SceneTimeZoneOverride extends SceneObjectBase<SceneTimeZoneOverride
   }
 
   public onTimeZoneChange(timeZone: string): void {
-    this.setState({ timeZone });
+    this.setState({ timeZone, value: evaluateTimeRange(this.state.from, this.state.to, timeZone) });
   }
 
   public onRefresh(): void {
