@@ -43,6 +43,18 @@ export function getTimeZoneTest(defaults: SceneAppPageState) {
                 }),
                 new SceneFlexItem({
                   $data: getQueryRunnerWithRandomWalkQuery({}),
+                  $timeRange: new SceneTimeRange({
+                    from: 'now-5m',
+                    to: 'now',
+                  }),
+                  minHeight: '200',
+                  body: new VizPanel({
+                    pluginId: 'timeseries',
+                    title: 'Using global time zone, local range',
+                  }),
+                }),
+                new SceneFlexItem({
+                  $data: getQueryRunnerWithRandomWalkQuery({}),
                   $timeRange: new SceneTimeZoneOverride({ timeZone: 'Australia/Broken_Hill' }),
                   minHeight: '200',
                   body: new VizPanel({

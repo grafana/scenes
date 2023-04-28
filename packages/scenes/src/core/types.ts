@@ -133,9 +133,9 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
 export interface SceneTimeRangeState extends SceneObjectState {
   from: string;
   to: string;
-  timeZone: TimeZone;
   fiscalYearStartMonth?: number;
   value: TimeRange;
+  timeZone?: TimeZone;
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {

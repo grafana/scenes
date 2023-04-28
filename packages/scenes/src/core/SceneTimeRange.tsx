@@ -2,6 +2,7 @@ import { dateMath, getTimeZone, TimeRange, toUtc } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
+import { sceneGraph } from './sceneGraph';
 
 import { SceneObjectBase } from './SceneObjectBase';
 import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues, SceneObjectUrlValue } from './types';
@@ -12,9 +13,40 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
     const from = state.from ?? 'now-6h';
     const to = state.to ?? 'now';
-    const timeZone = state.timeZone ?? getTimeZone();
-    const value = evaluateTimeRange(from, to, timeZone);
+    const timeZone = state.timeZone;
+    const value = evaluateTimeRange(from, to, timeZone || getTimeZone());
     super({ from, to, timeZone, value, ...state });
+
+    this.addActivationHandler(this._onActivate);
+  }
+
+  private _onActivate = () => {
+    // When SceneTimeRange has no time zone provided, find closest source of time zone and subscribe to it
+    if (!this.state.timeZone) {
+      const timeZoneSource = this.getTimeZoneSource();
+      if (timeZoneSource) {
+        this.setState({ timeZone: timeZoneSource ? timeZoneSource.state.timeZone : getTimeZone() });
+        this._subs.add(
+          timeZoneSource.subscribeToState((n, p) => {
+            if (n.timeZone !== p.timeZone) {
+              this.setState({ timeZone: n.timeZone });
+            }
+          })
+        );
+      } else {
+        // Use default time zone if no source is found
+        this.setState({ timeZone: getTimeZone() });
+      }
+    }
+  };
+
+  private getTimeZoneSource() {
+    return sceneGraph.getClosest<SceneTimeRangeLike>(this.parent!.parent!, (o) => {
+      if (o.state.$timeRange && o.state.$timeRange.state.timeZone) {
+        return o.state.$timeRange;
+      }
+      return undefined;
+    });
   }
 
   public onTimeRangeChange = (timeRange: TimeRange) => {

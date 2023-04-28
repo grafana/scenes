@@ -144,4 +144,5 @@ export const sceneGraph = {
   lookupVariable,
   hasVariableDependencyInLoadingState,
   findObject,
+  getClosest,
 };
