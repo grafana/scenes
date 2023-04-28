@@ -10,13 +10,14 @@ interface SceneTimeZoneOverrideState extends SceneTimeRangeState {
 }
 
 export class SceneTimeZoneOverride extends SceneObjectBase<SceneTimeZoneOverrideState> implements SceneTimeRangeLike {
-  public constructor(state: Partial<Omit<SceneTimeZoneOverrideState, 'from' | 'to' | 'value'>>) {
+  public constructor(state: Omit<SceneTimeZoneOverrideState, 'from' | 'to' | 'value'>) {
     super({
-      timeZone: state.timeZone ?? 'browser',
-      // Fake time range, it's actually provided via proxy set up on activation
+      ...state,
+      timeZone: state.timeZone,
+      // Fake time range, it's actually provided via closest time range object on activation
       from: 'now-6h',
       to: 'now',
-      value: evaluateTimeRange('now-6h', 'now', state.timeZone ?? 'browser'),
+      value: evaluateTimeRange('now-6h', 'now', state.timeZone),
     });
 
     this.addActivationHandler(this._activationHandler);
@@ -50,6 +51,9 @@ export class SceneTimeZoneOverride extends SceneObjectBase<SceneTimeZoneOverride
     );
   };
 
+  public getTimeZone(): TimeZone {
+    return this.state.timeZone;
+  }
   public onTimeRangeChange(timeRange: TimeRange): void {
     const timeRangeObject = this.getTimeRangeObject();
     timeRangeObject.onTimeRangeChange(timeRange);

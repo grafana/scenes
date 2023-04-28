@@ -48,9 +48,20 @@ export function getTimeZoneTest(defaults: SceneAppPageState) {
                     to: 'now',
                   }),
                   minHeight: '200',
-                  body: new VizPanel({
-                    pluginId: 'timeseries',
-                    title: 'Using global time zone, local range',
+                  body: new SceneFlexLayout({
+                    direction: 'column',
+                    children: [
+                      new SceneFlexItem({
+                        body: new SceneTimePicker({ isOnCanvas: true }),
+                        ySizing: 'content',
+                      }),
+                      new SceneFlexItem({
+                        body: new VizPanel({
+                          pluginId: 'timeseries',
+                          title: 'Using global time zone, local range',
+                        }),
+                      }),
+                    ],
                   }),
                 }),
                 new SceneFlexItem({
@@ -59,31 +70,9 @@ export function getTimeZoneTest(defaults: SceneAppPageState) {
                   minHeight: '200',
                   body: new VizPanel({
                     pluginId: 'timeseries',
-                    title: 'Using local time zone',
+                    title: 'Using global range, local time zone',
                   }),
                 }),
-                // new SceneFlexItem({
-                //   body: new SceneFlexLayout({
-                //     direction: 'column',
-                //     $timeRange: new SceneTimeRange({
-                //       timeZone: 'America/Chicago',
-                //     }),
-                //     children: [
-                //       new SceneFlexItem({
-                //         body: new SceneTimePicker({ isOnCanvas: true }),
-                //         ySizing: 'content',
-                //       }),
-                //       new SceneFlexItem({
-                //         $data: getQueryRunnerWithRandomWalkQuery({}),
-                //         minHeight: '200',
-                //         body: new VizPanel({
-                //           pluginId: 'timeseries',
-                //           title: 'Using local time range and time zone',
-                //         }),
-                //       }),
-                //     ],
-                //   }),
-                // }),
               ],
             }),
           ],

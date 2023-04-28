@@ -49,6 +49,10 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     });
   }
 
+  public getTimeZone(): TimeZone {
+    return this.state.timeZone || getTimeZone();
+  }
+
   public onTimeRangeChange = (timeRange: TimeRange) => {
     const update: Partial<SceneTimeRangeState> = {};
 
@@ -64,7 +68,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.to = timeRange.raw.to.toISOString();
     }
 
-    update.value = evaluateTimeRange(update.from, update.to, this.state.timeZone);
+    update.value = evaluateTimeRange(update.from, update.to, this.getTimeZone());
     this.setState(update);
   };
 
@@ -73,7 +77,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   public onRefresh = () => {
-    this.setState({ value: evaluateTimeRange(this.state.from, this.state.to, this.state.timeZone) });
+    this.setState({ value: evaluateTimeRange(this.state.from, this.state.to, this.getTimeZone()) });
   };
 
   public getUrlState() {
@@ -98,7 +102,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.to = to;
     }
 
-    update.value = evaluateTimeRange(update.from ?? this.state.from, update.to ?? this.state.to, this.state.timeZone);
+    update.value = evaluateTimeRange(update.from ?? this.state.from, update.to ?? this.state.to, this.getTimeZone());
     this.setState(update);
   }
 }

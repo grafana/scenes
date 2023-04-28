@@ -142,6 +142,7 @@ export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
   onTimeZoneChange(timeZone: TimeZone): void;
   onTimeRangeChange(timeRange: TimeRange): void;
   onRefresh(): void;
+  getTimeZone(): TimeZone;
 }
 
 export interface SceneObjectRef {
