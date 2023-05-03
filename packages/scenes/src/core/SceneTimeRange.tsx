@@ -2,10 +2,10 @@ import { dateMath, getTimeZone, TimeRange, toUtc } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
-import { sceneGraph } from './sceneGraph';
 
 import { SceneObjectBase } from './SceneObjectBase';
 import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues, SceneObjectUrlValue } from './types';
+import { getClosest } from './utils';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to'] });
@@ -41,7 +41,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   private getTimeZoneSource() {
-    return sceneGraph.getClosest<SceneTimeRangeLike>(this.parent!.parent!, (o) => {
+    return getClosest<SceneTimeRangeLike>(this.parent!.parent!, (o) => {
       if (o.state.$timeRange && o.state.$timeRange.state.timeZone) {
         return o.state.$timeRange;
       }

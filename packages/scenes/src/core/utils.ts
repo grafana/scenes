@@ -1,4 +1,4 @@
-import { SceneObjectState } from './types';
+import { SceneObject, SceneObjectState } from './types';
 
 import { SceneObjectBase } from './SceneObjectBase';
 
@@ -35,4 +35,17 @@ export function cloneSceneObject<T extends SceneObjectBase<TState>, TState exten
   Object.assign(clonedState, withState);
 
   return new (sceneObject.constructor as any)(clonedState);
+}
+
+/** Walks up the scene graph, returning the first non-undefined result of `extract` */
+export function getClosest<T>(sceneObject: SceneObject, extract: (s: SceneObject) => T | undefined): T | undefined {
+  let curSceneObject: SceneObject | undefined = sceneObject;
+  let extracted: T | undefined = undefined;
+
+  while (curSceneObject && !extracted) {
+    extracted = extract(curSceneObject);
+    curSceneObject = curSceneObject.parent;
+  }
+
+  return extracted;
 }
