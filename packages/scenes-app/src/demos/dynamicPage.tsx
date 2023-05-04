@@ -9,6 +9,7 @@ import {
   SceneRefreshPicker,
   SceneAppPageState,
 } from '@grafana/scenes';
+import React from 'react';
 import { demoUrl } from '../utils/utils.routing';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -28,6 +29,7 @@ export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
       const cancel = setTimeout(() => {
         page.setState({
           tabs: [...defaultTabs, getSceneAppPage('/tab2', 'Humidity')],
+          renderTitle: renderTitleWithImageSuffix,
         });
       }, 2000);
       return () => clearTimeout(cancel);
@@ -62,4 +64,13 @@ function getSceneAppPage(url: string, name: string) {
     },
     drilldowns: [],
   });
+}
+
+function renderTitleWithImageSuffix(title: string) {
+  return (
+    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+      <h1>{title}</h1>
+      <img src="public/img/online.svg" style={{ width: '24px', height: '24px' }} />
+    </div>
+  );
 }

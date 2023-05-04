@@ -65,7 +65,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   }
 
   return (
-    <PluginPage pageNav={pageNav} actions={pageActions}>
+    <PluginPage pageNav={pageNav} actions={pageActions} renderTitle={containerState.renderTitle}>
       <scene.Component model={scene} />
     </PluginPage>
   );
