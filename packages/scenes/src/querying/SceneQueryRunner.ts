@@ -3,20 +3,12 @@ import { Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef } from '@grafana/schema';
 
-import {
-  CoreApp,
-  DataQueryRequest,
-  PanelData,
-  preProcessPanelData,
-  rangeUtil,
-  ScopedVar,
-  TimeRange,
-} from '@grafana/data';
+import { CoreApp, DataQueryRequest, PanelData, preProcessPanelData, rangeUtil, ScopedVar } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneDataProvider, SceneObjectState } from '../core/types';
+import { SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -66,8 +58,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._subs.add(
-      timeRange.subscribeToState((timeRange) => {
-        this.runWithTimeRange(timeRange.value);
+      timeRange.subscribeToState(() => {
+        this.runWithTimeRange(timeRange);
       })
     );
 
@@ -149,14 +141,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
-    this.runWithTimeRange(timeRange.state.value);
+    this.runWithTimeRange(timeRange);
   }
 
   private getMaxDataPoints() {
     return this.state.maxDataPoints ?? this._containerWidth ?? 500;
   }
 
-  private async runWithTimeRange(timeRange: TimeRange) {
+  private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // Skip executing queries if variable dependency is in loading state
     if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
       writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
@@ -183,9 +175,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
       requestId: getNextRequestId(),
-      timezone: 'browser',
+      timezone: timeRange.getTimeZone(),
       panelId: 1,
-      range: timeRange,
+      range: timeRange.state.value,
       interval: '1s',
       intervalMs: 1000,
       targets: cloneDeep(queries),
@@ -208,7 +200,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       // TODO interpolate minInterval
       const lowerIntervalLimit = minInterval ? minInterval : ds.interval;
-      const norm = rangeUtil.calculateInterval(timeRange, request.maxDataPoints!, lowerIntervalLimit);
+      const norm = rangeUtil.calculateInterval(timeRange.state.value, request.maxDataPoints!, lowerIntervalLimit);
 
       // make shallow copy of scoped vars,
       // and add built in variables interval and interval_ms
