@@ -148,8 +148,6 @@ describe('UrlSyncManager', () => {
 
       // Should use unique key based where it is in the scene
       expect(locationService.getSearchObject()).toEqual({
-        from: 'now-6h',
-        to: 'now',
         ['from-2']: 'now-10m',
         ['to-2']: 'now',
       });
@@ -171,7 +169,7 @@ describe('UrlSyncManager', () => {
       // should not update the first object
       expect(outerTimeRange.state.from).toBe('now-20m');
       // Should not cause another url update
-      expect(locationUpdates.length).toBe(4);
+      expect(locationUpdates.length).toBe(3);
     });
   });
 

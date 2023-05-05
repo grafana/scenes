@@ -18,6 +18,7 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
   const { hidePicker, isOnCanvas } = model.useState();
   const timeRange = sceneGraph.getTimeRange(model);
+  const timeZone = timeRange.getTimeZone();
   const timeRangeState = timeRange.useState();
 
   if (hidePicker) {
@@ -29,7 +30,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       isOnCanvas={isOnCanvas}
       value={timeRangeState.value}
       onChange={timeRange.onTimeRangeChange}
-      timeZone={timeRangeState.timeZone}
+      timeZone={timeZone}
       fiscalYearStartMonth={0}
       onMoveBackward={() => {}}
       onMoveForward={() => {}}

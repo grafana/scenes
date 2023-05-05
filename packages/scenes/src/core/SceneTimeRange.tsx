@@ -24,33 +24,56 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     // When SceneTimeRange has no time zone provided, find closest source of time zone and subscribe to it
     if (!this.state.timeZone) {
       const timeZoneSource = this.getTimeZoneSource();
-      if (timeZoneSource) {
-        this.setState({ timeZone: timeZoneSource ? timeZoneSource.state.timeZone : getTimeZone() });
+      if (timeZoneSource !== this) {
         this._subs.add(
           timeZoneSource.subscribeToState((n, p) => {
-            if (n.timeZone !== p.timeZone) {
-              this.setState({ timeZone: n.timeZone });
+            if (n.timeZone !== undefined && n.timeZone !== p.timeZone) {
+              this.setState({
+                value: evaluateTimeRange(this.state.from, this.state.to, timeZoneSource.getTimeZone()),
+              });
             }
           })
         );
-      } else {
-        // Use default time zone if no source is found
-        this.setState({ timeZone: getTimeZone() });
       }
     }
   };
 
+  /**
+   * Will traverse up the scene graph to find the closest SceneTimeRangeLike with time zone set
+   */
   private getTimeZoneSource() {
-    return getClosest<SceneTimeRangeLike>(this.parent!.parent!, (o) => {
+    if (!this.parent || !this.parent.parent) {
+      return this;
+    }
+    // Find the closest source of time zone
+    const source = getClosest<SceneTimeRangeLike>(this.parent.parent, (o) => {
       if (o.state.$timeRange && o.state.$timeRange.state.timeZone) {
         return o.state.$timeRange;
       }
       return undefined;
     });
+
+    if (!source) {
+      return this;
+    }
+
+    return source;
   }
 
   public getTimeZone(): TimeZone {
-    return this.state.timeZone || getTimeZone();
+    // Return local time zone if provided
+    if (this.state.timeZone) {
+      return this.state.timeZone;
+    }
+
+    // Resolve higher level time zone source
+    const timeZoneSource = this.getTimeZoneSource();
+    if (timeZoneSource !== this) {
+      return timeZoneSource.state.timeZone!;
+    }
+
+    // Return default time zone
+    return getTimeZone();
   }
 
   public onTimeRangeChange = (timeRange: TimeRange) => {
