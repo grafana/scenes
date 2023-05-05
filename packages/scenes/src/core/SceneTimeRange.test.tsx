@@ -1,3 +1,5 @@
+import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
+import { VizPanel } from '../components/VizPanel/VizPanel';
 import { SceneTimeRange } from './SceneTimeRange';
 
 describe('SceneTimeRange', () => {
@@ -32,5 +34,50 @@ describe('SceneTimeRange', () => {
 
     expect(timeRange.state.from).toEqual('2021-01-01T10:00:00.000Z');
     expect(timeRange.state.value.from.valueOf()).toEqual(1609495200000);
+  });
+
+  describe('time zones', () => {
+    describe('when time zone is not specified', () => {
+      it('should return default time zone', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+        expect(timeRange.getTimeZone()).toBe('browser');
+      });
+      it('should return time zone of the closest range with time zone specified ', () => {
+        const outerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'America/New_York' });
+        const innerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+        const scene = new SceneFlexLayout({
+          $timeRange: outerTimeRange,
+          children: [
+            new SceneFlexItem({
+              $timeRange: innerTimeRange,
+              body: new VizPanel({ pluginId: 'text' }),
+            }),
+          ],
+        });
+        scene.activate();
+        expect(innerTimeRange.getTimeZone()).toEqual(outerTimeRange.getTimeZone());
+      });
+    });
+    describe('when time zone is specified', () => {
+      it('should return own time zone', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'America/New_York' });
+        expect(timeRange.getTimeZone()).toBe('America/New_York');
+      });
+      it('should return own time zone ignoring of the outer range', () => {
+        const outerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'America/New_York' });
+        const innerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'Europe/Berlin' });
+        const scene = new SceneFlexLayout({
+          $timeRange: outerTimeRange,
+          children: [
+            new SceneFlexItem({
+              $timeRange: innerTimeRange,
+              body: new VizPanel({ pluginId: 'text' }),
+            }),
+          ],
+        });
+        scene.activate();
+        expect(innerTimeRange.getTimeZone()).toEqual('Europe/Berlin');
+      });
+    });
   });
 });
