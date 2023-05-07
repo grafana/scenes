@@ -2,13 +2,12 @@ import {
   EmbeddedScene,
   SceneAppPage,
   SceneAppPageState,
-  SceneCanvasText,
   SceneFlexItem,
   SceneFlexItemState,
   SceneFlexLayout,
   VizPanel,
 } from '@grafana/scenes';
-import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
+import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults, getRowWithText } from './utils';
 
 export function getResponsiveLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -60,16 +59,6 @@ export function getResponsiveLayoutDemo(defaults: SceneAppPageState) {
         }),
       });
     },
-  });
-}
-
-function getRowWithText(text: string) {
-  return new SceneFlexItem({
-    ySizing: 'content',
-    body: new SceneCanvasText({
-      text,
-      fontSize: 12,
-    }),
   });
 }
 

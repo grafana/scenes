@@ -7,7 +7,7 @@ import {
   SceneFlexLayout,
   SceneQueryRunner,
 } from '@grafana/scenes';
-import { getHumidityOverviewScene, getTemperatureOverviewScene } from './scenes';
+import { getHumidityOverviewScene, getRoomDrilldownScene } from './scenes';
 import { getRoomsTemperatureStats, getRoomsTemperatureTable } from './panels';
 import { getEmbeddedSceneDefaults } from '../utils';
 
@@ -57,14 +57,14 @@ export function getDrilldownsAppPageScene(defaults: SceneAppPageState) {
 
           return new SceneAppPage({
             url: `${defaults.url}/room/${roomName}/temperature`,
-            title: `${roomName} overview`,
+            title: `${roomName}`,
             subTitle: 'This scene is a particular room drilldown. It implements two tabs to organise the data.',
             getParentPage: () => parent,
             tabs: [
               new SceneAppPage({
                 title: 'Temperature',
                 url: `${defaults.url}/room/${roomName}/temperature`,
-                getScene: () => getTemperatureOverviewScene(roomName),
+                getScene: () => getRoomDrilldownScene(roomName),
               }),
               new SceneAppPage({
                 title: 'Humidity',
