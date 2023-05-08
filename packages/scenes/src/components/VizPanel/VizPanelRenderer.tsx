@@ -28,7 +28,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const titleInterpolated = model.interpolate(title, undefined, 'text');
 
   // Not sure we need to subscribe to this state
-  const timeZone = sceneGraph.getTimeRange(model).state.timeZone;
+  const timeZone = sceneGraph.getTimeRange(model).getTimeZone();
 
   if (pluginLoadError) {
     return <div>Failed to load plugin: {pluginLoadError}</div>;

@@ -6,19 +6,7 @@ import { VariableCustomFormatterFn, SceneVariables } from '../variables/types';
 
 import { SceneDataState, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
 import { lookupVariable } from '../variables/lookupVariable';
-
-/** Walks up the scene graph, returning the first non-undefined result of `extract` */
-function getClosest<T>(sceneObject: SceneObject, extract: (s: SceneObject) => T | undefined): T | undefined {
-  let curSceneObject: SceneObject | undefined = sceneObject;
-  let extracted: T | undefined = undefined;
-
-  while (curSceneObject && !extracted) {
-    extracted = extract(curSceneObject);
-    curSceneObject = curSceneObject.parent;
-  }
-
-  return extracted;
-}
+import { getClosest } from './utils';
 
 /**
  * Get the closest node with variables
