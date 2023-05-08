@@ -1,3 +1,55 @@
+# v0.7.0 (Mon May 08 2023)
+
+### Release Notes
+
+#### Add support for timezones ([#167](https://github.com/grafana/scenes/pull/167))
+
+You can now use multiple time zones in Scene. `SceneTimeRange` and `SceneTimePicker` respect time zone settings. Additionally, a new object was added, `SceneTimeZoneOverride`. It can be used to override the time zone provided by a time range object higher in the scene hierarchy. Objects within `SceneTimeZoneOverride` scope will use the closest `SceneTimeRange` range, but a locally specified time zone.
+
+Example: 
+
+```ts
+const scene = new EmbeddedScene({
+  $timeRange: new SceneTimeRange({ from: 'now-6h', to: 'now', timeZone: 'browser'}),
+  children: [
+    // Will use global time range and time zone
+    new VizPanel({
+      $data: new SceneQueryRunner({ ... }),
+      ...
+    }),
+    // Will use global time range and locally specified time zone
+    new VizPanel({ 
+      $timeRange: new SceneTimeZoneOverride({ timeZone: 'America/New_York' }),
+      $data: new SceneQueryRunner({ ... }),
+      ...
+    }),
+  ],
+  ...
+})
+```
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Support adding header actions to top right corner of PanelChrome [#174](https://github.com/grafana/scenes/pull/174) ([@torkelo](https://github.com/torkelo))
+  - SceneAppPage: Add support for custom title [#171](https://github.com/grafana/scenes/pull/171) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Docs: Activation handlers [#165](https://github.com/grafana/scenes/pull/165) ([@dprokop](https://github.com/dprokop))
+- `@grafana/scenes`
+  - Add support for timezones [#167](https://github.com/grafana/scenes/pull/167) ([@dprokop](https://github.com/dprokop))
+  - FlexLayout: Responsive breakpoints [#156](https://github.com/grafana/scenes/pull/156) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.6.0 (Fri Apr 21 2023)
 
 #### 🚀 Enhancement
