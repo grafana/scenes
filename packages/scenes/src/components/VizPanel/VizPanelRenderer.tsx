@@ -6,13 +6,24 @@ import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { SceneComponentProps } from '../../core/types';
+import { isSceneObject, SceneComponentProps } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
-  const { title, description, options, fieldConfig, pluginLoadError, $data, displayMode, hoverHeader, menu, ...state } =
-    model.useState();
+  const {
+    title,
+    description,
+    options,
+    fieldConfig,
+    pluginLoadError,
+    $data,
+    displayMode,
+    hoverHeader,
+    menu,
+    headerActions,
+    ...state
+  } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
   const parentLayout = sceneGraph.getLayout(model);
@@ -61,6 +72,16 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     panelMenu = <menu.Component model={menu} />;
   }
 
+  let actionsElement: React.ReactNode | undefined;
+
+  if (headerActions) {
+    if (isSceneObject(headerActions)) {
+      actionsElement = <headerActions.Component model={headerActions} />;
+    } else {
+      actionsElement = headerActions;
+    }
+  }
+
   // Data is always returned. For non-data panels, empty PanelData is returned.
   const data = dataWithFieldConfig!;
 
@@ -78,6 +99,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           hoverHeader={hoverHeader}
           titleItems={titleItems}
           dragClass={dragClass}
+          actions={actionsElement}
           dragClassCancel={dragClassCancel}
           padding={plugin.noPadding ? 'none' : 'md'}
           menu={panelMenu}

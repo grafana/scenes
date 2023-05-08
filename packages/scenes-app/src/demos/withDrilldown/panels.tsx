@@ -1,4 +1,4 @@
-import { ReducerID, ThresholdsMode } from '@grafana/data';
+import { getFrameDisplayName, ReducerID } from '@grafana/data';
 import {
   SceneByFrameRepeater,
   SceneDataNode,
@@ -7,8 +7,10 @@ import {
   SceneFlexLayout,
   VizPanel,
 } from '@grafana/scenes';
-import { ROUTES } from '../../constants';
-import { demoUrl, prefixRoute } from '../../utils/utils.routing';
+import { FieldColorModeId } from '@grafana/schema';
+import { Icon } from '@grafana/ui';
+import React from 'react';
+import { demoUrl } from '../../utils/utils.routing';
 
 export function getRoomsTemperatureTable() {
   return new VizPanel({
@@ -34,9 +36,7 @@ export function getRoomsTemperatureTable() {
         },
       ],
     }),
-    displayMode: 'transparent',
     title: 'Room temperature overview',
-    hoverHeader: true,
     options: {
       sortBy: ['Average temperature'],
     },
@@ -50,25 +50,8 @@ export function getRoomsTemperatureTable() {
           inspect: false,
         },
         mappings: [],
-        thresholds: {
-          mode: ThresholdsMode.Absolute,
-          steps: [
-            {
-              color: 'light-blue',
-              value: 0,
-            },
-            {
-              color: 'orange',
-              value: 19,
-            },
-            {
-              color: 'dark-red',
-              value: 26,
-            },
-          ],
-        },
         color: {
-          mode: 'thresholds',
+          mode: FieldColorModeId.ContinuousGrYlRd,
         },
       },
       overrides: [
@@ -85,13 +68,9 @@ export function getRoomsTemperatureTable() {
             {
               id: 'custom.cellOptions',
               value: {
-                type: 'color-background',
-                mode: 'basic',
+                type: 'gauge',
+                mode: 'gradient',
               },
-            },
-            {
-              id: 'custom.width',
-              value: 200,
             },
             {
               id: 'custom.align',
@@ -114,6 +93,10 @@ export function getRoomsTemperatureTable() {
                 },
               ],
             },
+            {
+              id: 'custom.width',
+              value: 250,
+            },
           ],
         },
       ],
@@ -124,40 +107,60 @@ export function getRoomsTemperatureTable() {
 export function getRoomsTemperatureStats() {
   return new SceneByFrameRepeater({
     body: new SceneFlexLayout({
-      direction: 'row',
-      wrap: 'wrap',
+      direction: 'column',
       children: [],
     }),
-    getLayoutChild: (data, frame) => {
+    getLayoutChild: (data, frame, frameIndex) => {
       return new SceneFlexItem({
-        height: '50%',
-        minWidth: '20%',
-        body: new VizPanel({
-          title: frame.name,
-          pluginId: 'stat',
-
-          $data: new SceneDataNode({
-            data: {
-              ...data,
-              series: [frame],
-            },
-          }),
-          fieldConfig: {
-            defaults: {
-              unit: 'celsius',
-              links: [
-                {
-                  title: 'Go to room temperature overview',
-                  url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/temperature',
-                },
-                {
-                  title: 'Go to room humidity overview',
-                  url: prefixRoute(`${ROUTES.WithDrilldown}`) + '/room/${__field.name}/humidity',
-                },
-              ],
-            },
-            overrides: [],
+        key: `panel-${frameIndex}`,
+        minHeight: 200,
+        $data: new SceneDataNode({
+          data: {
+            ...data,
+            series: [frame],
           },
+        }),
+        body: new SceneFlexLayout({
+          direction: 'row',
+          children: [
+            new SceneFlexItem({
+              body: new VizPanel({
+                pluginId: 'timeseries',
+                headerActions: (
+                  <a
+                    className="external-link"
+                    href={`${demoUrl('with-drilldowns')}/room/${encodeURIComponent(
+                      getFrameDisplayName(frame)
+                    )}/temperature`}
+                  >
+                    <Icon name="arrow-right" />
+                    Go to room
+                  </a>
+                ),
+                title: getFrameDisplayName(frame),
+                options: {
+                  legend: { showLegend: false },
+                },
+              }),
+            }),
+            new SceneFlexItem({
+              width: 200,
+              body: new VizPanel({
+                title: 'Last',
+                pluginId: 'stat',
+                fieldConfig: {
+                  defaults: {
+                    displayName: 'Last',
+                  },
+                  overrides: [],
+                },
+                options: {
+                  graphMode: 'none',
+                  textMode: 'value',
+                },
+              }),
+            }),
+          ],
         }),
       });
     },

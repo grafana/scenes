@@ -38,6 +38,29 @@ in your normal dashboard panels when you view `Panel JSON` from the panel inspec
 
 VizPanel will use the `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. What this means is that it will use `$data` set on it's own level or share data with other siblings and scene objects if `$data` is set on any parent level.
 
+
+## Header actions
+
+VizPanel has a property named `headerActions` that can be either a `React.ReactNode` or a custom `SceneObject`. This property is useful if you want to place links or buttons in the top right corner of the panel header. Example:
+
+```ts
+new VizPanel({
+    pluginId: 'timeseries',
+    title: 'Time series',
+    headerActions: (
+      <LinkButton size="sm" variant="secondary" href="scene/sdrilldown/url">Drilldown</LinkButton>
+    )
+})
+```
+
+Placing buttons in the top right corner of the panel header could be used for:
+
+* Links to other scenes
+* Buttons that change the current scene (add drilldown view for example)
+* RadioButtonGroup that changes the visualization settings
+
+For LinkButton, Button and RadioButtonGroup please use size="sm" when placed in the panel header.
+
 ## Custom visualizations
 
 If you want to visualize data yourself in your Grafana app plugin you can do that in two ways. You always have the option to create a custom SceneObject. But then you will not get the PanelChrome with loading state and other features
