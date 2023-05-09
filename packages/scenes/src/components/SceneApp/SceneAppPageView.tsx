@@ -41,7 +41,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     url: getLinkUrlWithAppUrlState(containerState.url, params, containerState.preserveUrlKeys),
     hideFromBreadcrumbs: containerState.hideFromBreadcrumbs,
     parentItem: getParentBreadcrumbs(
-      containerState.getParentPage ? containerState.getParentPage() : page.parent,
+      containerState.getParentPage ? containerState.getParentPage() : containerPage.parent,
       params
     ),
   };

@@ -1,3 +1,5 @@
+import { NavModelItem } from '@grafana/data';
+import { PluginPageProps } from '@grafana/runtime';
 import { screen, render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import React from 'react';
@@ -11,6 +13,15 @@ import { SceneAppPage } from './SceneAppPage';
 import { SceneRouteMatch } from './types';
 
 let history = createMemoryHistory();
+let pluginPageProps: PluginPageProps | undefined;
+
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  PluginPage: function PluginPageMock(props: PluginPageProps) {
+    pluginPageProps = props;
+    return <div>{props.children}</div>;
+  },
+}));
 
 describe('SceneApp', () => {
   const original = console.error;
@@ -91,16 +102,16 @@ describe('SceneApp', () => {
       pages: [
         // Page with tabs
         new SceneAppPage({
-          title: 'Test',
+          title: 'Container page',
           url: '/test',
           tabs: [
             new SceneAppPage({
-              title: 'Test',
+              title: 'Tab1',
               url: '/test/tab1',
               getScene: () => setupScene(t1Object),
             }),
             new SceneAppPage({
-              title: 'Test',
+              title: 'Tab2',
               url: '/test/tab2',
               getScene: () => setupScene(t2Object),
             }),
@@ -115,6 +126,10 @@ describe('SceneApp', () => {
     });
 
     beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test'));
+
+    it('should render correct breadcrumbs', async () => {
+      expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Container page']);
+    });
 
     it('Render first tab with the url of the parent', () => {
       expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
@@ -145,7 +160,7 @@ describe('SceneApp', () => {
         pages: [
           // Page with tabs
           new SceneAppPage({
-            title: 'Test',
+            title: 'Top level page',
             url: '/test-drilldown',
             getScene: () => {
               return page1Scene;
@@ -153,11 +168,12 @@ describe('SceneApp', () => {
             drilldowns: [
               {
                 routePath: '/test-drilldown/:id',
-                getPage: (match: SceneRouteMatch<{ id: string }>) => {
+                getPage: (match: SceneRouteMatch<{ id: string }>, parent) => {
                   return new SceneAppPage({
-                    title: 'drilldown',
+                    title: `Drilldown ${match.params.id}`,
                     url: `/test-drilldown/${match.params.id}`,
                     getScene: () => getDrilldownScene(match),
+                    getParentPage: () => parent,
                   });
                 },
               },
@@ -176,6 +192,9 @@ describe('SceneApp', () => {
         expect(await screen.findByText('some-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
 
+        // Verify pageNav is correct
+        expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Drilldown some-id', 'Top level page']);
+
         history.push('/test-drilldown/some-other-id');
 
         expect(await screen.findByText('some-other-id drilldown!')).toBeInTheDocument();
@@ -191,7 +210,6 @@ describe('SceneApp', () => {
 
     describe('Drilldowns on tab level', () => {
       const p1Object = new SceneCanvasText({ text: 'Page 1' });
-      const page1Scene = setupScene(p1Object);
       const t1Object = new SceneCanvasText({ text: 'Tab 1' });
       const tab1Scene = setupScene(t1Object);
       let drillDownScenesGenerated = 0;
@@ -200,14 +218,11 @@ describe('SceneApp', () => {
         pages: [
           // Page with tabs
           new SceneAppPage({
-            title: 'Test',
+            title: 'Container page',
             url: '/test',
-            getScene: () => {
-              return page1Scene;
-            },
             tabs: [
               new SceneAppPage({
-                title: 'Test',
+                title: 'Tab ',
                 url: '/test/tab',
                 getScene: () => {
                   return tab1Scene;
@@ -283,4 +298,15 @@ function renderAppInsideRouterWithStartingUrl(app: SceneApp, startingUrl: string
       <app.Component model={app} />
     </Router>
   );
+}
+
+function flattenPageNav(pageNav: NavModelItem | undefined) {
+  const items: string[] = [];
+
+  while (pageNav) {
+    items.push(pageNav.text);
+    pageNav = pageNav.parentItem;
+  }
+
+  return items;
 }
