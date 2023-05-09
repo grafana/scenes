@@ -1,5 +1,4 @@
 import { NavModelItem } from '@grafana/data';
-import { Components } from '@grafana/e2e-selectors';
 import { PluginPageProps } from '@grafana/runtime';
 import { screen, render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
