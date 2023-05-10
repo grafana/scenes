@@ -40,7 +40,7 @@ function MyApp() {
 ```
 
 :::info
-Memoize SceneApp using `React.useMemo` to avoid unnecessary re-renders.
+Memoize `SceneApp` using `React.useMemo` to avoid unnecessary re-renders.
 :::
 
 In app plugin render scene app:
