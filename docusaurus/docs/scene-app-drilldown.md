@@ -126,7 +126,7 @@ The `fieldConfig` are the same options you would see in your normal dashboard pa
 
 :::info
 Using `locationService` and `urlUtil` comes handy if you want to preserve variables and time range query params.
-`${__value.text:percentencode}` is percent encoded value of the clicked table cell.
+`${__value.text:percentencode}` is the percent-encoded value of the clicked table cell.
 :::
 
 ### Step 3. Build drilldown page
