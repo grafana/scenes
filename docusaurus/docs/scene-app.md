@@ -14,7 +14,7 @@ Scenes come with the following objects that make it easy to build highly interac
 
 ## SceneApp
 
-`SceneApp` is the root object that must be used in order to take full advantage of Scenes and Grafana plugin integration. `SceneApp` provides support for routing of your Scenes app.
+`SceneApp` is the root object you must use to take full advantage of Scenes and Grafana plugin integration. `SceneApp` provides support for routing of your Scenes app.
 
 ### Step 1. Create scene app
 
