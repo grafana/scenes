@@ -29,7 +29,7 @@ const getSceneApp = () =>
 
 ### Step 2. Render scene app in plugin
 
-Definine a component that will render the scene app:
+Define a component that will render the scene app:
 
 ```tsx
 function MyApp() {
