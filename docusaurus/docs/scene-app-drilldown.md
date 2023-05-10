@@ -42,12 +42,12 @@ function getOverviewScene() {
   });
 
   const tablePanel = new VizPanel({
+    $data: queryRunner,
     title: 'Average duration of HTTP request',
     pluginId: 'table',
   });
 
   return new EmbeddedScene({
-    $data: queryRunner,
     body: new SceneFlexLayout({
       direction: 'column',
       children: [
@@ -84,6 +84,7 @@ import { locationService } from '@grafana/runtime';
 // ...
 
 const tablePanel = new VizPanel({
+  $data: queryRunner,
   title: 'Average duration of HTTP request',
   pluginId: 'table',
   fieldConfig: {
@@ -223,17 +224,17 @@ function getHandlerDrilldownScene(handler: string) {
         new SceneFlexItem({
           minHeight: 300,
           body: new VizPanel({
+            $data: requestsDuration,
             title: 'Requests duration',
             pluginId: 'timeseries',
-            $data: requestsDuration,
           }),
         }),
         new SceneFlexItem({
           minHeight: 300,
           body: new VizPanel({
+            $data: requestsCount,
             title: 'Requests count',
             pluginId: 'timeseries',
-            $data: requestsCount,
           }),
         }),
       ],
@@ -268,6 +269,7 @@ function getOverviewScene() {
   });
 
   const tablePanel = new VizPanel({
+    $data: queryRunner,
     title: 'Average duration of HTTP request',
     pluginId: 'table',
     fieldConfig: {
@@ -301,7 +303,6 @@ function getOverviewScene() {
   });
 
   return new EmbeddedScene({
-    $data: queryRunner,
     body: new SceneFlexLayout({
       direction: 'column',
       children: [
@@ -362,17 +363,17 @@ function getHandlerDrilldownScene(handler: string) {
         new SceneFlexItem({
           minHeight: 300,
           body: new VizPanel({
+            $data: requestsDuration,
             title: 'Requests duration',
             pluginId: 'timeseries',
-            $data: requestsDuration,
           }),
         }),
         new SceneFlexItem({
           minHeight: 300,
           body: new VizPanel({
+            $data: requestsCount,
             title: 'Requests count',
             pluginId: 'timeseries',
-            $data: requestsCount,
           }),
         }),
       ],

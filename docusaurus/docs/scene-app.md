@@ -27,13 +27,13 @@ const getSceneApp = () =>
   });
 ```
 
-### Step 2. Render `SceneApp` on plugin page
+### Step 2. Render scene app in plugin
 
-In app plugin, definine a page component that will render the scene app:
+Definine a component that will render the scene app:
 
 ```tsx
-function MyPage() {
-  const scene = useMemo(() => getSceneApp());
+function MyApp() {
+  const scene = useMemo(() => getSceneApp(), []);
 
   return <scene.Component model={scene} />;
 }
@@ -43,18 +43,14 @@ function MyPage() {
 Memoize SceneApp using `React.useMemo` to avoid unnecessary re-renders.
 :::
 
-### Step 3. Create route for the scene app
-
-In app plugin routes component create a route that will render the scene app:
+In app plugin render scene app:
 
 ```tsx
 export class App extends React.PureComponent<AppRootProps> {
   render() {
     return (
       <PluginPropsContext.Provider value={this.props}>
-        <Switch>
-          <Route path="/a/<PLUGIN_ID>/my-page" component={MyPage} />
-        </Switch>
+        <MyApp />
       </PluginPropsContext.Provider>
     );
   }
@@ -114,7 +110,6 @@ First, create a scene to be rendered within `SceneApp`:
 ```tsx
 const getScene = () => {
   const queryRunner = new SceneQueryRunner({
-    $timeRange: new SceneTimeRange()
     datasource: {
       type: 'prometheus',
       uid: '<PROVIDE_GRAFANA_DS_UID>',
@@ -129,18 +124,21 @@ const getScene = () => {
 
   return new EmbeddedScene({
     $data: queryRunner,
+    $timeRange: new SceneTimeRange(),
     body: new SceneFlexLayout({
       direction: 'column',
-      children: [new SceneFlexItem({
-        minHeight: 300,
-        body: new VizPanel({
-          title: 'Panel title',
-          pluginId: 'timeseries',
-        })
-      })],
+      children: [
+        new SceneFlexItem({
+          minHeight: 300,
+          body: new VizPanel({
+            title: 'Panel title',
+            pluginId: 'timeseries',
+          }),
+        }),
+      ],
     }),
   });
-}
+};
 ```
 
 ### Step 2. Create `SceneAppPage`
@@ -150,8 +148,8 @@ Use `SceneAppPage` object to configure app page.
 ```tsx
 const myAppPage = new SceneAppPage({
   title: 'Grafana Scenes App',
-  url: '`/a/<PLUGIN_ID>/my-app`,
-  getScene: getPageScene,
+  url: '/a/<PLUGIN_ID>',
+  getScene: getScene,
 });
 ```
 
@@ -164,4 +162,4 @@ const getSceneApp = () =>
   });
 ```
 
-Navigating to `https://your-grafana.url/a/<PLUGIN_ID>/my-app` will render a scene app with a page containing Time series panel that visualizes number of Prometheus HTTP requests.
+Navigating to `https://your-grafana.url/a/<PLUGIN_ID>` will render a scene app with a page containing Time series panel that visualizes number of Prometheus HTTP requests.
