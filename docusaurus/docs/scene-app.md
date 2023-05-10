@@ -18,7 +18,7 @@ Scenes come with the following objects that make it easy to build highly interac
 
 ### Step 1. Create scene app
 
-Define a new scene app using `SceneApp` object :
+Define a new scene app using the `SceneApp` object :
 
 ```tsx
 const getSceneApp = () =>
