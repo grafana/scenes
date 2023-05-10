@@ -166,7 +166,7 @@ function getSceneApp() {
 
 Define a function that will return a `SceneAppPage` for a drilldown view. This function receives two arguments:
 
-- `routeMatch`- contains information about URL params.
+- `routeMatch` - contains information about URL params.
 - `parentPage` - contains reference to parent `SceneAppPage` required to configure breadcrumbs correctly.
 
 ```ts
