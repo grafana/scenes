@@ -131,7 +131,7 @@ Using `locationService` and `urlUtil` comes handy if you want to preserve variab
 
 ### Step 3. Build drilldown page
 
-Modify the `getSceneApp` function to setup drilldown scenes. Use `drilldowns` property of the `SceneAppPage` object. `drilldowns` property accepts an array of `SceneAppDrilldownView` objects. It allows drilldown URL and page to be rendered configuration:
+Modify the `getSceneApp` function to set up drilldown scenes. Use the `drilldowns` property of the `SceneAppPage` object. The `drilldowns` property accepts an array of `SceneAppDrilldownView` objects. It allows drilldown URL and page to be rendered configuration:
 
 ```ts
 export interface SceneAppDrilldownView {
