@@ -142,7 +142,7 @@ export interface SceneAppDrilldownView {
 }
 ```
 
-Configure API endpoint drilldown view:
+Configure the API endpoint drilldown view:
 
 ```tsx
 function getSceneApp() {
