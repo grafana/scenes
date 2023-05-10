@@ -1,5 +1,5 @@
 ---
-id: setup-scenes
+id: getting-started
 title: Set up Scenes
 ---
 
