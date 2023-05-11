@@ -1,13 +1,15 @@
 ---
 id: advanced-data
-title: Data and time range in custom scene object
+title: Data and time range in custom scene objects
 ---
 
-Custom scene objects can use data and time range information added to a scene to perform additional operations. To read more about data and time range configuration, refer to [Data and time range](./core-concepts#data-and-time-range) first.
+Custom scene objects can use data and time range information added to a scene to perform additional operations. This topic describes how to use these properties in renderers and custom object classes. 
+
+To learn more about data and time range configuration, refer to [Data and time range](./core-concepts#data-and-time-range) first.
 
 ## Use data
 
-In a custom scene object, use the `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. What this means is that the custom object will use `$data` set on its own level or use shared data with other siblings and scene objects if `$data` is set on any parent level.
+In a custom scene object, use the `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. What this means is that the custom object will use the `$data` property set on its own level or use shared data with other siblings and scene objects if `$data` is set on any parent level.
 
 ### Use data in a renderer
 
@@ -51,9 +53,9 @@ class CustomObject extends SceneObjectBase<CustomObjectState> {
 ```
 
 :::info
-Note that the subscription returned from `sourceData.subscribeToState` is added to `this._subs`. Because of this, you don't need to do any cleanup when the custom object is destroyed, as the library will take care of unsubscribing.
+The subscription returned from `sourceData.subscribeToState` is added to `this._subs`. Because of this, you don't need to do any cleanup when the custom object is destroyed, as the library will take care of unsubscribing.
 :::
 
 ## Use time range
 
-Similarly to data, you can use the closest time range in a custom scene object. Use `sceneGraph.getTimeRange(model)` to get the closest time range scene object. This method can be used both in the custom object class and the renderer as described previously in the [Use data](#use-data) section.
+Similarly to data, you can use the closest time range in a custom scene object using `sceneGraph.getTimeRange(model)`. This method can be used both in the custom object class and the renderer, as described previously in the [Use data](#use-data) section.

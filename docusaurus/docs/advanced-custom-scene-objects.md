@@ -68,7 +68,7 @@ function CounterRenderer({ model }: SceneComponentProps<Counter>) {
 
 ### Step 5. Modify the state of the custom object from the component
 
-Define the state-modifying method (`onIncrement`) in the custom scene object:
+Define the state-modifying method, (`onIncrement`), in the custom scene object:
 
 ```ts
 export class Counter extends SceneObjectBase<CounterState> {
