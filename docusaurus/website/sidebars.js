@@ -16,7 +16,7 @@ const sidebars = {
   sidebar: [
     {
       type: 'category',
-      label: 'Getting Started',
+      label: 'Getting started',
       collapsible: true,
       collapsed: false,
       items: [{ id: 'getting-started', label: 'Setup', type: 'doc' }, 'core-concepts'],
