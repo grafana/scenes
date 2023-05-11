@@ -16,7 +16,7 @@ Scenes come with the following objects that make it easy to build highly interac
 
 `SceneApp` is the root object you must use to take full advantage of Scenes and Grafana plugin integration. `SceneApp` provides support for routing of your Scenes app.
 
-### Step 1. Create scene app
+### Step 1. Create a Scenes app
 
 Define a new scene app using the `SceneApp` object :
 
@@ -58,12 +58,12 @@ export class App extends React.PureComponent<AppRootProps> {
 ```
 
 :::note
-The example above will render a blank page because `pages` property in the `SceneApp` constructor is empty. Use `SceneAppPage` object to render scenes in your app.
+The example above will render a blank page because the `pages` property in the `SceneApp` constructor is empty. Use the `SceneAppPage` object to render scenes in your app.
 :::
 
 ## SceneAppPage
 
-`SceneAppPage` object allows rendering scenes in app plugins easily. Apart from rendering scenes it provides support for:
+The `SceneAppPage` object allows for rendering scenes in app plugins easily. In addition to rendering scenes, it provides support for:
 
 - Routing
 - Grafana breadcrumbs integration
@@ -81,15 +81,15 @@ The example above will render a blank page because `pages` property in the `Scen
   titleImg?: string;
   /** For an icon before title */
   titleIcon?: IconName;
-  /** Use to provide page absolute URL, i.e. /app/overview **/
+  /** Use to provide absolute page URL, for example, /app/overview **/
   url: string;
-  /** Use to provide parametrized page URL, i.e. /app/overview/:clusterId **/
+  /** Use to provide parametrized page URL, for example, /app/overview/:clusterId **/
   routePath?: string;
   /** Shown in the top right inline with the page title */
   controls?: SceneObject[];
-  /** Whether or not page should be visible in the breadcrumbs path **/
+  /** Controls whether or not page should be visible in the breadcrumbs path **/
   hideFromBreadcrumbs?: boolean;
-  /** Array of SceneAppPage objects that are used as page tabs displayed on top of the page **/
+  /** Array of SceneAppPage objects that are used as page tabs displayed at the top of the page **/
   tabs?: SceneAppPageLike[];
   /** Function that returns a scene object for the page **/
   getScene?: (routeMatch: SceneRouteMatch) => EmbeddedScene;
@@ -97,7 +97,7 @@ The example above will render a blank page because `pages` property in the `Scen
   drilldowns?: SceneAppDrilldownView[];
   /** Function that returns a parent page object, used to create breadcrumbs structure **/
   getParentPage?: () => SceneAppPageLike;
-  /** Array of query params that will be preserved in breadcrumb and page tab links, i.e. ['from', 'to', 'var-datacenter',...] **/
+  /** Array of query params that will be preserved in breadcrumb and page tab links, for example, ['from', 'to', 'var-datacenter',...] **/
   preserveUrlKeys?: string[];
 ```
 
@@ -143,7 +143,7 @@ const getScene = () => {
 
 ### Step 2. Create `SceneAppPage`
 
-Use `SceneAppPage` object to configure app page.
+Use the `SceneAppPage` object to configure app page:
 
 ```tsx
 const myAppPage = new SceneAppPage({

@@ -1,21 +1,21 @@
 ---
 id: scene-app-tabs
-title: Tabs navigation to scene app
+title: Tab navigation in Scenes apps
 ---
 
-`SceneAppPage` provides support for building Grafana applications with tabs navigation. Tabs navigation is especially useful for designing information architecture for complex Grafana apps, where visualizations are groupped into meaningful sections.
+`SceneAppPage` provides support for building Grafana applications with tabs navigation. Tabs navigation is especially useful for designing information architecture for complex Grafana apps, where visualizations are grouped into meaningful sections.
 
-## Add tabs navigation to scene app
+## Add tabs navigation to Scenes apps
 
 Defining tabs navigation for apps using scenes is a matter of utilizing `SceneAppPage` property `tabs`.
 
-### Step 1. Create SceneApp
+### Step 1. Create a Scenes app
 
-Follow [Building apps with scenes guide](./scene-app.md) to build your app.
+Follow the [Building apps with scenes guide](./scene-app.md) to build your app.
 
 ### Step 2. Create scenes for individual tabs
 
-Each tab renders its own scene, similar to `SceneAppPage`.
+Each tab renders its own scene, similar to `SceneAppPage`:
 
 ```tsx
 const getOverviewScene =() => {
@@ -83,7 +83,7 @@ const getHandlersScene =() => {
 
 ### Step 3. Configure tabs for page
 
-Tabs are instances of `SceneAppPage` objects. Similarily to creating scene page, you create tabs. To render tabs, use `tabs` property of the `SceneAppPage` object.
+Tabs are instances of `SceneAppPage` objects. Similar to creating a scene page, you create tabs. To render tabs, use the `tabs` property of the `SceneAppPage` object.
 
 ```tsx
 
@@ -110,4 +110,4 @@ const myAppPage = new SceneAppPage({
 });
 ```
 
-Navigating to `https://your-grafana.url/a/<PLUGIN_ID>/my-app` will render a scene app with two tabs: Overview and Handlers. Overview tab contains Time series panel with Prometheus HTTP Requests summary. Handlers tab contains table panel with Prometheus HTTP request average durration summary per handler.
+Navigating to `https://your-grafana.url/a/<PLUGIN_ID>/my-app` will render a scene app with two tabs: **Overview** and **Handlers**. The **Overview** tab contains a time series panel with a Prometheus HTTP Requests summary. The **Handlers** tab contains a table panel with a Prometheus HTTP request average duration summary, per handler.
