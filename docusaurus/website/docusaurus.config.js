@@ -11,7 +11,7 @@ const config = {
   title: 'Grafana Scenes',
   tagline: 'Create dashboard-like experiences in Grafana app plugins.',
   url: 'https://grafana.github.io/',
-  baseUrl: 'grafana-scenes/',
+  baseUrl: 'scenes/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.png',
