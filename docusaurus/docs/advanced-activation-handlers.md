@@ -5,17 +5,19 @@ title: Activation handlers
 
 Activation handlers are useful tool for providing external behaviors to scene objects. When a scene object is mounted, activation handlers are called.
 
-Activation handlers, similar to React's `useEffect`, return a function(deactivation handler), that should be used to clean up all behaviors added in activation handler. Deactivation handler is called when a scene object is unmounted.
+Activation handlers, similar to React's `useEffect`, return a `function(deactivation handler)` that should be used to clean up all behaviors added in an activation handler. A deactivation handler is called when a scene object is unmounted.
 
 :::info
-Activation handlers are especially usefull if you want to add external behaviors to core scene objects. They reduce a need for implementing custom scene objects that would handle scene objects connections.
+Activation handlers are especially useful if you want to add external behaviors to core scene objects. They reduce the need for implementing custom scene objects that would handle scene object connections.
 :::
 
-## Adding activation handler
+## Add activation handlers
+
+Follow these steps to create an activation handler.
 
 ### Step 1. Create a scene
 
-Start with creating a scene that renders a single timeseries panel:
+Start by creating a scene that renders a single time series panel:
 
 ```ts
 const queryRunner = new SceneQueryRunner({
@@ -52,9 +54,9 @@ const scene = new EmbeddedScene({
 });
 ```
 
-### Step 2. Add activation handler
+### Step 2. Add an activation handler
 
-Add activation handler to SceneQueryRunner that subscribe to state changes and log current state. Keep in mind that subscription to state will not be created until SceneQueryRunner is activated:
+Add an activation handler to `SceneQueryRunner` that subscribes to state changes and logs the current state. Keep in mind that a subscription to state won't be created until `SceneQueryRunner` is activated:
 
 ```ts
 queryRunner.addActivationHandler(() => {
@@ -64,9 +66,9 @@ queryRunner.addActivationHandler(() => {
 });
 ```
 
-### Step 3. Return deactivation handler
+### Step 3. Return a deactivation handler
 
-From the activation handler, return a function that will unsubscribe from `queryRunner` state changes when object is de-activated:
+From the activation handler, return a function that will unsubscribe from `queryRunner` state changes when the object is deactivated:
 
 ```ts
 queryRunner.addActivationHandler(() => {
