@@ -4,25 +4,25 @@ title: Transformations
 ---
 
 :::info
-Please make sure to learn about [connecting data in Scene apps](./core-concepts.md#data-and-time-range) before continuing with this guide.
+**Before you begin**: You must already know about [connecting data in Scenes apps](./core-concepts.md#data-and-time-range) before continuing with this guide.
 :::
 
-Transformations are a powerful way to manipulate data returned by `SceneQueryRunner` before Scenes render a visualization. Using transformations, you can:
+Transformations are a powerful way to manipulate data returned by `SceneQueryRunner` before Scenes renders a visualization. Using transformations, you can:
 
 - Rename fields
 - Join time series data
 - Perform mathematical operations across queries
-- Use the output of one transformation as the input to another transformation
+- Use the output of one transformation as the input for another transformation
 
-With transformations you can query data once, manipulate it and display in a scene.
+With transformations you can query data once, manipulate it, and display it in a scene.
 
-Learn more about Grafana Transformations in [Grafana documentation](https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/).
+Learn more about Grafana transformations in [the official Grafana documentation](https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/).
 
 ## Transform query results in a scene
 
 ### Step 1. Create a scene
 
-Create a scene with a single table panel and a Prometheus query. The example query returns average duration of HTTP request for Prometheus API endpoints. The resulting table consists of 3 columns: `Time`, `handler` and `Value`.
+Create a scene with a single Table panel and a Prometheus query. The example query returns the average duration of HTTP requests for Prometheus API endpoints. The resulting table consists of three columns: `Time`, `handler`, and `Value`.
 
 ```tsx
 const queryRunner = new SceneQueryRunner({
@@ -59,7 +59,7 @@ const myScene = new EmbeddedScene({
 
 ### Step 2. Configure data transformation
 
-The resulting table from the previous step looks similar to the one below:
+The resulting table from the previous step will look similar to the one that follows:
 
 | Time                    | handler                    | Value  |
 | ----------------------- | -------------------------- | ------ |
@@ -72,7 +72,7 @@ The resulting table from the previous step looks similar to the one below:
 | 2023-05-09 14:00:00.000 | /api/v1/series             | 0      |
 | 2023-05-09 14:00:00.000 | /api/v1/status/buildinfo   | 0      |
 
-Add [_Organize fields_ transformation](https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#organize-fields), that will hide the Time field:
+Add the [_Organize fields_ transformation](https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#organize-fields) to will hide the `Time` field:
 
 Create a `SceneDataTransformer` object:
 
@@ -95,10 +95,10 @@ const transformedData = new SceneDataTransformer({
 ```
 
 :::note
-Objects used in `transformations` are the same transformation configuration objects you would see in your normal dashboard panels when you view `Panel JSON` from the panel inspect drawer. You find the panel inspect drawer in the panel menu under the name `Inspect`.
+Objects used in `transformations` are the same transformation configuration objects you would see in your normal dashboard panels when you view `Panel JSON` from the panel inspect drawer. To access panel inspect drawer, click **Inspect** in the panel edit menu.
 :::
 
-Use newly created `transformedData` object in place of previously used `SceneQueryRunner`:
+Use the newly created `transformedData` object in place of the previously used `SceneQueryRunner`:
 
 ```tsx
 const myScene = new EmbeddedScene({
@@ -117,7 +117,7 @@ const myScene = new EmbeddedScene({
 });
 ```
 
-The resulting table will look similar to the one below:
+The resulting table will look similar to the one that follows:
 
 | handler                    | Value  |
 | -------------------------- | ------ |
@@ -132,9 +132,9 @@ The resulting table will look similar to the one below:
 
 ### Step 3. Configure multiple transformations
 
-`SceneDataTransformer` allows configuring multiple transformations. They are executed in the same order as they are added to `transformations` array.
+`SceneDataTransformer` allows you to configure multiple transformations. They are executed in the same order as they are added to the `transformations` array.
 
-Modify `transformedData` object and add [_Rename by regex_ transformations](https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#rename-by-regex), that will rename field names: `handler` to `Handler` and `Value` to `Avgerage duration`
+Modify the `transformedData` object and add [_Rename by regex_ transformations](https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#rename-by-regex) to change the field names: `handler` to `Handler` and `Value` to `Average duration`:
 
 ```tsx
 const transformedData = new SceneDataTransformer({
@@ -168,7 +168,7 @@ const transformedData = new SceneDataTransformer({
 });
 ```
 
-The resulting table will look similar to the one below:
+The resulting table will look similar to the one that follows:
 
 | Handler                    | Average duration |
 | -------------------------- | ---------------- |
@@ -183,30 +183,30 @@ The resulting table will look similar to the one below:
 
 ## Add custom transformations
 
-On top of all transformations available in Grafana, Scenes allow you to create custom transformations.
+In addition to all the transformations available in Grafana, Scenes allows you to create custom transformations.
 
-`SceneDataTransformer ` accepts `CustomTransformOperator` as an item of `transformations` array:
+`SceneDataTransformer ` accepts `CustomTransformOperator` as an item of the `transformations` array:
 
 ```ts
   transformations: Array<DataTransformerConfig | CustomTransformOperator>;
 ```
 
-The `CustomTransformOperator` is a function which returns RxJS Operator that transforms data.
+`CustomTransformOperator` is a function that returns the RxJS Operator, which transforms data:
 
 ```ts
 type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
 ```
 
 :::info
-Read more about RxJS operators in [RxJS official documentation](https://rxjs.dev/guide/operators)
+Read more about RxJS operators in the [RxJS official documentation](https://rxjs.dev/guide/operators).
 :::
 
 ### Step 1. Create custom transformation
 
-Create custom transformation that will apply to `handler` field and prefix all values with an URL.
+Create a custom transformation that will apply to the `handler` field and prefix all values with a URL.
 
 :::info
-Custom transformations depend heavily on manipulating internal Grafana data objects called Data frames. Read more about Data frames in [the official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/data-frames/).
+Custom transformations depend heavily on manipulating internal Grafana data objects called _data frames_. Learn more about data frames in [the official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/data-frames/).
 :::
 
 ```ts
@@ -238,7 +238,7 @@ const prefixHandlerTransformation: CustomTransformOperator = () => (source: Obse
 
 ### Step 2. Use custom transformation
 
-Add custom transformation to previously created `transformedData` object.
+Add a custom transformation to the previously created `transformedData` object:
 
 ```tsx
 const transformedData = new SceneDataTransformer({
@@ -274,10 +274,10 @@ const transformedData = new SceneDataTransformer({
 ```
 
 :::note
-The `prefixHandlerTransformation` custom transformation is added as the first one because it applies to `handler` field thate is renamed to `Handler` in the following transformations. You can modify the custom transformation implementation so that it doesn't have to be used prior other transformations.
+The `prefixHandlerTransformation` custom transformation is added as the first one because it applies to the `handler` field that's renamed to `Handler` in the following transformations. You can modify the custom transformation implementation so that it doesn't have to be used prior to other transformations.
 :::
 
-The resulting table will look similar to the one below:
+The resulting table will look similar to the one that follows:
 
 | Handler                                           | Average duration |
 | ------------------------------------------------- | ---------------- |
