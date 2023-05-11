@@ -5,7 +5,7 @@ title: Drill-down pages in Scenes apps
 
 Drill-down pages are a powerful tool for building complex, data-driven applications. They allow you to create a high-level overview of the data that a user can interact with and progressively explore to reveal underlying data.
 
-## Add drilldown views to scene app
+## Add drill-down pages to Scenes apps
 
 `SceneAppPage` comes with an API that allows creating deep, nested drilldown views.
 
