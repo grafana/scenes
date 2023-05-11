@@ -21,7 +21,7 @@ Follow [Building apps with scenes guide](./scene-app.md) to build your app.
 
 ### Step 2. Build top level drilldown page
 
-On this page we will show a summary of average duration of HTTP request for Prometheus API endpoints using Grafana's Table panel.
+On this page, we'll show a summary of the average duration of HTTP requests for Prometheus API endpoints using Grafana's Table panel.
 
 ```ts
 function getOverviewScene() {
