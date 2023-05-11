@@ -32,7 +32,7 @@ function HomepageHeader() {
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout title={`${siteConfig.title}`} description="Set up a Grafana plugin environment effortlessly.">
+    <Layout title={`${siteConfig.title}`} description="Create dashboard-like experiences in Grafana app plugins.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />
