@@ -27,7 +27,7 @@ const sidebars = {
         items: [
           'scene-app',
           { id: 'scene-app-tabs', label: 'Tabs', type: 'doc' },
-          { id: 'scene-app-drilldown', label: 'Drilldowns', type: 'doc' },
+          { id: 'scene-app-drilldown', label: 'Drill-down pages', type: 'doc' },
         ],
       },
     ],
