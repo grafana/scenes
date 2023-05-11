@@ -73,7 +73,7 @@ function getSceneApp() {
 }
 ```
 
-### Step 2. Setup drilldown navigation
+### Step 2. Set up drill-down navigation
 
 In order to show the drilldown view we need to provide a navigation. Configure Table panel data links (learn about data links in [official Grafana documentation](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/)). Modify Table panel configuration to setup data link for the `handler` field.
 
