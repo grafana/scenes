@@ -289,3 +289,9 @@ The resulting table will look similar to the one below:
 | `http://www.my-api.com/api/v1/labels`             | 0.0194           |
 | `http://www.my-api.com/api/v1/series`             | 0                |
 | `http://www.my-api.com/api/v1/status/buildinfo`   | 0                |
+
+## Combine and filter
+
+One powerful thing you can do with transformations (custom and built-in) is share query results between panels in interesting ways. This allows you to place most of your queries in a single query runner that lives at the top of the scene. Then you can use a `SceneDataTransformer` objects on the `VizPanel` level to join and filter the resulting data in different ways. Some panels may need the result of two of the queries, and another needs the results of all of them.
+
+It's easy to filter the resulting `DataFrame` array by which query they came from using the `refId` property on `DataFrame`.
