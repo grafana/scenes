@@ -70,7 +70,7 @@ The `SceneAppPage` object allows for rendering scenes in app plugins easily. In 
 - [Tabs navigation](./scene-app-tabs.md)
 - [Drilldowns](./scene-app-drilldown.md)
 
-`SceneAppPage` accepts the following properties:
+Use `SceneAppPage` to build your app pages. It accepts the following properties:
 
 ```ts
   /** Page title */
@@ -85,7 +85,7 @@ The `SceneAppPage` object allows for rendering scenes in app plugins easily. In 
   url: string;
   /** Use to provide parametrized page URL, for example, /app/overview/:clusterId **/
   routePath?: string;
-  /** Shown in the top right inline with the page title */
+  /** Array of scene object to be rendered at the top right of the page, inline with the page title */
   controls?: SceneObject[];
   /** Controls whether or not page should be visible in the breadcrumbs path **/
   hideFromBreadcrumbs?: boolean;
@@ -100,8 +100,6 @@ The `SceneAppPage` object allows for rendering scenes in app plugins easily. In 
   /** Array of query params that will be preserved in breadcrumb and page tab links, for example, ['from', 'to', 'var-datacenter',...] **/
   preserveUrlKeys?: string[];
 ```
-
-Use `SceneAppPage` to build your app pages.
 
 ### Step 1. Create a scene
 
