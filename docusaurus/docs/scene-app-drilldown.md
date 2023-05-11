@@ -121,7 +121,7 @@ const tablePanel = new VizPanel({
 The above panel will have links for all values of the `handler` field. Clicking on a value will redirect to a particular endpoint drill-down URL that will show a "Not found page" error. We'll set up this page in the next step.
 
 :::note
-The `fieldConfig` are the same options you would see in your normal dashboard panels when you view `Panel JSON` from the Table panel inspect drawer. You find the panel inspect drawer in the panel menu under the name `Inspect`.
+The `fieldConfig` options are the same options you would see in your normal dashboard panels when you view `Panel JSON` from the Table panel inspect drawer. To access panel inspect drawer, click **Inspect** in the panel edit menu.
 :::
 
 :::info
