@@ -15,7 +15,7 @@ This guide requires knowledge about React Router URL params, Grafana field confi
 
 To create a drilldown view for `SceneAppPage`, use `drilldown` property of the `SceneAppPage` object.
 
-### Step 1. Create SceneApp
+### Step 1. Create a Scenes app
 
 Follow [Building apps with scenes guide](./scene-app.md) to build your app.
 
