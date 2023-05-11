@@ -23,7 +23,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --immutable --prefer-offline
+        uses: ./.github/actions/yarn-nm-install
       - name: Build documentation website
         run: yarn workspace website run build
 
