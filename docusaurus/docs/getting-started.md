@@ -7,7 +7,7 @@ This page shows you how to install Scenes and create your first "Hello World" sc
 
 ## Installation
 
-Add @grafana/scenes to your Grafana App Plugin by running the following command in your project:
+Add @grafana/scenes to your Grafana app plugin by running the following command in your project:
 
 ```bash
 yarn add @grafana/scenes
@@ -51,7 +51,7 @@ function getScene() {
 
 ### 2. Render a scene
 
-Use the following code in your Grafana App Plugin page to render the "Hello World" scene:
+Use the following code in your Grafana app plugin page to render the "Hello World" scene:
 
 ```tsx
 import React from 'react';
