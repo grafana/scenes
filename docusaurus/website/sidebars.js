@@ -14,8 +14,8 @@
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
   docs: {
-    'Getting started': ['getting-started', 'core-concepts'],
-    'Learn Scenes': [
+    'Getting started': [{ id: 'getting-started', label: 'Setup', type: 'doc' }, 'core-concepts'],
+    'Scene objects': [
       { id: 'scene-layout', label: 'Layouts', type: 'doc' },
       'visualizations',
       'variables',
@@ -38,9 +38,6 @@ const sidebars = {
       'advanced-data',
       'advanced-variables',
     ],
-
-    // Distribution: [],
-    // 'Advanced Usage': [],
   },
 };
 

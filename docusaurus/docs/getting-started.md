@@ -1,6 +1,6 @@
 ---
 id: getting-started
-title: Getting started
+title: Set up Scenes
 ---
 
 ### Installation
