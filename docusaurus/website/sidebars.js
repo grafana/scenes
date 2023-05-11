@@ -19,6 +19,7 @@ const sidebars = {
       { id: 'scene-layout', label: 'Layouts', type: 'doc' },
       'visualizations',
       'variables',
+      'transformations',
       {
         type: 'category',
         label: 'Scene apps',
