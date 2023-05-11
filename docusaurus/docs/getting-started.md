@@ -11,13 +11,15 @@ Add @grafana/scenes to your Grafana App Plugin by running the following command 
 yarn add @grafana/scenes
 ```
 
-Or use Scene App template to start from scratch: [Create new Scene App](https://github.com/grafana/scenes-app-template/generate)
+Conversely, use the [Scenes app template](https://github.com/grafana/scenes-app-template/generate) to start from scratch.
 
-## Hello World Scene
+## Hello World scene
 
-### Creating Scene
+The following instructions show you how to set up the "Hello World" scene.
 
-Create your first Scene using the snippet below. The following code will create a Scene that contains Grafana Text panel within a flex layout.
+### 1. Create a scene
+
+Create your first Scene using the snippet below. The following code will create a scene that contains a Grafana Text panel within a flex layout:
 
 ```ts
 // helloWorldScene.ts
@@ -45,9 +47,9 @@ function getScene() {
 }
 ```
 
-### Rendering Scene
+### 2. Render a scene
 
-Use the following code in your Grafana App Plugin page to render the Hello World scene:
+Use the following code in your Grafana App Plugin page to render the "Hello World" scene:
 
 ```tsx
 import React from 'react';
