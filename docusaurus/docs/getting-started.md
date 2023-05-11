@@ -3,7 +3,7 @@ id: getting-started
 title: Set up Scenes
 ---
 
-This page shows you how to install Scenes and create your first "Hello World" scene.
+This topic describes how to install Scenes and create your first "Hello World" scene.
 
 ## Installation
 
@@ -17,7 +17,7 @@ Conversely, use the [Scenes app template](https://github.com/grafana/scenes-app-
 
 ## Hello World scene
 
-The following instructions show you how to set up the "Hello World" scene.
+The following instructions describe how to set up the "Hello World" scene.
 
 ### 1. Create a scene
 

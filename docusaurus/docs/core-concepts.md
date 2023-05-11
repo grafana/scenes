@@ -3,7 +3,7 @@ id: core-concepts
 title: Core concepts
 ---
 
-This page explains the core concepts of Scenes and how to use them in creating your own scene.
+This topic explains the core concepts of Scenes and how to use them in creating your own scene.
 
 ## Scene
 
