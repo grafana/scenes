@@ -1,6 +1,6 @@
 ---
 id: scene-app-drilldown
-title: Drilldown views in scene app
+title: Drill-down pages in Scenes apps
 ---
 
 Drilldowns are a powerful tool for building complex, data-driven applications. They allow to create high level overview of the data that user can interact with and progressively explore to reveal underlying data.
