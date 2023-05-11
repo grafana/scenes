@@ -23,13 +23,25 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Scene apps',
+      label: 'Scene objects',
       collapsible: true,
       collapsed: false,
       items: [
-        'scene-app',
-        { id: 'scene-app-tabs', label: 'Tabs', type: 'doc' },
-        { id: 'scene-app-drilldown', label: 'Drill-down pages', type: 'doc' },
+        { id: 'scene-layout', label: 'Layouts', type: 'doc' },
+        'visualizations',
+        'variables',
+        'transformations',
+        {
+          type: 'category',
+          label: 'Scene apps',
+          collapsible: true,
+          collapsed: false,
+          items: [
+            'scene-app',
+            { id: 'scene-app-tabs', label: 'Tabs', type: 'doc' },
+            { id: 'scene-app-drilldown', label: 'Drill-down pages', type: 'doc' },
+          ],
+        },
       ],
     },
     {
