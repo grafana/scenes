@@ -3,7 +3,9 @@ id: getting-started
 title: Set up Scenes
 ---
 
-### Installation
+This page shows you how to install Scenes and create your first "Hello World" scene.
+
+## Installation
 
 Add @grafana/scenes to your Grafana App Plugin by running the following command in your project:
 
@@ -19,7 +21,7 @@ The following instructions show you how to set up the "Hello World" scene.
 
 ### 1. Create a scene
 
-Create your first Scene using the snippet below. The following code will create a scene that contains a Grafana Text panel within a flex layout:
+Create your first scene using the snippet below. The following code will create a scene that contains a Grafana Text panel within a flex layout:
 
 ```ts
 // helloWorldScene.ts

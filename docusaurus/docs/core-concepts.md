@@ -3,6 +3,8 @@ id: core-concepts
 title: Core concepts
 ---
 
+This page explains the core concepts of Scenes and how to use them in creating your own scene.
+
 ## Scene
 
 A scene is a collection of objects, called _scene objects_. These objects represent different aspects of the scene: data, time ranges, variables, layout, and visualizations. Together, scene objects form an _object tree_:
@@ -11,7 +13,7 @@ A scene is a collection of objects, called _scene objects_. These objects repres
 
 Scenes allow you to group and nest object. Things like data, time ranges, or variables can be added to any object in the tree, making them accessible to that object and all descendant objects. Because of this, scenes allow you to create dashboards that have multiple time ranges, queries that can be shared and transformed, or nested variables.
 
-@grafana/scenes comes with multiple objects&#151;like `SceneQueryRunner`, `SceneFlexLayout`, `VizPanel` and more&#151;to solve common problems. However, you can also create your own scene objects to extend functionality.
+@grafana/scenes comes with multiple objects&#151;like `SceneQueryRunner`, `SceneFlexLayout`, `VizPanel`, and more&#151;to solve common problems. However, you can also create your own scene objects to extend functionality.
 
 ## Scene object
 
@@ -143,10 +145,10 @@ const queryRunner = new SceneQueryRunner({
 ```
 
 :::info
-Keep in mind that your Grafana instance must have a specified data source configured.
+Your Grafana instance must have a specified data source configured.
 :::
 
-For `SceneQueryRunner` to work, a time range has to be added to a scene. Each scene object has a `$timeRange` property to which the `SceneTimeRange` scene object can be added. To specify a time range for the query runner created in the previous example, add the `$timeRange` property in the object passed to the constructor:
+For `SceneQueryRunner` to work, you must add a time range to a scene. Each scene object has a `$timeRange` property to which the `SceneTimeRange` scene object can be added. To specify a time range for the query runner created in the previous example, add the `$timeRange` property in the object passed to the constructor:
 
 ```tsx
 import { SceneQueryRunner, SceneTimeRange } from '@grafana/scenes';
@@ -177,7 +179,7 @@ const scene = new EmbeddedScene({
 
 Each scene object has a `$data` and `$timeRange` property that can be configured. Because a scene is an object tree, the data and time range configured through `SceneQueryRunner` and `SceneTimeRange` respectively are accessible to the objects they're  added to _and_ all descendant objects.
 
-In the following example, each `VizPanel` uses different data. Panel "A" uses data defined on the `EmbeddedScene`, while Panel "B" has it's own data and time range configured:
+In the following example, each `VizPanel` uses different data. "Panel A" uses data defined on the `EmbeddedScene`, while "Panel B" has its own data and time range configured:
 
 ```tsx
 // Scene data, used by Panel A
