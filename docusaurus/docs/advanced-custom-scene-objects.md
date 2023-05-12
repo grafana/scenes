@@ -3,13 +3,15 @@ id: advanced-custom-scene-objects
 title: Custom scene objects
 ---
 
-Scenes comes with extensibility in mind. On top of the library primitives you can build your own custom scene objects that extend basic functionality of the library.
+Scenes comes with extensibility in mind. In addition to the library primitives, you can build your own custom scene objects that extend the basic functionality of the library. This topic describes how to create a custom object.
 
-## Create custom scene object
+## Create custom scene objects
 
-### Step 1. Define state type of the custom object
+Follow these steps to create a custom scene object.
 
-Start with defining the state type for your custom object. This interface must extend `SceneObjectState` interface:
+### Step 1. Define the state type of the custom object
+
+Start by defining the state type for your custom object. This interface must extend the `SceneObjectState` interface:
 
 ```ts
 interface CounterState extends SceneObjectState {
@@ -17,9 +19,9 @@ interface CounterState extends SceneObjectState {
 }
 ```
 
-### Step 2. Implement custom object class
+### Step 2. Implement a custom object class
 
-Implement class for custom scene object. This class must extend `SceneObjectBase` class:
+Implement a class for the custom scene object. This class must extend the `SceneObjectBase` class:
 
 ```ts
 export class Counter extends SceneObjectBase<CounterState> {
@@ -29,9 +31,9 @@ export class Counter extends SceneObjectBase<CounterState> {
 }
 ```
 
-### Step 3. Implement custom object renderer
+### Step 3. Implement a custom object renderer
 
-Implement React component that will be shown when custom object is used in scene. This component must use `SceneComponentProps<T extends SceneObjectBase>` type for props:
+Implement a React component that will be shown when the custom object is used in a scene. This component must use the `SceneComponentProps<T extends SceneObjectBase>` type for props:
 
 ```ts
 function CounterRenderer(props: SceneComponentProps<Counter>) {
@@ -39,7 +41,7 @@ function CounterRenderer(props: SceneComponentProps<Counter>) {
 }
 ```
 
-Set renderer for `Counter` custom object using `static Component` property:
+Set a renderer for the `Counter` custom object using the `static Component` property:
 
 ```ts
 export class Counter extends SceneObjectBase<CounterState> {
@@ -48,9 +50,9 @@ export class Counter extends SceneObjectBase<CounterState> {
 }
 ```
 
-### Step 4. Use custom object state in renderer
+### Step 4. Use a custom object state in the renderer
 
-Use `model` property passed to the component and subscribe to its state using `model.useState()` hook. Any changes to the object state will re-render the component:
+Use the `model` property passed to the component and subscribe to its state using the `model.useState()` hook. Any changes to the object state will re-render the component:
 
 ```ts
 function CounterRenderer({ model }: SceneComponentProps<Counter>) {
@@ -64,9 +66,9 @@ function CounterRenderer({ model }: SceneComponentProps<Counter>) {
 }
 ```
 
-### Step 5. Modify state of custom object from component
+### Step 5. Modify the state of the custom object from the component
 
-Defined state-modifying method (`onIncrement`) in custom scene object:
+Define the state-modifying method, (`onIncrement`), in the custom scene object:
 
 ```ts
 export class Counter extends SceneObjectBase<CounterState> {
@@ -79,7 +81,7 @@ export class Counter extends SceneObjectBase<CounterState> {
 }
 ```
 
-Use `onIncrement` method in the renderer:
+Use the `onIncrement` method in the renderer:
 
 ```ts
 function CounterRenderer({ model }: SceneComponentProps<Counter>) {
@@ -94,9 +96,9 @@ function CounterRenderer({ model }: SceneComponentProps<Counter>) {
 }
 ```
 
-### Step 6. Use custom object in scene
+### Step 6. Use the custom object in a scene
 
-Now your custom scene object `Counter` is ready to be used in scene. Create a scene that uses it:
+Now your custom scene object, `Counter`, is ready to be used in a scene. Create a scene that uses it:
 
 ```ts
 const myScene = new EmbeddedScene({
