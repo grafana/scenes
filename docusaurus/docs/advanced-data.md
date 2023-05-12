@@ -7,7 +7,7 @@ Custom scene objects can use data and time range added to scene to perform addit
 
 ## Use data
 
-In custom scene object use `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. What this means is that it will use `$data` set on it's own level or share data with other siblings and scene objects if `$data` is set on any parent level.
+In custom scene object use `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. This means it uses `$data` set on its own level or shares data with other siblings and scene objects if `$data` is set on any parent level.
 
 ### Use data in renderer
 

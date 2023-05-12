@@ -7,7 +7,7 @@ title: Visualizations
 
 You can add visualizations to your scene by using the scene object class `VizPanel`.
 
-## Simple VizPanel example
+## Simple `VizPanel` example
 
 ```ts
 new VizPanel({
@@ -30,18 +30,17 @@ new VizPanel({
 ```
 
 :::note
-The pluginId `timeseries` used above refers to the core Grafana panel plugin which is the standard graph visualization for time indexed data. The `options` and `fieldConfig` are the same options you would see
-in your normal dashboard panels when you view `Panel JSON` from the panel inspect drawer. You find the panel inspect drawer in the panel menu under the name `Inspect`.
+The pluginId, `timeseries`, used in the preceding example refers to the core Grafana panel plugin, which is the standard graph visualization for time indexed data. The `options` and `fieldConfig` are the same options you would see
+in a typical dashboard panel when you view the **JSON** tab in the panel inspect drawer. To access this tab, click **Inspect > Panel JSON** in the panel edit menu.
 :::
 
 ## Data
 
-VizPanel will use the `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. What this means is that it will use `$data` set on it's own level or share data with other siblings and scene objects if `$data` is set on any parent level.
-
+`VizPanel` uses the `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider` object. This means `VizPanel` uses `$data` set on its own level or shares data with other siblings and scene objects if `$data` is set on any parent level.
 
 ## Header actions
 
-VizPanel has a property named `headerActions` that can be either a `React.ReactNode` or a custom `SceneObject`. This property is useful if you want to place links or buttons in the top right corner of the panel header. Example:
+`VizPanel` has a property named `headerActions` that can be either `React.ReactNode` or a custom `SceneObject`. This property is useful if you want to place links or buttons in the top right corner of the panel header. For example:
 
 ```ts
 new VizPanel({
@@ -53,20 +52,20 @@ new VizPanel({
 })
 ```
 
-Placing buttons in the top right corner of the panel header could be used for:
+Buttons in the top right corner of the panel header can be used for:
 
 * Links to other scenes
-* Buttons that change the current scene (add drilldown view for example)
-* RadioButtonGroup that changes the visualization settings
+* Buttons that change the current scene (add a drill-down page, for example)
+* A `RadioButtonGroup` that changes the visualization settings
 
-For LinkButton, Button and RadioButtonGroup please use size="sm" when placed in the panel header.
+For `LinkButton`, `Button`, and `RadioButtonGroup`, use size="sm" when you place them in the panel header.
 
 ## Custom visualizations
 
-If you want to visualize data yourself in your Grafana app plugin you can do that in two ways. You always have the option to create a custom SceneObject. But then you will not get the PanelChrome with loading state and other features
-that VizPanel provides. If you want a custom visualization inside a panel frame that should look like the other panels in your scene then it's best to register a runtime panel plugin.
+If you want to determine how data is visualized in your Grafana app plugin, you can do so in two ways. You always have the option to create a custom `SceneObject`, but you won't get the `PanelChrome` with loading state and other features
+that `VizPanel` provides. If you want a custom visualization inside a panel frame that should look like the other panels in your scene, then it's best to register a runtime panel plugin.
 
-Start by defining your panel options and field config.
+Start by defining your panel options and field config:
 
 ```ts
 interface CustomVizOptions {
@@ -80,7 +79,7 @@ interface CustomVizFieldOptions {
 interface Props extends PanelProps<CustomVizOptions> {}
 ```
 
-Then you can define the react component that renders your custom PanelPlugin.
+Then you can define the react component that renders your custom `PanelPlugin`.
 
 ```ts
 export function CustomVizPanel(props: Props) {
@@ -95,7 +94,7 @@ export function CustomVizPanel(props: Props) {
 }
 ```
 
-Now your ready to create your PanelPlugin instance and register it with the scenes library.
+Now you're ready to create your `PanelPlugin` instance and register it with the Scenes library:
 
 ```ts
 const myCustomPanel = new PanelPlugin<MyCustomOptions, MyCustomFieldOptions>(CustomVizPanel);
@@ -103,7 +102,7 @@ const myCustomPanel = new PanelPlugin<MyCustomOptions, MyCustomFieldOptions>(Cus
 registerRuntimePanelPlugin({ pluginId: 'my-scene-app-my-custom-viz', plugin: myCustomPanel });
 ```
 
-You can now use this pluginId in any `VizPanel`. Make sure you specify a pluginId that includes your scene app name and is unlikely to conflict with other scene apps.
+You can now use this pluginId in any `VizPanel`. Make sure you specify a pluginId that includes your scene app name and is unlikely to conflict with other Scenes apps.
 
-For more information read the offical [tutorial on building panel plugins](https://grafana.com/tutorials/build-a-panel-plugin). Just remember that for scene runtime panel plugins
-you do not need a plugin.json file for the panel plugin. It will not be a standalone plugin that you can use in dashboards. it will only be something that can be referenced inside your scene app.
+For more information, refer to the official [tutorial on building panel plugins](https://grafana.com/tutorials/build-a-panel-plugin). Just remember that for Scenes runtime panel plugins,
+you don't need a plugin.json file for the panel plugin, as it won't be a standalone plugin that you can use in Dashboards. You'll only be able to reference the plugin inside your Scenes app.

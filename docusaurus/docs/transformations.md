@@ -95,7 +95,7 @@ const transformedData = new SceneDataTransformer({
 ```
 
 :::note
-Objects used in `transformations` are the same transformation configuration objects you would see in your normal dashboard panels when you view `Panel JSON` from the panel inspect drawer. To access panel inspect drawer, click **Inspect** in the panel edit menu.
+Objects used in `transformations` are the same transformation configuration objects you would see in a typical dashboard panel when you view the **JSON** tab in the panel inspect drawer. To access this tab, click **Inspect > Panel JSON** in the panel edit menu.
 :::
 
 Use the newly created `transformedData` object in place of the previously used `SceneQueryRunner`:
