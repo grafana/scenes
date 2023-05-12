@@ -3,21 +3,25 @@ id: getting-started
 title: Set up Scenes
 ---
 
-### Installation
+This topic describes how to install Scenes and create your first "Hello World" scene.
 
-Add @grafana/scenes to your Grafana App Plugin by running the following command in your project:
+## Installation
+
+Add @grafana/scenes to your Grafana app plugin by running the following command in your project:
 
 ```bash
 yarn add @grafana/scenes
 ```
 
-Or use Scene App template to start from scratch: [Create new Scene App](https://github.com/grafana/scenes-app-template/generate)
+Conversely, use the [Scenes app template](https://github.com/grafana/scenes-app-template/generate) to start from scratch.
 
-## Hello World Scene
+## Hello World scene
 
-### Creating Scene
+The following instructions describe how to set up the "Hello World" scene.
 
-Create your first Scene using the snippet below. The following code will create a Scene that contains Grafana Text panel within a flex layout.
+### 1. Create a scene
+
+Create your first scene using the snippet below. The following code will create a scene that contains a Grafana Text panel within a flex layout:
 
 ```ts
 // helloWorldScene.ts
@@ -45,9 +49,9 @@ function getScene() {
 }
 ```
 
-### Rendering Scene
+### 2. Render a scene
 
-Use the following code in your Grafana App Plugin page to render the Hello World scene:
+Use the following code in your Grafana app plugin page to render the "Hello World" scene:
 
 ```tsx
 import React from 'react';
