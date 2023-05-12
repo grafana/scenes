@@ -3,15 +3,15 @@ id: scene-layout
 title: Building a scene layout
 ---
 
-Scenes support two layout types: flex and grid layout. In this guide you will learn how to use and configure `SceneFlexLayout` and `SceneGridLayout`.
+Scenes support two layout types: flex and grid layout. In this guide, you'll learn how to use and configure `SceneFlexLayout` and `SceneGridLayout`.
 
 ## Flexbox layout
 
-`SceneFlexLayout` allows building flexible scenes with layout driven by browser's CSS flexbox layout. This allows for defining very dynamic layouts where panel widths and heights can adapt to the available space.
+`SceneFlexLayout` allows you to build flexible scenes with layouts driven by the browser's CSS flexbox layout. This lets you to define very dynamic layouts where panel widths and heights can adapt to the available space.
 
 ### Step 1. Create a scene
 
-Start using flexbox layout by creating a scene with `body` configured as `SceneFlexLayout`:
+Start using the flexbox layout by creating a scene with `body` configured as `SceneFlexLayout`:
 
 ```ts
 const myScene = new EmbeddedScene({
@@ -21,12 +21,12 @@ const myScene = new EmbeddedScene({
 
 ### Step 2. Configure flexbox layout
 
-`SceneFlexLayout` allows flexbox behavior configuration. You can configuere the following properties:
+`SceneFlexLayout` allows flexbox behavior configuration. You can configure the following properties:
 
-- `direction` - configure the main axis of flexbox layout. Children placed within the layout will follow it's direction.
-- `wrap` - configure behavior of layout children. By default, children will try to fit into one line.
+- `direction` - Configures the main axis of flexbox layout. Children placed within the layout follow its direction.
+- `wrap` - Configures the behavior of layout children. By default, children try to fit into one line.
 
-By default SceneFlexLayout uses `row` direction. To create colum layout, try the following code:
+By default, `SceneFlexLayout` uses `row` direction. To create a column layout, use the following code:
 
 ```ts
 const myScene = new EmbeddedScene({
@@ -38,8 +38,8 @@ const myScene = new EmbeddedScene({
 
 ### Step 3. Add layout children
 
-`SceneFlexLayout` has `children` property. It accepts an array of `SceneFlexItem` or `SceneFlexLayout` objects.
-Create scene with two, equally sized layout items in a column:
+`SceneFlexLayout` has a `children` property. It accepts an array of `SceneFlexItem` or `SceneFlexLayout` objects.
+Create a scene with two, equally sized layout items in a column:
 
 ```ts
 const myScene = new EmbeddedScene({
@@ -50,7 +50,7 @@ const myScene = new EmbeddedScene({
 });
 ```
 
-Both `ScenFlexLayout` and `SceneFlexItem` object types accept the following configuration options that allow size constraints and behaviors:
+Both `SceneFlexLayout` and `SceneFlexItem` object types accept the following configuration options that allow size constraints and behaviors:
 
 ```ts
   flexGrow?: CSSProperties['flexGrow'];
@@ -67,12 +67,12 @@ Both `ScenFlexLayout` and `SceneFlexItem` object types accept the following conf
   md?: SceneFlexItemPlacement;
 ```
 
-We really recommend setting a minHeight on all children of layout that use `column` direction. This will make sure that they don't get squashed too much on smaller screens. If you set minHeight or height on a SceneFlexLayout you do not need
-to set it on each child as they will inherit these constraints.
+We strongly recommend setting a `minHeight` on all children of the layout that use `column` direction. This ensures that they aren't overly compressed on smaller screens. If you set `minHeight` or `height` on the `SceneFlexLayout` object, you don't need
+to set it on each child, as they will inherit these constraints.
 
 ### Step 4. Add panels to flex layout items
 
-The above example sets up layout for your scene. To visualize data, [configure `SceneQueryRunner`](./core-concepts.md#data-and-time-range) and add it to your scene first:
+The preceding example sets up a layout for your scene. To visualize data, [configure `SceneQueryRunner`](./core-concepts.md#data-and-time-range) and add it to your scene:
 
 ```ts
 const queryRunner = new SceneQueryRunner({
@@ -98,7 +98,7 @@ const myScene = new EmbeddedScene({
 });
 ```
 
-Next, add `VizPanel` objects as `body` of layout items:
+Next, add `VizPanel` objects as the `body` of the layout items:
 
 ```ts
 const queryRunner = new SceneQueryRunner({
@@ -136,23 +136,23 @@ const myScene = new EmbeddedScene({
 });
 ```
 
-The above example will render two panels, a Timeseries and a Table panel.
+This will render two panels, a Time series and a Table panel.
 
 :::note
-For `SceneFlexItems` that contain a `VizPanel`, it's usually a good idea to set `minHeight` or `minWidth` constraints so they don't get squashed too small by limited screen space.
+For `SceneFlexItems` that contain `VizPanel` objects, it's recommended that you set `minHeight` or `minWidth` constraints so the panels aren't overly compressed by limited screen space.
 :::
 
 ### Responsive flex layouts
 
-By default SceneFlexLayout has some responsive behaviors for smaller screens. These kick in for screens that match the media query of Grafana's theme.breakpoints.down('md').
+By default, `SceneFlexLayout` has some responsive behaviors for smaller screens:
 
-* SceneFlexLayout direction will change from row to column.
-* SceneFlexLayout maxWidth, maxHeight, height or width constraints are removed.
-* SceneFlexLayout and SceneFlexItem will use the minHeight or height set on the parent layout (unless specified on it directly). This is to make a height or minHeight constraint set on a SceneFlexLayout with direction row also apply to it's children so that when the responsive media query that changes direction to column kicks in these constaints are still acting on the children.
+* `SceneFlexLayout` direction changes from `row` to `column`.
+* `SceneFlexLayout` `maxWidth`, `maxHeight`, `height` or `width` constraints are removed.
+* `SceneFlexLayout` and `SceneFlexItem` uses the `minHeight` or `height` set on the parent layout (unless specified on it directly). This is to force a `height` or `minHeight` constraint set on a `SceneFlexLayout` with direction `row` to also apply to its children so that when the responsive media query that changes the direction to `column` is triggered, these constraints continue acting on the children.
 
-You can override these behaviors and set custom direction and size constraints using the `md` property that exist on both SceneFlexLayout and SceneFlexItem.
+These behaviors are triggered for screens that match the media query of Grafana's theme.breakpoints.down('md').
 
-Example:
+You can override these behaviors and set custom direction and size constraints using the `md` property that exists on both `SceneFlexLayout` and `SceneFlexItem`. For example:
 
 ```ts
 new SceneFlexLayout({
@@ -166,11 +166,11 @@ new SceneFlexLayout({
 }),
 ```
 
-In the above example we use the `md` property to override the default responsive behavior that changes a `row` layout to a `column` layout. We also apply a tighter minHeight constraint.
+In the preceding example, we use the `md` property to override the default responsive behavior that changes a row layout to a column layout. We also apply a tighter `minHeight` constraint.
 
 ## Grid layout
 
-`SceneGridLayout` allows building scenes as grids. This is the default behavior of Dashboards in Grafana, and grid layout enables adding a similar experience to your scene.
+`SceneGridLayout` allows you to build scenes as grids. This is the default behavior of Dashboards in Grafana, and grid layout lets you add a similar experience to your scene.
 
 ### Step 1. Create a scene
 
@@ -188,8 +188,8 @@ const myScene = new EmbeddedScene({
 
 You can configure the following properties:
 
-- `isDraggable` - configure whether or not grid items can be moved.
-- `isLazy` - configure whether or not grid items should be initialized when they are outside of the viewport.
+- `isDraggable` - Configures whether or not grid items can be moved.
+- `isLazy` - Configures whether or not grid items should be initialized when they are outside of the viewport.
 
 ```ts
 const myScene = new EmbeddedScene({
@@ -202,8 +202,8 @@ const myScene = new EmbeddedScene({
 
 ### Step 3. Add layout children
 
-`SceneGridLayout` has `children` property. It accepts an array of `SceneGridItem` or `SceneGridRow` objects.
-Create scene with two grid item in a row:
+`SceneGridLayout` has a `children` property. It accepts an array of `SceneGridItem` or `SceneGridRow` objects.
+Create a scene with two grid items in a row:
 
 ```ts
 const myScene = new EmbeddedScene({
@@ -230,7 +230,7 @@ const myScene = new EmbeddedScene({
 });
 ```
 
-`SceneGridItem` accepts the following configuration options. Options are expressed in 24 columns grid units.
+`SceneGridItem` accepts the following configuration options, which are expressed in 24 columnar grid units:
 
 ```ts
   x?: number;
@@ -241,7 +241,7 @@ const myScene = new EmbeddedScene({
 
 ### Step 4. Add panels to grid layout items
 
-[Similarily to flexbox layout](#step-4-add-panels-to-flex-layout-items), add `VizPanel` to `SceneGridItem` to show visualized data:
+Add `VizPanel` to `SceneGridItem` to show visualized data:
 
 ```ts
 const myScene = new EmbeddedScene({
@@ -279,10 +279,10 @@ const myScene = new EmbeddedScene({
 
 ### Step 5. Add a grid row
 
-Grid row is a layout item that groups other `SceneGridItems` into a collapsible row. Use `SceneGridRow` add a row to Scene:
+A grid row is a layout item that groups other `SceneGridItems` into a collapsible row. Use `SceneGridRow` to add a row to a scene:
 
 :::note
-In `SceneGridRow` the `x` and `y` coordinates are relative to the row.
+In `SceneGridRow`, the `x` and `y` coordinates are relative to the row.
 :::
 
 ```ts
