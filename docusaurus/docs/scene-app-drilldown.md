@@ -13,7 +13,7 @@ Drill-down pages are a powerful tool for building complex, data-driven applicati
 **Before you begin**: You must already know about React Router URL params, Grafana field configuration, and data links before continuing with this guide.
 :::
 
-To create a drill-down page for `SceneAppPage`, use the `drilldown` property of the `SceneAppPage` object.
+To create a drill-down page, use the `drilldown` property of the `SceneAppPage` object.
 
 ### Step 1. Create a Scenes app
 
