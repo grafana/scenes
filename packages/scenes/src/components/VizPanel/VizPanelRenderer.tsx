@@ -3,6 +3,7 @@ import { useMeasure } from 'react-use';
 
 import { PanelData, PluginContextProvider } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
+import { LoadingState } from '@grafana/schema';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
@@ -109,24 +110,26 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
               <ErrorBoundaryAlert dependencies={[plugin, data]}>
                 <PluginContextProvider meta={plugin.meta}>
                   <PanelContextProvider value={model.getPanelContext()}>
-                    <PanelComponent
-                      id={1}
-                      data={data}
-                      title={title}
-                      timeRange={data.timeRange}
-                      timeZone={timeZone}
-                      options={options}
-                      fieldConfig={fieldConfig}
-                      transparent={false}
-                      width={innerWidth}
-                      height={innerHeight}
-                      renderCounter={0}
-                      replaceVariables={model.interpolate}
-                      onOptionsChange={model.onOptionsChange}
-                      onFieldConfigChange={model.onFieldConfigChange}
-                      onChangeTimeRange={model.onChangeTimeRange}
-                      eventBus={getAppEvents()}
-                    />
+                    {(data.state === LoadingState.Done || data.state === LoadingState.Error) && (
+                      <PanelComponent
+                        id={1}
+                        data={data}
+                        title={title}
+                        timeRange={data.timeRange}
+                        timeZone={timeZone}
+                        options={options}
+                        fieldConfig={fieldConfig}
+                        transparent={false}
+                        width={innerWidth}
+                        height={innerHeight}
+                        renderCounter={0}
+                        replaceVariables={model.interpolate}
+                        onOptionsChange={model.onOptionsChange}
+                        onFieldConfigChange={model.onFieldConfigChange}
+                        onChangeTimeRange={model.onChangeTimeRange}
+                        eventBus={getAppEvents()}
+                      />
+                    )}
                   </PanelContextProvider>
                 </PluginContextProvider>
               </ErrorBoundaryAlert>

@@ -1,9 +1,17 @@
 import { cloneDeep } from 'lodash';
 import { Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef } from '@grafana/schema';
+import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
-import { CoreApp, DataQueryRequest, PanelData, preProcessPanelData, rangeUtil, ScopedVar } from '@grafana/data';
+import {
+  CoreApp,
+  DataQueryRequest,
+  getDefaultTimeRange,
+  PanelData,
+  preProcessPanelData,
+  rangeUtil,
+  ScopedVar,
+} from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -17,6 +25,12 @@ import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
 
 let counter = 100;
+
+export const INITIAL_DATA_STATE = {
+  state: LoadingState.NotStarted,
+  series: [],
+  timeRange: getDefaultTimeRange(),
+};
 
 export function getNextRequestId() {
   return 'SQR' + counter++;
@@ -49,7 +63,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   });
 
   public constructor(initialState: QueryRunnerState) {
-    super(initialState);
+    super({
+      data: INITIAL_DATA_STATE,
+      ...initialState,
+    });
 
     this.addActivationHandler(() => this._onActivate());
   }
@@ -101,7 +118,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     // If we already have data, no need
     // TODO validate that time range is similar and if not we should run queries again
-    if (this.state.data) {
+    if (this.state.data && this.state.data.state !== LoadingState.NotStarted) {
       return false;
     }
 
