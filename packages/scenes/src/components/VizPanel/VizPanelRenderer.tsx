@@ -3,7 +3,6 @@ import { useMeasure } from 'react-use';
 
 import { PanelData, PluginContextProvider } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
-import { LoadingState } from '@grafana/schema';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
@@ -33,8 +32,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isDraggable = parentLayout.isDraggable() && (state.isDraggable ?? true);
   const dragClass = isDraggable && parentLayout.getDragClass ? parentLayout.getDragClass() : '';
   const dragClassCancel = isDraggable && parentLayout.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
-  const rawData = sceneGraph.getData(model).useState();
-  const dataWithFieldConfig = model.applyFieldConfig(rawData.data);
+  const dataObject = sceneGraph.getData(model);
+  const rawData = dataObject.useState();
+  const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
@@ -110,7 +110,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
               <ErrorBoundaryAlert dependencies={[plugin, data]}>
                 <PluginContextProvider meta={plugin.meta}>
                   <PanelContextProvider value={model.getPanelContext()}>
-                    {(data.state === LoadingState.Done || data.state === LoadingState.Error) && (
+                    {dataObject.isReadyToRender() && (
                       <PanelComponent
                         id={1}
                         data={data}

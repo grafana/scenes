@@ -74,6 +74,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     }
   }
 
+  public isReadyToRender() {
+    if (this.state.$data) {
+      return this.state.$data.isReadyToRender();
+    }
+    return false;
+  }
+
   public reprocessTransformations() {
     this.transform(this.getSourceData().state.data);
   }

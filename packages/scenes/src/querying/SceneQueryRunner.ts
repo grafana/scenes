@@ -55,6 +55,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
+  private _hasFetchedData = false;
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -156,6 +157,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
   }
 
+  public isReadyToRender() {
+    return this._hasFetchedData;
+  }
+
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
     this.runWithTimeRange(timeRange);
@@ -241,6 +246,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private onDataReceived = (data: PanelData) => {
     const preProcessedData = preProcessPanelData(data, this.state.data);
+    if (
+      !this._hasFetchedData &&
+      preProcessedData.state !== LoadingState.NotStarted &&
+      preProcessedData.state !== LoadingState.Loading
+    ) {
+      this._hasFetchedData = true;
+    }
+
     this.setState({ data: preProcessedData });
   };
 

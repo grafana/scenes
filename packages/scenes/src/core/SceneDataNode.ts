@@ -15,6 +15,10 @@ export class SceneDataNode extends SceneObjectBase<SceneDataNodeState> implement
       ...state,
     });
   }
+
+  public isReadyToRender() {
+    return true;
+  }
 }
 
 export const emptyPanelData = {
