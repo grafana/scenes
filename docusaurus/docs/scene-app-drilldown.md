@@ -7,21 +7,21 @@ Drill-down pages are a powerful tool for building complex, data-driven applicati
 
 ## Add drill-down pages to Scenes apps
 
-`SceneAppPage` comes with an API that allows creating deep, nested drilldown views.
+`SceneAppPage` comes with an API that allows you to create deep, nested drill-down pages.
 
 :::info
-This guide requires knowledge about React Router URL params, Grafana field configuration and data links.
+**Before you begin**: You must already know about React Router URL params, Grafana field configuration, and data links before continuing with this guide.
 :::
 
-To create a drilldown view for `SceneAppPage`, use `drilldown` property of the `SceneAppPage` object.
+To create a drill-down page, use the `drilldown` property of the `SceneAppPage` object.
 
 ### Step 1. Create a Scenes app
 
-Follow [Building apps with scenes guide](./scene-app.md) to build your app.
+Follow the [Building apps with Scenes guide](./scene-app.md) to build your app.
 
-### Step 2. Build top level drilldown page
+### Step 2. Build a top level drill-down page
 
-On this page, we'll show a summary of the average duration of HTTP requests for Prometheus API endpoints using Grafana's Table panel.
+Use the code that follows to build a page that shows a summary of the average duration of HTTP requests for Prometheus API endpoints, using Grafana's Table panel:
 
 ```ts
 function getOverviewScene() {
@@ -73,9 +73,9 @@ function getSceneApp() {
 }
 ```
 
-### Step 2. Set up drill-down navigation
+### Step 3. Set up drill-down navigation
 
-To show the drill-down page, we need to provide navigation. Configure Table panel data links (learn about data links in [official Grafana documentation](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/)). Then modify the Table panel configuration to set up a data link for the `handler` field.
+To show the drill-down page, you need to provide navigation. Configure Table panel data links (learn about data links in the [official Grafana documentation](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/)). Then modify the Table panel configuration to set up a data link for the `handler` field:
 
 ```tsx
 import { urlUtil } from '@grafana/data';
@@ -118,31 +118,31 @@ const tablePanel = new VizPanel({
 });
 ```
 
-The above panel will have links for all values of the `handler` field. Clicking on a value will redirect to a particular endpoint drill-down URL that will show a "Not found page" error. We'll set up this page in the next step.
+The resulting panel will have links for all values of the `handler` field. Clicking a value will redirect to a particular endpoint drill-down URL that will show a "Not found page" error. You'll set up this page in the next step.
 
 :::note
-The `fieldConfig` options are the same options you would see in your normal dashboard panels when you view `Panel JSON` from the Table panel inspect drawer. To access panel inspect drawer, click **Inspect** in the panel edit menu.
+The `fieldConfig` options are the same options you would see in a typical dashboard panel when you view the **JSON** tab in the panel inspect drawer. To access the tab, click **Inspect > Panel JSON** in the panel edit menu.
 :::
 
 :::info
-Using `locationService` and `urlUtil` comes handy if you want to preserve variables and time range query params.
+Using `locationService` and `urlUtil` is helpful if you want to preserve variables and time range query params.
 `${__value.text:percentencode}` is the percent-encoded value of the clicked table cell.
 :::
 
-### Step 3. Build drilldown page
+### Step 4. Build a drill-down page
 
-Modify the `getSceneApp` function to set up drilldown scenes. Use the `drilldowns` property of the `SceneAppPage` object. The `drilldowns` property accepts an array of `SceneAppDrilldownView` objects. It allows drilldown URL and page to be rendered configuration:
+Modify the `getSceneApp` function to set up drill-down scenes. Use the `drilldowns` property of the `SceneAppPage` object. The `drilldowns` property accepts an array of `SceneAppDrilldownView` objects. It allows a drill-down URL and page to be rendered configuration:
 
 ```ts
 export interface SceneAppDrilldownView {
-  /** Use to provide parametrized drilldown URL, i.e. /app/clusters/:clusterId **/
+  /** Use to provide parametrized drilldown URL, for example, /app/clusters/:clusterId **/
   routePath: string;
   /** Function that returns a page object for a given drilldown route match. Use parent to configure drilldown view parent SceneAppPage via getParentPage method. **/
   getPage: (routeMatch: SceneRouteMatch<any>, parent: SceneAppPageLike) => SceneAppPageLike;
 }
 ```
 
-Configure the API endpoint drilldown view:
+Configure the API endpoint drill-down view:
 
 ```tsx
 function getSceneApp() {
@@ -164,20 +164,20 @@ function getSceneApp() {
 }
 ```
 
-Define a function that will return a `SceneAppPage` for a drilldown view. This function receives two arguments:
+Define a function that returns a `SceneAppPage` for a drill-down view. This function receives two arguments:
 
-- `routeMatch` - contains information about URL params.
-- `parentPage` - contains reference to the parent `SceneAppPage` required to configure breadcrumbs correctly.
+- `routeMatch` - Contains information about URL params.
+- `parentPage` - Contains a reference to the parent `SceneAppPage` required to configure breadcrumbs correctly.
 
 ```ts
 function getHandlerDrilldownPage(routeMatch: SceneRouteMatch<{ handler: string }>, parent: SceneAppPageLike) {
-  // Retrieve handler from the URL params.
+  // Retrieve handler from the URL params
   const handler = decodeURIComponent(routeMatch.params.handler);
 
   return new SceneAppPage({
-    // Setup particular handler drilldown URL
+    // Set up a particular handler drill-down URL
     url: `/a/<PLUGIN_ID>/my-app/${encodeURIComponent(handler)}`,
-    // Important: setup this for breadcrumbs to be built
+    // Important: Set this up for breadcrumbs to be built
     getParentPage: () => parent,
     title: `${handler} endpoint overview`,
     getScene: () => getHandlerDrilldownScene(handler),
@@ -185,9 +185,9 @@ function getHandlerDrilldownPage(routeMatch: SceneRouteMatch<{ handler: string }
 }
 ```
 
-### Step 4. Build drilldown scene
+### Step 5. Build a drill-down scene
 
-Define a scene that will be rendered on the drilldown page:
+Define a scene that will be rendered on the drill-down page:
 
 ```ts
 function getHandlerDrilldownScene(handler: string) {
@@ -245,7 +245,7 @@ function getHandlerDrilldownScene(handler: string) {
 
 ### Complete example
 
-Below you will find the complete code for the scene app with drilldowns:
+Below you'll find the complete code for a Scenes app with drill-down pages:
 
 ```tsx
 import { urlUtil } from '@grafana/data';
