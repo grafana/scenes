@@ -1,3 +1,25 @@
+# v0.7.1 (Wed May 17 2023)
+
+#### 🐛 Bug Fix
+
+- Docs: Bring back missing sections [#185](https://github.com/grafana/scenes/pull/185) ([@dprokop](https://github.com/dprokop))
+- `@grafana/scenes`
+  - SceneReactObject: Fix type issue [#191](https://github.com/grafana/scenes/pull/191) ([@torkelo](https://github.com/torkelo))
+  - SceneAppPage: Fixes issue with duplicate breadcrumbs [#175](https://github.com/grafana/scenes/pull/175) ([@torkelo](https://github.com/torkelo))
+
+#### 📝 Documentation
+
+- Docs: Transformations [#177](https://github.com/grafana/scenes/pull/177) ([@dprokop](https://github.com/dprokop))
+- `@grafana/scenes`
+  - Docs: SceneApp [#172](https://github.com/grafana/scenes/pull/172) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.7.0 (Mon May 08 2023)
 
 ### Release Notes
