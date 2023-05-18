@@ -1,3 +1,6 @@
+import { getLinkUrlWithAppUrlState } from './components/SceneApp/utils';
+import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
+
 export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
@@ -26,7 +29,6 @@ export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
-export { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
 export { VizPanelMenu } from './components/VizPanel/VizPanelMenu';
 export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
@@ -48,3 +50,8 @@ export {
 export { SceneApp } from './components/SceneApp/SceneApp';
 export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
+
+export const sceneUtils = {
+  getLinkUrlWithAppUrlState,
+  registerRuntimePanelPlugin,
+};
