@@ -4,7 +4,7 @@ import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/
 import { sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../variables/types';
 
-import { SceneDataState, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
+import { SceneDataProvider, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
 import { lookupVariable } from '../variables/lookupVariable';
 import { getClosest } from './utils';
 
@@ -18,7 +18,7 @@ export function getVariables(sceneObject: SceneObject): SceneVariables {
 /**
  * Will walk up the scene object graph to the closest $data scene object
  */
-export function getData(sceneObject: SceneObject): SceneObject<SceneDataState> {
+export function getData(sceneObject: SceneObject): SceneDataProvider {
   return getClosest(sceneObject, (s) => s.state.$data) ?? EmptyDataNode;
 }
 
