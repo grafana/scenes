@@ -1,3 +1,15 @@
+# v0.8.0 (Thu May 18 2023)
+
+#### 🚀 Enhancement
+
+- SceneQueryRunner: Initial data state to avoid unnecesary No data messages [#190](https://github.com/grafana/scenes/pull/190) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.7.1 (Wed May 17 2023)
 
 #### 🐛 Bug Fix
