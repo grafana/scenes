@@ -85,6 +85,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // Data is always returned. For non-data panels, empty PanelData is returned.
   const data = dataWithFieldConfig!;
+  const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
   return (
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
@@ -110,7 +111,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
               <ErrorBoundaryAlert dependencies={[plugin, data]}>
                 <PluginContextProvider meta={plugin.meta}>
                   <PanelContextProvider value={model.getPanelContext()}>
-                    {dataObject.isReadyToRender() && (
+                    {isReadyToRender && (
                       <PanelComponent
                         id={1}
                         data={data}

@@ -11,7 +11,7 @@ import {
 
 import { SceneTimeRange } from '../core/SceneTimeRange';
 
-import { INITIAL_DATA_STATE, SceneQueryRunner } from './SceneQueryRunner';
+import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
@@ -60,8 +60,7 @@ describe('SceneQueryRunner', () => {
         $timeRange: new SceneTimeRange(),
       });
 
-      expect(queryRunner.state.data?.series).toEqual(INITIAL_DATA_STATE.series);
-      expect(queryRunner.state.data?.state).toEqual(INITIAL_DATA_STATE.state);
+      expect(queryRunner.state.data).toBeUndefined();
 
       queryRunner.activate();
 
@@ -78,8 +77,7 @@ describe('SceneQueryRunner', () => {
         $timeRange: new SceneTimeRange(),
       });
 
-      expect(queryRunner.state.data?.series).toEqual(INITIAL_DATA_STATE.series);
-      expect(queryRunner.state.data?.state).toEqual(INITIAL_DATA_STATE.state);
+      expect(queryRunner.state.data).toBeUndefined();
 
       queryRunner.activate();
 
@@ -101,8 +99,7 @@ describe('SceneQueryRunner', () => {
         $timeRange: timeRange,
       });
 
-      expect(queryRunner.state.data?.series).toEqual(INITIAL_DATA_STATE.series);
-      expect(queryRunner.state.data?.state).toEqual(INITIAL_DATA_STATE.state);
+      expect(queryRunner.state.data).toBeUndefined();
 
       const deactivateQueryRunner = queryRunner.activate();
 
@@ -136,20 +133,17 @@ describe('SceneQueryRunner', () => {
         maxDataPointsFromWidth: true,
       });
 
-      expect(queryRunner.state.data?.series).toEqual(INITIAL_DATA_STATE.series);
-      expect(queryRunner.state.data?.state).toEqual(INITIAL_DATA_STATE.state);
+      expect(queryRunner.state.data).toBeUndefined();
 
       queryRunner.activate();
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.series).toEqual(INITIAL_DATA_STATE.series);
-      expect(queryRunner.state.data?.state).toEqual(INITIAL_DATA_STATE.state);
+      expect(queryRunner.state.data?.state).toBeUndefined();
 
       queryRunner.setContainerWidth(1000);
 
-      expect(queryRunner.state.data?.series).toEqual(INITIAL_DATA_STATE.series);
-      expect(queryRunner.state.data?.state).toEqual(INITIAL_DATA_STATE.state);
+      expect(queryRunner.state.data?.state).toBeUndefined();
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -176,7 +170,7 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(variable.state.loading).toBe(true);
-      expect(queryRunner.state.data?.state).toEqual(INITIAL_DATA_STATE.state);
+      expect(queryRunner.state.data?.state).toBe(undefined);
     });
 
     it('Should not executed query on activate even when maxDataPointsFromWidth is true', async () => {
@@ -199,7 +193,7 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.state).toEqual(INITIAL_DATA_STATE.state);
+      expect(queryRunner.state.data?.state).toBe(undefined);
     });
 
     it('Should not executed query when time range change', async () => {
@@ -225,7 +219,7 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.state).toEqual(INITIAL_DATA_STATE.state);
+      expect(queryRunner.state.data?.state).toBe(undefined);
     });
 
     it('Should execute query when variable updates', async () => {
