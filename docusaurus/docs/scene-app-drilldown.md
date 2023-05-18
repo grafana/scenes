@@ -78,8 +78,7 @@ function getSceneApp() {
 To show the drill-down page, you need to provide navigation. Configure Table panel data links (learn about data links in the [official Grafana documentation](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/)). Then modify the Table panel configuration to set up a data link for the `handler` field:
 
 ```tsx
-import { urlUtil } from '@grafana/data';
-import { locationService } from '@grafana/runtime';
+import { sceneUtils } from '@grafana/scenes';
 
 // ...
 
@@ -101,12 +100,11 @@ const tablePanel = new VizPanel({
             value: [
               {
                 title: 'Go to handler overview',
-                onBuildUrl: () => {
-                  // Use @grafana/runtime location service to get current query params
-                  const params = locationService.getSearchObject();
-
-                  // Use @grafana/data urlUtil to render drilldown URL with query params.
-                  return urlUtil.renderUrl('/a/<PLUGIN_ID>/my-app/${__value.text:percentencode}', params);
+                onBuildUrl: ({ replaceVariables }: { replaceVariables: InterpolateFunction }) => {
+                  return sceneUtils.getLinkUrlWithAppUrlState(
+                    replaceVariables('/a/<PLUGIN_ID>/my-app/${__value.text:percentencode}'),
+                    params
+                  );
                 },
               },
             ],
@@ -125,8 +123,7 @@ The `fieldConfig` options are the same options you would see in a typical dashbo
 :::
 
 :::info
-Using `locationService` and `urlUtil` is helpful if you want to preserve variables and time range query params.
-`${__value.text:percentencode}` is the percent-encoded value of the clicked table cell.
+`${__value.text:percentencode}` is the percent-encoded value of the clicked table cell. When using variables in drilldown links make sure to call `replaceVariables` available via argument of `onBuildUrl` function, before passing the URL to `sceneUtils.getLinkUrlWithAppUrlState` helper.
 :::
 
 ### Step 4. Build a drill-down page
@@ -248,9 +245,6 @@ function getHandlerDrilldownScene(handler: string) {
 Below you'll find the complete code for a Scenes app with drill-down pages:
 
 ```tsx
-import { urlUtil } from '@grafana/data';
-import { locationService } from '@grafana/runtime';
-
 function getOverviewScene() {
   const queryRunner = new SceneQueryRunner({
     $timeRange: new SceneTimeRange(),
@@ -286,12 +280,11 @@ function getOverviewScene() {
               value: [
                 {
                   title: 'Go to handler overview',
-                  onBuildUrl: () => {
-                    // Use @grafana/runtime location service to get current query params
-                    const params = locationService.getSearchObject();
-
-                    // Use @grafana/data urlUtil to render drilldown URL with query params.
-                    return urlUtil.renderUrl('/a/<PLUGIN_ID>/my-app/${__value.text:percentencode}', params);
+                  onBuildUrl: ({ replaceVariables }: { replaceVariables: InterpolateFunction }) => {
+                    return sceneUtils.getLinkUrlWithAppUrlState(
+                      replaceVariables('/a/<PLUGIN_ID>/my-app/${__value.text:percentencode}'),
+                      params
+                    );
                   },
                 },
               ],
