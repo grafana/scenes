@@ -203,4 +203,15 @@ describe('sceneInterpolator', () => {
 
     expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
   });
+
+  it('Can use preserve url state', () => {
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+    });
+
+    expect(sceneInterpolator(scene, '${__page.url:without:handler}&handler=${__value.text}')).toBe(
+      'url?state=A&handler=value'
+    );
+    expect(sceneInterpolator(scene, '${__set_query_param:__value.text}')).toBe('from=now-5m&to=now');
+  });
 });
