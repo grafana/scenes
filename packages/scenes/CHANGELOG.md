@@ -1,3 +1,15 @@
+# v0.9.0 (Mon May 22 2023)
+
+#### 🚀 Enhancement
+
+- Scene utils: Expose helper for building drilldown links [#193](https://github.com/grafana/scenes/pull/193) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.8.1 (Thu May 18 2023)
 
 #### 🐛 Bug Fix
