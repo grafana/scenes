@@ -38,26 +38,27 @@ in your normal dashboard panels when you view `Panel JSON` from the panel inspec
 
 VizPanel will use the `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. What this means is that it will use `$data` set on it's own level or share data with other siblings and scene objects if `$data` is set on any parent level.
 
-
 ## Header actions
 
 VizPanel has a property named `headerActions` that can be either a `React.ReactNode` or a custom `SceneObject`. This property is useful if you want to place links or buttons in the top right corner of the panel header. Example:
 
 ```ts
 new VizPanel({
-    pluginId: 'timeseries',
-    title: 'Time series',
-    headerActions: (
-      <LinkButton size="sm" variant="secondary" href="scene/sdrilldown/url">Drilldown</LinkButton>
-    )
-})
+  pluginId: 'timeseries',
+  title: 'Time series',
+  headerActions: (
+    <LinkButton size="sm" variant="secondary" href="scenes/drilldown/url">
+      Drilldown
+    </LinkButton>
+  ),
+});
 ```
 
 Placing buttons in the top right corner of the panel header could be used for:
 
-* Links to other scenes
-* Buttons that change the current scene (add drilldown view for example)
-* RadioButtonGroup that changes the visualization settings
+- Links to other scenes
+- Buttons that change the current scene (add drilldown view for example)
+- RadioButtonGroup that changes the visualization settings
 
 For LinkButton, Button and RadioButtonGroup please use size="sm" when placed in the panel header.
 
@@ -98,9 +99,11 @@ export function CustomVizPanel(props: Props) {
 Now your ready to create your PanelPlugin instance and register it with the scenes library.
 
 ```ts
+import { sceneUtils } from '@grafana/scenes';
+
 const myCustomPanel = new PanelPlugin<MyCustomOptions, MyCustomFieldOptions>(CustomVizPanel);
 
-registerRuntimePanelPlugin({ pluginId: 'my-scene-app-my-custom-viz', plugin: myCustomPanel });
+sceneUtils.registerRuntimePanelPlugin({ pluginId: 'my-scene-app-my-custom-viz', plugin: myCustomPanel });
 ```
 
 You can now use this pluginId in any `VizPanel`. Make sure you specify a pluginId that includes your scene app name and is unlikely to conflict with other scene apps.
