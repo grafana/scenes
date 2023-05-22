@@ -53,7 +53,7 @@ function TextInterpolatorRenderer({ model }: SceneComponentProps<TextInterpolato
 }
 ```
 
-### Step 2. Build a scene to render `TextInterpolator` object
+### Step 2. Build a scene with `TextInterpolator`
 
 Create a simple scene with `TextInterpolator`.
 
@@ -98,7 +98,7 @@ const scene = new EmbeddedScene({
 
 ### Step 4. Add variables support to `TextInterpolator` object
 
-Use `VariableDependencyConfig` to make `TextInterpolator` responsive to variable changes. Define `protected _variableDependency` instance property in `TextInterpolator` that's an instance of `VariableDependencyConfig`:
+Use `VariableDependencyConfig` to make `TextInterpolator` reactive to variable changes. Define `protected _variableDependency` instance property in `TextInterpolator` that's an instance of `VariableDependencyConfig`:
 
 ```tsx
 class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
@@ -106,7 +106,6 @@ class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['text'],
-    onReferencedVariableValueChanged: () => this.onVariableChange(),
   });
 
   constructor(text: string) {
@@ -116,10 +115,6 @@ class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
   onTextChange = (text: string) => {
     this.setState({ text });
   };
-
-  onVariableChange() {
-    // TODO, see next step
-  }
 }
 ```
 
@@ -128,22 +123,19 @@ class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
 - `statePaths` - Configure which properties of object state can contain variables.
 - `onReferencedVariableValueChanged` - Configure a callback that will be executed when variable(s) that the object depends on changed.
 
-### Step 5. Add callback to handle referenced variables changes
+:::info
+If `onReferencedVariableValueChanged` is not specified for the `VariableDependencyConfig`, the object will re-render on variable change by default.
+:::
 
-Introduce a new property `interpolatedText` to `TextInterpolatorState` that will contain the provided text, but with variables interpolated:
+### Step 5. Interpolate `text` property in component
 
-```tsx
-interface TextInterpolatorState extends SceneObjectState {
-  text: string;
-  interpolatedText?: string;
-}
-```
-
-Use it to show the preformatted text block in the component:
+In `TextInterpolatorRenderer` component use `sceneGraph.interpolate` helper to replace variables in `text` property when variable changes.
 
 ```tsx
 function TextInterpolatorRenderer({ model }: SceneComponentProps<TextInterpolator>) {
-  const { text, interpolatedText } = model.useState();
+  const { text } = model.useState();
+  const interpolatedText = sceneGraph.interpolate(model, text);
+
   return (
     <div>
       <div style={{ marginBottom: 8 }}>
@@ -152,68 +144,6 @@ function TextInterpolatorRenderer({ model }: SceneComponentProps<TextInterpolato
       <pre>{interpolatedText}</pre>
     </div>
   );
-}
-```
-
-Modify the `TextInterpolator` code to store interpolated value of the provided text. Use `sceneGraph.interpolate` helper to replace variables used in `text` with the correct value.
-
-```tsx
-class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
-  static Component = TextInterpolatorRenderer;
-
-  protected _variableDependency = new VariableDependencyConfig(this, {
-    statePaths: ['text'],
-    onReferencedVariableValueChanged: () => this.onVariableChange(),
-  });
-
-  constructor(text: string) {
-    super({ text, interpolatedText: text });
-
-    this.addActivationHandler(() => {
-      this.setState({
-        interpolatedText: sceneGraph.interpolate(this, this.state.text),
-      });
-    });
-  }
-
-  onTextChange = (text: string) => {
-    this.setState({ text, interpolatedText: sceneGraph.interpolate(this, text) });
-  };
-
-  onVariableChange() {
-    // TODO, see next step
-  }
-}
-```
-
-Implement `onVariableChange` method to update `interpolatedText` state when a used variable changes:
-
-```tsx
-class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
-  static Component = TextInterpolatorRenderer;
-
-  protected _variableDependency = new VariableDependencyConfig(this, {
-    statePaths: ['text'],
-    onReferencedVariableValueChanged: () => this.onVariableChange(),
-  });
-
-  constructor(text: string) {
-    super({ text, interpolatedText: text });
-
-    this.addActivationHandler(() => {
-      this.setState({
-        interpolatedText: sceneGraph.interpolate(this, this.state.text),
-      });
-    });
-  }
-
-  onTextChange = (text: string) => {
-    this.setState({ text, interpolatedText: sceneGraph.interpolate(this, text) });
-  };
-
-  onVariableChange = () => {
-    this.setState({ interpolatedText: sceneGraph.interpolate(this, this.state.text) });
-  };
 }
 ```
 
