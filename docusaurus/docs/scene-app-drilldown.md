@@ -101,7 +101,7 @@ const tablePanel = new VizPanel({
               {
                 title: 'Go to handler overview',
                 onBuildUrl: ({ replaceVariables }: { replaceVariables: InterpolateFunction }) => {
-                  return sceneUtils.getLinkUrlWithAppUrlState(
+                  return sceneUtils.getLinkWithAppState(
                     replaceVariables('/a/<PLUGIN_ID>/my-app/${__value.text:percentencode}'),
                     params
                   );
@@ -123,7 +123,7 @@ The `fieldConfig` options are the same options you would see in a typical dashbo
 :::
 
 :::info
-`${__value.text:percentencode}` is the percent-encoded value of the clicked table cell. When using variables in drilldown links make sure to call `replaceVariables` available via argument of `onBuildUrl` function, before passing the URL to `sceneUtils.getLinkUrlWithAppUrlState` helper.
+`${__value.text:percentencode}` is the percent-encoded value of the clicked table cell. When using variables in drilldown links make sure to call `replaceVariables` available via argument of `onBuildUrl` function, before passing the URL to `sceneUtils.getLinkWithAppState` helper.
 :::
 
 ### Step 4. Build a drill-down page
@@ -281,7 +281,7 @@ function getOverviewScene() {
                 {
                   title: 'Go to handler overview',
                   onBuildUrl: ({ replaceVariables }: { replaceVariables: InterpolateFunction }) => {
-                    return sceneUtils.getLinkUrlWithAppUrlState(
+                    return sceneUtils.getLinkWithAppState(
                       replaceVariables('/a/<PLUGIN_ID>/my-app/${__value.text:percentencode}'),
                       params
                     );

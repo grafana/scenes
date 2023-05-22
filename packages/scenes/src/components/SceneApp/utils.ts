@@ -15,7 +15,7 @@ export function useAppQueryParams(): UrlQueryMap {
  * @param preserveParams Query params to preserve
  * @returns Url with query params
  */
-export function getLinkUrlWithAppUrlState(path: string, preserveParams?: string[]): string {
+export function getLinkWithAppState(path: string, preserveParams?: string[]): string {
   // make a copy of params as the renderUrl function mutates the object
   const paramsCopy = { ...locationService.getSearchObject() };
 

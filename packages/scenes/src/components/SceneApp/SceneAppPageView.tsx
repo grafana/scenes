@@ -6,7 +6,7 @@ import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
-import { getLinkUrlWithAppUrlState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
+import { getLinkWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
 
 export interface Props {
   page: SceneAppPageLike;
@@ -38,7 +38,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     subTitle: containerState.subTitle,
     img: containerState.titleImg,
     icon: containerState.titleIcon,
-    url: getLinkUrlWithAppUrlState(containerState.url, containerState.preserveUrlKeys),
+    url: getLinkWithAppState(containerState.url, containerState.preserveUrlKeys),
     hideFromBreadcrumbs: containerState.hideFromBreadcrumbs,
     parentItem: getParentBreadcrumbs(
       containerState.getParentPage ? containerState.getParentPage() : containerPage.parent,
@@ -51,7 +51,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
       return {
         text: tab.state.title,
         active: page === tab,
-        url: getLinkUrlWithAppUrlState(tab.state.url, tab.state.preserveUrlKeys),
+        url: getLinkWithAppState(tab.state.url, tab.state.preserveUrlKeys),
         parentItem: pageNav,
       };
     });
@@ -86,7 +86,7 @@ function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryM
   if (parent instanceof SceneAppPage) {
     return {
       text: parent.state.title,
-      url: getLinkUrlWithAppUrlState(parent.state.url, parent.state.preserveUrlKeys),
+      url: getLinkWithAppState(parent.state.url, parent.state.preserveUrlKeys),
       hideFromBreadcrumbs: parent.state.hideFromBreadcrumbs,
       parentItem: getParentBreadcrumbs(
         parent.state.getParentPage ? parent.state.getParentPage() : parent.parent,

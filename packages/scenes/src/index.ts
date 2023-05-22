@@ -1,4 +1,4 @@
-import { getLinkUrlWithAppUrlState } from './components/SceneApp/utils';
+import { getLinkWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
 
 export * from './core/types';
@@ -52,6 +52,6 @@ export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
 
 export const sceneUtils = {
-  getLinkUrlWithAppUrlState,
+  getLinkWithAppState,
   registerRuntimePanelPlugin,
 };
