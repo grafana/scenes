@@ -75,10 +75,12 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public isDataReadyToDisplay() {
-    if (this.state.$data && this.state.$data.isDataReadyToDisplay) {
-      return this.state.$data.isDataReadyToDisplay();
+    const dataObject = this.getSourceData();
+    if (dataObject.isDataReadyToDisplay) {
+      return dataObject.isDataReadyToDisplay();
     }
-    return false;
+
+    return true;
   }
 
   public reprocessTransformations() {
