@@ -57,3 +57,26 @@ export class TimeFromAndToMacro implements FormatVariable {
     }
   }
 }
+
+/**
+ * Handles expressions like $__from and $__to.
+ */
+export class TimezoneMacro implements FormatVariable {
+  public state: { name: string; type: string };
+  private _sceneObject: SceneObject;
+
+  public constructor(name: string, sceneObject: SceneObject) {
+    this.state = { name: name, type: 'time_macro' };
+    this._sceneObject = sceneObject;
+  }
+
+  public getValue() {
+    const timeRange = getTimeRange(this._sceneObject);
+    return timeRange.getTimeZone();
+  }
+
+  public getValueText?(): string {
+    const timeRange = getTimeRange(this._sceneObject);
+    return timeRange.getTimeZone();
+  }
+}
