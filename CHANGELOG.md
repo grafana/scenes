@@ -1,3 +1,17 @@
+# v0.10.0 (Tue May 23 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Macros: Add from and to macro [#197](https://github.com/grafana/scenes/pull/197) ([@torkelo](https://github.com/torkelo) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.9.0 (Mon May 22 2023)
 
 #### 🚀 Enhancement

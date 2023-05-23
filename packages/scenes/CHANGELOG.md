@@ -1,3 +1,16 @@
+# v0.10.0 (Tue May 23 2023)
+
+#### 🚀 Enhancement
+
+- Macros: Add from and to macro [#197](https://github.com/grafana/scenes/pull/197) ([@torkelo](https://github.com/torkelo) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.9.0 (Mon May 22 2023)
 
 #### 🚀 Enhancement
@@ -60,7 +73,7 @@
 
 You can now use multiple time zones in Scene. `SceneTimeRange` and `SceneTimePicker` respect time zone settings. Additionally, a new object was added, `SceneTimeZoneOverride`. It can be used to override the time zone provided by a time range object higher in the scene hierarchy. Objects within `SceneTimeZoneOverride` scope will use the closest `SceneTimeRange` range, but a locally specified time zone.
 
-Example: 
+Example:
 
 ```ts
 const scene = new EmbeddedScene({
@@ -72,7 +85,7 @@ const scene = new EmbeddedScene({
       ...
     }),
     // Will use global time range and locally specified time zone
-    new VizPanel({ 
+    new VizPanel({
       $timeRange: new SceneTimeZoneOverride({ timeZone: 'America/New_York' }),
       $data: new SceneQueryRunner({ ... }),
       ...

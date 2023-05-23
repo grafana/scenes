@@ -5,7 +5,7 @@ import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
 import { SceneObjectBase } from './SceneObjectBase';
 import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues, SceneObjectUrlValue } from './types';
-import { getClosest } from './utils';
+import { getClosest } from './sceneGraph/utils';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to'] });
