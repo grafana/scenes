@@ -16,7 +16,7 @@ import {
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
 import { SceneObjectStateChangedEvent } from './events';
-import { cloneSceneObject } from './utils';
+import { cloneSceneObject } from './sceneGraph/utils';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
 
 export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState>
