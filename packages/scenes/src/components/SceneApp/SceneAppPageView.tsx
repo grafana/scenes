@@ -35,7 +35,6 @@ export function SceneAppPageView({ page, routeProps }: Props) {
 
   const pageNav: NavModelItem = {
     text: containerState.title,
-    subTitle: containerState.subTitle,
     img: containerState.titleImg,
     icon: containerState.titleIcon,
     url: getUrlWithAppState(containerState.url, containerState.preserveUrlKeys),
@@ -65,7 +64,12 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   }
 
   return (
-    <PluginPage pageNav={pageNav} actions={pageActions} renderTitle={containerState.renderTitle}>
+    <PluginPage
+      pageNav={pageNav}
+      actions={pageActions}
+      renderTitle={containerState.renderTitle}
+      subTitle={containerState.subTitle}
+    >
       <scene.Component model={scene} />
     </PluginPage>
   );

@@ -24,7 +24,7 @@ export interface SceneAppPageState extends SceneObjectState {
   /** Page title */
   title: string;
   /** Page subTitle */
-  subTitle?: string;
+  subTitle?: string | React.ReactNode;
   /**
    * Customize title rendering.
    * Please return an unstyled h1 tag here + any additional elements you need.
