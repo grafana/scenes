@@ -186,7 +186,7 @@ const myScene = new EmbeddedScene({
 
 ## Macros
 
-The templating system supports a number of built in macros. These are variable expressions that you can use without needing to add any variables.
+The variables system supports a variety of built-in macros, which are variable expressions that can be used without the need to include any additional variables.
 
 ### Global macros
 
