@@ -1,3 +1,17 @@
+# v0.11.0 (Tue May 23 2023)
+
+#### 🚀 Enhancement
+
+- Macros: Url macro [#199](https://github.com/grafana/scenes/pull/199) ([@torkelo](https://github.com/torkelo) [@dprokop](https://github.com/dprokop))
+- Macros: Add __timezone macro [#200](https://github.com/grafana/scenes/pull/200) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.10.0 (Tue May 23 2023)
 
 #### 🚀 Enhancement
