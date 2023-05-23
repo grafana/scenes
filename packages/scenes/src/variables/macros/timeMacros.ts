@@ -28,7 +28,7 @@ export class UrlTimeRangeMacro implements FormatVariable {
 }
 
 /**
- * Handles expressions like $__url_time_range.
+ * Handles expressions like $__from and $__to.
  */
 export class TimeFromAndToMacro implements FormatVariable {
   public state: { name: string; type: string };
