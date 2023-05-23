@@ -22,4 +22,17 @@ describe('timeMacros', () => {
 
     expect(sceneInterpolator(scene, '${__to:date:YYYY}')).toBe('2023');
   });
+
+  it('When default format is text should format correctly', () => {
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({
+        from: '2023-05-23T06:09:57.073Z',
+        to: '2023-05-23T07:09:57.073Z',
+        timeZone: 'utc',
+      }),
+    });
+
+    expect(sceneInterpolator(scene, '$__from', undefined, 'text')).toBe('2023-05-23 06:09:57');
+    expect(sceneInterpolator(scene, '$__to', undefined, 'text')).toBe('2023-05-23 07:09:57');
+  });
 });

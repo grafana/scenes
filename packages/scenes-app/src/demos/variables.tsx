@@ -77,7 +77,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                         new SceneFlexItem({
                           body: new VizPanel({
                             pluginId: 'timeseries',
-                            title: 'handler: $handler',
+                            title: 'handler: $__from',
                             $data: getQueryRunnerWithRandomWalkQuery({
                               alias: 'handler: $handler',
                             }),
