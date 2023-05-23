@@ -76,7 +76,6 @@ export class TimezoneMacro implements FormatVariable {
   }
 
   public getValueText?(): string {
-    const timeRange = getTimeRange(this._sceneObject);
-    return timeRange.getTimeZone();
+    return this.getValue(); 
   }
 }
