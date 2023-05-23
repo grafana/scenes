@@ -59,7 +59,7 @@ export class TimeFromAndToMacro implements FormatVariable {
 }
 
 /**
- * Handles expressions like $__from and $__to.
+ * Handles $__timezone expression.
  */
 export class TimezoneMacro implements FormatVariable {
   public state: { name: string; type: string };
