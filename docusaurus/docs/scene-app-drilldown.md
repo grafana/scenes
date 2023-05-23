@@ -100,12 +100,7 @@ const tablePanel = new VizPanel({
             value: [
               {
                 title: 'Go to handler overview',
-                onBuildUrl: ({ replaceVariables }: { replaceVariables: InterpolateFunction }) => {
-                  return sceneUtils.getUrlWithAppState(
-                    replaceVariables('/a/<PLUGIN_ID>/my-app/${__value.text:percentencode}'),
-                    params
-                  );
-                },
+                url: `/a/<PLUGIN_ID>/my-app/${__value.text}${__url.params}`,
               },
             ],
           },
@@ -120,10 +115,6 @@ The resulting panel will have links for all values of the `handler` field. Click
 
 :::note
 The `fieldConfig` options are the same options you would see in a typical dashboard panel when you view the **JSON** tab in the panel inspect drawer. To access the tab, click **Inspect > Panel JSON** in the panel edit menu.
-:::
-
-:::info
-`${__value.text:percentencode}` is the percent-encoded value of the clicked table cell. When using variables in drilldown links make sure to call `replaceVariables` available via argument of `onBuildUrl` function, before passing the URL to `sceneUtils.getUrlWithAppState` helper.
 :::
 
 ### Step 4. Build a drill-down page
@@ -280,12 +271,7 @@ function getOverviewScene() {
               value: [
                 {
                   title: 'Go to handler overview',
-                  onBuildUrl: ({ replaceVariables }: { replaceVariables: InterpolateFunction }) => {
-                    return sceneUtils.getUrlWithAppState(
-                      replaceVariables('/a/<PLUGIN_ID>/my-app/${__value.text:percentencode}'),
-                      params
-                    );
-                  },
+                  url: `/a/<PLUGIN_ID>/my-app/${__value.text}${__url.params}`,
                 },
               ],
             },

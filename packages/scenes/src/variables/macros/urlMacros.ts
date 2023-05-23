@@ -43,14 +43,14 @@ export class UrlMacro implements FormatVariable {
   public state: { name: string; type: string };
 
   public constructor(name: string, _: SceneObject) {
-    this.state = { name: name, type: 'url_maco' };
+    this.state = { name: name, type: 'url_macro' };
   }
 
   public getValue(fieldPath?: string) {
     const location = locationService.getLocation();
 
     switch (fieldPath ?? '') {
-      case 'state':
+      case 'params':
         return new UrlStateFormatter(location.search);
       case 'path':
         return location.pathname;
