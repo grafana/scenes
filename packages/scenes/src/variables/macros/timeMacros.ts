@@ -12,7 +12,7 @@ export class UrlTimeRangeMacro implements FormatVariable {
   private _sceneObject: SceneObject;
 
   public constructor(name: string, sceneObject: SceneObject) {
-    this.state = { name: name, type: 'time_macro' };
+    this.state = { name: name, type: 'url_variable' };
     this._sceneObject = sceneObject;
   }
 
