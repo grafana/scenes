@@ -1,11 +1,11 @@
 import { ScopedVars } from '@grafana/data';
-import { DefaultTimeRange, EmptyDataNode, EmptyVariableSet } from '../variables/interpolation/defaults';
+import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/defaults';
 
-import { sceneInterpolator } from '../variables/interpolation/sceneInterpolator';
-import { VariableCustomFormatterFn, SceneVariables } from '../variables/types';
+import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
+import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
 
-import { SceneDataProvider, SceneLayout, SceneObject, SceneTimeRangeLike } from './types';
-import { lookupVariable } from '../variables/lookupVariable';
+import { SceneDataProvider, SceneLayout, SceneObject } from '../types';
+import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 
 /**
@@ -20,13 +20,6 @@ export function getVariables(sceneObject: SceneObject): SceneVariables {
  */
 export function getData(sceneObject: SceneObject): SceneDataProvider {
   return getClosest(sceneObject, (s) => s.state.$data) ?? EmptyDataNode;
-}
-
-/**
- * Will walk up the scene object graph to the closest $timeRange scene object
- */
-export function getTimeRange(sceneObject: SceneObject): SceneTimeRangeLike {
-  return getClosest(sceneObject, (s) => s.state.$timeRange) ?? DefaultTimeRange;
 }
 
 function isSceneLayout(s: SceneObject): s is SceneLayout {
@@ -122,14 +115,3 @@ function findObjectInternal(
 export function findObject(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject | null {
   return findObjectInternal(scene, check, undefined, true);
 }
-
-export const sceneGraph = {
-  getVariables,
-  getData,
-  getTimeRange,
-  getLayout,
-  interpolate,
-  lookupVariable,
-  hasVariableDependencyInLoadingState,
-  findObject,
-};
