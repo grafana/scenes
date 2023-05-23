@@ -1,7 +1,7 @@
 import { dateTimeFormat, urlUtil } from '@grafana/data';
-import { SceneObject, SceneTimeRangeLike } from '../../core/types';
+import { getTimeRange } from '../../core/sceneGraph/getTimeRange';
+import { SceneObject } from '../../core/types';
 import { FormatVariable } from '../interpolation/formatRegistry';
-import { DefaultTimeRange } from '../interpolation/defaults';
 import { SkipFormattingValue } from './types';
 
 /**
@@ -56,17 +56,4 @@ export class TimeFromAndToMacro implements FormatVariable {
       return dateTimeFormat(timeRange.state.value.to, { timeZone: timeRange.getTimeZone() });
     }
   }
-}
-
-function getTimeRange(sceneObject: SceneObject): SceneTimeRangeLike {
-  const { $timeRange } = sceneObject.state;
-  if ($timeRange) {
-    return $timeRange;
-  }
-
-  if (sceneObject.parent) {
-    return getTimeRange(sceneObject.parent);
-  }
-
-  return DefaultTimeRange;
 }
