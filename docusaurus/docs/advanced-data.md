@@ -3,13 +3,13 @@ id: advanced-data
 title: Data and time range in custom scene objects
 ---
 
-Custom scene objects can use data and time range information added to a scene to perform additional operations. This topic describes how to use these properties in renderers and custom object classes. 
+Custom scene objects can use data and time range information added to a scene to perform additional operations. This topic describes how to use these properties in renderers and custom object classes.
 
 To learn more about data and time range configuration, refer to [Data and time range](./core-concepts#data-and-time-range) first.
 
 ## Use data
 
-In a custom scene object, use the `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. What this means is that the custom object will use the `$data` property set on its own level or use shared data with other siblings and scene objects if `$data` is set on any parent level.
+In custom scene object use `sceneGraph.getData(model)` call to find and subscribe to the closest parent that has a `SceneDataProvider`. This means it uses `$data` set on its own level or shares data with other siblings and scene objects if `$data` is set on any parent level.
 
 ### Use data in a renderer
 

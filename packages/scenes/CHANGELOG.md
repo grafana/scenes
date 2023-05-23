@@ -73,7 +73,7 @@
 
 You can now use multiple time zones in Scene. `SceneTimeRange` and `SceneTimePicker` respect time zone settings. Additionally, a new object was added, `SceneTimeZoneOverride`. It can be used to override the time zone provided by a time range object higher in the scene hierarchy. Objects within `SceneTimeZoneOverride` scope will use the closest `SceneTimeRange` range, but a locally specified time zone.
 
-Example: 
+Example:
 
 ```ts
 const scene = new EmbeddedScene({
@@ -85,7 +85,7 @@ const scene = new EmbeddedScene({
       ...
     }),
     // Will use global time range and locally specified time zone
-    new VizPanel({ 
+    new VizPanel({
       $timeRange: new SceneTimeZoneOverride({ timeZone: 'America/New_York' }),
       $data: new SceneQueryRunner({ ... }),
       ...

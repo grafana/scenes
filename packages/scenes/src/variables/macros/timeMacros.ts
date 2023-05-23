@@ -76,6 +76,6 @@ export class TimezoneMacro implements FormatVariable {
   }
 
   public getValueText?(): string {
-    return this.getValue(); 
+    return this.getValue();
   }
 }

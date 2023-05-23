@@ -7,7 +7,7 @@ title: Transformations
 **Before you begin**: You must already know about [connecting data in Scenes apps](./core-concepts.md#data-and-time-range) before continuing with this guide.
 :::
 
-Transformations are a powerful way to manipulate data returned by `SceneQueryRunner` before Scenes renders a visualization. Using transformations, you can:
+Transformations are a powerful way to manipulate data returned by the `SceneQueryRunner` object before scenes render a visualization. Using transformations, you can:
 
 - Rename fields
 - Join time series data
@@ -57,7 +57,7 @@ const myScene = new EmbeddedScene({
 });
 ```
 
-### Step 2. Configure data transformation
+### Step 2. Configure a data transformation
 
 The resulting table from the previous step will look similar to the one that follows:
 
@@ -72,7 +72,7 @@ The resulting table from the previous step will look similar to the one that fol
 | 2023-05-09 14:00:00.000 | /api/v1/series             | 0      |
 | 2023-05-09 14:00:00.000 | /api/v1/status/buildinfo   | 0      |
 
-Add the [_Organize fields_ transformation](https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#organize-fields) to will hide the `Time` field:
+Add the [_Organize fields_ transformation](https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#organize-fields) to hide the `Time` field:
 
 Create a `SceneDataTransformer` object:
 
@@ -95,7 +95,7 @@ const transformedData = new SceneDataTransformer({
 ```
 
 :::note
-Objects used in `transformations` are the same transformation configuration objects you would see in your normal dashboard panels when you view `Panel JSON` from the panel inspect drawer. To access panel inspect drawer, click **Inspect** in the panel edit menu.
+Objects used in `transformations` are the same transformation configuration objects you would see in a typical dashboard panel when you view the **JSON** tab in the panel inspect drawer. To access this tab, click **Inspect > Panel JSON** in the panel edit menu.
 :::
 
 Use the newly created `transformedData` object in place of the previously used `SceneQueryRunner`:
@@ -132,7 +132,7 @@ The resulting table will look similar to the one that follows:
 
 ### Step 3. Configure multiple transformations
 
-`SceneDataTransformer` allows you to configure multiple transformations. They are executed in the same order as they are added to the `transformations` array.
+`SceneDataTransformer` allows you to configure multiple transformations. The transformations are executed in the same order as they are added to the `transformations` array.
 
 Modify the `transformedData` object and add [_Rename by regex_ transformations](https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/#rename-by-regex) to change the field names: `handler` to `Handler` and `Value` to `Average duration`:
 
@@ -183,9 +183,9 @@ The resulting table will look similar to the one that follows:
 
 ## Add custom transformations
 
-In addition to all the transformations available in Grafana, Scenes allows you to create custom transformations.
+In addition to all the transformations available in Grafana, scenes allow you to create custom transformations.
 
-`SceneDataTransformer ` accepts `CustomTransformOperator` as an item of the `transformations` array:
+`SceneDataTransformer` accepts `CustomTransformOperator` as an item of the `transformations` array:
 
 ```ts
   transformations: Array<DataTransformerConfig | CustomTransformOperator>;
@@ -201,9 +201,9 @@ type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperat
 Read more about RxJS operators in the [RxJS official documentation](https://rxjs.dev/guide/operators).
 :::
 
-### Step 1. Create custom transformation
+### Step 1. Create a custom transformation
 
-Create a custom transformation that will apply to the `handler` field and prefix all values with a URL.
+Create a custom transformation that will apply to the `handler` field and prefix all values with a URL:
 
 :::info
 Custom transformations depend heavily on manipulating internal Grafana data objects called _data frames_. Learn more about data frames in [the official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/data-frames/).
@@ -236,7 +236,7 @@ const prefixHandlerTransformation: CustomTransformOperator = () => (source: Obse
 };
 ```
 
-### Step 2. Use custom transformation
+### Step 2. Use a custom transformation
 
 Add a custom transformation to the previously created `transformedData` object:
 
@@ -292,6 +292,6 @@ The resulting table will look similar to the one that follows:
 
 ## Combine and filter
 
-One powerful thing you can do with transformations (custom and built-in) is share query results between panels in interesting ways. This allows you to place most of your queries in a single query runner that lives at the top of the scene. Then you can use a `SceneDataTransformer` objects on the `VizPanel` level to join and filter the resulting data in different ways. Some panels may need the result of two of the queries, and another needs the results of all of them.
+One powerful thing you can do with transformations (custom and built-in) is share query results between panels in interesting ways. This allows you to place most of your queries in a single query runner that lives at the top of the scene. Then you can use a `SceneDataTransformer` object on the `VizPanel` level to join and filter the resulting data in different ways. Some panels may need the result of two of the queries, and another may need the results of all of them.
 
 It's easy to filter the resulting `DataFrame` array by which query they came from using the `refId` property on `DataFrame`.
