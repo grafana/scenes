@@ -33,7 +33,7 @@ const sidebars = {
         'transformations',
         {
           type: 'category',
-          label: 'Scene apps',
+          label: 'Scenes apps',
           collapsible: true,
           collapsed: false,
           items: [

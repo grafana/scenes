@@ -44,19 +44,21 @@ in a typical dashboard panel when you view the **JSON** tab in the panel inspect
 
 ```ts
 new VizPanel({
-    pluginId: 'timeseries',
-    title: 'Time series',
-    headerActions: (
-      <LinkButton size="sm" variant="secondary" href="scene/sdrilldown/url">Drilldown</LinkButton>
-    )
-})
+  pluginId: 'timeseries',
+  title: 'Time series',
+  headerActions: (
+    <LinkButton size="sm" variant="secondary" href="scenes/drilldown/url">
+      Drilldown
+    </LinkButton>
+  ),
+});
 ```
 
 Buttons in the top right corner of the panel header can be used for:
 
-* Links to other scenes
-* Buttons that change the current scene (add a drill-down page, for example)
-* A `RadioButtonGroup` that changes the visualization settings
+- Links to other scenes
+- Buttons that change the current scene (add a drill-down page, for example)
+- A `RadioButtonGroup` that changes the visualization settings
 
 For `LinkButton`, `Button`, and `RadioButtonGroup`, use size="sm" when you place them in the panel header.
 
@@ -97,9 +99,11 @@ export function CustomVizPanel(props: Props) {
 Now you're ready to create your `PanelPlugin` instance and register it with the Scenes library:
 
 ```ts
+import { sceneUtils } from '@grafana/scenes';
+
 const myCustomPanel = new PanelPlugin<MyCustomOptions, MyCustomFieldOptions>(CustomVizPanel);
 
-registerRuntimePanelPlugin({ pluginId: 'my-scene-app-my-custom-viz', plugin: myCustomPanel });
+sceneUtils.registerRuntimePanelPlugin({ pluginId: 'my-scene-app-my-custom-viz', plugin: myCustomPanel });
 ```
 
 You can now use this pluginId in any `VizPanel`. Make sure you specify a pluginId that includes your scene app name and is unlikely to conflict with other Scenes apps.

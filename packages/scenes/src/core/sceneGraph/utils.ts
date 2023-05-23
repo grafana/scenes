@@ -1,6 +1,6 @@
-import { SceneObject, SceneObjectState } from './types';
+import { SceneObject, SceneObjectState } from '../types';
 
-import { SceneObjectBase } from './SceneObjectBase';
+import { SceneObjectBase } from '../SceneObjectBase';
 
 /**
  * Will create new SceneItem with shalled cloned state, but all states items of type SceneObject are deep cloned

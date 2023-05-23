@@ -7,11 +7,11 @@ title: Tab navigation in Scenes apps
 
 ## Add tabs navigation to Scenes apps
 
-Defining tabs navigation for apps using scenes is a matter of utilizing `SceneAppPage` property `tabs`.
+Defining tabs navigation for apps using Scenes requires you to use the `SceneAppPage` property, `tabs`.
 
 ### Step 1. Create a Scenes app
 
-Follow the [Building apps with scenes guide](./scene-app.md) to build your app.
+Follow the [Building apps with Scenes guide](./scene-app.md) to build your app.
 
 ### Step 2. Create scenes for individual tabs
 
@@ -81,9 +81,9 @@ const getHandlersScene =() => {
 }
 ```
 
-### Step 3. Configure tabs for page
+### Step 3. Configure tabs for the page
 
-Tabs are instances of `SceneAppPage` objects. Similar to creating a scene page, you create tabs. To render tabs, use the `tabs` property of the `SceneAppPage` object.
+Tabs are instances of `SceneAppPage` objects. Similar to creating a scene page, you create tabs. To render tabs, use the `tabs` property of the `SceneAppPage` object:
 
 ```tsx
 
@@ -110,4 +110,4 @@ const myAppPage = new SceneAppPage({
 });
 ```
 
-Navigating to `https://your-grafana.url/a/<PLUGIN_ID>/my-app` will render a scene app with two tabs: **Overview** and **Handlers**. The **Overview** tab contains a time series panel with a Prometheus HTTP Requests summary. The **Handlers** tab contains a table panel with a Prometheus HTTP request average duration summary, per handler.
+Navigating to `https://your-grafana.url/a/<PLUGIN_ID>/my-app` will render a Scenes app with two tabs: **Overview** and **Handlers**. The **Overview** tab contains a time series panel with a Prometheus HTTP Requests summary. The **Handlers** tab contains a table panel with a Prometheus HTTP request average duration summary, per handler.

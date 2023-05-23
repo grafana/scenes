@@ -32,8 +32,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isDraggable = parentLayout.isDraggable() && (state.isDraggable ?? true);
   const dragClass = isDraggable && parentLayout.getDragClass ? parentLayout.getDragClass() : '';
   const dragClassCancel = isDraggable && parentLayout.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
-  const rawData = sceneGraph.getData(model).useState();
-  const dataWithFieldConfig = model.applyFieldConfig(rawData.data);
+  const dataObject = sceneGraph.getData(model);
+  const rawData = dataObject.useState();
+  const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
@@ -84,6 +85,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // Data is always returned. For non-data panels, empty PanelData is returned.
   const data = dataWithFieldConfig!;
+  const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
   return (
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
@@ -109,24 +111,26 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
               <ErrorBoundaryAlert dependencies={[plugin, data]}>
                 <PluginContextProvider meta={plugin.meta}>
                   <PanelContextProvider value={model.getPanelContext()}>
-                    <PanelComponent
-                      id={1}
-                      data={data}
-                      title={title}
-                      timeRange={data.timeRange}
-                      timeZone={timeZone}
-                      options={options}
-                      fieldConfig={fieldConfig}
-                      transparent={false}
-                      width={innerWidth}
-                      height={innerHeight}
-                      renderCounter={0}
-                      replaceVariables={model.interpolate}
-                      onOptionsChange={model.onOptionsChange}
-                      onFieldConfigChange={model.onFieldConfigChange}
-                      onChangeTimeRange={model.onChangeTimeRange}
-                      eventBus={getAppEvents()}
-                    />
+                    {isReadyToRender && (
+                      <PanelComponent
+                        id={1}
+                        data={data}
+                        title={title}
+                        timeRange={data.timeRange}
+                        timeZone={timeZone}
+                        options={options}
+                        fieldConfig={fieldConfig}
+                        transparent={false}
+                        width={innerWidth}
+                        height={innerHeight}
+                        renderCounter={0}
+                        replaceVariables={model.interpolate}
+                        onOptionsChange={model.onOptionsChange}
+                        onFieldConfigChange={model.onFieldConfigChange}
+                        onChangeTimeRange={model.onChangeTimeRange}
+                        eventBus={getAppEvents()}
+                      />
+                    )}
                   </PanelContextProvider>
                 </PluginContextProvider>
               </ErrorBoundaryAlert>

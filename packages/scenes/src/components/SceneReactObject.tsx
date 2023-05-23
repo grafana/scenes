@@ -21,7 +21,7 @@ export interface SceneReactObjectState<TProps = {}> extends SceneObjectState {
 /**
  * A utility object that can be used to render any React component or ReactNode
  */
-export class SceneReactObject extends SceneObjectBase<SceneReactObjectState> {
+export class SceneReactObject<TProps = {}> extends SceneObjectBase<SceneReactObjectState<TProps>> {
   public static Component = ({ model }: SceneComponentProps<SceneReactObject>) => {
     const { component: Component, props, reactNode } = model.useState();
 

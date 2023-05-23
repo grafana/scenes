@@ -45,7 +45,7 @@ Create a scene with two, equally sized layout items in a column:
 const myScene = new EmbeddedScene({
   body: new SceneFlexLayout({
     direction: 'column',
-    children: [new SceneFlexItem({ minHeight: 200 }), new SceneFlexItem({ minHeight: 300})],
+    children: [new SceneFlexItem({ minHeight: 200 }), new SceneFlexItem({ minHeight: 300 })],
   }),
 });
 ```
@@ -146,9 +146,9 @@ For `SceneFlexItems` that contain `VizPanel` objects, it's recommended that you 
 
 By default, `SceneFlexLayout` has some responsive behaviors for smaller screens:
 
-* `SceneFlexLayout` direction changes from `row` to `column`.
-* `SceneFlexLayout` `maxWidth`, `maxHeight`, `height` or `width` constraints are removed.
-* `SceneFlexLayout` and `SceneFlexItem` uses the `minHeight` or `height` set on the parent layout (unless specified on it directly). This is to force a `height` or `minHeight` constraint set on a `SceneFlexLayout` with direction `row` to also apply to its children so that when the responsive media query that changes the direction to `column` is triggered, these constraints continue acting on the children.
+- `SceneFlexLayout` direction changes from `row` to `column`.
+- `SceneFlexLayout` `maxWidth`, `maxHeight`, `height` or `width` constraints are removed.
+- `SceneFlexLayout` and `SceneFlexItem` uses the `minHeight` or `height` set on the parent layout (unless specified on it directly). This is to force a `height` or `minHeight` constraint set on a `SceneFlexLayout` with direction `row` to also apply to its children so that when the responsive media query that changes the direction to `column` is triggered, these constraints continue acting on the children.
 
 These behaviors are triggered for screens that match the media query of Grafana's theme.breakpoints.down('md').
 
@@ -230,7 +230,7 @@ const myScene = new EmbeddedScene({
 });
 ```
 
-`SceneGridItem` accepts the following configuration options, which are expressed in 24 columnar grid units:
+`SceneGridItem` accepts the following configuration options, which are expressed in 24-column grid units:
 
 ```ts
   x?: number;

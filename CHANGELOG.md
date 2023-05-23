@@ -1,3 +1,78 @@
+# v0.10.0 (Tue May 23 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Macros: Add from and to macro [#197](https://github.com/grafana/scenes/pull/197) ([@torkelo](https://github.com/torkelo) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v0.9.0 (Mon May 22 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Scene utils: Expose helper for building drilldown links [#193](https://github.com/grafana/scenes/pull/193) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v0.8.1 (Thu May 18 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneDataTransformer: Correctly resolve isDataReadyToDisplay [#194](https://github.com/grafana/scenes/pull/194) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v0.8.0 (Thu May 18 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Initial data state to avoid unnecesary No data messages [#190](https://github.com/grafana/scenes/pull/190) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v0.7.1 (Wed May 17 2023)
+
+#### 🐛 Bug Fix
+
+- Docs: Bring back missing sections [#185](https://github.com/grafana/scenes/pull/185) ([@dprokop](https://github.com/dprokop))
+- `@grafana/scenes`
+  - SceneReactObject: Fix type issue [#191](https://github.com/grafana/scenes/pull/191) ([@torkelo](https://github.com/torkelo))
+  - SceneAppPage: Fixes issue with duplicate breadcrumbs [#175](https://github.com/grafana/scenes/pull/175) ([@torkelo](https://github.com/torkelo))
+
+#### 📝 Documentation
+
+- Docs: Transformations [#177](https://github.com/grafana/scenes/pull/177) ([@dprokop](https://github.com/dprokop))
+- `@grafana/scenes`
+  - Docs: SceneApp [#172](https://github.com/grafana/scenes/pull/172) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.7.0 (Mon May 08 2023)
 
 ### Release Notes

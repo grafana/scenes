@@ -4,7 +4,7 @@ title: Building apps with Scenes
 ---
 
 :::info
-This guide requires knowledge about building Grafana plugins. Learn more about building Grafana plugins in the [official plugins documentation](https://grafana.com/docs/grafana/latest/developers/plugins/).
+**Before you begin**: You must already know about building Grafana plugins before continuing with this guide. Learn more in the [official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/).
 :::
 
 Scenes come with the following objects that make it easy to build highly interactive Grafana app plugins:
@@ -14,11 +14,11 @@ Scenes come with the following objects that make it easy to build highly interac
 
 ## SceneApp
 
-`SceneApp` is the root object you must use to take full advantage of Scenes and Grafana plugin integration. `SceneApp` provides support for routing of your Scenes app.
+`SceneApp` is the root object you must use to take full advantage of Scenes and Grafana plugin integration. `SceneApp` provides support for the routing of your Scenes app.
 
 ### Step 1. Create a Scenes app
 
-Define a new scene app using the `SceneApp` object :
+Define a new Scenes app using the `SceneApp` object :
 
 ```tsx
 const getSceneApp = () =>
@@ -27,9 +27,9 @@ const getSceneApp = () =>
   });
 ```
 
-### Step 2. Render scene app in plugin
+### Step 2. Render the Scenes app in a plugin
 
-Define a component that will render the scene app:
+Define a component that will render the Scenes app:
 
 ```tsx
 function MyApp() {
@@ -43,7 +43,7 @@ function MyApp() {
 Memoize `SceneApp` using `React.useMemo` to avoid unnecessary re-renders.
 :::
 
-In app plugin render scene app:
+In the app plugin, render the Scenes app:
 
 ```tsx
 export class App extends React.PureComponent<AppRootProps> {
@@ -58,17 +58,17 @@ export class App extends React.PureComponent<AppRootProps> {
 ```
 
 :::note
-The example above will render a blank page because the `pages` property in the `SceneApp` constructor is empty. Use the `SceneAppPage` object to render scenes in your app.
+The preceding example will render a blank page because the `pages` property in the `SceneApp` constructor is empty. Use the `SceneAppPage` object to render scenes in your app.
 :::
 
 ## SceneAppPage
 
-The `SceneAppPage` object allows for rendering scenes in app plugins easily. In addition to rendering scenes, it provides support for:
+The `SceneAppPage` object allows you to render scenes in app plugins easily. In addition to rendering scenes, it provides support for:
 
 - Routing
 - Grafana breadcrumbs integration
 - [Tabs navigation](./scene-app-tabs.md)
-- [Drilldowns](./scene-app-drilldown.md)
+- [Drill-down pages](./scene-app-drilldown.md)
 
 Use `SceneAppPage` to build your app pages. It accepts the following properties:
 
@@ -141,7 +141,7 @@ const getScene = () => {
 
 ### Step 2. Create `SceneAppPage`
 
-Use the `SceneAppPage` object to configure app page:
+Use the `SceneAppPage` object to configure an app page:
 
 ```tsx
 const myAppPage = new SceneAppPage({
@@ -151,7 +151,7 @@ const myAppPage = new SceneAppPage({
 });
 ```
 
-### Step 3. Add page to `SceneApp`
+### Step 3. Add a page to `SceneApp`
 
 ```tsx
 const getSceneApp = () =>
@@ -160,4 +160,4 @@ const getSceneApp = () =>
   });
 ```
 
-Navigating to `https://your-grafana.url/a/<PLUGIN_ID>` will render a scene app with a page containing Time series panel that visualizes number of Prometheus HTTP requests.
+Navigating to `https://your-grafana.url/a/<PLUGIN_ID>` will render a Scenes app with a page containing a Time series panel that visualizes the number of Prometheus HTTP requests.
