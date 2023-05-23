@@ -190,28 +190,27 @@ The variables system supports a variety of built-in macros, which are variable e
 
 ### Global macros
 
-| Syntax                                             | Description                                                                                     |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `${___url}`                                        | The current url                                                                                 |
-| `${__url.path}`                                    | Current url but path only                                                                       |
-| `${__url.params}`                                  | Current url but query params only                                                               |
-| `${__url.params:exclude:var-handler}`              | Current url query parameters but without var-handler                                            |
-| `${__url.params:include:var-handler,var-instance}` | Current url query parameters but only include var-handler and var-instance, filter out the rest |
+| Syntax                                             | Description                                                         |
+| -------------------------------------------------- | ------------------------------------------------------------------- |
+| `${___url}`                                        | The current URL                                                     |
+| `${__url.path}`                                    | Current URL without query parameters                                |
+| `${__url.params}`                                  | Current URL query params                                            |
+| `${__url.params:exclude:var-handler}`              | Current URL query params without `var-handler`                      |
+| `${__url.params:include:var-handler,var-instance}` | Current URL query params with only `var-handler` and `var-instance` |
 
-So if you want to create a drilldown link from a table say to another page with with all query parameters preserve you would 
-have a string like this. 
+Use a string similar to the following to create a data link from a table to another page with all query parameters preserved:
 
-* `/scene-x/my-drilldown-view/${__value.raw}${__url.params}`
+- `/scene-x/my-drilldown-view/${__value.raw}${__url.params}`
 
-If you wanted to update the current scene url with a new query parameter or update it if it exists do something like this:
+Use a string similar to the following to update the current scene URL with a new query parameter or update it if it exists:
 
-* `/my-scene-url${__url.params:exclude:drilldown-id}&drilldown-id=${__value.raw}`
+- `/my-scene-url${__url.params:exclude:drilldown-id}&drilldown-id=${__value.raw}`
 
-This should generate a URL with preserved url state but with the drilldown-id query parameter updated to the interpolated value for this specific data link.
+This will generate a URL with preserved url state but with the drilldown-id query parameter updated to the interpolated value for this specific data link.
 
 ### Field / series macros
 
-These work in data links and in field overrides properties like displayName. 
+The following macros work in data links and in field overrides properties like displayName.
 
 | Syntax                      | Description                                    |
 | --------------------------- | ---------------------------------------------- |
@@ -220,7 +219,7 @@ These work in data links and in field overrides properties like displayName.
 
 ### Value / row macros
 
-Only works for row / value based data links.
+The following macros work in row and value based data links.
 
 | Syntax                     | Description                                                                      |
 | -------------------------- | -------------------------------------------------------------------------------- |
