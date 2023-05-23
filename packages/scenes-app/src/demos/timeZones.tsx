@@ -23,19 +23,19 @@ export function getTimeZoneTest(defaults: SceneAppPageState) {
 
   const panel1 = new VizPanel({
     pluginId: 'timeseries',
-    title: 'Using global time range and time zone',
+    title: 'Using global time range and time zone (${__timezone})',
     description: 'This panel should show data within time zone and time range selected in the time picker.',
   });
 
   const panel2 = new VizPanel({
     pluginId: 'timeseries',
-    title: 'Using global time zone, local range',
+    title: 'Using local range and global time zone (${__timezone})',
     description: 'This panel should show data from the last 5 minutes, using time zone from the time picker',
   });
 
   const panel3 = new VizPanel({
     pluginId: 'timeseries',
-    title: 'Using global range, local time zone',
+    title: 'Using global range, local time zone (${__timezone})',
     description: 'This panel should show data using America/New_York time zone and time range from the time picker',
   });
 
