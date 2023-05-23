@@ -185,3 +185,46 @@ const myScene = new EmbeddedScene({
   controls: [new VariableValueSelectors({})],
 });
 ```
+
+## Macros
+
+The variables system supports a variety of built-in macros, which are variable expressions that can be used without the need to include any additional variables.
+
+### Global macros
+
+| Syntax                                             | Description                                                         |
+| -------------------------------------------------- | ------------------------------------------------------------------- |
+| `${___url}`                                        | The current URL                                                     |
+| `${__url.path}`                                    | Current URL without query parameters                                |
+| `${__url.params}`                                  | Current URL query params                                            |
+| `${__url.params:exclude:var-handler}`              | Current URL query params without `var-handler`                      |
+| `${__url.params:include:var-handler,var-instance}` | Current URL query params with only `var-handler` and `var-instance` |
+
+Use a string similar to the following to create a data link from a table to another page with all query parameters preserved:
+
+- `/scene-x/my-drilldown-view/${__value.raw}${__url.params}`
+
+Use a string similar to the following to update the current scene URL with a new query parameter or update it if it exists:
+
+- `/my-scene-url${__url.params:exclude:drilldown-id}&drilldown-id=${__value.raw}`
+
+This will generate a URL with preserved url state but with the drilldown-id query parameter updated to the interpolated value for this specific data link.
+
+### Field / series macros
+
+The following macros work in data links and in field overrides properties like displayName.
+
+| Syntax                      | Description                                    |
+| --------------------------- | ---------------------------------------------- |
+| `${__field.name}`           | Will interpolate to the field/series name      |
+| `${__field.labels.cluster}` | Will interpolate to value of the cluster label |
+
+### Value / row macros
+
+The following macros work in row and value based data links.
+
+| Syntax                     | Description                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `${__value.text}`          | Useful for data links in tables and other visualizations that render rows/values |
+| `${__value.raw}`           | Unformatted value                                                                |
+| `${__data.fields[0].text}` | Will interpolate to value of the first field/column on the same row              |
