@@ -28,7 +28,7 @@ Create your first scene using the snippet below. The following code will create 
 
 import { EmbeddedScene, SceneFlexLayout, SceneFlexItem, VizPanel } from '@grafana/scenes';
 
-function getScene() {
+export function getScene() {
   return new EmbeddedScene({
     body: new SceneFlexLayout({
       children: [
@@ -57,9 +57,13 @@ Use the following code in your Grafana app plugin page to render the "Hello Worl
 import React from 'react';
 import { getScene } from './helloWorldScene';
 
-export const GrafanaAppPluginPage = () => {
+export const HelloWorldPluginPage = () => {
   const scene = getScene();
 
   return <scene.Component model={scene} />;
 };
 ```
+
+:::info
+The rendered scene won't be rendered within Grafana plugin page. To integrate scenes with Grafana sidebar, navigation and plugin page follow [Scenes apps](./scene-app.md) guide.
+:::

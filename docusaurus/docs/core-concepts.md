@@ -17,18 +17,24 @@ Scenes allow you to group and nest object. Things like data, time ranges, or var
 
 ## Scene object
 
-Each scene is built from atomic objects called scene objects. Here's an example of a simple `Counter` scene object:
+Scene is built from atomic objects called scene objects. Object is defined with:
+
+- State - An interface extending `SceneObjectState`.
 
 ```tsx
-import React from 'react';
-import { SceneObjectState, SceneObjectBase, SceneComponentProps } from '@grafana/scenes';
+import { SceneObjectState } from '@grafana/scenes';
 
 // 1. Create interface that describes state of the scene object
 interface CounterState extends SceneObjectState {
   count: number;
 }
+```
 
-// 2. Create a scene object
+- Model - A class extending `SceneObjectBase` class. Model contains scene object logic.
+
+```tsx
+import { SceneObjectBase } from '@grafana/scenes';
+
 export class Counter extends SceneObjectBase<CounterState> {
   public static Component = CounterRenderer;
 
@@ -44,8 +50,14 @@ export class Counter extends SceneObjectBase<CounterState> {
     });
   };
 }
+```
 
-// 3. Create a component that renders and interacts with the scene object
+- React component - Used to render scene object.
+
+```tsx
+import React from 'react';
+import { SceneComponentProps } from '@grafana/scenes';
+
 function CounterRenderer({ model }: SceneComponentProps<Counter>) {
   const { count } = model.useState();
 
@@ -177,7 +189,7 @@ const scene = new EmbeddedScene({
 })
 ```
 
-Each scene object has a `$data` and `$timeRange` property that can be configured. Because a scene is an object tree, the data and time range configured through `SceneQueryRunner` and `SceneTimeRange` respectively are accessible to the objects they're  added to _and_ all descendant objects.
+Each scene object has a `$data` and `$timeRange` property that can be configured. Because a scene is an object tree, the data and time range configured through `SceneQueryRunner` and `SceneTimeRange` respectively are accessible to the objects they're added to _and_ all descendant objects.
 
 In the following example, each `VizPanel` uses different data. "Panel A" uses data defined on the `EmbeddedScene`, while "Panel B" has its own data and time range configured:
 
