@@ -11,13 +11,13 @@ A scene is a collection of objects, called _scene objects_. These objects repres
 
 ![Scene objects tree](../docs/assets/sceneTree.png)
 
-Scenes allow you to group and nest object. Things like data, time ranges, or variables can be added to any object in the tree, making them accessible to that object and all descendant objects. Because of this, scenes allow you to create dashboards that have multiple time ranges, queries that can be shared and transformed, or nested variables.
+Scenes allow you to group and nest objects. Things like data, time ranges, or variables can be added to any object in the tree, making them available to that object and all descendant objects. Because of this, scenes allow you to create dashboards that have multiple time ranges, queries that can be shared and transformed, or nested variables.
 
 @grafana/scenes comes with multiple objects&#151;like `SceneQueryRunner`, `SceneFlexLayout`, `VizPanel`, and more&#151;to solve common problems. However, you can also create your own scene objects to extend functionality.
 
 ## Scene object
 
-Scene is built from atomic objects called scene objects. Object is defined with:
+Scenes are built from atomic objects called scene objects. A scene object is defined with:
 
 - State - An interface extending `SceneObjectState`.
 
@@ -30,7 +30,7 @@ interface CounterState extends SceneObjectState {
 }
 ```
 
-- Model - A class extending `SceneObjectBase` class. Model contains scene object logic.
+- Model - A class extending `SceneObjectBase` class. The Model contains scene object logic.
 
 ```tsx
 import { SceneObjectBase } from '@grafana/scenes';
@@ -52,7 +52,7 @@ export class Counter extends SceneObjectBase<CounterState> {
 }
 ```
 
-- React component - Used to render scene object.
+- React component - Used to render a scene object.
 
 ```tsx
 import React from 'react';
@@ -72,7 +72,7 @@ function CounterRenderer({ model }: SceneComponentProps<Counter>) {
 
 ## State
 
-A scene object can have a state. The shape of the object's state is expressed through an interface that _must_ extend the `SceneObjectState` interface:
+Scene objects can have associated state. The shape of an object's state is expressed through an interface that _must_ extend the `SceneObjectState` interface:
 
 ```tsx
 interface CounterState extends SceneObjectState {
@@ -96,7 +96,7 @@ Subscribing to an object's state using `model.useState()` will make the componen
 
 ### Modify state
 
-To change the state of the scene object, use the `setState` method that each scene object has. This can be done directly from the component:
+To change the state of a scene object, use the `setState` method that each scene object has. This can be done directly from the component:
 
 ```tsx
 function CounterRenderer({ model }: SceneComponentProps<Counter>) {
@@ -107,7 +107,7 @@ function CounterRenderer({ model }: SceneComponentProps<Counter>) {
 }
 ```
 
-This can also be done the scene object class:
+This can also be done from a scene object class:
 
 ```tsx
 export class Counter extends SceneObjectBase<CounterState> {
@@ -189,7 +189,7 @@ const scene = new EmbeddedScene({
 })
 ```
 
-Each scene object has a `$data` and `$timeRange` property that can be configured. Because a scene is an object tree, the data and time range configured through `SceneQueryRunner` and `SceneTimeRange` respectively are accessible to the objects they're added to _and_ all descendant objects.
+Each scene object has a `$data` and `$timeRange` property that can be configured. Because a scene is an object tree, the data and time range configured through `SceneQueryRunner` and `SceneTimeRange` respectively are available to the objects they're added to _and_ all descendant objects.
 
 In the following example, each `VizPanel` uses different data. "Panel A" uses data defined on the `EmbeddedScene`, while "Panel B" has its own data and time range configured:
 
