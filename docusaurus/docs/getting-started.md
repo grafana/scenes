@@ -13,7 +13,7 @@ Add @grafana/scenes to your Grafana app plugin by running the following command 
 yarn add @grafana/scenes
 ```
 
-Conversely, use the [Scenes app template](https://github.com/grafana/scenes-app-template/generate) to start from scratch.
+Alternatively, use the [Scenes app template](https://github.com/grafana/scenes-app-template/generate) to start from scratch.
 
 ## Hello World scene
 
