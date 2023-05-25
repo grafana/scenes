@@ -7,13 +7,17 @@ This topic describes how to install Scenes and create your first "Hello World" s
 
 ## Installation
 
-Add @grafana/scenes to your Grafana app plugin by running the following command in your project:
+Use the [`@grafana/create-plugin`](https://github.com/grafana/plugin-tools/blob/main/packages/create-plugin/README.md) to start from scratch.
+
+```bash
+npx @grafana/create-plugin@latest
+```
+
+Alternatively, add @grafana/scenes to your Grafana app plugin by running the following command in your project:
 
 ```bash
 yarn add @grafana/scenes
 ```
-
-Conversely, use the [Scenes app template](https://github.com/grafana/scenes-app-template/generate) to start from scratch.
 
 ## Hello World scene
 
