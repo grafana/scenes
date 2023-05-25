@@ -1,3 +1,21 @@
+# v0.12.0 (Thu May 25 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneAppPage: Support react elements in subtitle [#196](https://github.com/grafana/scenes/pull/196) ([@torkelo](https://github.com/torkelo))
+
+#### 📝 Documentation
+
+- Core Concepts: Small docs changes [#206](https://github.com/grafana/scenes/pull/206) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.11.0 (Tue May 23 2023)
 
 #### 🚀 Enhancement
