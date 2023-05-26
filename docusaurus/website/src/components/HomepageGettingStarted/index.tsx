@@ -24,7 +24,7 @@ function HomepageGettingStarted() {
                 and start playing with Scenes right away!
                 <br />
                 <br />
-                To create a scenes app run the following command:
+                To create a Scenes app, run the following command:
               </p>
               <CodeBlock>npx @grafana/create-plugin@latest</CodeBlock>
               <br />

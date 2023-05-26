@@ -16,7 +16,7 @@
 
 ## Public preview
 
-@grafana/scenes is currently in _public preview_ phase. We invite everyone to play with the library. We welcome any feedback!
+@grafana/scenes is currently in _public preview_. We invite everyone to play with the library. We welcome any feedback!
 
 ## Development
 

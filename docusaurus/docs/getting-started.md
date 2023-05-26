@@ -7,7 +7,7 @@ This topic describes how to install Scenes and create your first "Hello World" s
 
 ## Installation
 
-Use the [`@grafana/create-plugin`](https://github.com/grafana/plugin-tools/blob/main/packages/create-plugin/README.md) to start from scratch.
+Use the [`@grafana/create-plugin`](https://github.com/grafana/plugin-tools/blob/main/packages/create-plugin/README.md) to start a completely new project.
 
 ```bash
 npx @grafana/create-plugin@latest
