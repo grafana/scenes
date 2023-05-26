@@ -3,7 +3,7 @@ id: advanced-variables
 title: Variables in custom scene objects
 ---
 
-[Basic variables](./variables.md) lay the foundation for interactive dashboards. They allow dynamic configuration of which data is queried. 
+[Variables](./variables.md) lay the foundation for interactive dashboards. They allow dynamic configuration of which data is queried. 
 
 In addition to standard variables support, Scenes provides an API to make [custom scene objects](./advanced-custom-scene-objects.md) work with variables. This API offers many more possibilities for dashboard creators.
 
@@ -17,7 +17,7 @@ Start by building a custom scene object that will display provided text.
 
 This object will:
 
-1. Have a simple state that contains a string value(`text` property).
+1. Have a simple state that contains a string value (`text` property).
 2. Render a `textarea` for state modifications and a preformatted text block for displaying the current value of the `text` state.
 
 ```tsx
