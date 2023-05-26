@@ -3,22 +3,22 @@ id: advanced-variables
 title: Variables in custom scene objects
 ---
 
-Variables lay a foundation for interactive dashboards. They allow dynamic configuration of what data is queried. Read more about [basic variables usage in Scenes](./variables.md).
+[Variables](./variables.md) lay the foundation for interactive dashboards. They allow dynamic configuration of which data is queried. 
 
-On top of standard variables support, Scenes provide an API to make custom scene objects work with variables. [Read more about custom scene objects in Scenes](./advanced-custom-scene-objects.md). This APIs offers a whole lot more possibilities for dashboard creators.
+In addition to standard variables support, Scenes provides an API to make [custom scene objects](./advanced-custom-scene-objects.md) work with variables. This API offers many more possibilities for dashboard creators.
 
-## Use variables in custom scene object
+## Use variables in a custom scene object
 
-Follow the steps to make a custom scene object reactive to variables.
+Follow these steps to make a custom scene object reactive to variables.
 
 ### Step 1. Build a custom scene object
 
-Start with building a custom scene object that will display provided text.
+Start by building a custom scene object that will display provided text.
 
-This object:
+This object will:
 
-1. Will have a simple state that contains a string value(`text` property).
-2. Will render a textarea for state modifications and a preformatted text block for displaying the current value of the `text` state.
+1. Have a simple state that contains a string value (`text` property).
+2. Render a `textarea` for state modifications and a preformatted text block for displaying the current value of the `text` state.
 
 ```tsx
 import { SceneObjectState, SceneObjectState, SceneComponentProps } from '@grafana/scenes';
@@ -55,7 +55,7 @@ function TextInterpolatorRenderer({ model }: SceneComponentProps<TextInterpolato
 
 ### Step 2. Build a scene with `TextInterpolator`
 
-Create a simple scene with `TextInterpolator`.
+Create a simple scene with `TextInterpolator`:
 
 ```tsx
 const scene = new EmbeddedScene({
@@ -73,7 +73,7 @@ const scene = new EmbeddedScene({
 
 ### Step 3. Add a variable to a scene
 
-Define a custom variable and add it to scene:
+Define a custom variable and add it to the scene:
 
 ```tsx
 const greetingsVar = new CustomVariable({
@@ -96,9 +96,9 @@ const scene = new EmbeddedScene({
 });
 ```
 
-### Step 4. Add variables support to `TextInterpolator` object
+### Step 4. Add variables support to the `TextInterpolator` object
 
-Use `VariableDependencyConfig` to make `TextInterpolator` reactive to variable changes. Define `protected _variableDependency` instance property in `TextInterpolator` that's an instance of `VariableDependencyConfig`:
+Use `VariableDependencyConfig` to make `TextInterpolator` reactive to variable changes. Define a `protected _variableDependency` instance property in `TextInterpolator` that's an instance of `VariableDependencyConfig`:
 
 ```tsx
 class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
@@ -120,16 +120,16 @@ class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
 
 `VariableDependencyConfig` accepts an object with the following configuration options:
 
-- `statePaths` - Configure which properties of object state can contain variables.
-- `onReferencedVariableValueChanged` - Configure a callback that will be executed when variable(s) that the object depends on changed.
+- `statePaths` - Configures which properties of the object state can contain variables.
+- `onReferencedVariableValueChanged` - Configures a callback that will be executed when variable(s) that the object depends on are changed.
 
 :::info
 If `onReferencedVariableValueChanged` is not specified for the `VariableDependencyConfig`, the object will re-render on variable change by default.
 :::
 
-### Step 5. Interpolate `text` property in component
+### Step 5. Interpolate `text` property in the component
 
-In `TextInterpolatorRenderer` component use `sceneGraph.interpolate` helper to replace variables in `text` property when variable changes.
+In the `TextInterpolatorRenderer` component, use the `sceneGraph.interpolate` helper to replace variables in the `text` property when the variable changes:
 
 ```tsx
 function TextInterpolatorRenderer({ model }: SceneComponentProps<TextInterpolator>) {
@@ -147,4 +147,4 @@ function TextInterpolatorRenderer({ model }: SceneComponentProps<TextInterpolato
 }
 ```
 
-The preceding code will render a scene with a template variable, text input and a preformatted text block. Modify the text in the text input to `${greetings} World!` and observe the preformatted text box update. Change the variable value at the top of the scene and watch the preformatted text block update.
+The preceding code will render a scene with a template variable, text input, and a preformatted text block. Modify the text in the text input to `${greetings} World!`, and the preformatted text box will update. Change the variable value at the top of the scene, and that will also update the preformatted text block.
