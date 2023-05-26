@@ -1,3 +1,15 @@
+# v0.12.1 (Fri May 26 2023)
+
+#### 🐛 Bug Fix
+
+- QueryVariable: Correct picker for multi-value variable [#218](https://github.com/grafana/scenes/pull/218) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.12.0 (Thu May 25 2023)
 
 #### 🚀 Enhancement
