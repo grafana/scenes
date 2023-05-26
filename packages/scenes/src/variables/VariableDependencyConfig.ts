@@ -8,6 +8,11 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    * State paths to scan / extract variable dependencies from. Leave empty to scan all paths.
    */
   statePaths?: Array<keyof TState>;
+
+  /**
+   * Explicit list of variable names to depend on. Leave empty to scan state for dependencies.
+   */
+  variableNames?: string[];
   /**
    * Optional way to customize how to handle when a dependent variable changes
    * If not specified the default behavior is to trigger a re-render
@@ -108,15 +113,21 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     this._dependencies.clear();
     this.scanCount += 1;
 
-    if (this._statePaths) {
-      for (const path of this._statePaths) {
-        const value = state[path];
-        if (value) {
-          this.extractVariablesFrom(value);
-        }
+    if (this._options.variableNames) {
+      for (const name of this._options.variableNames) {
+        this._dependencies.add(name);
       }
     } else {
-      this.extractVariablesFrom(state);
+      if (this._statePaths) {
+        for (const path of this._statePaths) {
+          const value = state[path];
+          if (value) {
+            this.extractVariablesFrom(value);
+          }
+        }
+      } else {
+        this.extractVariablesFrom(state);
+      }
     }
   }
 

@@ -13,6 +13,7 @@ import {
   SceneAppPage,
   SceneAppPageState,
 } from '@grafana/scenes';
+import { VariableEffectBehavior } from './behaviors/VariableEffectBehavior';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getVariablesDemo(defaults: SceneAppPageState) {
@@ -66,6 +67,29 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
         }),
         body: new SceneFlexLayout({
           direction: 'row',
+          $behaviors: [
+            new VariableEffectBehavior({
+              variables: ['lonelyOne'],
+              effect: (variable) => {
+                console.log('lonelyOne effect', variable);
+
+                const t = setTimeout(() => {
+                  console.log('lonelyOne post effect');
+                }, 5000);
+
+                return () => {
+                  console.log('lonelyOne cancel effect');
+                  clearTimeout(t);
+                };
+              },
+            }),
+            new VariableEffectBehavior({
+              variables: ['server'],
+              effect: (variable) => {
+                console.log('server effect', variable);
+              },
+            }),
+          ],
           children: [
             new SceneFlexItem({
               body: new SceneFlexLayout({
