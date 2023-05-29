@@ -12,8 +12,8 @@ import {
   NestedScene,
   SceneAppPage,
   SceneAppPageState,
+  behaviors,
 } from '@grafana/scenes';
-import { VariableEffectBehavior } from './behaviors/VariableEffectBehavior';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getVariablesDemo(defaults: SceneAppPageState) {
@@ -68,9 +68,9 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
         body: new SceneFlexLayout({
           direction: 'row',
           $behaviors: [
-            new VariableEffectBehavior({
-              variables: ['lonelyOne'],
-              effect: (variable) => {
+            new behaviors.VariableChangedBehavior({
+              variableName: 'lonelyOne',
+              onChange: (variable) => {
                 console.log('lonelyOne effect', variable);
 
                 const t = setTimeout(() => {
@@ -83,9 +83,9 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                 };
               },
             }),
-            new VariableEffectBehavior({
-              variables: ['server'],
-              effect: (variable) => {
+            new behaviors.VariableChangedBehavior({
+              variableName: 'server',
+              onChange: (variable) => {
                 console.log('server effect', variable);
               },
             }),
