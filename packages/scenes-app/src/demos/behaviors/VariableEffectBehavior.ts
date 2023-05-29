@@ -6,12 +6,12 @@ import {
   VariableDependencyConfig,
 } from '@grafana/scenes';
 
-interface VariableEffectBehaviorState extends SceneObjectState {
-  // The names of the variables to effect when they change
-  variables: string[];
-  // The effect to run when a variable changes. Optionally return a cancel function
-  effect: (variableState: SceneVariableState) => (() => void) | void;
-}
+interface VariableChangedActionBehaviorState extends SceneObjectState {
+  // The names of the variable to subscribe to changes to 
+  variableName: string;
+  // The handler to run when a variable changes. Return a cancellation function if you do anything async like issue a query
+  onChange: (variable: SceneVariable) => (() => void) | void;
+} 
 
 /**
  * This behavior will run an effect function when specified variables change
