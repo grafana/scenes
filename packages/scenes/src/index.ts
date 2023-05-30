@@ -4,6 +4,8 @@ import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntim
 export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
+export * as behaviors from './behaviors';
+
 export { SceneObjectBase } from './core/SceneObjectBase';
 export { SceneDataNode } from './core/SceneDataNode';
 export { SceneTimeRange } from './core/SceneTimeRange';
