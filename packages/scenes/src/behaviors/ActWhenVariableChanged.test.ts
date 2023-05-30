@@ -1,9 +1,9 @@
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestScene } from '../variables/TestScene';
 import { TestVariable } from '../variables/variants/TestVariable';
-import { VariableChangedBehavior } from './VariableChangedBehavior';
+import { ActWhenVariableChanged } from './ActWhenVariableChanged';
 
-describe('VariableChangedBehavior', () => {
+describe('ActWhenVariableChanged', () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -12,7 +12,7 @@ describe('VariableChangedBehavior', () => {
     const behaviorSpy = jest.fn();
     const testVariable = new TestVariable({ name: 'test', value: 'test' });
 
-    const behavior = new VariableChangedBehavior({
+    const behavior = new ActWhenVariableChanged({
       variableName: 'test',
       onChange: behaviorSpy,
     });
@@ -39,7 +39,7 @@ describe('VariableChangedBehavior', () => {
     const behaviorCancellationSpy = jest.fn();
     const testVariable = new TestVariable({ name: 'test', value: 'test' });
 
-    const behavior = new VariableChangedBehavior({
+    const behavior = new ActWhenVariableChanged({
       variableName: 'test',
       onChange: () => {
         const timeout = setTimeout(() => {

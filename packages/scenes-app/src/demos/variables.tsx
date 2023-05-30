@@ -68,7 +68,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
         body: new SceneFlexLayout({
           direction: 'row',
           $behaviors: [
-            new behaviors.VariableChangedBehavior({
+            new behaviors.ActWhenVariableChanged({
               variableName: 'lonelyOne',
               onChange: (variable) => {
                 console.log('lonelyOne effect', variable);
@@ -83,7 +83,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                 };
               },
             }),
-            new behaviors.VariableChangedBehavior({
+            new behaviors.ActWhenVariableChanged({
               variableName: 'server',
               onChange: (variable) => {
                 console.log('server effect', variable);

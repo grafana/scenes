@@ -3,7 +3,7 @@ import { SceneObjectState } from '../core/types';
 import { SceneVariable } from '../variables/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 
-interface VariableChangedBehaviorState extends SceneObjectState {
+interface ActWhenVariableChangedState extends SceneObjectState {
   // The name of the variable to subscribe to changes to.
   variableName: string;
   // The handler to run when a variable changes. Return a cancellation function if you do anything async like issue a query.
@@ -14,7 +14,7 @@ interface VariableChangedBehaviorState extends SceneObjectState {
  * This behavior will run an effect function when specified variables change
  */
 
-export class VariableChangedBehavior extends SceneObjectBase<VariableChangedBehaviorState> {
+export class ActWhenVariableChanged extends SceneObjectBase<ActWhenVariableChangedState> {
   private _runningEffect: null | (() => void) = null;
 
   protected _variableDependency = new VariableDependencyConfig(this, {

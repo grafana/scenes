@@ -1,1 +1,1 @@
-export { VariableChangedBehavior } from './VariableChangedBehavior';
+export { ActWhenVariableChanged } from './ActWhenVariableChanged';
