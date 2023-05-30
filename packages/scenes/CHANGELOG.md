@@ -1,3 +1,15 @@
+# v0.13.0 (Tue May 30 2023)
+
+#### 🚀 Enhancement
+
+- Behaviors: Variable changed [#219](https://github.com/grafana/scenes/pull/219) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.12.1 (Fri May 26 2023)
 
 #### 🐛 Bug Fix
