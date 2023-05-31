@@ -9,6 +9,8 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { isSceneObject, SceneComponentProps } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
+import { getClosest } from '../../core/sceneGraph/utils';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -35,6 +37,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataObject = sceneGraph.getData(model);
   const rawData = dataObject.useState();
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
+  // maybe move this logic to VizPanel itself?
+  const queryRunner = getClosest(model, (s) => (s.state.$data instanceof SceneQueryRunner) ? s.state.$data : undefined);
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
@@ -105,6 +109,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           dragClassCancel={dragClassCancel}
           padding={plugin.noPadding ? 'none' : 'md'}
           menu={panelMenu}
+          onCancelQuery={() => queryRunner?.cancelQuery()}
         >
           {(innerWidth, innerHeight) => (
             <>
