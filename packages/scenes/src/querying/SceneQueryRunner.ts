@@ -165,7 +165,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private getMaxDataPoints() {
-    return this.state.maxDataPoints ?? this._containerWidth ?? 500;
+    if (this.state.maxDataPoints) {
+      return this.state.maxDataPoints;
+    }
+
+    return this.state.maxDataPointsFromWidth ? this._containerWidth ?? 500 : 500;
   }
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
