@@ -153,7 +153,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return this.state.maxDataPoints ?? this._containerWidth ?? 500;
   }
 
-  public cancelQuery() {
+  public cancel() {
     this._querySub?.unsubscribe();
     this.setState({
       data: { ...this.state.data!, state: LoadingState.Done },
