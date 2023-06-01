@@ -367,4 +367,34 @@ describe('SceneQueryRunner', () => {
       expect(getDataSourceCall[0]).toEqual({ uid: 'Muuu' });
     });
   });
+
+  describe('when time range changed while in-active', () => {
+    it('It should re-issue new query', async () => {
+      const timeRange = new SceneTimeRange();
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: timeRange,
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      const deactivateQueryRunner = queryRunner.activate();
+
+      // When consumer viz is rendered with width 1000
+      await new Promise((r) => setTimeout(r, 1));
+      // Should query
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+
+      deactivateQueryRunner();
+
+      timeRange.setState({ from: 'now-10m' });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should run new query
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+    });
+  });
 });
