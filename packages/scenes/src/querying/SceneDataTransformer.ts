@@ -87,6 +87,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     this.transform(this.getSourceData().state.data);
   }
 
+  public cancel() {
+    this._transformSub?.unsubscribe();
+  }
+
   private transform(data: PanelData | undefined) {
     const transformations = this.state.transformations || [];
 
