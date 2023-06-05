@@ -7,7 +7,7 @@ Activation handlers are useful tool for providing external behaviors to scene ob
 
 Similarly to React's `useEffect`, activation handlers return a `function(deactivation handler)` that should be used to clean up all behaviors added in an activation handler. A deactivation handler is called when a scene object is unmounted.
 
-:::info
+:::note
 Activation handlers are especially useful if you want to add external behaviors to core scene objects. They reduce the need for implementing custom scene objects that would handle scene object connections.
 :::
 

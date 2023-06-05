@@ -52,7 +52,7 @@ class CustomObject extends SceneObjectBase<CustomObjectState> {
 }
 ```
 
-:::info
+:::note
 The subscription returned from `sourceData.subscribeToState` is added to `this._subs`. Because of this, you don't need to do any cleanup when the custom object is destroyed, as the library will take care of unsubscribing.
 :::
 
