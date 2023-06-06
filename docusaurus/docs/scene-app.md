@@ -3,7 +3,7 @@ id: scene-app
 title: Building apps with Scenes
 ---
 
-:::info
+:::note
 **Before you begin**: You must already know about building Grafana plugins before continuing with this guide. Learn more in the [official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/).
 :::
 
@@ -39,7 +39,7 @@ function MyApp() {
 }
 ```
 
-:::info
+:::note
 Memoize `SceneApp` using `React.useMemo` to avoid unnecessary re-renders.
 :::
 

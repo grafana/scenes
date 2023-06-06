@@ -3,7 +3,7 @@ id: transformations
 title: Transformations
 ---
 
-:::info
+:::note
 **Before you begin**: You must already know about [connecting data in Scenes apps](./core-concepts.md#data-and-time-range) before continuing with this guide.
 :::
 
@@ -197,7 +197,7 @@ In addition to all the transformations available in Grafana, scenes allow you to
 type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
 ```
 
-:::info
+:::note
 Read more about RxJS operators in the [RxJS official documentation](https://rxjs.dev/guide/operators).
 :::
 
@@ -205,7 +205,7 @@ Read more about RxJS operators in the [RxJS official documentation](https://rxjs
 
 Create a custom transformation that will apply to the `handler` field and prefix all values with a URL:
 
-:::info
+:::note
 Custom transformations depend heavily on manipulating internal Grafana data objects called _data frames_. Learn more about data frames in [the official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/data-frames/).
 :::
 

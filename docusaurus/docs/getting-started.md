@@ -68,6 +68,6 @@ export const HelloWorldPluginPage = () => {
 };
 ```
 
-:::info
+:::note
 The rendered scene won't be rendered within Grafana plugin page. To integrate scenes with Grafana sidebar, navigation and plugin page follow [Scenes apps](./scene-app.md) guide.
 :::
