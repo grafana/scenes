@@ -107,6 +107,7 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}> {
 
     return this;
   }
+
   public setFieldConfig(fieldConfig: DeepPartial<TFieldConfig>): this {
     this._state.fieldConfig.defaults = {
       ...this._state.fieldConfig.defaults,
@@ -120,11 +121,26 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}> {
     return this;
   }
 
+  public setData(data: VizPanelState['$data']): this {
+    this._state.$data = data;
+    return this;
+  }
+
+  public setTimeRange(timeRange: VizPanelState['$timeRange']): this {
+    this._state.$timeRange = timeRange;
+    return this;
+  }
+
+  public setVariables(variables: VizPanelState['$variables']): this {
+    this._state.$variables = variables;
+    return this;
+  }
+
   public build() {
     return new VizPanel<TOptions, TFieldConfig>({
       ...this._state,
       fieldConfig: {
-        defaults: this._state.fieldConfig!.defaults,
+        defaults: this._state.fieldConfig.defaults,
         overrides: this._overridesBuilder.build(),
       },
     });
