@@ -18,7 +18,7 @@ import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@gra
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
+import { SceneObject, SceneObjectState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
@@ -37,8 +37,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * runtime registered PanelPlugin registered via function registerScenePanelPlugin.
    */
   pluginId: string;
-  options: DeepPartial<TOptions>;
-  fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
+  options: TOptions;
+  fieldConfig: FieldConfigSource<TFieldConfig>;
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
   hoverHeader?: boolean;
@@ -67,7 +67,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
-      options: {},
+      options: {} as TOptions,
       fieldConfig: { defaults: {}, overrides: [] },
       title: 'Title',
       pluginId: 'timeseries',
