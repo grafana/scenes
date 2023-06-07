@@ -90,9 +90,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   public cancel() {
     if (this.state.$data instanceof SceneQueryRunner) {
-      try {
         this.getSourceData().cancel?.();
-      } catch {}
     }
   }
 
