@@ -13,7 +13,7 @@ This topic explains the core concepts of Scenes and how to use them in creating 
 
 A scene is a collection of objects, called _scene objects_. These objects represent different aspects of the scene: data, time ranges, variables, layout, and visualizations. Together, scene objects form an _object tree_:
 
-![Scene objects tree](../docs/assets/sceneTree.png)
+![Scene objects tree](/media/docs/grafana/developers/scenes/sceneTree.png)
 
 Scenes allow you to group and nest objects. Things like data, time ranges, or variables can be added to any object in the tree, making them available to that object and all descendant objects. Because of this, scenes allow you to create dashboards that have multiple time ranges, queries that can be shared and transformed, or nested variables.
 
