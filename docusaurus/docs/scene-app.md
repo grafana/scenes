@@ -3,9 +3,7 @@ id: scene-app
 title: Building apps with Scenes
 ---
 
-:::note
-**Before you begin**: You must already know about building Grafana plugins before continuing with this guide. Learn more in the [official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/).
-:::
+> **Note:** **Before you begin**: You must already know about building Grafana plugins before continuing with this guide. Learn more in the [official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/).
 
 Scenes come with the following objects that make it easy to build highly interactive Grafana app plugins:
 
@@ -39,9 +37,7 @@ function MyApp() {
 }
 ```
 
-:::note
-Memoize `SceneApp` using `React.useMemo` to avoid unnecessary re-renders.
-:::
+> **Note:** Memoize `SceneApp` using `React.useMemo` to avoid unnecessary re-renders.
 
 In the app plugin, render the Scenes app:
 
@@ -57,9 +53,7 @@ export class App extends React.PureComponent<AppRootProps> {
 }
 ```
 
-:::note
-The preceding example will render a blank page because the `pages` property in the `SceneApp` constructor is empty. Use the `SceneAppPage` object to render scenes in your app.
-:::
+> **Note:** The preceding example will render a blank page because the `pages` property in the `SceneApp` constructor is empty. Use the `SceneAppPage` object to render scenes in your app.
 
 ## SceneAppPage
 

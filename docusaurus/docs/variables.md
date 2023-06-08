@@ -36,10 +36,9 @@ const handler = new QueryVariable({
 });
 ```
 
-:::note
-The `datasource` used in the preceding code block refers to the core Grafana Prometheus data source plugin. Make sure your Grafana stack has this plugin installed and configured. The `query` property is the same one that you would see
-in typical dashboard template variables when you view the dashboard JSON in the dashboard settings.
-:::
+> **Note:** The `datasource` used in the preceding code block refers to the core Grafana Prometheus data source plugin.
+> Make sure your Grafana stack has this plugin installed and configured.
+> The `query` property is the same one that you would see in typical dashboard template variables when you view the dashboard JSON in the dashboard settings.
 
 ### Step 2. Configure a scene to use variables
 

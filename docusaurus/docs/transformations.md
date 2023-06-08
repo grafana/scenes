@@ -3,9 +3,7 @@ id: transformations
 title: Transformations
 ---
 
-:::note
-**Before you begin**: You must already know about [connecting data in Scenes apps](./core-concepts.md#data-and-time-range) before continuing with this guide.
-:::
+> **Note:** **Before you begin**: You must already know about [connecting data in Scenes apps](./core-concepts.md#data-and-time-range) before continuing with this guide.
 
 Transformations are a powerful way to manipulate data returned by the `SceneQueryRunner` object before scenes render a visualization. Using transformations, you can:
 
@@ -94,9 +92,7 @@ const transformedData = new SceneDataTransformer({
 });
 ```
 
-:::note
-Objects used in `transformations` are the same transformation configuration objects you would see in a typical dashboard panel when you view the **JSON** tab in the panel inspect drawer. To access this tab, click **Inspect > Panel JSON** in the panel edit menu.
-:::
+> **Note:** Objects used in `transformations` are the same transformation configuration objects you would see in a typical dashboard panel when you view the **JSON** tab in the panel inspect drawer. To access this tab, click **Inspect > Panel JSON** in the panel edit menu.
 
 Use the newly created `transformedData` object in place of the previously used `SceneQueryRunner`:
 
@@ -197,17 +193,13 @@ In addition to all the transformations available in Grafana, scenes allow you to
 type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
 ```
 
-:::note
-Read more about RxJS operators in the [RxJS official documentation](https://rxjs.dev/guide/operators).
-:::
+> **Note:** Read more about RxJS operators in the [RxJS official documentation](https://rxjs.dev/guide/operators).
 
 ### Step 1. Create a custom transformation
 
 Create a custom transformation that will apply to the `handler` field and prefix all values with a URL:
 
-:::note
-Custom transformations depend heavily on manipulating internal Grafana data objects called _data frames_. Learn more about data frames in [the official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/data-frames/).
-:::
+> **Note:** Custom transformations depend heavily on manipulating internal Grafana data objects called _data frames_. Learn more about data frames in [the official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/data-frames/).
 
 ```ts
 import { DataFrame } from '@grafana/data';
@@ -273,9 +265,7 @@ const transformedData = new SceneDataTransformer({
 });
 ```
 
-:::note
-The `prefixHandlerTransformation` custom transformation is added as the first one because it applies to the `handler` field that's renamed to `Handler` in the following transformations. You can modify the custom transformation implementation so that it doesn't have to be used prior to other transformations.
-:::
+> **Note:** The `prefixHandlerTransformation` custom transformation is added as the first one because it applies to the `handler` field that's renamed to `Handler` in the following transformations. You can modify the custom transformation implementation so that it doesn't have to be used prior to other transformations.
 
 The resulting table will look similar to the one that follows:
 

@@ -29,10 +29,9 @@ new VizPanel({
 })
 ```
 
-:::note
-The pluginId, `timeseries`, used in the preceding example refers to the core Grafana panel plugin, which is the standard graph visualization for time indexed data. The `options` and `fieldConfig` are the same options you would see
-in a typical dashboard panel when you view the **JSON** tab in the panel inspect drawer. To access this tab, click **Inspect > Panel JSON** in the panel edit menu.
-:::
+> **Note:** The pluginId, `timeseries`, used in the preceding example refers to the core Grafana panel plugin, which is the standard graph visualization for time indexed data.
+> The `options` and `fieldConfig` are the same options you would see in a typical dashboard panel when you view the **JSON** tab in the panel inspect drawer.
+> To access this tab, click **Inspect > Panel JSON** in the panel edit menu.
 
 ## Data
 

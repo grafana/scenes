@@ -9,9 +9,7 @@ Drill-down pages are a powerful tool for building complex, data-driven applicati
 
 `SceneAppPage` comes with an API that allows you to create deep, nested drill-down pages.
 
-:::note
-**Before you begin**: You must already know about React Router URL params, Grafana field configuration, and data links before continuing with this guide.
-:::
+> **Note:** **Before you begin**: You must already know about React Router URL params, Grafana field configuration, and data links before continuing with this guide.
 
 To create a drill-down page, use the `drilldown` property of the `SceneAppPage` object.
 
@@ -113,9 +111,7 @@ const tablePanel = new VizPanel({
 
 The resulting panel will have links for all values of the `handler` field. Clicking a value will redirect to a particular endpoint drill-down URL that will show a "Not found page" error. You'll set up this page in the next step.
 
-:::note
-The `fieldConfig` options are the same options you would see in typical dashboard panels when you view **Panel JSON** from the Table panel inspect drawer. To access panel inspect drawer, click **Inspect** in the panel edit menu.
-:::
+> **Note:** The `fieldConfig` options are the same options you would see in typical dashboard panels when you view **Panel JSON** from the Table panel inspect drawer. To access panel inspect drawer, click **Inspect** in the panel edit menu.
 
 ### Step 4. Build a drill-down page
 

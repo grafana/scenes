@@ -131,9 +131,7 @@ function CounterRenderer({ model }: SceneComponentProps<Counter>) {
 }
 ```
 
-:::note
-We suggest that you implement the state-modifying methods in the scene object rather than in the component to separate the model complexity from the component.
-:::
+> **Note:** We suggest that you implement the state-modifying methods in the scene object rather than in the component to separate the model complexity from the component.
 
 ## Data and time range
 
@@ -156,9 +154,7 @@ const queryRunner = new SceneQueryRunner({
 });
 ```
 
-:::note
-Your Grafana instance must have a specified data source configured.
-:::
+> **Note:** Your Grafana instance must have a specified data source configured.
 
 For `SceneQueryRunner` to work, you must add a time range to a scene. Each scene object has a `$timeRange` property to which the `SceneTimeRange` scene object can be added. To specify a time range for the query runner created in the previous example, add the `$timeRange` property in the object passed to the constructor:
 

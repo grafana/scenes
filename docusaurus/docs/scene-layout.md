@@ -138,9 +138,7 @@ const myScene = new EmbeddedScene({
 
 This will render two panels, a Time series and a Table panel.
 
-:::note
-For `SceneFlexItems` that contain `VizPanel` objects, it's recommended that you set `minHeight` or `minWidth` constraints so the panels aren't overly compressed by limited screen space.
-:::
+> **Note:** For `SceneFlexItems` that contain `VizPanel` objects, it's recommended that you set `minHeight` or `minWidth` constraints so the panels aren't overly compressed by limited screen space.
 
 ### Responsive flex layouts
 
@@ -281,9 +279,7 @@ const myScene = new EmbeddedScene({
 
 A grid row is a layout item that groups other `SceneGridItems` into a collapsible row. Use `SceneGridRow` to add a row to a scene:
 
-:::note
-In `SceneGridRow`, the `x` and `y` coordinates are relative to the row.
-:::
+> **Note:** In `SceneGridRow`, the `x` and `y` coordinates are relative to the row.
 
 ```ts
 const row = new SceneGridRow({
