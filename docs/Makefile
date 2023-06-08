@@ -11,6 +11,10 @@ GIT_ROOT := $(shell git rev-parse --show-toplevel)
 
 .PHONY: copy-docusaurus
 copy-docusaurus: ## Copy files from docusaurus docs until the site is no longer in use.
-	rsync -av $(GIT_ROOT)/docusaurus/docs/ $(GIT_ROOT)/docs/sources
+	git clean -fx -- .
+	rsync -av $(GIT_ROOT)/docusaurus/docs/{getting-started,core-concepts}.md $(GIT_ROOT)/docs/sources/getting-started/
+	rsync -av $(GIT_ROOT)/docusaurus/docs/{advanced-custom-scene-objects,advanced-activation-handlers,advanced-data,advanced-variables}.md $(GIT_ROOT)/docs/sources/advanced-usage/
+	rsync -av $(GIT_ROOT)/docusaurus/docs/{visualizations,variables,transformations}.md $(GIT_ROOT)/docs/sources/scene-objects/
+	rsync -av $(GIT_ROOT)/docusaurus/docs/{scene-app-tabs,scene-app-drilldown}.md $(GIT_ROOT)/docs/sources/scene-objects/scene-app/
 
 docs: copy-docusaurus

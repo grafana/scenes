@@ -23,7 +23,11 @@ jobs:
         run: "git clone --single-branch --no-tags --depth 1 -b master https://grafanabot:${{ secrets.WEBSITE_SYNC_TOKEN }}@github.com/grafana/website-sync ./.github/actions/website-sync"
 
       - name: "Rsync docusaurus files"
-        run: "rsync -av docusaurus/docs/ docs/sources"
+        run: |
+          rsync -av docusaurus/docs/{getting-started,core-concepts}.md docs/sources/getting-started/
+          rsync -av docusaurus/docs/{advanced-custom-scene-objects,advanced-activation-handlers,advanced-data,advanced-variables}.md docs/sources/advanced-usage/
+          rsync -av docusaurus/docs/{visualizations,variables,transformations}.md docs/sources/scene-objects/
+          rsync -av docusaurus/docs/{scene-app-tabs,scene-app-drilldown}.md docs/sources/scene-objects/scene-app/
 
       - name: "Publish to website repository (next)"
         uses: "./.github/actions/website-sync"
