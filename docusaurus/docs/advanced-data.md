@@ -1,7 +1,10 @@
 ---
 id: advanced-data
 title: Data and time range in custom scene objects
+hide_title: true
 ---
+
+# Data and time range in custom scene objects
 
 Custom scene objects can use data and time range information added to a scene to perform additional operations. This topic describes how to use these properties in renderers and custom object classes.
 

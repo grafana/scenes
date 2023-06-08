@@ -1,7 +1,10 @@
 ---
 id: transformations
 title: Transformations
+hide_title: true
 ---
+
+# Transformations
 
 > **Note:** **Before you begin**: You must already know about [connecting data in Scenes apps](./core-concepts.md#data-and-time-range) before continuing with this guide.
 

@@ -1,6 +1,7 @@
 ---
 id: visualizations
 title: Visualizations
+hide_title: true
 ---
 
 # Visualizations

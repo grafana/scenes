@@ -1,7 +1,10 @@
 ---
 id: advanced-variables
 title: Variables in custom scene objects
+hide_title: true
 ---
+
+# Variables in custom scene objects
 
 [Variables](./variables.md) lay the foundation for interactive dashboards. They allow dynamic configuration of which data is queried. 
 

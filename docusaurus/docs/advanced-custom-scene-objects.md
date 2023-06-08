@@ -1,7 +1,10 @@
 ---
 id: advanced-custom-scene-objects
 title: Custom scene objects
+hide_title: true
 ---
+
+# Custom scene objects
 
 Scenes comes with extensibility in mind. In addition to the library primitives, you can build your own custom scene objects that extend the basic functionality of the library. This topic describes how to create a custom object.
 

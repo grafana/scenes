@@ -1,7 +1,10 @@
 ---
 id: advanced-activation-handlers
 title: Activation handlers
+hide_title: true
 ---
+
+# Activiation handlers
 
 Activation handlers are useful tool for providing external behaviors to scene objects. When a scene object is mounted, activation handlers are called.
 

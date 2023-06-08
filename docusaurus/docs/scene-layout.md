@@ -1,7 +1,10 @@
 ---
 id: scene-layout
 title: Building a scene layout
+hide_title: true
 ---
+
+# Building a scene layout
 
 Scenes support two layout types: flex and grid layout. In this guide, you'll learn how to use and configure `SceneFlexLayout` and `SceneGridLayout`.
 

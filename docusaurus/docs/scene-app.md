@@ -1,7 +1,10 @@
 ---
 id: scene-app
 title: Building apps with Scenes
+hide_title: true
 ---
+
+# Building apps with Scenes
 
 > **Note:** **Before you begin**: You must already know about building Grafana plugins before continuing with this guide. Learn more in the [official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/).
 

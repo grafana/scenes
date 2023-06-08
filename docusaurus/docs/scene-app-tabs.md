@@ -1,7 +1,10 @@
 ---
 id: scene-app-tabs
 title: Tab navigation in Scenes apps
+hide_title: true
 ---
+
+# Tab navigation in Scenes apps
 
 `SceneAppPage` provides support for building Grafana applications with tabs navigation. Tabs navigation is especially useful for designing information architecture for complex Grafana apps, where visualizations are grouped into meaningful sections.
 

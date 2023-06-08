@@ -1,7 +1,10 @@
 ---
 id: variables
 title: Variables
+hide_title: true
 ---
+
+# Variables
 
 Variables are used to parameterize a scene. They are placeholders for a value that can be used in queries, panel titles, and even custom scene objects. Learn more about Grafana template variables in [the official Grafana documentation](https://grafana.com/docs/grafana/latest/dashboards/variables/).
 

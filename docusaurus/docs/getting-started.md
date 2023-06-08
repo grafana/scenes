@@ -1,7 +1,10 @@
 ---
 id: getting-started
 title: Set up Scenes
+hide_title: true
 ---
+
+# Set up scenes
 
 This topic describes how to install Scenes and create your first "Hello World" scene.
 
