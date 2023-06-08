@@ -1,7 +1,9 @@
 ---
 id: scene-app-tabs
 title: Tab navigation in Scenes apps
+menuTitle: Tabs
 hide_title: true
+weight: 200
 ---
 
 # Tab navigation in Scenes apps

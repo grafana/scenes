@@ -2,6 +2,7 @@
 id: advanced-variables
 title: Variables in custom scene objects
 hide_title: true
+weight: 400
 ---
 
 # Variables in custom scene objects

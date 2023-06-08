@@ -2,6 +2,7 @@
 id: visualizations
 title: Visualizations
 hide_title: true
+weight: 200
 ---
 
 # Visualizations

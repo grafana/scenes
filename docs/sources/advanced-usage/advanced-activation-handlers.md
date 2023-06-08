@@ -2,6 +2,7 @@
 id: advanced-activation-handlers
 title: Activation handlers
 hide_title: true
+weight: 200
 ---
 
 # Activiation handlers

@@ -1,7 +1,9 @@
 ---
 id: getting-started
 title: Set up Scenes
+menuTitle: Setup
 hide_title: true
+weight: 100
 ---
 
 # Set up scenes

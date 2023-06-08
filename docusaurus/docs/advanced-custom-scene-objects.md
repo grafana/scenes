@@ -2,6 +2,7 @@
 id: advanced-custom-scene-objects
 title: Custom scene objects
 hide_title: true
+weight: 100
 ---
 
 # Custom scene objects

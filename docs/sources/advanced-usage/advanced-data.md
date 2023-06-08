@@ -2,6 +2,7 @@
 id: advanced-data
 title: Data and time range in custom scene objects
 hide_title: true
+weight: 300
 ---
 
 # Data and time range in custom scene objects

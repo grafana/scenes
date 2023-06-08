@@ -1,7 +1,9 @@
 ---
 id: scene-app-drilldown
 title: Drill-down pages in Scenes apps
+menuTitle: Drill-down pages
 hide_title: true
+weight: 300
 ---
 
 # Drill-down pages in Scenes apps

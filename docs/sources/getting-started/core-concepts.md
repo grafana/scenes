@@ -2,6 +2,7 @@
 id: core-concepts
 title: Core concepts
 hide_title: true
+weight: 200
 ---
 
 # Core concepts
