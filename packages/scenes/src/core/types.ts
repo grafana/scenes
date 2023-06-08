@@ -177,7 +177,7 @@ export type DeepPartial<T> = {
 export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
   isDataReadyToDisplay?: () => boolean;
-  cancel?: () => void;
+  cancelQuery?: () => void;
 }
 
 export type SceneStatelessBehavior = (sceneObject: SceneObject) => CancelActivationHandler | void;
