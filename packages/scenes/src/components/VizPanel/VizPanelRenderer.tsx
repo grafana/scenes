@@ -9,6 +9,8 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { isSceneObject, SceneComponentProps } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -86,6 +88,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // Data is always returned. For non-data panels, empty PanelData is returned.
   const data = dataWithFieldConfig!;
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
+  const canCancel = $data instanceof SceneQueryRunner || ($data instanceof SceneDataTransformer && $data.state.$data instanceof SceneQueryRunner);
 
   return (
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
@@ -105,7 +108,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           dragClassCancel={dragClassCancel}
           padding={plugin.noPadding ? 'none' : 'md'}
           menu={panelMenu}
-          onCancelQuery={model.onCancelQuery}
+          onCancelQuery={canCancel ? model.onCancelQuery : undefined}
         >
           {(innerWidth, innerHeight) => (
             <>
