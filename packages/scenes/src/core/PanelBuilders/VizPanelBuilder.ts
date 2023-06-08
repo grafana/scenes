@@ -1,30 +1,14 @@
-import {
-  BasicValueMatcherOptions,
-  FieldConfig,
-  FieldConfigProperty,
-  FieldMatcherID,
-  FieldType,
-  RangeValueMatcherOptions,
-  ValueMatcherID,
-  ValueMatcherOptions,
-} from '@grafana/data';
-import { FieldConfigSource, MatcherConfig } from '@grafana/schema';
+import { FieldConfigSource } from '@grafana/schema';
 import { merge } from 'lodash';
 
 import { VizPanel, VizPanelState } from '../../components/VizPanel/VizPanel';
 import { DeepPartial } from '../types';
+import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
+import { StandardFieldConfig, StandardFieldConfigInterface } from './types';
 
-export type PropertySetter<T> = <K extends keyof T>(id: K, value: T[K]) => PropertySetter<T>;
-export type OverridesSetter<T> = (matcher: MatcherConfig) => PropertySetter<T>;
-export type OverridesBuilder<T> = (builder: OverridesSetter<T>) => void;
-
-interface StandardFieldConfig
-  extends Omit<
-    FieldConfig,
-    'overrides' | 'custom' | 'displayNameFromDS' | 'description' | 'writeable' | 'path' | 'type'
-  > {}
-
-export class VizPanelBuilder<TOptions, TFieldConfig extends {}> {
+export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
+  implements StandardFieldConfigInterface<StandardFieldConfig, VizPanelBuilder<TOptions, TFieldConfig>, 'set'>
+{
   private _state: VizPanelState<TOptions, TFieldConfig> = {} as VizPanelState<TOptions, TFieldConfig>;
   private _overridesBuilder = new FieldConfigOverridesBuilder<TFieldConfig>();
 
@@ -99,12 +83,55 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}> {
     return this;
   }
 
-  public setStandardConfig(config: { [K in keyof StandardFieldConfig]: StandardFieldConfig[K] }): this {
+  public setColor(color: StandardFieldConfig['color']): this {
+    return this.setFieldConfigDefaults('color', color);
+  }
+
+  public setDecimals(decimals: StandardFieldConfig['decimals']): this {
+    return this.setFieldConfigDefaults('decimals', decimals);
+  }
+
+  public setDisplayName(displayName: StandardFieldConfig['displayName']): this {
+    return this.setFieldConfigDefaults('displayName', displayName);
+  }
+
+  public setFilterable(filterable: StandardFieldConfig['filterable']): this {
+    return this.setFieldConfigDefaults('filterable', filterable);
+  }
+
+  public setLinks(links: StandardFieldConfig['links']): this {
+    return this.setFieldConfigDefaults('links', links);
+  }
+
+  public setMappings(mappings: StandardFieldConfig['mappings']): this {
+    return this.setFieldConfigDefaults('mappings', mappings);
+  }
+
+  public setMax(max: StandardFieldConfig['max']): this {
+    return this.setFieldConfigDefaults('max', max);
+  }
+
+  public setMin(min: StandardFieldConfig['min']): this {
+    return this.setFieldConfigDefaults('min', min);
+  }
+
+  public setNoValue(noValue: StandardFieldConfig['noValue']): this {
+    return this.setFieldConfigDefaults('noValue', noValue);
+  }
+
+  public setThresholds(thresholds: StandardFieldConfig['thresholds']): this {
+    return this.setFieldConfigDefaults('thresholds', thresholds);
+  }
+
+  public setUnit(unit: StandardFieldConfig['unit']): this {
+    return this.setFieldConfigDefaults('unit', unit);
+  }
+
+  private setFieldConfigDefaults<T extends keyof StandardFieldConfig>(key: T, value: StandardFieldConfig[T]) {
     this._state.fieldConfig.defaults = {
       ...this._state.fieldConfig.defaults,
-      ...config,
+      [key]: value,
     };
-
     return this;
   }
 
@@ -144,88 +171,5 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}> {
         overrides: this._overridesBuilder.build(),
       },
     });
-  }
-}
-
-class FieldConfigOverridesBuilder<TFieldConfig> {
-  private _overrides: Array<{ matcher: MatcherConfig; properties: Array<{ id: string; value: unknown }> }> = [];
-
-  public match(matcher: MatcherConfig): this {
-    this._overrides.push({ matcher, properties: [] });
-    return this;
-  }
-
-  public matchFieldsWithName(name: string): this {
-    this._overrides.push({
-      matcher: {
-        id: FieldMatcherID.byName,
-
-        options: name,
-      },
-      properties: [],
-    });
-    return this;
-  }
-
-  public matchFieldsWithNameByRegex(regex: string): this {
-    this._overrides.push({
-      matcher: {
-        id: FieldMatcherID.byRegexpOrNames,
-        options: regex,
-      },
-      properties: [],
-    });
-    return this;
-  }
-
-  public matchFieldsByType(fieldType: FieldType): this {
-    this._overrides.push({
-      matcher: {
-        id: FieldMatcherID.byType,
-        options: fieldType,
-      },
-      properties: [],
-    });
-    return this;
-  }
-
-  public matchFieldsByQuery(refId: string): this {
-    this._overrides.push({
-      matcher: {
-        id: FieldMatcherID.byFrameRefID,
-        options: refId,
-      },
-      properties: [],
-    });
-    return this;
-  }
-
-  public matchFieldsByValue(
-    id: ValueMatcherID,
-    options: ValueMatcherOptions | BasicValueMatcherOptions | RangeValueMatcherOptions
-  ): this {
-    this._overrides.push({
-      matcher: {
-        id,
-        options,
-      },
-      properties: [],
-    });
-    return this;
-  }
-
-  public override<T extends TFieldConfig & StandardFieldConfig, K extends keyof T>(id: K, value: T[K]): this {
-    const _id = this.isStandardFieldConfigId(String(id)) ? String(id) : `custom.${String(id)}`;
-    const last = this._overrides[this._overrides.length - 1];
-    last.properties.push({ id: _id, value });
-    return this;
-  }
-
-  public build() {
-    return this._overrides;
-  }
-
-  private isStandardFieldConfigId(id: string) {
-    return (Object.values(FieldConfigProperty) as string[]).includes(id);
   }
 }

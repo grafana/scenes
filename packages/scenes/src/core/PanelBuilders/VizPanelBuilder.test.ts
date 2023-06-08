@@ -1,3 +1,4 @@
+import { MappingType, ThresholdsMode } from '@grafana/schema';
 import { VizPanelBuilder } from './VizPanelBuilder';
 
 interface OptionsTest {
@@ -52,6 +53,7 @@ const configurablePropertiesTest: Array<[string, string | boolean]> = [
   ['isDraggable', true],
   ['isResizable', true],
 ];
+
 describe('VizPanelBuilder', () => {
   it.each(configurablePropertiesTest)('should configure %s', (property, expected) => {
     const methodName = `set${property.charAt(0).toUpperCase()}${property.slice(1)}`;
@@ -99,15 +101,93 @@ describe('VizPanelBuilder', () => {
 
     it('allows standard field config configuration', () => {
       const builder = getTestBuilder();
-      builder.setStandardConfig({
-        decimals: 2,
-        unit: 'ms',
-        displayName: 'testDisplayName',
-      });
 
-      expect(builder.build().state.fieldConfig!.defaults.decimals).toEqual(2);
-      expect(builder.build().state.fieldConfig.defaults.unit).toEqual('ms');
-      expect(builder.build().state.fieldConfig.defaults.displayName).toEqual('testDisplayName');
+      builder
+        .setDecimals(2)
+        .setUnit('ms')
+        .setDisplayName('testDisplayName')
+        .setColor({ mode: 'thresholds' })
+        .setMin(1)
+        .setMax(100)
+        .setMappings([
+          {
+            type: MappingType.ValueToText,
+            options: {
+              '1': {
+                text: 'one',
+              },
+            },
+          },
+        ])
+        .setThresholds({
+          mode: ThresholdsMode.Absolute,
+          steps: [
+            { color: 'green', value: 0 },
+            { color: 'red', value: 80 },
+          ],
+        })
+        .setNoValue('no value')
+        .setFilterable(true)
+        .setLinks([
+          {
+            url: 'https://grafana.com',
+            title: 'Grafana',
+            targetBlank: true,
+          },
+        ]);
+
+      expect(builder.build().state.fieldConfig!.defaults).toMatchInlineSnapshot(`
+        {
+          "color": {
+            "mode": "thresholds",
+          },
+          "custom": {
+            "complex": {
+              "a": 1,
+              "b": "text",
+            },
+            "numeric": 1,
+            "text": "text",
+          },
+          "decimals": 2,
+          "displayName": "testDisplayName",
+          "filterable": true,
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Grafana",
+              "url": "https://grafana.com",
+            },
+          ],
+          "mappings": [
+            {
+              "options": {
+                "1": {
+                  "text": "one",
+                },
+              },
+              "type": "value",
+            },
+          ],
+          "max": 100,
+          "min": 1,
+          "noValue": "no value",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0,
+              },
+              {
+                "color": "red",
+                "value": 80,
+              },
+            ],
+          },
+          "unit": "ms",
+        }
+      `);
     });
 
     it('allows field config configuration', () => {
@@ -119,14 +199,146 @@ describe('VizPanelBuilder', () => {
         numeric: 2,
       });
 
-      expect(builder.build().state.fieldConfig!.defaults.custom!.complex.a).toEqual(2);
-      expect(builder.build().state.fieldConfig.defaults.custom!.complex.b).toEqual('text');
-      expect(builder.build().state.fieldConfig.defaults.custom?.numeric).toEqual(2);
-      expect(builder.build().state.fieldConfig.defaults.custom?.text).toEqual('text');
+      expect(builder.build().state.fieldConfig!.defaults.custom).toMatchInlineSnapshot(`
+        {
+          "complex": {
+            "a": 2,
+            "b": "text",
+          },
+          "numeric": 2,
+          "text": "text",
+        }
+      `);
     });
   });
 
   describe('overrides', () => {
+    it('allows standard overrides configuration', () => {
+      const builder = getTestBuilder();
+      builder.setFieldConfigOverrides((b) =>
+        b
+          .matchFieldsWithName('fieldName')
+          .overrideColor({ mode: 'thresholds' })
+          .overrideDecimals(2)
+          .overrideDisplayName('testDisplayName')
+          .overrideFilterable(true)
+          .overrideMax(100)
+          .overrideMin(1)
+          .overrideNoValue('no value')
+          .overrideUnit('ms')
+          .overrideLinks([
+            {
+              url: 'https://grafana.com',
+              title: 'Grafana',
+              targetBlank: true,
+            },
+          ])
+          .overrideMappings([
+            {
+              type: MappingType.ValueToText,
+              options: {
+                '1': {
+                  text: 'one',
+                },
+              },
+            },
+          ])
+          .overrideThresholds({
+            mode: ThresholdsMode.Absolute,
+            steps: [
+              { color: 'green', value: 0 },
+              { color: 'red', value: 80 },
+            ],
+          })
+      );
+
+      expect(builder.build().state.fieldConfig.overrides).toHaveLength(1);
+      expect(builder.build().state.fieldConfig.overrides).toMatchInlineSnapshot(`
+        [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fieldName",
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds",
+                },
+              },
+              {
+                "id": "decimals",
+                "value": 2,
+              },
+              {
+                "id": "displayName",
+                "value": "testDisplayName",
+              },
+              {
+                "id": "filterable",
+                "value": true,
+              },
+              {
+                "id": "max",
+                "value": 100,
+              },
+              {
+                "id": "min",
+                "value": 1,
+              },
+              {
+                "id": "noValue",
+                "value": "no value",
+              },
+              {
+                "id": "unit",
+                "value": "ms",
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Grafana",
+                    "url": "https://grafana.com",
+                  },
+                ],
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "1": {
+                        "text": "one",
+                      },
+                    },
+                    "type": "value",
+                  },
+                ],
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0,
+                    },
+                    {
+                      "color": "red",
+                      "value": 80,
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        ]
+      `);
+    });
     it('allows overrides configuration', () => {
       const builder = getTestBuilder();
       builder.setFieldConfigOverrides((b) =>
@@ -135,7 +347,7 @@ describe('VizPanelBuilder', () => {
           .override('complex', { a: 2, b: 'text' })
           .matchFieldsByQuery('A')
           .override('numeric', 2)
-          .override('decimals', 2)
+          .overrideDecimals(2)
       );
 
       expect(builder.build().state.fieldConfig.overrides).toHaveLength(2);
