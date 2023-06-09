@@ -206,6 +206,53 @@ describe('SceneApp', () => {
         history.push('/test-drilldown/some-id/does-not-exist');
         expect(await screen.findByTestId('default-fallback-content')).toBeInTheDocument();
       });
+
+      describe('Drilldowns on page level with tabs', () => {
+        const p1Object = new SceneCanvasText({ text: 'Page 1' });
+        const page1Scene = setupScene(p1Object);
+
+        const app = new SceneApp({
+          pages: [
+            // Page with tabs
+            new SceneAppPage({
+              title: 'Top level page',
+              url: '/main',
+              tabs: [
+                new SceneAppPage({
+                  title: 'Tab ',
+                  url: '/main/tab',
+                  getScene: () => {
+                    return page1Scene;
+                  },
+                }),
+              ],
+              drilldowns: [
+                {
+                  routePath: '/main/drilldown/:id',
+                  getPage: (match: SceneRouteMatch<{ id: string }>, parent) => {
+                    return new SceneAppPage({
+                      title: `Drilldown ${match.params.id}`,
+                      url: `/main/drilldown/${match.params.id}`,
+                      getScene: () => getDrilldownScene(match),
+                      getParentPage: () => parent,
+                    });
+                  },
+                },
+              ],
+            }),
+          ],
+        });
+
+        beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/main/drilldown/10'));
+
+        it('should render a drilldown page', async () => {
+          expect(await screen.findByText('10 drilldown!')).toBeInTheDocument();
+          expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
+
+          // Verify pageNav is correct
+          expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Drilldown 10', 'Top level page']);
+        });
+      });
     });
 
     describe('Drilldowns on tab level', () => {
