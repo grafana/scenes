@@ -3,7 +3,7 @@
   "license": "AGPL-3.0-only",
   "private": true,
   "name": "grafana-scenes",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Grafana framework for building dynamic dashboards",
   "keywords": [
     "typescript"
