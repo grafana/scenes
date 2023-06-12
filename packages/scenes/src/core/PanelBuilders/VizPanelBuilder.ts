@@ -1,4 +1,4 @@
-import { FieldConfigSource } from '@grafana/schema';
+import { FieldConfigSource } from '@grafana/data';
 import { merge } from 'lodash';
 
 import { VizPanel, VizPanelState } from '../../components/VizPanel/VizPanel';
@@ -34,7 +34,6 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
     };
 
     this._state.options = defaultOptions ? defaultOptions() : ({} as TOptions);
-    // @ts-ignore VizPanelState is typed with DeepPartial, think we need to change that
     this._state.fieldConfig = fieldConfig;
   }
 
