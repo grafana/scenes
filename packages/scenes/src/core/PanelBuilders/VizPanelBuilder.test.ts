@@ -192,12 +192,9 @@ describe('VizPanelBuilder', () => {
 
     it('allows field config configuration', () => {
       const builder = getTestBuilder();
-      builder.setFieldConfig({
-        complex: {
-          a: 2,
-        },
-        numeric: 2,
-      });
+
+      builder.setConfigProperty('complex', { a: 2 });
+      builder.setConfigProperty('numeric', 2);
 
       expect(builder.build().state.fieldConfig!.defaults.custom).toMatchInlineSnapshot(`
         {
@@ -215,7 +212,7 @@ describe('VizPanelBuilder', () => {
   describe('overrides', () => {
     it('allows standard overrides configuration', () => {
       const builder = getTestBuilder();
-      builder.setFieldConfigOverrides((b) =>
+      builder.setOverrides((b) =>
         b
           .matchFieldsWithName('fieldName')
           .overrideColor({ mode: 'thresholds' })
@@ -341,12 +338,12 @@ describe('VizPanelBuilder', () => {
     });
     it('allows overrides configuration', () => {
       const builder = getTestBuilder();
-      builder.setFieldConfigOverrides((b) =>
+      builder.setOverrides((b) =>
         b
           .matchFieldsWithName('fieldName')
-          .override('complex', { a: 2, b: 'text' })
+          .overrideConfigProperty('complex', { a: 2, b: 'text' })
           .matchFieldsByQuery('A')
-          .override('numeric', 2)
+          .overrideConfigProperty('numeric', 2)
           .overrideDecimals(2)
       );
 

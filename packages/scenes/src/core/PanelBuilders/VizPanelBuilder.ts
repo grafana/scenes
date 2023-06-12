@@ -126,23 +126,16 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
     return this.setFieldConfigDefaults('unit', unit);
   }
 
-  private setFieldConfigDefaults<T extends keyof StandardFieldConfig>(key: T, value: StandardFieldConfig[T]) {
+  public setConfigProperty<T extends TFieldConfig, K extends keyof T>(id: K, value: DeepPartial<T[K]>): this {
     this._state.fieldConfig.defaults = {
       ...this._state.fieldConfig.defaults,
-      [key]: value,
+      custom: merge(this._state.fieldConfig.defaults.custom, { [id]: value }),
     };
+
     return this;
   }
 
-  public setFieldConfig(fieldConfig: DeepPartial<TFieldConfig>): this {
-    this._state.fieldConfig.defaults = {
-      ...this._state.fieldConfig.defaults,
-      custom: merge(this._state.fieldConfig.defaults.custom, fieldConfig),
-    };
-    return this;
-  }
-
-  public setFieldConfigOverrides(builder: (b: FieldConfigOverridesBuilder<TFieldConfig>) => void): this {
+  public setOverrides(builder: (b: FieldConfigOverridesBuilder<TFieldConfig>) => void): this {
     builder(this._overridesBuilder);
     return this;
   }
@@ -170,5 +163,13 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
         overrides: this._overridesBuilder.build(),
       },
     });
+  }
+
+  private setFieldConfigDefaults<T extends keyof StandardFieldConfig>(key: T, value: StandardFieldConfig[T]) {
+    this._state.fieldConfig.defaults = {
+      ...this._state.fieldConfig.defaults,
+      [key]: value,
+    };
+    return this;
   }
 }

@@ -76,7 +76,7 @@ export class FieldConfigOverridesBuilder<TFieldConfig> extends StandardFieldConf
     return this;
   }
 
-  public override<T extends TFieldConfig, K extends keyof T>(id: K, value: T[K]): this {
+  public overrideConfigProperty<T extends TFieldConfig, K extends keyof T>(id: K, value: T[K]): this {
     const _id = `custom.${String(id)}`;
     const last = this._overrides[this._overrides.length - 1];
     last.properties.push({ id: _id, value });
