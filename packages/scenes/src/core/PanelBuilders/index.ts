@@ -3,37 +3,71 @@ import { TableFieldOptions as TableFieldConfig } from '@grafana/schema';
 import {
   Options as BarChartOptions,
   FieldConfig as BarChartFieldConfig,
+  defaultOptions as defaultBarChartOptions,
+  defaultFieldConfig as defaultBarChartFieldConfig,
 } from '@grafana/schema/dist/esm/raw/composable/barchart/panelcfg/x/BarChartPanelCfg_types.gen';
-import { Options as BarGaugeOptions } from '@grafana/schema/dist/esm/raw/composable/bargauge/panelcfg/x/BarGaugePanelCfg_types.gen';
-import { Options as DataGridOptions } from '@grafana/schema/dist/esm/raw/composable/datagrid/panelcfg/x/DataGridPanelCfg_types.gen';
-import { Options as GaugeOptions } from '@grafana/schema/dist/esm/raw/composable/gauge/panelcfg/x/GaugePanelCfg_types.gen';
-import { Options as GeomapOptions } from '@grafana/schema/dist/esm/raw/composable/geomap/panelcfg/x/GeoMapPanelCfg_types.gen';
+import {
+  Options as BarGaugeOptions,
+  defaultOptions as defaultBarGaugeOptions,
+} from '@grafana/schema/dist/esm/raw/composable/bargauge/panelcfg/x/BarGaugePanelCfg_types.gen';
+import {
+  Options as DataGridOptions,
+  defaultOptions as defaultDataGridOptions,
+} from '@grafana/schema/dist/esm/raw/composable/datagrid/panelcfg/x/DataGridPanelCfg_types.gen';
+import {
+  Options as GaugeOptions,
+  defaultOptions as defaultGaugeOptions,
+} from '@grafana/schema/dist/esm/raw/composable/gauge/panelcfg/x/GaugePanelCfg_types.gen';
+import {
+  Options as GeomapOptions,
+  defaultOptions as defaultGeomapOptions,
+} from '@grafana/schema/dist/esm/raw/composable/geomap/panelcfg/x/GeoMapPanelCfg_types.gen';
 import {
   Options as HeatmapOptions,
   FieldConfig as HeatmapFieldConfig,
+  defaultOptions as defaultHeatmapOptions,
 } from '@grafana/schema/dist/esm/raw/composable/heatmap/panelcfg/x/HeatmapPanelCfg_types.gen';
 import {
   Options as HistogramOptions,
   FieldConfig as HistogramFieldConfig,
+  defaultOptions as defaultHistogramOptions,
+  defaultFieldConfig as defaultHistogramFieldConfig,
 } from '@grafana/schema/dist/esm/raw/composable/histogram/panelcfg/x/HistogramPanelCfg_types.gen';
 import { Options as LogsOptions } from '@grafana/schema/dist/esm/raw/composable/logs/panelcfg/x/LogsPanelCfg_types.gen';
-import { Options as NewsOptions } from '@grafana/schema/dist/esm/raw/composable/news/panelcfg/x/NewsPanelCfg_types.gen';
+import {
+  Options as NewsOptions,
+  defaultOptions as defaultNewsOptions,
+} from '@grafana/schema/dist/esm/raw/composable/news/panelcfg/x/NewsPanelCfg_types.gen';
 import { Options as NodeGraphOptions } from '@grafana/schema/dist/esm/raw/composable/nodegraph/panelcfg/x/NodeGraphPanelCfg_types.gen';
 import {
   Options as PieChartOptions,
   FieldConfig as PieChartFieldConfig,
+  defaultOptions as defaultPieChartOptions,
 } from '@grafana/schema/dist/esm/raw/composable/piechart/panelcfg/x/PieChartPanelCfg_types.gen';
-import { Options as StatOptions } from '@grafana/schema/dist/esm/raw/composable/stat/panelcfg/x/StatPanelCfg_types.gen';
+import {
+  Options as StatOptions,
+  defaultOptions as defaultStatOptions,
+} from '@grafana/schema/dist/esm/raw/composable/stat/panelcfg/x/StatPanelCfg_types.gen';
 import {
   Options as StateTimelineOptions,
   FieldConfig as StateTimelineFieldConfig,
+  defaultOptions as defaultStateTimelineOptions,
+  defaultFieldConfig as defaultStateTimelineFieldConfig,
 } from '@grafana/schema/dist/esm/raw/composable/statetimeline/panelcfg/x/StateTimelinePanelCfg_types.gen';
 import {
   Options as StatusHistoryOptions,
   FieldConfig as StatusHistoryFieldConfig,
+  defaultOptions as defaultStatusHistoryOptions,
+  defaultFieldConfig as defaultStatusHistoryFieldConfig,
 } from '@grafana/schema/dist/esm/raw/composable/statushistory/panelcfg/x/StatusHistoryPanelCfg_types.gen';
-import { Options as TableOptions } from '@grafana/schema/dist/esm/raw/composable/table/panelcfg/x/TablePanelCfg_types.gen';
-import { Options as TextOptions } from '@grafana/schema/dist/esm/raw/composable/text/panelcfg/x/TextPanelCfg_types.gen';
+import {
+  Options as TableOptions,
+  defaultOptions as defaultTableOptions,
+} from '@grafana/schema/dist/esm/raw/composable/table/panelcfg/x/TablePanelCfg_types.gen';
+import {
+  Options as TextOptions,
+  defaultOptions as defaultTextOptions,
+} from '@grafana/schema/dist/esm/raw/composable/text/panelcfg/x/TextPanelCfg_types.gen';
 import {
   Options as TimeSeriesOptions,
   FieldConfig as TimeSeriesFieldConfig,
@@ -42,58 +76,82 @@ import {
   Options as TrendOptions,
   FieldConfig as TrendFieldConfig,
 } from '@grafana/schema/dist/esm/raw/composable/trend/panelcfg/x/TrendPanelCfg_types.gen';
-import { Options as XYChartOptions } from '@grafana/schema/dist/esm/raw/composable/xychart/panelcfg/x/XYChartPanelCfg_types.gen';
+import {
+  Options as XYChartOptions,
+  defaultOptions as defaultXYChartOptions,
+  defaultScatterFieldConfig as defaultXYChartFieldConfig,
+} from '@grafana/schema/dist/esm/raw/composable/xychart/panelcfg/x/XYChartPanelCfg_types.gen';
 
 import { VizPanelBuilder } from './VizPanelBuilder';
 
 export const PanelBuilders = {
   barchart() {
-    return new VizPanelBuilder<BarChartOptions, BarChartFieldConfig>('barchart', '1.0.0');
+    return new VizPanelBuilder<BarChartOptions, BarChartFieldConfig>(
+      'barchart',
+      '1.0.0',
+      () => defaultBarChartOptions,
+      () => defaultBarChartFieldConfig
+    );
   },
   bargauge() {
-    return new VizPanelBuilder<BarGaugeOptions, {}>('bargauge', '1.0.0');
+    return new VizPanelBuilder<BarGaugeOptions, {}>('bargauge', '1.0.0', () => defaultBarGaugeOptions);
   },
   datagrid() {
-    return new VizPanelBuilder<DataGridOptions, {}>('datagrid', '1.0.0');
+    return new VizPanelBuilder<DataGridOptions, {}>('datagrid', '1.0.0', () => defaultDataGridOptions);
   },
   gauge() {
-    return new VizPanelBuilder<GaugeOptions, {}>('gauge', '1.0.0');
+    return new VizPanelBuilder<GaugeOptions, {}>('gauge', '1.0.0', () => defaultGaugeOptions);
   },
   geomap() {
-    return new VizPanelBuilder<GeomapOptions, {}>('geomap', '1.0.0');
+    return new VizPanelBuilder<GeomapOptions, {}>('geomap', '1.0.0', () => defaultGeomapOptions);
   },
   heatmap() {
-    return new VizPanelBuilder<HeatmapOptions, HeatmapFieldConfig>('heatmap', '1.0.0');
+    return new VizPanelBuilder<HeatmapOptions, HeatmapFieldConfig>('heatmap', '1.0.0', () => defaultHeatmapOptions);
   },
   histogram() {
-    return new VizPanelBuilder<HistogramOptions, HistogramFieldConfig>('histogram', '1.0.0');
+    return new VizPanelBuilder<HistogramOptions, HistogramFieldConfig>(
+      'histogram',
+      '1.0.0',
+      () => defaultHistogramOptions,
+      () => defaultHistogramFieldConfig
+    );
   },
   logs() {
     return new VizPanelBuilder<LogsOptions, {}>('logs', '1.0.0');
   },
   news() {
-    return new VizPanelBuilder<NewsOptions, {}>('news', '1.0.0');
+    return new VizPanelBuilder<NewsOptions, {}>('news', '1.0.0', () => defaultNewsOptions);
   },
   nodegraph() {
     return new VizPanelBuilder<NodeGraphOptions, {}>('nodeGraph', '1.0.0');
   },
   piechart() {
-    return new VizPanelBuilder<PieChartOptions, PieChartFieldConfig>('piechart', '1.0.0');
+    return new VizPanelBuilder<PieChartOptions, PieChartFieldConfig>('piechart', '1.0.0', () => defaultPieChartOptions);
   },
   stat() {
-    return new VizPanelBuilder<StatOptions, {}>('state', '1.0.0');
+    return new VizPanelBuilder<StatOptions, {}>('state', '1.0.0', () => defaultStatOptions);
   },
   statetimeline() {
-    return new VizPanelBuilder<StateTimelineOptions, StateTimelineFieldConfig>('state-timeline', '1.0.0');
+    return new VizPanelBuilder<StateTimelineOptions, StateTimelineFieldConfig>(
+      'state-timeline',
+      '1.0.0',
+      () => defaultStateTimelineOptions,
+      () => defaultStateTimelineFieldConfig
+    );
   },
   statushistory() {
-    return new VizPanelBuilder<StatusHistoryOptions, StatusHistoryFieldConfig>('status-history', '1.0.0');
+    return new VizPanelBuilder<StatusHistoryOptions, StatusHistoryFieldConfig>(
+      'status-history',
+      '1.0.0',
+      () => defaultStatusHistoryOptions,
+      () => defaultStatusHistoryFieldConfig
+    );
   },
   table() {
-    return new VizPanelBuilder<TableOptions, TableFieldConfig>('table', '1.0.0');
+    return new VizPanelBuilder<TableOptions, TableFieldConfig>('table', '1.0.0', () => defaultTableOptions);
   },
   text() {
-    return new VizPanelBuilder<TextOptions, {}>('text', '1.0.0');
+    return new VizPanelBuilder<TextOptions, {}>('text', '1.0.0', () => defaultTextOptions);
   },
   timeseries() {
     return new VizPanelBuilder<TimeSeriesOptions, TimeSeriesFieldConfig>('timeseries', '1.0.0');
@@ -105,6 +163,11 @@ export const PanelBuilders = {
     return new VizPanelBuilder<TrendOptions, TrendFieldConfig>('traces', '1.0.0');
   },
   xychart() {
-    return new VizPanelBuilder<XYChartOptions, {}>('xychart', '1.0.0');
+    return new VizPanelBuilder<XYChartOptions, {}>(
+      'xychart',
+      '1.0.0',
+      () => defaultXYChartOptions,
+      () => defaultXYChartFieldConfig
+    );
   },
 };

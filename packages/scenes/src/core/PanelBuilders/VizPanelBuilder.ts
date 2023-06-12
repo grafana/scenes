@@ -15,7 +15,7 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
   public constructor(
     pluginId: string,
     pluginVersion: string,
-    defaultOptions?: () => TOptions,
+    defaultOptions?: () => Partial<TOptions>,
     defaultFieldConfig?: () => TFieldConfig
   ) {
     this._state.title = '';
@@ -126,7 +126,7 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
     return this.setFieldConfigDefaults('unit', unit);
   }
 
-  public setConfigProperty<T extends TFieldConfig, K extends keyof T>(id: K, value: DeepPartial<T[K]>): this {
+  public setCustomFieldConfig<T extends TFieldConfig, K extends keyof T>(id: K, value: DeepPartial<T[K]>): this {
     this._state.fieldConfig.defaults = {
       ...this._state.fieldConfig.defaults,
       custom: merge(this._state.fieldConfig.defaults.custom, { [id]: value }),

@@ -1,4 +1,5 @@
 import { MappingType, ThresholdsMode } from '@grafana/schema';
+import { PanelBuilders } from './index';
 import { VizPanelBuilder } from './VizPanelBuilder';
 
 interface OptionsTest {
@@ -81,6 +82,16 @@ describe('VizPanelBuilder', () => {
           custom: createDefaultFieldConfig(),
         },
         overrides: [],
+      });
+    });
+
+    describe('standard panels defaults', () => {
+      it.each(Object.keys(PanelBuilders))('provides %s defaults', (std) => {
+        // @ts-ignore
+        const builder = PanelBuilders[std]();
+
+        expect(builder.build().state.options).toMatchSnapshot();
+        expect(builder.build().state.fieldConfig).toMatchSnapshot();
       });
     });
 
@@ -193,8 +204,8 @@ describe('VizPanelBuilder', () => {
     it('allows field config configuration', () => {
       const builder = getTestBuilder();
 
-      builder.setConfigProperty('complex', { a: 2 });
-      builder.setConfigProperty('numeric', 2);
+      builder.setCustomFieldConfig('complex', { a: 2 });
+      builder.setCustomFieldConfig('numeric', 2);
 
       expect(builder.build().state.fieldConfig!.defaults.custom).toMatchInlineSnapshot(`
         {

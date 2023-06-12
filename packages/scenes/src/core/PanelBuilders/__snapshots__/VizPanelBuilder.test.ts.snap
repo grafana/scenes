@@ -1,0 +1,354 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides barchart defaults 1`] = `
+{
+  "barRadius": 0,
+  "barWidth": 0.97,
+  "fullHighlight": false,
+  "groupWidth": 0.7,
+  "orientation": "auto",
+  "showValue": "auto",
+  "stacking": "none",
+  "xTickLabelRotation": 0,
+  "xTickLabelSpacing": 0,
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides barchart defaults 2`] = `
+{
+  "defaults": {
+    "custom": {
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineWidth": 1,
+    },
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides bargauge defaults 1`] = `
+{
+  "displayMode": "gradient",
+  "minVizHeight": 10,
+  "minVizWidth": 0,
+  "showUnfilled": true,
+  "valueMode": "color",
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides bargauge defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides datagrid defaults 1`] = `
+{
+  "selectedSeries": 0,
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides datagrid defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides gauge defaults 1`] = `
+{
+  "showThresholdLabels": false,
+  "showThresholdMarkers": true,
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides gauge defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides geomap defaults 1`] = `
+{
+  "layers": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides geomap defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides heatmap defaults 1`] = `
+{
+  "calculate": false,
+  "cellGap": 1,
+  "cellValues": {},
+  "color": {
+    "exponent": 0.5,
+    "fill": "dark-orange",
+    "reverse": false,
+    "scheme": "Oranges",
+    "steps": 64,
+  },
+  "exemplars": {
+    "color": "rgba(255,0,255,0.7)",
+  },
+  "filterValues": {
+    "le": 1e-9,
+  },
+  "legend": {
+    "show": true,
+  },
+  "showValue": "auto",
+  "tooltip": {
+    "show": true,
+    "yHistogram": false,
+  },
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides heatmap defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides histogram defaults 1`] = `
+{
+  "bucketOffset": 0,
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides histogram defaults 2`] = `
+{
+  "defaults": {
+    "custom": {
+      "fillOpacity": 80,
+      "gradientMode": "none",
+      "lineWidth": 1,
+    },
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides logs defaults 1`] = `{}`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides logs defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides news defaults 1`] = `
+{
+  "showImage": true,
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides news defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides nodegraph defaults 1`] = `{}`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides nodegraph defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides piechart defaults 1`] = `
+{
+  "displayLabels": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides piechart defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides stat defaults 1`] = `
+{
+  "colorMode": "value",
+  "graphMode": "area",
+  "justifyMode": "auto",
+  "textMode": "auto",
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides stat defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides statetimeline defaults 1`] = `
+{
+  "alignValue": "left",
+  "mergeValues": true,
+  "rowHeight": 0.9,
+  "showValue": "auto",
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides statetimeline defaults 2`] = `
+{
+  "defaults": {
+    "custom": {
+      "fillOpacity": 70,
+      "lineWidth": 0,
+    },
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides statushistory defaults 1`] = `
+{
+  "colWidth": 0.9,
+  "rowHeight": 0.9,
+  "showValue": "auto",
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides statushistory defaults 2`] = `
+{
+  "defaults": {
+    "custom": {
+      "fillOpacity": 70,
+      "lineWidth": 1,
+    },
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides table defaults 1`] = `
+{
+  "cellHeight": "sm",
+  "footer": {
+    "countRows": false,
+    "reducer": [],
+    "show": false,
+  },
+  "frameIndex": 0,
+  "showHeader": true,
+  "showTypeIcons": false,
+  "sortBy": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides table defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides text defaults 1`] = `
+{
+  "content": "# Title
+
+For markdown syntax help: [commonmark.org/help](https://commonmark.org/help/)",
+  "mode": "markdown",
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides text defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides timeseries defaults 1`] = `{}`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides timeseries defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides traces defaults 1`] = `{}`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides traces defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides trend defaults 1`] = `{}`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides trend defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides xychart defaults 1`] = `
+{
+  "series": [],
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides xychart defaults 2`] = `
+{
+  "defaults": {
+    "custom": {
+      "label": "auto",
+      "show": "points",
+    },
+  },
+  "overrides": [],
+}
+`;
