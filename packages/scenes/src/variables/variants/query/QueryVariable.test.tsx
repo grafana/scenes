@@ -43,7 +43,7 @@ const fakeDsMock: DataSourceApi = {
     Promise.resolve({
       data: [],
     }),
-  testDatasource: () => Promise.resolve({ status: 'success' }),
+  testDatasource: () => Promise.resolve({ status: 'success', message: 'abc' }),
   meta: {
     id: 'fake-std',
     type: PluginType.datasource,
