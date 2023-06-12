@@ -123,7 +123,7 @@ class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
 - `statePaths` - Configures which properties of the object state can contain variables.
 - `onReferencedVariableValueChanged` - Configures a callback that will be executed when variable(s) that the object depends on are changed.
 
-:::info
+:::note
 If `onReferencedVariableValueChanged` is not specified for the `VariableDependencyConfig`, the object will re-render on variable change by default.
 :::
 

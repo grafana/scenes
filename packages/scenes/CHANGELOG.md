@@ -1,3 +1,15 @@
+# v0.15.0 (Fri Jun 09 2023)
+
+#### 🚀 Enhancement
+
+- SceneAppPage: Fix page with tabs and drilldown on main page level [#228](https://github.com/grafana/scenes/pull/228) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.14.0 (Thu Jun 01 2023)
 
 #### 🚀 Enhancement
