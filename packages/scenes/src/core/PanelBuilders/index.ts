@@ -129,7 +129,7 @@ export const PanelBuilders = {
     return new VizPanelBuilder<PieChartOptions, PieChartFieldConfig>('piechart', '1.0.0', () => defaultPieChartOptions);
   },
   stat() {
-    return new VizPanelBuilder<StatOptions, {}>('state', '1.0.0', () => defaultStatOptions);
+    return new VizPanelBuilder<StatOptions, {}>('stat', '1.0.0', () => defaultStatOptions);
   },
   statetimeline() {
     return new VizPanelBuilder<StateTimelineOptions, StateTimelineFieldConfig>(
