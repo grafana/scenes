@@ -13,7 +13,7 @@ import {
 import {
   Options as DataGridOptions,
   defaultOptions as defaultDataGridOptions,
-} from '@grafana/schema/dist/esm/raw/composable/datagrid/panelcfg/x/DataGridPanelCfg_types.gen';
+} from '@grafana/schema/dist/esm/raw/composable/datagrid/panelcfg/x/DatagridPanelCfg_types.gen';
 import {
   Options as GaugeOptions,
   defaultOptions as defaultGaugeOptions,
