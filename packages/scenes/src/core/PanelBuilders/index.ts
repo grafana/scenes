@@ -21,7 +21,7 @@ import {
 import {
   Options as GeomapOptions,
   defaultOptions as defaultGeomapOptions,
-} from '@grafana/schema/dist/esm/raw/composable/geomap/panelcfg/x/GeoMapPanelCfg_types.gen';
+} from '@grafana/schema/dist/esm/raw/composable/geomap/panelcfg/x/GeomapPanelCfg_types.gen';
 import {
   Options as HeatmapOptions,
   FieldConfig as HeatmapFieldConfig,
