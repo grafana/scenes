@@ -81,7 +81,7 @@ interface CustomVizFieldOptions {
 interface Props extends PanelProps<CustomVizOptions> {}
 ```
 
-Then you can define the react component that renders your custom `PanelPlugin`.
+Then define the react component that renders your custom `PanelPlugin`.
 
 ```ts
 export function CustomVizPanel(props: Props) {
