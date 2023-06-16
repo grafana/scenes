@@ -88,53 +88,57 @@ export const PanelBuilders = {
   barchart() {
     return new VizPanelBuilder<BarChartOptions, BarChartFieldConfig>(
       'barchart',
-      '1.0.0',
+      '10.0.0',
       () => defaultBarChartOptions,
       () => defaultBarChartFieldConfig
     );
   },
   bargauge() {
-    return new VizPanelBuilder<BarGaugeOptions, {}>('bargauge', '1.0.0', () => defaultBarGaugeOptions);
+    return new VizPanelBuilder<BarGaugeOptions, {}>('bargauge', '10.0.0', () => defaultBarGaugeOptions);
   },
   datagrid() {
-    return new VizPanelBuilder<DataGridOptions, {}>('datagrid', '1.0.0', () => defaultDataGridOptions);
+    return new VizPanelBuilder<DataGridOptions, {}>('datagrid', '10.0.0', () => defaultDataGridOptions);
   },
   gauge() {
-    return new VizPanelBuilder<GaugeOptions, {}>('gauge', '1.0.0', () => defaultGaugeOptions);
+    return new VizPanelBuilder<GaugeOptions, {}>('gauge', '10.0.0', () => defaultGaugeOptions);
   },
   geomap() {
-    return new VizPanelBuilder<GeomapOptions, {}>('geomap', '1.0.0', () => defaultGeomapOptions);
+    return new VizPanelBuilder<GeomapOptions, {}>('geomap', '10.0.0', () => defaultGeomapOptions);
   },
   heatmap() {
-    return new VizPanelBuilder<HeatmapOptions, HeatmapFieldConfig>('heatmap', '1.0.0', () => defaultHeatmapOptions);
+    return new VizPanelBuilder<HeatmapOptions, HeatmapFieldConfig>('heatmap', '10.0.0', () => defaultHeatmapOptions);
   },
   histogram() {
     return new VizPanelBuilder<HistogramOptions, HistogramFieldConfig>(
       'histogram',
-      '1.0.0',
+      '10.0.0',
       () => defaultHistogramOptions,
       () => defaultHistogramFieldConfig
     );
   },
   logs() {
-    return new VizPanelBuilder<LogsOptions, {}>('logs', '1.0.0');
+    return new VizPanelBuilder<LogsOptions, {}>('logs', '10.0.0');
   },
   news() {
-    return new VizPanelBuilder<NewsOptions, {}>('news', '1.0.0', () => defaultNewsOptions);
+    return new VizPanelBuilder<NewsOptions, {}>('news', '10.0.0', () => defaultNewsOptions);
   },
   nodegraph() {
-    return new VizPanelBuilder<NodeGraphOptions, {}>('nodeGraph', '1.0.0');
+    return new VizPanelBuilder<NodeGraphOptions, {}>('nodeGraph', '10.0.0');
   },
   piechart() {
-    return new VizPanelBuilder<PieChartOptions, PieChartFieldConfig>('piechart', '1.0.0', () => defaultPieChartOptions);
+    return new VizPanelBuilder<PieChartOptions, PieChartFieldConfig>(
+      'piechart',
+      '10.0.0',
+      () => defaultPieChartOptions
+    );
   },
   stat() {
-    return new VizPanelBuilder<StatOptions, {}>('stat', '1.0.0', () => defaultStatOptions);
+    return new VizPanelBuilder<StatOptions, {}>('stat', '10.0.0', () => defaultStatOptions);
   },
   statetimeline() {
     return new VizPanelBuilder<StateTimelineOptions, StateTimelineFieldConfig>(
       'state-timeline',
-      '1.0.0',
+      '10.0.0',
       () => defaultStateTimelineOptions,
       () => defaultStateTimelineFieldConfig
     );
@@ -142,30 +146,30 @@ export const PanelBuilders = {
   statushistory() {
     return new VizPanelBuilder<StatusHistoryOptions, StatusHistoryFieldConfig>(
       'status-history',
-      '1.0.0',
+      '10.0.0',
       () => defaultStatusHistoryOptions,
       () => defaultStatusHistoryFieldConfig
     );
   },
   table() {
-    return new VizPanelBuilder<TableOptions, TableFieldConfig>('table', '1.0.0', () => defaultTableOptions);
+    return new VizPanelBuilder<TableOptions, TableFieldConfig>('table', '10.0.0', () => defaultTableOptions);
   },
   text() {
-    return new VizPanelBuilder<TextOptions, {}>('text', '1.0.0', () => defaultTextOptions);
+    return new VizPanelBuilder<TextOptions, {}>('text', '10.0.0', () => defaultTextOptions);
   },
   timeseries() {
-    return new VizPanelBuilder<TimeSeriesOptions, TimeSeriesFieldConfig>('timeseries', '1.0.0');
+    return new VizPanelBuilder<TimeSeriesOptions, TimeSeriesFieldConfig>('timeseries', '10.0.0');
   },
   trend() {
-    return new VizPanelBuilder<{}, {}>('trend', '1.0.0');
+    return new VizPanelBuilder<{}, {}>('trend', '10.0.0');
   },
   traces() {
-    return new VizPanelBuilder<TrendOptions, TrendFieldConfig>('traces', '1.0.0');
+    return new VizPanelBuilder<TrendOptions, TrendFieldConfig>('traces', '10.0.0');
   },
   xychart() {
     return new VizPanelBuilder<XYChartOptions, {}>(
       'xychart',
-      '1.0.0',
+      '10.0.0',
       () => defaultXYChartOptions,
       () => defaultXYChartFieldConfig
     );

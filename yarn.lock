@@ -3222,12 +3222,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/data@npm:10.1.0-121108pre, @grafana/data@npm:canary":
-  version: 10.1.0-121108pre
-  resolution: "@grafana/data@npm:10.1.0-121108pre"
+"@grafana/data@npm:10.1.0-121671pre, @grafana/data@npm:canary":
+  version: 10.1.0-121671pre
+  resolution: "@grafana/data@npm:10.1.0-121671pre"
   dependencies:
     "@braintree/sanitize-url": 6.0.2
-    "@grafana/schema": 10.1.0-121108pre
+    "@grafana/schema": 10.1.0-121671pre
     "@types/d3-interpolate": ^3.0.0
     "@types/string-hash": 1.1.1
     d3-interpolate: 3.0.1
@@ -3253,18 +3253,18 @@ __metadata:
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: b214de19b008c074aa2f519403a58c9e044c28a99c76094301e9fb195224c52c915069bf64dac09494ba35cab235f85b9043dfe575f0d71be96debc46d368b23
+  checksum: c73a3cda823d7a9a22b637c4bc41c586b8fef56542c04bff8138eee06dd1c54a52d569b8804ff6ea326be72416261ae9dcc6b96fbb47e2fa4ee4146e9a455346
   languageName: node
   linkType: hard
 
-"@grafana/e2e-selectors@npm:10.1.0-121108pre, @grafana/e2e-selectors@npm:canary":
-  version: 10.1.0-121108pre
-  resolution: "@grafana/e2e-selectors@npm:10.1.0-121108pre"
+"@grafana/e2e-selectors@npm:10.1.0-121671pre, @grafana/e2e-selectors@npm:canary":
+  version: 10.1.0-121671pre
+  resolution: "@grafana/e2e-selectors@npm:10.1.0-121671pre"
   dependencies:
     "@grafana/tsconfig": ^1.2.0-rc1
     tslib: 2.5.0
     typescript: 4.8.4
-  checksum: bfbfabe18e026af643664104d733d97643b1e40400f83c22d6d6b7012a5184f7bba43ee2f3e433173bc22c178715f2c71856f8f4c6c1f3bd62c50d8e6434521e
+  checksum: 0a192e8beba4630985b563b04588ebab595a699fb200e0f7bbe1a4d79b67a485497247c4437638320baf8593fc49dfb70d1006772f71f26b89ed059736f0213b
   languageName: node
   linkType: hard
 
@@ -3387,13 +3387,13 @@ __metadata:
   linkType: hard
 
 "@grafana/runtime@npm:canary":
-  version: 10.1.0-121108pre
-  resolution: "@grafana/runtime@npm:10.1.0-121108pre"
+  version: 10.1.0-121671pre
+  resolution: "@grafana/runtime@npm:10.1.0-121671pre"
   dependencies:
-    "@grafana/data": 10.1.0-121108pre
-    "@grafana/e2e-selectors": 10.1.0-121108pre
+    "@grafana/data": 10.1.0-121671pre
+    "@grafana/e2e-selectors": 10.1.0-121671pre
     "@grafana/faro-web-sdk": 1.1.0
-    "@grafana/ui": 10.1.0-121108pre
+    "@grafana/ui": 10.1.0-121671pre
     history: 4.10.1
     lodash: 4.17.21
     rxjs: 7.8.0
@@ -3402,7 +3402,7 @@ __metadata:
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 093af8f89efb3af7187a99ab6b38f792bd77ab77115c76ba2796d7f91a2ea512c8a4dacce6bdedbe62f014cc334edaf1abc5ca72953e4184fdbefef1b02310c7
+  checksum: 77e8ea55fc0de01e7b3635ec1673ba037e272a8593aeaf3f776a3152e48682983f3d956a6d37647ae6369c2f4bbb21527912bedfdbf1329fcaccdc2e26de88f1
   languageName: node
   linkType: hard
 
@@ -3478,12 +3478,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@grafana/schema@npm:10.1.0-121108pre, @grafana/schema@npm:canary":
-  version: 10.1.0-121108pre
-  resolution: "@grafana/schema@npm:10.1.0-121108pre"
+"@grafana/schema@npm:10.1.0-121671pre, @grafana/schema@npm:canary":
+  version: 10.1.0-121671pre
+  resolution: "@grafana/schema@npm:10.1.0-121671pre"
   dependencies:
     tslib: 2.5.0
-  checksum: 6b5c078d9a15ce2f4f969bef3fc40ea0a915194b1bb43bb6fac0e477ed4b346ba39c6c3f7def37dc2c5b93245b2040a0886fc654e7dc716b0f612c45c9e87b66
+  checksum: 5a8593ca1acf47e6b3dee769efbca5c3fb589cfa58b478f60c5868982ae70253bb5e8b4132038bf3999d1ed6944699fe2990680a82f79eb1595268261a105fe1
   languageName: node
   linkType: hard
 
@@ -3494,16 +3494,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/ui@npm:10.1.0-121108pre, @grafana/ui@npm:canary":
-  version: 10.1.0-121108pre
-  resolution: "@grafana/ui@npm:10.1.0-121108pre"
+"@grafana/ui@npm:10.1.0-121671pre, @grafana/ui@npm:canary":
+  version: 10.1.0-121671pre
+  resolution: "@grafana/ui@npm:10.1.0-121671pre"
   dependencies:
     "@emotion/css": 11.10.6
     "@emotion/react": 11.10.6
-    "@grafana/data": 10.1.0-121108pre
-    "@grafana/e2e-selectors": 10.1.0-121108pre
+    "@grafana/data": 10.1.0-121671pre
+    "@grafana/e2e-selectors": 10.1.0-121671pre
     "@grafana/faro-web-sdk": 1.1.0
-    "@grafana/schema": 10.1.0-121108pre
+    "@grafana/schema": 10.1.0-121671pre
     "@leeoniya/ufuzzy": 1.0.6
     "@monaco-editor/react": 4.5.1
     "@popperjs/core": 2.11.6
@@ -3566,7 +3566,7 @@ __metadata:
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 60c1a8134ebae9536c11815f72345d78a5fd70a16f55c510b31f23d1a7852a4aa1a5e82a0727c9297ed7708ddf5fe510255312a40a472409c7f0153740e7793f
+  checksum: b75697f00c5fd6fed6990e279a6b479e4c6f7d85dab7d2a87c8b5d5f1c9dc3a594cdbd1efe01f72207d8b058da529a202d49a5f902c818f4024b479901916f1d
   languageName: node
   linkType: hard
 
