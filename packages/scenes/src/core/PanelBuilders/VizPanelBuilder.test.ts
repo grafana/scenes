@@ -347,9 +347,9 @@ describe('VizPanelBuilder', () => {
       builder.setOverrides((b) =>
         b
           .matchFieldsWithName('fieldName')
-          .overrideConfigProperty('complex', { a: 2, b: 'text' })
+          .overrideCustomFieldConfig('complex', { a: 2, b: 'text' })
           .matchFieldsByQuery('A')
-          .overrideConfigProperty('numeric', 2)
+          .overrideCustomFieldConfig('numeric', 2)
           .overrideDecimals(2)
       );
 
