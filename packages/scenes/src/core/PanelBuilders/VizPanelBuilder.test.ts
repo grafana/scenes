@@ -97,12 +97,7 @@ describe('VizPanelBuilder', () => {
 
     it('allows options configuration', () => {
       const builder = getTestBuilder();
-      builder.setOptions({
-        complex: {
-          a: 2,
-        },
-        numeric: 2,
-      });
+      builder.setOption('complex', { a: 2 }).setOption('numeric', 2);
 
       expect(builder.build().state.options.complex!.a).toEqual(2);
       expect(builder.build().state.options.complex!.b).toEqual('text');

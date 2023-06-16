@@ -59,7 +59,7 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                 new SceneFlexItem({
                   width: 150,
                   height: 150,
-                  body: PanelBuilders.text().setTitle('150x150').setOptions({ content: '' }).build(),
+                  body: PanelBuilders.text().setTitle('150x150').setOption('content', '').build(),
                 }),
                 new SceneFlexItem({
                   maxHeight: 200,
@@ -70,7 +70,7 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                 }),
                 new SceneFlexItem({
                   width: '10%',
-                  body: PanelBuilders.text().setTitle('').setOptions({ content: '' }).build(),
+                  body: PanelBuilders.text().setTitle('').setOption('content', '').build(),
                 }),
               ],
             }),

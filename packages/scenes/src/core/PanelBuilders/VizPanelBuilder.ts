@@ -126,6 +126,13 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
     return this.setFieldConfigDefaults('unit', unit);
   }
 
+  /**
+   * Set an individual panel option. This will merge the value with the existing options.
+   */
+  public setOption<T extends TOptions, K extends keyof T>(id: K, value: DeepPartial<T[K]>): this {
+    this._state.options = merge(this._state.options, { [id]: value });
+    return this;
+  }
   public setCustomFieldConfig<T extends TFieldConfig, K extends keyof T>(id: K, value: DeepPartial<T[K]>): this {
     this._state.fieldConfig.defaults = {
       ...this._state.fieldConfig.defaults,
