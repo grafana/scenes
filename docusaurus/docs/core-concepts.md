@@ -156,7 +156,7 @@ const queryRunner = new SceneQueryRunner({
 });
 ```
 
-:::info
+:::note
 Your Grafana instance must have a specified data source configured.
 :::
 

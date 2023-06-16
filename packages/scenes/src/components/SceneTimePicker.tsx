@@ -27,7 +27,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
 
   return (
     <TimeRangePicker
-      isOnCanvas={isOnCanvas}
+      isOnCanvas={isOnCanvas ?? true}
       value={timeRangeState.value}
       onChange={timeRange.onTimeRangeChange}
       timeZone={timeZone}

@@ -100,12 +100,27 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return true;
     }
 
-    // If we already have data, no need
-    // TODO validate that time range is similar and if not we should run queries again
-    if (this.state.data) {
+    // If we don't have any data we should run queries
+    if (!this.state.data) {
+      return true;
+    }
+
+    // If time range is stale / different we should run queries
+    if (this._isDataTimeRangeStale(this.state.data)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private _isDataTimeRangeStale(data: PanelData) {
+    const timeRange = sceneGraph.getTimeRange(this);
+
+    if (data.timeRange === timeRange.state.value) {
       return false;
     }
 
+    writeSceneLog('SceneQueryRunner', 'Data time range is stale');
     return true;
   }
 
@@ -150,7 +165,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private getMaxDataPoints() {
-    return this.state.maxDataPoints ?? this._containerWidth ?? 500;
+    if (this.state.maxDataPoints) {
+      return this.state.maxDataPoints;
+    }
+
+    return this.state.maxDataPointsFromWidth ? this._containerWidth ?? 500 : 500;
   }
 
   public cancelQuery() {

@@ -25,6 +25,8 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
       - name: Build documentation website
+        env:
+          GTAG_CONTAINER_ID: ${{ secrets.GTAG_CONTAINER_ID }}
         run: yarn workspace website run build
 
       # Popular action to deploy to GitHub Pages:

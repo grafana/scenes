@@ -9,7 +9,7 @@ Drill-down pages are a powerful tool for building complex, data-driven applicati
 
 `SceneAppPage` comes with an API that allows you to create deep, nested drill-down pages.
 
-:::info
+:::note
 **Before you begin**: You must already know about React Router URL params, Grafana field configuration, and data links before continuing with this guide.
 :::
 

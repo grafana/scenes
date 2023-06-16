@@ -67,7 +67,7 @@ For `LinkButton`, `Button`, and `RadioButtonGroup`, use size="sm" when you place
 If you want to determine how data is visualized in your Grafana app plugin, you can do so in two ways. You always have the option to create a custom `SceneObject`, but you won't get the `PanelChrome` with loading state and other features
 that `VizPanel` provides. If you want a custom visualization inside a panel frame that should look like the other panels in your scene, then it's best to register a runtime panel plugin.
 
-Start by defining your panel options and field config:
+### Step 1. Define custom panel options and field config
 
 ```ts
 interface CustomVizOptions {
@@ -81,7 +81,7 @@ interface CustomVizFieldOptions {
 interface Props extends PanelProps<CustomVizOptions> {}
 ```
 
-Then you can define the react component that renders your custom `PanelPlugin`.
+### Step 2. Define the react component that renders custom `PanelPlugin`
 
 ```ts
 export function CustomVizPanel(props: Props) {
@@ -96,7 +96,7 @@ export function CustomVizPanel(props: Props) {
 }
 ```
 
-Now you're ready to create your `PanelPlugin` instance and register it with the Scenes library:
+### Step 3. Create `PanelPlugin` instance and register it with the Scenes library
 
 ```ts
 import { sceneUtils } from '@grafana/scenes';
