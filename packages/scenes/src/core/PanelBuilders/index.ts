@@ -99,6 +99,9 @@ export const PanelBuilders = {
   datagrid() {
     return new VizPanelBuilder<DataGridOptions, {}>('datagrid', '10.0.0', () => defaultDataGridOptions);
   },
+  flamegraph() {
+    return new VizPanelBuilder<{}, {}>('flamegraph', '10.0.0');
+  },
   gauge() {
     return new VizPanelBuilder<GaugeOptions, {}>('gauge', '10.0.0', () => defaultGaugeOptions);
   },

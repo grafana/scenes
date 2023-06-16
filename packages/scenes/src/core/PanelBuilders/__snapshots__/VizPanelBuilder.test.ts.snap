@@ -61,6 +61,17 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 }
 `;
 
+exports[`VizPanelBuilder options and field config standard panels defaults provides flamegraph defaults 1`] = `{}`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides flamegraph defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
 exports[`VizPanelBuilder options and field config standard panels defaults provides gauge defaults 1`] = `
 {
   "showThresholdLabels": false,
