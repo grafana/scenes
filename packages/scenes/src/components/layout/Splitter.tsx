@@ -2,15 +2,12 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { clamp, throttle } from 'lodash';
-import React, { ComponentType, CSSProperties, useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { ComponentType, useCallback, useLayoutEffect, useRef } from 'react';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObject } from '../../core/types';
 import { useUniqueId } from './grid/LazyLoader';
-
-export interface SceneFlexItemStateLike extends SceneFlexItemPlacement, SceneObjectState {}
-
-export interface SceneFlexItemLike extends SceneObject<SceneFlexItemStateLike> {}
+import { SceneFlexItemLike, SceneFlexItemPlacement } from './SceneFlexLayout';
 
 interface SplitLayoutState extends SceneObjectState, SceneFlexItemPlacement {
   primary: SceneFlexItemLike;
@@ -19,7 +16,7 @@ interface SplitLayoutState extends SceneObjectState, SceneFlexItemPlacement {
 }
 
 export class SplitLayout extends SceneObjectBase<SplitLayoutState> {
-  public static Component = SceneFlexLayoutRenderer;
+  public static Component = SplitLayoutRenderer;
 
   public toggleDirection() {
     this.setState({
@@ -32,7 +29,7 @@ export class SplitLayout extends SceneObjectBase<SplitLayoutState> {
   }
 }
 
-function SceneFlexLayoutRenderer({ model, parentState }: SceneFlexItemRenderProps<SplitLayout>) {
+function SplitLayoutRenderer({ model, parentState }: SceneFlexItemRenderProps<SplitLayout>) {
   const { primary, secondary, direction, isHidden } = model.useState();
 
   if (isHidden) {
@@ -42,36 +39,11 @@ function SceneFlexLayoutRenderer({ model, parentState }: SceneFlexItemRenderProp
   const Prim = primary.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
   const Sec = secondary.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
   return (
-
     <Splitter direction={direction}>
-        <Prim key={primary.state.key} model={primary} parentState={model.state} />
-        <Sec key={secondary.state.key} model={secondary} parentState={model.state} />
+      <Prim key={primary.state.key} model={primary} parentState={model.state} />
+      <Sec key={secondary.state.key} model={secondary} parentState={model.state} />
     </Splitter>
   );
-}
-
-export interface SceneFlexItemPlacement {
-  wrap?: CSSProperties['flexWrap'];
-  direction?: CSSProperties['flexDirection'];
-  width?: CSSProperties['width'];
-  height?: CSSProperties['height'];
-  minWidth?: CSSProperties['minWidth'];
-  minHeight?: CSSProperties['minHeight'];
-  maxWidth?: CSSProperties['maxWidth'];
-  maxHeight?: CSSProperties['maxHeight'];
-  xSizing?: 'fill' | 'content';
-  ySizing?: 'fill' | 'content';
-  /**
-   * True when the item should rendered but not visible.
-   * Useful for conditional display of layout items
-   */
-  isHidden?: boolean;
-
-  /**
-   * Set direction for smaller screens. This defaults to column.
-   * This equals media query theme.breakpoints.down('md')
-   */
-  md?: SceneFlexItemPlacement;
 }
 
 export interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
@@ -82,15 +54,14 @@ interface SceneFlexItemRenderProps<T> extends SceneComponentProps<T> {
   parentState?: SceneFlexItemPlacement;
 }
 
-
 interface Props {
   handleSize?: number;
   initialSize?: number | 'auto';
   direction?: 'row' | 'column';
   primary?: 'first' | 'second';
   collapsedDefault?: boolean;
-  firstPaneStyles?: React.CSSProperties;
-  secondPaneStyles?: React.CSSProperties;
+  primaryPaneStyles?: React.CSSProperties;
+  secondaryPaneStyles?: React.CSSProperties;
   onDragFinished?: (size: number) => void;
   children: [React.ReactNode, React.ReactNode];
 }
@@ -100,26 +71,26 @@ const VERTICAL_KEYS = new Set(['ArrowUp', 'ArrowDown']);
 const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
 
 const propsForDirection = {
-  'row': {
+  row: {
     dim: 'width',
     axis: 'clientX',
     min: 'minWidth',
     max: 'maxWidth',
   },
-  'column': {
+  column: {
     dim: 'height',
     axis: 'clientY',
     min: 'minHeight',
-    max: 'maxHeight'
-  }
+    max: 'maxHeight',
+  },
 } as const;
 
 export function Splitter({
   direction = 'row',
   handleSize = 32,
   initialSize = 'auto',
-  firstPaneStyles,
-  secondPaneStyles,
+  primaryPaneStyles,
+  secondaryPaneStyles,
   onDragFinished,
   children,
 }: Props) {
@@ -250,7 +221,6 @@ export function Splitter({
 
       const newFlex = newSize / (containerSize.current! - handleSize);
 
-      // primarySizeRef.current = newSize;
       firstPaneRef.current!.style.flexGrow = `${newFlex}`;
       secondPaneRef.current!.style.flexGrow = `${1 - newFlex}`;
       const ariaValueNow =
@@ -319,10 +289,7 @@ export function Splitter({
   };
 
   const onKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (
-      (direction === 'row' && !HORIZONTAL_KEYS.has(e.key)) ||
-      (direction === 'column' && !VERTICAL_KEYS.has(e.key))
-    ) {
+    if ((direction === 'row' && !HORIZONTAL_KEYS.has(e.key)) || (direction === 'column' && !VERTICAL_KEYS.has(e.key))) {
       return;
     }
 
@@ -331,10 +298,6 @@ export function Splitter({
   };
 
   const onDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // firstPaneMeasurements.current = measureElement(firstPaneRef.current!);
-    // containerSize.current = containerRef.current!.getBoundingClientRect()[measurementProp];
-    // const midPoint = (firstPaneMeasurements.current[maxDimProp] - firstPaneMeasurements.current[minDimProp]) / 2;
-    // const newFlex = midPoint / (containerSize.current! - handleSize);
     firstPaneRef.current!.style.flexGrow = '0.5';
     secondPaneRef.current!.style.flexGrow = '0.5';
     const dim = measureElement(firstPaneRef.current!);
@@ -362,7 +325,7 @@ export function Splitter({
         style={{
           flexGrow: initialSize === 'auto' ? 0.5 : clamp(initialSize, 0, 1),
           [minDimProp]: 'min-content',
-          ...firstPaneStyles,
+          ...primaryPaneStyles,
         }}
         id={`start-panel-${id}`}
       >
@@ -394,7 +357,7 @@ export function Splitter({
         style={{
           flexGrow: initialSize === 'auto' ? 0.5 : clamp(1 - initialSize, 0, 1),
           [minDimProp]: 'min-content',
-          ...secondPaneStyles,
+          ...secondaryPaneStyles,
         }}
         id={`end-panel-${id}`}
       >
@@ -526,6 +489,6 @@ function useResizeObserver(
 
     resizeObserver.observe(target, { box: 'device-pixel-content-box' });
     return () => resizeObserver.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }
