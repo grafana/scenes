@@ -5,6 +5,7 @@ import {
   SceneAppPageState,
   SceneCanvasText,
   SceneDataTransformer,
+  SceneFlexItem,
   SceneQueryRunner,
   SplitLayout,
   VizPanel,
@@ -62,10 +63,13 @@ const roomsTemperatureQuery = {
 };
 
 const getDynamicSplitScene = () => {
-  const defaultSecondary = new SceneCanvasText({
-    text: 'Select room to see details',
-    fontSize: 20,
-    align: 'center',
+  const defaultSecondary = new SceneFlexItem({
+    minWidth: 500,
+    body: new SceneCanvasText({
+      text: 'Select room to see details',
+      fontSize: 20,
+      align: 'center',
+    }),
   });
   const runner = new SceneQueryRunner({
     datasource: DATASOURCE_REF,
@@ -152,15 +156,18 @@ const getDynamicSplitScene = () => {
                   onClick: (e: DataLinkClickEvent) => {
                     const roomName = e.origin.field.values.get(e.origin.rowIndex);
                     splitter.setState({
-                      secondary: new VizPanel({
-                        title: `${roomName} temperature`,
-                        $data: new SceneQueryRunner({
-                          datasource: DATASOURCE_REF,
-                          queries: [getRoomTemperatureQuery(roomName)],
+                      secondary: new SceneFlexItem({
+                        minWidth: 500,
+                        body: new VizPanel({
+                          title: `${roomName} temperature`,
+                          $data: new SceneQueryRunner({
+                            datasource: DATASOURCE_REF,
+                            queries: [getRoomTemperatureQuery(roomName)],
+                          }),
+                          headerActions: (
+                            <IconButton name="x" onClick={() => splitter.setState({ secondary: defaultSecondary })} />
+                          ),
                         }),
-                        headerActions: (
-                          <IconButton name="x" onClick={() => splitter.setState({ secondary: defaultSecondary })} />
-                        ),
                       }),
                     });
                   },
@@ -179,7 +186,10 @@ const getDynamicSplitScene = () => {
 
   const splitter = new SplitLayout({
     direction: 'row',
-    primary: table,
+    primary: new SceneFlexItem({
+      body: table,
+      minWidth: 300,
+    }),
     secondary: defaultSecondary,
   });
 
