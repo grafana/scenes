@@ -18,7 +18,7 @@ export function getQueryCancellationTest(defaults: SceneAppPageState) {
         ...getEmbeddedSceneDefaults(),
         key: 'Flex layout embedded scene',
         $data: getQueryRunnerWithRandomWalkQuery(
-          { scenarioId: 'slow_query', stringInput: '15s' },
+          { scenarioId: 'slow_query', stringInput: '10s' },
           { maxDataPointsFromWidth: false }
         ),
         body: new SceneFlexLayout({
