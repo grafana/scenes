@@ -62,12 +62,120 @@ Buttons in the top right corner of the panel header can be used for:
 
 For `LinkButton`, `Button`, and `RadioButtonGroup`, use size="sm" when you place them in the panel header.
 
+## Standard Grafana visualizations
+
+Scenes come with a helper API, `PanelBuilders`, for building [standard Grafana visualizations](https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/). Those include:
+
+- Bar chart
+- Bar gauge
+- Datagrid
+- Flame graph
+- Gauge
+- Geomap
+- Heatmap
+- Histogram
+- Logs
+- News
+- Node graph
+- Pie chart
+- Stat
+- State timeline
+- Status history
+- Table
+- Text
+- Time series
+- Trend
+- Traces
+- XY chart
+
+`PanelBuilders` API provides support for building `VizPanel` objects for the visualizations listed above, with panel options and field configuration supported.
+
+### Step 1. Import `PanelBuilders` API
+
+```ts
+import { PanelBuilders } from '@grafana/scenes';
+```
+
+### Step 2. Configure standard visualization `VizPanel` object
+
+```ts
+const myTimeSeriesPanel = PanelBuilders.timeseries().setTitle('My first panel');
+```
+
+### Step 3. Configure data and time range
+
+```ts
+const data = new SceneQueryRunner({
+  datasource: {
+    type: 'prometheus',
+    uid: '<PROVIDE_GRAFANA_DS_UID>',
+  },
+  queries: [
+    {
+      refId: 'A',
+      expr: 'rate(prometheus_http_requests_total{}[5m])',
+    },
+  ],
+  $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+});
+
+myTimeSeriesPanel.setData(data);
+```
+
+### Step 4. Configure panel options
+
+```ts
+myTimeSeriesPanel.setOption('legend', { asTable: true }).setOption('tooltip', { mode: TooltipDisplayMode.Single });
+```
+
+### Step 4. Configure standard options
+
+All Grafana visualizations come with a standard options. `PanelBuilders` provide methods for setting each standard option individually.
+Read more about standard options in the official [Grafana documentation](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-standard-options/#standard-options-definitions).
+
+```ts
+myTimeSeriesPanel.setDecimals(2).setUnit('ms');
+```
+
+### Step 4. Configure custom field config
+
+Grafana visualizations provide custom, visualization specific configuration options called _field config_.
+Read more about field config in the official [Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/data-frames/#field-configurations).
+
+Use `setCustomFieldConfig` method to set value of desired field config property.
+
+```ts
+myTimeSeriesPanel.setCustomFieldConfig('lineInterpolation', LineInterpolation.Smooth);
+```
+
+### Step 5. Configure overrides
+
+Read more about overrides in the official [Grafana documentation](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-standard-options/#standard-options-definitions).
+
+Use `setOverrides` method to set desired field config override. For standard options use `override<OptionName>` method. For custom field config use `overrideCustomConfigProperty` method.
+
+```ts
+myTimeSeriesPanel.setOverrides((b) =>
+  b.matchFieldsWithNameByRegex('/metrics/').overrideDecimals(4).overrideCustomConfigProperty('lineWidth', 5)
+);
+```
+
+### Step 6. Build visualization
+
+Use `build` method to get configured `VizPanel` object:
+
+```ts
+const myPanel = myTimeSeriesPanel.build();
+```
+
+Such built panel is now ready to be used in a scene.
+
 ## Custom visualizations
 
 If you want to determine how data is visualized in your Grafana app plugin, you can do so in two ways. You always have the option to create a custom `SceneObject`, but you won't get the `PanelChrome` with loading state and other features
 that `VizPanel` provides. If you want a custom visualization inside a panel frame that should look like the other panels in your scene, then it's best to register a runtime panel plugin.
 
-Start by defining your panel options and field config:
+### Step 1. Define custom panel options and field config
 
 ```ts
 interface CustomVizOptions {
@@ -81,7 +189,7 @@ interface CustomVizFieldOptions {
 interface Props extends PanelProps<CustomVizOptions> {}
 ```
 
-Then you can define the react component that renders your custom `PanelPlugin`.
+### Step 2. Define the react component that renders custom `PanelPlugin`
 
 ```ts
 export function CustomVizPanel(props: Props) {
@@ -96,7 +204,7 @@ export function CustomVizPanel(props: Props) {
 }
 ```
 
-Now you're ready to create your `PanelPlugin` instance and register it with the Scenes library:
+### Step 3. Create `PanelPlugin` instance and register it with the Scenes library
 
 ```ts
 import { sceneUtils } from '@grafana/scenes';

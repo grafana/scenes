@@ -16,6 +16,7 @@ import { getVariablesDemo } from './variables';
 import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
 import { getTimeZoneTest } from './timeZones';
 import { getSplitTest } from './split';
+import { getQueryCancellationTest } from './queryCancellation';
 
 export interface DemoDescriptor {
   title: string;
@@ -41,5 +42,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Behaviors demo', getPage: getBehaviorsDemo },
     { title: 'Time zones demo', getPage: getTimeZoneTest },
     { title: 'Split layout', getPage: getSplitTest },
+    { title: 'Query cancellation', getPage: getQueryCancellationTest },
   ];
 }

@@ -53,6 +53,7 @@ export {
 export { SceneApp } from './components/SceneApp/SceneApp';
 export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
+export { PanelBuilders } from './core/PanelBuilders';
 
 export const sceneUtils = {
   getUrlWithAppState,

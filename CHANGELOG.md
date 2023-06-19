@@ -1,3 +1,48 @@
+# v0.17.0 (Mon Jun 19 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Allow queries to be cancelled [#220](https://github.com/grafana/scenes/pull/220) ([@kaydelaney](https://github.com/kaydelaney) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v0.16.0 (Mon Jun 19 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - PanelBuilders: Typed API for VizPanel creation [#225](https://github.com/grafana/scenes/pull/225) ([@dprokop](https://github.com/dprokop))
+
+#### ⚠️ Pushed to `main`
+
+- Update env for docs deployment ([@dprokop](https://github.com/dprokop))
+- Trigger docs build ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v0.15.0 (Fri Jun 09 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneAppPage: Fix page with tabs and drilldown on main page level [#228](https://github.com/grafana/scenes/pull/228) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.14.0 (Thu Jun 01 2023)
 
 #### 🚀 Enhancement
