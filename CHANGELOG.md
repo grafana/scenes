@@ -1,3 +1,21 @@
+# v0.16.0 (Mon Jun 19 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - PanelBuilders: Typed API for VizPanel creation [#225](https://github.com/grafana/scenes/pull/225) ([@dprokop](https://github.com/dprokop))
+
+#### ⚠️ Pushed to `main`
+
+- Update env for docs deployment ([@dprokop](https://github.com/dprokop))
+- Trigger docs build ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.15.0 (Fri Jun 09 2023)
 
 #### 🚀 Enhancement
