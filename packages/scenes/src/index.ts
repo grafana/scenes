@@ -42,6 +42,7 @@ export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export { SceneFlexLayout, SceneFlexItem, type SceneFlexItemState } from './components/layout/SceneFlexLayout';
 export { SceneGridLayout, SceneGridItem } from './components/layout/grid/SceneGridLayout';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
+export { SplitLayout } from './components/layout/split/SplitLayout';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,

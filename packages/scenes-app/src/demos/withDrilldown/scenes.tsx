@@ -80,7 +80,7 @@ export function getHumidityOverviewScene(roomName: string) {
   });
 }
 
-function getRoomTemperatureQuery(roomName: string) {
+export function getRoomTemperatureQuery(roomName: string) {
   return {
     refId: 'Temp',
     datasource: DATASOURCE_REF,

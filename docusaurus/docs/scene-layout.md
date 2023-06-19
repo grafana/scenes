@@ -324,3 +324,53 @@ const myScene = new EmbeddedScene({
   }),
 });
 ```
+
+## Split layout
+
+`SplitLayout` allows you to build scenes as combinations of separate resizable panes, oriented either vertically or horizontally.
+
+### Step 1. Create a scene
+
+Start using the split layout by creating a scene with `body` configured as `SplitLayout`:
+
+```ts
+const myScene = new EmbeddedScene({
+  body: new SplitLayout({}),
+});
+```
+
+### Step 2. Configure split layout
+
+`SplitLayout` allows several configuration options:
+
+- `direction` - Configures whether panes are oriented by row or column.
+- `primary` - The first pane.
+- `secondary` - The second pane
+
+```ts
+const myScene = new EmbeddedScene({
+  body: new SplitLayout({
+    direction: 'column',
+  }),
+});
+```
+
+### Step 3. Provide `primary` and `secondary` objects
+
+`primary` and `secondary` both accept a `SceneFlexItemLike` object.
+
+```ts
+const myScene = new EmbeddedScene({
+  body: new SplitLayout({
+    direction: 'column',
+    primary: new VizPanel({
+      pluginId: 'timeseries',
+      title: 'Primary panel',
+    }),
+    secondary: new VizPanel({
+      pluginId: 'timeseries',
+      title: 'Secondary panel',
+    }),
+  }),
+});
+```
