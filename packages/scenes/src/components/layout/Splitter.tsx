@@ -233,7 +233,7 @@ export function Splitter({
     [direction, handleSize, minDimProp, maxDimProp, measurementProp]
   );
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
       if (savedPos.current === undefined) {
         savedPos.current = firstPaneRef.current!.style.flexGrow;
@@ -286,18 +286,18 @@ export function Splitter({
         window.requestAnimationFrame(handlePressedKeys);
       }
     }
-  };
+  }, [direction, handlePressedKeys, handleSize, maxDimProp, measurementProp, minDimProp]);
 
-  const onKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const onKeyUp = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if ((direction === 'row' && !HORIZONTAL_KEYS.has(e.key)) || (direction === 'column' && !VERTICAL_KEYS.has(e.key))) {
       return;
     }
 
     pressedKeys.current.delete(e.key);
     onDragFinished?.(parseFloat(firstPaneRef.current!.style.flexGrow));
-  };
+  }, [direction, onDragFinished]);
 
-  const onDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onDoubleClick = useCallback(() => {
     firstPaneRef.current!.style.flexGrow = '0.5';
     secondPaneRef.current!.style.flexGrow = '0.5';
     const dim = measureElement(firstPaneRef.current!);
@@ -306,7 +306,7 @@ export function Splitter({
     splitterRef.current!.ariaValueNow = `${
       ((primarySizeRef.current - dim[minDimProp]) / (dim[maxDimProp] - dim[minDimProp])) * 100
     }`;
-  };
+  }, [maxDimProp, measurementProp, minDimProp]);
 
   const styles = useStyles2(getStyles);
   const id = useUniqueId();
