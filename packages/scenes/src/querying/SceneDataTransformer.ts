@@ -4,7 +4,6 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformOperator, SceneDataProvider, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
-import { SceneQueryRunner } from './SceneQueryRunner';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -89,9 +88,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public cancelQuery() {
-    if (this.getSourceData() instanceof SceneQueryRunner) {
-      this.getSourceData().cancelQuery?.();
-    }
+    this.getSourceData().cancelQuery?.();
   }
 
   private transform(data: PanelData | undefined) {

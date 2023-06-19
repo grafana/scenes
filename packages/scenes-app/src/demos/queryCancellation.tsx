@@ -1,11 +1,11 @@
 import {
   EmbeddedScene,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneDataTransformer,
   SceneFlexItem,
   SceneFlexLayout,
-  VizPanel,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
 
@@ -28,60 +28,87 @@ export function getQueryCancellationTest(defaults: SceneAppPageState) {
               direction: 'row',
               children: [
                 new SceneFlexItem({
-                  minWidth: '25%',
-                  body: new VizPanel({
-                    pluginId: 'timeseries',
-                    title: 'Global query',
-                  }),
+                  minWidth: '20%',
+                  body: PanelBuilders.timeseries().setTitle('Global query').build(),
                 }),
                 new SceneFlexItem({
-                  minWidth: '25%',
-                  body: new VizPanel({
-                    $data: getQueryRunnerWithRandomWalkQuery(
-                      { scenarioId: 'slow_query', stringInput: '15s' },
-                      { maxDataPointsFromWidth: false }
-                    ),
-                    pluginId: 'timeseries',
-                    title: 'Local query',
-                  }),
+                  minWidth: '20%',
+                  body: PanelBuilders.timeseries()
+                    .setTitle('Local query')
+                    .setData(
+                      getQueryRunnerWithRandomWalkQuery(
+                        { scenarioId: 'slow_query', stringInput: '10s' },
+                        { maxDataPointsFromWidth: false }
+                      )
+                    )
+                    .build(),
                 }),
                 new SceneFlexItem({
-                  minWidth: '25%',
-                  body: new VizPanel({
-                    pluginId: 'stat',
-                    title: 'Local query via transformation',
-                    $data: new SceneDataTransformer({
-                      $data: getQueryRunnerWithRandomWalkQuery(
-                        { scenarioId: 'slow_query', stringInput: '15s' },
-                        { maxDataPointsFromWidth: true }
-                      ),
-                      transformations: [
-                        {
-                          id: 'reduce',
-                          options: {
-                            reducers: ['mean'],
+                  minWidth: '20%',
+                  body: PanelBuilders.stat()
+                    .setTitle('Local query via transformation')
+                    .setData(
+                      new SceneDataTransformer({
+                        $data: getQueryRunnerWithRandomWalkQuery(
+                          { scenarioId: 'slow_query', stringInput: '15s' },
+                          { maxDataPointsFromWidth: true }
+                        ),
+                        transformations: [
+                          {
+                            id: 'reduce',
+                            options: {
+                              reducers: ['mean'],
+                            },
                           },
-                        },
-                      ],
-                    }),
-                  }),
+                        ],
+                      })
+                    )
+                    .build(),
                 }),
                 new SceneFlexItem({
-                  minWidth: '25%',
-                  body: new VizPanel({
-                    pluginId: 'stat',
-                    title: 'Global query via transformation',
-                    $data: new SceneDataTransformer({
-                      transformations: [
-                        {
-                          id: 'reduce',
-                          options: {
-                            reducers: ['mean'],
+                  minWidth: '20%',
+                  body: PanelBuilders.stat()
+                    .setTitle('Global query via transformation')
+                    .setData(
+                      new SceneDataTransformer({
+                        transformations: [
+                          {
+                            id: 'reduce',
+                            options: {
+                              reducers: ['mean'],
+                            },
                           },
-                        },
-                      ],
-                    }),
-                  }),
+                        ],
+                      })
+                    )
+                    .build(),
+                }),
+                new SceneFlexItem({
+                  minWidth: '20%',
+                  body: PanelBuilders.stat()
+                    .setTitle('Transformed transformation')
+                    .setData(
+                      new SceneDataTransformer({
+                        transformations: [
+                          {
+                            id: 'calculateField',
+                            options: {
+                              mode: 'binary',
+                              reduce: {
+                                reducer: 'sum',
+                              },
+                              binary: {
+                                left: 'A-series',
+                                reducer: 'sum',
+                                operator: '*',
+                                right: '2',
+                              },
+                            },
+                          },
+                        ],
+                      })
+                    )
+                    .build(),
                 }),
               ],
             }),
