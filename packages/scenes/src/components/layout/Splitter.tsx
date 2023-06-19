@@ -378,7 +378,7 @@ function getStyles(theme: GrafanaTheme2) {
       &::before {
         content: '';
         position: absolute;
-        background-color: ${theme.v1.palette.blue95};
+        background-color: ${theme.colors.primary.main};
         left: 50%;
         transform: translateX(-50%);
         top: 0;
