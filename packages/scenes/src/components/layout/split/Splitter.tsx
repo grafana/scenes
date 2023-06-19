@@ -2,57 +2,8 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { clamp, throttle } from 'lodash';
-import React, { ComponentType, useCallback, useLayoutEffect, useRef } from 'react';
-
-import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectState, SceneObject } from '../../core/types';
-import { useUniqueId } from './grid/LazyLoader';
-import { SceneFlexItemLike, SceneFlexItemPlacement } from './SceneFlexLayout';
-
-interface SplitLayoutState extends SceneObjectState, SceneFlexItemPlacement {
-  primary: SceneFlexItemLike;
-  secondary: SceneFlexItemLike;
-  direction: 'row' | 'column';
-}
-
-export class SplitLayout extends SceneObjectBase<SplitLayoutState> {
-  public static Component = SplitLayoutRenderer;
-
-  public toggleDirection() {
-    this.setState({
-      direction: this.state.direction === 'row' ? 'column' : 'row',
-    });
-  }
-
-  public isDraggable(): boolean {
-    return false;
-  }
-}
-
-function SplitLayoutRenderer({ model, parentState }: SceneFlexItemRenderProps<SplitLayout>) {
-  const { primary, secondary, direction, isHidden } = model.useState();
-
-  if (isHidden) {
-    return null;
-  }
-
-  const Prim = primary.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
-  const Sec = secondary.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
-  return (
-    <Splitter direction={direction}>
-      <Prim key={primary.state.key} model={primary} parentState={model.state} />
-      <Sec key={secondary.state.key} model={secondary} parentState={model.state} />
-    </Splitter>
-  );
-}
-
-export interface SceneFlexItemState extends SceneFlexItemPlacement, SceneObjectState {
-  body: SceneObject | undefined;
-}
-
-interface SceneFlexItemRenderProps<T> extends SceneComponentProps<T> {
-  parentState?: SceneFlexItemPlacement;
-}
+import React, { useCallback, useLayoutEffect, useRef } from 'react';
+import { useUniqueId } from '../grid/LazyLoader';
 
 interface Props {
   handleSize?: number;
@@ -233,69 +184,81 @@ export function Splitter({
     [direction, handleSize, minDimProp, maxDimProp, measurementProp]
   );
 
-  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
-      if (savedPos.current === undefined) {
-        savedPos.current = firstPaneRef.current!.style.flexGrow;
-        firstPaneRef.current!.style.flexGrow = '0';
-        secondPaneRef.current!.style.flexGrow = '1';
-      } else {
-        firstPaneRef.current!.style.flexGrow = savedPos.current;
-        secondPaneRef.current!.style.flexGrow = `${1 - parseFloat(savedPos.current)}`;
-        savedPos.current = undefined;
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter') {
+        if (savedPos.current === undefined) {
+          savedPos.current = firstPaneRef.current!.style.flexGrow;
+          firstPaneRef.current!.style.flexGrow = '0';
+          secondPaneRef.current!.style.flexGrow = '1';
+        } else {
+          firstPaneRef.current!.style.flexGrow = savedPos.current;
+          secondPaneRef.current!.style.flexGrow = `${1 - parseFloat(savedPos.current)}`;
+          savedPos.current = undefined;
+        }
+        return;
+      } else if (e.key === 'Home') {
+        firstPaneMeasurements.current = measureElement(firstPaneRef.current!);
+        containerSize.current = containerRef.current!.getBoundingClientRect()[measurementProp];
+        const newFlex = firstPaneMeasurements.current[minDimProp] / (containerSize.current! - handleSize);
+        firstPaneRef.current!.style.flexGrow = `${newFlex}`;
+        secondPaneRef.current!.style.flexGrow = `${1 - newFlex}`;
+        splitterRef.current!.ariaValueNow = '0';
+        return;
+      } else if (e.key === 'End') {
+        firstPaneMeasurements.current = measureElement(firstPaneRef.current!);
+        containerSize.current = containerRef.current!.getBoundingClientRect()[measurementProp];
+        const newFlex = firstPaneMeasurements.current[maxDimProp] / (containerSize.current! - handleSize);
+        firstPaneRef.current!.style.flexGrow = `${newFlex}`;
+        secondPaneRef.current!.style.flexGrow = `${1 - newFlex}`;
+        splitterRef.current!.ariaValueNow = '100';
+        return;
       }
-      return;
-    } else if (e.key === 'Home') {
-      firstPaneMeasurements.current = measureElement(firstPaneRef.current!);
-      containerSize.current = containerRef.current!.getBoundingClientRect()[measurementProp];
-      const newFlex = firstPaneMeasurements.current[minDimProp] / (containerSize.current! - handleSize);
-      firstPaneRef.current!.style.flexGrow = `${newFlex}`;
-      secondPaneRef.current!.style.flexGrow = `${1 - newFlex}`;
-      splitterRef.current!.ariaValueNow = '0';
-      return;
-    } else if (e.key === 'End') {
-      firstPaneMeasurements.current = measureElement(firstPaneRef.current!);
-      containerSize.current = containerRef.current!.getBoundingClientRect()[measurementProp];
-      const newFlex = firstPaneMeasurements.current[maxDimProp] / (containerSize.current! - handleSize);
-      firstPaneRef.current!.style.flexGrow = `${newFlex}`;
-      secondPaneRef.current!.style.flexGrow = `${1 - newFlex}`;
-      splitterRef.current!.ariaValueNow = '100';
-      return;
-    }
 
-    if (
-      !((direction === 'column' && VERTICAL_KEYS.has(e.key)) || (direction === 'row' && HORIZONTAL_KEYS.has(e.key))) ||
-      pressedKeys.current.has(e.key)
-    ) {
-      return;
-    }
-
-    savedPos.current = undefined;
-    e.preventDefault();
-    e.stopPropagation();
-    primarySizeRef.current = firstPaneRef.current!.getBoundingClientRect()[measurementProp];
-    containerSize.current = containerRef.current!.getBoundingClientRect()[measurementProp];
-    firstPaneMeasurements.current = measureElement(firstPaneRef.current!);
-    const newKey = !pressedKeys.current.has(e.key);
-
-    if (newKey) {
-      const initiateAnimationLoop = pressedKeys.current.size === 0;
-      pressedKeys.current.add(e.key);
-
-      if (initiateAnimationLoop) {
-        window.requestAnimationFrame(handlePressedKeys);
+      if (
+        !(
+          (direction === 'column' && VERTICAL_KEYS.has(e.key)) ||
+          (direction === 'row' && HORIZONTAL_KEYS.has(e.key))
+        ) ||
+        pressedKeys.current.has(e.key)
+      ) {
+        return;
       }
-    }
-  }, [direction, handlePressedKeys, handleSize, maxDimProp, measurementProp, minDimProp]);
 
-  const onKeyUp = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-    if ((direction === 'row' && !HORIZONTAL_KEYS.has(e.key)) || (direction === 'column' && !VERTICAL_KEYS.has(e.key))) {
-      return;
-    }
+      savedPos.current = undefined;
+      e.preventDefault();
+      e.stopPropagation();
+      primarySizeRef.current = firstPaneRef.current!.getBoundingClientRect()[measurementProp];
+      containerSize.current = containerRef.current!.getBoundingClientRect()[measurementProp];
+      firstPaneMeasurements.current = measureElement(firstPaneRef.current!);
+      const newKey = !pressedKeys.current.has(e.key);
 
-    pressedKeys.current.delete(e.key);
-    onDragFinished?.(parseFloat(firstPaneRef.current!.style.flexGrow));
-  }, [direction, onDragFinished]);
+      if (newKey) {
+        const initiateAnimationLoop = pressedKeys.current.size === 0;
+        pressedKeys.current.add(e.key);
+
+        if (initiateAnimationLoop) {
+          window.requestAnimationFrame(handlePressedKeys);
+        }
+      }
+    },
+    [direction, handlePressedKeys, handleSize, maxDimProp, measurementProp, minDimProp]
+  );
+
+  const onKeyUp = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (
+        (direction === 'row' && !HORIZONTAL_KEYS.has(e.key)) ||
+        (direction === 'column' && !VERTICAL_KEYS.has(e.key))
+      ) {
+        return;
+      }
+
+      pressedKeys.current.delete(e.key);
+      onDragFinished?.(parseFloat(firstPaneRef.current!.style.flexGrow));
+    },
+    [direction, onDragFinished]
+  );
 
   const onDoubleClick = useCallback(() => {
     firstPaneRef.current!.style.flexGrow = '0.5';
