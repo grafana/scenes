@@ -369,74 +369,74 @@ export function Splitter({
 
 function getStyles(theme: GrafanaTheme2) {
   return {
-    handle: css`
-      cursor: col-resize;
-      position: relative;
-      flex-shrink: 0;
-      user-select: none;
+    handle: css({
+      cursor: 'col-resize',
+      position: 'relative',
+      flexShrink: 0,
+      userSelect: 'none',
 
-      &::before {
-        content: '';
-        position: absolute;
-        background-color: ${theme.colors.primary.main};
-        left: 50%;
-        transform: translateX(-50%);
-        top: 0;
-        height: 100%;
-        width: 1px;
-        opacity: 0;
-        transition: opacity ease-in-out 0.2s;
-      }
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        backgroundColor: theme.colors.primary.main,
+        left: '50%',
+        transform: 'translate(-50%)',
+        top: 0,
+        height: '100%',
+        width: '1px',
+        opacity: 0,
+        transition: 'opacity ease-in-out 0.2s',
+      },
 
-      &::after {
-        content: '';
-        width: 4px;
-        border-radius: 4px;
-        background-color: ${theme.colors.border.weak};
-        transition: background-color ease-in-out 0.2s;
-        height: 50%;
-        top: calc(50% - (50%) / 2);
-        transform: translateX(-50%);
-        position: absolute;
-        left: 50%;
-      }
-      &:hover,
-      &:focus-visible {
-        outline: none;
-        &::before {
-          opacity: 1;
-        }
+      '&::after': {
+        content: '""',
+        width: '4px',
+        borderRadius: '4px',
+        backgroundColor: theme.colors.border.weak,
+        transition: 'background-color ease-in-out 0.2s',
+        height: '50%',
+        top: 'calc(50% - (50%) / 2)',
+        transform: 'translateX(-50%)',
+        position: 'absolute',
+        left: '50%',
+      },
 
-        &::after {
-          background-color: ${theme.v1.palette.blue95};
-        }
-      }
-    `,
-    handleHorizontal: css`
-      cursor: row-resize;
+      '&:hover, &:focus-visible': {
+        outline: 'none',
+        '&::before': {
+          opacity: 1,
+        },
 
-      &::before {
-        left: inherit;
-        transform: translateY(-50%);
-        top: 50%;
-        height: 1px;
-        width: 100%;
-      }
+        '&::after': {
+          backgroundColor: theme.colors.primary.main,
+        },
+      },
+    }),
+    handleHorizontal: css({
+      cursor: 'row-resize',
 
-      &::after {
-        width: 50%;
-        height: 4px;
-        top: 50%;
-        transform: translateY(-50%);
-        left: calc(50% - (50%) / 2);
-      }
-    `,
-    container: css`
-      display: flex;
-      width: 100%;
-      flex-grow: 1;
-      overflow: hidden;
-    `,
+      '&::before': {
+        left: 'inherit',
+        transform: 'translateY(-50%)',
+        top: '50%',
+        height: '1px',
+        width: '100%',
+      },
+
+      '&::after': {
+        width: '50%',
+        height: '4px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        left: 'calc(50% - (50%) / 2)',
+      },
+    }),
+    container: css({
+      display: 'flex',
+      width: '100%',
+      flexGrow: 1,
+      overflow: 'hidden',
+    }),
     panel: css({ display: 'flex', overflow: 'hidden', position: 'relative', flexBasis: 0 }),
   };
 }
