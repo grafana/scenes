@@ -1,3 +1,16 @@
+# v0.17.0 (Mon Jun 19 2023)
+
+#### 🚀 Enhancement
+
+- VizPanel: Allow queries to be cancelled [#220](https://github.com/grafana/scenes/pull/220) ([@kaydelaney](https://github.com/kaydelaney) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v0.16.0 (Mon Jun 19 2023)
 
 #### 🚀 Enhancement
