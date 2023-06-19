@@ -172,6 +172,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return this.state.maxDataPointsFromWidth ? this._containerWidth ?? 500 : 500;
   }
 
+  public cancelQuery() {
+    this._querySub?.unsubscribe();
+    this.setState({
+      data: { ...this.state.data!, state: LoadingState.Done },
+    });
+  }
+
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // Skip executing queries if variable dependency is in loading state
     if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
@@ -180,7 +187,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    // If we where waiting for variables clear that flag
+    // If we were waiting for variables, clear that flag
     if (this.state.isWaitingForVariables) {
       this.setState({ isWaitingForVariables: false });
     }

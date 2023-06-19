@@ -105,6 +105,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           dragClassCancel={dragClassCancel}
           padding={plugin.noPadding ? 'none' : 'md'}
           menu={panelMenu}
+          onCancelQuery={model.onCancelQuery}
         >
           {(innerWidth, innerHeight) => (
             <>
