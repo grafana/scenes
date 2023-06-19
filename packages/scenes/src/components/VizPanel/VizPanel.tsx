@@ -67,7 +67,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
-      options: {},
+      options: {} as TOptions,
       fieldConfig: { defaults: {}, overrides: [] },
       title: 'Title',
       pluginId: 'timeseries',
