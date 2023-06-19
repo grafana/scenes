@@ -1,11 +1,11 @@
 import {
   EmbeddedScene,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneCanvasText,
   SceneFlexItem,
   SceneFlexLayout,
-  VizPanel,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
 
@@ -25,21 +25,17 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
               children: [
                 new SceneFlexItem({
                   minWidth: '70%',
-                  body: new VizPanel({
-                    pluginId: 'timeseries',
-                    title: 'Dynamic height and width',
-                    $data: getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }),
-                  }),
+                  body: PanelBuilders.timeseries()
+                    .setTitle('Dynamic height and width')
+                    .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }))
+                    .build(),
                 }),
                 new SceneFlexLayout({
                   $data: getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }),
                   direction: 'column',
                   children: [
                     new SceneFlexItem({
-                      body: new VizPanel({
-                        pluginId: 'timeseries',
-                        title: 'Fill height',
-                      }),
+                      body: PanelBuilders.timeseries().setTitle('Fill height').build(),
                     }),
                     new SceneFlexItem({
                       ySizing: 'content',
@@ -51,10 +47,7 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                     }),
                     new SceneFlexItem({
                       height: 300,
-                      body: new VizPanel({
-                        pluginId: 'stat',
-                        title: 'Fixed height',
-                      }),
+                      body: PanelBuilders.stat().setTitle('Fixed height').build(),
                     }),
                   ],
                 }),
@@ -66,27 +59,18 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                 new SceneFlexItem({
                   width: 150,
                   height: 150,
-                  body: new VizPanel({
-                    pluginId: 'text',
-                    title: '150x150',
-                    options: { content: '' },
-                  }),
+                  body: PanelBuilders.text().setTitle('150x150').setOption('content', '').build(),
                 }),
                 new SceneFlexItem({
                   maxHeight: 200,
-                  body: new VizPanel({
-                    title: 'maxHeight 200',
-                    pluginId: 'timeseries',
-                    $data: getQueryRunnerWithRandomWalkQuery(),
-                  }),
+                  body: PanelBuilders.timeseries()
+                    .setTitle('maxHeigh 200')
+                    .setData(getQueryRunnerWithRandomWalkQuery())
+                    .build(),
                 }),
                 new SceneFlexItem({
                   width: '10%',
-                  body: new VizPanel({
-                    pluginId: 'text',
-                    title: 'Width 10%',
-                    options: { content: '' },
-                  }),
+                  body: PanelBuilders.text().setTitle('').setOption('content', '').build(),
                 }),
               ],
             }),
