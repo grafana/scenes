@@ -107,10 +107,6 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
         }
       }
     }
-
-    routes.push(getFallbackRoute(model, routeProps));
-
-    return <Switch>{routes}</Switch>;
   }
 
   if (drilldowns) {
@@ -126,7 +122,7 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
     }
   }
 
-  if (isCurrentPageRouteMatch(model, routeProps.match)) {
+  if (!tabs && isCurrentPageRouteMatch(model, routeProps.match)) {
     return <SceneAppPageView page={model} routeProps={routeProps} />;
   }
 
@@ -180,7 +176,6 @@ function getDefaultFallbackPage() {
           direction: 'column',
           children: [
             new SceneFlexItem({
-              flexGrow: 1,
               body: new SceneReactObject({
                 component: () => {
                   return (

@@ -108,7 +108,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       intervals={intervals}
       onRefresh={model.onRefresh}
       onIntervalChanged={model.onIntervalChanged}
-      isOnCanvas={isOnCanvas}
+      isOnCanvas={isOnCanvas ?? true}
     />
   );
 }

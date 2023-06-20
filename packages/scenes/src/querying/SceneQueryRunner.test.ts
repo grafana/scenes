@@ -87,6 +87,21 @@ describe('SceneQueryRunner', () => {
       expect(sentRequest?.maxDataPoints).toBe(500);
     });
 
+    it('should not use containerWidth by default', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      queryRunner.setContainerWidth(100);
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should not use container width
+      expect(sentRequest?.maxDataPoints).toBe(500);
+    });
+
     it('should pass scene object via scoped vars when resolving datasource and running request', async () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
@@ -111,6 +126,7 @@ describe('SceneQueryRunner', () => {
     it('and container width is 0 but previously was rendered', async () => {
       const timeRange = new SceneTimeRange();
       const queryRunner = new SceneQueryRunner({
+        maxDataPointsFromWidth: true,
         queries: [{ refId: 'A' }],
         $timeRange: timeRange,
       });
@@ -118,15 +134,14 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data).toBeUndefined();
 
       const deactivateQueryRunner = queryRunner.activate();
+      queryRunner.setContainerWidth(1000);
 
       // When consumer viz is rendered with width 1000
       await new Promise((r) => setTimeout(r, 1));
 
       const runRequestCall1 = runRequestMock.mock.calls[0];
       // should be run with default maxDataPoints
-      expect(runRequestCall1[1].maxDataPoints).toEqual(500);
-
-      queryRunner.setContainerWidth(1000);
+      expect(runRequestCall1[1].maxDataPoints).toEqual(1000);
       deactivateQueryRunner();
 
       // When width is externally set to 0 before the consumer container has not yet rendered with expected width
@@ -141,6 +156,7 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
     });
   });
+
   describe('when activated and maxDataPointsFromWidth set to true', () => {
     it('should run queries', async () => {
       const queryRunner = new SceneQueryRunner({
@@ -398,6 +414,36 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(queryRunner.state.data?.series[0].fields[0].values.get(0)).toBe(123);
+    });
+  });
+
+  describe('when time range changed while in-active', () => {
+    it('It should re-issue new query', async () => {
+      const timeRange = new SceneTimeRange();
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: timeRange,
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      const deactivateQueryRunner = queryRunner.activate();
+
+      // When consumer viz is rendered with width 1000
+      await new Promise((r) => setTimeout(r, 1));
+      // Should query
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+
+      deactivateQueryRunner();
+
+      timeRange.setState({ from: 'now-10m' });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should run new query
+      expect(runRequestMock.mock.calls.length).toEqual(2);
     });
   });
 });

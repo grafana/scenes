@@ -11,8 +11,12 @@ import { getPanelContextDemoScene } from './panelContext';
 import { getPanelMenuTest } from './panelMenu';
 import { getPanelRepeaterTest } from './panelRepeater';
 import { getQueryEditorDemo } from './queryEditor';
+import { getResponsiveLayoutDemo } from './responsiveLayout';
 import { getVariablesDemo } from './variables';
 import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
+import { getTimeZoneTest } from './timeZones';
+import { getSplitTest } from './split';
+import { getQueryCancellationTest } from './queryCancellation';
 
 export interface DemoDescriptor {
   title: string;
@@ -22,6 +26,7 @@ export interface DemoDescriptor {
 export function getDemos(): DemoDescriptor[] {
   return [
     { title: 'Flex layout', getPage: getFlexLayoutTest },
+    { title: 'Responsive layout', getPage: getResponsiveLayoutDemo },
     { title: 'Panel menu', getPage: getPanelMenuTest },
     { title: 'Panel context', getPage: getPanelContextDemoScene },
     { title: 'Repeat layout by series', getPage: getPanelRepeaterTest },
@@ -35,5 +40,8 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Dynamic page', getPage: getDynamicPageDemo },
     { title: 'Runtime panel plugin', getPage: getRuntimePanelPluginDemo },
     { title: 'Behaviors demo', getPage: getBehaviorsDemo },
+    { title: 'Time zones demo', getPage: getTimeZoneTest },
+    { title: 'Split layout', getPage: getSplitTest },
+    { title: 'Query cancellation', getPage: getQueryCancellationTest },
   ];
 }

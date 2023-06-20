@@ -1,30 +1,38 @@
 ---
 id: getting-started
-title: Getting started
+title: Set up Scenes
 ---
 
-### Installation
+This topic describes how to install Scenes and create your first "Hello World" scene.
 
-Add @grafana/scenes to your Grafana App Plugin by running the following command in your project:
+## Installation
+
+Use the [`@grafana/create-plugin`](https://github.com/grafana/plugin-tools/blob/main/packages/create-plugin/README.md) to start a completely new project.
+
+```bash
+npx @grafana/create-plugin@latest
+```
+
+Alternatively, add @grafana/scenes to your Grafana app plugin by running the following command in your project:
 
 ```bash
 yarn add @grafana/scenes
 ```
 
-Or use Scene App template to start from scratch: [Create new Scene App](https://github.com/grafana/scenes-app-template/generate)
+## Hello World scene
 
-## Hello World Scene
+The following instructions describe how to set up the "Hello World" scene.
 
-### Creating Scene
+### 1. Create a scene
 
-Create your first Scene using the snippet below. The following code will create a Scene that contains Grafana Text panel within a flex layout.
+Create your first scene using the snippet below. The following code will create a scene that contains a Grafana Text panel within a flex layout:
 
 ```ts
 // helloWorldScene.ts
 
 import { EmbeddedScene, SceneFlexLayout, SceneFlexItem, VizPanel } from '@grafana/scenes';
 
-function getScene() {
+export function getScene() {
   return new EmbeddedScene({
     body: new SceneFlexLayout({
       children: [
@@ -45,17 +53,21 @@ function getScene() {
 }
 ```
 
-### Rendering Scene
+### 2. Render a scene
 
-Use the following code in your Grafana App Plugin page to render the Hello World scene:
+Use the following code in your Grafana app plugin page to render the "Hello World" scene:
 
 ```tsx
 import React from 'react';
 import { getScene } from './helloWorldScene';
 
-export const GrafanaAppPluginPage = () => {
+export const HelloWorldPluginPage = () => {
   const scene = getScene();
 
   return <scene.Component model={scene} />;
 };
 ```
+
+:::note
+The rendered scene won't be rendered within Grafana plugin page. To integrate scenes with Grafana sidebar, navigation and plugin page follow [Scenes apps](./scene-app.md) guide.
+:::

@@ -4,7 +4,7 @@ import { DATASOURCE_REF } from '../../constants';
 import { getEmbeddedSceneDefaults } from '../utils';
 import { getRoomTemperatureStatPanel } from './panels';
 
-export function getTemperatureOverviewScene(roomName: string) {
+export function getRoomDrilldownScene(roomName: string) {
   return new EmbeddedScene({
     $data: new SceneQueryRunner({
       datasource: DATASOURCE_REF,
@@ -80,7 +80,7 @@ export function getHumidityOverviewScene(roomName: string) {
   });
 }
 
-function getRoomTemperatureQuery(roomName: string) {
+export function getRoomTemperatureQuery(roomName: string) {
   return {
     refId: 'Temp',
     datasource: DATASOURCE_REF,

@@ -9,8 +9,8 @@ import {
   DataTransformContext,
   PanelData,
   TimeRange,
-  TimeZone,
 } from '@grafana/data';
+import { TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 
@@ -133,14 +133,16 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
 export interface SceneTimeRangeState extends SceneObjectState {
   from: string;
   to: string;
-  timeZone: TimeZone;
   fiscalYearStartMonth?: number;
   value: TimeRange;
+  timeZone?: TimeZone;
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
+  onTimeZoneChange(timeZone: TimeZone): void;
   onTimeRangeChange(timeRange: TimeRange): void;
   onRefresh(): void;
+  getTimeZone(): TimeZone;
 }
 
 export interface SceneObjectRef {
@@ -174,6 +176,8 @@ export type DeepPartial<T> = {
 
 export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
+  isDataReadyToDisplay?: () => boolean;
+  cancelQuery?: () => void;
 }
 
 export type SceneStatelessBehavior = (sceneObject: SceneObject) => CancelActivationHandler | void;

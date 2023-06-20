@@ -1,6 +1,8 @@
 import {
   QueryRunnerState,
+  SceneCanvasText,
   SceneControlsSpacer,
+  SceneFlexItem,
   SceneQueryRunner,
   SceneRefreshPicker,
   SceneTimePicker,
@@ -34,4 +36,14 @@ export function getEmbeddedSceneDefaults() {
       new SceneRefreshPicker({ isOnCanvas: true }),
     ],
   };
+}
+
+export function getRowWithText(text: string) {
+  return new SceneFlexItem({
+    ySizing: 'content',
+    body: new SceneCanvasText({
+      text,
+      fontSize: 12,
+    }),
+  });
 }

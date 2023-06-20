@@ -18,7 +18,7 @@ import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@gra
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DeepPartial, SceneObjectState } from '../../core/types';
+import { DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
@@ -45,6 +45,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   menu?: VizPanelMenu;
   isDraggable?: boolean;
   isResizable?: boolean;
+  headerActions?: React.ReactNode | SceneObject;
   // internal state
   pluginLoadError?: string;
   pluginInstanceState?: any;
@@ -66,7 +67,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
-      options: {},
+      options: {} as TOptions,
       fieldConfig: { defaults: {}, overrides: [] },
       title: 'Title',
       pluginId: 'timeseries',
@@ -228,6 +229,11 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
 
     return this._dataWithFieldConfig;
   }
+
+  public onCancelQuery = () => {
+    const data = sceneGraph.getData(this);
+    data.cancelQuery?.();
+  };
 
   /**
    * Panel context functions

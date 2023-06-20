@@ -17,7 +17,9 @@ function HomepageHeader() {
         <GrafanaLogo style={{ color: 'rgba(255, 255, 255, 0.2)' }} />
       </div>
       <div className={clsx('container', styles.heroContent)}>
-        <h1 className="hero__title">{siteConfig.title}</h1>
+        <h1 className="hero__title">
+          {siteConfig.title} <span style={{ fontWeight: 'normal' }}> | public preview</span>
+        </h1>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link className="button button--primary button--lg button--outline" to="/docs/getting-started">
@@ -32,7 +34,7 @@ function HomepageHeader() {
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout title={`${siteConfig.title}`} description="Set up a Grafana plugin environment effortlessly.">
+    <Layout title={`${siteConfig.title}`} description="Build highly interactive Grafana apps with ease.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

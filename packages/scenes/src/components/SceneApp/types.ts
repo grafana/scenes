@@ -24,7 +24,12 @@ export interface SceneAppPageState extends SceneObjectState {
   /** Page title */
   title: string;
   /** Page subTitle */
-  subTitle?: string;
+  subTitle?: string | React.ReactNode;
+  /**
+   * Customize title rendering.
+   * Please return an unstyled h1 tag here + any additional elements you need.
+   **/
+  renderTitle?: (title: string) => React.ReactNode;
   /** For an image before title */
   titleImg?: string;
   /** For an icon before title */
@@ -33,7 +38,7 @@ export interface SceneAppPageState extends SceneObjectState {
   url: string;
   // Use to provide parametrized page URL, i.e. /app/overview/:clusterId
   routePath?: string;
-  /** Shown in the top right inline with the page title */
+  /** Array of scene object to be rendered at the top right of the page, inline with the page title */
   controls?: SceneObject[];
   // Whether or not page should be visible in the breadcrumbs path
   hideFromBreadcrumbs?: boolean;

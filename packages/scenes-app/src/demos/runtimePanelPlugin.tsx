@@ -6,13 +6,13 @@ import {
   VizPanel,
   SceneAppPageState,
   SceneAppPage,
-  registerRuntimePanelPlugin,
+  sceneUtils,
 } from '@grafana/scenes';
 import React from 'react';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getRuntimePanelPluginDemo(defaults: SceneAppPageState): SceneAppPage {
-  registerRuntimePanelPlugin({ pluginId: 'custom-viz-panel', plugin: getCustomVizPlugin() });
+  sceneUtils.registerRuntimePanelPlugin({ pluginId: 'custom-viz-panel', plugin: getCustomVizPlugin() });
 
   return new SceneAppPage({
     ...defaults,

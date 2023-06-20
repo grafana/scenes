@@ -14,21 +14,19 @@ function HomepageGettingStarted() {
             <div className="col col--4 col--offset-1">
               <h2>Get started in seconds</h2>
               <p>
-                Use our{' '}
-                <a href="https://github.com/grafana/scenes-app-template/" target="_blank">
-                  Scenes app template
-                </a>{' '}
+                Use{' '}
+                <Link
+                  to="https://github.com/grafana/plugin-tools/blob/main/packages/create-plugin/README.md"
+                  target="_blank"
+                >
+                  @grafana/create-plugin
+                </Link>{' '}
                 and start playing with Scenes right away!
                 <br />
                 <br />
-                <Link
-                  className="button button--primary button--md "
-                  to="https://github.com/grafana/scenes-app-template/generate"
-                  target="_blank"
-                >
-                  Create Scene app using the template
-                </Link>
+                To create a Scenes app, run the following command:
               </p>
+              <CodeBlock>npx @grafana/create-plugin@latest</CodeBlock>
               <br />
             </div>
             <div className="col col--6 col--offset-1">

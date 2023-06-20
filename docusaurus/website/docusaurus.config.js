@@ -9,9 +9,9 @@ const stripHTML = require('remark-strip-html');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Grafana Scenes',
-  tagline: 'Create dashboard-like experiences in Grafana app plugins.',
+  tagline: 'Build highly interactive Grafana apps with ease.',
   url: 'https://grafana.github.io/',
-  baseUrl: 'grafana-scenes/',
+  baseUrl: 'scenes/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.png',
@@ -46,6 +46,9 @@ const config = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
+        googleTagManager: {
+          containerId: process.env.GTAG_CONTAINER_ID,
+        },
       }),
     ],
   ],
@@ -53,6 +56,11 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      docs: {
+        sidebar: {
+          autoCollapseCategories: false,
+        },
+      },
       navbar: {
         title: 'Grafana Scenes',
         logo: {

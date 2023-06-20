@@ -6,13 +6,24 @@ import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { SceneComponentProps } from '../../core/types';
+import { isSceneObject, SceneComponentProps } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
-  const { title, description, options, fieldConfig, pluginLoadError, $data, displayMode, hoverHeader, menu, ...state } =
-    model.useState();
+  const {
+    title,
+    description,
+    options,
+    fieldConfig,
+    pluginLoadError,
+    $data,
+    displayMode,
+    hoverHeader,
+    menu,
+    headerActions,
+    ...state
+  } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
   const parentLayout = sceneGraph.getLayout(model);
@@ -21,14 +32,15 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isDraggable = parentLayout.isDraggable() && (state.isDraggable ?? true);
   const dragClass = isDraggable && parentLayout.getDragClass ? parentLayout.getDragClass() : '';
   const dragClassCancel = isDraggable && parentLayout.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
-  const rawData = sceneGraph.getData(model).useState();
-  const dataWithFieldConfig = model.applyFieldConfig(rawData.data);
+  const dataObject = sceneGraph.getData(model);
+  const rawData = dataObject.useState();
+  const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
 
   // Not sure we need to subscribe to this state
-  const timeZone = sceneGraph.getTimeRange(model).state.timeZone;
+  const timeZone = sceneGraph.getTimeRange(model).getTimeZone();
 
   if (pluginLoadError) {
     return <div>Failed to load plugin: {pluginLoadError}</div>;
@@ -61,8 +73,19 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     panelMenu = <menu.Component model={menu} />;
   }
 
+  let actionsElement: React.ReactNode | undefined;
+
+  if (headerActions) {
+    if (isSceneObject(headerActions)) {
+      actionsElement = <headerActions.Component model={headerActions} />;
+    } else {
+      actionsElement = headerActions;
+    }
+  }
+
   // Data is always returned. For non-data panels, empty PanelData is returned.
   const data = dataWithFieldConfig!;
+  const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
   return (
     <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
@@ -78,32 +101,37 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           hoverHeader={hoverHeader}
           titleItems={titleItems}
           dragClass={dragClass}
+          actions={actionsElement}
           dragClassCancel={dragClassCancel}
+          padding={plugin.noPadding ? 'none' : 'md'}
           menu={panelMenu}
+          onCancelQuery={model.onCancelQuery}
         >
           {(innerWidth, innerHeight) => (
             <>
               <ErrorBoundaryAlert dependencies={[plugin, data]}>
                 <PluginContextProvider meta={plugin.meta}>
                   <PanelContextProvider value={model.getPanelContext()}>
-                    <PanelComponent
-                      id={1}
-                      data={data}
-                      title={title}
-                      timeRange={data.timeRange}
-                      timeZone={timeZone}
-                      options={options}
-                      fieldConfig={fieldConfig}
-                      transparent={false}
-                      width={innerWidth}
-                      height={innerHeight}
-                      renderCounter={0}
-                      replaceVariables={model.interpolate}
-                      onOptionsChange={model.onOptionsChange}
-                      onFieldConfigChange={model.onFieldConfigChange}
-                      onChangeTimeRange={model.onChangeTimeRange}
-                      eventBus={getAppEvents()}
-                    />
+                    {isReadyToRender && (
+                      <PanelComponent
+                        id={1}
+                        data={data}
+                        title={title}
+                        timeRange={data.timeRange}
+                        timeZone={timeZone}
+                        options={options}
+                        fieldConfig={fieldConfig}
+                        transparent={false}
+                        width={innerWidth}
+                        height={innerHeight}
+                        renderCounter={0}
+                        replaceVariables={model.interpolate}
+                        onOptionsChange={model.onOptionsChange}
+                        onFieldConfigChange={model.onFieldConfigChange}
+                        onChangeTimeRange={model.onChangeTimeRange}
+                        eventBus={getAppEvents()}
+                      />
+                    )}
                   </PanelContextProvider>
                 </PluginContextProvider>
               </ErrorBoundaryAlert>

@@ -1,22 +1,14 @@
 import { cloneDeep } from 'lodash';
 import { Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef } from '@grafana/schema';
+import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
-import {
-  CoreApp,
-  DataQueryRequest,
-  PanelData,
-  preProcessPanelData,
-  rangeUtil,
-  ScopedVar,
-  TimeRange,
-} from '@grafana/data';
+import { CoreApp, DataQueryRequest, PanelData, preProcessPanelData, rangeUtil, ScopedVar } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneDataProvider, SceneObjectState } from '../core/types';
+import { SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -49,6 +41,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
+  private _hasFetchedData = false;
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -66,8 +59,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._subs.add(
-      timeRange.subscribeToState((timeRange) => {
-        this.runWithTimeRange(timeRange.value);
+      timeRange.subscribeToState(() => {
+        this.runWithTimeRange(timeRange);
       })
     );
 
@@ -107,12 +100,27 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return true;
     }
 
-    // If we already have data, no need
-    // TODO validate that time range is similar and if not we should run queries again
-    if (this.state.data) {
+    // If we don't have any data we should run queries
+    if (!this.state.data) {
+      return true;
+    }
+
+    // If time range is stale / different we should run queries
+    if (this._isDataTimeRangeStale(this.state.data)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private _isDataTimeRangeStale(data: PanelData) {
+    const timeRange = sceneGraph.getTimeRange(this);
+
+    if (data.timeRange === timeRange.state.value) {
       return false;
     }
 
+    writeSceneLog('SceneQueryRunner', 'Data time range is stale');
     return true;
   }
 
@@ -147,16 +155,31 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
   }
 
+  public isDataReadyToDisplay() {
+    return this._hasFetchedData;
+  }
+
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
-    this.runWithTimeRange(timeRange.state.value);
+    this.runWithTimeRange(timeRange);
   }
 
   private getMaxDataPoints() {
-    return this.state.maxDataPoints ?? this._containerWidth ?? 500;
+    if (this.state.maxDataPoints) {
+      return this.state.maxDataPoints;
+    }
+
+    return this.state.maxDataPointsFromWidth ? this._containerWidth ?? 500 : 500;
   }
 
-  private async runWithTimeRange(timeRange: TimeRange) {
+  public cancelQuery() {
+    this._querySub?.unsubscribe();
+    this.setState({
+      data: { ...this.state.data!, state: LoadingState.Done },
+    });
+  }
+
+  private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // Skip executing queries if variable dependency is in loading state
     if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
       writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
@@ -164,7 +187,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    // If we where waiting for variables clear that flag
+    // If we were waiting for variables, clear that flag
     if (this.state.isWaitingForVariables) {
       this.setState({ isWaitingForVariables: false });
     }
@@ -183,10 +206,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
       requestId: getNextRequestId(),
-      timezone: 'browser',
+      timezone: timeRange.getTimeZone(),
       panelId: 1,
-      dashboardId: 1,
-      range: timeRange,
+      range: timeRange.state.value,
       interval: '1s',
       intervalMs: 1000,
       targets: cloneDeep(queries),
@@ -209,7 +231,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       // TODO interpolate minInterval
       const lowerIntervalLimit = minInterval ? minInterval : ds.interval;
-      const norm = rangeUtil.calculateInterval(timeRange, request.maxDataPoints!, lowerIntervalLimit);
+      const norm = rangeUtil.calculateInterval(timeRange.state.value, request.maxDataPoints!, lowerIntervalLimit);
 
       // make shallow copy of scoped vars,
       // and add built in variables interval and interval_ms
@@ -233,6 +255,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private onDataReceived = (data: PanelData) => {
     const preProcessedData = preProcessPanelData(data, this.state.data);
+    if (!this._hasFetchedData && preProcessedData.state !== LoadingState.Loading) {
+      this._hasFetchedData = true;
+    }
+
     this.setState({ data: preProcessedData });
   };
 
