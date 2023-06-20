@@ -231,6 +231,14 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
   }
 
   /**
+   * Set behaviors for the panel.
+   */
+  public setBehaviors(behaviors: VizPanelState['$behaviors']): this {
+    this._state.$behaviors = behaviors;
+    return this;
+  }
+
+  /**
    * Build the panel.
    */
   public build() {
