@@ -47,7 +47,7 @@ const config = {
           customCss: require.resolve('./src/css/custom.css'),
         },
         googleTagManager: {
-          containerId: process.env.GTAG_CONTAINER_ID,
+          containerId: process.env.GTAG_CONTAINER_ID || 'GOOGLE_TAG_MANAGER_ID',
         },
       }),
     ],

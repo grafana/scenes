@@ -1,5 +1,6 @@
 import { getUrlWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
+import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 
 export * from './core/types';
 export * from './core/events';
@@ -59,4 +60,5 @@ export { PanelBuilders } from './core/PanelBuilders';
 export const sceneUtils = {
   getUrlWithAppState,
   registerRuntimePanelPlugin,
+  registerRuntimeDataSource,
 };
