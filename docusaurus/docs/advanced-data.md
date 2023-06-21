@@ -18,18 +18,21 @@ In your custom scene object renderer, you can subscribe to the closest `SceneDat
 ```ts
 import { sceneGraph, SceneObjectState, SceneObjectBase, SceneComponentProps } from '@grafana/scenes';
 
-interface CustomObjectState extends SceneObjectState {
-  // ...
-}
+interface CustomObjectState extends SceneObjectState {}
 
 class CustomObject extends SceneObjectBase<CustomObjectState> {
-  // ...
+  static Component = CustomObjectRenderer;
 }
 
 function CustomObjectRenderer({ model }: SceneComponentProps<CustomObject>) {
   const data = sceneGraph.getData(model).useState();
 
-  return <pre>{JSON.stringify(data)}</pre>;
+  return (
+    <div>
+      <pre>Time range: {JSON.stringify(data.data?.timeRange)}</pre>
+      <pre>Data: {JSON.stringify(data.data?.series)}</pre>
+    </div>
+  );
 }
 ```
 
@@ -39,6 +42,8 @@ You can also use data in your custom object class. To do so, use an [activation 
 
 ```ts
 class CustomObject extends SceneObjectBase<CustomObjectState> {
+  static Component = CustomObjectRenderer;
+
   constructor() {
     super({});
     this.addActivationHandler(() => this.activationHandler());
@@ -59,3 +64,7 @@ The subscription returned from `sourceData.subscribeToState` is added to `this._
 ## Use time range
 
 Similarly to data, you can use the closest time range in a custom scene object using `sceneGraph.getTimeRange(model)`. This method can be used both in the custom object class and the renderer, as described previously in the [Use data](#use-data) section.
+
+## Source code
+
+[View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/advanced-data.tsx)

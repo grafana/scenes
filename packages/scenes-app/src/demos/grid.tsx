@@ -1,5 +1,4 @@
 import {
-  VizPanel,
   SceneGridLayout,
   SceneGridItem,
   SceneFlexLayout,
@@ -7,6 +6,7 @@ import {
   SceneAppPage,
   EmbeddedScene,
   SceneAppPageState,
+  PanelBuilders,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
 
@@ -27,10 +27,7 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
               height: 10,
               isResizable: true,
               isDraggable: true,
-              body: new VizPanel({
-                pluginId: 'timeseries',
-                title: 'Draggable and resizable',
-              }),
+              body: PanelBuilders.timeseries().setTitle('Draggable and resizable').build(),
             }),
             new SceneGridItem({
               x: 12,
@@ -39,12 +36,11 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
               height: 10,
               isResizable: false,
               isDraggable: false,
-              body: new VizPanel({
-                pluginId: 'timeseries',
-                title: 'No drag and no resize',
-                isDraggable: false,
-                isResizable: false,
-              }),
+              body: PanelBuilders.timeseries()
+                .setTitle('No drag and no resize')
+                .setIsDraggable(false)
+                .setIsResizable(false)
+                .build(),
             }),
 
             new SceneGridItem({
@@ -58,16 +54,10 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
                 direction: 'column',
                 children: [
                   new SceneFlexItem({
-                    body: new VizPanel({
-                      pluginId: 'timeseries',
-                      title: 'Child of flex layout',
-                    }),
+                    body: PanelBuilders.timeseries().setTitle('Child of flex layout').build(),
                   }),
                   new SceneFlexItem({
-                    body: new VizPanel({
-                      pluginId: 'timeseries',
-                      title: 'Child of flex layout',
-                    }),
+                    body: PanelBuilders.timeseries().setTitle('Child of flex layout').build(),
                   }),
                 ],
               }),

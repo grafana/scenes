@@ -1,5 +1,6 @@
 import {
   EmbeddedScene,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneControlsSpacer,
@@ -9,7 +10,6 @@ import {
   SceneTimePicker,
   SceneTimeRange,
   SceneTimeZoneOverride,
-  VizPanel,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -21,23 +21,22 @@ export function getTimeZoneTest(defaults: SceneAppPageState) {
   });
   const timeZoneOverride = new SceneTimeZoneOverride({ timeZone: 'America/New_York' });
 
-  const panel1 = new VizPanel({
-    pluginId: 'timeseries',
-    title: 'Using global time range and time zone (${__timezone})',
-    description: 'This panel should show data within time zone and time range selected in the time picker.',
-  });
+  const timeseriesPanel = PanelBuilders.timeseries();
 
-  const panel2 = new VizPanel({
-    pluginId: 'timeseries',
-    title: 'Using local range and global time zone (${__timezone})',
-    description: 'This panel should show data from the last 5 minutes, using time zone from the time picker',
-  });
+  const panel1 = timeseriesPanel
+    .setTitle('Using global time range and time zone (${__timezone})')
+    .setDescription('This panel should show data within time zone and time range selected in the time picker.')
+    .build();
 
-  const panel3 = new VizPanel({
-    pluginId: 'timeseries',
-    title: 'Using global range, local time zone (${__timezone})',
-    description: 'This panel should show data using America/New_York time zone and time range from the time picker',
-  });
+  const panel2 = timeseriesPanel
+    .setTitle('Using local range and global time zone (${__timezone})')
+    .setDescription('This panel should show data from the last 5 minutes, using time zone from the time picker')
+    .build();
+
+  const panel3 = timeseriesPanel
+    .setTitle('Using global range, local time zone (${__timezone})')
+    .setDescription('This panel should show data using America/New_York time zone and time range from the time picker')
+    .build();
 
   globalTimeRange.subscribeToState(() => {
     panel1.setState({ title: `Using global time range and global time zone: ${globalTimeRange.getTimeZone()}` });
@@ -54,11 +53,7 @@ export function getTimeZoneTest(defaults: SceneAppPageState) {
     getScene: () => {
       return new EmbeddedScene({
         $timeRange: globalTimeRange,
-        controls: [
-          new SceneControlsSpacer(),
-          new SceneTimePicker({ isOnCanvas: true }),
-          new SceneRefreshPicker({ isOnCanvas: true }),
-        ],
+        controls: [new SceneControlsSpacer(), new SceneTimePicker({}), new SceneRefreshPicker({})],
         key: 'Time zones embedded scene',
         body: new SceneFlexLayout({
           direction: 'column',

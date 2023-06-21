@@ -1,10 +1,10 @@
 import {
   EmbeddedScene,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneFlexItem,
   SceneFlexLayout,
-  VizPanel,
   VizPanelMenu,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
@@ -57,11 +57,10 @@ export function getPanelMenuTest(defaults: SceneAppPageState): SceneAppPage {
   });
 
   const readingFromPanelMenu = new VizPanelMenu({});
-  const panelWithMenu = new VizPanel({
-    title: 'Menu reading from panel state',
-    pluginId: 'timeseries',
-    menu: readingFromPanelMenu,
-  });
+  const panelWithMenu = PanelBuilders.timeseries()
+    .setTitle('Menu reading from panel state')
+    .setMenu(readingFromPanelMenu)
+    .build();
 
   readingFromPanelMenu.addActivationHandler(() => {
     const plugin = panelWithMenu.getPlugin();
@@ -110,38 +109,25 @@ export function getPanelMenuTest(defaults: SceneAppPageState): SceneAppPage {
             new SceneFlexItem({
               minHeight: 200,
               minWidth: '40%',
-              body: new VizPanel({
-                title: 'Basic static menu',
-                pluginId: 'timeseries',
-                menu: staticMenu,
-              }),
+              body: PanelBuilders.timeseries().setTitle('Basic static menu').setMenu(staticMenu).build(),
             }),
             new SceneFlexItem({
               minHeight: 200,
               minWidth: '40%',
-              body: new VizPanel({
-                title: 'Basic lazy menu',
-                pluginId: 'timeseries',
-                menu: staticMenuViaActivation,
-              }),
+              body: PanelBuilders.timeseries().setTitle('Basic lazy menu').setMenu(staticMenuViaActivation).build(),
             }),
             new SceneFlexItem({
               minHeight: 200,
               minWidth: '40%',
-              body: new VizPanel({
-                title: 'Async menu, will show after 1s',
-                pluginId: 'timeseries',
-                menu: lazyMenu,
-              }),
+              body: PanelBuilders.timeseries().setTitle('Async menu, will show after 1s').setMenu(lazyMenu).build(),
             }),
             new SceneFlexItem({
               minHeight: 200,
               minWidth: '40%',
-              body: new VizPanel({
-                title: 'New item added to menu after it is shown',
-                pluginId: 'timeseries',
-                menu: dynamicMenu,
-              }),
+              body: PanelBuilders.timeseries()
+                .setTitle('New item added to menu after it is shown')
+                .setMenu(dynamicMenu)
+                .build(),
             }),
             new SceneFlexItem({
               minHeight: 200,

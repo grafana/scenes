@@ -14,7 +14,7 @@ Scenes support two layout types: flex and grid layout. In this guide, you'll lea
 Start using the flexbox layout by creating a scene with `body` configured as `SceneFlexLayout`:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   body: new SceneFlexLayout({}),
 });
 ```
@@ -29,7 +29,7 @@ const myScene = new EmbeddedScene({
 By default, `SceneFlexLayout` uses `row` direction. To create a column layout, use the following code:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   body: new SceneFlexLayout({
     direction: 'column',
   }),
@@ -42,7 +42,7 @@ const myScene = new EmbeddedScene({
 Create a scene with two, equally sized layout items in a column:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   body: new SceneFlexLayout({
     direction: 'column',
     children: [new SceneFlexItem({ minHeight: 200 }), new SceneFlexItem({ minHeight: 300 })],
@@ -89,7 +89,7 @@ const queryRunner = new SceneQueryRunner({
   ],
 });
 
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $data: queryRunner,
   body: new SceneFlexLayout({
     direction: 'column',
@@ -114,22 +114,16 @@ const queryRunner = new SceneQueryRunner({
   ],
 });
 
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $data: queryRunner,
   body: new SceneFlexLayout({
     direction: 'column',
     children: [
       new SceneFlexItem({
-        body: new VizPanel({
-          pluginId: 'timeseries',
-          title: 'Time series',
-        }),
+        body: PanelBuilders.timeseries().setTitle('Time series').build(),
       }),
       new SceneFlexItem({
-        body: new VizPanel({
-          pluginId: 'table',
-          title: 'Table',
-        }),
+        body: PanelBuilders.table().setTitle('Table').build(),
       }),
     ],
   }),
@@ -177,7 +171,8 @@ In the preceding example, we use the `md` property to override the default respo
 Start using grid layout by creating a scene with `body` configured as `SceneGridLayout`:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
+  $data: queryRunner,
   body: new SceneGridLayout({}),
 });
 ```
@@ -192,7 +187,8 @@ You can configure the following properties:
 - `isLazy` - Configures whether or not grid items should be initialized when they are outside of the viewport.
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
+  $data: queryRunner,
   body: new SceneGridLayout({
     isDraggable: false,
     isLazy: true,
@@ -206,7 +202,8 @@ const myScene = new EmbeddedScene({
 Create a scene with two grid items in a row:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
+  $data: queryRunner,
   body: new SceneGridLayout({
     children: [
       new SceneGridItem({
@@ -244,7 +241,7 @@ const myScene = new EmbeddedScene({
 Add `VizPanel` to `SceneGridItem` to show visualized data:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $data: queryRunner,
   body: new SceneGridLayout({
     children: [
@@ -255,10 +252,7 @@ const myScene = new EmbeddedScene({
         height: 10,
         isResizable: false,
         isDraggable: false,
-        body: new VizPanel({
-          pluginId: 'timeseries',
-          title: 'Time series',
-        }),
+        body: PanelBuilders.timeseries().setTitle('Time series').build(),
       }),
       new SceneGridItem({
         x: 12,
@@ -267,10 +261,7 @@ const myScene = new EmbeddedScene({
         height: 10,
         isResizable: false,
         isDraggable: false,
-        body: new VizPanel({
-          pluginId: 'table',
-          title: 'Table',
-        }),
+        body: PanelBuilders.table().setTitle('Table').build(),
       }),
     ],
   }),
@@ -297,10 +288,7 @@ const row = new SceneGridRow({
       height: 10,
       isResizable: false,
       isDraggable: false,
-      body: new VizPanel({
-        pluginId: 'timeseries',
-        title: 'Time series',
-      }),
+      body: PanelBuilders.timeseries().setTitle('Time series').build(),
     }),
     new SceneGridItem({
       x: 12,
@@ -309,15 +297,12 @@ const row = new SceneGridRow({
       height: 10,
       isResizable: false,
       isDraggable: false,
-      body: new VizPanel({
-        pluginId: 'table',
-        title: 'Table',
-      }),
+      body: PanelBuilders.table().setTitle('Table').build(),
     }),
   ],
 });
 
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $data: queryRunner,
   body: new SceneGridLayout({
     children: [row],
@@ -334,7 +319,8 @@ const myScene = new EmbeddedScene({
 Start using the split layout by creating a scene with `body` configured as `SplitLayout`:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
+  $data: queryRunner,
   body: new SplitLayout({}),
 });
 ```
@@ -348,7 +334,8 @@ const myScene = new EmbeddedScene({
 - `secondary` - The second pane
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
+  $data: queryRunner,
   body: new SplitLayout({
     direction: 'column',
   }),
@@ -360,17 +347,16 @@ const myScene = new EmbeddedScene({
 `primary` and `secondary` both accept a `SceneFlexItemLike` object.
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
+  $data: queryRunner,
   body: new SplitLayout({
     direction: 'column',
-    primary: new VizPanel({
-      pluginId: 'timeseries',
-      title: 'Primary panel',
-    }),
-    secondary: new VizPanel({
-      pluginId: 'timeseries',
-      title: 'Secondary panel',
-    }),
+    primary: PanelBuilders.timeseries().setTitle('Primary panel').build(),
+    secondary: PanelBuilders.table().setTitle('Secondary panel').build(),
   }),
 });
 ```
+
+## Source code
+
+[View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/scene-layout.tsx)

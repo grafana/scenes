@@ -1,5 +1,6 @@
 import {
   EmbeddedScene,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneByFrameRepeater,
@@ -7,8 +8,8 @@ import {
   SceneFlexItem,
   SceneFlexLayout,
   SceneToolbarInput,
-  VizPanel,
 } from '@grafana/scenes';
+import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getPanelRepeaterTest(defaults: SceneAppPageState) {
@@ -43,23 +44,17 @@ export function getPanelRepeaterTest(defaults: SceneAppPageState) {
                 }),
                 children: [
                   new SceneFlexItem({
-                    body: new VizPanel({
-                      pluginId: 'timeseries',
-                      title: 'aaa',
-                      options: {
-                        legend: { displayMode: 'hidden' },
-                      },
-                    }),
+                    body: PanelBuilders.timeseries()
+                      .setTitle('aaa')
+                      .setOption('legend', { displayMode: LegendDisplayMode.Hidden })
+                      .build(),
                   }),
                   new SceneFlexItem({
                     width: 300,
-                    body: new VizPanel({
-                      pluginId: 'stat',
-                      fieldConfig: { defaults: { displayName: 'Last' }, overrides: [] },
-                      options: {
-                        graphMode: 'none',
-                      },
-                    }),
+                    body: PanelBuilders.stat()
+                      .setDisplayName('Last')
+                      .setOption('graphMode', BigValueGraphMode.None)
+                      .build(),
                   }),
                 ],
               }),

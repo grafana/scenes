@@ -1,107 +1,80 @@
 import { getFrameDisplayName, ReducerID } from '@grafana/data';
 import {
+  PanelBuilders,
   SceneByFrameRepeater,
   SceneDataNode,
   SceneDataTransformer,
   SceneFlexItem,
   SceneFlexLayout,
-  VizPanel,
 } from '@grafana/scenes';
-import { FieldColorModeId } from '@grafana/schema';
+import {
+  BarGaugeDisplayMode,
+  BigValueGraphMode,
+  BigValueTextMode,
+  FieldColorModeId,
+  TableCellDisplayMode,
+} from '@grafana/schema';
 import { Icon } from '@grafana/ui';
 import React from 'react';
 import { demoUrl } from '../../utils/utils.routing';
 
 export function getRoomsTemperatureTable() {
-  return new VizPanel({
-    pluginId: 'table',
-    $data: new SceneDataTransformer({
-      transformations: [
-        {
-          id: 'reduce',
-          options: {
-            reducers: ['mean'],
-          },
-        },
-        {
-          id: 'organize',
-          options: {
-            excludeByName: {},
-            indexByName: {},
-            renameByName: {
-              Field: 'Room',
-              Mean: 'Average temperature',
-            },
-          },
-        },
-      ],
-    }),
-    title: 'Room temperature overview',
-    options: {
-      sortBy: ['Average temperature'],
-    },
-    fieldConfig: {
-      defaults: {
-        custom: {
-          align: 'auto',
-          cellOptions: {
-            type: 'auto',
-          },
-          inspect: false,
-        },
-        mappings: [],
-        color: {
-          mode: FieldColorModeId.ContinuousGrYlRd,
+  const data = new SceneDataTransformer({
+    transformations: [
+      {
+        id: 'reduce',
+        options: {
+          reducers: ['mean'],
         },
       },
-      overrides: [
-        {
-          matcher: {
-            id: 'byName',
-            options: 'Average temperature',
+      {
+        id: 'organize',
+        options: {
+          excludeByName: {},
+          indexByName: {},
+          renameByName: {
+            Field: 'Room',
+            Mean: 'Average temperature',
           },
-          properties: [
-            {
-              id: 'unit',
-              value: 'celsius',
-            },
-            {
-              id: 'custom.cellOptions',
-              value: {
-                type: 'gauge',
-                mode: 'gradient',
-              },
-            },
-            {
-              id: 'custom.align',
-              value: 'center',
-            },
-          ],
         },
-        {
-          matcher: {
-            id: 'byName',
-            options: 'Room',
-          },
-          properties: [
-            {
-              id: 'links',
-              value: [
-                {
-                  title: 'Go to room overview',
-                  url: `${demoUrl('with-drilldowns')}/room/\${__value.text}/temperature`,
-                },
-              ],
-            },
-            {
-              id: 'custom.width',
-              value: 250,
-            },
-          ],
-        },
-      ],
-    },
+      },
+    ],
   });
+  return PanelBuilders.table()
+    .setData(data)
+    .setTitle('Room temperature overview')
+    .setOption('sortBy', [
+      {
+        displayName: 'Average temperature',
+      },
+    ])
+    .setColor({
+      mode: FieldColorModeId.ContinuousGrYlRd,
+    })
+    .setCustomFieldConfig('align', 'auto')
+    .setCustomFieldConfig('cellOptions', {
+      type: TableCellDisplayMode.Auto,
+    })
+    .setCustomFieldConfig('inspect', false)
+    .setOverrides((b) =>
+      b
+        .matchFieldsWithName('Average temperature')
+        .overrideUnit('celsius')
+        .overrideCustomFieldConfig('cellOptions', {
+          type: TableCellDisplayMode.Gauge,
+          mode: BarGaugeDisplayMode.Gradient,
+        })
+        .overrideCustomFieldConfig('align', 'center')
+        .matchFieldsWithName('Room')
+        .overrideLinks([
+          {
+            title: 'Go to room overview',
+            url: `${demoUrl('with-drilldowns')}/room/\${__value.text}/temperature`,
+          },
+        ])
+        .overrideCustomFieldConfig('width', 250)
+    )
+    .build();
 }
 
 export function getRoomsTemperatureStats() {
@@ -124,9 +97,10 @@ export function getRoomsTemperatureStats() {
           direction: 'row',
           children: [
             new SceneFlexItem({
-              body: new VizPanel({
-                pluginId: 'timeseries',
-                headerActions: (
+              body: PanelBuilders.timeseries()
+                .setTitle(getFrameDisplayName(frame))
+                .setOption('legend', { showLegend: false })
+                .setHeaderActions(
                   <a
                     className="external-link"
                     href={`${demoUrl('with-drilldowns')}/room/${encodeURIComponent(
@@ -136,29 +110,17 @@ export function getRoomsTemperatureStats() {
                     <Icon name="arrow-right" />
                     Go to room
                   </a>
-                ),
-                title: getFrameDisplayName(frame),
-                options: {
-                  legend: { showLegend: false },
-                },
-              }),
+                )
+                .build(),
             }),
             new SceneFlexItem({
               width: 200,
-              body: new VizPanel({
-                title: 'Last',
-                pluginId: 'stat',
-                fieldConfig: {
-                  defaults: {
-                    displayName: 'Last',
-                  },
-                  overrides: [],
-                },
-                options: {
-                  graphMode: 'none',
-                  textMode: 'value',
-                },
-              }),
+              body: PanelBuilders.stat()
+                .setTitle('Last')
+                .setOption('graphMode', BigValueGraphMode.None)
+                .setOption('textMode', BigValueTextMode.Value)
+                .setDisplayName('Last')
+                .build(),
             }),
           ],
         }),
@@ -168,24 +130,16 @@ export function getRoomsTemperatureStats() {
 }
 
 export function getRoomTemperatureStatPanel(reducers: ReducerID[]) {
-  return new VizPanel({
-    pluginId: 'stat',
-    title: '',
-    $data: new SceneDataTransformer({
-      transformations: [
-        {
-          id: 'reduce',
-          options: {
-            reducers,
-          },
+  const data = new SceneDataTransformer({
+    transformations: [
+      {
+        id: 'reduce',
+        options: {
+          reducers,
         },
-      ],
-    }),
-    fieldConfig: {
-      defaults: {
-        unit: 'celsius',
       },
-      overrides: [],
-    },
+    ],
   });
+
+  return PanelBuilders.stat().setData(data).setUnit('celsius').build();
 }

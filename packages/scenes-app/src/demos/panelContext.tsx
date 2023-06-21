@@ -1,11 +1,11 @@
 import {
   SceneFlexLayout,
   SceneFlexItem,
-  VizPanel,
   SceneQueryRunner,
   SceneAppPage,
   EmbeddedScene,
   SceneAppPageState,
+  PanelBuilders,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
 import { getEmbeddedSceneDefaults } from './utils';
@@ -22,16 +22,11 @@ export function getPanelContextDemoScene(defaults: SceneAppPageState): SceneAppP
           children: [
             new SceneFlexItem({
               height: 400,
-              body: new VizPanel({
-                title: 'Check legend visibility actions, and color change',
-                $data: getQueryRunnerFor3SeriesWithLabels(),
-                fieldConfig: {
-                  defaults: {
-                    displayName: '${__field.labels.cluster}',
-                  },
-                  overrides: [],
-                },
-              }),
+              body: PanelBuilders.timeseries()
+                .setData(getQueryRunnerFor3SeriesWithLabels())
+                .setTitle('Check legend visibility actions, and color change')
+                .setDisplayName('${__field.labels.cluster}')
+                .build(),
             }),
           ],
         }),

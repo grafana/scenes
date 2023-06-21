@@ -1,10 +1,10 @@
 import {
-  VizPanel,
   SceneGridLayout,
   EmbeddedScene,
   SceneGridItem,
   SceneAppPageState,
   SceneAppPage,
+  PanelBuilders,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -15,6 +15,9 @@ export function getLazyLoadDemo(defaults: SceneAppPageState) {
     getScene: () => {
       const panelIds = Array.from(Array(20).keys());
       const height = 6;
+      const panel = PanelBuilders.timeseries().setData(
+        getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '5s' })
+      );
 
       return new EmbeddedScene({
         body: new SceneGridLayout({
@@ -27,11 +30,7 @@ export function getLazyLoadDemo(defaults: SceneAppPageState) {
                 height: height,
                 isResizable: true,
                 isDraggable: true,
-                body: new VizPanel({
-                  pluginId: 'timeseries',
-                  title: `Panel ${id}`,
-                  $data: getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '5s' }),
-                }),
+                body: panel.setTitle(`Panel ${id}`).build(),
               })
           ),
         }),

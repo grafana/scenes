@@ -7,12 +7,12 @@ import {
   TestVariable,
   EmbeddedScene,
   SceneFlexItem,
-  VizPanel,
   SceneCanvasText,
   NestedScene,
   SceneAppPage,
   SceneAppPageState,
   behaviors,
+  PanelBuilders,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -99,13 +99,14 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                     body: new SceneFlexLayout({
                       children: [
                         new SceneFlexItem({
-                          body: new VizPanel({
-                            pluginId: 'timeseries',
-                            title: 'handler: $handler',
-                            $data: getQueryRunnerWithRandomWalkQuery({
-                              alias: 'handler: $handler',
-                            }),
-                          }),
+                          body: PanelBuilders.timeseries()
+                            .setTitle('handler: $handler')
+                            .setData(
+                              getQueryRunnerWithRandomWalkQuery({
+                                alias: 'handler: $handler',
+                              })
+                            )
+                            .build(),
                         }),
                         new SceneFlexItem({
                           body: new SceneCanvasText({
@@ -133,13 +134,14 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                         direction: 'row',
                         children: [
                           new SceneFlexItem({
-                            body: new VizPanel({
-                              pluginId: 'timeseries',
-                              title: 'handler: $handler',
-                              $data: getQueryRunnerWithRandomWalkQuery({
-                                alias: 'handler: $handler',
-                              }),
-                            }),
+                            body: PanelBuilders.timeseries()
+                              .setTitle('handler: $handler')
+                              .setData(
+                                getQueryRunnerWithRandomWalkQuery({
+                                  alias: 'handler: $handler',
+                                })
+                              )
+                              .build(),
                           }),
                         ],
                       }),

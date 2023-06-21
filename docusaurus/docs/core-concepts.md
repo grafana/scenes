@@ -206,7 +206,6 @@ const queryRunner1 = new SceneQueryRunner({
       expr: 'rate(prometheus_http_requests_total{}[5m])',
     },
   ],
-  $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
 });
 
 // Panel B data
@@ -225,26 +224,31 @@ const queryRunner2 = new SceneQueryRunner({
 
 const scene = new EmbeddedScene({
   $data: queryRunner1,
+  // Global time range. queryRunner1 will use this time range.
+  $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
   body: new SceneFlexLayout({
     direction: 'row',
     children: [
       new SceneFlexItem({
         width: '50%',
         height: 300,
-        body: new VizPanel({ title: 'Panel A', pluginId: 'timeseries' }),
+        body: PanelBuilders.timeseries().setTitle('Panel using global time range').build(),
       }),
       new SceneFlexItem({
         width: '50%',
         height: 300,
-        body: new VizPanel({
-          title: 'Panel B',
-          pluginId: 'timeseries',
-          $data: queryRunner2,
-          // Time range defined on VizPanel objectt. queryRunner2 will use this time range.
-          $timeRange: new SceneTimeRange({ from: 'now-6h', to: 'now' }),
-        }),
+        body: PanelBuilders.timeseries()
+          .setTitle('Panel using local time range')
+          // Time range defined on VizPanel object. queryRunner2 will use this time range.
+          .setTimeRange(new SceneTimeRange({ from: 'now-6h', to: 'now' }))
+          .setData(queryRunner2)
+          .build(),
       }),
     ],
   }),
 });
 ```
+
+## Source code
+
+[View the examples source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/core-concepts.tsx)

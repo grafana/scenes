@@ -1,5 +1,5 @@
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
-import { VizPanel } from '../components/VizPanel/VizPanel';
+import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
 
 describe('SceneTimeRange', () => {
@@ -50,7 +50,7 @@ describe('SceneTimeRange', () => {
           children: [
             new SceneFlexItem({
               $timeRange: innerTimeRange,
-              body: new VizPanel({ pluginId: 'text' }),
+              body: PanelBuilders.text().build(),
             }),
           ],
         });
@@ -71,7 +71,7 @@ describe('SceneTimeRange', () => {
           children: [
             new SceneFlexItem({
               $timeRange: innerTimeRange,
-              body: new VizPanel({ pluginId: 'text' }),
+              body: PanelBuilders.text().build(),
             }),
           ],
         });
