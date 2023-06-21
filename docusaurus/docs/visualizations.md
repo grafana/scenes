@@ -137,9 +137,9 @@ Read more about standard options in the official [Grafana documentation](https:/
 myTimeSeriesPanel.setDecimals(2).setUnit('ms');
 ```
 
-### Step 6. Configure custom field config
+### Step 6. Configure custom field configurations
 
-Grafana visualizations provide custom, visualization-specific configuration options called _field config_.
+Grafana visualizations provide custom, visualization-specific configuration options called _field configurations_.
 Read more about field configurations in the official [Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/data-frames/#field-configurations).
 
 Use the `setCustomFieldConfig` method to set value of desired field config property.
