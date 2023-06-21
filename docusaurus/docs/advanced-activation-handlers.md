@@ -19,7 +19,7 @@ Follow these steps to create an activation handler.
 
 ### Step 1. Create a scene
 
-Start by creating a scene that renders a single time series panel:
+Start by creating a scene that renders a time series panel and a text panel:
 
 ```ts
 const queryRunner = new SceneQueryRunner({
@@ -32,10 +32,17 @@ const queryRunner = new SceneQueryRunner({
       refId: 'A',
       range: true,
       format: 'time_series',
-      expr: 'rate(prometheus_http_requests_total{handler="$handler"}[5m])',
+      expr: 'rate(prometheus_http_requests_total[5m])',
     },
   ],
 });
+
+const timeSeriesPanel = PanelBuilders.timeseries().setTitle('Panel title').setData(queryRunner).build();
+const debugView = PanelBuilders.text()
+  .setTitle('Debug view')
+  .setOption('mode', TextMode.HTML)
+  .setOption('content', '')
+  .build();
 
 const scene = new EmbeddedScene({
   $timeRange: new SceneTimeRange(),
@@ -44,12 +51,11 @@ const scene = new EmbeddedScene({
     direction: 'column',
     children: [
       new SceneFlexItem({
-        minWidth: '70%',
-        body: new VizPanel({
-          pluginId: 'timeseries',
-          title: 'Dynamic height and width',
-          $data: queryRunner,
-        }),
+        body: timeSeriesPanel,
+      }),
+      new SceneFlexItem({
+        width: '30%',
+        body: debugView,
       }),
     ],
   }),
@@ -58,12 +64,21 @@ const scene = new EmbeddedScene({
 
 ### Step 2. Add an activation handler
 
-Add an activation handler to `SceneQueryRunner` that subscribes to state changes and logs the current state. Keep in mind that a subscription to state won't be created until `SceneQueryRunner` is activated:
+Add an activation handler to `SceneQueryRunner` that subscribes to state changes and shows the executed query in the text panel. Keep in mind that a subscription to state won't be created until `SceneQueryRunner` is activated:
 
 ```ts
 queryRunner.addActivationHandler(() => {
+  let log = '';
+
   const sub = queryRunner.subscribeToState((state) => {
-    console.log('queryRunner state', state);
+    log =
+      `${new Date(Date.now()).toLocaleTimeString()} Executed query: <pre>${state.queries.map((q) => q.expr)}</pre>\n` +
+      log;
+    debugView.setState({
+      options: {
+        content: log,
+      },
+    });
   });
 });
 ```
@@ -74,8 +89,17 @@ From the activation handler, return a function that will unsubscribe from `query
 
 ```ts
 queryRunner.addActivationHandler(() => {
+  let log = '';
+
   const sub = queryRunner.subscribeToState((state) => {
-    console.log('queryRunner state', state);
+    log =
+      `${new Date(Date.now()).toLocaleTimeString()} Executed query: <pre>${state.queries.map((q) => q.expr)}</pre>\n` +
+      log;
+    debugView.setState({
+      options: {
+        content: log,
+      },
+    });
   });
 
   // Return deactivation handler
@@ -84,3 +108,7 @@ queryRunner.addActivationHandler(() => {
   };
 });
 ```
+
+## Source code
+
+[View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/advanced-activation-handlers.tsx)

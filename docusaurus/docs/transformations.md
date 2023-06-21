@@ -41,16 +41,13 @@ const queryRunner = new SceneQueryRunner({
   ],
 });
 
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $data: queryRunner,
   body: new SceneFlexLayout({
     direction: 'column',
     children: [
       new SceneFlexItem({
-        body: new VizPanel({
-          title: 'Average duration of HTTP request',
-          pluginId: 'table',
-        }),
+        body: PanelBuilders.table().setTitle('Average duration of HTTP request').build(),
       }),
     ],
   }),
@@ -101,16 +98,13 @@ Objects used in `transformations` are the same transformation configuration obje
 Use the newly created `transformedData` object in place of the previously used `SceneQueryRunner`:
 
 ```tsx
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $data: transformedData,
   body: new SceneFlexLayout({
     direction: 'column',
     children: [
       new SceneFlexItem({
-        body: new VizPanel({
-          title: 'Average duration of HTTP request',
-          pluginId: 'table',
-        }),
+        body: PanelBuilders.table().setTitle('Average duration of HTTP request').build(),
       }),
     ],
   }),
@@ -295,3 +289,7 @@ The resulting table will look similar to the one that follows:
 One powerful thing you can do with transformations (custom and built-in) is share query results between panels in interesting ways. This allows you to place most of your queries in a single query runner that lives at the top of the scene. Then you can use a `SceneDataTransformer` object on the `VizPanel` level to join and filter the resulting data in different ways. Some panels may need the result of two of the queries, and another may need the results of all of them.
 
 It's easy to filter the resulting `DataFrame` array by which query they came from using the `refId` property on `DataFrame`.
+
+## Source code
+
+[View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/transformations.tsx)

@@ -3,7 +3,7 @@ id: advanced-variables
 title: Variables in custom scene objects
 ---
 
-[Variables](./variables.md) lay the foundation for interactive dashboards. They allow dynamic configuration of which data is queried. 
+[Variables](./variables.md) lay the foundation for interactive dashboards. They allow dynamic configuration of which data is queried.
 
 In addition to standard variables support, Scenes provides an API to make [custom scene objects](./advanced-custom-scene-objects.md) work with variables. This API offers many more possibilities for dashboard creators.
 
@@ -21,7 +21,7 @@ This object will:
 2. Render a `textarea` for state modifications and a preformatted text block for displaying the current value of the `text` state.
 
 ```tsx
-import { SceneObjectState, SceneObjectState, SceneComponentProps } from '@grafana/scenes';
+import { SceneObjectState, SceneObjectBase, SceneComponentProps } from '@grafana/scenes';
 import { TextArea } from '@grafana/ui';
 
 interface TextInterpolatorState extends SceneObjectState {
@@ -148,3 +148,7 @@ function TextInterpolatorRenderer({ model }: SceneComponentProps<TextInterpolato
 ```
 
 The preceding code will render a scene with a template variable, text input, and a preformatted text block. Modify the text in the text input to `${greetings} World!`, and the preformatted text box will update. Change the variable value at the top of the scene, and that will also update the preformatted text block.
+
+## Source code
+
+[View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/advanced-variables.tsx)

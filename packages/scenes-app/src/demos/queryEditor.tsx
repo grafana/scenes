@@ -1,10 +1,10 @@
 import {
   EmbeddedScene,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneFlexItem,
   SceneFlexLayout,
-  VizPanel,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 import { QueryEditor } from '../components/QueryEditor/QueryEditor';
@@ -24,10 +24,7 @@ export function getQueryEditorDemo(defaults: SceneAppPageState) {
               body: new QueryEditor(),
             }),
             new SceneFlexItem({
-              body: new VizPanel({
-                pluginId: 'timeseries',
-                title: 'Timeseries',
-              }),
+              body: PanelBuilders.timeseries().setTitle('Timeseries').build(),
               minHeight: 400,
               minWidth: '40%',
             }),

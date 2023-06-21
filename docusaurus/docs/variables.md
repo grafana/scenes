@@ -24,7 +24,7 @@ Follow these steps to add variables to a scene.
 Start with a variable definition. The following code creates a variable that retrieves all `handler` label values for the `prometheus_http_requests_total` metric from the Prometheus data source:
 
 ```ts
-const handler = new QueryVariable({
+const handlers = new QueryVariable({
   name: 'handler',
   datasource: {
     type: 'prometheus',
@@ -46,9 +46,9 @@ in typical dashboard template variables when you view the dashboard JSON in the 
 Define a `$variables` property for your scene using the `SceneVariableSet` object:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $variables: new SceneVariableSet({
-    variables: [labels],
+    variables: [handlers],
   }),
   body: new SceneFlexLayout({
     children: [],
@@ -61,9 +61,9 @@ const myScene = new EmbeddedScene({
 Use the `controls` property of `EmbeddedScene` to show variable value pickers on top of the scene:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $variables: new SceneVariableSet({
-    variables: [labels],
+    variables: [handlers],
   }),
   body: new SceneFlexLayout({
     children: [],
@@ -102,9 +102,9 @@ Note, the `expr` property of the Prometheus query uses the `$handler` variable. 
 Connect `queryRunner`, which was created in the previous step, with the scene:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $variables: new SceneVariableSet({
-    variables: [labels],
+    variables: [handlers],
   }),
   $data: queryRunner,
   body: new SceneFlexLayout({
@@ -119,17 +119,15 @@ const myScene = new EmbeddedScene({
 To show the results of the query using the `handler` variable, add a time series visualization to the scene using the `VizPanel` class:
 
 ```ts
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $variables: new SceneVariableSet({
-    variables: [labels],
+    variables: [handlers],
   }),
   $data: queryRunner,
   body: new SceneFlexLayout({
     children: [
       new SceneFlexItem({
-        body: new VizPanel({
-          pluginId: 'timeseries',
-        }),
+        body: PanelBuilders.timeseries().build(),
       }),
     ],
   }),
@@ -142,8 +140,8 @@ Change the variable value using the selector on top of the scene to see updated 
 Following, you'll find the complete code of a scene using `QueryVariable`:
 
 ```ts
-const labels = new QueryVariable({
-  name: 'labels',
+const handlers = new QueryVariable({
+  name: 'handler',
   datasource: {
     type: 'prometheus',
     uid: '<PROVIDE_GRAFANA_DS_UID>',
@@ -168,17 +166,15 @@ const queryRunner = new SceneQueryRunner({
   ],
 });
 
-const myScene = new EmbeddedScene({
+const scene = new EmbeddedScene({
   $variables: new SceneVariableSet({
-    variables: [labels],
+    variables: [handlers],
   }),
   $data: queryRunner,
   body: new SceneFlexLayout({
     children: [
       new SceneFlexItem({
-        body: new VizPanel({
-          pluginId: 'timeseries',
-        }),
+        body: PanelBuilders.timeseries().build(),
       }),
     ],
   }),
@@ -228,3 +224,7 @@ The following macros work in row and value based data links.
 | `${__value.text}`          | Useful for data links in tables and other visualizations that render rows/values |
 | `${__value.raw}`           | Unformatted value                                                                |
 | `${__data.fields[0].text}` | Will interpolate to value of the first field/column on the same row              |
+
+## Source code
+
+[View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/variables.tsx)

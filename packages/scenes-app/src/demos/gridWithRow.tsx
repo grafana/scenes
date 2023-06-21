@@ -1,11 +1,11 @@
 import {
-  VizPanel,
   SceneGridLayout,
   SceneGridRow,
   SceneGridItem,
   SceneAppPage,
   EmbeddedScene,
   SceneAppPageState,
+  PanelBuilders,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -35,11 +35,7 @@ export function getGridWithRowLayoutTest(defaults: SceneAppPageState): SceneAppP
                   height: 5,
                   isResizable: true,
                   isDraggable: true,
-                  body: new VizPanel({
-                    pluginId: 'timeseries',
-                    title: 'Row A Child1',
-                    key: 'Row A Child1',
-                  }),
+                  body: PanelBuilders.timeseries().setTitle('Row A Child1').build(),
                 }),
                 new SceneGridItem({
                   x: 0,
@@ -48,11 +44,7 @@ export function getGridWithRowLayoutTest(defaults: SceneAppPageState): SceneAppP
                   height: 5,
                   isResizable: true,
                   isDraggable: true,
-                  body: new VizPanel({
-                    pluginId: 'timeseries',
-                    title: 'Row A Child2',
-                    key: 'Row A Child2',
-                  }),
+                  body: PanelBuilders.timeseries().setTitle('Row A Child2').build(),
                 }),
               ],
             }),
@@ -69,11 +61,7 @@ export function getGridWithRowLayoutTest(defaults: SceneAppPageState): SceneAppP
                   height: 5,
                   isResizable: false,
                   isDraggable: true,
-                  body: new VizPanel({
-                    pluginId: 'timeseries',
-                    title: 'Row B Child1',
-                    key: 'Row B Child1',
-                  }),
+                  body: PanelBuilders.timeseries().setTitle('Row B Child1').build(),
                 }),
                 new SceneGridItem({
                   x: 0,
@@ -82,11 +70,7 @@ export function getGridWithRowLayoutTest(defaults: SceneAppPageState): SceneAppP
                   height: 5,
                   isResizable: false,
                   isDraggable: true,
-                  body: new VizPanel({
-                    pluginId: 'timeseries',
-                    title: 'Row B Child2',
-                    key: 'Row B Child2',
-                  }),
+                  body: PanelBuilders.timeseries().setTitle('Row B Child2').build(),
                 }),
               ],
             }),
@@ -97,11 +81,7 @@ export function getGridWithRowLayoutTest(defaults: SceneAppPageState): SceneAppP
               height: 10,
               isResizable: true,
               isDraggable: true,
-              body: new VizPanel({
-                pluginId: 'timeseries',
-                title: 'Outsider',
-                key: 'Outsider',
-              }),
+              body: PanelBuilders.timeseries().setTitle('Outsider').build(),
             }),
           ],
         }),

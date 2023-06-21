@@ -39,10 +39,7 @@ const getOverviewScene =() => {
       direction: 'column',
       children: [new SceneFlexItem({
         minHeight: 300,
-        body: new VizPanel({
-          title: 'HTTP Requests per handler',
-          pluginId: 'timeseries',
-        })
+        body: PanelBuilders.timeseries().setTitle('HTTP Requests per handler').build(),
       })],
     }),
   });
@@ -71,10 +68,7 @@ const getHandlersScene =() => {
       direction: 'column',
       children: [new SceneFlexItem({
         minHeight: 300,
-        body: new VizPanel({
-          title: 'HTTP Requests per handler',
-          pluginId: 'table',
-        })
+        body: PanelBuilders.table().setTitle('HTTP Requests per handler').build(),
       })],
     }),
   });

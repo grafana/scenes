@@ -128,10 +128,7 @@ const getScene = () => {
       children: [
         new SceneFlexItem({
           minHeight: 300,
-          body: new VizPanel({
-            title: 'Panel title',
-            pluginId: 'timeseries',
-          }),
+          body: PanelBuilders.timeseries().build(),
         }),
       ],
     }),

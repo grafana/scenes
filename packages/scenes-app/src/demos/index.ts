@@ -17,6 +17,7 @@ import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
 import { getTimeZoneTest } from './timeZones';
 import { getSplitTest } from './split';
 import { getQueryCancellationTest } from './queryCancellation';
+import { getDocsExamples } from './docs-examples';
 
 export interface DemoDescriptor {
   title: string;
@@ -43,5 +44,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Time zones demo', getPage: getTimeZoneTest },
     { title: 'Split layout', getPage: getSplitTest },
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
+    { title: 'Docs examples', getPage: getDocsExamples },
   ];
 }

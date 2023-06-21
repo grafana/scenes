@@ -1,5 +1,4 @@
 import {
-  VizPanel,
   NestedScene,
   SceneTimePicker,
   SceneFlexLayout,
@@ -8,6 +7,7 @@ import {
   SceneAppPage,
   EmbeddedScene,
   SceneAppPageState,
+  PanelBuilders,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -23,11 +23,7 @@ export function getNestedScene(defaults: SceneAppPageState): SceneAppPage {
           direction: 'column',
           children: [
             new SceneFlexItem({
-              body: new VizPanel({
-                key: '3',
-                pluginId: 'timeseries',
-                title: 'Panel 3',
-              }),
+              body: PanelBuilders.timeseries().setTitle('Panel 3').build(),
             }),
             new SceneFlexItem({
               body: getInnerScene('Inner scene'),
@@ -48,11 +44,7 @@ export function getInnerScene(title: string) {
       direction: 'row',
       children: [
         new SceneFlexItem({
-          body: new VizPanel({
-            key: '3',
-            pluginId: 'timeseries',
-            title: 'Data',
-          }),
+          body: PanelBuilders.timeseries().setTitle('Data').build(),
         }),
       ],
     }),

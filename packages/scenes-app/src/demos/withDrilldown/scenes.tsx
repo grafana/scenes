@@ -1,5 +1,5 @@
 import { ReducerID } from '@grafana/data';
-import { EmbeddedScene, SceneFlexLayout, SceneQueryRunner, VizPanel, SceneFlexItem } from '@grafana/scenes';
+import { EmbeddedScene, SceneFlexLayout, SceneQueryRunner, SceneFlexItem, PanelBuilders } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../../constants';
 import { getEmbeddedSceneDefaults } from '../utils';
 import { getRoomTemperatureStatPanel } from './panels';
@@ -16,17 +16,7 @@ export function getRoomDrilldownScene(roomName: string) {
       children: [
         new SceneFlexItem({
           height: 500,
-          body: new VizPanel({
-            title: 'Temperature over time',
-            pluginId: 'timeseries',
-
-            fieldConfig: {
-              defaults: {
-                unit: 'celsius',
-              },
-              overrides: [],
-            },
-          }),
+          body: PanelBuilders.timeseries().setTitle('Temperature over time').setUnit('celsius').build(),
         }),
         new SceneFlexItem({
           body: new SceneFlexLayout({
@@ -62,17 +52,7 @@ export function getHumidityOverviewScene(roomName: string) {
       children: [
         new SceneFlexItem({
           height: 500,
-          body: new VizPanel({
-            title: 'Humidity readings over time',
-            pluginId: 'timeseries',
-
-            fieldConfig: {
-              defaults: {
-                unit: 'humidity',
-              },
-              overrides: [],
-            },
-          }),
+          body: PanelBuilders.timeseries().setTitle('Humidity over time').setUnit('humidity').build(),
         }),
       ],
     }),

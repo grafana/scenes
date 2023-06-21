@@ -30,7 +30,7 @@ Create your first scene using the snippet below. The following code will create 
 ```ts
 // helloWorldScene.ts
 
-import { EmbeddedScene, SceneFlexLayout, SceneFlexItem, VizPanel } from '@grafana/scenes';
+import { EmbeddedScene, SceneFlexLayout, SceneFlexItem, VizPanel, PanelBuilders } from '@grafana/scenes';
 
 export function getScene() {
   return new EmbeddedScene({
@@ -39,13 +39,7 @@ export function getScene() {
         new SceneFlexItem({
           width: '50%',
           height: 300,
-          body: new VizPanel({
-            title: 'Hello world panel',
-            pluginId: 'text',
-            options: {
-              content: 'Hello world! ',
-            },
-          }),
+          body: PanelBuilders.text().setTitle('Panel title').setOption('content', 'Hello world!').build(),
         }),
       ],
     }),
@@ -71,3 +65,7 @@ export const HelloWorldPluginPage = () => {
 :::note
 The rendered scene won't be rendered within Grafana plugin page. To integrate scenes with Grafana sidebar, navigation and plugin page follow [Scenes apps](./scene-app.md) guide.
 :::
+
+## Source code
+
+[View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/getting-started.tsx)

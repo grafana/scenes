@@ -26,7 +26,7 @@ Implement a class for the custom scene object. This class must extend the `Scene
 ```ts
 export class Counter extends SceneObjectBase<CounterState> {
   public constructor(state?: Partial<CounterState>) {
-    super({count: 0, ...state});
+    super({ count: 0, ...state });
   }
 }
 ```
@@ -46,7 +46,6 @@ Set a renderer for the `Counter` custom object using the `static Component` prop
 ```ts
 export class Counter extends SceneObjectBase<CounterState> {
   static Component = CounterRenderer;
-
 }
 ```
 
@@ -73,7 +72,6 @@ Define the state-modifying method, (`onIncrement`), in the custom scene object:
 ```ts
 export class Counter extends SceneObjectBase<CounterState> {
   public static Component = CounterRenderer;
-
 
   public onIncrement = () => {
     this.setState({ count: this.state.count + 1 });
@@ -111,3 +109,7 @@ const myScene = new EmbeddedScene({
   }),
 });
 ```
+
+## Source code
+
+[View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/advanced-custom-scene-objects.tsx)

@@ -156,7 +156,7 @@ Use `setOverrides` method to set desired field config override. For standard opt
 
 ```ts
 myTimeSeriesPanel.setOverrides((b) =>
-  b.matchFieldsWithNameByRegex('/metrics/').overrideDecimals(4).overrideCustomConfigProperty('lineWidth', 5)
+  b.matchFieldsWithNameByRegex('/metrics/').overrideDecimals(4).overrideCustomFieldConfig('lineWidth', 5)
 );
 ```
 
@@ -166,6 +166,22 @@ Use `build` method to get configured `VizPanel` object:
 
 ```ts
 const myPanel = myTimeSeriesPanel.build();
+```
+
+### Step 7. Add visualization to a scene
+
+Create a scene with a layout and add visualization as a layour child:
+
+```ts
+const scene = new EmbeddedScene({
+  body: new SceneFlexLayout({
+    children: [
+      new SceneFlexItem({
+        body: myPanel,
+      }),
+    ],
+  }),
+});
 ```
 
 Such built panel is now ready to be used in a scene.
@@ -197,8 +213,12 @@ export function CustomVizPanel(props: Props) {
 
   return (
     <div>
-      <h4>CustomVizPanel {options.mode}</h4>
-      <div>FieldConfig: {JSON.stringify(data.series[0]?.fields[0]?.config)}</div>
+      <h4>
+        CustomVizPanel options: <pre>{JSON.stringify(options)}</pre>
+      </h4>
+      <div>
+        CustomVizPanel field config: <pre>{JSON.stringify(data.series[0]?.fields[0]?.config)}</pre>
+      </div>
     </div>
   );
 }
@@ -209,12 +229,66 @@ export function CustomVizPanel(props: Props) {
 ```ts
 import { sceneUtils } from '@grafana/scenes';
 
-const myCustomPanel = new PanelPlugin<MyCustomOptions, MyCustomFieldOptions>(CustomVizPanel);
+const myCustomPanel = new PanelPlugin<CustomVizOptions, CustomVizFieldOptions>(CustomVizPanel).useFieldConfig({
+  useCustomConfig: (builder) => {
+    builder.addNumberInput({
+      path: 'numericOption',
+      name: 'Numeric option',
+      description: 'A numeric option',
+      defaultValue: 1,
+    });
+  },
+});
 
 sceneUtils.registerRuntimePanelPlugin({ pluginId: 'my-scene-app-my-custom-viz', plugin: myCustomPanel });
 ```
 
+### Step 4. Use custom panel in a scene
+
 You can now use this pluginId in any `VizPanel`. Make sure you specify a pluginId that includes your scene app name and is unlikely to conflict with other Scenes apps.
+
+```ts
+const data = new SceneQueryRunner({
+  datasource: {
+    type: 'prometheus',
+    uid: 'gdev-prometheus',
+  },
+  queries: [
+    {
+      refId: 'A',
+      expr: 'rate(prometheus_http_requests_total{}[5m])',
+    },
+  ],
+  $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+});
+
+return new EmbeddedScene({
+  $data: data,
+  body: new SceneFlexLayout({
+    children: [
+      new SceneFlexItem({
+        body: new VizPanel({
+          pluginId: 'my-scene-app-my-custom-viz',
+          options: { mode: 'my-custom-mode' },
+          fieldConfig: {
+            defaults: {
+              unit: 'ms',
+              custom: {
+                numericOption: 100,
+              },
+            },
+            overrides: [],
+          },
+        }),
+      }),
+    ],
+  }),
+});
+```
 
 For more information, refer to the official [tutorial on building panel plugins](https://grafana.com/tutorials/build-a-panel-plugin). Just remember that for Scenes runtime panel plugins,
 you don't need a plugin.json file for the panel plugin, as it won't be a standalone plugin that you can use in Dashboards. You'll only be able to reference the plugin inside your Scenes app.
+
+## Source code
+
+[View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/visualizations.tsx)
