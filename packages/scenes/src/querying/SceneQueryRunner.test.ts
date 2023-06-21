@@ -44,7 +44,6 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
   return (ds.query(request) as Observable<DataQueryResponse>).pipe(
     map((packet) => {
       result.state = LoadingState.Done;
-      //@ts-ignore
       result.series = packet.data;
       return result;
     })
