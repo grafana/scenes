@@ -180,6 +180,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
+    // Cancel any running queries
+    this._querySub?.unsubscribe();
+
     // Skip executing queries if variable dependency is in loading state
     if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
       writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
