@@ -1,3 +1,16 @@
+# v0.17.2 (Tue Jun 27 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Cancel previous request when starting new one [#238](https://github.com/grafana/scenes/pull/238) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v0.17.1 (Wed Jun 21 2023)
 
 #### 🐛 Bug Fix
