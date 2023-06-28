@@ -28,6 +28,7 @@ export interface QueryRunnerState extends SceneObjectState {
   datasource?: DataSourceRef;
   minInterval?: string;
   maxDataPoints?: number;
+  liveStreaming?: boolean;
   // Non persisted state
   maxDataPointsFromWidth?: boolean;
   isWaitingForVariables?: boolean;
@@ -218,6 +219,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       maxDataPoints: this.getMaxDataPoints(),
       scopedVars: sceneObjectScopedVar,
       startTime: Date.now(),
+      liveStreaming: this.state.liveStreaming,
     };
 
     try {
