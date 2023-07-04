@@ -1,11 +1,11 @@
 import {
   EmbeddedScene,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneFlexItem,
   SceneFlexItemState,
   SceneFlexLayout,
-  VizPanel,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults, getRowWithText } from './utils';
 
@@ -65,19 +65,15 @@ export function getResponsiveLayoutDemo(defaults: SceneAppPageState) {
 function getStatPanel(overrides?: Partial<SceneFlexItemState>) {
   return new SceneFlexItem({
     ...overrides,
-    body: new VizPanel({
-      pluginId: 'stat',
-      title: 'Stat',
-    }),
+    body: PanelBuilders.stat().setTitle('Stat').build(),
   });
 }
 
 function getTimeSeries(overrides?: Partial<SceneFlexItemState>, title?: string) {
   return new SceneFlexItem({
     ...overrides,
-    body: new VizPanel({
-      pluginId: 'timeseries',
-      title: title ?? 'Panel',
-    }),
+    body: PanelBuilders.timeseries()
+      .setTitle(title ?? 'Panel')
+      .build(),
   });
 }

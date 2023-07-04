@@ -8,7 +8,7 @@ import {
   SceneFlexLayout,
   VizPanel,
 } from '@grafana/scenes';
-import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
+import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getFlexLayoutTest(defaults: SceneAppPageState) {
   return new SceneAppPage({

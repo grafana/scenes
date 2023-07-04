@@ -41,11 +41,7 @@ function getOverviewScene() {
     ],
   });
 
-  const tablePanel = new VizPanel({
-    $data: queryRunner,
-    title: 'Average duration of HTTP request',
-    pluginId: 'table',
-  });
+  const tablePanel = PanelBuilders.table().setTitle('Average duration of HTTP request').setData(queryRunner).build();
 
   return new EmbeddedScene({
     body: new SceneFlexLayout({
@@ -78,37 +74,22 @@ function getSceneApp() {
 To show the drill-down page, you need to provide navigation. Configure Table panel data links (learn about data links in the [official Grafana documentation](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/)). Then modify the Table panel configuration to set up a data link for the `handler` field:
 
 ```tsx
-import { sceneUtils } from '@grafana/scenes';
+import { sceneUtils, PanelBuilders } from '@grafana/scenes';
 
 // ...
 
-const tablePanel = new VizPanel({
-  $data: queryRunner,
-  title: 'Average duration of HTTP request',
-  pluginId: 'table',
-  fieldConfig: {
-    defaults: {},
-    overrides: [
+const tablePanel = PanelBuilders.table()
+  .setTitle('Average duration of HTTP request')
+  .setData(queryRunner)
+  .setOverrides((b) =>
+    b.matchFieldsWithName('handler').overrideLinks([
       {
-        matcher: {
-          id: 'byName',
-          options: 'handler',
-        },
-        properties: [
-          {
-            id: 'links',
-            value: [
-              {
-                title: 'Go to handler overview',
-                url: `/a/<PLUGIN_ID>/my-app/${__value.text}${__url.params}`,
-              },
-            ],
-          },
-        ],
+        title: 'Go to handler overview',
+        url: '/a/<PLUGIN_ID>/my-app/${__value.text}${__url.params}',
       },
-    ],
-  },
-});
+    ])
+  )
+  .build();
 ```
 
 The resulting panel will have links for all values of the `handler` field. Clicking a value will redirect to a particular endpoint drill-down URL that will show a "Not found page" error. You'll set up this page in the next step.
@@ -211,19 +192,11 @@ function getHandlerDrilldownScene(handler: string) {
       children: [
         new SceneFlexItem({
           minHeight: 300,
-          body: new VizPanel({
-            $data: requestsDuration,
-            title: 'Requests duration',
-            pluginId: 'timeseries',
-          }),
+          body: PanelBuilders.timeseries().setTitle('Requests duration').setData(requestsDuration),
         }),
         new SceneFlexItem({
           minHeight: 300,
-          body: new VizPanel({
-            $data: requestsCount,
-            title: 'Requests count',
-            pluginId: 'timeseries',
-          }),
+          body: PanelBuilders.timeseries().setTitle('Requests count').setData(requestsCount),
         }),
       ],
     }),
@@ -253,33 +226,18 @@ function getOverviewScene() {
     ],
   });
 
-  const tablePanel = new VizPanel({
-    $data: queryRunner,
-    title: 'Average duration of HTTP request',
-    pluginId: 'table',
-    fieldConfig: {
-      defaults: {},
-      overrides: [
+  const tablePanel = PanelBuilders.table()
+    .setTitle('Average duration of HTTP request')
+    .setData(queryRunner)
+    .setOverrides((b) =>
+      b.matchFieldsWithName('handler').overrideLinks([
         {
-          matcher: {
-            id: 'byName',
-            options: 'handler',
-          },
-          properties: [
-            {
-              id: 'links',
-              value: [
-                {
-                  title: 'Go to handler overview',
-                  url: `/a/<PLUGIN_ID>/my-app/${__value.text}${__url.params}`,
-                },
-              ],
-            },
-          ],
+          title: 'Go to handler overview',
+          url: '/a/<PLUGIN_ID>/my-app/${__value.text}${__url.params}',
         },
-      ],
-    },
-  });
+      ])
+    )
+    .build();
 
   return new EmbeddedScene({
     body: new SceneFlexLayout({
@@ -341,19 +299,11 @@ function getHandlerDrilldownScene(handler: string) {
       children: [
         new SceneFlexItem({
           minHeight: 300,
-          body: new VizPanel({
-            $data: requestsDuration,
-            title: 'Requests duration',
-            pluginId: 'timeseries',
-          }),
+          body: PanelBuilders.timeseries().setTitle('Requests duration').setData(requestsDuration),
         }),
         new SceneFlexItem({
           minHeight: 300,
-          body: new VizPanel({
-            $data: requestsCount,
-            title: 'Requests count',
-            pluginId: 'timeseries',
-          }),
+          body: PanelBuilders.timeseries().setTitle('Requests count').setData(requestsCount),
         }),
       ],
     }),

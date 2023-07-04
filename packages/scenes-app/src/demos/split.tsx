@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   EmbeddedScene,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneCanvasText,
@@ -8,12 +9,11 @@ import {
   SceneFlexItem,
   SceneQueryRunner,
   SplitLayout,
-  VizPanel,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
 import { demoUrl } from '../utils/utils.routing';
 import { DATASOURCE_REF } from '../constants';
-import { FieldColorModeId } from '@grafana/schema';
+import { BarGaugeDisplayMode, FieldColorModeId, TableCellDisplayMode } from '@grafana/schema';
 import { DataLinkClickEvent } from '@grafana/data';
 import { getRoomTemperatureQuery } from './withDrilldown/scenes';
 import { IconButton } from '@grafana/ui';
@@ -28,11 +28,10 @@ const basicDemo = () =>
         key: 'Flex layout embedded scene',
         body: new SplitLayout({
           direction: 'row',
-          primary: new VizPanel({
-            pluginId: 'timeseries',
-            title: 'Dynamic height and width',
-            $data: getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }),
-          }),
+          primary: PanelBuilders.timeseries()
+            .setTitle('Dynamic height and width')
+            .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }))
+            .build(),
           secondary: new SplitLayout({
             ySizing: 'content',
             direction: 'column',
@@ -77,112 +76,75 @@ const getDynamicSplitScene = () => {
     maxDataPoints: 100,
   });
 
-  const table = new VizPanel({
-    pluginId: 'table',
-    $data: new SceneDataTransformer({
-      transformations: [
-        {
-          id: 'reduce',
-          options: {
-            reducers: ['mean'],
-          },
-        },
-        {
-          id: 'organize',
-          options: {
-            excludeByName: {},
-            indexByName: {},
-            renameByName: {
-              Field: 'Room',
-              Mean: 'Average temperature',
+  const table = PanelBuilders.table()
+    .setData(
+      new SceneDataTransformer({
+        transformations: [
+          {
+            id: 'reduce',
+            options: {
+              reducers: ['mean'],
             },
           },
-        },
-      ],
-    }),
-    title: 'Room temperature overview',
-    options: {
-      sortBy: ['Average temperature'],
-    },
-    fieldConfig: {
-      defaults: {
-        custom: {
-          align: 'auto',
-          cellOptions: {
-            type: 'auto',
-          },
-          inspect: false,
-        },
-        mappings: [],
-        color: {
-          mode: FieldColorModeId.ContinuousGrYlRd,
-        },
-      },
-      overrides: [
-        {
-          matcher: {
-            id: 'byName',
-            options: 'Average temperature',
-          },
-          properties: [
-            {
-              id: 'unit',
-              value: 'celsius',
-            },
-            {
-              id: 'custom.cellOptions',
-              value: {
-                type: 'gauge',
-                mode: 'gradient',
+          {
+            id: 'organize',
+            options: {
+              excludeByName: {},
+              indexByName: {},
+              renameByName: {
+                Field: 'Room',
+                Mean: 'Average temperature',
               },
             },
-            {
-              id: 'custom.align',
-              value: 'center',
-            },
-          ],
-        },
-        {
-          matcher: {
-            id: 'byName',
-            options: 'Room',
           },
-          properties: [
-            {
-              id: 'links',
-              value: [
-                {
-                  title: 'Go to room overview',
-                  onClick: (e: DataLinkClickEvent) => {
-                    const roomName = e.origin.field.values.get(e.origin.rowIndex);
-                    splitter.setState({
-                      secondary: new SceneFlexItem({
-                        minWidth: 500,
-                        body: new VizPanel({
-                          title: `${roomName} temperature`,
-                          $data: new SceneQueryRunner({
-                            datasource: DATASOURCE_REF,
-                            queries: [getRoomTemperatureQuery(roomName)],
-                          }),
-                          headerActions: (
-                            <IconButton name="x" onClick={() => splitter.setState({ secondary: defaultSecondary })} />
-                          ),
-                        }),
-                      }),
-                    });
-                  },
-                },
-              ],
+        ],
+      })
+    )
+    .setTitle('Room temperature overview')
+    .setOption('sortBy', [{ displayName: 'Average temperature' }])
+    .setCustomFieldConfig('align', 'auto')
+    .setCustomFieldConfig('cellOptions', { type: TableCellDisplayMode.Auto })
+    .setCustomFieldConfig('inspect', false)
+    .setColor({ mode: FieldColorModeId.ContinuousGrYlRd })
+    .setOverrides((b) =>
+      b
+        .matchFieldsWithName('Average temperature')
+        .overrideUnit('celsius')
+        .overrideCustomFieldConfig('align', 'center')
+        .overrideCustomFieldConfig('cellOptions', {
+          type: TableCellDisplayMode.Gauge,
+          mode: BarGaugeDisplayMode.Gradient,
+        })
+        .matchFieldsWithName('Room')
+        .overrideLinks([
+          {
+            title: 'Go to room overview',
+            url: '',
+            onClick: (e: DataLinkClickEvent) => {
+              const roomName = e.origin.field.values.get(e.origin.rowIndex);
+              splitter.setState({
+                secondary: new SceneFlexItem({
+                  minWidth: 500,
+                  body: PanelBuilders.timeseries()
+                    .setTitle(`${roomName} temperature`)
+                    .setData(
+                      new SceneQueryRunner({
+                        datasource: DATASOURCE_REF,
+                        queries: [getRoomTemperatureQuery(roomName)],
+                      })
+                    )
+                    .setHeaderActions(
+                      <IconButton name="x" onClick={() => splitter.setState({ secondary: defaultSecondary })} />
+                    )
+                    .build(),
+                }),
+              });
             },
-            {
-              id: 'custom.width',
-              value: 250,
-            },
-          ],
-        },
-      ],
-    },
-  });
+          },
+        ])
+        .overrideCustomFieldConfig('width', 250)
+    )
+    .build();
 
   const splitter = new SplitLayout({
     direction: 'row',

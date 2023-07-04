@@ -31,15 +31,13 @@ To work on @grafana/scenes SDK, please follow the guides below.
 
 ### Setting up @grafana/scenes with a local Grafana instance
 
-It is currently possible to run a Scenes demo using Grafana. To do that, the following setup is required.
+To setup scenes with local Grafana, the following setup is required:
 
 1. Clone the [Grafana Scenes repository](https://github.com/grafana/scenes/).
 1. Clone the [Grafana](https://github.com/grafana/grafana/) repository and follow the [Development guide](https://github.com/grafana/grafana/blob/main/contribute/developer-guide.md#developer-guide).
 1. Setup env variable `GRAFANA_PATH` to point to your Grafana repository directory, `export GRAFANA_PATH=<path-to-grafana-directory>`
 1. From Grafana Scenes root directory run `./scripts/dev.sh`. This will compile @grafana/scenes with watch mode enabled and link it to your Grafana.
 1. From Grafana directory run `yarn install`.
-1. Start Grafana with `scenes` [feature toggle enabled](https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/#feature_toggles)
-1. Navigate to `http://localhost:3000/scenes` to explore demos.
 
 ### Setting up local version of @grafana/scenes with app plugin
 

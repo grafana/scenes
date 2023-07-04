@@ -1,5 +1,6 @@
 import {
   EmbeddedScene,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneControlsSpacer,
@@ -10,7 +11,6 @@ import {
   SceneTimePicker,
   SceneTimeRange,
   SceneToolbarInput,
-  VizPanel,
 } from '@grafana/scenes';
 import { SceneRadioToggle } from '../../components/SceneRadioToggle';
 import { DATASOURCE_REF } from '../../constants';
@@ -56,7 +56,7 @@ export function getBehaviorsDemo(defaults: SceneAppPageState) {
             value: 'hidden',
           }),
           new SceneControlsSpacer(),
-          new SceneTimePicker({ isOnCanvas: true }),
+          new SceneTimePicker({}),
         ],
         body: new SceneFlexLayout({
           direction: 'column',
@@ -68,36 +68,34 @@ export function getBehaviorsDemo(defaults: SceneAppPageState) {
                   condition: (toogle: SceneRadioToggle) => toogle.state.value === 'visible',
                 }),
               ],
-              body: new VizPanel({
-                pluginId: 'text',
-                options: { content: 'This panel can be hidden with a toggle!' },
-              }),
+              body: PanelBuilders.text().setOption('content', 'This panel can be hidden with a toggle!').build(),
             }),
             new SceneFlexItem({
               $behaviors: [new HiddenForTimeRangeBehavior({ greaterThan: 'now-2d' })],
               // this needs to start out hidden as the behavior activates after the body
               isHidden: true,
-              body: new VizPanel({
-                title: 'Hidden for time ranges > 2d',
-                key: 'Hidden for time ranges > 2d',
-                $behaviors: [logEventsBehavior],
-                $data: new SceneQueryRunner({
-                  key: 'Hidden for time range query runner',
-                  $behaviors: [logEventsBehavior],
-                  queries: [
-                    {
-                      refId: 'A',
-                      datasource: DATASOURCE_REF,
-                      scenarioId: 'random_walk',
-                    },
-                  ],
-                }),
-              }),
+              body: PanelBuilders.timeseries()
+                .setTitle('Hidden for time ranges > 2d')
+                .setBehaviors([logEventsBehavior])
+                .setData(
+                  new SceneQueryRunner({
+                    key: 'Hidden for time range query runner',
+                    $behaviors: [logEventsBehavior],
+                    queries: [
+                      {
+                        refId: 'A',
+                        datasource: DATASOURCE_REF,
+                        scenarioId: 'random_walk',
+                      },
+                    ],
+                  })
+                )
+                .build(),
             }),
             new SceneFlexItem({
               $behaviors: [new HiddenWhenNoDataBehavior()],
               $data: queryRunner,
-              body: new VizPanel({ title: 'Hidden when no time series' }),
+              body: PanelBuilders.timeseries().setTitle('Hidden when no time series').build(),
             }),
           ],
         }),

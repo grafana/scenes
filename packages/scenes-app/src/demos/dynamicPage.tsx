@@ -1,5 +1,4 @@
 import {
-  VizPanel,
   SceneTimePicker,
   SceneFlexLayout,
   SceneTimeRange,
@@ -8,6 +7,7 @@ import {
   SceneAppPage,
   SceneRefreshPicker,
   SceneAppPageState,
+  PanelBuilders,
 } from '@grafana/scenes';
 import React from 'react';
 import { demoUrl } from '../utils/utils.routing';
@@ -20,7 +20,7 @@ export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
     ...defaults,
     subTitle: 'Dynamic tabs, and drilldowns. Adds a tab with drilldown after 2 seconds.',
     $timeRange: new SceneTimeRange(),
-    controls: [new SceneTimePicker({ isOnCanvas: true }), new SceneRefreshPicker({ isOnCanvas: true })],
+    controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
     tabs: defaultTabs,
   });
 
@@ -51,11 +51,7 @@ function getSceneAppPage(url: string, name: string) {
           direction: 'column',
           children: [
             new SceneFlexItem({
-              body: new VizPanel({
-                key: '3',
-                pluginId: 'timeseries',
-                title: name,
-              }),
+              body: PanelBuilders.timeseries().setTitle(name).build(),
             }),
           ],
         }),

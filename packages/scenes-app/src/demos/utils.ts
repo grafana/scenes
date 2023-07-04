@@ -30,11 +30,7 @@ export function getQueryRunnerWithRandomWalkQuery(
 export function getEmbeddedSceneDefaults() {
   return {
     $timeRange: new SceneTimeRange(),
-    controls: [
-      new SceneControlsSpacer(),
-      new SceneTimePicker({ isOnCanvas: true }),
-      new SceneRefreshPicker({ isOnCanvas: true }),
-    ],
+    controls: [new SceneControlsSpacer(), new SceneTimePicker({}), new SceneRefreshPicker({})],
   };
 }
 

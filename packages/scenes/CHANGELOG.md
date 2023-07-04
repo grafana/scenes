@@ -1,3 +1,29 @@
+# v0.17.2 (Tue Jun 27 2023)
+
+#### 🐛 Bug Fix
+
+- SceneQueryRunner: Cancel previous request when starting new one [#238](https://github.com/grafana/scenes/pull/238) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v0.17.1 (Wed Jun 21 2023)
+
+#### 🐛 Bug Fix
+
+- PanelBuilders: Add method for setting behaviors [#235](https://github.com/grafana/scenes/pull/235) ([@dprokop](https://github.com/dprokop))
+- SplitLayout: Add Splitter and SplitLayout [#229](https://github.com/grafana/scenes/pull/229) ([@kaydelaney](https://github.com/kaydelaney) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v0.17.0 (Mon Jun 19 2023)
 
 #### 🚀 Enhancement
