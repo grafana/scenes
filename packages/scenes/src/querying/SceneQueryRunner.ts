@@ -1,20 +1,30 @@
 import { cloneDeep } from 'lodash';
-import { Unsubscribable } from 'rxjs';
+import { forkJoin, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef, FieldColorModeId, LoadingState } from '@grafana/schema';
 
-import { CoreApp, DataQueryRequest, PanelData, preProcessPanelData, rangeUtil, ScopedVar } from '@grafana/data';
+import {
+  CoreApp,
+  DataQueryRequest,
+  DataSourceApi,
+  FieldType,
+  PanelData,
+  preProcessPanelData,
+  rangeUtil,
+  ScopedVar,
+} from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core/types';
+import { SceneDataProvider, SceneObject, SceneObjectState, SceneTimeRangeLike } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
+import { isMultiTimeRangeProvider, SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 
 let counter = 100;
 
@@ -58,6 +68,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
+    const comparer = getTimeCompare(this);
 
     this._subs.add(
       timeRange.subscribeToState(() => {
@@ -65,6 +76,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       })
     );
 
+    if (comparer) {
+      this._subs.add(
+        comparer.subscribeToState(() => {
+          this.runQueries();
+        })
+      );
+    }
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
     }
@@ -181,6 +199,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
+    const runRequest = getRunRequest();
     // Cancel any running queries
     this._querySub?.unsubscribe();
 
@@ -196,7 +215,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.setState({ isWaitingForVariables: false });
     }
 
-    const { minInterval, queries } = this.state;
+    const { queries } = this.state;
     const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
       __sceneObject: { text: '__sceneObject', value: this },
     };
@@ -207,7 +226,64 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    const request: DataQueryRequest = {
+    try {
+      const datasource = this.state.datasource ?? findFirstDatasource(queries);
+      const ds = await getDataSource(datasource, sceneObjectScopedVar);
+
+      const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
+
+      writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
+
+      if (secondaryRequest) {
+        const diff = request.range.from.diff(secondaryRequest.range.from);
+
+        this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)]).subscribe(([p, s]) => {
+          s.series.forEach((series) => {
+            series.refId = `${series.refId}-compare`;
+            series.fields.forEach((field) => {
+              // Align compare series time stamps with reference series
+              if (field.type === FieldType.time) {
+                field.values = field.values.map((v) => {
+                  return v + diff;
+                });
+              }
+              return (field.config = {
+                ...field.config,
+                displayName: `${field.name} (compare)`,
+                color: {
+                  mode: FieldColorModeId.Fixed,
+                  fixedColor: '#ff0000',
+                },
+              });
+            });
+          });
+
+          this.onDataReceived({
+            ...p,
+            series: [...p.series, ...s.series],
+          });
+        });
+      } else {
+        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+      }
+    } catch (err) {
+      console.error('PanelQueryRunner Error', err);
+    }
+  }
+
+  private prepareRequests = (
+    timeRange: SceneTimeRangeLike,
+    ds: DataSourceApi
+  ): [DataQueryRequest, DataQueryRequest | undefined] => {
+    const comparer = getTimeCompare(this);
+    const { minInterval, queries } = this.state;
+    const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
+      __sceneObject: { text: '__sceneObject', value: this },
+    };
+
+    let secondaryRequest: DataQueryRequest | undefined;
+
+    let request: DataQueryRequest = {
       app: CoreApp.Dashboard,
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
@@ -222,41 +298,45 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       liveStreaming: this.state.liveStreaming,
     };
 
-    try {
-      const datasource = this.state.datasource ?? findFirstDatasource(request.targets);
-      const ds = await getDataSource(datasource, request.scopedVars);
+    request.targets = request.targets.map((query) => {
+      if (!query.datasource) {
+        query.datasource = ds.getRef();
+      }
+      return query;
+    });
 
-      // Attach the data source name to each query
-      request.targets = request.targets.map((query) => {
-        if (!query.datasource) {
-          query.datasource = ds.getRef();
-        }
-        return query;
-      });
+    // TODO interpolate minInterval
+    const lowerIntervalLimit = minInterval ? minInterval : ds.interval;
+    const norm = rangeUtil.calculateInterval(timeRange.state.value, request.maxDataPoints!, lowerIntervalLimit);
 
-      // TODO interpolate minInterval
-      const lowerIntervalLimit = minInterval ? minInterval : ds.interval;
-      const norm = rangeUtil.calculateInterval(timeRange.state.value, request.maxDataPoints!, lowerIntervalLimit);
+    // make shallow copy of scoped vars,
+    // and add built in variables interval and interval_ms
+    request.scopedVars = Object.assign({}, request.scopedVars, {
+      __interval: { text: norm.interval, value: norm.interval },
+      __interval_ms: { text: norm.intervalMs.toString(), value: norm.intervalMs },
+    });
 
-      // make shallow copy of scoped vars,
-      // and add built in variables interval and interval_ms
-      request.scopedVars = Object.assign({}, request.scopedVars, {
-        __interval: { text: norm.interval, value: norm.interval },
-        __interval_ms: { text: norm.intervalMs.toString(), value: norm.intervalMs },
-      });
+    request.interval = norm.interval;
+    request.intervalMs = norm.intervalMs;
 
-      request.interval = norm.interval;
-      request.intervalMs = norm.intervalMs;
+    if (comparer) {
+      const [primaryTimeRange, secondaryTimeRange] = comparer.getTimeRanges();
+      if (secondaryTimeRange) {
+        secondaryRequest = {
+          ...request,
+          range: secondaryTimeRange,
+          requestId: getNextRequestId(),
+        };
 
-      const runRequest = getRunRequest();
-
-      writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
-
-      this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
-    } catch (err) {
-      console.error('PanelQueryRunner Error', err);
+        request = {
+          ...request,
+          range: primaryTimeRange,
+        };
+      }
     }
-  }
+
+    return [request, secondaryRequest];
+  };
 
   private onDataReceived = (data: PanelData) => {
     const preProcessedData = preProcessPanelData(data, this.state.data);
@@ -276,4 +356,23 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
+}
+
+/**
+ * Will walk up the scene graph and find the closest time range compare object
+ */
+function getTimeCompare(sceneObject: SceneObject): SceneTimeRangeCompare | null {
+  let comparer;
+  sceneObject.forEachChild((child) => {
+    if (isMultiTimeRangeProvider(child)) {
+      comparer = child;
+    }
+  });
+  if (comparer) {
+    return comparer;
+  }
+  if (sceneObject.parent) {
+    return getTimeCompare(sceneObject.parent);
+  }
+  return null;
 }
