@@ -62,7 +62,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
-    if (values.rowc === undefined) {
+    if (values.rowc == null) {
       return;
     }
 
