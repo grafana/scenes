@@ -435,7 +435,7 @@ describe('SceneQueryRunner', () => {
 
       deactivateQueryRunner();
 
-      timeRange.setState({ from: 'now-10m' });
+      timeRange.onRefresh();
 
       queryRunner.activate();
 
