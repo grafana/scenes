@@ -62,8 +62,11 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
-    const isCollapsed = values.rowc === '1';
-    if (isCollapsed !== this.state.isCollapsed) {
+    if (values.rowc === undefined) {
+      return;
+    }
+
+    if (values.rowc !== this.getUrlState().rowc) {
       this.onCollapseToggle();
     }
   }
