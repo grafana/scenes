@@ -1,9 +1,17 @@
 import { cloneDeep } from 'lodash';
-import { Unsubscribable } from 'rxjs';
+import { forkJoin, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef, FieldColorModeId, LoadingState } from '@grafana/schema';
 
-import { CoreApp, DataQueryRequest, PanelData, preProcessPanelData, rangeUtil, ScopedVar } from '@grafana/data';
+import {
+  CoreApp,
+  DataQueryRequest,
+  FieldType,
+  PanelData,
+  preProcessPanelData,
+  rangeUtil,
+  ScopedVar,
+} from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -15,6 +23,7 @@ import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
+import { isMultiTimeRangeProvider } from '../components/SceneTimeRangeWithComparison';
 
 let counter = 100;
 
@@ -207,7 +216,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    const request: DataQueryRequest = {
+    let request: DataQueryRequest = {
       app: CoreApp.Dashboard,
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
@@ -252,7 +261,56 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
-      this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+      let secondaryRequest: DataQueryRequest | undefined;
+
+      if (isMultiTimeRangeProvider(timeRange)) {
+        const [primaryTimeRange, secondaryTimeRange] = timeRange.getTimeRanges();
+        if (secondaryTimeRange) {
+          secondaryRequest = {
+            ...request,
+            range: secondaryTimeRange,
+            requestId: getNextRequestId(),
+          };
+
+          request = {
+            ...request,
+            range: primaryTimeRange,
+          };
+        }
+      }
+
+      if (secondaryRequest) {
+        const diff = request.range.from.diff(secondaryRequest.range.from);
+
+        this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)]).subscribe(([p, s]) => {
+          s.series.forEach((series) => {
+            series.refId = `${series.refId}-compare`;
+            series.fields.forEach((field) => {
+              // Aligne compare series time stamps with reference series
+              if (field.type === FieldType.time) {
+                field.values = field.values.map((v) => {
+                  return v + diff;
+                });
+              }
+              return (field.config = {
+                ...field.config,
+                displayName: `${field.name} (compare)`,
+                color: {
+                  mode: FieldColorModeId.Fixed,
+                  fixedColor: '#ff0000',
+                },
+              });
+            });
+          });
+
+          this.onDataReceived({
+            ...p,
+            series: [...p.series, ...s.series],
+          });
+        });
+      } else {
+        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+      }
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
     }

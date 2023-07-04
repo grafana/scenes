@@ -18,6 +18,7 @@ import { getTimeZoneTest } from './timeZones';
 import { getSplitTest } from './split';
 import { getQueryCancellationTest } from './queryCancellation';
 import { getDocsExamples } from './docs-examples';
+import { getTimeRangeComparisonTest } from './timeRangeComparison';
 
 export interface DemoDescriptor {
   title: string;
@@ -44,6 +45,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Time zones demo', getPage: getTimeZoneTest },
     { title: 'Split layout', getPage: getSplitTest },
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
+    { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
     { title: 'Docs examples', getPage: getDocsExamples },
   ];
 }
