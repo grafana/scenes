@@ -333,12 +333,12 @@ function encodeURIComponentStrict(str: VariableValueSingle) {
   return replaceSpecialCharactersToASCII(encodeURIComponent(str));
 }
 
-const encodeURIStrict = (str: VariableValueSingle): string =>
-  replaceSpecialCharactersToASCII(encodeURI(String(str)));
+const encodeURIStrict = (str: VariableValueSingle): string => replaceSpecialCharactersToASCII(encodeURI(String(str)));
 
-const replaceSpecialCharactersToASCII = (value: string): string => value.replace(/[!'()*]/g, (c) => {
-  return '%' + c.charCodeAt(0).toString(16).toUpperCase();
-});
+const replaceSpecialCharactersToASCII = (value: string): string =>
+  value.replace(/[!'()*]/g, (c) => {
+    return '%' + c.charCodeAt(0).toString(16).toUpperCase();
+  });
 
 function formatQueryParameter(name: string, value: VariableValueSingle): string {
   return `var-${name}=${encodeURIComponentStrict(value)}`;

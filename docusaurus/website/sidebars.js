@@ -49,7 +49,13 @@ const sidebars = {
       label: 'Advanced usage',
       collapsible: true,
       collapsed: false,
-      items: ['advanced-custom-scene-objects', 'advanced-activation-handlers', 'advanced-data', 'advanced-variables'],
+      items: [
+        'advanced-custom-scene-objects',
+        'advanced-activation-handlers',
+        'advanced-data',
+        'advanced-variables',
+        'advanced-custom-datasource',
+      ],
     },
   ],
 };

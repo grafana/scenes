@@ -17,6 +17,7 @@ import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
 import { getTimeZoneTest } from './timeZones';
 import { getSplitTest } from './split';
 import { getQueryCancellationTest } from './queryCancellation';
+import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
 
 export interface DemoDescriptor {
@@ -40,6 +41,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Query editor', getPage: getQueryEditorDemo },
     { title: 'Dynamic page', getPage: getDynamicPageDemo },
     { title: 'Runtime panel plugin', getPage: getRuntimePanelPluginDemo },
+    { title: 'Runtime data source plugin', getPage: getRuntimeDataSourceDemo },
     { title: 'Behaviors demo', getPage: getBehaviorsDemo },
     { title: 'Time zones demo', getPage: getTimeZoneTest },
     { title: 'Split layout', getPage: getSplitTest },

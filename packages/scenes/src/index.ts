@@ -1,5 +1,6 @@
 import { getUrlWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
+import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 
 export * from './core/types';
 export * from './core/events';
@@ -13,6 +14,7 @@ export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
+export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
@@ -58,4 +60,5 @@ export { PanelBuilders } from './core/PanelBuilders';
 export const sceneUtils = {
   getUrlWithAppState,
   registerRuntimePanelPlugin,
+  registerRuntimeDataSource,
 };
