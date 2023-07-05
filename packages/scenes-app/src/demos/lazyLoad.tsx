@@ -15,12 +15,10 @@ export function getLazyLoadDemo(defaults: SceneAppPageState) {
     getScene: () => {
       const panelIds = Array.from(Array(20).keys());
       const height = 6;
-      const panel = PanelBuilders.timeseries().setData(
-        getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '5s' })
-      );
 
       return new EmbeddedScene({
         body: new SceneGridLayout({
+          isLazy: true,
           children: panelIds.map(
             (id) =>
               new SceneGridItem({
@@ -30,7 +28,10 @@ export function getLazyLoadDemo(defaults: SceneAppPageState) {
                 height: height,
                 isResizable: true,
                 isDraggable: true,
-                body: panel.setTitle(`Panel ${id}`).build(),
+                body: PanelBuilders.timeseries()
+                  .setTitle(`Panel ${id}`)
+                  .setData(getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '5s' }))
+                  .build(),
               })
           ),
         }),

@@ -3,13 +3,12 @@ import ReactGridLayout from 'react-grid-layout';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { SceneComponentProps } from '../../../core/types';
 import { GRID_CELL_VMARGIN, GRID_COLUMN_COUNT, GRID_CELL_HEIGHT } from './constants';
-import { LazyLoader, Props } from './LazyLoader';
+import { LazyLoader } from './LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy } = model.useState();
-  const LazyWrapper = isLazy ? LazyLoader : ({ style, children }: Props) => <div style={style}>{children}</div>;
   validateChildrenSize(children);
 
   return (
@@ -21,7 +20,6 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
 
         const layout = model.buildGridLayout(width);
 
-        const cellWidth = (width - (GRID_COLUMN_COUNT - 1) * GRID_CELL_VMARGIN) / GRID_COLUMN_COUNT;
         return (
           /**
            * The children is using a width of 100% so we need to guarantee that it is wrapped
@@ -54,16 +52,14 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
             >
               {layout.map((gridItem) => {
                 const sceneChild = model.getSceneLayoutChild(gridItem.i)!;
-                const pixelWidth = cellToPixelSize(sceneChild.state.width ?? 0, cellWidth, GRID_CELL_VMARGIN);
-                const pixelHeight = cellToPixelSize(sceneChild.state.height ?? 0, GRID_CELL_HEIGHT, GRID_CELL_VMARGIN);
 
-                // Need a wrapper around LazyLoader as ReactGridLayout expects a
-                // class component to give a ref to.
-                return (
-                  <div style={{ display: 'flex' }} key={sceneChild.state.key}>
-                    <LazyWrapper width={pixelWidth} height={pixelHeight} style={{ display: 'flex' }}>
-                      <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
-                    </LazyWrapper>
+                return isLazy ? (
+                  <LazyLoader key={sceneChild.state.key!}>
+                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
+                  </LazyLoader>
+                ) : (
+                  <div key={sceneChild.state.key}>
+                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </div>
                 );
               })}
@@ -87,8 +83,4 @@ function validateChildrenSize(children: SceneGridItemLike[]) {
   ) {
     throw new Error('All children must have a size specified');
   }
-}
-
-function cellToPixelSize(sizeInCells: number, sizeOfCellInPx: number, margin = 0) {
-  return Math.max(Math.round(sizeInCells * (sizeOfCellInPx + margin) - margin), 0);
 }
