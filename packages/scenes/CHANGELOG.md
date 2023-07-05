@@ -1,3 +1,23 @@
+# v0.18.0 (Wed Jul 05 2023)
+
+#### 🚀 Enhancement
+
+- SceneGridLayout: Fixes draggable attribute [#245](https://github.com/grafana/scenes/pull/245) ([@torkelo](https://github.com/torkelo))
+- SceneGridLayout: Fixes issues with unmount on every re-render [#243](https://github.com/grafana/scenes/pull/243) ([@torkelo](https://github.com/torkelo))
+- Querying: Support runtime registered data source [#159](https://github.com/grafana/scenes/pull/159) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- SceneGridRow: Fix rows auto collapsing on load due to url sync [#241](https://github.com/grafana/scenes/pull/241) ([@torkelo](https://github.com/torkelo))
+- SceneQueryRunner: Support `liveStreaming` [#239](https://github.com/grafana/scenes/pull/239) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.17.2 (Tue Jun 27 2023)
 
 #### 🐛 Bug Fix
