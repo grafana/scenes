@@ -24,7 +24,7 @@ import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
-import { isMultiTimeRangeProvider, SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
+import { isTimeRangeCompareProvider, SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 
 let counter = 100;
 
@@ -319,8 +319,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.interval = norm.interval;
     request.intervalMs = norm.intervalMs;
 
+    const primaryTimeRange = timeRange.state.value;
     if (comparer) {
-      const [primaryTimeRange, secondaryTimeRange] = comparer.getTimeRanges();
+      const secondaryTimeRange = comparer.getCompareTimeRange(primaryTimeRange);
       if (secondaryTimeRange) {
         secondaryRequest = {
           ...request,
@@ -364,7 +365,7 @@ export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undef
 function getTimeCompare(sceneObject: SceneObject): SceneTimeRangeCompare | null {
   let comparer;
   sceneObject.forEachChild((child) => {
-    if (isMultiTimeRangeProvider(child)) {
+    if (isTimeRangeCompareProvider(child)) {
       comparer = child;
     }
   });

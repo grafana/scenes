@@ -1,12 +1,11 @@
 import React from 'react';
 import { dateTime, rangeUtil, TimeRange } from '@grafana/data';
 import { ButtonSelect, IconButton, InlineField } from '@grafana/ui';
-import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../core/types';
 
-export interface MultiTimeRangeProvider {
-  getTimeRanges(): [TimeRange, TimeRange | undefined];
+export interface TimeRangeCompareProvider {
+  getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
 }
 
 interface SceneTimeRangeCompareState extends SceneObjectState {
@@ -15,7 +14,7 @@ interface SceneTimeRangeCompareState extends SceneObjectState {
 
 export class SceneTimeRangeCompare
   extends SceneObjectBase<SceneTimeRangeCompareState>
-  implements MultiTimeRangeProvider
+  implements TimeRangeCompareProvider
 {
   static Component = SceneTimeRangeCompareRenderer;
 
@@ -47,10 +46,7 @@ export class SceneTimeRangeCompare
     this.setState({ compareWith: undefined });
   };
 
-  public getTimeRanges(): [TimeRange, TimeRange | undefined] {
-    const timeRangeObject = sceneGraph.getTimeRange(this);
-    const timeRange = timeRangeObject.state.value;
-
+  public getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined {
     let compareTimeRange: TimeRange | undefined;
     if (this.state.compareWith) {
       const compareFrom = dateTime(timeRange.from!).subtract(rangeUtil.intervalToMs(this.state.compareWith));
@@ -66,7 +62,7 @@ export class SceneTimeRangeCompare
       };
     }
 
-    return [timeRange, compareTimeRange];
+    return compareTimeRange;
   }
 }
 
@@ -93,7 +89,11 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
   );
 }
 
-// type guard for MultiTimeRangeProvider
-export function isMultiTimeRangeProvider(obj: any): obj is MultiTimeRangeProvider {
-  return obj && typeof obj.getTimeRanges === 'function';
+// type guard for TimeRangeCompareProvider
+export function isTimeRangeCompareProvider(obj: unknown): obj is TimeRangeCompareProvider {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    typeof (obj as TimeRangeCompareProvider).getCompareTimeRange === 'function'
+  );
 }
