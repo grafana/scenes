@@ -8,7 +8,7 @@ import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
-  const { children, isLazy } = model.useState();
+  const { children, isLazy, isDraggable } = model.useState();
   validateChildrenSize(children);
 
   return (
@@ -34,7 +34,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                     moving panels. https://github.com/grafana/grafana/issues/18497
                     theme.breakpoints.md = 769
                   */
-              isDraggable={width > 768}
+              isDraggable={isDraggable && width > 768}
               isResizable={false}
               containerPadding={[0, 0]}
               useCSSTransforms={false}
