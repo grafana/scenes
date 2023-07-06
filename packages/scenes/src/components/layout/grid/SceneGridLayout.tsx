@@ -26,7 +26,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   public constructor(state: SceneGridLayoutState) {
     super({
       ...state,
-      isDraggable: true,
       children: sortChildrenByPosition(state.children),
     });
   }
