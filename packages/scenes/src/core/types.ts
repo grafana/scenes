@@ -180,4 +180,6 @@ export interface SceneDataProvider extends SceneObject<SceneDataState> {
   cancelQuery?: () => void;
 }
 
-export type SceneStatelessBehavior = (sceneObject: SceneObject) => CancelActivationHandler | void;
+export type SceneStatelessBehavior<T extends SceneObject = SceneObject> = (
+  sceneObject: T
+) => CancelActivationHandler | void;
