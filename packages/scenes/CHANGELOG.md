@@ -1,3 +1,15 @@
+# v0.20.0 (Tue Jul 11 2023)
+
+#### 🚀 Enhancement
+
+- Behaviors: Enabled type stateless behavior params [#254](https://github.com/grafana/scenes/pull/254) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.19.0 (Tue Jul 11 2023)
 
 #### 🚀 Enhancement
