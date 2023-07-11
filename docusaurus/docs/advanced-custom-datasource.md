@@ -3,7 +3,7 @@ id: advanced-custom-datasource
 title: Custom data sources
 ---
 
-If you want to query a custom resource API, you can register a runtime data source. There are great benefits to this, because you can then leverage `SceneQueryRunner`.
+If you want to query a custom resource API, you can register a runtime data source. There are great benefits to this because you can then leverage `SceneQueryRunner`.
 
 `SceneQueryRunner` does a lot of complex work for you like:
 
