@@ -24,7 +24,7 @@ export interface SceneObjectState {
    * Can be used to add extra behaviors to a scene object.
    * These are activated when the their parent scene object is activated.
    */
-  $behaviors?: Array<SceneObject | SceneStatelessBehavior>;
+  $behaviors?: Array<SceneObject | SceneStatelessBehavior<any>>;
 }
 
 export interface SceneLayoutChildOptions {
@@ -180,6 +180,6 @@ export interface SceneDataProvider extends SceneObject<SceneDataState> {
   cancelQuery?: () => void;
 }
 
-export type SceneStatelessBehavior<T extends SceneObject = SceneObject> = (
-  sceneObject: T
-) => CancelActivationHandler | void;
+export interface SceneStatelessBehavior<T extends SceneObject = SceneObject> {
+  (sceneObject: T): CancelActivationHandler | void;
+}

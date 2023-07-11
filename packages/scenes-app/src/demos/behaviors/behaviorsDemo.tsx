@@ -104,7 +104,7 @@ export function getBehaviorsDemo(defaults: SceneAppPageState) {
   });
 }
 
-function logEventsBehavior(sceneObject: SceneObject) {
+function logEventsBehavior(sceneObject: SceneQueryRunner) {
   console.log(`[SceneObjectEvent]: ${sceneObject.constructor?.name} ${sceneObject.state.key} activated!`);
 
   sceneObject.subscribeToState((state) => {
