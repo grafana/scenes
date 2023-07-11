@@ -6,7 +6,6 @@ import {
   SceneControlsSpacer,
   SceneFlexItem,
   SceneFlexLayout,
-  SceneObject,
   SceneQueryRunner,
   SceneTimePicker,
   SceneTimeRange,
