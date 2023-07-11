@@ -8,7 +8,7 @@ import {
   SceneFlexLayout,
   SceneQueryRunner,
 } from '@grafana/scenes';
-import { Counter, Icon } from '@grafana/ui';
+import { Counter } from '@grafana/ui';
 import { getHumidityOverviewScene, getRoomDrilldownScene } from './scenes';
 import { getRoomsTemperatureStats, getRoomsTemperatureTable } from './panels';
 import { getEmbeddedSceneDefaults } from '../utils';
