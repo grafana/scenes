@@ -8,7 +8,7 @@ import {
   SceneFlexLayout,
   SceneQueryRunner,
 } from '@grafana/scenes';
-import { Icon } from '@grafana/ui';
+import { Counter, Icon } from '@grafana/ui';
 import { getHumidityOverviewScene, getRoomDrilldownScene } from './scenes';
 import { getRoomsTemperatureStats, getRoomsTemperatureTable } from './panels';
 import { getEmbeddedSceneDefaults } from '../utils';
@@ -66,12 +66,7 @@ export function getDrilldownsAppPageScene(defaults: SceneAppPageState) {
               new SceneAppPage({
                 title: 'Temperature',
                 titleIcon: 'dashboard',
-                tabSuffix: () => (
-                  <>
-                    {' '}
-                    <Icon name="exclamation-triangle" />
-                  </>
-                ),
+                tabSuffix: () => <Counter value={1} />,
                 url: `${defaults.url}/room/${roomName}/temperature`,
                 getScene: () => getRoomDrilldownScene(roomName),
               }),
