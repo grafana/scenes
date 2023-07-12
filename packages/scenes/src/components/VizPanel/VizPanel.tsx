@@ -278,17 +278,17 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   };
 
   private buildPanelContext() {
-    const sync = getCursorSyncScope(this);
-
     this._panelContext = {
       eventBus: new PanelContextEventBus(this),
       app: CoreApp.Unknown, // TODO,
       sync: () => {
-        if (sync) {
-          return sync.state.sync;
+        const syncScope = getCursorSyncScope(this);
+        if (syncScope) {
+          return syncScope.state.sync;
         }
         return DashboardCursorSync.Off;
-      }, // TODO
+      },
+      // TODO
       onSeriesColorChange: this._onSeriesColorChange,
       onToggleSeriesVisibility: this._onSeriesVisibilityChange,
       onToggleLegendSort: this._onToggleLegendSort,

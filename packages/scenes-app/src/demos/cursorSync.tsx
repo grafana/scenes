@@ -6,11 +6,9 @@ import {
   SceneAppPageState,
   SceneFlexItem,
   SceneFlexLayout,
-  SceneQueryRunner,
   VizPanel,
 } from '@grafana/scenes';
 import { DashboardCursorSync } from '@grafana/schema';
-import { DATASOURCE_REF } from '../constants';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getCursorSyncTest(defaults: SceneAppPageState) {
