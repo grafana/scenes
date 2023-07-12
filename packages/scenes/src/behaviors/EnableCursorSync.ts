@@ -1,4 +1,5 @@
 import { DashboardCursorSync } from '@grafana/schema';
+import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneObjectState } from '../core/types';
 
@@ -25,19 +26,5 @@ export class EnableCursorSync extends SceneObjectBase<EnableCursorSyncState> {
 }
 
 export function getCursorSyncScope(sceneObject: SceneObject): EnableCursorSync | null {
-  let sync;
-
-  sceneObject.forEachChild((child) => {
-    if (child instanceof EnableCursorSync) {
-      sync = child;
-    }
-  });
-
-  if (sync) {
-    return sync;
-  }
-  if (sceneObject.parent) {
-    return getCursorSyncScope(sceneObject.parent);
-  }
-  return null;
+  return sceneGraph.findObject(sceneObject, (o) => o instanceof EnableCursorSync) as EnableCursorSync;
 }
