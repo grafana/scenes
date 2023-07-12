@@ -15,7 +15,7 @@ import {
   applyFieldOverrides,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
-import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
+import { config, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
 import { DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
@@ -29,6 +29,7 @@ import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/EnableCursorSync';
+import { PanelContextEventBus } from './PanelContextEventBus';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   title: string;
@@ -280,7 +281,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     const sync = getCursorSyncScope(this);
 
     this._panelContext = {
-      eventBus: sync ? sync.getEventsBus() : getAppEvents(),
+      eventBus: new PanelContextEventBus(this),
       app: CoreApp.Unknown, // TODO,
       sync: () => {
         if (sync) {

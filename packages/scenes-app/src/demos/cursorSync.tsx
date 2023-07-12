@@ -6,9 +6,11 @@ import {
   SceneAppPageState,
   SceneFlexItem,
   SceneFlexLayout,
+  SceneQueryRunner,
   VizPanel,
 } from '@grafana/scenes';
 import { DashboardCursorSync } from '@grafana/schema';
+import { DATASOURCE_REF } from '../constants';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getCursorSyncTest(defaults: SceneAppPageState) {
@@ -50,6 +52,17 @@ export function getCursorSyncTest(defaults: SceneAppPageState) {
                     .setTitle('Panel 2')
                     .build(),
                 }),
+                new SceneFlexItem({
+                  body: PanelBuilders.piechart()
+                    .setData(getQueryRunnerWithRandomWalkQuery({ seriesCount: 2 }, { maxDataPoints: 50 }))
+                    .setTitle('Pie')
+                    .setOption('reduceOptions', {
+                      values: false,
+                      calcs: ['lastNotNull'],
+                      fields: '',
+                    })
+                    .build(),
+                }),
               ],
             }),
             new SceneFlexLayout({
@@ -67,6 +80,17 @@ export function getCursorSyncTest(defaults: SceneAppPageState) {
                   body: PanelBuilders.timeseries()
                     .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }))
                     .setTitle('Panel 4')
+                    .build(),
+                }),
+                new SceneFlexItem({
+                  body: PanelBuilders.piechart()
+                    .setData(getQueryRunnerWithRandomWalkQuery({ seriesCount: 2 }, { maxDataPoints: 50 }))
+                    .setTitle('Pie')
+                    .setOption('reduceOptions', {
+                      values: false,
+                      calcs: ['lastNotNull'],
+                      fields: '',
+                    })
                     .build(),
                 }),
               ],

@@ -1,3 +1,4 @@
+import { DataHoverEvent } from '@grafana/data';
 import { DashboardCursorSync } from '@grafana/schema';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -17,13 +18,26 @@ export class EnableCursorSync extends SceneObjectBase<EnableCursorSyncState> {
       ...state,
       sync: state.sync || DashboardCursorSync.Off,
     });
-  }
 
-  public getEventsBus = () => {
-    return this._events!.newScopedBus(this.state.key!, { onlyLocal: false });
-  };
+    this.addActivationHandler(() => {
+      const parent = this.parent!;
+
+      parent!.subscribeToEvent(DataHoverEvent, (evt) => {
+        broadcast(parent, this, evt);
+      });
+    });
+  }
 }
 
 export function getCursorSyncScope(sceneObject: SceneObject): EnableCursorSync | null {
   return sceneGraph.findObject(sceneObject, (o) => o instanceof EnableCursorSync) as EnableCursorSync;
+}
+
+function broadcast(obj: SceneObject, syncBehavior: SceneObject, event: DataHoverEvent) {
+  obj.forEachChild((child) => {
+    if (child !== syncBehavior) {
+      child.publishEvent(event, false);
+      broadcast(child, syncBehavior, event);
+    }
+  });
 }
