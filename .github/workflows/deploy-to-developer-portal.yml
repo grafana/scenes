@@ -18,12 +18,12 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
           registry-url: 'https://registry.npmjs.org'
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --immutable --prefer-offline
+        uses: ./.github/actions/yarn-nm-install
       
         #mac: sed -i '' 's/title: Set up Scenes/title: Set up Scenes\nslug:\ \//g' ./docusaurus/docs/getting-started.md
         #linux: sed -i 's/title: Set up Scenes/title: Set up Scenes\nslug:\ \//g' ./docusaurus/docs/getting-started.md
@@ -33,6 +33,8 @@ jobs:
           sed -i 's/title: Set up Scenes/title: Set up Scenes\nslug:\ \//g' ./docusaurus/docs/getting-started.md
           
       - name: Build documentation website
+        env:
+          GTAG_CONTAINER_ID: ${{ secrets.GTAG_CONTAINER_ID }}
         run: yarn docs:build -- --config docusaurus.config.devportal.js
         
       - id: 'auth'
