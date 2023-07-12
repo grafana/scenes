@@ -20,7 +20,7 @@ export class EnableCursorSync extends SceneObjectBase<EnableCursorSyncState> {
   }
 
   public getEventsBus = () => {
-    return this._events.newScopedBus(this.state.key!);
+    return this._events!.newScopedBus(this.state.key!, { onlyLocal: false });
   };
 }
 
