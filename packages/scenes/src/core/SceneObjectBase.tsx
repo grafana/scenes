@@ -24,10 +24,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 {
   private _isActive = false;
   private _state: TState;
-  private _events = new EventBusSrv();
   private _activationHandlers: SceneActivationHandler[] = [];
   private _deactivationHandlers: SceneDeactivationHandler[] = [];
 
+  protected _events = new EventBusSrv();
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
   protected _refCount = 0;
