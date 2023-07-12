@@ -3,7 +3,6 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneObjectState } from '../core/types';
 
 interface EnableCursorSyncState extends SceneObjectState {
-  // The name of the variable to subscribe to changes to.
   sync: DashboardCursorSync;
 }
 
