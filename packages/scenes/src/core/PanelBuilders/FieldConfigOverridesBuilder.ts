@@ -32,7 +32,7 @@ export class FieldConfigOverridesBuilder<TFieldConfig> extends StandardFieldConf
   public matchFieldsWithNameByRegex(regex: string): this {
     this._overrides.push({
       matcher: {
-        id: FieldMatcherID.byRegexpOrNames,
+        id: FieldMatcherID.byRegexp,
         options: regex,
       },
       properties: [],
