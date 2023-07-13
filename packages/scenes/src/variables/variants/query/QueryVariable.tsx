@@ -25,6 +25,8 @@ import { createQueryVariableRunner } from './createQueryVariableRunner';
 import { metricNamesToVariableValues } from './utils';
 import { toMetricFindValues } from './toMetricFindValues';
 import { getDataSource } from '../../../utils/getDataSource';
+import { SceneVariableSet } from '../../sets/SceneVariableSet';
+import { getClosest } from '../../../core/sceneGraph/utils';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -98,6 +100,12 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
         );
       })
     );
+  }
+
+  public cancel() {
+    this.setState({ loading: false });
+    const sceneVarSet = getClosest(this, (s) => s instanceof SceneVariableSet ? s : undefined);
+    sceneVarSet?.cancel(this);
   }
 
   private getRequest(target: DataQuery) {

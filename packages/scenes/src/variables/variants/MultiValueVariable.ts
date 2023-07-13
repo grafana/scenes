@@ -57,6 +57,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     );
   }
 
+  public cancel?(): void;
+
   /**
    * Check if current value is valid given new options. If not update the value.
    */

@@ -9,6 +9,8 @@ import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 import { VariableRefresh } from '@grafana/data';
+import { getClosest } from '../../core/sceneGraph/utils';
+import { SceneVariableSet } from '../sets/SceneVariableSet';
 
 export interface TestVariableState extends MultiValueVariableState {
   query: string;
@@ -56,20 +58,25 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
         },
       });
 
-      let timeout: NodeJS.Timeout | undefined;
-
+      let timeout: number | undefined;
       if (delayMs) {
-        timeout = setTimeout(() => this.signalUpdateCompleted(), delayMs);
+        timeout = window.setTimeout(() => this.signalUpdateCompleted(), delayMs);
       }
 
       this.isGettingValues = true;
 
       return () => {
         sub.unsubscribe();
-        clearTimeout(timeout);
+        window.clearTimeout(timeout);
+        this.setState({ loading: false })
         this.isGettingValues = false;
       };
     });
+  }
+
+  public cancel() {
+    const sceneVarSet = getClosest(this, (s) => s instanceof SceneVariableSet ? s : undefined);
+    sceneVarSet?.cancel(this);
   }
 
   private issueQuery() {
