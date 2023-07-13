@@ -40,7 +40,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       state.key = uuidv4();
     }
 
-    this._events = new EventBusSrv(state.key);
+    this._events = new EventBusSrv();
 
     this._state = Object.freeze(state);
     this._setParent();

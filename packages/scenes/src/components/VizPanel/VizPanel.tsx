@@ -28,7 +28,7 @@ import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';
 import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
-import { getCursorSyncScope } from '../../behaviors/EnableCursorSync';
+import { getCursorSyncScope } from '../../behaviors/CursorSync';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   title: string;
@@ -280,7 +280,9 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     const sync = getCursorSyncScope(this);
 
     this._panelContext = {
-      eventBus: sync ? sync.getEventsBus() : getAppEvents(),
+      // @ts-ignore Waits for core release
+      eventsScope: sync ? sync.getEventsScope() : '__global_',
+      eventBus: sync ? sync.getEventsBus(this) : getAppEvents(),
       app: CoreApp.Unknown, // TODO,
       sync: () => {
         if (sync) {

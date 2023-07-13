@@ -1,2 +1,2 @@
 export { ActWhenVariableChanged } from './ActWhenVariableChanged';
-export { EnableCursorSync } from './EnableCursorSync';
+export { CursorSync } from './CursorSync';

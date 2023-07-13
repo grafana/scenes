@@ -24,7 +24,7 @@ export function getCursorSyncTest(defaults: SceneAppPageState) {
           children: [
             new SceneFlexLayout({
               direction: 'row',
-              $behaviors: [new behaviors.EnableCursorSync({ key: 'sync1', sync: DashboardCursorSync.Tooltip })],
+              $behaviors: [new behaviors.CursorSync({ key: 'sync1', sync: DashboardCursorSync.Tooltip })],
               children: [
                 new SceneFlexItem({
                   body: new VizPanel({
@@ -54,7 +54,7 @@ export function getCursorSyncTest(defaults: SceneAppPageState) {
             }),
             new SceneFlexLayout({
               direction: 'row',
-              $behaviors: [new behaviors.EnableCursorSync({ key: 'sync2', sync: DashboardCursorSync.Crosshair })],
+              $behaviors: [new behaviors.CursorSync({ key: 'sync2', sync: DashboardCursorSync.Crosshair })],
               children: [
                 new SceneFlexItem({
                   body: new VizPanel({
@@ -73,7 +73,7 @@ export function getCursorSyncTest(defaults: SceneAppPageState) {
             }),
             new SceneFlexLayout({
               direction: 'row',
-              $behaviors: [new behaviors.EnableCursorSync({ key: 'sync3', sync: DashboardCursorSync.Off })],
+              $behaviors: [new behaviors.CursorSync({ key: 'sync3', sync: DashboardCursorSync.Off })],
               children: [
                 new SceneFlexItem({
                   body: new VizPanel({
