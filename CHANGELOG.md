@@ -1,3 +1,16 @@
+# v0.20.1 (Thu Jul 13 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - PanelBuilders: Fix regex matcher for overrides [#264](https://github.com/grafana/scenes/pull/264) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.20.0 (Tue Jul 11 2023)
 
 #### 🚀 Enhancement
