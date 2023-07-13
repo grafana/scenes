@@ -29,6 +29,38 @@ export function getCursorSyncTest(defaults: SceneAppPageState) {
                 new SceneFlexItem({
                   body: new VizPanel({
                     title: 'Panel 1 - syncs tooltip with Panel 2',
+                    pluginId: 'piechart',
+                    $data: getQueryRunnerWithRandomWalkQuery({
+                      alias: '__house_locations',
+                      seriesCount: 5,
+                      scenarioId: 'random_walk',
+                    }),
+                  }),
+                }),
+                new SceneFlexItem({
+                  body: PanelBuilders.piechart()
+                    .setData(
+                      getQueryRunnerWithRandomWalkQuery(
+                        {
+                          alias: '__house_locations',
+                          seriesCount: 5,
+                          scenarioId: 'random_walk',
+                        },
+                        { maxDataPoints: 50 }
+                      )
+                    )
+                    .setTitle('Panel 2')
+                    .build(),
+                }),
+              ],
+            }),
+            new SceneFlexLayout({
+              direction: 'row',
+              $behaviors: [new behaviors.CursorSync({ key: 'sync1', sync: DashboardCursorSync.Tooltip })],
+              children: [
+                new SceneFlexItem({
+                  body: new VizPanel({
+                    title: 'Panel 1 - syncs tooltip with Panel 2',
                     pluginId: 'timeseries',
                     $data: getQueryRunnerWithRandomWalkQuery({
                       scenarioId: 'csv_metric_values',
