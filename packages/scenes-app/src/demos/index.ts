@@ -19,6 +19,7 @@ import { getSplitTest } from './split';
 import { getQueryCancellationTest } from './queryCancellation';
 import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
+import { getDynamicVizOptionsDemo } from './dynamicVizOptions';
 
 export interface DemoDescriptor {
   title: string;
@@ -47,5 +48,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Split layout', getPage: getSplitTest },
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
     { title: 'Docs examples', getPage: getDocsExamples },
+    { title: 'Dynamic viz options', getPage: getDynamicVizOptionsDemo },
   ];
 }
