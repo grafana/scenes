@@ -1,3 +1,15 @@
+# v0.21.0 (Tue Jul 18 2023)
+
+#### 🚀 Enhancement
+
+- FieldConfigOverridesBuilder: Simplify matchFieldsByValue API [#267](https://github.com/grafana/scenes/pull/267) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.20.1 (Thu Jul 13 2023)
 
 #### 🐛 Bug Fix
