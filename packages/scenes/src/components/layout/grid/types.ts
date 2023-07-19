@@ -8,8 +8,8 @@ export interface SceneGridItemPlacement {
 }
 
 export interface SceneGridItemStateLike extends SceneGridItemPlacement, SceneObjectState {
-  isResizable: boolean;
-  isDraggable: boolean;
+  isResizable?: boolean;
+  isDraggable?: boolean;
 }
 
 export type SceneGridItemLike = SceneObject<SceneGridItemStateLike>;

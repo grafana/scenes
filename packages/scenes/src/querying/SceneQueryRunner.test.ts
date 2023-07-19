@@ -68,6 +68,64 @@ describe('SceneQueryRunner', () => {
     getDataSourceMock.mockClear();
   });
 
+  describe('when running query', () => {
+    it('should build DataQueryRequest object', async () => {
+      Date.now = jest.fn(() => 1689063488000);
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest).toBeDefined();
+      const { scopedVars, ...request } = sentRequest!;
+
+      expect(Object.keys(scopedVars)).toMatchInlineSnapshot(`
+        [
+          "__sceneObject",
+          "__interval",
+          "__interval_ms",
+        ]
+      `);
+      expect(request).toMatchInlineSnapshot(`
+        {
+          "app": "dashboard",
+          "interval": "30s",
+          "intervalMs": 30000,
+          "liveStreaming": undefined,
+          "maxDataPoints": 500,
+          "panelId": 1,
+          "range": {
+            "from": "2023-07-11T02:18:08.000Z",
+            "raw": {
+              "from": "now-6h",
+              "to": "now",
+            },
+            "to": "2023-07-11T08:18:08.000Z",
+          },
+          "rangeRaw": {
+            "from": "now-6h",
+            "to": "now",
+          },
+          "requestId": "SQR100",
+          "startTime": 1689063488000,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "test",
+              },
+              "refId": "A",
+            },
+          ],
+          "timezone": "browser",
+        }
+      `);
+    });
+  });
+
   describe('when activated and got no data', () => {
     it('should run queries', async () => {
       const queryRunner = new SceneQueryRunner({
