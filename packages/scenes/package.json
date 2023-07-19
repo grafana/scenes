@@ -37,7 +37,7 @@
     "url": "https://github.com/grafana/scenes/issues"
   },
   "dependencies": {
-    "@grafana/e2e-selectors": "canary",
+    "@grafana/e2e-selectors": "10.0.2",
     "@grafana/experimental": "1.0.1",
     "react-grid-layout": "1.3.4",
     "react-use": "17.4.0",
@@ -47,12 +47,12 @@
   "devDependencies": {
     "@emotion/css": "11.10.5",
     "@emotion/react": "11.10.5",
-    "@grafana/data": "canary",
+    "@grafana/data": "10.0.2",
     "@grafana/eslint-config": "5.1.0",
-    "@grafana/runtime": "canary",
-    "@grafana/schema": "canary",
+    "@grafana/runtime": "10.0.2",
+    "@grafana/schema": "10.0.2",
     "@grafana/tsconfig": "^1.2.0-rc1",
-    "@grafana/ui": "canary",
+    "@grafana/ui": "10.0.2",
     "@rollup/plugin-eslint": "^9.0.3",
     "@rollup/plugin-node-resolve": "15.0.1",
     "@swc/core": "^1.2.162",
