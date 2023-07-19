@@ -43,15 +43,17 @@
     "react-virtualized-auto-sizer": "1.0.7",
     "uuid": "^9.0.0"
   },
+  "peerDependencies": {
+    "@grafana/data": "10.0.2",
+    "@grafana/runtime": "10.0.2",
+    "@grafana/schema": "10.0.2",
+    "@grafana/ui": "10.0.2"
+  },
   "devDependencies": {
     "@emotion/css": "11.10.5",
     "@emotion/react": "11.10.5",
-    "@grafana/data": "10.0.2",
     "@grafana/eslint-config": "5.1.0",
-    "@grafana/runtime": "10.0.2",
-    "@grafana/schema": "10.0.2",
     "@grafana/tsconfig": "^1.2.0-rc1",
-    "@grafana/ui": "10.0.2",
     "@rollup/plugin-eslint": "^9.0.3",
     "@rollup/plugin-node-resolve": "15.0.1",
     "@swc/core": "^1.2.162",
