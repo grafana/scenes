@@ -1,3 +1,16 @@
+# v0.22.0 (Wed Jul 19 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Mark grafana dependencies as peerDependencies [#268](https://github.com/grafana/scenes/pull/268) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.21.0 (Tue Jul 18 2023)
 
 #### 🚀 Enhancement
