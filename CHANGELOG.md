@@ -1,3 +1,16 @@
+# v0.23.0 (Wed Jul 19 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Behaviors: Provide behavior for visualization cursor sync [#259](https://github.com/grafana/scenes/pull/259) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.22.0 (Wed Jul 19 2023)
 
 #### 🚀 Enhancement
