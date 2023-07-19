@@ -1,8 +1,7 @@
 import { css } from '@emotion/css';
-import React from 'react';
+import React, { CSSProperties, useCallback } from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Stack } from '@grafana/experimental';
 import { Button, ToolbarButton, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -116,3 +115,28 @@ const getStyles = (theme: GrafanaTheme2) => ({
 function isSceneLayoutItem(x: SceneObject): x is SceneObject<SceneObjectState & { body: SceneObject | undefined }> {
   return 'body' in x.state;
 }
+
+interface StackProps {
+  direction?: CSSProperties['flexDirection'];
+  alignItems?: CSSProperties['alignItems'];
+  wrap?: boolean;
+  gap?: number;
+  flexGrow?: CSSProperties['flexGrow'];
+}
+
+const Stack = ({ children, ...props }: React.PropsWithChildren<StackProps>) => {
+  const styles = useStyles2(useCallback((theme) => getStackStyles(theme, props), [props]));
+
+  return <div className={styles.root}>{children}</div>;
+};
+
+const getStackStyles = (theme: GrafanaTheme2, props: StackProps) => ({
+  root: css({
+    display: 'flex',
+    flexDirection: props.direction ?? 'row',
+    flexWrap: props.wrap ?? true ? 'wrap' : undefined,
+    alignItems: props.alignItems,
+    gap: theme.spacing(props.gap ?? 2),
+    flexGrow: props.flexGrow,
+  }),
+});
