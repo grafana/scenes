@@ -11,6 +11,7 @@ export interface TimeRangeCompareProvider {
 
 interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
+  compareOptions: Array<{label: string; value: string}>;
 }
 
 const DEFAULT_COMPARE_OPTIONS = [
@@ -32,12 +33,21 @@ export class SceneTimeRangeCompare
   static Component = SceneTimeRangeCompareRenderer;
 
   public constructor(state: Partial<SceneTimeRangeCompareState>) {
-    super(state);
+    super({ compareOptions: DEFAULT_COMPARE_OPTIONS, ...state});
+    this.addActivationHandler(this._onActivate);
   }
 
-  public getCompareOptions = () => {
-    const timeRange = sceneGraph.getTimeRange(this);
-    const diffDays = Math.ceil(timeRange.state.value.to.diff(timeRange.state.value.from) / ONE_DAY_MS_LENGTH);
+  private _onActivate = () => {
+    const sceneTimeRange = sceneGraph.getTimeRange(this);
+    this.setState({ compareOptions: this.getCompareOptions(sceneTimeRange.state.value) });
+  
+    this._subs.add(sceneTimeRange.subscribeToState((timeRange) => {
+      this.setState({ compareOptions: this.getCompareOptions(timeRange.value) });
+    }));
+  }
+
+  public getCompareOptions = (timeRange: TimeRange) => {
+    const diffDays = Math.ceil(timeRange.to.diff(timeRange.from) / ONE_DAY_MS_LENGTH);
     const matchIndex = DEFAULT_COMPARE_OPTIONS.findIndex(({ days }) => days >= diffDays);
 
     return DEFAULT_COMPARE_OPTIONS.slice(matchIndex).map(({ label, value }) => ({ label, value }));
@@ -72,9 +82,8 @@ export class SceneTimeRangeCompare
 }
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
-  const options = model.getCompareOptions();
-  const { compareWith } = model.useState();
-  const value = options.find((o) => o.value === compareWith);
+  const { compareWith, compareOptions } = model.useState();
+  const value = compareOptions.find((o) => o.value === compareWith);
 
   return (
     // UI here is temporary, just for the sake of testing the functionality
@@ -83,7 +92,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
         <ButtonSelect
           value={value}
           variant="canvas"
-          options={options}
+          options={compareOptions}
           onChange={(v) => {
             model.onCompareWithChanged(v.value!);
           }}
