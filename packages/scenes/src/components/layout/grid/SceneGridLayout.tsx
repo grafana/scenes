@@ -14,6 +14,8 @@ interface SceneGridLayoutState extends SceneObjectState {
    * Turn on or off dragging for all items. Indiviadual items can still disabled via isDraggable property
    **/
   isDraggable?: boolean;
+  /** Enable or disable item resizing */
+  isResizable?: boolean;
   isLazy?: boolean;
   children: SceneGridItemLike[];
 }
@@ -43,6 +45,17 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
   public getDragClassCancel() {
     return `grid-drag-cancel`;
+  }
+
+  /**
+   * Will set isDraggable and isResizable and trigger re-render of all children
+   * The child force re-render is because VizPanel checks layout isDraggable but
+   * does not subscribe to layout changes (for optimization reasons).
+   * @internal
+   */
+  public toggleEditMode(isEditing: boolean) {
+    this.setState({ isResizable: isEditing, isDraggable: isEditing });
+    this.forEachChild(forceRenderChildren);
   }
 
   public toggleRow(row: SceneGridRow) {
@@ -274,8 +287,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     const w = Number.isInteger(Number(size.width)) ? Number(size.width) : DEFAULT_PANEL_SPAN;
     const h = Number.isInteger(Number(size.height)) ? Number(size.height) : DEFAULT_PANEL_SPAN;
 
-    let isDraggable = Boolean(child.state.isDraggable);
-    let isResizable = Boolean(child.state.isResizable);
+    let isDraggable = child.state.isDraggable;
+    let isResizable = child.state.isResizable;
 
     if (child instanceof SceneGridRow) {
       isDraggable = child.state.isCollapsed ? true : false;
@@ -355,4 +368,12 @@ function isSceneGridRow(child: SceneObject): child is SceneGridRow {
 
 function isSceneGridLayout(child: SceneObject): child is SceneGridLayout {
   return child instanceof SceneGridLayout;
+}
+
+function forceRenderChildren(child: SceneGridItemLike) {
+  if (child instanceof SceneGridItem) {
+    child.state.body?.forceRender();
+  } else if (child instanceof SceneGridRow) {
+    child.forEachChild(forceRenderChildren);
+  }
 }
