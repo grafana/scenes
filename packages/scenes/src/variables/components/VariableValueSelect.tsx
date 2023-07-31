@@ -47,7 +47,6 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       allowCustomValue
       tabSelectsValue={false}
       isLoading={loading}
-      isClearable={true}
       options={model.getOptionsForSelect()}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);

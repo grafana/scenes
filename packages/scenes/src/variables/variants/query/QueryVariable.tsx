@@ -104,7 +104,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
   public cancel() {
     this.setState({ loading: false });
-    const sceneVarSet = getClosest(this, (s) => s instanceof SceneVariableSet ? s : undefined);
+    const sceneVarSet = this.parent as SceneVariableSet;
     sceneVarSet?.cancel(this);
   }
 
