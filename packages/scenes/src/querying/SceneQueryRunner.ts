@@ -296,6 +296,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       scopedVars: sceneObjectScopedVar,
       startTime: Date.now(),
       liveStreaming: this.state.liveStreaming,
+      rangeRaw: {
+        from: timeRange.state.from,
+        to: timeRange.state.to,
+      },
     };
 
     request.targets = request.targets.map((query) => {

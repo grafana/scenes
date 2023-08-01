@@ -6,6 +6,7 @@ import {
   SceneCanvasText,
   SceneFlexItem,
   SceneFlexLayout,
+  VizPanel,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -25,10 +26,11 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
               children: [
                 new SceneFlexItem({
                   minWidth: '70%',
-                  body: PanelBuilders.timeseries()
-                    .setTitle('Dynamic height and width')
-                    .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }))
-                    .build(),
+                  body: new VizPanel({
+                    title: 'Data coming from custom runtime registered data source',
+                    pluginId: 'table',
+                    $data: getQueryRunnerWithRandomWalkQuery({}),
+                  }),
                 }),
                 new SceneFlexLayout({
                   $data: getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }),

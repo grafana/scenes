@@ -18,6 +18,7 @@ export function getGridWithRowLayoutTest(defaults: SceneAppPageState): SceneAppP
         ...getEmbeddedSceneDefaults(),
         $data: getQueryRunnerWithRandomWalkQuery(),
         body: new SceneGridLayout({
+          isDraggable: true,
           children: [
             new SceneGridRow({
               title: 'Row A',

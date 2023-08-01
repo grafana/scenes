@@ -5,7 +5,6 @@ import { SceneFlexItemPlacement } from '../SceneFlexLayout';
 import { SplitLayout } from './SplitLayout';
 import { Splitter } from './Splitter';
 
-
 export function SplitLayoutRenderer({ model }: SceneFlexItemRenderProps<SplitLayout>) {
   const { primary, secondary, direction, isHidden } = model.useState();
 
