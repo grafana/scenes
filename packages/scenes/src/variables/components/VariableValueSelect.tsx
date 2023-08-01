@@ -7,7 +7,7 @@ import { LoadingIndicatorProps } from 'react-select';
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
 import { selectors } from '@grafana/e2e-selectors';
-import { VariableValue } from '../types';
+import { VariableValue, VariableValueSingle } from '../types';
 
 
 const LoadingIndicator = ({ innerProps, ...props }: LoadingIndicatorProps & { selectProps: { onCancel: () => void }}) => {
@@ -62,7 +62,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
   const arrayValue = isArray(value) ? value : [value];
 
   return (
-    <MultiSelect
+    <MultiSelect<VariableValueSingle, { onCancel: () => void }>
       id={key}
       placeholder="Select value"
       width="auto"

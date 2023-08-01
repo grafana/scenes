@@ -26,7 +26,6 @@ import { metricNamesToVariableValues } from './utils';
 import { toMetricFindValues } from './toMetricFindValues';
 import { getDataSource } from '../../../utils/getDataSource';
 import { SceneVariableSet } from '../../sets/SceneVariableSet';
-import { getClosest } from '../../../core/sceneGraph/utils';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
