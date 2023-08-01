@@ -23,13 +23,13 @@ jobs:
         uses: ./.github/actions/yarn-nm-install
 
       - name: Test library
-        run: lerna run test
+        run: yarn run lerna run test
 
       - name: Typecheck library
-        run: lerna run typecheck
+        run: yarn run lerna run typecheck
 
       - name: Build library
-        run: lerna run build --ignore website
+        run: yarn run lerna run build --ignore website
 
   release:
     name: Release
