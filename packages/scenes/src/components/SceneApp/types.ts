@@ -1,3 +1,4 @@
+import { ComponentType } from 'react';
 import { SceneObject, SceneObjectState } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { IconName } from '@grafana/data';
@@ -21,7 +22,7 @@ export interface SceneAppRoute {
 }
 
 export interface SceneAppPageState extends SceneObjectState {
-  /** Page title */
+  /** Page title or tab label */
   title: string;
   /** Page subTitle */
   subTitle?: string | React.ReactNode;
@@ -32,8 +33,10 @@ export interface SceneAppPageState extends SceneObjectState {
   renderTitle?: (title: string) => React.ReactNode;
   /** For an image before title */
   titleImg?: string;
-  /** For an icon before title */
+  /** For an icon before title or tab label */
   titleIcon?: IconName;
+  /** For a tab label suffix */
+  tabSuffix?: ComponentType<{ className?: string; }>,
   // Use to provide page absolute URL, i.e. /app/overview
   url: string;
   // Use to provide parametrized page URL, i.e. /app/overview/:clusterId

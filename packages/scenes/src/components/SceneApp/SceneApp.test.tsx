@@ -107,6 +107,8 @@ describe('SceneApp', () => {
           tabs: [
             new SceneAppPage({
               title: 'Tab1',
+              titleIcon: 'grafana',
+              tabSuffix: () => <strong>tab1 suffix</strong>,
               url: '/test/tab1',
               getScene: () => setupScene(t1Object),
             }),
@@ -129,6 +131,12 @@ describe('SceneApp', () => {
 
     it('should render correct breadcrumbs', async () => {
       expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Container page']);
+    });
+
+    it('should render tab title with icon and suffix', async () => {
+      expect(pluginPageProps?.pageNav?.children[0].icon).toEqual('grafana');
+      const suffix = pluginPageProps?.pageNav?.children[0].tabSuffix;
+      expect((suffix as any)()).toEqual(<strong>tab1 suffix</strong>);
     });
 
     it('Render first tab with the url of the parent', () => {
