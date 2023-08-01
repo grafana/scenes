@@ -134,8 +134,8 @@ describe('SceneApp', () => {
     });
 
     it('should render tab title with icon and suffix', async () => {
-      expect(pluginPageProps?.pageNav?.children[0].icon).toEqual('grafana');
-      const suffix = pluginPageProps?.pageNav?.children[0].tabSuffix;
+      expect(pluginPageProps?.pageNav?.children?.[0].icon).toEqual('grafana');
+      const suffix = pluginPageProps?.pageNav?.children?.[0].tabSuffix;
       expect((suffix as any)()).toEqual(<strong>tab1 suffix</strong>);
     });
 
