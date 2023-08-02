@@ -1,13 +1,12 @@
 import { cloneDeep } from 'lodash';
 import { forkJoin, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, FieldColorModeId, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
   CoreApp,
   DataQueryRequest,
   DataSourceApi,
-  FieldType,
   PanelData,
   preProcessPanelData,
   rangeUtil,
@@ -70,19 +69,22 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = getTimeCompare(this);
 
-    this._subs.add(
-      timeRange.subscribeToState(() => {
-        this.runWithTimeRange(timeRange);
-      })
-    );
-
+    // Time comparer updates queries when higher lever time range changes.
+    // We differientiate the query execution path here to avoid multiple subscriptions to the same time range.
     if (comparer) {
       this._subs.add(
         comparer.subscribeToState(() => {
           this.runQueries();
         })
       );
+    } else {
+      this._subs.add(
+        timeRange.subscribeToState(() => {
+          this.runWithTimeRange(timeRange);
+        })
+      );
     }
+
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
     }
@@ -235,25 +237,28 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
       if (secondaryRequest) {
-        const diff = request.range.from.diff(secondaryRequest.range.from);
-
+        // const diff = request.range.from.diff(secondaryRequest.range.from);
         this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)]).subscribe(([p, s]) => {
+          p.series.forEach((series) => {
+            series.meta = {
+              ...series.meta,
+              // @ts-ignore
+              timeRange: request.range,
+            };
+          });
+
           s.series.forEach((series) => {
             series.refId = `${series.refId}-compare`;
+            series.meta = {
+              ...series.meta,
+              // @ts-ignore
+              timeRange: secondaryRequest.range,
+            };
+
             series.fields.forEach((field) => {
-              // Align compare series time stamps with reference series
-              if (field.type === FieldType.time) {
-                field.values = field.values.map((v) => {
-                  return v + diff;
-                });
-              }
               return (field.config = {
                 ...field.config,
-                displayName: `${field.name} (compare)`,
-                color: {
-                  mode: FieldColorModeId.Fixed,
-                  fixedColor: '#ff0000',
-                },
+                displayName: `${field.name} (Previous period)`,
               });
             });
           });
