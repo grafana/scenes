@@ -1,4 +1,4 @@
-import { BigValueGraphMode, MappingType, ThresholdsMode } from '@grafana/schema';
+import { MappingType, ThresholdsMode } from '@grafana/schema';
 import { PanelBuilders } from './index';
 import { VizPanelBuilder } from './VizPanelBuilder';
 
