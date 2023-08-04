@@ -1,3 +1,28 @@
+# v0.24.0 (Fri Aug 04 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Tabs: Add icon and suffix [#248](https://github.com/grafana/scenes/pull/248) ([@pbaumard](https://github.com/pbaumard))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - PanelBuilders: Fix default options being mutated [#274](https://github.com/grafana/scenes/pull/274) ([@dprokop](https://github.com/dprokop))
+
+#### 🔩 Dependency Updates
+
+- `@grafana/scenes`
+  - Bump grafana dependencies [#273](https://github.com/grafana/scenes/pull/273) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 3
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Pierre Baumard ([@pbaumard](https://github.com/pbaumard))
+
+---
+
 # v0.23.0 (Wed Jul 19 2023)
 
 #### 🚀 Enhancement
