@@ -9,6 +9,7 @@ import {
   VizPanel,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
+import { BigValueColorMode, BigValueGraphMode, BigValueJustifyMode, BigValueTextMode } from '@grafana/schema';
 
 export function getFlexLayoutTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -49,7 +50,16 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                     }),
                     new SceneFlexItem({
                       height: 300,
-                      body: PanelBuilders.stat().setTitle('Fixed height').build(),
+                      body: PanelBuilders.stat().setTitle('Fixed height').build(), // This panel takes the options of the panel below too
+                    }),
+                    new SceneFlexItem({
+                      body: PanelBuilders.stat()
+                        .setTitle('Stat panel with custom options')
+                        .setOption('textMode', BigValueTextMode.Name)
+                        .setOption('colorMode', BigValueColorMode.Background)
+                        .setOption('justifyMode', BigValueJustifyMode.Center)
+                        .setOption('graphMode', BigValueGraphMode.None)
+                        .build(),
                     }),
                   ],
                 }),
