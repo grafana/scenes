@@ -20,23 +20,26 @@ interface FieldConfigTest {
   };
 }
 
-const createDefaultOptions = (): OptionsTest => ({
+const defaultOption = {
   numeric: 1,
   text: 'text',
   complex: {
     a: 1,
     b: 'text',
   },
-});
+};
 
-const createDefaultFieldConfig = (): FieldConfigTest => ({
+const createDefaultOptions = (): OptionsTest => defaultOption;
+
+const defaultFieldConfig = {
   numeric: 1,
   text: 'text',
   complex: {
     a: 1,
     b: 'text',
   },
-});
+};
+const createDefaultFieldConfig = (): FieldConfigTest => defaultFieldConfig;
 
 const getTestBuilder = () =>
   new VizPanelBuilder<OptionsTest, FieldConfigTest>(
@@ -206,6 +209,32 @@ describe('VizPanelBuilder', () => {
         {
           "complex": {
             "a": 2,
+            "b": "text",
+          },
+          "numeric": 2,
+          "text": "text",
+        }
+      `);
+    });
+
+    it('allows multiple panels of the same type configuration', () => {
+      const p1 = getTestBuilder().setTitle('p1').build();
+      const p2 = getTestBuilder().setTitle('p2').setOption('numeric', 2).build();
+
+      expect(p1.state.options).toMatchInlineSnapshot(`
+        {
+          "complex": {
+            "a": 1,
+            "b": "text",
+          },
+          "numeric": 1,
+          "text": "text",
+        }
+      `);
+      expect(p2.state.options).toMatchInlineSnapshot(`
+        {
+          "complex": {
+            "a": 1,
             "b": "text",
           },
           "numeric": 2,

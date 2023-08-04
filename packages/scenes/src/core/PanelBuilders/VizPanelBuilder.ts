@@ -1,5 +1,5 @@
 import { FieldConfigSource } from '@grafana/data';
-import { merge } from 'lodash';
+import { merge, cloneDeep } from 'lodash';
 
 import { VizPanel, VizPanelState } from '../../components/VizPanel/VizPanel';
 import { DeepPartial } from '../types';
@@ -28,12 +28,12 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
     this._state.pluginVersion = pluginVersion;
     const fieldConfig: FieldConfigSource<TFieldConfig> = {
       defaults: {
-        custom: defaultFieldConfig ? defaultFieldConfig() : ({} as TFieldConfig),
+        custom: defaultFieldConfig ? cloneDeep(defaultFieldConfig()) : ({} as TFieldConfig),
       }, // use field config factory that will provide default field config
       overrides: [],
     };
 
-    this._state.options = defaultOptions ? defaultOptions() : ({} as TOptions);
+    this._state.options = defaultOptions ? cloneDeep(defaultOptions()) : ({} as TOptions);
     this._state.fieldConfig = fieldConfig;
   }
 
