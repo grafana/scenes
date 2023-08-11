@@ -10,8 +10,8 @@ const stripHTML = require('remark-strip-html');
 const config = {
   title: 'Grafana Scenes',
   tagline: 'Build highly interactive Grafana apps with ease.',
-  url: 'https://devportal.grafana-dev.net/',
-  baseUrl: 'scenes/',
+  url: 'https://grafana-dev.com/',
+  baseUrl: 'developers/scenes/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.png',
