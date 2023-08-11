@@ -17,6 +17,7 @@
   "dependencies": {
     "@docusaurus/core": "2.4.0",
     "@docusaurus/preset-classic": "2.4.0",
+    "@iconscout/unicons": "^4.0.8",
     "@mdx-js/react": "^1.6.22",
     "clsx": "^1.2.1",
     "docusaurus-plugin-remote-content": "^3.1.0",
