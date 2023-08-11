@@ -36,7 +36,7 @@ jobs:
       - name: Build documentation website
         env:
           GTAG_CONTAINER_ID: ${{ secrets.GTAG_CONTAINER_ID }}
-        run: yarn docs:build --config docusaurus.config.devportal.js
+        run: yarn docs:build --config docusaurus.config.devportal.prod.js
         
       - id: 'auth'
         uses: 'google-github-actions/auth@v1'
