@@ -5,44 +5,163 @@
  */
 
 /* You can override the default Infima variables here. */
-:root {
-  --ifm-color-primary: #eb7b18;
-  --ifm-color-primary-dark: #d76f13;
-  --ifm-color-primary-darker: #cb6812;
-  --ifm-color-primary-darkest: #a7560e;
-  --ifm-color-primary-light: #ed8930;
-  --ifm-color-primary-lighter: #ee8f3c;
-  --ifm-color-primary-lightest: #f1a460;
-  --ifm-background-color: #e3e3e3;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+@import url('./theme.css');
+
+@font-face {
+  font-family: Inter;
+  font-weight: var(--ifm-font-weight-normal);
+  font-style: normal;
+  font-display: swap;
+  src: url('/font/inter/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2') format('woff2');
+  unicode-range: 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-  --ifm-color-primary: #ff780a;
-  --ifm-color-primary-dark: #ef6b00;
-  --ifm-color-primary-darker: #e16500;
-  --ifm-color-primary-darkest: #ba5300;
-  --ifm-color-primary-light: #ff8725;
-  --ifm-color-primary-lighter: #ff8e32;
-  --ifm-color-primary-lightest: #ffa45a;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+@font-face {
+  font-family: Inter;
+  font-weight: var(--ifm-font-weight-normal);
+  font-style: normal;
+  font-display: swap;
+  src: url('/font/inter/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa25L7SUc.woff2') format('woff2');
+  unicode-range: 'U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;';
 }
 
-[data-theme='dark'] .footer.footer--dark {
-  --ifm-footer-background-color: rgba(0, 0, 0, 0.3);
+@font-face {
+  font-family: Inter;
+  font-weight: var(--ifm-font-weight-semibold);
+  font-style: normal;
+  font-display: swap;
+  src: url('/font/inter/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7.woff2') format('woff2');
+  unicode-range: 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
 }
 
-[data-theme='light'] .footer.footer--dark {
-  --ifm-footer-background-color: rgba(0, 0, 0, 0.75);
+@font-face {
+  font-family: Inter;
+  font-weight: var(--ifm-font-weight-semibold);
+  font-style: normal;
+  font-display: swap;
+  src: url('/font/inter/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa25L7SUc.woff2') format('woff2');
+  unicode-range: 'U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;';
 }
+
+@font-face {
+  font-family: Roboto Mono;
+  font-weight: var(--ifm-font-weight-normal);
+  font-style: normal;
+  font-display: swap;
+  src: url('/font/roboto/L0xTDF4xlVMF-BfR8bXMIhJHg45mwgGEFl0_3vrtSM1J-gEPT5Ese6hmHSh0mQ.woff2') format('woff2');
+  unicode-range: 'U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;';
+}
+
+/* generics */
+
+:root:root {
+  --ifm-font-family-base: var(--fontFamily);
+  --ifm-font-family-monospace: var(--fontFamilyMonospace);
+  --ifm-heading-font-weight: var(--ifm-font-weight-semibold);
+  --ifm-line-height-base: var(--body-lineHeight);
+  --ifm-avatar-intro-margin: 0.5rem;
+  --ifm-button-border-radius: 0;
+}
+
+/* theme colors */
+
+html[data-theme='dark'] {
+  --grafana-gradient-brand-vertical: var(--gradients-brandVertical);
+  --ifm-background-color: var(--background-canvas);
+  --ifm-card-background-color: var(--background-primary);
+  --ifm-card-border-radius: 0;
+  --ifm-code-background: var(--background-secondary);
+  --ifm-color-danger: var(--error-main);
+  --ifm-color-info: var(--info-main);
+  --ifm-color-primary-dark: var(--warning-shade);
+  --ifm-color-primary-darker: var(--warning-main);
+  --ifm-color-primary: var(--text-primary);
+  --ifm-color-secondary: var(--text-secondary);
+  --ifm-color-success: var(--success-main);
+  --ifm-color-warning: var(--warning-main);
+  --ifm-link-focus-color: var(--text-maxContrast);
+  --ifm-link-hover-color: var(--text-maxContrast);
+  --ifm-navbar-background-color: var(--background-primary);
+  --ifm-pagination-nav-color-hover: var(--warning-text);
+  --ifm-pre-background: var(--background-secondary);
+  --ifm-table-border-color: var(--background-primary);
+  --ifm-table-stripe-background: var(--background-secondary);
+  --ifm-tabs-color-active-border: var(--warning-main);
+}
+
+/* admonitions */
+
+.alert--info {
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--info-shade), transparent 80%);
+  --ifm-alert-background-color: color-mix(in srgb, var(--info-main), transparent 80%);
+  --ifm-alert-border-color: color-mix(in srgb, var(--info-border), transparent 80%);
+}
+
+.alert--warning {
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--warning-shade), transparent 60%);
+  --ifm-alert-background-color: color-mix(in srgb, var(--warning-main), transparent 60%);
+  --ifm-alert-border-color: color-mix(in srgb, var(--warning-border), transparent 60%);
+}
+
+.alert--success {
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--success-shade), transparent 60%);
+  --ifm-alert-background-color: color-mix(in srgb, var(--success-main), transparent 60%);
+  --ifm-alert-border-color: color-mix(in srgb, var(--success-border), transparent 60%);
+}
+
+.alert--danger {
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--error-shade), transparent 70%);
+  --ifm-alert-background-color: color-mix(in srgb, var(--error-main), transparent 70%);
+  --ifm-alert-border-color: color-mix(in srgb, var(--error-border), transparent 70%);
+}
+
+/* cards */
+
+.card {
+  border: 1px solid var(--border-weak);
+}
+
+/* footer */
+
+.footer.footer--dark {
+  --ifm-footer-background-color: rgba(0, 0, 0, 0.45);
+}
+
+/* buttons */
 
 .button--outline {
   --ifm-button-color: white;
   --ifm-button-border-color: white;
 }
 
-[data-theme='light'] .button--outline:hover {
-  color: var(--ifm-font-color-base);
+/* sidenav */
+
+.menu__list-item-collapsible,
+.menu__link {
+  border-image: linear-gradient(var(--ifm-navbar-background-color), var(--ifm-navbar-background-color)) 1;
+  border-left: 2px solid;
+  border-radius: 0;
+}
+
+.menu__list-item-collapsible.menu__list-item-collapsible--active,
+.menu__link--active:not(.menu__link--sublist) {
+  background-color: transparent;
+  border-image: var(--grafana-gradient-brand-vertical) 1;
+}
+
+/* captions */
+
+.md-figure-block {
+  margin: 0.5rem 0;
+}
+
+.md-figure-block img {
+  display: block;
+}
+
+.md-figure-caption {
+  color: var(--ifm-blockquote-color);
+  font-size: 0.9rem;
+  margin-bottom: var(--ifm-global-spacing);
 }
