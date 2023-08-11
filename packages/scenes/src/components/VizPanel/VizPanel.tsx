@@ -28,6 +28,7 @@ import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';
 import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
+import { getCursorSyncScope } from '../../behaviors/CursorSync';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   title: string;
@@ -60,7 +61,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
 
   // Not part of state as this is not serializable
   private _plugin?: PanelPlugin;
-  private _panelContext: PanelContext;
+  private _panelContext?: PanelContext;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
   private _structureRev: number = 0;
@@ -74,22 +75,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       ...state,
     });
 
-    this._panelContext = {
-      eventBus: getAppEvents(),
-      app: CoreApp.Unknown, // TODO,
-      sync: () => DashboardCursorSync.Off, // TODO
-      onSeriesColorChange: this._onSeriesColorChange,
-      onToggleSeriesVisibility: this._onSeriesVisibilityChange,
-      onToggleLegendSort: this._onToggleLegendSort,
-      onInstanceStateChange: this._onInstanceStateChange,
-      // onAnnotationCreate: this.onAnnotationCreate,
-      // onAnnotationUpdate: this.onAnnotationUpdate,
-      // onAnnotationDelete: this.onAnnotationDelete,
-      // canAddAnnotations: props.dashboard.canAddAnnotations.bind(props.dashboard),
-      // canEditAnnotations: props.dashboard.canEditAnnotations.bind(props.dashboard),
-      // canDeleteAnnotations: props.dashboard.canDeleteAnnotations.bind(props.dashboard),
-    };
-
     this.addActivationHandler(() => {
       this._onActivate();
     });
@@ -99,6 +84,8 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     if (!this._plugin) {
       this._loadPlugin(this.state.pluginId);
     }
+
+    this.buildPanelContext();
   }
 
   private _loadPlugin(pluginId: string) {
@@ -163,7 +150,11 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   }
 
   public getPanelContext(): PanelContext {
-    return this._panelContext;
+    if (!this._panelContext) {
+      this.buildPanelContext();
+    }
+
+    return this._panelContext!;
   }
 
   public onChangeTimeRange = (timeRange: AbsoluteTimeRange) => {
@@ -284,4 +275,31 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       legend: { ...legendOptions, sortBy, sortDesc },
     } as TOptions);
   };
+
+  private buildPanelContext() {
+    const sync = getCursorSyncScope(this);
+
+    this._panelContext = {
+      // @ts-ignore Waits for core release
+      eventsScope: sync ? sync.getEventsScope() : '__global_',
+      eventBus: sync ? sync.getEventsBus(this) : getAppEvents(),
+      app: CoreApp.Unknown, // TODO,
+      sync: () => {
+        if (sync) {
+          return sync.state.sync;
+        }
+        return DashboardCursorSync.Off;
+      }, // TODO
+      onSeriesColorChange: this._onSeriesColorChange,
+      onToggleSeriesVisibility: this._onSeriesVisibilityChange,
+      onToggleLegendSort: this._onToggleLegendSort,
+      onInstanceStateChange: this._onInstanceStateChange,
+      // onAnnotationCreate: this.onAnnotationCreate,
+      // onAnnotationUpdate: this.onAnnotationUpdate,
+      // onAnnotationDelete: this.onAnnotationDelete,
+      // canAddAnnotations: props.dashboard.canAddAnnotations.bind(props.dashboard),
+      // canEditAnnotations: props.dashboard.canEditAnnotations.bind(props.dashboard),
+      // canDeleteAnnotations: props.dashboard.canDeleteAnnotations.bind(props.dashboard),
+    };
+  }
 }

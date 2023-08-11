@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Subscription, Unsubscribable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
-import { BusEvent, BusEventHandler, BusEventType, EventBusSrv } from '@grafana/data';
+import { BusEvent, BusEventHandler, BusEventType, EventBus, EventBusSrv } from '@grafana/data';
 import {
   SceneObject,
   SceneComponent,
@@ -24,10 +24,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 {
   private _isActive = false;
   private _state: TState;
-  private _events = new EventBusSrv();
   private _activationHandlers: SceneActivationHandler[] = [];
   private _deactivationHandlers: SceneDeactivationHandler[] = [];
 
+  protected _events?: EventBus;
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
   protected _refCount = 0;
@@ -39,6 +39,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     if (!state.key) {
       state.key = uuidv4();
     }
+
+    this._events = new EventBusSrv();
 
     this._state = Object.freeze(state);
     this._setParent();
@@ -87,7 +89,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Subscribe to the scene state subject
    **/
   public subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable {
-    return this._events.subscribe(SceneObjectStateChangedEvent, (event) => {
+    return this._events!.subscribe(SceneObjectStateChangedEvent, (event) => {
       if (event.payload.changedObject === this) {
         handler(event.payload.newState as TState, event.payload.prevState as TState);
       }
@@ -98,7 +100,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Subscribe to the scene event
    **/
   public subscribeToEvent<T extends BusEvent>(eventType: BusEventType<T>, handler: BusEventHandler<T>): Unsubscribable {
-    return this._events.subscribe(eventType, handler);
+    return this._events!.subscribe(eventType, handler);
   }
 
   public setState(update: Partial<TState>) {
@@ -127,7 +129,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Publish an event and optionally bubble it up the scene
    **/
   public publishEvent(event: BusEvent, bubble?: boolean) {
-    this._events.publish(event);
+    this._events!.publish(event);
 
     if (bubble && this.parent) {
       this.parent.publishEvent(event, bubble);
@@ -218,7 +220,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     this._deactivationHandlers = [];
 
     // Clear subscriptions and listeners
-    this._events.removeAllListeners();
+    this._events!.removeAllListeners();
     this._subs.unsubscribe();
     this._subs = new Subscription();
   }
