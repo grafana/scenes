@@ -7,8 +7,8 @@ const { grafanaPrismTheme } = require('./src/theme/prism');
 const config = {
   title: 'Grafana Scenes',
   tagline: 'Build highly interactive Grafana apps with ease.',
-  url: 'https://grafana.github.io/',
-  baseUrl: 'scenes/',
+  url: 'https://grafana-dev.com/',
+  baseUrl: 'developers/scenes/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.png',
@@ -39,7 +39,9 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/grafana/scenes/edit/main/docusaurus/website',
+          routeBasePath: '/',
         },
+        blog: false,
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
@@ -88,7 +90,7 @@ const config = {
             items: [
               {
                 label: 'Getting Started',
-                to: '/docs/getting-started',
+                to: '/',
               },
             ],
           },

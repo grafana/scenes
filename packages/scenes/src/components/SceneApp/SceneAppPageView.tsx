@@ -50,6 +50,8 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     pageNav.children = containerState.tabs.map((tab) => {
       return {
         text: tab.state.title,
+        icon: tab.state.titleIcon,
+        tabSuffix: tab.state.tabSuffix,
         active: page === tab,
         url: getUrlWithAppState(tab.state.url, tab.state.preserveUrlKeys),
         parentItem: pageNav,
