@@ -67,7 +67,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   }
 
   if (params['scene-debugger']) {
-    pageActions.push(<SceneDebugger scene={containerPage} />);
+    pageActions.push(<SceneDebugger scene={containerPage} key={'scene-debugger'} />);
   }
 
   return (

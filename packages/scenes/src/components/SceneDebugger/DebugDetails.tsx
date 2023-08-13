@@ -1,6 +1,7 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Input, useStyles2 } from '@grafana/ui';
+import { Input, JsonExplorer, JSONFormatter, useStyles2 } from '@grafana/ui';
+import { isArray, isPlainObject } from 'lodash';
 import React from 'react';
 import { isSceneObject, SceneObject } from '../../core/types';
 
@@ -45,6 +46,9 @@ function renderValue(key: string, value: any, node: SceneObject) {
     case 'object':
       if (isSceneObject(value)) {
         return value.constructor.name;
+      }
+      if (isPlainObject(value) || isArray(value)) {
+        return <JSONFormatter json={value} open={0} />;
       }
       return String(value);
     default:
