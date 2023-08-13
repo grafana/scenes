@@ -1,13 +1,13 @@
-import React from 'react';
 import ReactGridLayout from 'react-grid-layout';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import { SceneComponentProps, SceneLayout, SceneObject, SceneObjectState } from '../../../core/types';
+import { SceneLayout, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
+import { isSceneGridRow, SceneGridItem } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
-import { SceneGridItemLike, SceneGridItemPlacement, SceneGridItemStateLike } from './types';
+import { SceneGridItemLike, SceneGridItemPlacement } from './types';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -326,28 +326,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 }
 
-interface SceneGridItemState extends SceneGridItemStateLike {
-  body: SceneObject | undefined;
-}
-export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implements SceneGridItemLike {
-  static Component = SceneGridItemRenderer;
-}
-
-function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
-  const { body } = model.useState();
-  const parent = model.parent;
-
-  if (parent && !isSceneGridLayout(parent) && !isSceneGridRow(parent)) {
-    throw new Error('SceneGridItem must be a child of SceneGridLayout or SceneGridRow');
-  }
-
-  if (!body) {
-    return null;
-  }
-
-  return <body.Component model={body} />;
-}
-
 function isItemSizeEqual(a: SceneGridItemPlacement, b: SceneGridItemPlacement) {
   return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 }
@@ -360,14 +338,6 @@ function sortChildrenByPosition(children: SceneGridItemLike[]) {
 
 function sortGridLayout(layout: ReactGridLayout.Layout[]) {
   return [...layout].sort((a, b) => a.y - b.y || a.x! - b.x);
-}
-
-function isSceneGridRow(child: SceneObject): child is SceneGridRow {
-  return child instanceof SceneGridRow;
-}
-
-function isSceneGridLayout(child: SceneObject): child is SceneGridLayout {
-  return child instanceof SceneGridLayout;
 }
 
 function forceRenderChildren(child: SceneGridItemLike) {

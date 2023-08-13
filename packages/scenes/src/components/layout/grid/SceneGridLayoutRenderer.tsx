@@ -10,7 +10,6 @@ import { SceneGridItemLike } from './types';
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
   validateChildrenSize(children);
-  console.log('Render grid', isResizable);
 
   return (
     <AutoSizer disableHeight>
