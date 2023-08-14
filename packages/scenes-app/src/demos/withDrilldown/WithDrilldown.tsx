@@ -1,3 +1,4 @@
+import React from 'react';
 import { DATASOURCE_REF } from '../../constants';
 import {
   EmbeddedScene,
@@ -7,6 +8,7 @@ import {
   SceneFlexLayout,
   SceneQueryRunner,
 } from '@grafana/scenes';
+import { Counter } from '@grafana/ui';
 import { getHumidityOverviewScene, getRoomDrilldownScene } from './scenes';
 import { getRoomsTemperatureStats, getRoomsTemperatureTable } from './panels';
 import { getEmbeddedSceneDefaults } from '../utils';
@@ -63,11 +65,14 @@ export function getDrilldownsAppPageScene(defaults: SceneAppPageState) {
             tabs: [
               new SceneAppPage({
                 title: 'Temperature',
+                titleIcon: 'dashboard',
+                tabSuffix: () => <Counter value={1} />,
                 url: `${defaults.url}/room/${roomName}/temperature`,
                 getScene: () => getRoomDrilldownScene(roomName),
               }),
               new SceneAppPage({
                 title: 'Humidity',
+                titleIcon: 'chart-line',
                 url: `${defaults.url}/room/${roomName}/humidity`,
                 getScene: () => getHumidityOverviewScene(roomName),
               }),

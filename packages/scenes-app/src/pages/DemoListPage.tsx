@@ -6,13 +6,14 @@ import {
   SceneFlexItem,
   SceneReactObject,
 } from '@grafana/scenes';
-import { Stack } from '@grafana/experimental';
-import React, { useMemo } from 'react';
+import React, { useMemo, CSSProperties, useCallback } from 'react';
 import { demoUrl, prefixRoute } from '../utils/utils.routing';
 import { DATASOURCE_REF, ROUTES } from '../constants';
 import { DemoDescriptor, getDemos } from '../demos';
-import { Alert, Card } from '@grafana/ui';
+import { Alert, Card, useStyles2 } from '@grafana/ui';
 import { config } from '@grafana/runtime';
+import { GrafanaTheme2 } from '@grafana/data';
+import { css } from '@emotion/css';
 
 const getScene = () => {
   const demos = getDemos();
@@ -138,3 +139,28 @@ export function getDemoNotFoundPage(url: string): SceneAppPage {
     },
   });
 }
+
+interface StackProps {
+  direction?: CSSProperties['flexDirection'];
+  alignItems?: CSSProperties['alignItems'];
+  wrap?: boolean;
+  gap?: number;
+  flexGrow?: CSSProperties['flexGrow'];
+}
+
+const Stack = ({ children, ...props }: React.PropsWithChildren<StackProps>) => {
+  const styles = useStyles2(useCallback((theme) => getStackStyles(theme, props), [props]));
+
+  return <div className={styles.root}>{children}</div>;
+};
+
+const getStackStyles = (theme: GrafanaTheme2, props: StackProps) => ({
+  root: css({
+    display: 'flex',
+    flexDirection: props.direction ?? 'row',
+    flexWrap: props.wrap ?? true ? 'wrap' : undefined,
+    alignItems: props.alignItems,
+    gap: theme.spacing(props.gap ?? 2),
+    flexGrow: props.flexGrow,
+  }),
+});

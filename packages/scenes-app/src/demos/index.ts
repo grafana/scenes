@@ -19,7 +19,7 @@ import { getSplitTest } from './split';
 import { getQueryCancellationTest } from './queryCancellation';
 import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
-import { getDynamicVizOptionsDemo } from './dynamicVizOptions';
+import { getCursorSyncTest } from './cursorSync';
 
 export interface DemoDescriptor {
   title: string;
@@ -47,6 +47,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Time zones demo', getPage: getTimeZoneTest },
     { title: 'Split layout', getPage: getSplitTest },
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
+    { title: 'Cursor sync', getPage: getCursorSyncTest },
     { title: 'Docs examples', getPage: getDocsExamples },
     { title: 'Dynamic viz options', getPage: getDynamicVizOptionsDemo },
   ];

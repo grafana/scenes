@@ -1,11 +1,4 @@
-import {
-  BasicValueMatcherOptions,
-  FieldMatcherID,
-  FieldType,
-  RangeValueMatcherOptions,
-  ValueMatcherID,
-  ValueMatcherOptions,
-} from '@grafana/data';
+import { FieldMatcherID, FieldType, FieldValueMatcherConfig } from '@grafana/data';
 import { MatcherConfig } from '@grafana/schema';
 import { StandardFieldConfigOverridesBuilder } from './StandardFieldConfigBuilders';
 
@@ -32,7 +25,7 @@ export class FieldConfigOverridesBuilder<TFieldConfig> extends StandardFieldConf
   public matchFieldsWithNameByRegex(regex: string): this {
     this._overrides.push({
       matcher: {
-        id: FieldMatcherID.byRegexpOrNames,
+        id: FieldMatcherID.byRegexp,
         options: regex,
       },
       properties: [],
@@ -62,13 +55,10 @@ export class FieldConfigOverridesBuilder<TFieldConfig> extends StandardFieldConf
     return this;
   }
 
-  public matchFieldsByValue(
-    id: ValueMatcherID,
-    options: ValueMatcherOptions | BasicValueMatcherOptions | RangeValueMatcherOptions
-  ): this {
+  public matchFieldsByValue(options: FieldValueMatcherConfig): this {
     this._overrides.push({
       matcher: {
-        id,
+        id: FieldMatcherID.byValue,
         options,
       },
       properties: [],
