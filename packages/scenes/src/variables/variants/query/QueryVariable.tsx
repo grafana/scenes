@@ -25,7 +25,6 @@ import { createQueryVariableRunner } from './createQueryVariableRunner';
 import { metricNamesToVariableValues } from './utils';
 import { toMetricFindValues } from './toMetricFindValues';
 import { getDataSource } from '../../../utils/getDataSource';
-import { SceneVariableSet } from '../../sets/SceneVariableSet';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -99,12 +98,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
         );
       })
     );
-  }
-
-  public cancel() {
-    this.setState({ loading: false });
-    const sceneVarSet = this.parent as SceneVariableSet;
-    sceneVarSet?.cancel(this);
   }
 
   private getRequest(target: DataQuery) {
