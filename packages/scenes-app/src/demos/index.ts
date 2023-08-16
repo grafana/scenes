@@ -20,6 +20,7 @@ import { getQueryCancellationTest } from './queryCancellation';
 import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
 import { getCursorSyncTest } from './cursorSync';
+import { getDynamicVizOptionsDemo } from './dynamicVizOptions';
 
 export interface DemoDescriptor {
   title: string;
