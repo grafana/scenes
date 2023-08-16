@@ -81,6 +81,14 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
   private _setParent() {
     this.forEachChild((child) => {
+      // If we already have a parent and it's not this, then we likely have a bug
+      if (child._parent && child._parent !== this) {
+        console.warn(
+          'SceneObject already has a parent that is different from new parent. You cannot share the same instance in multiple scenes or in multiple different places in the same scene. Use SceneObject.clone() to duplicate a SceneObject or store a key reference to the scene object.',
+          child,
+          this
+        );
+      }
       child._parent = this;
     });
   }
