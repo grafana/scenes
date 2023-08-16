@@ -45,7 +45,6 @@ export { SceneFlexLayout, SceneFlexItem, type SceneFlexItemState } from './compo
 export { SceneGridLayout, SceneGridItem } from './components/layout/grid/SceneGridLayout';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export { SplitLayout } from './components/layout/split/SplitLayout';
-export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,
