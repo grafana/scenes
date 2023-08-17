@@ -6,6 +6,7 @@ import { GRID_CELL_VMARGIN, GRID_COLUMN_COUNT, GRID_CELL_HEIGHT } from './consta
 import { LazyLoader } from './LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
+import { renderSceneComponentWithExtraProps } from '../../../utils/renderWithExtraProps';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
@@ -56,11 +57,22 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
 
                 return isLazy ? (
                   <LazyLoader key={sceneChild.state.key!} style={style} data-panelid={sceneChild.state.key}>
+                    {renderSceneComponentWithExtraProps(sceneChild, {
+                      key: sceneChild.state.key,
+                      isDraggable,
+                      dragClass: `grid-drag-handle-${model.state.key}`,
+                      dragClassCancel: `grid-drag-cancel`,
+                    })}
                     <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </LazyLoader>
                 ) : (
                   <div key={sceneChild.state.key} style={style} data-panelid={sceneChild.state.key}>
-                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
+                    {renderSceneComponentWithExtraProps(sceneChild, {
+                      key: sceneChild.state.key,
+                      isDraggable,
+                      dragClass: `grid-drag-handle-${model.state.key}`,
+                      dragClassCancel: `grid-drag-cancel`,
+                    })}
                   </div>
                 );
               })}

@@ -32,32 +32,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     });
   }
 
-  /**
-   * SceneLayout interface. Used for example by VizPanelRenderer
-   */
-  public isDraggable(): boolean {
-    return this.state.isDraggable ?? false;
-  }
-
-  public getDragClass() {
-    return `grid-drag-handle-${this.state.key}`;
-  }
-
-  public getDragClassCancel() {
-    return `grid-drag-cancel`;
-  }
-
-  /**
-   * Will set isDraggable and isResizable and trigger re-render of all children
-   * The child force re-render is because VizPanel checks layout isDraggable but
-   * does not subscribe to layout changes (for optimization reasons).
-   * @internal
-   */
-  public toggleEditMode(isEditing: boolean) {
-    this.setState({ isResizable: isEditing, isDraggable: isEditing });
-    this.forEachChild(forceRenderChildren);
-  }
-
   public toggleRow(row: SceneGridRow) {
     const isCollapsed = row.state.isCollapsed;
 
@@ -338,12 +312,4 @@ function sortChildrenByPosition(children: SceneGridItemLike[]) {
 
 function sortGridLayout(layout: ReactGridLayout.Layout[]) {
   return [...layout].sort((a, b) => a.y - b.y || a.x! - b.x);
-}
-
-function forceRenderChildren(child: SceneGridItemLike) {
-  if (child instanceof SceneGridItem) {
-    child.state.body?.forceRender();
-  } else if (child instanceof SceneGridRow) {
-    child.forEachChild(forceRenderChildren);
-  }
 }

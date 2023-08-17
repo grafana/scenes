@@ -5,7 +5,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectUrlValues } from '../../../core/types';
+import { SceneLayoutChildComponentProps, SceneObjectUrlValues } from '../../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../../services/SceneObjectUrlSyncConfig';
 import { SceneDragHandle } from '../../SceneDragHandle';
 
@@ -72,10 +72,10 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   }
 }
 
-export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
+export function SceneGridRowRenderer({ model, dragClass }: SceneLayoutChildComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
   const { isCollapsible, isCollapsed, title, isDraggable } = model.useState();
-  const dragHandle = <SceneDragHandle dragClass={model.getGridLayout().getDragClass()} />;
+  const dragHandle = <SceneDragHandle dragClass={dragClass!} />;
 
   return (
     <div className={styles.row}>

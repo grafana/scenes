@@ -124,10 +124,12 @@ export interface SceneLayoutState extends SceneObjectState {
   children: SceneObject[];
 }
 
-export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> extends SceneObject<T> {
-  isDraggable(): boolean;
-  getDragClass?(): string;
-  getDragClassCancel?(): string;
+export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> extends SceneObject<T> {}
+
+export interface SceneLayoutChildComponentProps<T> extends SceneComponentProps<T> {
+  isDraggable?: boolean;
+  dragClass?: string;
+  dragClassCancel?: string;
 }
 
 export interface SceneTimeRangeState extends SceneObjectState {

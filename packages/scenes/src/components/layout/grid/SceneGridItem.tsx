@@ -1,9 +1,9 @@
-import React from 'react';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import { SceneObject, SceneComponentProps } from '../../../core/types';
+import { SceneObject, SceneLayoutChildComponentProps } from '../../../core/types';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemStateLike, SceneGridItemLike } from './types';
+import { renderSceneComponentWithExtraProps } from '../../../utils/renderWithExtraProps';
 
 interface SceneGridItemState extends SceneGridItemStateLike {
   body: SceneObject | undefined;
@@ -12,8 +12,13 @@ export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implement
   static Component = SceneGridItemRenderer;
 }
 
-function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
-  const { body } = model.useState();
+function SceneGridItemRenderer({
+  model,
+  isDraggable,
+  dragClass,
+  dragClassCancel,
+}: SceneLayoutChildComponentProps<SceneGridItem>) {
+  const { body, isDraggable: localIsDraggable } = model.useState();
   const parent = model.parent;
 
   if (parent && !isSceneGridLayout(parent) && !isSceneGridRow(parent)) {
@@ -24,7 +29,11 @@ function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
     return null;
   }
 
-  return <body.Component model={body} />;
+  return renderSceneComponentWithExtraProps(body, {
+    isDraggable: isDraggable && (localIsDraggable ?? true),
+    dragClass,
+    dragClassCancel,
+  });
 }
 
 export function isSceneGridRow(child: SceneObject): child is SceneGridRow {
