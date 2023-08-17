@@ -4,6 +4,7 @@ import React, { useLayoutEffect, useState } from 'react';
 
 import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
+import { SceneDebugger } from '../SceneDebugger/SceneDebugger';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getUrlWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
@@ -49,6 +50,8 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     pageNav.children = containerState.tabs.map((tab) => {
       return {
         text: tab.state.title,
+        icon: tab.state.titleIcon,
+        tabSuffix: tab.state.tabSuffix,
         active: page === tab,
         url: getUrlWithAppState(tab.state.url, tab.state.preserveUrlKeys),
         parentItem: pageNav,
@@ -56,11 +59,15 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     });
   }
 
-  let pageActions: React.ReactNode = undefined;
+  let pageActions: React.ReactNode[] = [];
   if (containerState.controls) {
     pageActions = containerState.controls.map((control) => (
       <control.Component model={control} key={control.state.key} />
     ));
+  }
+
+  if (params['scene-debugger']) {
+    pageActions.push(<SceneDebugger scene={containerPage} key={'scene-debugger'} />);
   }
 
   return (
