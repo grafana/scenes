@@ -40,17 +40,19 @@ export interface SceneLayoutChildOptions {
   isResizable?: boolean;
 }
 
-export interface SceneComponentProps<T> {
+export type SceneComponentProps<T, TExtra = {}> = TExtra & {
   model: T;
-}
+};
 
-export type SceneComponent<TModel> = (props: SceneComponentProps<TModel>) => React.ReactElement | null;
+export type SceneComponent<TModel, TExtra = {}> = (
+  props: SceneComponentProps<TModel, TExtra>
+) => React.ReactElement | null;
 
 export interface SceneDataState extends SceneObjectState {
   data?: PanelData;
 }
 
-export interface SceneObject<TState extends SceneObjectState = SceneObjectState> {
+export interface SceneObject<TState extends SceneObjectState = SceneObjectState, TExtra = {}> {
   /** The current state */
   readonly state: TState;
 
@@ -94,7 +96,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   clone(state?: Partial<TState>): this;
 
   /** A React component to use for rendering the object */
-  Component(props: SceneComponentProps<SceneObject<TState>>): React.ReactElement | null;
+  Component(props: SceneComponentProps<SceneObject<TState, TExtra>, TExtra>): React.ReactElement | null;
 
   /** Force a re-render, should only be needed when variable values change */
   forceRender(): void;

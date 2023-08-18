@@ -12,4 +12,8 @@ export interface SceneGridItemStateLike extends SceneGridItemPlacement, SceneObj
   isDraggable?: boolean;
 }
 
-export type SceneGridItemLike = SceneObject<SceneGridItemStateLike>;
+export interface SceneGridItemExtraProps {
+  isDraggable?: boolean;
+}
+
+export type SceneGridItemLike = SceneObject<SceneGridItemStateLike, SceneGridItemExtraProps>;

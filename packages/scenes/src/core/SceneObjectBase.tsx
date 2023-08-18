@@ -19,7 +19,7 @@ import { SceneObjectStateChangedEvent } from './events';
 import { cloneSceneObject } from './sceneGraph/utils';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
 
-export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState>
+export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState, TExtra = {}>
   implements SceneObject<TState>
 {
   private _isActive = false;
@@ -75,7 +75,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Used in render functions when rendering a SceneObject.
    * Wraps the component in an EditWrapper that handles edit mode
    */
-  public get Component(): SceneComponent<this> {
+  public get Component(): SceneComponent<this, TExtra> {
+    // @ts-ignore
     return SceneComponentWrapper;
   }
 
@@ -236,7 +237,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /**
    * Utility hook to get and subscribe to state
    */
-  public useState() {
+  public useState(): TState {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     return useSceneObjectState(this);
   }
@@ -286,7 +287,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
  * This hook is always returning model.state instead of a useState that remembers the last state emitted on the subject
  * The reason for this is so that if the model instance change this function will always return the latest state.
  */
-function useSceneObjectState<TState extends SceneObjectState>(model: SceneObjectBase<TState>): TState {
+function useSceneObjectState<TState extends SceneObjectState, TExtra>(model: SceneObjectBase<TState, TExtra>): TState {
   const [_, setState] = useState<TState>(model.state);
   const stateAtFirstRender = model.state;
 

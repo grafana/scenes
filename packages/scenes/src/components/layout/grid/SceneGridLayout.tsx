@@ -7,7 +7,7 @@ import { DEFAULT_PANEL_SPAN } from './constants';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
-import { SceneGridItemLike, SceneGridItemPlacement, SceneGridItemStateLike } from './types';
+import { SceneGridItemExtraProps, SceneGridItemLike, SceneGridItemPlacement, SceneGridItemStateLike } from './types';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -316,11 +316,15 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 interface SceneGridItemState extends SceneGridItemStateLike {
   body: SceneObject | undefined;
 }
-export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implements SceneGridItemLike {
+
+export class SceneGridItem
+  extends SceneObjectBase<SceneGridItemState, SceneGridItemExtraProps>
+  implements SceneGridItemLike
+{
   static Component = SceneGridItemRenderer;
 }
 
-function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
+function SceneGridItemRenderer({ model, isDraggable }: SceneComponentProps<SceneGridItem, SceneGridItemExtraProps>) {
   const { body } = model.useState();
   const parent = model.parent;
 
