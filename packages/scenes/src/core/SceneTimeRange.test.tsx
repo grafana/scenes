@@ -1,3 +1,4 @@
+import { toUtc } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
@@ -34,6 +35,25 @@ describe('SceneTimeRange', () => {
 
     expect(timeRange.state.from).toEqual('2021-01-01T10:00:00.000Z');
     expect(timeRange.state.value.from.valueOf()).toEqual(1609495200000);
+  });
+
+  it('should not update state when time range is not changed', () => {
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+    const stateSpy = jest.spyOn(timeRange, 'setState');
+
+    timeRange.onTimeRangeChange({
+      from: toUtc('2020-01-01'),
+      to: toUtc('2020-01-02'),
+      raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
+    });
+    expect(stateSpy).toBeCalledTimes(1);
+
+    timeRange.onTimeRangeChange({
+      from: toUtc('2020-01-01'),
+      to: toUtc('2020-01-02'),
+      raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
+    });
+    expect(stateSpy).toBeCalledTimes(1);
   });
 
   describe('time zones', () => {
