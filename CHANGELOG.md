@@ -1,3 +1,16 @@
+# v0.24.2 (Mon Aug 21 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimeRange: Don't update state if time range has not changed [#291](https://github.com/grafana/scenes/pull/291) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.24.1 (Fri Aug 18 2023)
 
 #### 🐛 Bug Fix
