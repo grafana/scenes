@@ -96,7 +96,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState,
   clone(state?: Partial<TState>): this;
 
   /** A React component to use for rendering the object */
-  Component(props: SceneComponentProps<SceneObject<TState, TExtra>, TExtra>): React.ReactElement | null;
+  Component(props: SceneComponentProps<ThisType<this>, TExtra>): React.ReactElement | null;
 
   /** Force a re-render, should only be needed when variable values change */
   forceRender(): void;

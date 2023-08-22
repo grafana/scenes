@@ -76,7 +76,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Wraps the component in an EditWrapper that handles edit mode
    */
   public get Component(): SceneComponent<this, TExtra> {
-    // @ts-ignore
     return SceneComponentWrapper;
   }
 

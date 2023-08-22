@@ -5,8 +5,8 @@ import { SceneObjectBase } from '../SceneObjectBase';
 /**
  * Will create new SceneItem with shalled cloned state, but all states items of type SceneObject are deep cloned
  */
-export function cloneSceneObject<T extends SceneObjectBase<TState>, TState extends SceneObjectState>(
-  sceneObject: SceneObjectBase<TState>,
+export function cloneSceneObject<TExtra, T extends SceneObjectBase<TState, TExtra>, TState extends SceneObjectState>(
+  sceneObject: SceneObjectBase<TState, TExtra>,
   withState?: Partial<TState>
 ): T {
   const clonedState = { ...sceneObject.state };

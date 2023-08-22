@@ -4,7 +4,7 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import { SceneComponentProps } from '../../../core/types';
 import { GRID_CELL_VMARGIN, GRID_COLUMN_COUNT, GRID_CELL_HEIGHT } from './constants';
 import { LazyLoader } from './LazyLoader';
-import { SceneGridItem, SceneGridLayout } from './SceneGridLayout';
+import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
