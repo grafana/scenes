@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-
 import { SceneComponentProps, SceneObject } from './types';
 
 function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...otherProps }: SceneComponentProps<T>) {
@@ -18,7 +17,7 @@ function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...oth
     return null;
   }
 
-  return <Component {...otherProps} model={model} />;
+  return <Component {...otherProps} model={model} propagationCounter={model.propagationCounter} />;
 }
 
 export const SceneComponentWrapper = React.memo(SceneComponentWrapperWithoutMemo);

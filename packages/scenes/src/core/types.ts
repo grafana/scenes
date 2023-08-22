@@ -41,7 +41,10 @@ export interface SceneLayoutChildOptions {
 }
 
 export interface SceneComponentProps<T> {
+  /** The model containing the state and state logic */
   model: T;
+  /** Internal prop used to propagate state changes deep down the tree */
+  _propagationCounter?: number;
 }
 
 export type SceneComponent<TModel> = (props: SceneComponentProps<TModel>) => React.ReactElement | null;
@@ -66,6 +69,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** This abstraction declares URL sync dependencies of a scene object. **/
   readonly urlSync?: SceneObjectUrlSyncHandler;
 
+  /** Internal system for triggering full scene graph re-renders on some state changes */
+  readonly propagationCounter?: number;
+
   /** Subscribe to state changes */
   subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable;
 
@@ -79,7 +85,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   useState(): TState;
 
   /** How to modify state */
-  setState(state: Partial<TState>): void;
+  setState(state: Partial<TState>, options?: SetStateOptions): void;
 
   /**
    * Called when the Component is mounted. This will also activate any $data, $variables or $timeRange scene object on this level.
@@ -120,6 +126,9 @@ export type SceneDeactivationHandler = () => void;
  **/
 export type CancelActivationHandler = () => void;
 
+export interface SetStateOptions {
+  propagate?: boolean;
+}
 export interface SceneLayoutState extends SceneObjectState {
   children: SceneObject[];
 }

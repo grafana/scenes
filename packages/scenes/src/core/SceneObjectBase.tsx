@@ -12,6 +12,7 @@ import {
   SceneDeactivationHandler,
   CancelActivationHandler,
   SceneObjectState,
+  SetStateOptions,
 } from './types';
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
@@ -26,6 +27,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   private _state: TState;
   private _activationHandlers: SceneActivationHandler[] = [];
   private _deactivationHandlers: SceneDeactivationHandler[] = [];
+  private _propagationCounter = 0;
 
   protected _events?: EventBus;
   protected _parent?: SceneObject;
@@ -54,6 +56,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /** True if currently being active (ie displayed for visual objects) */
   public get isActive(): boolean {
     return this._isActive;
+  }
+
+  public get propagationCounter() {
+    return this._propagationCounter;
   }
 
   /** Returns the parent, undefined for root object */
@@ -111,12 +117,16 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     return this._events!.subscribe(eventType, handler);
   }
 
-  public setState(update: Partial<TState>) {
+  public setState(update: Partial<TState>, options?: SetStateOptions) {
     const prevState = this._state;
     const newState: TState = {
       ...this._state,
       ...update,
     };
+
+    if (options?.propagate) {
+      this._propagationCounter++;
+    }
 
     this._state = Object.freeze(newState);
 
