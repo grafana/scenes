@@ -27,8 +27,8 @@ export function getFlexLayoutTest(defaults: SceneAppPageState) {
                 new SceneFlexItem({
                   minWidth: '70%',
                   body: new VizPanel({
-                    title: 'Data coming from custom runtime registered data source',
-                    pluginId: 'table',
+                    title: 'Failing panel because of wrong panel id',
+                    pluginId: 'this-plugin-does-not-exist',
                     $data: getQueryRunnerWithRandomWalkQuery({}),
                   }),
                 }),

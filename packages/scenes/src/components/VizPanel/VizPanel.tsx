@@ -13,6 +13,7 @@ import {
   compareArrayValues,
   compareDataFrameStructures,
   applyFieldOverrides,
+  PluginType,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -96,11 +97,14 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
-      importPanelPlugin(pluginId)
-        .then((result) => this._pluginLoaded(result))
-        .catch((err: Error) => {
-          this.setState({ pluginLoadError: err.message });
+      try {
+        importPanelPlugin(pluginId).then((result) => {
+          return this._pluginLoaded(result);
         });
+      } catch (err: unknown) {
+        this._pluginLoaded(getPanelPluginNotFound(pluginId));
+        this.setState({ pluginLoadError: (err as Error).message });
+      }
     }
   }
 
@@ -302,4 +306,32 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       // canDeleteAnnotations: props.dashboard.canDeleteAnnotations.bind(props.dashboard),
     };
   }
+}
+
+function getPanelPluginNotFound(id: string, silent?: boolean): PanelPlugin {
+  const plugin = new PanelPlugin(() => null);
+
+  plugin.meta = {
+    id: id,
+    name: id,
+    sort: 100,
+    type: PluginType.panel,
+    module: '',
+    baseUrl: '',
+    info: {
+      author: {
+        name: '',
+      },
+      description: '',
+      links: [],
+      logos: {
+        large: '',
+        small: 'public/img/grafana_icon.svg',
+      },
+      screenshots: [],
+      updated: '',
+      version: '',
+    },
+  };
+  return plugin;
 }

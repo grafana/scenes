@@ -99,6 +99,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     position: 'relative',
     // To make the border line up with the input border
     right: -1,
+    whiteSpace: 'nowrap',
   }),
 });
 
