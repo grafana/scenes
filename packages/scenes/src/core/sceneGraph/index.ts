@@ -2,6 +2,7 @@ import { lookupVariable } from '../../variables/lookupVariable';
 import { getTimeRange } from './getTimeRange';
 import {
   findObject,
+  forceRenderChildren,
   getData,
   getLayout,
   getVariables,
@@ -18,4 +19,5 @@ export const sceneGraph = {
   lookupVariable,
   hasVariableDependencyInLoadingState,
   findObject,
+  forceRenderChildren,
 };

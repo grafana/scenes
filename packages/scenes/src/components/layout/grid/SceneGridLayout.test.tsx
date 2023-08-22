@@ -4,8 +4,9 @@ import React from 'react';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../../core/types';
 import { EmbeddedScene } from '../../EmbeddedScene';
+import { SceneGridItem } from './SceneGridItem';
 
-import { SceneGridItem, SceneGridLayout } from './SceneGridLayout';
+import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';
 
 // Mocking AutoSizer to allow testing of the SceneGridLayout component rendering

@@ -3,7 +3,7 @@ import ReactGridLayout from 'react-grid-layout';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneLayout, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
-import { isSceneGridRow, SceneGridItem } from './SceneGridItem';
+import { isSceneGridRow } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
@@ -45,17 +45,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
   public getDragClassCancel() {
     return `grid-drag-cancel`;
-  }
-
-  /**
-   * Will set isDraggable and isResizable and trigger re-render of all children
-   * The child force re-render is because VizPanel checks layout isDraggable but
-   * does not subscribe to layout changes (for optimization reasons).
-   * @internal
-   */
-  public toggleEditMode(isEditing: boolean) {
-    this.setState({ isResizable: isEditing, isDraggable: isEditing });
-    this.forEachChild(forceRenderChildren);
   }
 
   public toggleRow(row: SceneGridRow) {
@@ -338,12 +327,4 @@ function sortChildrenByPosition(children: SceneGridItemLike[]) {
 
 function sortGridLayout(layout: ReactGridLayout.Layout[]) {
   return [...layout].sort((a, b) => a.y - b.y || a.x! - b.x);
-}
-
-function forceRenderChildren(child: SceneGridItemLike) {
-  if (child instanceof SceneGridItem) {
-    child.state.body?.forceRender();
-  } else if (child instanceof SceneGridRow) {
-    child.forEachChild(forceRenderChildren);
-  }
 }
