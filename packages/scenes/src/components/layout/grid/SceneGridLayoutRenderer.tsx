@@ -8,7 +8,7 @@ import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
-  const { children, isLazy, isDraggable } = model.useState();
+  const { children, isLazy, isDraggable, isResizable } = model.useState();
   validateChildrenSize(children);
 
   return (
@@ -29,13 +29,13 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
           <div style={{ width: `${width}px`, height: '100%' }}>
             <ReactGridLayout
               width={width}
-              /*
-                    Disable draggable if mobile device, solving an issue with unintentionally
-                    moving panels. https://github.com/grafana/grafana/issues/18497
-                    theme.breakpoints.md = 769
-                  */
+              /**
+                Disable draggable if mobile device, solving an issue with unintentionally
+                moving panels. https://github.com/grafana/grafana/issues/18497
+                theme.breakpoints.md = 769
+               */
               isDraggable={isDraggable && width > 768}
-              isResizable={false}
+              isResizable={isResizable ?? false}
               containerPadding={[0, 0]}
               useCSSTransforms={false}
               margin={[GRID_CELL_VMARGIN, GRID_CELL_VMARGIN]}
@@ -50,15 +50,17 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               onLayoutChange={model.onLayoutChange}
               isBounded={false}
             >
-              {layout.map((gridItem) => {
+              {layout.map((gridItem, index) => {
                 const sceneChild = model.getSceneLayoutChild(gridItem.i)!;
+                // This it have panels higher up the page have higher z-index
+                const style = { zIndex: layout.length - index };
 
                 return isLazy ? (
-                  <LazyLoader key={sceneChild.state.key!}>
+                  <LazyLoader key={sceneChild.state.key!} style={style} data-panelid={sceneChild.state.key}>
                     <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </LazyLoader>
                 ) : (
-                  <div key={sceneChild.state.key}>
+                  <div key={sceneChild.state.key} style={style} data-panelid={sceneChild.state.key}>
                     <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </div>
                 );
