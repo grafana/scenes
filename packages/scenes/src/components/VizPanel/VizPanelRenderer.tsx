@@ -9,8 +9,9 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { isSceneObject, SceneComponentProps } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
+import { SceneGridItemExtraProps } from '../layout/grid/types';
 
-export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
+export function VizPanelRenderer({ model, isDraggable }: SceneComponentProps<VizPanel, SceneGridItemExtraProps>) {
   const {
     title,
     description,
@@ -22,14 +23,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     hoverHeader,
     menu,
     headerActions,
-    ...state
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
   const parentLayout = sceneGraph.getLayout(model);
 
   // If parent has enabled dragging and we have not explicitly disabled it then dragging is enabled
-  const isDraggable = parentLayout.isDraggable() && (state.isDraggable ?? true);
   const dragClass = isDraggable && parentLayout.getDragClass ? parentLayout.getDragClass() : '';
   const dragClassCancel = isDraggable && parentLayout.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
   const dataObject = sceneGraph.getData(model);

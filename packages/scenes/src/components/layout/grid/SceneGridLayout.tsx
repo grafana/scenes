@@ -314,7 +314,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 }
 
 interface SceneGridItemState extends SceneGridItemStateLike {
-  body: SceneObject | undefined;
+  body: SceneObject<SceneObjectState, SceneGridItemExtraProps> | undefined;
 }
 
 export class SceneGridItem
@@ -325,7 +325,7 @@ export class SceneGridItem
 }
 
 function SceneGridItemRenderer({ model, isDraggable }: SceneComponentProps<SceneGridItem, SceneGridItemExtraProps>) {
-  const { body } = model.useState();
+  const { body, isDraggable: isDraggableLocal } = model.useState();
   const parent = model.parent;
 
   if (parent && !isSceneGridLayout(parent) && !isSceneGridRow(parent)) {
@@ -336,7 +336,7 @@ function SceneGridItemRenderer({ model, isDraggable }: SceneComponentProps<Scene
     return null;
   }
 
-  return <body.Component model={body} />;
+  return <body.Component model={body} isDraggable={isDraggable && (isDraggableLocal ?? true)} />;
 }
 
 function isItemSizeEqual(a: SceneGridItemPlacement, b: SceneGridItemPlacement) {

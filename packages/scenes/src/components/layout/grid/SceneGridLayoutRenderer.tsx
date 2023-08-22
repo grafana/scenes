@@ -55,11 +55,11 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
 
                 return isLazy ? (
                   <LazyLoader key={sceneChild.state.key!}>
-                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} isDraggable={true} />
+                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} isDraggable={isDraggable} />
                   </LazyLoader>
                 ) : (
                   <div key={sceneChild.state.key}>
-                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
+                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} isDraggable={isDraggable} />
                   </div>
                 );
               })}

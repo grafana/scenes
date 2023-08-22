@@ -127,7 +127,6 @@ export interface SceneLayoutState extends SceneObjectState {
 }
 
 export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> extends SceneObject<T> {
-  isDraggable(): boolean;
   getDragClass?(): string;
   getDragClassCancel?(): string;
 }
