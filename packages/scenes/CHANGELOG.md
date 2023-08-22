@@ -1,3 +1,20 @@
+# v0.25.0 (Tue Aug 22 2023)
+
+#### 🚀 Enhancement
+
+- SceneQueryRunner: Fixes issues when being cloned [#288](https://github.com/grafana/scenes/pull/288) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Allow template variables to be cancelled [#261](https://github.com/grafana/scenes/pull/261) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.24.2 (Mon Aug 21 2023)
 
 #### 🐛 Bug Fix
