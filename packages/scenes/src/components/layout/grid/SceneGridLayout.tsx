@@ -3,7 +3,7 @@ import ReactGridLayout from 'react-grid-layout';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneLayout, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
-import { isSceneGridRow, SceneGridItem } from './SceneGridItem';
+import { isSceneGridRow } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
@@ -30,6 +30,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       ...state,
       children: sortChildrenByPosition(state.children),
     });
+  }
+
+  public getDragClass() {
+    return `grid-drag-handle-${this.state.key}`;
+  }
+
+  public getDragClassCancel() {
+    return `grid-drag-cancel`;
   }
 
   public toggleRow(row: SceneGridRow) {

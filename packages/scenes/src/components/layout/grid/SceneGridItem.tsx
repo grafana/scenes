@@ -12,12 +12,7 @@ export class SceneGridItem extends SceneObjectBase<SceneGridItemState> implement
   static Component = SceneGridItemRenderer;
 }
 
-function SceneGridItemRenderer({
-  model,
-  isDraggable,
-  dragClass,
-  dragClassCancel,
-}: SceneLayoutChildComponentProps<SceneGridItem>) {
+function SceneGridItemRenderer({ model, isDraggable }: SceneLayoutChildComponentProps<SceneGridItem>) {
   const { body, isDraggable: localIsDraggable } = model.useState();
   const parent = model.parent;
 
@@ -31,8 +26,6 @@ function SceneGridItemRenderer({
 
   return renderSceneComponentWithExtraProps(body, {
     isDraggable: isDraggable && (localIsDraggable ?? true),
-    dragClass,
-    dragClassCancel,
   });
 }
 

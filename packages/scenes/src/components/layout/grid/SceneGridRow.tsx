@@ -12,6 +12,7 @@ import { SceneDragHandle } from '../../SceneDragHandle';
 import { SceneGridLayout } from './SceneGridLayout';
 import { GRID_COLUMN_COUNT } from './constants';
 import { SceneGridItemLike, SceneGridItemStateLike } from './types';
+import { sceneGraph } from '../../../core/sceneGraph';
 
 export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
@@ -72,10 +73,12 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   }
 }
 
-export function SceneGridRowRenderer({ model, dragClass }: SceneLayoutChildComponentProps<SceneGridRow>) {
+export function SceneGridRowRenderer({ model, isDraggable }: SceneLayoutChildComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
-  const { isCollapsible, isCollapsed, title, isDraggable } = model.useState();
-  const dragHandle = <SceneDragHandle dragClass={dragClass!} />;
+  const { isCollapsible, isCollapsed, title, isDraggable: isDraggableLocal } = model.useState();
+  const layout = sceneGraph.getLayout(model)!;
+  const dragHandle = <SceneDragHandle dragClass={layout.getDragClass!()} />;
+  const isDraggableFinal = isDraggable && (isDraggableLocal ?? true);
 
   return (
     <div className={styles.row}>
@@ -84,7 +87,7 @@ export function SceneGridRowRenderer({ model, dragClass }: SceneLayoutChildCompo
           {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
           <span className={styles.rowTitle}>{title}</span>
         </button>
-        {isDraggable && isCollapsed && <div>{dragHandle}</div>}
+        {isDraggableFinal && isCollapsed && <div>{dragHandle}</div>}
       </div>
     </div>
   );

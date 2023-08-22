@@ -60,18 +60,13 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                     {renderSceneComponentWithExtraProps(sceneChild, {
                       key: sceneChild.state.key,
                       isDraggable,
-                      dragClass: `grid-drag-handle-${model.state.key}`,
-                      dragClassCancel: `grid-drag-cancel`,
                     })}
-                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </LazyLoader>
                 ) : (
                   <div key={sceneChild.state.key} style={style} data-panelid={sceneChild.state.key}>
                     {renderSceneComponentWithExtraProps(sceneChild, {
                       key: sceneChild.state.key,
                       isDraggable,
-                      dragClass: `grid-drag-handle-${model.state.key}`,
-                      dragClassCancel: `grid-drag-cancel`,
                     })}
                   </div>
                 );

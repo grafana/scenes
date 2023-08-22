@@ -10,12 +10,7 @@ import { isSceneObject, SceneLayoutChildComponentProps } from '../../core/types'
 
 import { VizPanel } from './VizPanel';
 
-export function VizPanelRenderer({
-  model,
-  isDraggable,
-  dragClass,
-  dragClassCancel,
-}: SceneLayoutChildComponentProps<VizPanel>) {
+export function VizPanelRenderer({ model, isDraggable }: SceneLayoutChildComponentProps<VizPanel>) {
   const {
     title,
     description,
@@ -34,6 +29,9 @@ export function VizPanelRenderer({
   const dataObject = sceneGraph.getData(model);
   const rawData = dataObject.useState();
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
+  const layout = sceneGraph.getLayout(model);
+  const dragClass = layout?.getDragClass?.();
+  const dragClassCancel = layout?.getDragClassCancel?.();
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
