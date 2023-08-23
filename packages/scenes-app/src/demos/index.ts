@@ -49,7 +49,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Split layout', getPage: getSplitTest },
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
     { title: 'Cursor sync', getPage: getCursorSyncTest },
-    { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
+    { title: 'Time range comparison 2', getPage: getTimeRangeComparisonTest },
     { title: 'Docs examples', getPage: getDocsExamples },
   ];
 }
