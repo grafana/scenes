@@ -1,3 +1,79 @@
+# v0.25.0 (Tue Aug 22 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Fixes issues when being cloned [#288](https://github.com/grafana/scenes/pull/288) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Allow template variables to be cancelled [#261](https://github.com/grafana/scenes/pull/261) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v0.24.2 (Mon Aug 21 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimeRange: Don't update state if time range has not changed [#291](https://github.com/grafana/scenes/pull/291) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v0.24.1 (Fri Aug 18 2023)
+
+#### 🐛 Bug Fix
+
+- Adding developer portal dev workflow and config [#276](https://github.com/grafana/scenes/pull/276) ([@tolzhabayev](https://github.com/tolzhabayev))
+- `@grafana/scenes`
+  - SceneObject: Warn if parent is already set to another SceneObject [#284](https://github.com/grafana/scenes/pull/284) ([@torkelo](https://github.com/torkelo))
+  - VizPanel: Handle plugin not found scenario correctly [#287](https://github.com/grafana/scenes/pull/287) ([@dprokop](https://github.com/dprokop))
+  - VariableValueSelectors: Don't wrap labels [#285](https://github.com/grafana/scenes/pull/285) ([@dprokop](https://github.com/dprokop))
+  - SceneDebugger: Scene graph explore & state viewer [#262](https://github.com/grafana/scenes/pull/262) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Timur Olzhabayev ([@tolzhabayev](https://github.com/tolzhabayev))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v0.24.0 (Fri Aug 04 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Tabs: Add icon and suffix [#248](https://github.com/grafana/scenes/pull/248) ([@pbaumard](https://github.com/pbaumard))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - PanelBuilders: Fix default options being mutated [#274](https://github.com/grafana/scenes/pull/274) ([@dprokop](https://github.com/dprokop))
+
+#### 🔩 Dependency Updates
+
+- `@grafana/scenes`
+  - Bump grafana dependencies [#273](https://github.com/grafana/scenes/pull/273) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 3
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Pierre Baumard ([@pbaumard](https://github.com/pbaumard))
+
+---
+
 # v0.23.0 (Wed Jul 19 2023)
 
 #### 🚀 Enhancement

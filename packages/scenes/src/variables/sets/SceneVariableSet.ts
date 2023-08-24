@@ -202,7 +202,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   /**
-   * A variable has completed it's update process. This could mean that variables that depend on it can now be updated in turn.
+   * A variable has completed its update process. This could mean that variables that depend on it can now be updated in turn.
    */
   private _validateAndUpdateCompleted(variable: SceneVariable) {
     const update = this._updating.get(variable);
@@ -214,6 +214,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     writeVariableTraceLog(variable, 'updateAndValidate completed');
 
     this._updateNextBatch();
+  }
+
+  public cancel(variable: SceneVariable) {
+    const update = this._updating.get(variable);
+    update?.subscription?.unsubscribe();
+
+    this._updating.delete(variable);
+    this._variablesToUpdate.delete(variable);
   }
 
   /**

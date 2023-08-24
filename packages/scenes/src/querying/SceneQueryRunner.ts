@@ -40,9 +40,10 @@ export interface QueryRunnerState extends SceneObjectState {
   minInterval?: string;
   maxDataPoints?: number;
   liveStreaming?: boolean;
-  // Non persisted state
   maxDataPointsFromWidth?: boolean;
-  isWaitingForVariables?: boolean;
+  // Private runtime state
+  _isWaitingForVariables?: boolean;
+  _hasFetchedData?: boolean;
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -53,7 +54,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
-  private _hasFetchedData = false;
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -96,7 +96,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * the query execution on activate was stopped due to VariableSet still not having processed all variables.
    */
   private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
-    if (this.state.isWaitingForVariables && this.shouldRunQueriesOnActivate()) {
+    if (this.state._isWaitingForVariables && this.shouldRunQueriesOnActivate()) {
       this.runQueries();
       return;
     }
@@ -176,7 +176,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   public isDataReadyToDisplay() {
-    return this._hasFetchedData;
+    return Boolean(this.state._hasFetchedData);
   }
 
   public runQueries() {
@@ -207,13 +207,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // Skip executing queries if variable dependency is in loading state
     if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
       writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
-      this.setState({ isWaitingForVariables: true });
+      this.setState({ _isWaitingForVariables: true });
       return;
     }
 
     // If we were waiting for variables, clear that flag
-    if (this.state.isWaitingForVariables) {
-      this.setState({ isWaitingForVariables: false });
+    if (this.state._isWaitingForVariables) {
+      this.setState({ _isWaitingForVariables: false });
     }
 
     const { queries } = this.state;
@@ -347,11 +347,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private onDataReceived = (data: PanelData) => {
     const preProcessedData = preProcessPanelData(data, this.state.data);
-    if (!this._hasFetchedData && preProcessedData.state !== LoadingState.Loading) {
-      this._hasFetchedData = true;
+    let hasFetchedData = this.state._hasFetchedData;
+
+    if (!hasFetchedData && preProcessedData.state !== LoadingState.Loading) {
+      hasFetchedData = true;
     }
 
-    this.setState({ data: preProcessedData });
+    this.setState({ data: preProcessedData, _hasFetchedData: hasFetchedData });
   };
 
   private _setNoDataState() {

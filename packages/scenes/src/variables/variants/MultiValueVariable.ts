@@ -18,6 +18,7 @@ import {
 } from '../types';
 import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
+import { SceneVariableSet } from '../sets/SceneVariableSet';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -55,6 +56,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         return {};
       })
     );
+  }
+
+  public cancel?(): void {
+    this.setStateHelper({ loading: false });
+    const sceneVarSet = this.parent as SceneVariableSet;
+    sceneVarSet?.cancel(this);
   }
 
   /**

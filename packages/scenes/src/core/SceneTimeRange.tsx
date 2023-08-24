@@ -92,7 +92,11 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     }
 
     update.value = evaluateTimeRange(update.from, update.to, this.getTimeZone());
-    this.setState(update);
+
+    // Only update if time range actually changed
+    if (update.from !== this.state.from || update.to !== this.state.to) {
+      this.setState(update);
+    }
   };
 
   public onTimeZoneChange = (timeZone: TimeZone) => {
