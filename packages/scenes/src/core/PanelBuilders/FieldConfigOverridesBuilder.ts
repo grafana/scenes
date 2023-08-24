@@ -1,5 +1,6 @@
 import { FieldMatcherID, FieldType, FieldValueMatcherConfig } from '@grafana/data';
 import { MatcherConfig } from '@grafana/schema';
+import { getCompareSeriesRefId } from '../../utils/getCompareSeriesRefId';
 import { StandardFieldConfigOverridesBuilder } from './StandardFieldConfigBuilders';
 
 export class FieldConfigOverridesBuilder<TFieldConfig> extends StandardFieldConfigOverridesBuilder<
@@ -64,6 +65,10 @@ export class FieldConfigOverridesBuilder<TFieldConfig> extends StandardFieldConf
       properties: [],
     });
     return this;
+  }
+
+  public matchComparisonQuery(refId: string): this {
+    return this.matchFieldsByQuery(getCompareSeriesRefId(refId));
   }
 
   public overrideCustomFieldConfig<T extends TFieldConfig, K extends keyof T>(id: K, value: T[K]): this {

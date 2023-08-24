@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import { forkJoin, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, FieldColorModeId, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
   CoreApp,
@@ -21,6 +21,7 @@ import { SceneDataProvider, SceneObject, SceneObjectState, SceneTimeRangeLike } 
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
+import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
@@ -235,26 +236,27 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
       if (secondaryRequest) {
-        const diff = request.range.from.diff(secondaryRequest.range.from);
+        const diff = secondaryRequest.range.from.diff(request.range.from);
 
         this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)]).subscribe(([p, s]) => {
           s.series.forEach((series) => {
-            series.refId = `${series.refId}-compare`;
+            series.refId = getCompareSeriesRefId(series.refId || '');
+            series.meta = {
+              ...series.meta,
+              // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
+              timeCompare: {
+                diffMs: diff,
+                isTimeShiftQuery: true,
+              },
+            };
             series.fields.forEach((field) => {
               // Align compare series time stamps with reference series
               if (field.type === FieldType.time) {
                 field.values = field.values.map((v) => {
-                  return v + diff;
+                  return diff < 0 ? v - diff : v + diff;
                 });
               }
-              return (field.config = {
-                ...field.config,
-                displayName: `${field.name} (compare)`,
-                color: {
-                  mode: FieldColorModeId.Fixed,
-                  fixedColor: '#ff0000',
-                },
-              });
+              return field;
             });
           });
 
