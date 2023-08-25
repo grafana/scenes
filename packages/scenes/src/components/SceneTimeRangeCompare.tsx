@@ -1,6 +1,6 @@
 import React from 'react';
 import { DateTime, dateTime, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonSelect, IconButton, InlineField } from '@grafana/ui';
+import { ButtonGroup, ButtonSelect, Checkbox, Icon, ToolbarButton } from '@grafana/ui';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
@@ -113,23 +113,48 @@ export class SceneTimeRangeCompare
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
   const { compareWith, compareOptions } = model.useState();
+  const [enabled, setEnabled] = React.useState(false || Boolean(compareWith));
   const value = compareOptions.find((o) => o.value === compareWith);
 
+  const onClick = () => {
+    setEnabled(!enabled);
+    if (enabled && Boolean(compareWith)) {
+      model.onClearCompare();
+    }
+  };
+
   return (
-    // UI here is temporary, just for the sake of testing the functionality
-    <InlineField label="Compare with:">
-      <>
+    <ButtonGroup>
+      <ToolbarButton
+        variant="canvas"
+        tooltip="Enable time frame comparison"
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onClick();
+        }}
+      >
+        <Checkbox label=" " value={enabled} onClick={onClick} />
+        Timeframe comparison
+      </ToolbarButton>
+
+      {enabled ? (
         <ButtonSelect
-          value={value}
           variant="canvas"
-          options={compareOptions}
+          value={value}
+          options={enabled ? compareOptions : []}
           onChange={(v) => {
             model.onCompareWithChanged(v.value!);
           }}
         />
-        {compareWith && <IconButton name="trash-alt" onClick={model.onClearCompare} />}
-      </>
-    </InlineField>
+      ) : (
+        <ToolbarButton
+          icon={<Icon name="angle-down" size="md" />}
+          style={{ cursor: !enabled ? 'not-allowed' : 'pointer' }}
+          variant="canvas"
+        />
+      )}
+    </ButtonGroup>
   );
 }
 
