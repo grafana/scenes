@@ -135,7 +135,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
         }}
       >
         <Checkbox label=" " value={enabled} onClick={onClick} />
-        Timeframe comparison
+        Time frame comparison
       </ToolbarButton>
 
       {enabled ? (
