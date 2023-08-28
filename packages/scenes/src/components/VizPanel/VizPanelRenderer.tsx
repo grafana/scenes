@@ -76,11 +76,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       actionsElement = (
         <>
           {headerActions.map((action, index) => {
-            return (
-              <React.Fragment key={`headerAction-${model.state.key}-${index}`}>
-                <action.Component model={action} />
-              </React.Fragment>
-            );
+            return <action.Component model={action} key={`${action.state.key}`} />;
           })}
         </>
       );
