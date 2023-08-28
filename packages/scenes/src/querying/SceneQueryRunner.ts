@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, map, OperatorFunction, Unsubscribable } from 'rxjs';
+import { forkJoin, map, Observable, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -25,7 +25,7 @@ import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
-import { isTimeRangeCompareProvider, SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
+import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 
 let counter = 100;
 
@@ -69,7 +69,18 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
-    const comparer = getTimeCompare(this);
+    const comparer = sceneGraph.findObject(this, (obj) => obj instanceof SceneTimeRangeCompare);
+    if (comparer && comparer instanceof SceneTimeRangeCompare) {
+      console.log('comparer', comparer.state.key);
+      this._subs.add(
+        comparer.subscribeToState((n, p) => {
+          console.log('comparer state changed', n, p);
+          if (n.compareWith !== p.compareWith) {
+            this.runQueries();
+          }
+        })
+      );
+    }
 
     this._subs.add(
       timeRange.subscribeToState(() => {
@@ -77,15 +88,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       })
     );
 
-    if (comparer) {
-      this._subs.add(
-        comparer.subscribeToState((n, p) => {
-          if (n.compareWith !== p.compareWith) {
-            this.runQueries();
-          }
-        })
-      );
-    }
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
     }
@@ -238,11 +240,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
       if (secondaryRequest) {
-        const diff = secondaryRequest.range.from.diff(request.range.from);
-
         // change subscribe callback below to pipe operator
         this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)])
-          .pipe(this.timeShiftQueryResponse(diff))
+          .pipe(this.timeShiftQueryResponse)
           .subscribe(this.onDataReceived);
       } else {
         this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
@@ -252,40 +252,38 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
   }
 
-  private timeShiftQueryResponse =
-    (diff: number): OperatorFunction<[PanelData, PanelData], PanelData> =>
-    (data) => {
-      return data.pipe(
-        map(([p, s]) => {
-          console.log('timeShiftQueryResponse');
-          s.series.forEach((series) => {
-            series.refId = getCompareSeriesRefId(series.refId || '');
-            series.meta = {
-              ...series.meta,
-              // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
-              timeCompare: {
-                diffMs: diff,
-                isTimeShiftQuery: true,
-              },
-            };
-            series.fields.forEach((field) => {
-              // Align compare series time stamps with reference series
-              if (field.type === FieldType.time) {
-                field.values = field.values.map((v) => {
-                  return diff < 0 ? v - diff : v + diff;
-                });
-              }
-              return field;
-            });
-          });
-
-          return {
-            ...p,
-            series: [...p.series, ...s.series],
+  private timeShiftQueryResponse(data: Observable<[PanelData, PanelData]>) {
+    return data.pipe(
+      map(([p, s]) => {
+        const diff = s.timeRange.from.diff(p.timeRange.from);
+        s.series.forEach((series) => {
+          series.refId = getCompareSeriesRefId(series.refId || '');
+          series.meta = {
+            ...series.meta,
+            // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
+            timeCompare: {
+              diffMs: diff,
+              isTimeShiftQuery: true,
+            },
           };
-        })
-      );
-    };
+          series.fields.forEach((field) => {
+            // Align compare series time stamps with reference series
+            if (field.type === FieldType.time) {
+              field.values = field.values.map((v) => {
+                return diff < 0 ? v - diff : v + diff;
+              });
+            }
+            return field;
+          });
+        });
+
+        return {
+          ...p,
+          series: [...p.series, ...s.series],
+        };
+      })
+    );
+  }
 
   private prepareRequests = (
     timeRange: SceneTimeRangeLike,
@@ -385,17 +383,9 @@ export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undef
  * Will walk up the scene graph and find the closest time range compare object
  */
 function getTimeCompare(sceneObject: SceneObject): SceneTimeRangeCompare | null {
-  let comparer;
-  sceneObject.forEachChild((child) => {
-    if (isTimeRangeCompareProvider(child)) {
-      comparer = child;
-    }
-  });
-  if (comparer) {
-    return comparer;
-  }
-  if (sceneObject.parent) {
-    return getTimeCompare(sceneObject.parent);
+  const found = sceneGraph.findObject(sceneObject, (obj) => obj instanceof SceneTimeRangeCompare);
+  if (found) {
+    return found as SceneTimeRangeCompare;
   }
   return null;
 }
