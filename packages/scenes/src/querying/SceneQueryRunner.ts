@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, Unsubscribable } from 'rxjs';
+import { forkJoin, map, OperatorFunction, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -79,8 +79,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (comparer) {
       this._subs.add(
-        comparer.subscribeToState(() => {
-          this.runQueries();
+        comparer.subscribeToState((n, p) => {
+          if (n.compareWith !== p.compareWith) {
+            this.runQueries();
+          }
         })
       );
     }
@@ -238,7 +240,24 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       if (secondaryRequest) {
         const diff = secondaryRequest.range.from.diff(request.range.from);
 
-        this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)]).subscribe(([p, s]) => {
+        // change subscribe callback below to pipe operator
+        this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)])
+          .pipe(this.timeShiftQueryResponse(diff))
+          .subscribe(this.onDataReceived);
+      } else {
+        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+      }
+    } catch (err) {
+      console.error('PanelQueryRunner Error', err);
+    }
+  }
+
+  private timeShiftQueryResponse =
+    (diff: number): OperatorFunction<[PanelData, PanelData], PanelData> =>
+    (data) => {
+      return data.pipe(
+        map(([p, s]) => {
+          console.log('timeShiftQueryResponse');
           s.series.forEach((series) => {
             series.refId = getCompareSeriesRefId(series.refId || '');
             series.meta = {
@@ -260,18 +279,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
             });
           });
 
-          this.onDataReceived({
+          return {
             ...p,
             series: [...p.series, ...s.series],
-          });
-        });
-      } else {
-        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
-      }
-    } catch (err) {
-      console.error('PanelQueryRunner Error', err);
-    }
-  }
+          };
+        })
+      );
+    };
 
   private prepareRequests = (
     timeRange: SceneTimeRangeLike,

@@ -53,7 +53,7 @@ export class SceneTimeRangeCompare
         const stateUpdate: Partial<SceneTimeRangeCompareState> = { compareOptions };
 
         // if current compareWith is not applicable to the new time range, set it to previous period comparison
-        if (!compareOptions.find(({ value }) => value === this.state.compareWith)) {
+        if (Boolean(this.state.compareWith) && !compareOptions.find(({ value }) => value === this.state.compareWith)) {
           stateUpdate.compareWith = PREVIOUS_PERIOD_VALUE;
         }
 
