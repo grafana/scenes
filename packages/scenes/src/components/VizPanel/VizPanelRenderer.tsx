@@ -6,7 +6,7 @@ import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { SceneComponentProps } from '../../core/types';
+import { isSceneObject, SceneComponentProps } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 
@@ -75,11 +75,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     if (Array.isArray(headerActions)) {
       actionsElement = (
         <>
-          {headerActions.map((action, index) => {
+          {headerActions.map((action) => {
             return <action.Component model={action} key={`${action.state.key}`} />;
           })}
         </>
       );
+    } else if (isSceneObject(headerActions)) {
+      actionsElement = <headerActions.Component model={headerActions} />;
     } else {
       actionsElement = headerActions;
     }
