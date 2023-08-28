@@ -38,7 +38,7 @@ export function getTimeRangeComparisonTest(defaults: SceneAppPageState) {
         controls: [
           new SceneControlsSpacer(),
           new SceneTimePicker({}),
-          new SceneTimeRangeCompare({}),
+          new SceneTimeRangeCompare({ key: 'top' }),
           new SceneRefreshPicker({}),
         ],
         key: 'Flex layout embedded scene',
@@ -72,7 +72,7 @@ export function getTimeRangeComparisonTest(defaults: SceneAppPageState) {
                   body: getTimeseriesPanelWithComparison('A')
                     .setTitle('Uses global time range, local comparer and data')
                     .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }))
-                    .setHeaderActions([new SceneTimeRangeCompare({})])
+                    .setHeaderActions([new SceneTimeRangeCompare({ key: 'mid' })])
                     .build(),
                 }),
                 new SceneFlexItem({
@@ -84,7 +84,7 @@ export function getTimeRangeComparisonTest(defaults: SceneAppPageState) {
                     .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }))
                     .setHeaderActions([
                       new SceneTimePicker({}),
-                      new SceneTimeRangeCompare({}),
+                      new SceneTimeRangeCompare({ key: 'bottom' }),
                       new SceneRefreshPicker({}),
                     ])
                     .build(),

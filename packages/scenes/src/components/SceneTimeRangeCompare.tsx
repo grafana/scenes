@@ -157,12 +157,3 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
     </ButtonGroup>
   );
 }
-
-// type guard for TimeRangeCompareProvider
-export function isTimeRangeCompareProvider(obj: unknown): obj is TimeRangeCompareProvider {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    typeof (obj as TimeRangeCompareProvider).getCompareTimeRange === 'function'
-  );
-}
