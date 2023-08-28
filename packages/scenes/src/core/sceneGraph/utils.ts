@@ -9,7 +9,15 @@ export function cloneSceneObject<T extends SceneObjectBase<TState>, TState exten
   sceneObject: SceneObjectBase<TState>,
   withState?: Partial<TState>
 ): T {
-  const clonedState = { ...sceneObject.state };
+  const clonedState = cloneSceneObjectState(sceneObject.state, withState);
+  return new (sceneObject.constructor as any)(clonedState);
+}
+
+export function cloneSceneObjectState<TState extends SceneObjectState>(
+  sceneState: TState,
+  withState?: Partial<TState>
+): TState {
+  const clonedState = { ...sceneState };
 
   // Clone any SceneItems in state
   for (const key in clonedState) {
@@ -34,7 +42,7 @@ export function cloneSceneObject<T extends SceneObjectBase<TState>, TState exten
 
   Object.assign(clonedState, withState);
 
-  return new (sceneObject.constructor as any)(clonedState);
+  return clonedState;
 }
 
 /** Walks up the scene graph, returning the first non-undefined result of `extract` */
