@@ -3,6 +3,8 @@
 
 const { grafanaPrismTheme } = require('./src/theme/prism');
 
+const devPortalHome = 'https://grafana-dev.com/developers';
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Grafana Scenes',
@@ -67,12 +69,7 @@ const config = {
           src: 'img/logo.svg',
         },
         items: [
-          {
-            type: 'doc',
-            docId: 'getting-started',
-            position: 'right',
-            label: 'Docs',
-          },
+          { href: devPortalHome, label: 'Portal Home', position: 'right', target: '_self' },
           // TODO
           // { href: 'https://community.grafana.com/c/plugin-development/30', label: 'Help', position: 'right' },
           {
@@ -91,6 +88,11 @@ const config = {
               {
                 label: 'Getting Started',
                 to: '/',
+              },
+              {
+                label: 'Portal Home',
+                href: devPortalHome,
+                target: '_self',
               },
             ],
           },
