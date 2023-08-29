@@ -1,3 +1,16 @@
+# v0.26.0 (Tue Aug 29 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - sceneUtils: cloneSceneObjectState [#297](https://github.com/grafana/scenes/pull/297) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.25.0 (Tue Aug 22 2023)
 
 #### 🚀 Enhancement
