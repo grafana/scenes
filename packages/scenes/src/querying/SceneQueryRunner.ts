@@ -13,7 +13,7 @@ import {
   rangeUtil,
   ScopedVar,
 } from '@grafana/data';
-import { getRunRequest } from '@grafana/runtime';
+import { config, getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -272,6 +272,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
                 return diff < 0 ? v - diff : v + diff;
               });
             }
+
+            field.config = {
+              ...field.config,
+              color: {
+                mode: 'fixed',
+                fixedColor: config.theme.palette.gray60,
+              },
+            };
+
             return field;
           });
         });

@@ -14,7 +14,6 @@ import {
   compareDataFrameStructures,
   applyFieldOverrides,
   PluginType,
-  DataFrame,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -31,7 +30,6 @@ import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
-import { FieldConfigOverridesBuilder } from '../../core/PanelBuilders/FieldConfigOverridesBuilder';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   title: string;
@@ -216,7 +214,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       structureRev: this._structureRev,
       series: applyFieldOverrides({
         data: newFrames,
-        fieldConfig: this._getFieldConfig(rawData.series),
+        fieldConfig: this.state.fieldConfig,
         fieldConfigRegistry,
         replaceVariables: this.interpolate,
         theme: config.theme2,
@@ -307,24 +305,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       // canEditAnnotations: props.dashboard.canEditAnnotations.bind(props.dashboard),
       // canDeleteAnnotations: props.dashboard.canDeleteAnnotations.bind(props.dashboard),
     };
-  }
-
-  private _getFieldConfig(data: DataFrame[]): FieldConfigSource<DeepPartial<TFieldConfig>> {
-    if (data.length > 0) {
-      // Create overrides for series that are comparison queries
-      const comparisonOverrides = new FieldConfigOverridesBuilder();
-      data.forEach((f) => {
-        comparisonOverrides.matchComparisonQuery(f.refId || '').overrideColor({
-          mode: 'fixed',
-          fixedColor: config.theme.palette.gray60,
-        });
-      });
-      return {
-        ...this.state.fieldConfig,
-        overrides: [...comparisonOverrides.build(), ...this.state.fieldConfig.overrides],
-      };
-    }
-    return this.state.fieldConfig;
   }
 }
 
