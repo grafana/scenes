@@ -28,7 +28,14 @@ const config = {
     locales: ['en'],
   },
 
-  plugins: [],
+  plugins: [
+    [
+      'docusaurus-lunr-search',
+      {
+        disableVersioning: true,
+      },
+    ],
+  ],
 
   presets: [
     [
