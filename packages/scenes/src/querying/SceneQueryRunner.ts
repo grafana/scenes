@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, map, Observable, Unsubscribable } from 'rxjs';
+import { forkJoin, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -7,13 +7,12 @@ import {
   CoreApp,
   DataQueryRequest,
   DataSourceApi,
-  FieldType,
   PanelData,
   preProcessPanelData,
   rangeUtil,
   ScopedVar,
 } from '@grafana/data';
-import { config, getRunRequest } from '@grafana/runtime';
+import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -21,12 +20,12 @@ import { SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
-import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
+import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
 
 let counter = 100;
 
@@ -241,7 +240,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       if (secondaryRequest) {
         // change subscribe callback below to pipe operator
         this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)])
-          .pipe(this.timeShiftQueryResponse)
+          .pipe(timeShiftQueryResponseOperator)
           .subscribe(this.onDataReceived);
       } else {
         this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
@@ -249,48 +248,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
     }
-  }
-
-  private timeShiftQueryResponse(data: Observable<[PanelData, PanelData]>) {
-    return data.pipe(
-      map(([p, s]) => {
-        const diff = s.timeRange.from.diff(p.timeRange.from);
-        s.series.forEach((series) => {
-          series.refId = getCompareSeriesRefId(series.refId || '');
-          series.meta = {
-            ...series.meta,
-            // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
-            timeCompare: {
-              diffMs: diff,
-              isTimeShiftQuery: true,
-            },
-          };
-          series.fields.forEach((field) => {
-            // Align compare series time stamps with reference series
-            if (field.type === FieldType.time) {
-              field.values = field.values.map((v) => {
-                return diff < 0 ? v - diff : v + diff;
-              });
-            }
-
-            field.config = {
-              ...field.config,
-              color: {
-                mode: 'fixed',
-                fixedColor: config.theme.palette.gray60,
-              },
-            };
-
-            return field;
-          });
-        });
-
-        return {
-          ...p,
-          series: [...p.series, ...s.series],
-        };
-      })
-    );
   }
 
   private prepareRequests = (
