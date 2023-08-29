@@ -19,6 +19,7 @@ import { getSplitTest } from './split';
 import { getQueryCancellationTest } from './queryCancellation';
 import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
+import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
 
 export interface DemoDescriptor {
@@ -48,6 +49,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Split layout', getPage: getSplitTest },
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
     { title: 'Cursor sync', getPage: getCursorSyncTest },
+    { title: 'Time range comparison 2', getPage: getTimeRangeComparisonTest },
     { title: 'Docs examples', getPage: getDocsExamples },
   ];
 }

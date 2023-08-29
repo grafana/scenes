@@ -47,7 +47,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   menu?: VizPanelMenu;
   isDraggable?: boolean;
   isResizable?: boolean;
-  headerActions?: React.ReactNode | SceneObject;
+  headerActions?: React.ReactNode | SceneObject | SceneObject[];
   // internal state
   pluginLoadError?: string;
   pluginInstanceState?: any;

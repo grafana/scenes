@@ -13,23 +13,29 @@ import {
 import { SceneTimeRange } from '../core/SceneTimeRange';
 
 import { SceneQueryRunner } from './SceneQueryRunner';
-import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
 import { TestScene } from '../variables/TestScene';
 import { RuntimeDataSource, registerRuntimeDataSource } from './RuntimeDataSource';
 import { DataQuery } from '@grafana/schema';
+import { EmbeddedScene } from '../components/EmbeddedScene';
+import { SceneCanvasText } from '../components/SceneCanvasText';
+import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
   query: () =>
     of({
       data: [
-        toDataFrame([
-          [100, 1],
-          [200, 2],
-          [300, 3],
-        ]),
+        toDataFrame({
+          refId: 'A',
+          datapoints: [
+            [100, 1],
+            [200, 2],
+            [300, 3],
+          ],
+        }),
       ],
     }),
 });
@@ -45,6 +51,7 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
     map((packet) => {
       result.state = LoadingState.Done;
       result.series = packet.data;
+
       return result;
     })
   );
@@ -59,6 +66,13 @@ jest.mock('@grafana/runtime', () => ({
   },
   getDataSourceSrv: () => {
     return { get: getDataSourceMock };
+  },
+  config: {
+    theme: {
+      palette: {
+        gray60: '#666666',
+      },
+    },
   },
 }));
 
@@ -501,6 +515,103 @@ describe('SceneQueryRunner', () => {
 
       // Should run new query
       expect(runRequestMock.mock.calls.length).toEqual(2);
+    });
+  });
+
+  describe('time frame comparison', () => {
+    test('should run query with time range comparison', async () => {
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+      });
+
+      const comparer = new SceneTimeRangeCompare({
+        compareWith: '7d',
+      });
+
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [comparer],
+        body: new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'A' }) })],
+        }),
+      });
+
+      scene.activate();
+      comparer.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+      const comaprisonRunRequestCall = runRequestMock.mock.calls[1];
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      expect(runRequestCall[1].range).toMatchInlineSnapshot(`
+        {
+          "from": "2023-08-24T05:00:00.000Z",
+          "raw": {
+            "from": "2023-08-24T05:00:00.000Z",
+            "to": "2023-08-24T07:00:00.000Z",
+          },
+          "to": "2023-08-24T07:00:00.000Z",
+        }
+      `);
+
+      expect(comaprisonRunRequestCall[1].range).toMatchInlineSnapshot(`
+        {
+          "from": "2023-08-17T05:00:00.000Z",
+          "raw": {
+            "from": "2023-08-17T05:00:00.000Z",
+            "to": "2023-08-17T07:00:00.000Z",
+          },
+          "to": "2023-08-17T07:00:00.000Z",
+        }
+      `);
+    });
+
+    test('should perform shift query transformation', async () => {
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'ComparisonQuery' }],
+      });
+
+      const comparer = new SceneTimeRangeCompare({
+        compareWith: '1h',
+      });
+
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [comparer],
+        body: new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'A' }) })],
+        }),
+      });
+
+      scene.activate();
+      comparer.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.series).toHaveLength(2);
+      expect(queryRunner.state.data?.series[0].refId).toBe('A');
+      expect(queryRunner.state.data?.series[1].refId).toBe('A-compare');
+      expect(queryRunner.state.data?.series[0].meta).toBeUndefined();
+      expect(queryRunner.state.data?.series[1].meta).toMatchInlineSnapshot(`
+        {
+          "timeCompare": {
+            "diffMs": -3600000,
+            "isTimeShiftQuery": true,
+          },
+        }
+      `);
     });
   });
 });

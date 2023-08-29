@@ -134,7 +134,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   }
 }
 
-function parseUrlParam(value: SceneObjectUrlValue): string | null {
+export function parseUrlParam(value: SceneObjectUrlValue): string | null {
   if (typeof value !== 'string') {
     return null;
   }

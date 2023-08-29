@@ -55,6 +55,7 @@ const sidebars = {
         'advanced-data',
         'advanced-variables',
         'advanced-custom-datasource',
+        'advanced-time-range-comparison',
       ],
     },
   ],

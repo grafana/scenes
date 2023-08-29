@@ -14,6 +14,7 @@ import { getTransformationsScene } from '../../../../docusaurus/docs/transformat
 import { getCustomVisualization, getStandardVisualizations } from '../../../../docusaurus/docs/visualizations';
 import { getAdvancedVariablesScene } from '../../../../docusaurus/docs/advanced-variables';
 import { getAdvancedDataScene } from '../../../../docusaurus/docs/advanced-data';
+import { getAdvancedTimeRangeComparisonScene } from '../../../../docusaurus/docs/advanced-time-range-comparison';
 
 const docs = [
   {
@@ -85,6 +86,11 @@ const docs = [
     title: 'Advanced - variables',
     url: 'advanced-variables',
     getScene: getAdvancedVariablesScene,
+  },
+  {
+    title: 'Advanced - time range comparison',
+    url: 'advanced-time-range-comparison',
+    getScene: getAdvancedTimeRangeComparisonScene,
   },
 ];
 

@@ -72,7 +72,15 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   let actionsElement: React.ReactNode | undefined;
 
   if (headerActions) {
-    if (isSceneObject(headerActions)) {
+    if (Array.isArray(headerActions)) {
+      actionsElement = (
+        <>
+          {headerActions.map((action) => {
+            return <action.Component model={action} key={`${action.state.key}`} />;
+          })}
+        </>
+      );
+    } else if (isSceneObject(headerActions)) {
       actionsElement = <headerActions.Component model={headerActions} />;
     } else {
       actionsElement = headerActions;

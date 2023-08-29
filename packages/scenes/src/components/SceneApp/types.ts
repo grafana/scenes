@@ -36,7 +36,7 @@ export interface SceneAppPageState extends SceneObjectState {
   /** For an icon before title or tab label */
   titleIcon?: IconName;
   /** For a tab label suffix */
-  tabSuffix?: ComponentType<{ className?: string; }>,
+  tabSuffix?: ComponentType<{ className?: string }>;
   // Use to provide page absolute URL, i.e. /app/overview
   url: string;
   // Use to provide parametrized page URL, i.e. /app/overview/:clusterId
