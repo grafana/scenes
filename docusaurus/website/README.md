@@ -24,6 +24,15 @@ $ yarn build
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
 
+### Search
+
+Search functionality is handled by a "local search" index built using (docusaurus-plugin-lunr)[https://github.com/daldridge/docusaurus-plugin-lunr]. Search is only available in a production build of the website. To view this locally run the following commands:
+
+```
+$ npm run build
+$ npm run serve
+```
+
 ### Deployment
 
 Using SSH:
