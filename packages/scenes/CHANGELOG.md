@@ -1,3 +1,58 @@
+# v0.27.0 (Tue Aug 29 2023)
+
+### Release Notes
+
+#### Allow time range comparison ([#244](https://github.com/grafana/scenes/pull/244))
+
+You can now automatically perform queries against a secondary time range to visualize time-over-time comparisons. Use `SceneTimeRangeCompare` as in the example below:
+
+```ts
+const queryRunner = new SceneQueryRunner({
+  datasource: {
+    type: 'prometheus',
+    uid: 'gdev-prometheus',
+  },
+  queries: [
+    {
+      refId: 'A',
+      expr: 'rate(prometheus_http_requests_total{handler=~"/metrics"}[5m])',
+    },
+  ],
+});
+
+const scene = new EmbeddedScene({
+  $data: queryRunner,
+  $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+  controls: [
+    new SceneTimePicker({}), 
+    new SceneTimeRangeCompare({}) // Use this object to enable time frame comparison UI
+  ],
+  body: new SceneFlexLayout({
+    direction: 'row',
+    children: [
+      new SceneFlexItem({
+        width: '100%',
+        height: '100%',
+        body: PanelBuilders.timeseries().setTitle('Panel using global time range').build(),
+      }),
+    ],
+  }),
+ });
+```
+
+---
+
+#### 🚀 Enhancement
+
+- Allow time range comparison [#244](https://github.com/grafana/scenes/pull/244) ([@dprokop](https://github.com/dprokop) [@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v0.26.0 (Tue Aug 29 2023)
 
 #### 🚀 Enhancement
