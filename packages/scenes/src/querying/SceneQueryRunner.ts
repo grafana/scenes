@@ -17,9 +17,9 @@ import { getRunRequest } from '@grafana/runtime';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
-  DataRequestEnricher,
   isDataRequestEnricher,
   SceneDataProvider,
+  SceneObject,
   SceneObjectState,
   SceneTimeRangeLike,
 } from '../core/types';
@@ -32,6 +32,7 @@ import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
+import { SceneAppPage } from '../components/SceneApp/SceneAppPage';
 
 let counter = 100;
 
@@ -294,10 +295,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return query;
     });
 
-    const enricher = getDataRequestEnricher(this);
-    if (enricher) {
-      enricher.enrichDataRequest(this, request);
-    }
+    const enrichedRequest = getEnrichedDataRequest(this);
+    console.log('enrichedRequest', enrichedRequest);
 
     // TODO interpolate minInterval
     const lowerIntervalLimit = minInterval ? minInterval : ds.interval;
@@ -378,16 +377,23 @@ export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undef
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }
 
-function getDataRequestEnricher(queryRunner: SceneQueryRunner): DataRequestEnricher | null {
+function getEnrichedDataRequest(queryRunner: SceneObject): any {
   let parent = queryRunner.parent;
 
+  let result = {};
   while (parent) {
     if (isDataRequestEnricher(parent)) {
-      return parent;
+      result = {
+        ...parent.enrichDataRequest(),
+        ...result, // deeper enrichers take precendence
+      };
+    }
+    if (parent instanceof SceneAppPage) {
+      console.log('parent', parent.parent);
     }
 
     parent = parent.parent;
   }
 
-  return null;
+  return result;
 }

@@ -1,22 +1,19 @@
 import React from 'react';
 import { Route, Switch } from 'react-router-dom';
 
-import { DataRequestEnricher, SceneComponentProps, SceneObject } from '../../core/types';
+import { DataRequestEnricher, SceneComponentProps } from '../../core/types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneAppState } from './types';
 import { renderSceneComponentWithRouteProps } from './utils';
-import { DataQueryRequest } from '@grafana/data';
 
 /**
  * Responsible for top level pages routing
  */
 export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequestEnricher {
-  public enrichDataRequest(source: SceneObject, request: DataQueryRequest): DataQueryRequest {
-    if (this.state.dataRequestEnricher) {
-      return this.state.dataRequestEnricher(source, request);
-    }
-
-    return request;
+  public enrichDataRequest() {
+    return {
+      app: this.state.name || 'app',
+    };
   }
 
   public static Component = ({ model }: SceneComponentProps<SceneApp>) => {

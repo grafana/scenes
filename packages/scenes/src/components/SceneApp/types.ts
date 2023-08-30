@@ -14,6 +14,7 @@ export interface SceneAppState extends SceneObjectState {
   // Array of SceneAppPage objects that are considered app's top level pages
   pages: SceneAppPageLike[];
   dataRequestEnricher?: DataRequestEnricher['enrichDataRequest'];
+  name?: string;
 }
 
 export interface SceneAppRoute {
