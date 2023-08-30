@@ -16,7 +16,13 @@ import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core/types';
+import {
+  DataQueryRequestEnricher,
+  isDataQueryRequestEnricher,
+  SceneDataProvider,
+  SceneObjectState,
+  SceneTimeRangeLike,
+} from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -288,6 +294,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return query;
     });
 
+    const enricher = getDataQueryEnricher(this);
+    if (enricher) {
+      enricher.enrichDataQueryRequest(this, request);
+    }
+
     // TODO interpolate minInterval
     const lowerIntervalLimit = minInterval ? minInterval : ds.interval;
     const norm = rangeUtil.calculateInterval(timeRange.state.value, request.maxDataPoints!, lowerIntervalLimit);
@@ -365,4 +376,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
+}
+
+function getDataQueryEnricher(queryRunner: SceneQueryRunner): DataQueryRequestEnricher | null {
+  const parent = queryRunner.parent;
+  while (parent) {
+    if (isDataQueryRequestEnricher(parent)) {
+      return parent;
+    }
+  }
+
+  return null;
 }

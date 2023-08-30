@@ -6,6 +6,7 @@ import {
   BusEventHandler,
   BusEventType,
   DataFrame,
+  DataQueryRequest,
   DataTransformContext,
   PanelData,
   TimeRange,
@@ -162,6 +163,14 @@ export interface SceneObjectUrlSyncHandler {
   getKeys(): string[];
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
+}
+
+export interface DataQueryRequestEnricher {
+  enrichDataQueryRequest(source: SceneObject, request: DataQueryRequest): DataQueryRequest;
+}
+
+export function isDataQueryRequestEnricher(obj: any): obj is DataQueryRequestEnricher {
+  return 'enrichDataQueryRequest' in obj;
 }
 
 export type SceneObjectUrlValue = string | string[] | undefined | null;
