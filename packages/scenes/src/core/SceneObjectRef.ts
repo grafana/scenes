@@ -5,7 +5,7 @@ export class SceneObjectRef<T> {
     this.#ref = ref;
   }
 
-  public get(): T {
+  public resolve(): T {
     return this.#ref;
   }
 }
