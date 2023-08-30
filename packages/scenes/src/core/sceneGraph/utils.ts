@@ -1,6 +1,7 @@
 import { SceneObject, SceneObjectState } from '../types';
 
 import { SceneObjectBase } from '../SceneObjectBase';
+import { SceneObjectRef } from '../SceneObjectRef';
 
 /**
  * Will create new SceneItem with shalled cloned state, but all states items of type SceneObject are deep cloned
@@ -24,6 +25,10 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
     const propValue = clonedState[key];
     if (propValue instanceof SceneObjectBase) {
       clonedState[key] = propValue.clone();
+    }
+
+    if (propValue instanceof SceneObjectRef) {
+      throw new Error('Cannot clone a SceneObject with a SceneObjectRef in state');
     }
 
     // Clone scene objects in arrays
