@@ -136,12 +136,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
 function getDragClasses(panel: VizPanel) {
   const parentLayout = sceneGraph.getLayout(panel);
-
-  // If parent has enabled dragging and we have not explicitly disabled it then dragging is enabled
   const isDraggable = parentLayout?.isDraggable() && (panel.state.isDraggable ?? true);
-  const dragClass = isDraggable && parentLayout?.getDragClass ? parentLayout.getDragClass() : '';
-  const dragClassCancel = isDraggable && parentLayout?.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
-  return { dragClass, dragClassCancel };
+
+  if (!parentLayout || !isDraggable) {
+    return { dragClass: '', dragClassCancel: '' };
+  }
+
+  return { dragClass: parentLayout.getDragClass?.(), dragClassCancel: parentLayout?.getDragClassCancel?.() };
 }
 
 function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | undefined) {
