@@ -33,6 +33,8 @@ export function getNextRequestId() {
   return 'SQR' + counter++;
 }
 
+type AllowedDataQueryRequestContextProperties = Pick<DataQueryRequest, 'app' | 'panelId' | 'dashboardUID'>;
+
 export interface QueryRunnerState extends SceneObjectState {
   data?: PanelData;
   queries: DataQueryExtended[];
@@ -41,6 +43,7 @@ export interface QueryRunnerState extends SceneObjectState {
   maxDataPoints?: number;
   liveStreaming?: boolean;
   maxDataPointsFromWidth?: boolean;
+  getDataQueryRequestContext?: (runner: SceneQueryRunner) => Partial<AllowedDataQueryRequestContextProperties>;
   // Private runtime state
   _isWaitingForVariables?: boolean;
   _hasFetchedData?: boolean;
@@ -255,7 +258,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     ds: DataSourceApi
   ): [DataQueryRequest, DataQueryRequest | undefined] => {
     const comparer = this.getTimeCompare();
-    const { minInterval, queries } = this.state;
+    const { minInterval, queries, getDataQueryRequestContext } = this.state;
     const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
       __sceneObject: { text: '__sceneObject', value: this },
     };
@@ -263,13 +266,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     let secondaryRequest: DataQueryRequest | undefined;
 
     let request: DataQueryRequest = {
+      panelId: 1,
+      interval: '1s',
+      intervalMs: 1000,
       app: CoreApp.Dashboard,
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
-      panelId: 1,
       range: timeRange.state.value,
-      interval: '1s',
-      intervalMs: 1000,
       targets: cloneDeep(queries),
       maxDataPoints: this.getMaxDataPoints(),
       scopedVars: sceneObjectScopedVar,
@@ -280,6 +283,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         to: timeRange.state.to,
       },
     };
+
+    if (getDataQueryRequestContext) {
+      request = {
+        ...request,
+        ...getDataQueryRequestContext(this),
+      };
+    }
 
     request.targets = request.targets.map((query) => {
       if (!query.datasource) {

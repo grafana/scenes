@@ -138,6 +138,93 @@ describe('SceneQueryRunner', () => {
         }
       `);
     });
+
+    describe('DataQueryRequest decoration', () => {
+      it('should allow DataQueryRequest object decoration', async () => {
+        Date.now = jest.fn(() => 1689063488000);
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          getDataQueryRequestContext: () => {
+            return {
+              app: 'my-app',
+              panelId: 100,
+            };
+          },
+        });
+
+        queryRunner.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(sentRequest).toBeDefined();
+        const { scopedVars, ...request } = sentRequest!;
+
+        expect(request.app).toBe('my-app');
+        expect(request.panelId).toBe(100);
+        expect(request).toMatchInlineSnapshot(`
+          {
+            "app": "my-app",
+            "interval": "30s",
+            "intervalMs": 30000,
+            "liveStreaming": undefined,
+            "maxDataPoints": 500,
+            "panelId": 100,
+            "range": {
+              "from": "2023-07-11T02:18:08.000Z",
+              "raw": {
+                "from": "now-6h",
+                "to": "now",
+              },
+              "to": "2023-07-11T08:18:08.000Z",
+            },
+            "rangeRaw": {
+              "from": "now-6h",
+              "to": "now",
+            },
+            "requestId": "SQR101",
+            "startTime": 1689063488000,
+            "targets": [
+              {
+                "datasource": {
+                  "uid": "test",
+                },
+                "refId": "A",
+              },
+            ],
+            "timezone": "browser",
+          }
+        `);
+      });
+
+      it('should allow DataQueryRequest object decoration when cloned', async () => {
+        Date.now = jest.fn(() => 1689063488000);
+        const runnerSpy = jest.fn();
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          key: 'original',
+          $timeRange: new SceneTimeRange(),
+          getDataQueryRequestContext: (runner) => {
+            runnerSpy(runner);
+            return {
+              app: 'my-app',
+              panelId: 100,
+            };
+          },
+        });
+
+        queryRunner.activate();
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(runnerSpy).toHaveBeenLastCalledWith(queryRunner);
+
+        const cloned = queryRunner.clone();
+        cloned.runQueries();
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(runnerSpy).toHaveBeenLastCalledWith(cloned);
+      });
+    });
   });
 
   describe('when activated and got no data', () => {
