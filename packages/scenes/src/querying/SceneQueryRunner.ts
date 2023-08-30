@@ -379,11 +379,14 @@ export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undef
 }
 
 function getDataRequestEnricher(queryRunner: SceneQueryRunner): DataRequestEnricher | null {
-  const parent = queryRunner.parent;
+  let parent = queryRunner.parent;
+
   while (parent) {
     if (isDataRequestEnricher(parent)) {
       return parent;
     }
+
+    parent = parent.parent;
   }
 
   return null;
