@@ -17,8 +17,8 @@ import { getRunRequest } from '@grafana/runtime';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
-  DataQueryRequestEnricher,
-  isDataQueryRequestEnricher,
+  DataRequestEnricher,
+  isDataRequestEnricher,
   SceneDataProvider,
   SceneObjectState,
   SceneTimeRangeLike,
@@ -294,9 +294,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return query;
     });
 
-    const enricher = getDataQueryEnricher(this);
+    const enricher = getDataRequestEnricher(this);
     if (enricher) {
-      enricher.enrichDataQueryRequest(this, request);
+      enricher.enrichDataRequest(this, request);
     }
 
     // TODO interpolate minInterval
@@ -378,10 +378,10 @@ export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undef
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }
 
-function getDataQueryEnricher(queryRunner: SceneQueryRunner): DataQueryRequestEnricher | null {
+function getDataRequestEnricher(queryRunner: SceneQueryRunner): DataRequestEnricher | null {
   const parent = queryRunner.parent;
   while (parent) {
-    if (isDataQueryRequestEnricher(parent)) {
+    if (isDataRequestEnricher(parent)) {
       return parent;
     }
   }
