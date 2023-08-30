@@ -12,7 +12,7 @@ Behaviors can be implemented in two ways:
 - As a pure function that gets called when its parent is activated.
 - As a scene object that is activated when its parent is activated.
 
-Behaviors can be attached to another scene object using `$behaviors` state property. For example you can attach behaviors to a `SceneQueryRunner`:
+Behaviors can be attached to scene objects using `$behaviors` state property. For example, you can attach behaviors to a `SceneQueryRunner`:
 
 ```ts
 const queryRunner = new SceneQueryRunner({
