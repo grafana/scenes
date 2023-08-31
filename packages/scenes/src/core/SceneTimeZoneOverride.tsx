@@ -1,14 +1,14 @@
 import { TimeZone } from '@grafana/schema';
 import { evaluateTimeRange } from './SceneTimeRange';
 import { SceneTimeRangeLike, SceneTimeRangeState } from './types';
-import { SceneTimeRangeTransformer } from './SceneTimeTransformer';
+import { SceneTimeRangeModifierBase } from './SceneTimeTransformer';
 
 interface SceneTimeZoneOverrideState extends SceneTimeRangeState {
   timeZone: TimeZone;
 }
 
 export class SceneTimeZoneOverride
-  extends SceneTimeRangeTransformer<SceneTimeZoneOverrideState>
+  extends SceneTimeRangeModifierBase<SceneTimeZoneOverrideState>
   implements SceneTimeRangeLike
 {
   public constructor(state: Omit<SceneTimeZoneOverrideState, 'from' | 'to' | 'value'>) {
@@ -22,7 +22,7 @@ export class SceneTimeZoneOverride
     });
   }
 
-  protected parentTimeRangeChanged(timeRange: SceneTimeRangeState): void {
+  protected ancestorTimeRangeChanged(timeRange: SceneTimeRangeState): void {
     this.setState({ value: evaluateTimeRange(timeRange.from, timeRange.to, this.state.timeZone) });
   }
 

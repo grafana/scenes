@@ -5,7 +5,7 @@ import { SceneObjectBase } from './SceneObjectBase';
 import { evaluateTimeRange } from './SceneTimeRange';
 import { SceneTimeRangeLike, SceneTimeRangeState } from './types';
 
-export abstract class SceneTimeRangeTransformer<T extends SceneTimeRangeState>
+export abstract class SceneTimeRangeModifierBase<T extends SceneTimeRangeState>
   extends SceneObjectBase<T>
   implements SceneTimeRangeLike
 {
@@ -26,12 +26,12 @@ export abstract class SceneTimeRangeTransformer<T extends SceneTimeRangeState>
   private _activationHandler = () => {
     const ancestorTimeRange = this.getAncestorTimeRange();
 
-    this.parentTimeRangeChanged(ancestorTimeRange.state);
+    this.ancestorTimeRangeChanged(ancestorTimeRange.state);
 
-    this._subs.add(ancestorTimeRange.subscribeToState((s) => this.parentTimeRangeChanged(s)));
+    this._subs.add(ancestorTimeRange.subscribeToState((s) => this.ancestorTimeRangeChanged(s)));
   };
 
-  protected abstract parentTimeRangeChanged(timeRange: SceneTimeRangeState): void;
+  protected abstract ancestorTimeRangeChanged(timeRange: SceneTimeRangeState): void;
 
   public getTimeZone(): TimeZone {
     return this.getAncestorTimeRange().getTimeZone();
