@@ -1,3 +1,15 @@
+# v0.28.0 (Thu Aug 31 2023)
+
+#### 🚀 Enhancement
+
+- SceneObjectRef: Provide a way to have references to other scene objects without impacting parent [#304](https://github.com/grafana/scenes/pull/304) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.27.0 (Tue Aug 29 2023)
 
 ### Release Notes
