@@ -1,3 +1,15 @@
+# v0.28.1 (Thu Aug 31 2023)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayout: Remove z-index [#308](https://github.com/grafana/scenes/pull/308) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.28.0 (Thu Aug 31 2023)
 
 #### 🚀 Enhancement
