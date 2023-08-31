@@ -19,6 +19,7 @@ import {
 import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { setBaseClassState } from '../../utils/utils';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -221,8 +222,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * This helper function is to counter the contravariance of setState
    */
   private setStateHelper(state: Partial<MultiValueVariableState>) {
-    const test: SceneObject<MultiValueVariableState> = this;
-    test.setState(state);
+    setBaseClassState<MultiValueVariableState>(this, state);
   }
 
   public getOptionsForSelect(): VariableValueOption[] {

@@ -3,7 +3,8 @@ import { TimeZone } from '@grafana/schema';
 import { sceneGraph } from './sceneGraph';
 import { SceneObjectBase } from './SceneObjectBase';
 import { evaluateTimeRange } from './SceneTimeRange';
-import { SceneTimeRangeLike, SceneTimeRangeState } from './types';
+import { SceneObject, SceneTimeRangeLike, SceneTimeRangeState } from './types';
+import { setBaseClassState } from '../utils/utils';
 
 /**
  * Used by SceneTimeZoneOverride and main repo PanelTimeRange.
@@ -46,8 +47,10 @@ export abstract class SceneTimeRangeModifierBase<T extends SceneTimeRangeState>
   }
 
   public onTimeZoneChange(timeZone: string): void {
-    //@ts-ignore
-    this.setState({ timeZone, value: evaluateTimeRange(this.state.from, this.state.to, timeZone) });
+    setBaseClassState<SceneTimeRangeState>(this, {
+      timeZone,
+      value: evaluateTimeRange(this.state.from, this.state.to, timeZone),
+    });
   }
 
   public onRefresh(): void {
