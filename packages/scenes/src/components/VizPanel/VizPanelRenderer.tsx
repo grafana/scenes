@@ -22,16 +22,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     hoverHeader,
     menu,
     headerActions,
-    ...state
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
-  const parentLayout = sceneGraph.getLayout(model);
 
-  // If parent has enabled dragging and we have not explicitly disabled it then dragging is enabled
-  const isDraggable = parentLayout.isDraggable() && (state.isDraggable ?? true);
-  const dragClass = isDraggable && parentLayout.getDragClass ? parentLayout.getDragClass() : '';
-  const dragClassCancel = isDraggable && parentLayout.getDragClassCancel ? parentLayout.getDragClassCancel() : '';
+  const { dragClass, dragClassCancel } = getDragClasses(model);
   const dataObject = sceneGraph.getData(model);
   const rawData = dataObject.useState();
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
@@ -145,6 +140,17 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       )}
     </div>
   );
+}
+
+function getDragClasses(panel: VizPanel) {
+  const parentLayout = sceneGraph.getLayout(panel);
+  const isDraggable = parentLayout?.isDraggable() && (panel.state.isDraggable ?? true);
+
+  if (!parentLayout || !isDraggable) {
+    return { dragClass: '', dragClassCancel: '' };
+  }
+
+  return { dragClass: parentLayout.getDragClass?.(), dragClassCancel: parentLayout?.getDragClassCancel?.() };
 }
 
 function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | undefined) {

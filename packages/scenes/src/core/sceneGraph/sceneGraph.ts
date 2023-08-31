@@ -29,13 +29,13 @@ function isSceneLayout(s: SceneObject): s is SceneLayout {
 /**
  * Will walk up the scene object graph to the closest $layout scene object
  */
-export function getLayout(scene: SceneObject): SceneLayout {
+export function getLayout(scene: SceneObject): SceneLayout | null {
   const parent = getClosest(scene, (s) => (isSceneLayout(s) ? s : undefined));
   if (parent) {
     return parent;
   }
 
-  throw new Error('No layout found in scene tree');
+  return null;
 }
 
 /**
