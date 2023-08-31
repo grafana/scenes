@@ -254,7 +254,7 @@ const scene = new EmbeddedScene({
 It's very important that you do not reuse the same instance to a scene object in multiple different scenes or locations within the same scene. A scene object's parent is automatically set when it's part of the state of another scene object. So if you want to use the same scene object instance as the part of the state of more than one scene object you have two options.
 
 * Clone the source scene object. This will create a separate instance with no connection to the source object.
-* Use SceneObjectRef to wrap the instance. This makes sure the object's original parent is not changed while allowing you to store a reference to the instance in the state of another scene object.
+* Use `SceneObjectRef` to wrap the instance. This makes sure the object's original parent is not changed while allowing you to store a reference to the instance in the state of another scene object.
 
 
 ## Source code
