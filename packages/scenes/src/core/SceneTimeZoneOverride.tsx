@@ -34,4 +34,8 @@ export class SceneTimeZoneOverride
   public getTimeZone(): TimeZone {
     return this.state.timeZone;
   }
+
+  public onTimeZoneChange(timeZone: string): void {
+    this.setState({ timeZone, value: evaluateTimeRange(this.state.from, this.state.to, this.state.timeZone) });
+  }
 }

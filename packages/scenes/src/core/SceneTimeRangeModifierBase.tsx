@@ -47,10 +47,7 @@ export abstract class SceneTimeRangeModifierBase<T extends SceneTimeRangeState>
   }
 
   public onTimeZoneChange(timeZone: string): void {
-    setBaseClassState<SceneTimeRangeState>(this, {
-      timeZone,
-      value: evaluateTimeRange(this.state.from, this.state.to, timeZone),
-    });
+    this.getAncestorTimeRange().onTimeZoneChange(timeZone);
   }
 
   public onRefresh(): void {
