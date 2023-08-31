@@ -52,15 +52,13 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
             >
               {layout.map((gridItem, index) => {
                 const sceneChild = model.getSceneLayoutChild(gridItem.i)!;
-                // This it have panels higher up the page have higher z-index
-                const style = { zIndex: layout.length - index };
 
                 return isLazy ? (
-                  <LazyLoader key={sceneChild.state.key!} style={style} data-panelid={sceneChild.state.key}>
+                  <LazyLoader key={sceneChild.state.key!} data-panelid={sceneChild.state.key}>
                     <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </LazyLoader>
                 ) : (
-                  <div key={sceneChild.state.key} style={style} data-panelid={sceneChild.state.key}>
+                  <div key={sceneChild.state.key} data-panelid={sceneChild.state.key}>
                     <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </div>
                 );
