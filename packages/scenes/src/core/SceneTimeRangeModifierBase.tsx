@@ -5,6 +5,10 @@ import { SceneObjectBase } from './SceneObjectBase';
 import { evaluateTimeRange } from './SceneTimeRange';
 import { SceneTimeRangeLike, SceneTimeRangeState } from './types';
 
+/**
+ * Used by SceneTimeZoneOverride and main repo PanelTimeRange.
+ * Not recommened to be used by plugins directly.
+ */
 export abstract class SceneTimeRangeModifierBase<T extends SceneTimeRangeState>
   extends SceneObjectBase<T>
   implements SceneTimeRangeLike
