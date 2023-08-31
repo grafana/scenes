@@ -160,6 +160,32 @@ myTimeSeriesPanel.setOverrides((b) =>
 );
 ```
 
+A single override configuration starts with a **matcher** configuration. Thanks to matchers Grafana knows what part of the results the override should be applied to. The following matchers are available:
+
+#### `matchFieldsWithName(name: string)`
+
+Select a field from based on provided field name. Properties you add to a rule with this selector are only applied to this single field.
+
+#### `matchFieldsWithNameByRegex(regex: string)`
+
+Specify fields to override with a regular expression. Properties you add to a rule with this selector are applied to all fields where the field name match the regex.
+
+#### `matchFieldsByType(fieldType: FieldType)`
+
+Select fields by type, such as string, numeric, and so on. Properties you add to a rule with this selector are applied to all fields that match the selected type.
+
+#### `matchFieldsByQuery(refId: string)`
+
+Select all fields returned by a specific query, such as A, B, or C. Properties you add to a rule with this selector are applied to all fields returned by the selected query.
+
+#### `matchFieldsByValue(options: FieldValueMatcherConfig)`
+
+Select all fields that match provided value condition configuration. This matchers allows overrides configuration based on condition that is performed against reduced values of a series. You can configure overrides for example for series that have average higher than provided value.
+
+#### `matchComparisonQuery(refId: string)`
+
+Select all fields returned by a comparison query. Properties you add to a rule with this selector are applied to all fields returned by the comparison query performed for selected query. Read more about [Time range comparison](./advanced-time-range-comparison.md).
+
 ### Step 8. Build a visualization
 
 Use the `build` method to generate a configured `VizPanel` object:
