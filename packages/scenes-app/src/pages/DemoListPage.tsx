@@ -19,7 +19,7 @@ const getScene = () => {
   const demos = getDemos();
 
   return new SceneApp({
-    name: 'Demos',
+    name: 'scenes-demos-app',
     pages: [
       new SceneAppPage({
         title: 'Demos',

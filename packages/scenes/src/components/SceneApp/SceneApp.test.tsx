@@ -165,9 +165,11 @@ describe('SceneApp', () => {
       const page1Scene = setupScene(p1Object);
 
       const app = new SceneApp({
+        key: 'app',
         pages: [
           // Page with tabs
           new SceneAppPage({
+            key: 'top-level-page',
             title: 'Top level page',
             url: '/test-drilldown',
             getScene: () => {
@@ -178,6 +180,7 @@ describe('SceneApp', () => {
                 routePath: '/test-drilldown/:id',
                 getPage: (match: SceneRouteMatch<{ id: string }>, parent) => {
                   return new SceneAppPage({
+                    key: 'drilldown-page',
                     title: `Drilldown ${match.params.id}`,
                     url: `/test-drilldown/${match.params.id}`,
                     getScene: () => getDrilldownScene(match),

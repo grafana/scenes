@@ -19,7 +19,7 @@ import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@gra
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DataRequestEnricher, DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
+import { DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
@@ -53,10 +53,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   pluginInstanceState?: any;
 }
 
-export class VizPanel<TOptions = {}, TFieldConfig = {}>
-  extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>>
-  implements DataRequestEnricher
-{
+export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>> {
   public static Component = VizPanelRenderer;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -70,11 +67,6 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}>
   private _dataWithFieldConfig?: PanelData;
   private _structureRev: number = 0;
 
-  public enrichDataRequest() {
-    return {
-      panelId: Math.random(),
-    };
-  }
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
       options: {} as TOptions,

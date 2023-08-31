@@ -16,13 +16,7 @@ import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import {
-  isDataRequestEnricher,
-  SceneDataProvider,
-  SceneObject,
-  SceneObjectState,
-  SceneTimeRangeLike,
-} from '../core/types';
+import { isDataRequestEnricher, SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -295,8 +289,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return query;
     });
 
-    const enrichedRequest = getEnrichedDataRequest(this);
-    console.log('enrichedRequest', enrichedRequest);
+    const enrichDataRequest = getEnrichedDataRequest(this);
+    console.log('enrichDataRequest', enrichDataRequest);
+    if (Object.keys(enrichDataRequest).length > 0) {
+      request = {
+        ...request,
+        ...enrichDataRequest,
+      };
+    }
 
     // TODO interpolate minInterval
     const lowerIntervalLimit = minInterval ? minInterval : ds.interval;
@@ -377,19 +377,22 @@ export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undef
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }
 
-function getEnrichedDataRequest(queryRunner: SceneObject): any {
-  let parent = queryRunner.parent;
+function getEnrichedDataRequest(sourceRunner: SceneQueryRunner): any {
+  let parent = sourceRunner.parent;
 
   let result = {};
   while (parent) {
+    // Allow enriching drilldown page queries via SceneApp.
+    // Drilldown pages do not get state.parent property set directly, but via getParentPage hook.
+    if (parent instanceof SceneAppPage && parent.state.getParentPage) {
+      parent = parent.state.getParentPage();
+    }
+
     if (isDataRequestEnricher(parent)) {
       result = {
-        ...parent.enrichDataRequest(),
-        ...result, // deeper enrichers take precendence
+        ...parent.enrichDataRequest(sourceRunner),
+        ...result, // deeper nested enrichers take precendence
       };
-    }
-    if (parent instanceof SceneAppPage) {
-      console.log('parent', parent.parent);
     }
 
     parent = parent.parent;

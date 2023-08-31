@@ -166,7 +166,8 @@ export interface SceneObjectUrlSyncHandler {
 }
 
 export interface DataRequestEnricher {
-  enrichDataRequest(): Partial<DataQueryRequest>;
+  // Return partial data query request that will be merged with the original request provided by SceneQueryRunner
+  enrichDataRequest(source: SceneObject): Partial<DataQueryRequest>;
 }
 
 export function isDataRequestEnricher(obj: any): obj is DataRequestEnricher {
