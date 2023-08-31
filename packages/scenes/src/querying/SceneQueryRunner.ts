@@ -3,15 +3,7 @@ import { forkJoin, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
-import {
-  CoreApp,
-  DataQueryRequest,
-  DataSourceApi,
-  PanelData,
-  preProcessPanelData,
-  rangeUtil,
-  ScopedVar,
-} from '@grafana/data';
+import { DataQueryRequest, DataSourceApi, PanelData, preProcessPanelData, rangeUtil, ScopedVar } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
