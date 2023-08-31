@@ -263,7 +263,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     let secondaryRequest: DataQueryRequest | undefined;
 
     let request: DataQueryRequest = {
-      app: CoreApp.Dashboard,
+      app: 'scenes',
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
       panelId: 1,
@@ -279,6 +279,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         from: timeRange.state.from,
         to: timeRange.state.to,
       },
+      // This asks the scene root to provide context properties like app, panel and dashboardUID
+      ...getEnrichedDataRequest(this),
     };
 
     request.targets = request.targets.map((query) => {
@@ -287,11 +289,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
       return query;
     });
-
-    const enrichedDataRequest = getEnrichedDataRequest(this);
-    if (enrichedDataRequest) {
-      Object.assign(request, enrichedDataRequest);
-    }
 
     // TODO interpolate minInterval
     const lowerIntervalLimit = minInterval ? minInterval : ds.interval;
