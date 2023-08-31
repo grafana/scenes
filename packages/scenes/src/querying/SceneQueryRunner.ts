@@ -26,7 +26,6 @@ import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
-import { SceneAppPage } from '../components/SceneApp/SceneAppPage';
 
 let counter = 100;
 
@@ -289,12 +288,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return query;
     });
 
-    const enrichDataRequest = getEnrichedDataRequest(this);
-    if (Object.keys(enrichDataRequest).length > 0) {
-      request = {
-        ...request,
-        ...enrichDataRequest,
-      };
+    const enrichedDataRequest = getEnrichedDataRequest(this);
+    if (enrichedDataRequest) {
+      Object.assign(request, enrichedDataRequest);
     }
 
     // TODO interpolate minInterval
@@ -376,26 +372,12 @@ export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undef
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }
 
-function getEnrichedDataRequest(sourceRunner: SceneQueryRunner): any {
-  let parent = sourceRunner.parent;
+function getEnrichedDataRequest(sourceRunner: SceneQueryRunner): Partial<DataQueryRequest> | null {
+  const root = sourceRunner.getRoot();
 
-  let result = {};
-  while (parent) {
-    // Allow enriching drilldown page queries via SceneApp.
-    // Drilldown pages do not get state.parent property set directly, but via getParentPage hook.
-    if (parent instanceof SceneAppPage && parent.state.getParentPage) {
-      parent = parent.state.getParentPage();
-    }
-
-    if (isDataRequestEnricher(parent)) {
-      result = {
-        ...parent.enrichDataRequest(sourceRunner),
-        ...result, // deeper nested enrichers take precendence
-      };
-    }
-
-    parent = parent.parent;
+  if (isDataRequestEnricher(root)) {
+    return root.enrichDataRequest(sourceRunner);
   }
 
-  return result;
+  return null;
 }
