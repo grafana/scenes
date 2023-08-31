@@ -290,7 +290,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     });
 
     const enrichDataRequest = getEnrichedDataRequest(this);
-    console.log('enrichDataRequest', enrichDataRequest);
     if (Object.keys(enrichDataRequest).length > 0) {
       request = {
         ...request,
