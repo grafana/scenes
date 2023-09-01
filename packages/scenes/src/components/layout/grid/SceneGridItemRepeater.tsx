@@ -1,19 +1,21 @@
+import React, { CSSProperties } from 'react';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
+import { SceneComponentProps, SceneObject } from '../../../core/types';
 import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
 import { SceneVariableSet } from '../../../variables/sets/SceneVariableSet';
 import { SceneVariable, VariableValueSingle } from '../../../variables/types';
 import { ConstantVariable } from '../../../variables/variants/ConstantVariable';
 import { SceneGridItem } from './SceneGridItem';
 import { SceneGridLayout } from './SceneGridLayout';
-import { GRID_COLUMN_COUNT } from './constants';
+import { GRID_CELL_HEIGHT, GRID_COLUMN_COUNT } from './constants';
 import { SceneGridItemStateLike, SceneGridItemLike } from './types';
 
-interface SceneGridItemState extends SceneGridItemStateLike {
-  source: SceneGridItem;
-  repeats: SceneGridItem[];
+interface SceneGridItemRepeaterState extends SceneGridItemStateLike {
+  source: SceneObject;
+  repeats: SceneObject[];
   variableName: string;
 }
-export class SceneGridItemRepeater extends SceneObjectBase<SceneGridItemState> implements SceneGridItemLike {
+export class SceneGridItemRepeater extends SceneObjectBase<SceneGridItemRepeaterState> implements SceneGridItemLike {
   protected _variableDependency = new VariableDependencyConfig(this, {
     variableNames: [this.state.variableName],
     onVariableUpdatesCompleted: this._onVariableChanged.bind(this),
@@ -39,7 +41,7 @@ export class SceneGridItemRepeater extends SceneObjectBase<SceneGridItemState> i
     const itemToClone = this.state.source;
     const values = variable.getValue();
     const maxPerRow = 4;
-    const repeats: SceneGridItem[] = [];
+    const repeats: SceneObject[] = [];
 
     // Loop through variable values and create repeates
     if (Array.isArray(values)) {
@@ -49,32 +51,26 @@ export class SceneGridItemRepeater extends SceneObjectBase<SceneGridItemState> i
       }
     }
 
-    this.setState({ repeats });
+    this.setState({ repeats, height: this.state.height!, width: 24 });
 
     grid.forceRender();
   }
 
   private cloneItem(
-    sourceItem: SceneGridItem,
+    sourceItem: SceneObject,
     variableName: string,
     value: VariableValueSingle,
     index: number,
     valueCount: number,
     maxPerRow: number
-  ): SceneGridItem {
+  ): SceneObject {
     console.log(`RepeatPanelByVariableBehavior. cloneItem setting ${variableName} = ${value}`);
-
-    const x = sourceItem.state.x ?? 0;
-    const width = Math.max(GRID_COLUMN_COUNT / valueCount, GRID_COLUMN_COUNT / maxPerRow);
 
     const clone = sourceItem.clone({
       $variables: new SceneVariableSet({
         variables: [new ConstantVariable({ name: variableName, value: value })],
       }),
-      $behaviors: index === 0 ? sourceItem.state.$behaviors : [],
-      key: index === 0 ? sourceItem.state.key : `${sourceItem.state.key}-clone-${index}`,
-      x: x + width * index,
-      width: width,
+      key: `${sourceItem.state.key}-clone-${index}`,
     });
 
     //const vizPanel = clone.state.body as VizPanel;
@@ -83,17 +79,35 @@ export class SceneGridItemRepeater extends SceneObjectBase<SceneGridItemState> i
     return clone;
   }
 
-  public getSceneLayoutChild(key: string): SceneGridItem | null {
-    // if (this.state.source.state.key === key) {
-    //   return this.state.source;
-    // }
-
-    for (const repeat of this.state.repeats) {
-      if (repeat.state.key === key) {
-        return repeat;
-      }
-    }
-
-    return null;
+  public getWrapperStyles(): CSSProperties {
+    return {
+      display: 'flex',
+      width: '100%',
+      height: GRID_CELL_HEIGHT * this.state.height!,
+      gap: '8px',
+    };
   }
+
+  public getChildStyles(): CSSProperties {
+    return {
+      position: 'relative',
+      flexGrow: 1,
+    };
+  }
+
+  public static Component = ({ model }: SceneComponentProps<SceneGridItemRepeater>) => {
+    const { repeats } = model.useState();
+
+    //const children = [...repeats];
+
+    return (
+      <div style={model.getWrapperStyles()}>
+        {repeats.map((child) => (
+          <div style={model.getChildStyles()} key={model.state.key}>
+            <child.Component model={child} key={model.state.key} />
+          </div>
+        ))}
+      </div>
+    );
+  };
 }

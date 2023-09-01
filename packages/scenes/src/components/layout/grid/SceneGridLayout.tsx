@@ -8,7 +8,6 @@ import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement } from './types';
-import { SceneGridItemRepeater } from './SceneGridItemRepeater';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -155,14 +154,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
           }
         }
       }
-
-      if (child instanceof SceneGridItemRepeater) {
-        for (const repeatChild of child.state.repeats) {
-          if (repeatChild.state.key === key) {
-            return repeatChild;
-          }
-        }
-      }
     }
 
     throw new Error('Scene layout child not found for GridItem');
@@ -300,13 +291,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     let cells: ReactGridLayout.Layout[] = [];
 
     for (const child of this.state.children) {
-      if (child instanceof SceneGridItemRepeater) {
-        for (const repeatChild of child.state.repeats) {
-          cells.push(this.toGridCell(repeatChild));
-        }
-      } else {
-        cells.push(this.toGridCell(child));
-      }
+      cells.push(this.toGridCell(child));
 
       if (child instanceof SceneGridRow && !child.state.isCollapsed) {
         for (const rowChild of child.state.children) {

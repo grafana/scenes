@@ -73,14 +73,6 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                 );
               })}
             </ReactGridLayout>
-
-            {/* Render repeaters so they get activated */}
-            {children.map((child) => {
-              if (child instanceof SceneGridItemRepeater) {
-                return <child.Component model={child} key={child.state.key} />;
-              }
-              return null;
-            })}
           </div>
         );
       }}
