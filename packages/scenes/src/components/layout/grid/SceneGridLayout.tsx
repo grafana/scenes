@@ -8,6 +8,7 @@ import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement } from './types';
+import { SceneGridItemRepeater } from './SceneGridItemRepeater';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -141,7 +142,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   /**
    * Will also scan row children and return child of the row
    */
-  public getSceneLayoutChild(key: string) {
+  public getSceneLayoutChild(key: string): SceneGridItemLike {
     for (const child of this.state.children) {
       if (child.state.key === key) {
         return child;
@@ -151,6 +152,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
         for (const rowChild of child.state.children) {
           if (rowChild.state.key === key) {
             return rowChild;
+          }
+        }
+      }
+
+      if (child instanceof SceneGridItemRepeater) {
+        for (const repeatChild of child.state.repeats) {
+          if (repeatChild.state.key === key) {
+            return repeatChild;
           }
         }
       }
@@ -291,7 +300,13 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     let cells: ReactGridLayout.Layout[] = [];
 
     for (const child of this.state.children) {
-      cells.push(this.toGridCell(child));
+      if (child instanceof SceneGridItemRepeater) {
+        for (const repeatChild of child.state.repeats) {
+          cells.push(this.toGridCell(repeatChild));
+        }
+      } else {
+        cells.push(this.toGridCell(child));
+      }
 
       if (child instanceof SceneGridRow && !child.state.isCollapsed) {
         for (const rowChild of child.state.children) {

@@ -46,6 +46,7 @@ export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export { SceneFlexLayout, SceneFlexItem, type SceneFlexItemState } from './components/layout/SceneFlexLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
+export { SceneGridItemRepeater } from './components/layout/grid/SceneGridItemRepeater';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export { SplitLayout } from './components/layout/split/SplitLayout';
 export {
@@ -60,6 +61,7 @@ export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
 export { SceneObjectRef } from './core/SceneObjectRef';
 export { PanelBuilders } from './core/PanelBuilders';
+export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 
 export const sceneUtils = {
   getUrlWithAppState,

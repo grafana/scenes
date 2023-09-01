@@ -16,9 +16,9 @@ function SceneGridItemRenderer({ model }: SceneComponentProps<SceneGridItem>) {
   const { body } = model.useState();
   const parent = model.parent;
 
-  if (parent && !isSceneGridLayout(parent) && !isSceneGridRow(parent)) {
-    throw new Error('SceneGridItem must be a child of SceneGridLayout or SceneGridRow');
-  }
+  // if (parent && !isSceneGridLayout(parent) && !isSceneGridRow(parent)) {
+  //   throw new Error('SceneGridItem must be a child of SceneGridLayout or SceneGridRow');
+  // }
 
   if (!body) {
     return null;

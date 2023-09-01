@@ -11,6 +11,13 @@ export interface Props {
   scene: SceneObject;
 }
 
+/**
+ * @internal
+ * Please don't use from plugins directly.
+ * This is already exposed via SceneAppPage and the ?scene-debugger query parameter.
+ *
+ * This is only exported so that core dashboards can use it.
+ */
 export function SceneDebugger({ scene }: Props) {
   const styles = useStyles2(getStyles);
   const [isOpen, setIsOpen] = useState(false);
