@@ -56,7 +56,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // If we have local time range show that in panel header
   if (model.state.$timeRange) {
-    titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} />);
+    titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} key={model.state.key} />);
   }
 
   let panelMenu;
