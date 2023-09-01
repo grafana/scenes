@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObject, SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
+import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import {
   SceneVariable,
   SceneVariableValueChangedEvent,
