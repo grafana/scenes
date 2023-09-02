@@ -52,7 +52,6 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
             >
               {layout.map((gridItem) => {
                 const sceneChild = model.getSceneLayoutChild(gridItem.i)!;
-                // className needed for PanelRepeaterGridItem
                 const className = sceneChild.getClassName?.();
 
                 return isLazy ? (
