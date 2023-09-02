@@ -3,6 +3,7 @@ import { SceneVariable, SceneVariableState, VariableValue } from '../types';
 
 export interface ConstantVariableState extends SceneVariableState {
   value: VariableValue;
+  text?: string;
 }
 
 export class ConstantVariable
@@ -21,5 +22,9 @@ export class ConstantVariable
 
   public getValue(): VariableValue {
     return this.state.value;
+  }
+
+  public getValueText(): string {
+    return this.state.text || this.state.value.toString();
   }
 }
