@@ -46,9 +46,9 @@ export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export { SceneFlexLayout, SceneFlexItem, type SceneFlexItemState } from './components/layout/SceneFlexLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
-export { SceneGridItemRepeater } from './components/layout/grid/SceneGridItemRepeater';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export { SplitLayout } from './components/layout/split/SplitLayout';
+export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,

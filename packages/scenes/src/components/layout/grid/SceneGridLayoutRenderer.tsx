@@ -6,19 +6,10 @@ import { GRID_CELL_VMARGIN, GRID_COLUMN_COUNT, GRID_CELL_HEIGHT } from './consta
 import { LazyLoader } from './LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
-import { SceneGridItemRepeater } from './SceneGridItemRepeater';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
   validateChildrenSize(children);
-
-  const repeaters: React.ReactNode[] = [];
-
-  for (const child of children) {
-    if (child instanceof SceneGridItemRepeater) {
-      repeaters.push(<child.Component model={child} key={child.state.key} />);
-    }
-  }
 
   return (
     <AutoSizer disableHeight>
@@ -59,7 +50,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               onLayoutChange={model.onLayoutChange}
               isBounded={false}
             >
-              {layout.map((gridItem, index) => {
+              {layout.map((gridItem) => {
                 const sceneChild = model.getSceneLayoutChild(gridItem.i)!;
 
                 return isLazy ? (
