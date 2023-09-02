@@ -57,7 +57,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
-    if (this.state.query === '' || !this.state.datasource) {
+    if (!this.state.query) {
       return of([]);
     }
 

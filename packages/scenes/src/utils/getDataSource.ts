@@ -4,7 +4,7 @@ import { DataSourceRef } from '@grafana/schema';
 import { runtimeDataSources } from '../querying/RuntimeDataSource';
 
 export async function getDataSource(
-  datasource: DataSourceRef | undefined,
+  datasource: DataSourceRef | undefined | null,
   scopedVars: ScopedVars
 ): Promise<DataSourceApi> {
   if (datasource?.uid) {

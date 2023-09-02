@@ -231,6 +231,25 @@ describe('QueryVariable', () => {
     });
   });
 
+  describe('When ds is null', () => {
+    beforeEach(() => {
+      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+    });
+
+    it('should get options for default ds', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: null,
+        query: 'query',
+        regex: '/^A/',
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(runRequestMock).toBeCalledTimes(1);
+    });
+  });
+
   describe('When regex provided', () => {
     beforeEach(() => {
       setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
