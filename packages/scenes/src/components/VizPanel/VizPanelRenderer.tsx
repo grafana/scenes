@@ -6,7 +6,7 @@ import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { isSceneObject, SceneComponentProps } from '../../core/types';
+import { isSceneObject, SceneComponentProps, SceneObject } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 
@@ -144,13 +144,17 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
 function getDragClasses(panel: VizPanel) {
   const parentLayout = sceneGraph.getLayout(panel);
-  const isDraggable = parentLayout?.isDraggable() && (panel.state.isDraggable ?? true);
+  const isDraggable = parentLayout?.isDraggable();
 
-  if (!parentLayout || !isDraggable) {
+  if (!parentLayout || !isDraggable || itemDraggingDisabled(panel.parent)) {
     return { dragClass: '', dragClassCancel: '' };
   }
 
   return { dragClass: parentLayout.getDragClass?.(), dragClassCancel: parentLayout?.getDragClassCancel?.() };
+}
+
+function itemDraggingDisabled(parent: SceneObject | undefined) {
+  return parent && 'isDraggable' in parent.state && parent.state.isDraggable === false;
 }
 
 function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | undefined) {

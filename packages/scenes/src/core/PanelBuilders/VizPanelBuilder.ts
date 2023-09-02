@@ -22,8 +22,6 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
     this._state.description = '';
     this._state.displayMode = 'default';
     this._state.hoverHeader = false;
-    this._state.isDraggable = false;
-    this._state.isResizable = false;
     this._state.pluginId = pluginId;
     this._state.pluginVersion = pluginVersion;
     const fieldConfig: FieldConfigSource<TFieldConfig> = {
@@ -66,22 +64,6 @@ export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
    */
   public setHoverHeader(hoverHeader: VizPanelState['hoverHeader']): this {
     this._state.hoverHeader = hoverHeader;
-    return this;
-  }
-
-  /**
-   * Set if panel is draggable.
-   */
-  public setIsDraggable(isDraggable: VizPanelState['isDraggable']): this {
-    this._state.isDraggable = isDraggable;
-    return this;
-  }
-
-  /**
-   * Set if panel is resizable.
-   */
-  public setIsResizable(isResizable: VizPanelState['isResizable']): this {
-    this._state.isResizable = isResizable;
     return this;
   }
 
