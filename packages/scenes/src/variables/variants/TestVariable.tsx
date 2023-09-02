@@ -11,7 +11,6 @@ import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } f
 import { VariableRefresh } from '@grafana/data';
 import { getClosest } from '../../core/sceneGraph/utils';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
-import { delay } from 'lodash';
 
 export interface TestVariableState extends MultiValueVariableState {
   query: string;
