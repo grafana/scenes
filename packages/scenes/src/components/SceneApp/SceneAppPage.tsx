@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps } from '../../core/types';
+import { SceneComponentProps, SceneObject, isDataRequestEnricher } from '../../core/types';
 import { getUrlSyncManager } from '../../services/UrlSyncManager';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
@@ -58,6 +58,20 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
     this._drilldownCache.set(routeMatch!.url, page);
 
     return page;
+  }
+
+  public enrichDataRequest(source: SceneObject) {
+    if (!this.parent && this.state.getParentPage) {
+      return this.state.getParentPage().enrichDataRequest(source);
+    }
+
+    const root = this.getRoot();
+
+    if (isDataRequestEnricher(root)) {
+      return root.enrichDataRequest(source);
+    }
+
+    return null;
   }
 }
 

@@ -3,20 +3,12 @@ import { forkJoin, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
-import {
-  CoreApp,
-  DataQueryRequest,
-  DataSourceApi,
-  PanelData,
-  preProcessPanelData,
-  rangeUtil,
-  ScopedVar,
-} from '@grafana/data';
+import { DataQueryRequest, DataSourceApi, PanelData, preProcessPanelData, rangeUtil, ScopedVar } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core/types';
+import { isDataRequestEnricher, SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -263,7 +255,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     let secondaryRequest: DataQueryRequest | undefined;
 
     let request: DataQueryRequest = {
-      app: CoreApp.Dashboard,
+      app: 'scenes',
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
       panelId: 1,
@@ -279,6 +271,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         from: timeRange.state.from,
         to: timeRange.state.to,
       },
+      // This asks the scene root to provide context properties like app, panel and dashboardUID
+      ...getEnrichedDataRequest(this),
     };
 
     request.targets = request.targets.map((query) => {
@@ -365,4 +359,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
+}
+
+function getEnrichedDataRequest(sourceRunner: SceneQueryRunner): Partial<DataQueryRequest> | null {
+  const root = sourceRunner.getRoot();
+
+  if (isDataRequestEnricher(root)) {
+    return root.enrichDataRequest(sourceRunner);
+  }
+
+  return null;
 }

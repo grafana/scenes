@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, Switch } from 'react-router-dom';
 
-import { SceneComponentProps } from '../../core/types';
+import { DataRequestEnricher, SceneComponentProps } from '../../core/types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneAppState } from './types';
 import { renderSceneComponentWithRouteProps } from './utils';
@@ -9,7 +9,13 @@ import { renderSceneComponentWithRouteProps } from './utils';
 /**
  * Responsible for top level pages routing
  */
-export class SceneApp extends SceneObjectBase<SceneAppState> {
+export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequestEnricher {
+  public enrichDataRequest() {
+    return {
+      app: this.state.name || 'app',
+    };
+  }
+
   public static Component = ({ model }: SceneComponentProps<SceneApp>) => {
     const { pages } = model.useState();
 
