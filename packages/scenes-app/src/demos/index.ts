@@ -21,7 +21,6 @@ import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
-import { gridItemRepeaterDemo } from './gridItemRepeaterDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -36,7 +35,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Panel context', getPage: getPanelContextDemoScene },
     { title: 'Repeat layout by series', getPage: getPanelRepeaterTest },
     { title: 'Grid layout', getPage: getGridLayoutTest },
-    { title: 'Grid item repeat by variable', getPage: gridItemRepeaterDemo },
     { title: 'Grid with rows', getPage: getGridWithRowLayoutTest },
     { title: 'Lazy load', getPage: getLazyLoadDemo },
     { title: 'Variables', getPage: getVariablesDemo },
