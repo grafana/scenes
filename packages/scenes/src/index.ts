@@ -28,6 +28,7 @@ export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
+export { MultiValueVariable } from './variables/variants/MultiValueVariable';
 
 export { type UrlSyncManagerLike as UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';

@@ -147,7 +147,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     return String(this.state.text);
   }
 
-  private hasAllValue() {
+  public hasAllValue() {
     const value = this.state.value;
     return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value[0] === ALL_VARIABLE_VALUE);
   }
