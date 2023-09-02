@@ -12,4 +12,9 @@ export interface SceneGridItemStateLike extends SceneGridItemPlacement, SceneObj
   isDraggable?: boolean;
 }
 
-export type SceneGridItemLike = SceneObject<SceneGridItemStateLike>;
+export interface SceneGridItemLike extends SceneObject<SceneGridItemStateLike> {
+  /**
+   * This is needed by PanelRepeaterGridItem to have special css behavior for responsive (mobile) breakpoint.
+   **/
+  getClassName?(): string;
+}

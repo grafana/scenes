@@ -52,13 +52,15 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
             >
               {layout.map((gridItem) => {
                 const sceneChild = model.getSceneLayoutChild(gridItem.i)!;
+                // className needed for PanelRepeaterGridItem
+                const className = sceneChild.getClassName?.();
 
                 return isLazy ? (
-                  <LazyLoader key={sceneChild.state.key!} data-panelid={sceneChild.state.key}>
+                  <LazyLoader key={sceneChild.state.key!} data-panelid={sceneChild.state.key} className={className}>
                     <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </LazyLoader>
                 ) : (
-                  <div key={sceneChild.state.key} data-panelid={sceneChild.state.key}>
+                  <div key={sceneChild.state.key} data-panelid={sceneChild.state.key} className={className}>
                     <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </div>
                 );
