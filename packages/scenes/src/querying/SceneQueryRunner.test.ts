@@ -108,7 +108,7 @@ describe('SceneQueryRunner', () => {
       `);
       expect(request).toMatchInlineSnapshot(`
         {
-          "app": "dashboard",
+          "app": "scenes",
           "interval": "30s",
           "intervalMs": 30000,
           "liveStreaming": undefined,
@@ -618,43 +618,26 @@ describe('SceneQueryRunner', () => {
   });
 
   test('enriching query request', async () => {
+    class TestSceneWithRequestEnricher extends SceneObjectBase<SceneObjectState> implements DataRequestEnricher {
+      public enrichDataRequest(source: SceneObject) {
+        return { app: 'enriched' };
+      }
+    }
+
     const queryRunner = new SceneQueryRunner({
       queries: [{ refId: 'A' }],
       $timeRange: new SceneTimeRange(),
     });
 
-    const outerEnricherSpy = jest.fn();
-    const innerEnricherSpy = jest.fn();
-
     const scene = new TestSceneWithRequestEnricher({
-      enricher: (s: SceneObject) => {
-        outerEnricherSpy(s);
-        return {
-          app: 'enriched-with-app',
-        };
-      },
-      nested: new TestSceneWithRequestEnricher({
-        enricher: (s: SceneObject) => {
-          innerEnricherSpy(s);
-          return {
-            panelId: 123,
-          };
-        },
-        nested: new TestScene({
-          $data: queryRunner,
-        }),
-      }),
+      $data: queryRunner,
     });
+
     scene.activate();
-    queryRunner.activate();
+
     await new Promise((r) => setTimeout(r, 1));
 
-    expect(outerEnricherSpy).toHaveBeenCalledTimes(1);
-    expect(outerEnricherSpy).toHaveBeenCalledWith(queryRunner);
-    expect(innerEnricherSpy).toHaveBeenCalledTimes(1);
-    expect(innerEnricherSpy).toHaveBeenCalledWith(queryRunner);
-    expect(sentRequest?.panelId).toBe(123);
-    expect(sentRequest?.app).toBe('enriched-with-app');
+    expect(sentRequest?.app).toBe('enriched');
   });
 });
 
@@ -665,19 +648,5 @@ class CustomDataSource extends RuntimeDataSource {
 
   public query(options: DataQueryRequest<DataQuery>): Observable<DataQueryResponse> {
     return of({ data: [{ refId: 'A', fields: [{ name: 'time', type: FieldType.time, values: [123] }] }] });
-  }
-}
-
-class TestSceneWithRequestEnricher
-  extends SceneObjectBase<
-    {
-      nested?: SceneObject;
-      enricher: (source: SceneObject) => Partial<DataQueryRequest>;
-    } & SceneObjectState
-  >
-  implements DataRequestEnricher
-{
-  public enrichDataRequest(source: SceneObject) {
-    return this.state.enricher(source);
   }
 }
