@@ -6,7 +6,7 @@ import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { isSceneObject, SceneComponentProps, SceneObject } from '../../core/types';
+import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 
@@ -146,15 +146,29 @@ function getDragClasses(panel: VizPanel) {
   const parentLayout = sceneGraph.getLayout(panel);
   const isDraggable = parentLayout?.isDraggable();
 
-  if (!parentLayout || !isDraggable || itemDraggingDisabled(panel.parent)) {
+  if (!parentLayout || !isDraggable || itemDraggingDisabled(panel, parentLayout)) {
     return { dragClass: '', dragClassCancel: '' };
   }
 
   return { dragClass: parentLayout.getDragClass?.(), dragClassCancel: parentLayout?.getDragClassCancel?.() };
 }
 
-function itemDraggingDisabled(parent: SceneObject | undefined) {
-  return parent && 'isDraggable' in parent.state && parent.state.isDraggable === false;
+/**
+ * Walks up the parent chain until it hits the layout object, trying to find the closest SceneGridItemLike ancestor.
+ * It is not always the direct parent, because the VizPanel can be wrapped in other objects.
+ */
+function itemDraggingDisabled(item: SceneObject, layout: SceneLayout) {
+  let ancestor = item.parent;
+
+  while (ancestor && ancestor !== layout) {
+    if ('isDraggable' in ancestor.state && ancestor.state.isDraggable === false) {
+      return true;
+    }
+
+    ancestor = ancestor.parent;
+  }
+
+  return false;
 }
 
 function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | undefined) {
