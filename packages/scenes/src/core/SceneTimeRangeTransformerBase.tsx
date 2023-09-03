@@ -5,6 +5,7 @@ import { SceneObjectBase } from './SceneObjectBase';
 import { SceneTimeRangeLike, SceneTimeRangeState } from './types';
 
 /**
+ * @internal
  * Used by SceneTimeZoneOverride and main repo PanelTimeRange.
  * Not recommened to be used by plugins directly.
  */
