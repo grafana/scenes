@@ -7,7 +7,6 @@ import { SceneObject } from '../../core/types';
 import { writeSceneLog } from '../../utils/writeSceneLog';
 import { SceneVariable, SceneVariables, SceneVariableSetState, SceneVariableValueChangedEvent } from '../types';
 import { VariableValueRecorder } from '../VariableValueRecorder';
-import { ConstantVariable } from '../variants/ConstantVariable';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that have changed in since the activation or since the first manual value change */

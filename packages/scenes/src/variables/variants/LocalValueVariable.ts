@@ -34,6 +34,10 @@ export class LocalValueVariable
     return this.state.text.toString();
   }
 
+  /**
+   * Checks the ancestor of our parent SceneVariableSet for loading state of a variable with the same name
+   * This function is unit tested from SceneVariableSet tests.
+   */
   public isAncestorLoading(): boolean {
     // Parent (SceneVariableSet) -> Parent (The object that has our parent set) -> Parent (scope we need to access our sets ancestor)
     const ancestorScope = this.parent?.parent?.parent;
@@ -41,7 +45,6 @@ export class LocalValueVariable
       throw new Error('LocalValueVariable requires a parent SceneVariableSet that has an ancestor SceneVariableSet');
     }
 
-    //
     const set = sceneGraph.getVariables(ancestorScope);
     const parentVar = sceneGraph.lookupVariable(this.state.name, ancestorScope);
     if (set && parentVar) {
