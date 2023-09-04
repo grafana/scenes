@@ -13,7 +13,6 @@ import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
-import { ConstantVariable } from '../variants/ConstantVariable';
 import { LocalValueVariable } from '../variants/LocalValueVariable';
 
 interface TestSceneState extends SceneObjectState {
@@ -503,6 +502,7 @@ describe('SceneVariableList', () => {
 
       A.signalUpdateCompleted();
       expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(false);
+      expect(set.isVariableLoadingOrWaitingToUpdate(B)).toBe(true);
     });
 
     it('Should check ancestor set for LocalValueVariable', async () => {
