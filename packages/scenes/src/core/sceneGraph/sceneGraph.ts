@@ -19,7 +19,15 @@ export function getVariables(sceneObject: SceneObject): SceneVariables {
  * Will walk up the scene object graph to the closest $data scene object
  */
 export function getData(sceneObject: SceneObject): SceneDataProvider {
-  return getClosest(sceneObject, (s) => s.state.$data) ?? EmptyDataNode;
+  return (
+    getClosest(sceneObject, (s) => {
+      if (!Array.isArray(s.state.$data)) {
+        return s.state.$data;
+      }
+
+      return undefined;
+    }) ?? EmptyDataNode
+  );
 }
 
 function isSceneLayout(s: SceneObject): s is SceneLayout {
@@ -114,4 +122,17 @@ function findObjectInternal(
  */
 export function findObject(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject | null {
   return findObjectInternal(scene, check, undefined, true);
+}
+
+export function getDataLayers(sceneObject: SceneObject): SceneDataProvider[] {
+  let parent: SceneObject | undefined = sceneObject;
+  let collected: SceneDataProvider[] = [];
+  while (parent) {
+    if (parent.state.$data && Array.isArray(parent.state.$data)) {
+      collected = collected.concat(parent.state.$data);
+    }
+    parent = parent.parent;
+  }
+
+  return collected;
 }

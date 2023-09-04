@@ -1,8 +1,8 @@
-import { DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
-import { map, Unsubscribable } from 'rxjs';
+import { DataTopic, DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
+import { map, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { CustomTransformOperator, SceneDataProvider, SceneDataState } from '../core/types';
+import { CustomTransformOperator, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 
 export interface SceneDataTransformerState extends SceneDataState {
@@ -22,7 +22,7 @@ export interface SceneDataTransformerState extends SceneDataState {
  */
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> implements SceneDataProvider {
   private _transformSub?: Unsubscribable;
-
+  private _results = new ReplaySubject<SceneDataProviderResult>();
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
    */
@@ -58,6 +58,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   private getSourceData(): SceneDataProvider {
     if (this.state.$data) {
+      if (Array.isArray(this.state.$data)) {
+        throw new Error('SceneDataTransformer does not support data layers. Use a single SceneDataProvider instead.');
+      }
+
       return this.state.$data;
     }
 
@@ -69,7 +73,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public setContainerWidth(width: number) {
-    if (this.state.$data && this.state.$data.setContainerWidth) {
+    if (this.state.$data && !Array.isArray(this.state.$data) && this.state.$data.setContainerWidth) {
       this.state.$data.setContainerWidth(width);
     }
   }
@@ -89,6 +93,14 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   public cancelQuery() {
     this.getSourceData().cancelQuery?.();
+  }
+
+  public getDataTopic() {
+    return 'data' as DataTopic;
+  }
+
+  public getResultsStream() {
+    return this._results;
   }
 
   private transform(data: PanelData | undefined) {
@@ -111,6 +123,9 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     this._transformSub = transformDataFrame(transformations, data.series, ctx)
       .pipe(map((series) => ({ ...data, series })))
-      .subscribe((data) => this.setState({ data }));
+      .subscribe((data) => {
+        this._results.next({ origin: this, data: data.series });
+        this.setState({ data });
+      });
   }
 }

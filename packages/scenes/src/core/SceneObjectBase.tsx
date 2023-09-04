@@ -161,8 +161,19 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       this._deactivationHandlers.push($variables.activate());
     }
 
-    if ($data && !$data.isActive) {
-      this._deactivationHandlers.push($data.activate());
+    if ($data) {
+      if (Array.isArray($data)) {
+        $data.forEach((d) => {
+          if (!d.isActive) {
+            this._deactivationHandlers.push(d.activate());
+          }
+        });
+      } else {
+        if (!$data.isActive) {
+          this._deactivationHandlers.push($data.activate());
+        }
+      }
+      // this._deactivationHandlers.push($data.activate());
     }
 
     if ($behaviors) {

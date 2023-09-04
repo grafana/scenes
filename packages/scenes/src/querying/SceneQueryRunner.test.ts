@@ -1,9 +1,12 @@
-import { map, Observable, of } from 'rxjs';
+import { map, Observable, of, Subject } from 'rxjs';
 
 import {
+  AnnotationEvent,
+  arrayToDataFrame,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
+  DataTopic,
   FieldType,
   LoadingState,
   PanelData,
@@ -23,7 +26,13 @@ import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneCanvasText } from '../components/SceneCanvasText';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { DataRequestEnricher, SceneObject, SceneObjectState } from '../core/types';
+import {
+  DataRequestEnricher,
+  SceneDataProvider,
+  SceneDataProviderResult,
+  SceneObject,
+  SceneObjectState,
+} from '../core/types';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -639,6 +648,417 @@ describe('SceneQueryRunner', () => {
 
     expect(sentRequest?.app).toBe('enriched');
   });
+
+  describe('data layers', () => {
+    it('should run queries for data layers', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        $data: [new TestAnnoationsDataLayer({ prefix: 'Layer 1' })],
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`
+        [
+          {
+            "fields": [
+              {
+                "config": {},
+                "name": "time",
+                "type": "time",
+                "values": [
+                  100,
+                ],
+              },
+              {
+                "config": {},
+                "name": "text",
+                "type": "string",
+                "values": [
+                  "Layer 1: Test annotation",
+                ],
+              },
+              {
+                "config": {},
+                "name": "tags",
+                "type": "other",
+                "values": [
+                  [
+                    "tag1",
+                  ],
+                ],
+              },
+            ],
+            "length": 1,
+          },
+        ]
+      `);
+    });
+    it('should not block queries when layer provides data slower', async () => {
+      const layer = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        $data: [layer],
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`[]`);
+      expect(queryRunner.state.data?.series).toBeDefined();
+
+      layer.completeRun();
+
+      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`
+        [
+          {
+            "fields": [
+              {
+                "config": {},
+                "name": "time",
+                "type": "time",
+                "values": [
+                  100,
+                ],
+              },
+              {
+                "config": {},
+                "name": "text",
+                "type": "string",
+                "values": [
+                  "Layer 1: Test annotation",
+                ],
+              },
+              {
+                "config": {},
+                "name": "tags",
+                "type": "other",
+                "values": [
+                  [
+                    "tag1",
+                  ],
+                ],
+              },
+            ],
+            "length": 1,
+          },
+        ]
+      `);
+    });
+
+    describe('Multiple layers', () => {
+      it('combines multiple layers on the same level', async () => {
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          $data: [
+            new TestAnnoationsDataLayer({ prefix: 'Layer 1' }),
+            new TestAnnoationsDataLayer({ prefix: 'Layer 2' }),
+          ],
+        });
+
+        expect(queryRunner.state.data).toBeUndefined();
+
+        queryRunner.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`
+          [
+            {
+              "fields": [
+                {
+                  "config": {},
+                  "name": "time",
+                  "type": "time",
+                  "values": [
+                    100,
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "text",
+                  "type": "string",
+                  "values": [
+                    "Layer 1: Test annotation",
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "tags",
+                  "type": "other",
+                  "values": [
+                    [
+                      "tag1",
+                    ],
+                  ],
+                },
+              ],
+              "length": 1,
+            },
+            {
+              "fields": [
+                {
+                  "config": {},
+                  "name": "time",
+                  "type": "time",
+                  "values": [
+                    100,
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "text",
+                  "type": "string",
+                  "values": [
+                    "Layer 2: Test annotation",
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "tags",
+                  "type": "other",
+                  "values": [
+                    [
+                      "tag1",
+                    ],
+                  ],
+                },
+              ],
+              "length": 1,
+            },
+          ]
+        `);
+      });
+      it('combines multiple layers on the different levels', async () => {
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          $data: [new TestAnnoationsDataLayer({ prefix: 'Layer 1' })],
+        });
+
+        const scene = new SceneFlexLayout({
+          $data: [new TestAnnoationsDataLayer({ prefix: 'Layer 2' })],
+          children: [
+            new SceneFlexItem({
+              $data: queryRunner,
+              body: new SceneCanvasText({ text: 'Test' }),
+            }),
+          ],
+        });
+        scene.activate();
+        queryRunner.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`
+          [
+            {
+              "fields": [
+                {
+                  "config": {},
+                  "name": "time",
+                  "type": "time",
+                  "values": [
+                    100,
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "text",
+                  "type": "string",
+                  "values": [
+                    "Layer 1: Test annotation",
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "tags",
+                  "type": "other",
+                  "values": [
+                    [
+                      "tag1",
+                    ],
+                  ],
+                },
+              ],
+              "length": 1,
+            },
+            {
+              "fields": [
+                {
+                  "config": {},
+                  "name": "time",
+                  "type": "time",
+                  "values": [
+                    100,
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "text",
+                  "type": "string",
+                  "values": [
+                    "Layer 2: Test annotation",
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "tags",
+                  "type": "other",
+                  "values": [
+                    [
+                      "tag1",
+                    ],
+                  ],
+                },
+              ],
+              "length": 1,
+            },
+          ]
+        `);
+      });
+
+      it('combines multiple layers that complete non-simultaneously', async () => {
+        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
+        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', delay: true });
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          $data: [layer1],
+        });
+
+        const scene = new SceneFlexLayout({
+          $data: [layer2],
+          children: [
+            new SceneFlexItem({
+              $data: queryRunner,
+              body: new SceneCanvasText({ text: 'Test' }),
+            }),
+          ],
+        });
+        scene.activate();
+        queryRunner.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot('[]');
+
+        layer1.completeRun();
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`
+          [
+            {
+              "fields": [
+                {
+                  "config": {},
+                  "name": "time",
+                  "type": "time",
+                  "values": [
+                    100,
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "text",
+                  "type": "string",
+                  "values": [
+                    "Layer 1: Test annotation",
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "tags",
+                  "type": "other",
+                  "values": [
+                    [
+                      "tag1",
+                    ],
+                  ],
+                },
+              ],
+              "length": 1,
+            },
+          ]
+        `);
+        layer2.completeRun();
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`
+          [
+            {
+              "fields": [
+                {
+                  "config": {},
+                  "name": "time",
+                  "type": "time",
+                  "values": [
+                    100,
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "text",
+                  "type": "string",
+                  "values": [
+                    "Layer 1: Test annotation",
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "tags",
+                  "type": "other",
+                  "values": [
+                    [
+                      "tag1",
+                    ],
+                  ],
+                },
+              ],
+              "length": 1,
+            },
+            {
+              "fields": [
+                {
+                  "config": {},
+                  "name": "time",
+                  "type": "time",
+                  "values": [
+                    100,
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "text",
+                  "type": "string",
+                  "values": [
+                    "Layer 2: Test annotation",
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "tags",
+                  "type": "other",
+                  "values": [
+                    [
+                      "tag1",
+                    ],
+                  ],
+                },
+              ],
+              "length": 1,
+            },
+          ]
+        `);
+      });
+    });
+  });
 });
 
 class CustomDataSource extends RuntimeDataSource {
@@ -648,5 +1068,49 @@ class CustomDataSource extends RuntimeDataSource {
 
   public query(options: DataQueryRequest<DataQuery>): Observable<DataQueryResponse> {
     return of({ data: [{ refId: 'A', fields: [{ name: 'time', type: FieldType.time, values: [123] }] }] });
+  }
+}
+
+interface TestAnnoationsDataLayerState extends SceneObjectState {
+  prefix: string;
+  delay?: boolean;
+}
+class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerState> implements SceneDataProvider {
+  private _runs = new Subject<number>();
+
+  public constructor(state: TestAnnoationsDataLayerState) {
+    super({
+      delay: false,
+      ...state,
+    });
+  }
+  public getDataTopic(): DataTopic {
+    return DataTopic.Annotations;
+  }
+
+  public getResultsStream(): Observable<SceneDataProviderResult> {
+    const { delay } = this.state;
+    const ano: AnnotationEvent[] = [
+      {
+        time: 100,
+        text: `${this.state.prefix}: Test annotation`,
+        tags: ['tag1'],
+      },
+    ];
+
+    const result = {
+      origin: this,
+      data: [arrayToDataFrame(ano)],
+    };
+
+    if (!delay) {
+      return of(result);
+    }
+
+    return this._runs.pipe(map(() => result));
+  }
+
+  public completeRun() {
+    this._runs.next(1);
   }
 }

@@ -3,7 +3,7 @@ import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { SceneDataNode } from './SceneDataNode';
 import { SceneObjectBase } from './SceneObjectBase';
 import { SceneObjectStateChangedEvent } from './events';
-import { SceneObject, SceneObjectState } from './types';
+import { SceneDataProvider, SceneObject, SceneObjectState } from './types';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 
 interface TestSceneState extends SceneObjectState {
@@ -105,7 +105,7 @@ describe('SceneObject', () => {
     });
 
     it('Should activate $data', () => {
-      expect(scene.state.$data!.isActive).toBe(true);
+      expect((scene.state.$data as SceneDataProvider)!.isActive).toBe(true);
     });
 
     it('Should activate $variables', () => {
@@ -141,7 +141,7 @@ describe('SceneObject', () => {
     });
 
     it('Should deactivate $data', () => {
-      expect(scene.state.$data!.isActive).toBe(false);
+      expect((scene.state.$data as SceneDataProvider)!.isActive).toBe(false);
     });
 
     it('Should deactivate $variables', () => {

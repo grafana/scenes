@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonoTypeOperatorFunction, Unsubscribable } from 'rxjs';
+import { MonoTypeOperatorFunction, Observable, Unsubscribable } from 'rxjs';
 
 import {
   BusEvent,
@@ -7,6 +7,7 @@ import {
   BusEventType,
   DataFrame,
   DataQueryRequest,
+  DataTopic,
   DataTransformContext,
   PanelData,
   TimeRange,
@@ -18,7 +19,7 @@ import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/
 export interface SceneObjectState {
   key?: string;
   $timeRange?: SceneTimeRangeLike;
-  $data?: SceneDataProvider;
+  $data?: SceneDataProvider | SceneDataProvider[];
   $variables?: SceneVariables;
   /**
    * @experimental
@@ -184,10 +185,16 @@ export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
 
+export interface SceneDataProviderResult {
+  origin: SceneDataProvider;
+  data: DataFrame[];
+}
 export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
+  getResultsStream(): Observable<SceneDataProviderResult>;
+  getDataTopic(): DataTopic;
 }
 
 export interface SceneStatelessBehavior<T extends SceneObject = any> {

@@ -1,14 +1,29 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, Unsubscribable } from 'rxjs';
+import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
-import { DataQueryRequest, DataSourceApi, PanelData, preProcessPanelData, rangeUtil, ScopedVar } from '@grafana/data';
+import {
+  DataFrame,
+  DataQueryRequest,
+  DataSourceApi,
+  DataTopic,
+  PanelData,
+  preProcessPanelData,
+  rangeUtil,
+  ScopedVar,
+} from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { isDataRequestEnricher, SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core/types';
+import {
+  isDataRequestEnricher,
+  SceneDataProvider,
+  SceneDataProviderResult,
+  SceneObjectState,
+  SceneTimeRangeLike,
+} from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -46,6 +61,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
+  private _results = new ReplaySubject<SceneDataProviderResult>();
+
+  public getDataTopic(): DataTopic {
+    return 'data' as DataTopic;
+  }
+  public getResultsStream() {
+    return this._results;
+  }
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -62,6 +85,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = this.getTimeCompare();
+
     if (comparer) {
       this._subs.add(
         comparer.subscribeToState((n, p) => {
@@ -82,7 +106,74 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.runQueries();
     }
 
+    this._activateDataLayers();
+
     return () => this._onDeactivate();
+  }
+
+  private _activateDataLayers() {
+    const dataLayers = sceneGraph.getDataLayers(this);
+
+    const observables: Array<Observable<SceneDataProviderResult>> = [];
+
+    // Intuitively this is a perf issue... but later on when we pass this to the state update it's actually references to the same object.
+    // This keeps track of multiple sources of data, and we need to combine them into one DataTopic channel. I.e. multi level annotations.
+    // const resultsMap: Record<string, Record<DataTopic, DataFrame>> = {};
+    const resultsMap: Record<DataTopic, Map<string, DataFrame[]>> = {
+      annotations: new Map(),
+    };
+
+    if (dataLayers.length > 0) {
+      dataLayers.forEach((layer) => {
+        if (layer instanceof SceneQueryRunner) {
+          throw new Error('SceneQueryRunner cannot be used as a data layer');
+        }
+
+        observables.push(layer.getResultsStream());
+      });
+
+      // possibly we want to combine the results from all layers and only then update, but this is tricky ;(
+      this._subs.add(
+        merge(observables)
+          .pipe(
+            // takeUntil(this.runs.asObservable()),
+            mergeAll(),
+            map((v) => {
+              if (v.origin.getDataTopic() === DataTopic.Annotations) {
+                // Is there a better, rxjs only way to combine multiple same-data-topic observables?
+                // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
+                resultsMap[v.origin.getDataTopic()].set(v.origin.state.key!, v.data);
+              }
+
+              return resultsMap;
+            })
+          )
+          .subscribe((result) => {
+            this._onLayersReceived(result);
+          })
+      );
+    }
+  }
+
+  private _onLayersReceived(results: Record<DataTopic, Map<string, DataFrame[]>>) {
+    let annotations: DataFrame[] = [];
+    if (results[DataTopic.Annotations]) {
+      annotations = annotations.concat(this._combineAnnotations(results[DataTopic.Annotations]));
+    }
+
+    this.setState({
+      data: {
+        ...this.state.data!,
+        annotations,
+      },
+    });
+  }
+
+  private _combineAnnotations(resultsMap: Map<string, DataFrame[]>) {
+    return Array.from(resultsMap.values()).reduce<DataFrame[]>((acc, value) => {
+      acc = acc.concat(value);
+      return acc;
+    }, []);
   }
 
   /**
@@ -188,6 +279,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public cancelQuery() {
     this._querySub?.unsubscribe();
+
+    const dataLayers = sceneGraph.getDataLayers(this);
+    dataLayers.forEach((layer) => {
+      layer.cancelQuery?.();
+    });
+
     this.setState({
       data: { ...this.state.data!, state: LoadingState.Done },
     });
@@ -317,15 +414,30 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 
   private onDataReceived = (data: PanelData) => {
+    this._results.next({ origin: this, data: data.series });
+
+    // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
+
+    // Will combine annotations & --- from data layer providers
+    const dataWithLayersApplied = this._combineDataLayers(preProcessedData);
+
     let hasFetchedData = this.state._hasFetchedData;
 
     if (!hasFetchedData && preProcessedData.state !== LoadingState.Loading) {
       hasFetchedData = true;
     }
 
-    this.setState({ data: preProcessedData, _hasFetchedData: hasFetchedData });
+    this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
   };
+
+  private _combineDataLayers(data: PanelData) {
+    if (this.state.data && this.state.data.annotations) {
+      data.annotations = (data.annotations || []).concat(this.state.data.annotations);
+    }
+
+    return data;
+  }
 
   private _setNoDataState() {
     if (this.state.data !== emptyPanelData) {
