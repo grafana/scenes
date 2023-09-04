@@ -4,7 +4,7 @@ import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/d
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
 
-import { SceneDataProvider, SceneLayout, SceneObject } from '../types';
+import { SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 
@@ -114,4 +114,21 @@ function findObjectInternal(
  */
 export function findObject(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject | null {
   return findObjectInternal(scene, check, undefined, true);
+}
+
+export function getDataLayers(sceneObject: SceneObject): Array<SceneDataLayerProvider<unknown>> {
+  let parent: SceneObject | undefined = sceneObject;
+  let collected: Array<SceneDataLayerProvider<unknown>> = [];
+  while (parent) {
+    if (parent.state.$dataLayers) {
+      collected = collected.concat(parent.state.$dataLayers);
+    }
+    parent = parent.parent;
+  }
+
+  // console.log(collected);
+  // const closest = getClosest(sceneObject, (s) => s.state.$dataLayers) ?? [];
+
+  return collected;
+  // return getClosest(sceneObject, (s) => s.state.$dataLayers) ?? [];
 }

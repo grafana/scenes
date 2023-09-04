@@ -1,14 +1,31 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, Unsubscribable } from 'rxjs';
+import { forkJoin, map, merge, mergeAll, Observable, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
-import { DataQueryRequest, DataSourceApi, PanelData, preProcessPanelData, rangeUtil, ScopedVar } from '@grafana/data';
+import {
+  AnnotationEvent,
+  arrayToDataFrame,
+  DataFrame,
+  DataQueryRequest,
+  DataSourceApi,
+  DataTopic,
+  PanelData,
+  preProcessPanelData,
+  rangeUtil,
+  ScopedVar,
+} from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { isDataRequestEnricher, SceneDataProvider, SceneObjectState, SceneTimeRangeLike } from '../core/types';
+import {
+  isDataRequestEnricher,
+  SceneDataLayerProvider,
+  SceneDataProvider,
+  SceneObjectState,
+  SceneTimeRangeLike,
+} from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneVariable } from '../variables/types';
@@ -62,6 +79,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = this.getTimeCompare();
+
     if (comparer) {
       this._subs.add(
         comparer.subscribeToState((n, p) => {
@@ -82,7 +100,83 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.runQueries();
     }
 
+    this._activateDataLayers();
+
     return () => this._onDeactivate();
+  }
+
+  private _activateDataLayers() {
+    const dataLayers = sceneGraph.getDataLayers(this);
+    const observables: Array<Observable<{ origin: SceneDataLayerProvider<unknown>; data: unknown }>> = [];
+
+    // Intuitively this is a perf issue... but later on when we pass this to the state update it's actually references to the same object.
+    // This keeps track of multiple sources of data, and we need to combine them into one DataTopic channel. I.e. multi level annotations.
+    const resultsMap: Record<string, Record<DataTopic, DataFrame>> = {};
+
+    if (dataLayers.length > 0) {
+      dataLayers.forEach((layer) => {
+        layer.activate();
+        observables.push(layer.getResultsStream());
+      });
+
+      // possibly we want to combine the results from all layers and only then update, but this is tricky ;(
+      this._subs.add(
+        merge(observables)
+          .pipe(
+            // takeUntil(this.runs.asObservable()),
+            mergeAll(),
+            map((v) => {
+              console.log('v', v);
+              if (v.origin.getDataTopic() === DataTopic.Annotations) {
+                // Is there a better, rxjs only way to combine multiple same-data-topic observables?
+                // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
+                resultsMap[v.origin.state.key!] = {
+                  [v.origin.getDataTopic()]: arrayToDataFrame((v.data || []) as AnnotationEvent[]),
+                };
+              }
+
+              // Combine results with results from other layers.
+              const result: Record<string, DataFrame[]> = {};
+              Object.keys(resultsMap).forEach((key) => {
+                if (resultsMap[key]?.[DataTopic.Annotations]) {
+                  result[DataTopic.Annotations] = (result[DataTopic.Annotations] || []).concat(
+                    resultsMap[key].annotations
+                  );
+                }
+                // handle alerting channel
+              });
+              return result;
+              // // console.log({ acc: acc.annotations.length, value: value.annotations.length });
+              // // should we use scan or reduce here
+              // // reduce will only emit when all observables are completed
+              // // scan will emit when any observable is completed
+              // // choosing reduce to minimize re-renders
+              // acc.annotations = acc.annotations.concat(value.annotations);
+              // // acc.alertStates = acc.alertStates.concat(value.alertStates);
+              // return acc;
+            })
+            //
+            // take(observables.length),
+            // reduce(
+            //   (acc, v) => {
+            //     if (v.annotations) {
+            //       acc.annotations.push(v.annotations);
+            //     }
+            //     return acc;
+            //   },
+            //   { annotations: [] }
+            // )
+          )
+          .subscribe((result) => {
+            console.log('result', result);
+            this.onLayersReceived(result);
+          })
+      );
+    }
+  }
+
+  private onLayersReceived(state: Record<DataTopic, DataFrame[]>) {
+    this.setState({ data: { ...this.state.data!, ...state } });
   }
 
   /**
@@ -318,6 +412,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private onDataReceived = (data: PanelData) => {
     const preProcessedData = preProcessPanelData(data, this.state.data);
+    console.log(preProcessedData);
     let hasFetchedData = this.state._hasFetchedData;
 
     if (!hasFetchedData && preProcessedData.state !== LoadingState.Loading) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonoTypeOperatorFunction, Unsubscribable } from 'rxjs';
+import { MonoTypeOperatorFunction, Observable, Unsubscribable } from 'rxjs';
 
 import {
   BusEvent,
@@ -7,6 +7,7 @@ import {
   BusEventType,
   DataFrame,
   DataQueryRequest,
+  DataTopic,
   DataTransformContext,
   PanelData,
   TimeRange,
@@ -15,10 +16,26 @@ import { TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 
+export type SceneDataLayerState<S, T> = SceneObjectState &
+  S & {
+    data?: T;
+  };
+
+export interface SceneDataLayerProviderResult<T> {
+  origin: SceneDataLayerProvider<T>;
+  data: T;
+}
+
+export interface SceneDataLayerProvider<T> extends SceneObject<SceneDataLayerState<any, T>> {
+  getDataTopic(): DataTopic;
+  getResultsStream(): Observable<SceneDataLayerProviderResult<T>>;
+}
+
 export interface SceneObjectState {
   key?: string;
   $timeRange?: SceneTimeRangeLike;
   $data?: SceneDataProvider;
+  $dataLayers?: Array<SceneDataLayerProvider<any>>;
   $variables?: SceneVariables;
   /**
    * @experimental

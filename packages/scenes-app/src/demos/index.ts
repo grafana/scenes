@@ -21,6 +21,7 @@ import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
+import { getDataLayersTestTest } from './dataLayers';
 
 export interface DemoDescriptor {
   title: string;
@@ -49,7 +50,8 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Split layout', getPage: getSplitTest },
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
     { title: 'Cursor sync', getPage: getCursorSyncTest },
-    { title: 'Time range comparison 2', getPage: getTimeRangeComparisonTest },
+    { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
+    { title: 'Annotations', getPage: getDataLayersTestTest },
     { title: 'Docs examples', getPage: getDocsExamples },
   ];
 }
