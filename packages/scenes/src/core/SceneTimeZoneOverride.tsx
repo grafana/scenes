@@ -16,7 +16,7 @@ export class SceneTimeZoneOverride
     super({
       ...state,
       timeZone: state.timeZone,
-      // Real time range is deifined
+      // We set a default time range here. It will be overwritten on activation based on ancestor time range.
       from: 'now-6h',
       to: 'now',
       value: getDefaultTimeRange(),
