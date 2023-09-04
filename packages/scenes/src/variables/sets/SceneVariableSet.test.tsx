@@ -524,6 +524,10 @@ describe('SceneVariableList', () => {
       scene.state.nested?.activate();
 
       expect(innerSet.isVariableLoadingOrWaitingToUpdate(scopedA)).toBe(true);
+
+      A.signalUpdateCompleted();
+
+      expect(innerSet.isVariableLoadingOrWaitingToUpdate(scopedA)).toBe(false);
     });
   });
 });
