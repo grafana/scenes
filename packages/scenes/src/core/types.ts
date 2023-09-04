@@ -201,10 +201,16 @@ export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
 
+export interface SceneDataProviderResult<T> {
+  origin: SceneDataProvider;
+  data: T;
+}
 export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
+  getResultsStream?(): Observable<SceneDataProviderResult<unknown>>;
+  getDataTopic(): DataTopic;
 }
 
 export interface SceneStatelessBehavior<T extends SceneObject = any> {

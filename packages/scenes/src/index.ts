@@ -14,6 +14,7 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
+export { CompositeQueryRunner } from './querying/CompositeQueryRunner';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
 

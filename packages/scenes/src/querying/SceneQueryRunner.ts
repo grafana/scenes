@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, map, merge, mergeAll, Observable, Unsubscribable } from 'rxjs';
+import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -63,6 +63,17 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _querySub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
+  private _results = new ReplaySubject<{
+    origin: SceneQueryRunner;
+    data: PanelData;
+  }>();
+
+  public getDataTopic(): DataTopic {
+    return 'data' as DataTopic;
+  }
+  public getResultsStream() {
+    return this._results;
+  }
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
@@ -411,6 +422,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 
   private onDataReceived = (data: PanelData) => {
+    this._results.next({ origin: this, data });
+
     const preProcessedData = preProcessPanelData(data, this.state.data);
     console.log(preProcessedData);
     let hasFetchedData = this.state._hasFetchedData;

@@ -1,5 +1,6 @@
 import {
   AnnotationsLayer,
+  CompositeQueryRunner,
   EmbeddedScene,
   SceneAppPage,
   SceneAppPageState,
@@ -29,24 +30,24 @@ export function getDataLayersTestTest(defaults: SceneAppPageState) {
     ],
   });
 
-  const globalAnnotations1 = new AnnotationsLayer({
-    queries: [
-      {
-        datasource: {
-          type: 'testdata',
-          uid: 'gdev-testdata',
-        },
-        enable: true,
-        iconColor: 'yellow',
-        name: 'New annotation',
-        target: {
-          lines: 3,
-          refId: 'Anno',
-          scenarioId: 'annotations',
-        } as any,
-      },
-    ],
-  });
+  // const globalAnnotations1 = new AnnotationsLayer({
+  //   queries: [
+  //     {
+  //       datasource: {
+  //         type: 'testdata',
+  //         uid: 'gdev-testdata',
+  //       },
+  //       enable: true,
+  //       iconColor: 'yellow',
+  //       name: 'New annotation',
+  //       target: {
+  //         lines: 3,
+  //         refId: 'Anno',
+  //         scenarioId: 'annotations',
+  //       } as any,
+  //     },
+  //   ],
+  // });
 
   const nestedAnnotationsLayer = new AnnotationsLayer({
     queries: [
@@ -78,25 +79,29 @@ export function getDataLayersTestTest(defaults: SceneAppPageState) {
           direction: 'row',
           children: [
             new SceneFlexItem({
-              $dataLayers: [globalAnnotations],
+              // $dataLayers: [globalAnnotations],
+              $data: new CompositeQueryRunner({
+                runners: [
+                  getQueryRunnerWithRandomWalkQuery({}),
+                  getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '5s' }),
+                  globalAnnotations as any,
+                  nestedAnnotationsLayer,
+                ],
+              }),
               body: new VizPanel({
                 title: 'Global annotations',
                 pluginId: 'timeseries',
-                $data: getQueryRunnerWithRandomWalkQuery({
-                  //   scenarioId: 'slow_query',
-                  //   stringInput: '5s',
-                }),
               }),
             }),
-            new SceneFlexItem({
-              $dataLayers: [globalAnnotations1],
-              body: new VizPanel({
-                $dataLayers: [nestedAnnotationsLayer],
-                title: 'Combined annotations layer',
-                pluginId: 'timeseries',
-                $data: getQueryRunnerWithRandomWalkQuery({}),
-              }),
-            }),
+            // new SceneFlexItem({
+            //   $dataLayers: [globalAnnotations1],
+            //   body: new VizPanel({
+            //     $dataLayers: [nestedAnnotationsLayer],
+            //     title: 'Combined annotations layer',
+            //     pluginId: 'timeseries',
+            //     $data: getQueryRunnerWithRandomWalkQuery({}),
+            //   }),
+            // }),
             // new SceneFlexItem({
             //   body: new VizPanel({
             //     $dataLayers: [nestedAnnotationsLayer],
