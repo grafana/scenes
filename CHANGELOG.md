@@ -1,3 +1,16 @@
+# v0.29.1 (Tue Sep 05 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridRow: Small design change and fixes, add actions support [#321](https://github.com/grafana/scenes/pull/321) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.29.0 (Tue Sep 05 2023)
 
 #### 🚀 Enhancement
