@@ -227,13 +227,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
 
   public onCancelQuery = () => {
     const data = sceneGraph.getData(this);
-    if (Array.isArray(data)) {
-      for (const d of data) {
-        d.cancelQuery?.();
-      }
-    } else {
-      data.cancelQuery?.();
-    }
+    data.cancelQuery?.();
   };
 
   /**
