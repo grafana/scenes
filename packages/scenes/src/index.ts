@@ -48,8 +48,8 @@ export { SceneFlexLayout, SceneFlexItem, type SceneFlexItemState } from './compo
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
-export { SplitLayout } from './components/layout/split/SplitLayout';
 export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';
+export { SplitLayout } from './components/layout/split/SplitLayout';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,
