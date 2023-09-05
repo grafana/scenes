@@ -133,6 +133,20 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       true
     );
   }
+
+  /**
+   * This handles activation and deactivation of $data, $timeRange and $variables when they change
+   * during the active phase of the scene object.
+   */
+  private _handleActivationAndDeactivationOnStateChange(prevState: TState, newState: TState) {
+    if (!this.isActive) {
+      return;
+    }
+
+    if (newState.$data !== prevState.$data) {
+    }
+  }
+
   /*
    * Publish an event and optionally bubble it up the scene
    **/
