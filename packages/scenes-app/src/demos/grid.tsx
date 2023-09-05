@@ -37,11 +37,7 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
               height: 10,
               isResizable: false,
               isDraggable: false,
-              body: PanelBuilders.timeseries()
-                .setTitle('No drag and no resize')
-                .setIsDraggable(false)
-                .setIsResizable(false)
-                .build(),
+              body: PanelBuilders.timeseries().setTitle('No drag and no resize').build(),
             }),
 
             new SceneGridItem({
