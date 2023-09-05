@@ -102,7 +102,6 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       height: '30px',
       display: 'flex',
       justifyContent: 'space-between',
-      border: `1px solid transparent`,
       gap: theme.spacing(1),
     }),
     rowTitleButton: css({
@@ -114,9 +113,8 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       gap: theme.spacing(1),
     }),
     rowCollapsed: css({
-      //background: theme.colors.background.primary,
+      background: theme.colors.background.secondary,
       borderBottom: `1px solid ${theme.colors.border.weak}`,
-      //borderRadius: theme.shape.borderRadius(1),
     }),
     rowTitle: css({
       fontSize: theme.typography.h5.fontSize,
