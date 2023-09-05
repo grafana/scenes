@@ -9,10 +9,6 @@
   <p>Build highly interactive Grafana apps with ease.</p>
 </div>
 
-## Public preview
-
-@grafana/scenes is currently in _public preview_. We invite everyone to play with the library. We welcome any feedback!
-
 ## About @grafana/scenes
 
 @grafana/scenes provides a library to build highly interactive, dashboard-like experiences in Grafana's app plugins. It comes with the following features:

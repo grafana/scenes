@@ -14,10 +14,6 @@
 | @grafana/scenes | Scenes SDK                      | [Link](./packages/scenes/README.md)     | ![npm](https://img.shields.io/npm/v/@grafana/scenes?label=version) | ![npm](https://img.shields.io/npm/dw/@grafana/scenes) |
 | Scenes App      | Demo app using Scenes framework | [Link](./packages/scenes-app/README.md) | -                                                                  | -                                                     |
 
-## Public preview
-
-@grafana/scenes is currently in _public preview_. We invite everyone to play with the library. We welcome any feedback!
-
 ## Development
 
 ### Running the demo app

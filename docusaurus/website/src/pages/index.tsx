@@ -14,9 +14,7 @@ function HomepageHeader() {
     <header className={clsx('container margin-top--lg margin-bottom--lg', styles.heroContent)}>
       <div className={clsx(styles.heroBanner)}>
         <div className={styles.heroBannerWrapper}>
-          <h1 className={clsx('text--normal padding-left--sm', styles.heroSubtitle)}>
-            {siteConfig.title} <span style={{ fontWeight: 'normal' }}> | public preview</span>
-          </h1>
+          <h1 className={clsx('text--normal padding-left--sm', styles.heroSubtitle)}>{siteConfig.title}</h1>
           <p className="margin-left--md text--bold">{siteConfig.tagline}</p>
           <Link className="margin-left--md button button--primary button--lg" to="/docs/getting-started">
             Get Started
