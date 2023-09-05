@@ -13,6 +13,7 @@ import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
+import { LocalValueVariable } from '../variants/LocalValueVariable';
 
 interface TestSceneState extends SceneObjectState {
   nested?: SceneObject;
@@ -481,6 +482,52 @@ describe('SceneVariableList', () => {
       expect(A.state.loading).toBe(false);
       expect(B.state.loading).toBe(false);
       expect(C.state.loading).toBe(false);
+    });
+  });
+
+  describe('isVariableLoadingOrWaitingToUpdate', () => {
+    it('Should return true when loading or waiting to update', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({ variables: [A, B] });
+      set.activate();
+
+      // Should start variables with no dependencies
+      expect(A.state.loading).toBe(true);
+      expect(B.state.loading).toBe(undefined);
+
+      expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(true);
+      expect(set.isVariableLoadingOrWaitingToUpdate(B)).toBe(true);
+
+      A.signalUpdateCompleted();
+      expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(false);
+      expect(set.isVariableLoadingOrWaitingToUpdate(B)).toBe(true);
+    });
+
+    it('Should check ancestor set for LocalValueVariable', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const scopedA = new LocalValueVariable({ name: 'A', value: 'AA' });
+
+      const innerSet = new SceneVariableSet({
+        variables: [scopedA],
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+        nested: new TestScene({
+          $variables: innerSet,
+        }),
+      });
+
+      scene.activate();
+      scene.state.nested?.activate();
+
+      expect(innerSet.isVariableLoadingOrWaitingToUpdate(scopedA)).toBe(true);
+
+      A.signalUpdateCompleted();
+
+      expect(innerSet.isVariableLoadingOrWaitingToUpdate(scopedA)).toBe(false);
     });
   });
 });

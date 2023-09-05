@@ -33,6 +33,11 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
    * Useful for variables that have non user friendly values but friendly display text names.
    */
   getValueText?(fieldPath?: string): string;
+
+  /**
+   * A special function that locally scoped variables can implement
+   **/
+  isAncestorLoading?(): boolean;
 }
 
 export type VariableValue = VariableValueSingle | VariableValueSingle[];
