@@ -14,7 +14,6 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
-export { CompositeQueryRunner } from './querying/CompositeQueryRunner';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
 
@@ -62,7 +61,7 @@ export { SceneReactObject } from './components/SceneReactObject';
 export { SceneObjectRef } from './core/SceneObjectRef';
 export { PanelBuilders } from './core/PanelBuilders';
 
-export { AnnotationsLayer } from './querying/annotations/AnnotationsLayer';
+export { AnnotationsDataLayer } from './querying/annotations/AnnotationsDataLayer';
 
 export const sceneUtils = {
   getUrlWithAppState,

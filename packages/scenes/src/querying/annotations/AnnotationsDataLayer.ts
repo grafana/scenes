@@ -1,27 +1,23 @@
-import { AnnotationEvent, arrayToDataFrame, DataFrame, DataSourceApi, DataTopic, TimeRange } from '@grafana/data';
+import { AnnotationEvent, arrayToDataFrame, DataSourceApi, DataTopic, PanelData, TimeRange } from '@grafana/data';
 import { AnnotationQuery } from '@grafana/schema';
 import { from, map, merge, mergeAll, mergeMap, reduce, ReplaySubject, Unsubscribable } from 'rxjs';
+import { emptyPanelData } from '../../core/SceneDataNode';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObjectState, SceneDataLayerProvider, SceneDataLayerState } from '../../core/types';
+import { SceneObjectState, SceneDataProvider, SceneDataProviderResult } from '../../core/types';
 import { getDataSource } from '../../utils/getDataSource';
 import { executeAnnotationQuery } from './standardAnnotationQuery';
 
-interface AnnotationsLayerState extends SceneObjectState {
+interface AnnotationsDataLayerState extends SceneObjectState {
+  data?: PanelData;
   queries: AnnotationQuery[];
 }
 
-export class AnnotationsLayer
-  extends SceneObjectBase<SceneDataLayerState<AnnotationsLayerState, DataFrame[]>>
-  implements SceneDataLayerProvider<AnnotationEvent[]>
-{
+export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
-  private _results = new ReplaySubject<{
-    origin: SceneDataLayerProvider<AnnotationEvent[]>;
-    data: AnnotationEvent[];
-  }>();
+  private _results = new ReplaySubject<SceneDataProviderResult>();
 
-  public constructor(initialState: AnnotationsLayerState) {
+  public constructor(initialState: AnnotationsDataLayerState) {
     super(initialState);
 
     this.addActivationHandler(() => this._onActivate());
@@ -78,7 +74,9 @@ export class AnnotationsLayer
     const observables = queries.map((query) => {
       // TODO pass scopedVars
       return from(getDataSource(query.datasource || undefined, {})).pipe(
-        mergeMap((ds) => executeAnnotationQuery(ds, timeRange, query)),
+        mergeMap((ds) => {
+          return executeAnnotationQuery(ds, timeRange, query);
+        }),
         map((events) => {
           return events ?? [];
         })
@@ -89,30 +87,37 @@ export class AnnotationsLayer
       .pipe(
         mergeAll(),
         reduce((acc: AnnotationEvent[], value: AnnotationEvent[]) => {
-          // console.log({ acc: acc.annotations.length, value: value.annotations.length });
-          // should we use scan or reduce here
-          // reduce will only emit when all observables are completed
-          // scan will emit when any observable is completed
-          // choosing reduce to minimize re-renders
           acc = acc.concat(value);
-          //   acc.alertStates = acc.alertStates.concat(value.alertStates);
           return acc;
         })
       )
       .subscribe((result) => {
-        this._results.next({ origin: this, data: result });
         this.onDataReceived(result);
       });
   }
 
   public onDataReceived(result: AnnotationEvent[]) {
+    // This is only faking panel data
+    const stateUpdate = { ...emptyPanelData };
+    const df = arrayToDataFrame(result);
+    emptyPanelData.annotations = [df];
+
+    this._results.next({ origin: this, data: [df] });
+
     this.setState({
-      data: [arrayToDataFrame(result)],
+      data: stateUpdate,
     });
   }
 
   public getResultsStream() {
     return this._results;
+  }
+
+  public cancelQuery() {
+    if (this._querySub) {
+      this._querySub.unsubscribe();
+      this._querySub = undefined;
+    }
   }
 }
 

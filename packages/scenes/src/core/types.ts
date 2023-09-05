@@ -16,26 +16,10 @@ import { TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 
-export type SceneDataLayerState<S, T> = SceneObjectState &
-  S & {
-    data?: T;
-  };
-
-export interface SceneDataLayerProviderResult<T> {
-  origin: SceneDataLayerProvider<T>;
-  data: T;
-}
-
-export interface SceneDataLayerProvider<T> extends SceneObject<SceneDataLayerState<any, T>> {
-  getDataTopic(): DataTopic;
-  getResultsStream(): Observable<SceneDataLayerProviderResult<T>>;
-}
-
 export interface SceneObjectState {
   key?: string;
   $timeRange?: SceneTimeRangeLike;
-  $data?: SceneDataProvider;
-  $dataLayers?: Array<SceneDataLayerProvider<any>>;
+  $data?: SceneDataProvider | SceneDataProvider[];
   $variables?: SceneVariables;
   /**
    * @experimental
@@ -201,15 +185,15 @@ export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
 
-export interface SceneDataProviderResult<T> {
+export interface SceneDataProviderResult {
   origin: SceneDataProvider;
-  data: T;
+  data: DataFrame[];
 }
 export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
-  getResultsStream?(): Observable<SceneDataProviderResult<unknown>>;
+  getResultsStream(): Observable<SceneDataProviderResult>;
   getDataTopic(): DataTopic;
 }
 

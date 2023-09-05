@@ -1,6 +1,5 @@
 import {
-  AnnotationsLayer,
-  CompositeQueryRunner,
+  AnnotationsDataLayer,
   EmbeddedScene,
   SceneAppPage,
   SceneAppPageState,
@@ -11,7 +10,7 @@ import {
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getDataLayersTestTest(defaults: SceneAppPageState) {
-  const globalAnnotations = new AnnotationsLayer({
+  const globalAnnotations = new AnnotationsDataLayer({
     queries: [
       {
         datasource: {
@@ -30,26 +29,7 @@ export function getDataLayersTestTest(defaults: SceneAppPageState) {
     ],
   });
 
-  // const globalAnnotations1 = new AnnotationsLayer({
-  //   queries: [
-  //     {
-  //       datasource: {
-  //         type: 'testdata',
-  //         uid: 'gdev-testdata',
-  //       },
-  //       enable: true,
-  //       iconColor: 'yellow',
-  //       name: 'New annotation',
-  //       target: {
-  //         lines: 3,
-  //         refId: 'Anno',
-  //         scenarioId: 'annotations',
-  //       } as any,
-  //     },
-  //   ],
-  // });
-
-  const nestedAnnotationsLayer = new AnnotationsLayer({
+  const nestedAnnotationsDataLayer = new AnnotationsDataLayer({
     queries: [
       {
         datasource: {
@@ -75,41 +55,25 @@ export function getDataLayersTestTest(defaults: SceneAppPageState) {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
         key: 'Multiple annotations layers',
+        $data: [globalAnnotations],
         body: new SceneFlexLayout({
           direction: 'row',
           children: [
             new SceneFlexItem({
-              // $dataLayers: [globalAnnotations],
-              $data: new CompositeQueryRunner({
-                runners: [
-                  getQueryRunnerWithRandomWalkQuery({}),
-                  getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '5s' }),
-                  globalAnnotations as any,
-                  nestedAnnotationsLayer,
-                ],
-              }),
+              $data: getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '5s' }),
               body: new VizPanel({
                 title: 'Global annotations',
                 pluginId: 'timeseries',
               }),
             }),
-            // new SceneFlexItem({
-            //   $dataLayers: [globalAnnotations1],
-            //   body: new VizPanel({
-            //     $dataLayers: [nestedAnnotationsLayer],
-            //     title: 'Combined annotations layer',
-            //     pluginId: 'timeseries',
-            //     $data: getQueryRunnerWithRandomWalkQuery({}),
-            //   }),
-            // }),
-            // new SceneFlexItem({
-            //   body: new VizPanel({
-            //     $dataLayers: [nestedAnnotationsLayer],
-            //     title: 'Nested annotations layer',
-            //     pluginId: 'timeseries',
-            //     $data: getQueryRunnerWithRandomWalkQuery({}),
-            //   }),
-            // }),
+            new SceneFlexItem({
+              $data: [nestedAnnotationsDataLayer],
+              body: new VizPanel({
+                $data: getQueryRunnerWithRandomWalkQuery({}),
+                title: 'Combined annotations',
+                pluginId: 'timeseries',
+              }),
+            }),
           ],
         }),
       });

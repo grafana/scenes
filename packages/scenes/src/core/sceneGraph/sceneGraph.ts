@@ -4,7 +4,7 @@ import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/d
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
 
-import { SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
+import { SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 
@@ -19,7 +19,15 @@ export function getVariables(sceneObject: SceneObject): SceneVariables {
  * Will walk up the scene object graph to the closest $data scene object
  */
 export function getData(sceneObject: SceneObject): SceneDataProvider {
-  return getClosest(sceneObject, (s) => s.state.$data) ?? EmptyDataNode;
+  return (
+    getClosest(sceneObject, (s) => {
+      if (!Array.isArray(s.state.$data)) {
+        return s.state.$data;
+      }
+
+      return undefined;
+    }) ?? EmptyDataNode
+  );
 }
 
 function isSceneLayout(s: SceneObject): s is SceneLayout {
@@ -116,19 +124,15 @@ export function findObject(scene: SceneObject, check: (obj: SceneObject) => bool
   return findObjectInternal(scene, check, undefined, true);
 }
 
-export function getDataLayers(sceneObject: SceneObject): Array<SceneDataLayerProvider<unknown>> {
+export function getDataLayers(sceneObject: SceneObject): SceneDataProvider[] {
   let parent: SceneObject | undefined = sceneObject;
-  let collected: Array<SceneDataLayerProvider<unknown>> = [];
+  let collected: SceneDataProvider[] = [];
   while (parent) {
-    if (parent.state.$dataLayers) {
-      collected = collected.concat(parent.state.$dataLayers);
+    if (parent.state.$data && Array.isArray(parent.state.$data)) {
+      collected = collected.concat(parent.state.$data);
     }
     parent = parent.parent;
   }
 
-  // console.log(collected);
-  // const closest = getClosest(sceneObject, (s) => s.state.$dataLayers) ?? [];
-
   return collected;
-  // return getClosest(sceneObject, (s) => s.state.$dataLayers) ?? [];
 }

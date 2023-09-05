@@ -1,4 +1,4 @@
-import { DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
+import { DataTopic, DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
 import { map, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -58,6 +58,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   private getSourceData(): SceneDataProvider {
     if (this.state.$data) {
+      if (Array.isArray(this.state.$data)) {
+        throw new Error('SceneDataTransformer does not support data layers. Use a single SceneDataProvider instead.');
+      }
+
       return this.state.$data;
     }
 
@@ -69,7 +73,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public setContainerWidth(width: number) {
-    if (this.state.$data && this.state.$data.setContainerWidth) {
+    if (this.state.$data && !Array.isArray(this.state.$data) && this.state.$data.setContainerWidth) {
       this.state.$data.setContainerWidth(width);
     }
   }
@@ -89,6 +93,14 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   public cancelQuery() {
     this.getSourceData().cancelQuery?.();
+  }
+
+  public getDataTopic() {
+    return 'data' as DataTopic;
+  }
+
+  public getResultsStream() {
+    throw new Error('Method not implemented.');
   }
 
   private transform(data: PanelData | undefined) {
