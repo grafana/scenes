@@ -14,7 +14,7 @@ export interface SceneGridItemStateLike extends SceneGridItemPlacement, SceneObj
 
 export interface SceneGridItemLike extends SceneObject<SceneGridItemStateLike> {
   /**
-   * This is needed by PanelRepeaterGridItem to have special css behavior for responsive (mobile) breakpoint.
+   * Provide a custom CSS class name for the underlying DOM element when special styling (i.e. for mobile breakpoint) is required.
    **/
   getClassName?(): string;
 }
