@@ -141,7 +141,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   /**
    * Will also scan row children and return child of the row
    */
-  public getSceneLayoutChild(key: string) {
+  public getSceneLayoutChild(key: string): SceneGridItemLike {
     for (const child of this.state.children) {
       if (child.state.key === key) {
         return child;

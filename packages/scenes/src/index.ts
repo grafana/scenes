@@ -28,6 +28,7 @@ export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
+export { MultiValueVariable } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 
 export { type UrlSyncManagerLike as UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
@@ -49,6 +50,7 @@ export { SceneFlexLayout, SceneFlexItem, type SceneFlexItemState } from './compo
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
+export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';
 export { SplitLayout } from './components/layout/split/SplitLayout';
 export {
   type SceneAppPageLike,
@@ -62,6 +64,7 @@ export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
 export { SceneObjectRef } from './core/SceneObjectRef';
 export { PanelBuilders } from './core/PanelBuilders';
+export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 
 export const sceneUtils = {
   getUrlWithAppState,
