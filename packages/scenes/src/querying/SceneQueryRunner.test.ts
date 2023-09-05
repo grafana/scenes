@@ -22,6 +22,8 @@ import { DataQuery } from '@grafana/schema';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneCanvasText } from '../components/SceneCanvasText';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { DataRequestEnricher, SceneObject, SceneObjectState } from '../core/types';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -106,7 +108,7 @@ describe('SceneQueryRunner', () => {
       `);
       expect(request).toMatchInlineSnapshot(`
         {
-          "app": "dashboard",
+          "app": "scenes",
           "interval": "30s",
           "intervalMs": 30000,
           "liveStreaming": undefined,
@@ -613,6 +615,29 @@ describe('SceneQueryRunner', () => {
         }
       `);
     });
+  });
+
+  test('enriching query request', async () => {
+    class TestSceneWithRequestEnricher extends SceneObjectBase<SceneObjectState> implements DataRequestEnricher {
+      public enrichDataRequest(source: SceneObject) {
+        return { app: 'enriched' };
+      }
+    }
+
+    const queryRunner = new SceneQueryRunner({
+      queries: [{ refId: 'A' }],
+      $timeRange: new SceneTimeRange(),
+    });
+
+    const scene = new TestSceneWithRequestEnricher({
+      $data: queryRunner,
+    });
+
+    scene.activate();
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    expect(sentRequest?.app).toBe('enriched');
   });
 });
 

@@ -321,6 +321,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return true;
     }
 
+    if (variable.isAncestorLoading && variable.isAncestorLoading()) {
+      return true;
+    }
+
     return this._variablesToUpdate.has(variable) || this._updating.has(variable);
   }
 }

@@ -54,8 +54,6 @@ const configurablePropertiesTest: Array<[string, string | boolean]> = [
   ['description', 'My panel description'],
   ['displayMode', 'transparent'],
   ['hoverHeader', true],
-  ['isDraggable', true],
-  ['isResizable', true],
 ];
 
 describe('VizPanelBuilder', () => {

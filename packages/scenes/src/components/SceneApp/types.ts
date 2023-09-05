@@ -1,5 +1,5 @@
 import { ComponentType } from 'react';
-import { SceneObject, SceneObjectState } from '../../core/types';
+import { DataRequestEnricher, SceneObject, SceneObjectState } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { IconName } from '@grafana/data';
 
@@ -13,6 +13,7 @@ export interface SceneRouteMatch<Params extends { [K in keyof Params]?: string }
 export interface SceneAppState extends SceneObjectState {
   // Array of SceneAppPage objects that are considered app's top level pages
   pages: SceneAppPageLike[];
+  name?: string;
 }
 
 export interface SceneAppRoute {
@@ -61,7 +62,7 @@ export interface SceneAppPageState extends SceneObjectState {
   initializedScene?: SceneObject;
 }
 
-export interface SceneAppPageLike extends SceneObject<SceneAppPageState> {
+export interface SceneAppPageLike extends SceneObject<SceneAppPageState>, DataRequestEnricher {
   initializeScene(scene: SceneObject): void;
   /**
    * @internal. Please don't call this from plugin code.

@@ -6,7 +6,7 @@ import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { isSceneObject, SceneComponentProps } from '../../core/types';
+import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 
@@ -56,7 +56,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // If we have local time range show that in panel header
   if (model.state.$timeRange) {
-    titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} />);
+    titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} key={model.state.key} />);
   }
 
   let panelMenu;
@@ -144,13 +144,31 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
 function getDragClasses(panel: VizPanel) {
   const parentLayout = sceneGraph.getLayout(panel);
-  const isDraggable = parentLayout?.isDraggable() && (panel.state.isDraggable ?? true);
+  const isDraggable = parentLayout?.isDraggable();
 
-  if (!parentLayout || !isDraggable) {
+  if (!parentLayout || !isDraggable || itemDraggingDisabled(panel, parentLayout)) {
     return { dragClass: '', dragClassCancel: '' };
   }
 
   return { dragClass: parentLayout.getDragClass?.(), dragClassCancel: parentLayout?.getDragClassCancel?.() };
+}
+
+/**
+ * Walks up the parent chain until it hits the layout object, trying to find the closest SceneGridItemLike ancestor.
+ * It is not always the direct parent, because the VizPanel can be wrapped in other objects.
+ */
+function itemDraggingDisabled(item: SceneObject, layout: SceneLayout) {
+  let ancestor = item.parent;
+
+  while (ancestor && ancestor !== layout) {
+    if ('isDraggable' in ancestor.state && ancestor.state.isDraggable === false) {
+      return true;
+    }
+
+    ancestor = ancestor.parent;
+  }
+
+  return false;
 }
 
 function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | undefined) {

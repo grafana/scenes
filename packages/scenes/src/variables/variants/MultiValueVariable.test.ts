@@ -342,6 +342,17 @@ describe('MultiValueVariable', () => {
       expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['1', '2'] });
     });
 
+    it('getUrlState should always return array if isMulti is true', async () => {
+      const variable = new ExampleVariable({
+        name: 'test',
+        options: [],
+        value: 'A',
+        isMulti: true,
+      });
+
+      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['A'] });
+    });
+
     it('fromUrlState should update value for single value', async () => {
       const variable = new TestVariable({
         name: 'test',
