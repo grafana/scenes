@@ -5,18 +5,19 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectUrlValues } from '../../../core/types';
+import { SceneComponentProps, SceneObject, SceneObjectUrlValues } from '../../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../../services/SceneObjectUrlSyncConfig';
-import { SceneDragHandle } from '../../SceneDragHandle';
 
 import { SceneGridLayout } from './SceneGridLayout';
 import { GRID_COLUMN_COUNT } from './constants';
 import { SceneGridItemLike, SceneGridItemStateLike } from './types';
+import { sceneGraph } from '../../../core/sceneGraph';
 
 export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
   isCollapsible?: boolean;
   isCollapsed?: boolean;
+  actions?: SceneObject;
   children: SceneGridItemLike[];
 }
 
@@ -74,18 +75,22 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
-  const { isCollapsible, isCollapsed, title, isDraggable } = model.useState();
-  const dragHandle = <SceneDragHandle dragClass={model.getGridLayout().getDragClass()} />;
+  const { isCollapsible, isCollapsed, title, isDraggable, actions } = model.useState();
+  const layoutDragClass = model.getGridLayout().getDragClass();
 
   return (
-    <div className={styles.row}>
-      <div className={cx(styles.rowHeader, isCollapsed && styles.rowHeaderCollapsed)}>
-        <button onClick={model.onCollapseToggle} className={styles.rowTitleButton}>
-          {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
-          <span className={styles.rowTitle}>{title}</span>
-        </button>
-        {isDraggable && isCollapsed && <div>{dragHandle}</div>}
-      </div>
+    <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
+      <button onClick={model.onCollapseToggle} className={styles.rowTitleButton}>
+        {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
+        <span className={styles.rowTitle}>{sceneGraph.interpolate(model, title, undefined, 'text')}</span>
+      </button>
+      {isCollapsed && <div className={styles.collapsedInfo}>({model.state.children.length} panels)</div>}
+      {actions && <actions.Component model={actions} />}
+      {isDraggable && isCollapsed && (
+        <div className={cx(styles.dragHandle, layoutDragClass)}>
+          <Icon name="draggabledots" />
+        </div>
+      )}
     </div>
   );
 }
@@ -94,19 +99,10 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
   return {
     row: css({
       width: '100%',
-      height: '100%',
-      position: 'relative',
-      zIndex: 0,
-      display: 'flex',
-      flexDirection: 'column',
-    }),
-    rowHeader: css({
-      width: '100%',
       height: '30px',
       display: 'flex',
       justifyContent: 'space-between',
-      marginBottom: '8px',
-      border: `1px solid transparent`,
+      gap: theme.spacing(1),
     }),
     rowTitleButton: css({
       display: 'flex',
@@ -116,15 +112,31 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       border: 'none',
       gap: theme.spacing(1),
     }),
-    rowHeaderCollapsed: css({
-      marginBottom: '0px',
-      background: theme.colors.background.primary,
-      border: `1px solid ${theme.colors.border.weak}`,
-      borderRadius: theme.shape.borderRadius(1),
+    rowCollapsed: css({
+      background: theme.colors.background.secondary,
+      borderBottom: `1px solid ${theme.colors.border.weak}`,
     }),
     rowTitle: css({
       fontSize: theme.typography.h5.fontSize,
       fontWeight: theme.typography.fontWeightMedium,
+    }),
+    collapsedInfo: css({
+      fontSize: theme.typography.bodySmall.fontSize,
+      color: theme.colors.text.secondary,
+      display: 'flex',
+      alignItems: 'center',
+      flexGrow: 1,
+    }),
+    dragHandle: css({
+      display: 'flex',
+      padding: theme.spacing(0, 1),
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      cursor: 'move',
+      color: theme.colors.text.secondary,
+      '&:hover': {
+        color: theme.colors.text.primary,
+      },
     }),
   };
 };
