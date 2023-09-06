@@ -108,6 +108,7 @@ describe('SceneObject', () => {
       test('when an instance', () => {
         expect((scene.state.$data as SceneDataProvider)!.isActive).toBe(true);
       });
+
       test('when an array', () => {
         const n1 = new SceneDataNode({});
         const n2 = new SceneDataNode({});
@@ -232,12 +233,12 @@ describe('SceneObject', () => {
 
       // Verify old state is deactivated
       expect(oldState.$variables!.isActive).toBe(false);
-      expect(oldState.$data!.isActive).toBe(false);
+      expect((oldState.$data as SceneDataProvider)!.isActive).toBe(false);
       expect(oldState.$timeRange!.isActive).toBe(false);
 
       // Verify new state is activated
       expect(newState.$variables!.isActive).toBe(true);
-      expect(newState.$data!.isActive).toBe(true);
+      expect((newState.$data as SceneDataProvider)!.isActive).toBe(true);
       expect(newState.$timeRange!.isActive).toBe(true);
     });
   });

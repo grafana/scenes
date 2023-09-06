@@ -158,17 +158,36 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     }
   }
 
-  private _handleChangedStateActivation(oldValue: SceneObject | undefined, newValue: SceneObject | undefined) {
+  private _handleChangedStateActivation(
+    oldValue: SceneObject | SceneObject[] | undefined,
+    newValue: SceneObject | SceneObject[] | undefined
+  ) {
     if (oldValue) {
-      const deactivationHandler = this._deactivationHandlers.get(oldValue);
-      if (deactivationHandler) {
-        deactivationHandler();
-        this._deactivationHandlers.delete(oldValue);
+      if (Array.isArray(oldValue)) {
+        oldValue.forEach((d) => {
+          const deactivationHandler = this._deactivationHandlers.get(d);
+          if (deactivationHandler) {
+            deactivationHandler();
+            this._deactivationHandlers.delete(d);
+          }
+        });
+      } else {
+        const deactivationHandler = this._deactivationHandlers.get(oldValue);
+        if (deactivationHandler) {
+          deactivationHandler();
+          this._deactivationHandlers.delete(oldValue);
+        }
       }
     }
 
     if (newValue) {
-      this._deactivationHandlers.set(newValue, newValue.activate());
+      if (Array.isArray(newValue)) {
+        newValue.forEach((d) => {
+          this._deactivationHandlers.set(d, d.activate());
+        });
+      } else {
+        this._deactivationHandlers.set(newValue, newValue.activate());
+      }
     }
   }
 
