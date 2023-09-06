@@ -755,6 +755,76 @@ describe('SceneQueryRunner', () => {
       `);
     });
 
+    describe('canceling queries', () => {
+      it('cancel data layer query when SQR query cancelled', async () => {
+        const l1CancellationSpy = jest.fn();
+        const l2CancellationSpy = jest.fn();
+        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', cancellationSpy: l1CancellationSpy });
+        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', cancellationSpy: l2CancellationSpy });
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          $data: [layer1],
+        });
+
+        const scene = new SceneFlexLayout({
+          $data: [layer2],
+          children: [
+            new SceneFlexItem({
+              $data: queryRunner,
+              body: new SceneCanvasText({ text: 'Test' }),
+            }),
+          ],
+        });
+        scene.activate();
+        queryRunner.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(l1CancellationSpy).not.toHaveBeenCalled();
+        expect(l2CancellationSpy).not.toHaveBeenCalled();
+
+        queryRunner.cancelQuery();
+
+        expect(l1CancellationSpy).toHaveBeenCalled();
+        expect(l2CancellationSpy).toHaveBeenCalled();
+      });
+
+      it('cancel data layer query when SQR deactivated', async () => {
+        const l1CancellationSpy = jest.fn();
+        const l2CancellationSpy = jest.fn();
+        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', cancellationSpy: l1CancellationSpy });
+        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', cancellationSpy: l2CancellationSpy });
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          $data: [layer1],
+        });
+
+        const scene = new SceneFlexLayout({
+          $data: [layer2],
+          children: [
+            new SceneFlexItem({
+              $data: queryRunner,
+              body: new SceneCanvasText({ text: 'Test' }),
+            }),
+          ],
+        });
+        scene.activate();
+        const deactivate = queryRunner.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(l1CancellationSpy).not.toHaveBeenCalled();
+        expect(l2CancellationSpy).not.toHaveBeenCalled();
+
+        deactivate();
+
+        expect(l1CancellationSpy).toHaveBeenCalled();
+        expect(l2CancellationSpy).toHaveBeenCalled();
+      });
+    });
+
     describe('Multiple layers', () => {
       it('combines multiple layers on the same level', async () => {
         const queryRunner = new SceneQueryRunner({
@@ -1074,6 +1144,7 @@ class CustomDataSource extends RuntimeDataSource {
 interface TestAnnoationsDataLayerState extends SceneObjectState {
   prefix: string;
   delay?: boolean;
+  cancellationSpy?: jest.Mock;
 }
 class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerState> implements SceneDataProvider {
   private _runs = new Subject<number>();
@@ -1112,5 +1183,11 @@ class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerSta
 
   public completeRun() {
     this._runs.next(1);
+  }
+
+  public cancelQuery() {
+    if (this.state.cancellationSpy) {
+      this.state.cancellationSpy();
+    }
   }
 }

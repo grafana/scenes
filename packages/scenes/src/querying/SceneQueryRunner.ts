@@ -235,6 +235,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._querySub = undefined;
     }
 
+    const dataLayers = sceneGraph.getDataLayers(this);
+    dataLayers.forEach((layer) => {
+      layer.cancelQuery?.();
+    });
+
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
