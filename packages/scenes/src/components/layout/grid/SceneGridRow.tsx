@@ -31,8 +31,6 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
       children: state.children || [],
       isCollapsible: state.isCollapsible || true,
       title: state.title || '',
-      isDraggable: state.isDraggable || true,
-      isResizable: state.isResizable || false,
       ...state,
       x: 0,
       height: 1,
