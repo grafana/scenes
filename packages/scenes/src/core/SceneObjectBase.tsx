@@ -25,7 +25,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   private _isActive = false;
   private _state: TState;
   private _activationHandlers: SceneActivationHandler[] = [];
-  private _deactivationHandlers: SceneDeactivationHandler[] = [];
+  private _deactivationHandlers = new Map<object, SceneDeactivationHandler>();
 
   protected _events?: EventBus;
   protected _parent?: SceneObject;
@@ -119,8 +119,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     };
 
     this._state = Object.freeze(newState);
-
     this._setParent();
+
+    // Handles cases when $data, $timeRange, or $variables are changed
+    this._handleActivationOfChangedStateProps(prevState, newState);
 
     // Bubble state change event. This is event is subscribed to by UrlSyncManager and UndoManager
     this.publishEvent(
@@ -133,6 +135,43 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       true
     );
   }
+
+  /**
+   * This handles activation and deactivation of $data, $timeRange and $variables when they change
+   * during the active phase of the scene object.
+   */
+  private _handleActivationOfChangedStateProps(prevState: TState, newState: TState) {
+    if (!this.isActive) {
+      return;
+    }
+
+    if (prevState.$data !== newState.$data) {
+      this._handleChangedStateActivation(prevState.$data, newState.$data);
+    }
+
+    if (prevState.$variables !== newState.$variables) {
+      this._handleChangedStateActivation(prevState.$variables, newState.$variables);
+    }
+
+    if (prevState.$timeRange !== newState.$timeRange) {
+      this._handleChangedStateActivation(prevState.$timeRange, newState.$timeRange);
+    }
+  }
+
+  private _handleChangedStateActivation(oldValue: SceneObject | undefined, newValue: SceneObject | undefined) {
+    if (oldValue) {
+      const deactivationHandler = this._deactivationHandlers.get(oldValue);
+      if (deactivationHandler) {
+        deactivationHandler();
+        this._deactivationHandlers.delete(oldValue);
+      }
+    }
+
+    if (newValue) {
+      this._deactivationHandlers.set(newValue, newValue.activate());
+    }
+  }
+
   /*
    * Publish an event and optionally bubble it up the scene
    **/
@@ -154,36 +193,35 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     const { $data, $variables, $timeRange, $behaviors } = this.state;
 
     if ($timeRange && !$timeRange.isActive) {
-      this._deactivationHandlers.push($timeRange.activate());
+      this._deactivationHandlers.set($timeRange, $timeRange.activate());
     }
 
     if ($variables && !$variables.isActive) {
-      this._deactivationHandlers.push($variables.activate());
+      this._deactivationHandlers.set($variables, $variables.activate());
     }
 
     if ($data) {
       if (Array.isArray($data)) {
         $data.forEach((d) => {
           if (!d.isActive) {
-            this._deactivationHandlers.push(d.activate());
+            this._deactivationHandlers.set(d, d.activate());
           }
         });
       } else {
         if (!$data.isActive) {
-          this._deactivationHandlers.push($data.activate());
+          this._deactivationHandlers.set($data, $data.activate());
         }
       }
-      // this._deactivationHandlers.push($data.activate());
     }
 
     if ($behaviors) {
       for (const behavior of $behaviors) {
         if (behavior instanceof SceneObjectBase) {
-          this._deactivationHandlers.push(behavior.activate());
+          this._deactivationHandlers.set(behavior, behavior.activate());
         } else if (typeof behavior === 'function') {
           const deactivationHandler = behavior(this);
           if (deactivationHandler) {
-            this._deactivationHandlers.push();
+            this._deactivationHandlers.set(behavior, deactivationHandler);
           }
         }
       }
@@ -192,7 +230,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     this._activationHandlers.forEach((handler) => {
       const result = handler();
       if (result) {
-        this._deactivationHandlers.push(result);
+        this._deactivationHandlers.set(result, result);
       }
     });
   }
@@ -235,8 +273,11 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   private _internalDeactivate(): void {
     this._isActive = false;
 
-    this._deactivationHandlers.forEach((handler) => handler());
-    this._deactivationHandlers = [];
+    for (let handler of this._deactivationHandlers.values()) {
+      handler();
+    }
+
+    this._deactivationHandlers.clear();
 
     // Clear subscriptions and listeners
     this._events!.removeAllListeners();

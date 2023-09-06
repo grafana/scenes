@@ -194,6 +194,37 @@ describe('SceneObject', () => {
       nestedScene.setState({ name: 'new name 3' });
       expect(scene.state.name).toBe('new name 3');
     });
+
+    it('Call activation handlers for new objects in state', () => {
+      const scene = new TestScene({
+        name: 'root',
+        $variables: new SceneVariableSet({ variables: [] }),
+        $data: new SceneDataNode({}),
+        $timeRange: new SceneTimeRange({}),
+      });
+
+      scene.activate();
+
+      const oldState = scene.state;
+
+      scene.setState({
+        $variables: new SceneVariableSet({ variables: [] }),
+        $data: new SceneDataNode({}),
+        $timeRange: new SceneTimeRange({}),
+      });
+
+      const newState = scene.state;
+
+      // Verify old state is deactivated
+      expect(oldState.$variables!.isActive).toBe(false);
+      expect(oldState.$data!.isActive).toBe(false);
+      expect(oldState.$timeRange!.isActive).toBe(false);
+
+      // Verify new state is activated
+      expect(newState.$variables!.isActive).toBe(true);
+      expect(newState.$data!.isActive).toBe(true);
+      expect(newState.$timeRange!.isActive).toBe(true);
+    });
   });
 
   describe('Ref counting activations', () => {

@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObject, SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
+import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import {
   SceneVariable,
   SceneVariableValueChangedEvent,
@@ -19,6 +19,7 @@ import {
 import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { setBaseClassState } from '../../utils/utils';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -147,7 +148,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     return String(this.state.text);
   }
 
-  private hasAllValue() {
+  public hasAllValue() {
     const value = this.state.value;
     return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value[0] === ALL_VARIABLE_VALUE);
   }
@@ -221,8 +222,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * This helper function is to counter the contravariance of setState
    */
   private setStateHelper(state: Partial<MultiValueVariableState>) {
-    const test: SceneObject<MultiValueVariableState> = this;
-    test.setState(state);
+    setBaseClassState<MultiValueVariableState>(this, state);
   }
 
   public getOptionsForSelect(): VariableValueOption[] {
@@ -262,6 +262,9 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
 
     if (Array.isArray(value)) {
       urlValue = value.map(String);
+    } else if ((this, this._sceneObject.state.isMulti)) {
+      // If we are inMulti mode we must return an array here as otherwise UrlSyncManager will not pass all values (in an array) in updateFromUrl
+      urlValue = [String(value)];
     } else {
       urlValue = String(value);
     }

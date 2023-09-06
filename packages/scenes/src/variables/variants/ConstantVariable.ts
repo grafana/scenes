@@ -2,7 +2,7 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, VariableValue } from '../types';
 
 export interface ConstantVariableState extends SceneVariableState {
-  value: string;
+  value: VariableValue;
 }
 
 export class ConstantVariable
@@ -18,6 +18,7 @@ export class ConstantVariable
       skipUrlSync: true,
     });
   }
+
   public getValue(): VariableValue {
     return this.state.value;
   }

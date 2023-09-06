@@ -1,3 +1,54 @@
+# v0.29.2 (Wed Sep 06 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneObject: Support changing $data, $timeRange and $variables during the active phase [#324](https://github.com/grafana/scenes/pull/324) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v0.29.1 (Tue Sep 05 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridRow: Small design change and fixes, add actions support [#321](https://github.com/grafana/scenes/pull/321) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v0.29.0 (Tue Sep 05 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - TestVariable: Add optionsToReturn and other unrelated changes [#314](https://github.com/grafana/scenes/pull/314) ([@torkelo](https://github.com/torkelo))
+  - Variables: New LocalValueVariable to better support repeating panels [#317](https://github.com/grafana/scenes/pull/317) ([@torkelo](https://github.com/torkelo))
+  - VizPanel: Remove left-over isDraggable/isResizable state [#315](https://github.com/grafana/scenes/pull/315) ([@torkelo](https://github.com/torkelo))
+  - QueryVariable: Support null ds [#316](https://github.com/grafana/scenes/pull/316) ([@torkelo](https://github.com/torkelo))
+  - SceneTimeRangeTransformerBase [#312](https://github.com/grafana/scenes/pull/312) ([@torkelo](https://github.com/torkelo))
+  - VizPanel: Allow panels to rendered without layout parent [#302](https://github.com/grafana/scenes/pull/302) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - MultiValueVariable: Fix url sync for isMulti when default value is not an array [#318](https://github.com/grafana/scenes/pull/318) ([@torkelo](https://github.com/torkelo))
+  - DataQueryRequest enricher [#311](https://github.com/grafana/scenes/pull/311) ([@torkelo](https://github.com/torkelo) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.28.1 (Thu Aug 31 2023)
 
 #### 🐛 Bug Fix

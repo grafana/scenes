@@ -17,6 +17,7 @@ export interface TestVariableState extends MultiValueVariableState {
   delayMs?: number;
   issuedQuery?: string;
   refresh?: VariableRefresh;
+  optionsToReturn: VariableValueOption[];
 }
 
 /**
@@ -40,6 +41,7 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       query: 'Query',
       options: [],
       refresh: VariableRefresh.onDashboardLoad,
+      optionsToReturn: [],
       ...initialState,
     });
   }
@@ -55,12 +57,15 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       const sub = this.completeUpdate.subscribe({
         next: () => {
           observer.next(this.issueQuery());
+          observer.complete();
         },
       });
 
       let timeout: number | undefined;
       if (delayMs) {
         timeout = window.setTimeout(() => this.signalUpdateCompleted(), delayMs);
+      } else if (delayMs === 0) {
+        this.signalUpdateCompleted();
       }
 
       this.isGettingValues = true;
@@ -68,20 +73,20 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       return () => {
         sub.unsubscribe();
         window.clearTimeout(timeout);
-        this.setState({ loading: false })
+        this.setState({ loading: false });
         this.isGettingValues = false;
       };
     });
   }
 
   public cancel() {
-    const sceneVarSet = getClosest(this, (s) => s instanceof SceneVariableSet ? s : undefined);
+    const sceneVarSet = getClosest(this, (s) => (s instanceof SceneVariableSet ? s : undefined));
     sceneVarSet?.cancel(this);
   }
 
   private issueQuery() {
     const interpolatedQuery = sceneGraph.interpolate(this, this.state.query);
-    const options = queryMetricTree(interpolatedQuery).map((x) => ({ label: x.name, value: x.name }));
+    const options = this.getOptions(interpolatedQuery);
 
     this.setState({
       issuedQuery: interpolatedQuery,
@@ -89,6 +94,14 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
     });
 
     return options;
+  }
+
+  private getOptions(interpolatedQuery: string) {
+    if (this.state.optionsToReturn.length > 0) {
+      return this.state.optionsToReturn;
+    }
+
+    return queryMetricTree(interpolatedQuery).map((x) => ({ label: x.name, value: x.name }));
   }
 
   /** Useful from tests */

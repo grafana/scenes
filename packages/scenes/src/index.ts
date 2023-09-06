@@ -28,6 +28,8 @@ export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
+export { MultiValueVariable } from './variables/variants/MultiValueVariable';
+export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 
 export { type UrlSyncManagerLike as UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
@@ -40,6 +42,7 @@ export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
 export { SceneTimePicker } from './components/SceneTimePicker';
 export { SceneRefreshPicker } from './components/SceneRefreshPicker';
+export { SceneTimeRangeTransformerBase } from './core/SceneTimeRangeTransformerBase';
 export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
@@ -47,6 +50,7 @@ export { SceneFlexLayout, SceneFlexItem, type SceneFlexItemState } from './compo
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
+export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';
 export { SplitLayout } from './components/layout/split/SplitLayout';
 export {
   type SceneAppPageLike,
@@ -60,6 +64,7 @@ export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
 export { SceneObjectRef } from './core/SceneObjectRef';
 export { PanelBuilders } from './core/PanelBuilders';
+export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 
 export const sceneUtils = {
   getUrlWithAppState,

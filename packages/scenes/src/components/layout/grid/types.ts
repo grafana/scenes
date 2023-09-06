@@ -12,4 +12,9 @@ export interface SceneGridItemStateLike extends SceneGridItemPlacement, SceneObj
   isDraggable?: boolean;
 }
 
-export type SceneGridItemLike = SceneObject<SceneGridItemStateLike>;
+export interface SceneGridItemLike extends SceneObject<SceneGridItemStateLike> {
+  /**
+   * Provide a custom CSS class name for the underlying DOM element when special styling (i.e. for mobile breakpoint) is required.
+   **/
+  getClassName?(): string;
+}

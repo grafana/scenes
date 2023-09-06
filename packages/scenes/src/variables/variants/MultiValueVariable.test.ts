@@ -1,41 +1,16 @@
-import { lastValueFrom, Observable, of } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { VariableFormatID } from '@grafana/schema';
 
-import { SceneVariableValueChangedEvent, VariableValueOption } from '../types';
-import {
-  CustomAllValue,
-  MultiValueVariable,
-  MultiValueVariableState,
-  VariableGetOptionsArgs,
-} from '../variants/MultiValueVariable';
-
-export interface ExampleVariableState extends MultiValueVariableState {
-  optionsToReturn: VariableValueOption[];
-}
-
-class ExampleVariable extends MultiValueVariable<ExampleVariableState> {
-  public constructor(initialState: Partial<ExampleVariableState>) {
-    super({
-      type: 'custom',
-      optionsToReturn: [],
-      value: '',
-      text: '',
-      name: '',
-      options: [],
-      ...initialState,
-    });
-  }
-  public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
-    return of(this.state.optionsToReturn);
-  }
-}
+import { SceneVariableValueChangedEvent } from '../types';
+import { CustomAllValue } from '../variants/MultiValueVariable';
+import { TestVariable } from './TestVariable';
 
 describe('MultiValueVariable', () => {
   describe('When validateAndUpdate is called', () => {
     it('Should pick first value if current value is not valid', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [
@@ -44,6 +19,7 @@ describe('MultiValueVariable', () => {
         ],
         value: 'A',
         text: 'A',
+        delayMs: 0,
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -53,7 +29,7 @@ describe('MultiValueVariable', () => {
     });
 
     it('Should pick All value when defaultToAll is true', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [
@@ -61,6 +37,7 @@ describe('MultiValueVariable', () => {
           { label: 'C', value: 'C' },
         ],
         defaultToAll: true,
+        delayMs: 0,
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -69,12 +46,13 @@ describe('MultiValueVariable', () => {
     });
 
     it('Should keep current value if current value is valid', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [{ label: 'A', value: 'A' }],
         value: 'A',
         text: 'A',
+        delayMs: 0,
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -84,7 +62,7 @@ describe('MultiValueVariable', () => {
     });
 
     it('Should maintain the valid values when multiple selected', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         isMulti: true,
@@ -94,6 +72,7 @@ describe('MultiValueVariable', () => {
         ],
         value: ['A', 'B', 'C'],
         text: ['A', 'B', 'C'],
+        delayMs: 0,
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -103,7 +82,7 @@ describe('MultiValueVariable', () => {
     });
 
     it('Should pick first option if none of the current values are valid', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         isMulti: true,
@@ -113,6 +92,7 @@ describe('MultiValueVariable', () => {
         ],
         value: ['D', 'E'],
         text: ['E', 'E'],
+        delayMs: 0,
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -122,7 +102,7 @@ describe('MultiValueVariable', () => {
     });
 
     it('Should select All option if none of the current values are valid', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         isMulti: true,
@@ -133,6 +113,7 @@ describe('MultiValueVariable', () => {
         ],
         value: ['D', 'E'],
         text: ['E', 'E'],
+        delayMs: 0,
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -142,7 +123,7 @@ describe('MultiValueVariable', () => {
     });
 
     it('Should handle $__all value and send change event even when value is still $__all', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [
@@ -151,6 +132,7 @@ describe('MultiValueVariable', () => {
         ],
         value: ALL_VARIABLE_VALUE,
         text: ALL_VARIABLE_TEXT,
+        delayMs: 0,
       });
 
       let changeEvent: SceneVariableValueChangedEvent | undefined;
@@ -167,7 +149,7 @@ describe('MultiValueVariable', () => {
 
   describe('changeValueTo', () => {
     it('Should set default empty state to all value if defaultToAll multi', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         isMulti: true,
@@ -175,6 +157,7 @@ describe('MultiValueVariable', () => {
         optionsToReturn: [],
         value: ['1'],
         text: ['A'],
+        delayMs: 0,
       });
 
       variable.changeValueTo([]);
@@ -183,7 +166,7 @@ describe('MultiValueVariable', () => {
     });
 
     it('When changing to all value', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [
           { label: 'A', value: '1' },
@@ -194,6 +177,7 @@ describe('MultiValueVariable', () => {
         optionsToReturn: [],
         value: ['1'],
         text: ['A'],
+        delayMs: 0,
       });
 
       variable.changeValueTo(['1', ALL_VARIABLE_VALUE]);
@@ -202,7 +186,7 @@ describe('MultiValueVariable', () => {
     });
 
     it('When changing from all value', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [
           { label: 'A', value: '1' },
@@ -211,6 +195,7 @@ describe('MultiValueVariable', () => {
         isMulti: true,
         defaultToAll: true,
         optionsToReturn: [],
+        delayMs: 0,
       });
 
       variable.changeValueTo([ALL_VARIABLE_VALUE, '1']);
@@ -221,12 +206,13 @@ describe('MultiValueVariable', () => {
 
   describe('getValue and getValueText', () => {
     it('GetValueText should return text', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [],
         value: '1',
         text: 'A',
+        delayMs: 0,
       });
 
       expect(variable.getValue()).toBe('1');
@@ -234,19 +220,20 @@ describe('MultiValueVariable', () => {
     });
 
     it('GetValueText should return All text when value is $__all', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [],
         value: ALL_VARIABLE_VALUE,
         text: 'A',
+        delayMs: 0,
       });
 
       expect(variable.getValueText()).toBe(ALL_VARIABLE_TEXT);
     });
 
     it('GetValue should return all options as an array when value is $__all', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [
           { label: 'A', value: '1' },
@@ -255,19 +242,21 @@ describe('MultiValueVariable', () => {
         optionsToReturn: [],
         value: ALL_VARIABLE_VALUE,
         text: 'A',
+        delayMs: 0,
       });
 
       expect(variable.getValue()).toEqual(['1', '2']);
     });
 
     it('GetValue should return allValue when value is $__all', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [],
         value: ALL_VARIABLE_VALUE,
         allValue: '.*',
         text: 'A',
+        delayMs: 0,
       });
 
       const value = variable.getValue() as CustomAllValue;
@@ -283,25 +272,27 @@ describe('MultiValueVariable', () => {
 
   describe('getOptionsForSelect', () => {
     it('Should return options', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [{ label: 'A', value: '1' }],
         optionsToReturn: [],
         value: '1',
         text: 'A',
+        delayMs: 0,
       });
 
       expect(variable.getOptionsForSelect()).toEqual([{ label: 'A', value: '1' }]);
     });
 
     it('Should return include All option when includeAll is true', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [{ label: 'A', value: '1' }],
         optionsToReturn: [],
         includeAll: true,
         value: '1',
         text: 'A',
+        delayMs: 0,
       });
 
       expect(variable.getOptionsForSelect()).toEqual([
@@ -311,12 +302,13 @@ describe('MultiValueVariable', () => {
     });
 
     it('Should add current value if not found', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [],
         value: '1',
         text: 'A',
+        delayMs: 0,
       });
 
       expect(variable.getOptionsForSelect()).toEqual([{ label: 'A', value: '1' }]);
@@ -325,31 +317,46 @@ describe('MultiValueVariable', () => {
 
   describe('Url syncing', () => {
     it('getUrlState should return single value state if value is single value', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [],
         value: '1',
         text: 'A',
+        delayMs: 0,
       });
 
       expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: '1' });
     });
 
     it('getUrlState should return string array if value is string array', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [],
         optionsToReturn: [],
         value: ['1', '2'],
         text: ['A', 'B'],
+        delayMs: 0,
       });
 
       expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['1', '2'] });
     });
 
+    it('getUrlState should always return array if isMulti is true', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        value: 'A',
+        optionsToReturn: [],
+        isMulti: true,
+        delayMs: 0,
+      });
+
+      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['A'] });
+    });
+
     it('fromUrlState should update value for single value', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [
           { label: 'A', value: '1' },
@@ -358,6 +365,7 @@ describe('MultiValueVariable', () => {
         optionsToReturn: [],
         value: '1',
         text: 'A',
+        delayMs: 0,
       });
 
       variable.urlSync?.updateFromUrl({ ['var-test']: '2' });
@@ -366,7 +374,7 @@ describe('MultiValueVariable', () => {
     });
 
     it('fromUrlState should update value for array value', async () => {
-      const variable = new ExampleVariable({
+      const variable = new TestVariable({
         name: 'test',
         options: [
           { label: 'A', value: '1' },
@@ -375,6 +383,7 @@ describe('MultiValueVariable', () => {
         optionsToReturn: [],
         value: '1',
         text: 'A',
+        delayMs: 0,
       });
 
       variable.urlSync?.updateFromUrl({ ['var-test']: ['2', '1'] });
