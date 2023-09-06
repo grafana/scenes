@@ -358,7 +358,8 @@ describe('SceneGridLayout', () => {
     it('should update position of objects when row is expanded', () => {
       const rowAChild1 = new SceneGridItem({
         x: 0,
-        y: 1,
+        // deliberately set higher than the row
+        y: 10,
         width: 1,
         height: 1,
         isResizable: false,
@@ -368,7 +369,7 @@ describe('SceneGridLayout', () => {
 
       const rowAChild2 = new SceneGridItem({
         x: 1,
-        y: 1,
+        y: 10,
         width: 1,
         height: 1,
         isResizable: false,
@@ -403,6 +404,7 @@ describe('SceneGridLayout', () => {
         isDraggable: false,
         body: new TestObject({ key: 'row-b-child1' }),
       });
+
       const rowB = new SceneGridRow({
         title: 'Row B',
         key: 'row-b',
@@ -417,6 +419,10 @@ describe('SceneGridLayout', () => {
       });
 
       layout.toggleRow(rowA);
+
+      // should correct rowA children y position
+      expect(rowAChild1.state!.y).toEqual(1);
+      expect(rowAChild2.state!.y).toEqual(1);
 
       expect(panelOutsideARow.state!.y).toEqual(2);
       expect(rowB.state!.y).toEqual(3);
