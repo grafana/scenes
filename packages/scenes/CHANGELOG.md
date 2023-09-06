@@ -1,3 +1,15 @@
+# v0.29.2 (Wed Sep 06 2023)
+
+#### 🐛 Bug Fix
+
+- SceneObject: Support changing $data, $timeRange and $variables during the active phase [#324](https://github.com/grafana/scenes/pull/324) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v0.29.1 (Tue Sep 05 2023)
 
 #### 🐛 Bug Fix
