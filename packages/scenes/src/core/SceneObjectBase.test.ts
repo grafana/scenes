@@ -104,8 +104,23 @@ describe('SceneObject', () => {
       expect(scene.isActive).toBe(true);
     });
 
-    it('Should activate $data', () => {
-      expect((scene.state.$data as SceneDataProvider)!.isActive).toBe(true);
+    describe('$data', () => {
+      test('when an instance', () => {
+        expect((scene.state.$data as SceneDataProvider)!.isActive).toBe(true);
+      });
+      test('when an array', () => {
+        const n1 = new SceneDataNode({});
+        const n2 = new SceneDataNode({});
+        const scene = new TestScene({
+          $data: [n1, n2],
+          $variables: new SceneVariableSet({ variables: [] }),
+          $timeRange: new SceneTimeRange({}),
+        });
+
+        scene.activate();
+        expect(n1.isActive).toBe(true);
+        expect(n2.isActive).toBe(true);
+      });
     });
 
     it('Should activate $variables', () => {
