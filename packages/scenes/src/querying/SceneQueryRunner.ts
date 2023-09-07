@@ -106,29 +106,22 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.runQueries();
     }
 
-    this._activateDataLayers();
+    this._handleDataLayers();
 
     return () => this._onDeactivate();
   }
 
-  private _activateDataLayers() {
+  // This method subscribes to all SceneDataLayers up until the root, and combines the results into data provided from SceneQueryRunner
+  private _handleDataLayers() {
     const dataLayers = sceneGraph.getDataLayers(this);
 
     const observables: Array<Observable<SceneDataProviderResult>> = [];
 
-    // Intuitively this is a perf issue... but later on when we pass this to the state update it's actually references to the same object.
-    // This keeps track of multiple sources of data, and we need to combine them into one DataTopic channel. I.e. multi level annotations.
-    // const resultsMap: Record<string, Record<DataTopic, DataFrame>> = {};
-    const resultsMap: Record<DataTopic, Map<string, DataFrame[]>> = {
-      annotations: new Map(),
-    };
+    // This keeps track of multiple SceneDataLayers. The key responsibility od this map is to make sure individual from independent SceneDataLayers do not overwrite each other.
+    const resultsMap: Map<string, PanelData> = new Map();
 
     if (dataLayers.length > 0) {
       dataLayers.forEach((layer) => {
-        if (layer instanceof SceneQueryRunner) {
-          throw new Error('SceneQueryRunner cannot be used as a data layer');
-        }
-
         observables.push(layer.getResultsStream());
       });
 
@@ -136,15 +129,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._subs.add(
         merge(observables)
           .pipe(
-            // takeUntil(this.runs.asObservable()),
             mergeAll(),
             map((v) => {
-              if (v.origin.getDataTopic() === DataTopic.Annotations) {
-                // Is there a better, rxjs only way to combine multiple same-data-topic observables?
-                // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
-                resultsMap[v.origin.getDataTopic()].set(v.origin.state.key!, v.data);
-              }
-
+              // Is there a better, rxjs only way to combine multiple same-data-topic observables?
+              // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
+              resultsMap.set(v.origin.state.key!, v.data);
               return resultsMap;
             })
           )
@@ -155,11 +144,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
   }
 
-  private _onLayersReceived(results: Record<DataTopic, Map<string, DataFrame[]>>) {
+  private _onLayersReceived(results: Map<string, PanelData>) {
     let annotations: DataFrame[] = [];
-    if (results[DataTopic.Annotations]) {
-      annotations = annotations.concat(this._combineAnnotations(results[DataTopic.Annotations]));
-    }
+
+    Array.from(results.values()).forEach((result) => {
+      if (result.annotations) {
+        annotations = annotations.concat(result.annotations);
+      }
+    });
 
     this.setState({
       data: {
@@ -167,13 +159,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         annotations,
       },
     });
-  }
-
-  private _combineAnnotations(resultsMap: Map<string, DataFrame[]>) {
-    return Array.from(resultsMap.values()).reduce<DataFrame[]>((acc, value) => {
-      acc = acc.concat(value);
-      return acc;
-    }, []);
   }
 
   /**
@@ -419,7 +404,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 
   private onDataReceived = (data: PanelData) => {
-    this._results.next({ origin: this, data: data.series });
+    this._results.next({ origin: this, data });
 
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);

@@ -19,7 +19,7 @@ import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/
 export interface SceneObjectState {
   key?: string;
   $timeRange?: SceneTimeRangeLike;
-  $data?: SceneDataProvider | SceneDataProvider[];
+  $data?: SceneDataProvider;
   $variables?: SceneVariables;
   /**
    * @experimental
@@ -185,16 +185,25 @@ export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
 
-export interface SceneDataProviderResult {
-  origin: SceneDataProvider;
-  data: DataFrame[];
+export interface SceneDataProviderResultLike<O, T> {
+  origin: O;
+  data: T;
 }
+
+export type SceneDataProviderResult = SceneDataProviderResultLike<SceneDataProvider, PanelData>;
+export type SceneDataLayerProviderResult = SceneDataProviderResultLike<SceneDataLayerProvider, DataFrame[]>;
+
 export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
   getResultsStream(): Observable<SceneDataProviderResult>;
+}
+
+export interface SceneDataLayerProvider extends SceneObject {
   getDataTopic(): DataTopic;
+  cancelQuery?: () => void;
+  getResultsStream(): Observable<SceneDataLayerProviderResult>;
 }
 
 export interface SceneStatelessBehavior<T extends SceneObject = any> {

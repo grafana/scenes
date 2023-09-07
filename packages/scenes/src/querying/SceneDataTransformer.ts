@@ -124,7 +124,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     this._transformSub = transformDataFrame(transformations, data.series, ctx)
       .pipe(map((series) => ({ ...data, series })))
       .subscribe((data) => {
-        this._results.next({ origin: this, data: data.series });
+        this._results.next({ origin: this, data });
         this.setState({ data });
       });
   }

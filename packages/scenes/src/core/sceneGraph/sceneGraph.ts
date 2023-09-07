@@ -7,6 +7,7 @@ import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types
 import { SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
+import { SceneDataLayers } from '../../querying/SceneDataLayers';
 
 /**
  * Get the closest node with variables
@@ -19,15 +20,7 @@ export function getVariables(sceneObject: SceneObject): SceneVariables {
  * Will walk up the scene object graph to the closest $data scene object
  */
 export function getData(sceneObject: SceneObject): SceneDataProvider {
-  return (
-    getClosest(sceneObject, (s) => {
-      if (!Array.isArray(s.state.$data)) {
-        return s.state.$data;
-      }
-
-      return undefined;
-    }) ?? EmptyDataNode
-  );
+  return getClosest(sceneObject, (s) => s.state.$data) ?? EmptyDataNode;
 }
 
 function isSceneLayout(s: SceneObject): s is SceneLayout {
@@ -124,11 +117,14 @@ export function findObject(scene: SceneObject, check: (obj: SceneObject) => bool
   return findObjectInternal(scene, check, undefined, true);
 }
 
-export function getDataLayers(sceneObject: SceneObject): SceneDataProvider[] {
+/**
+ * Will walk up the scene object graph up until the root and collect all SceneDataLayers objects
+ */
+export function getDataLayers(sceneObject: SceneObject): SceneDataLayers[] {
   let parent: SceneObject | undefined = sceneObject;
-  let collected: SceneDataProvider[] = [];
+  let collected: SceneDataLayers[] = [];
   while (parent) {
-    if (parent.state.$data && Array.isArray(parent.state.$data)) {
+    if (parent.state.$data && parent.state.$data instanceof SceneDataLayers) {
       collected = collected.concat(parent.state.$data);
     }
     parent = parent.parent;

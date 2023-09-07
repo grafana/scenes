@@ -24,7 +24,7 @@ export class SceneDataNode extends SceneObjectBase<SceneDataNodeState> implement
   public getResultsStream() {
     const result: SceneDataProviderResult = {
       origin: this,
-      data: this.state.data.series,
+      data: this.state.data,
     };
 
     return of(result);

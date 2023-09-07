@@ -28,11 +28,12 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import {
   DataRequestEnricher,
-  SceneDataProvider,
-  SceneDataProviderResult,
+  SceneDataLayerProvider,
+  SceneDataLayerProviderResult,
   SceneObject,
   SceneObjectState,
 } from '../core/types';
+import { SceneDataLayers } from './SceneDataLayers';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -654,7 +655,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
-        $data: [new TestAnnoationsDataLayer({ prefix: 'Layer 1' })],
+        $data: new SceneDataLayers({ layers: [new TestAnnoationsDataLayer({ prefix: 'Layer 1' })] }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
@@ -704,7 +705,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
-        $data: [layer],
+        $data: new SceneDataLayers({ layers: [layer] }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
@@ -764,11 +765,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: [layer1],
+          $data: new SceneDataLayers({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: [layer2],
+          $data: new SceneDataLayers({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -798,11 +799,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: [layer1],
+          $data: new SceneDataLayers({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: [layer2],
+          $data: new SceneDataLayers({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -826,14 +827,14 @@ describe('SceneQueryRunner', () => {
     });
 
     describe('Multiple layers', () => {
-      it('combines multiple layers on the same level', async () => {
+      it('combines multiple layers attached on the same level', async () => {
+        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1' });
+        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2' });
+
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: [
-            new TestAnnoationsDataLayer({ prefix: 'Layer 1' }),
-            new TestAnnoationsDataLayer({ prefix: 'Layer 2' }),
-          ],
+          $data: new SceneDataLayers({ layers: [layer1, layer2] }),
         });
 
         expect(queryRunner.state.data).toBeUndefined();
@@ -909,15 +910,18 @@ describe('SceneQueryRunner', () => {
           ]
         `);
       });
-      it('combines multiple layers on the different levels', async () => {
+      it('combines multiple layers attached on different levels', async () => {
+        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1' });
+        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2' });
+
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: [new TestAnnoationsDataLayer({ prefix: 'Layer 1' })],
+          $data: new SceneDataLayers({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: [new TestAnnoationsDataLayer({ prefix: 'Layer 2' })],
+          $data: new SceneDataLayers({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1004,11 +1008,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: [layer1],
+          $data: new SceneDataLayers({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: [layer2],
+          $data: new SceneDataLayers({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1146,7 +1150,8 @@ interface TestAnnoationsDataLayerState extends SceneObjectState {
   delay?: boolean;
   cancellationSpy?: jest.Mock;
 }
-class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerState> implements SceneDataProvider {
+
+class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerState> implements SceneDataLayerProvider {
   private _runs = new Subject<number>();
 
   public constructor(state: TestAnnoationsDataLayerState) {
@@ -1159,7 +1164,7 @@ class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerSta
     return DataTopic.Annotations;
   }
 
-  public getResultsStream(): Observable<SceneDataProviderResult> {
+  public getResultsStream(): Observable<SceneDataLayerProviderResult> {
     const { delay } = this.state;
     const ano: AnnotationEvent[] = [
       {
