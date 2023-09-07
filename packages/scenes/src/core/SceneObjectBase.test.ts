@@ -105,7 +105,7 @@ describe('SceneObject', () => {
     });
 
     it('Should activate $data', () => {
-      expect((scene.state.$data as SceneDataProvider)!.isActive).toBe(true);
+      expect(scene.state.$data!.isActive).toBe(true);
     });
 
     it('Should activate $variables', () => {
@@ -141,7 +141,7 @@ describe('SceneObject', () => {
     });
 
     it('Should deactivate $data', () => {
-      expect((scene.state.$data as SceneDataProvider)!.isActive).toBe(false);
+      expect(scene.state.$data!.isActive).toBe(false);
     });
 
     it('Should deactivate $variables', () => {

@@ -63,9 +63,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>();
 
-  public getDataTopic(): DataTopic {
-    return 'data' as DataTopic;
-  }
   public getResultsStream() {
     return this._results;
   }

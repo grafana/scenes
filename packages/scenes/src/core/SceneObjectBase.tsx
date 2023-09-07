@@ -200,18 +200,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       this._deactivationHandlers.set($variables, $variables.activate());
     }
 
-    if ($data) {
-      if (Array.isArray($data)) {
-        $data.forEach((d) => {
-          if (!d.isActive) {
-            this._deactivationHandlers.set(d, d.activate());
-          }
-        });
-      } else {
-        if (!$data.isActive) {
-          this._deactivationHandlers.set($data, $data.activate());
-        }
-      }
+    if ($data && !$data.isActive) {
+      this._deactivationHandlers.set($data, $data.activate());
     }
 
     if ($behaviors) {

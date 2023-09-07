@@ -17,10 +17,6 @@ export class SceneDataNode extends SceneObjectBase<SceneDataNodeState> implement
     });
   }
 
-  public getDataTopic() {
-    return 'data' as DataTopic;
-  }
-
   public getResultsStream() {
     const result: SceneDataProviderResult = {
       origin: this,
