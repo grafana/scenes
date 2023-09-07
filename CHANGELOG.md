@@ -1,3 +1,15 @@
+# v1.1.0 (Thu Sep 07 2023)
+
+#### 🚀 Enhancement
+
+- License: Switch to Apache 2.0 [#327](https://github.com/grafana/scenes/pull/327) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.0.0 (Wed Sep 06 2023)
 
 #### 💥 Breaking Change
