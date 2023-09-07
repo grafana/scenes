@@ -6,7 +6,6 @@ import { Icon, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObject, SceneObjectUrlValues } from '../../../core/types';
-import { SceneObjectUrlSyncConfig } from '../../../services/SceneObjectUrlSyncConfig';
 
 import { SceneGridLayout } from './SceneGridLayout';
 import { GRID_COLUMN_COUNT } from './constants';
@@ -23,8 +22,6 @@ export interface SceneGridRowState extends SceneGridItemStateLike {
 
 export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   public static Component = SceneGridRowRenderer;
-
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['rowc'] });
 
   public constructor(state: Partial<SceneGridRowState>) {
     super({
