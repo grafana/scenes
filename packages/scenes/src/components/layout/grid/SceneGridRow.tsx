@@ -82,7 +82,6 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
         {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
         <span className={styles.rowTitle}>{sceneGraph.interpolate(model, title, undefined, 'text')}</span>
       </button>
-      {isCollapsed && <div className={styles.collapsedInfo}>({model.state.children.length} panels)</div>}
       {actions && <actions.Component model={actions} />}
       {isDraggable && isCollapsed && (
         <div className={cx(styles.dragHandle, layoutDragClass)}>
