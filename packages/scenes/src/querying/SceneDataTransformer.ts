@@ -1,4 +1,4 @@
-import { DataTopic, DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
+import { DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
 import { map, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';

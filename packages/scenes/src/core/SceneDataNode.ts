@@ -1,4 +1,4 @@
-import { DataTopic, getDefaultTimeRange, PanelData } from '@grafana/data';
+import { getDefaultTimeRange, PanelData } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
 import { of } from 'rxjs';
 

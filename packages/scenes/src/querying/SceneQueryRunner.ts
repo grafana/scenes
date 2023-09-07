@@ -7,7 +7,6 @@ import {
   DataFrame,
   DataQueryRequest,
   DataSourceApi,
-  DataTopic,
   PanelData,
   preProcessPanelData,
   rangeUtil,
