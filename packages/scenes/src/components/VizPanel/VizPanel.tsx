@@ -296,12 +296,12 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       onToggleSeriesVisibility: this._onSeriesVisibilityChange,
       onToggleLegendSort: this._onToggleLegendSort,
       onInstanceStateChange: this._onInstanceStateChange,
-      // onAnnotationCreate: this.onAnnotationCreate,
-      // onAnnotationUpdate: this.onAnnotationUpdate,
-      // onAnnotationDelete: this.onAnnotationDelete,
-      // canAddAnnotations: props.dashboard.canAddAnnotations.bind(props.dashboard),
-      // canEditAnnotations: props.dashboard.canEditAnnotations.bind(props.dashboard),
-      // canDeleteAnnotations: props.dashboard.canDeleteAnnotations.bind(props.dashboard),
+      onAnnotationCreate: () => {}, //this.onAnnotationCreate,
+      onAnnotationUpdate: () => {}, //this.onAnnotationUpdate,
+      onAnnotationDelete: () => {}, //this.onAnnotationDelete,
+      canAddAnnotations: () => false, //props.dashboard.canAddAnnotations.bind(props.dashboard),
+      canEditAnnotations: () => false, //props.dashboard.canEditAnnotations.bind(props.dashboard),
+      canDeleteAnnotations: () => false, // props.dashboard.canDeleteAnnotations.bind(props.dashboard),
     };
   }
 }

@@ -1,0 +1,123 @@
+import { from, Observable, of } from 'rxjs';
+import { map, mergeMap } from 'rxjs/operators';
+
+import {
+  AnnotationEvent,
+  AnnotationQuery,
+  CoreApp,
+  DataQueryRequest,
+  DataSourceApi,
+  DataTopic,
+  PanelModel,
+  rangeUtil,
+  ScopedVars,
+} from '@grafana/data';
+
+import { getRunRequest } from '@grafana/runtime';
+import { shouldUseLegacyRunner, standardAnnotationSupport } from './standardAnnotationsSupport';
+import { Dashboard } from '@grafana/schema';
+import { SceneTimeRangeLike } from '../../../core/types';
+let counter = 100;
+function getNextRequestId() {
+  return 'AQ' + counter++;
+}
+
+export interface AnnotationQueryOptions {
+  dashboard: Dashboard;
+  panel: PanelModel;
+}
+
+export function executeAnnotationQuery(
+  datasource: DataSourceApi,
+  timeRange: SceneTimeRangeLike,
+  query: AnnotationQuery
+): Observable<AnnotationEvent[]> {
+  // Check if we should use the old annotationQuery method
+  if (datasource.annotationQuery && shouldUseLegacyRunner(datasource)) {
+    console.warn('Using deprecated annotationQuery method, please upgrade your datasource');
+    return from(
+      datasource.annotationQuery({
+        range: timeRange.state.value,
+        rangeRaw: timeRange.state.value.raw,
+        annotation: query,
+        dashboard: {},
+      })
+    ).pipe(map((events) => events));
+  }
+
+  // Standard API for annotations support. Spread in datasource annotations support overrides
+  const processor = {
+    ...standardAnnotationSupport,
+    ...datasource.annotations,
+  };
+
+  const annotationWithDefaults = {
+    // Default query provided by a data source
+    ...processor.getDefaultQuery?.(),
+    ...query,
+  };
+
+  // Data source query migrations
+  const annotation = processor.prepareAnnotation!(annotationWithDefaults);
+  if (!annotation) {
+    return of([]);
+  }
+
+  const processedQuery = processor.prepareQuery!(annotation);
+  if (!processedQuery) {
+    return of([]);
+  }
+
+  // No more points than pixels
+  const maxDataPoints = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+
+  // Add interval to annotation queries
+  const interval = rangeUtil.calculateInterval(timeRange.state.value, maxDataPoints, datasource.interval);
+
+  const scopedVars: ScopedVars = {
+    __interval: { text: interval.interval, value: interval.interval },
+    __interval_ms: { text: interval.intervalMs.toString(), value: interval.intervalMs },
+    __annotation: { text: annotation.name, value: annotation },
+  };
+
+  const queryRequest: DataQueryRequest = {
+    startTime: Date.now(),
+    requestId: getNextRequestId(),
+    range: timeRange.state.value,
+    maxDataPoints,
+    scopedVars,
+    ...interval,
+    app: CoreApp.Dashboard,
+    timezone: timeRange.getTimeZone(),
+    targets: [
+      {
+        ...processedQuery,
+        refId: 'Anno',
+      },
+    ],
+    // TODO
+    //publicDashboardAccessToken: options.dashboard.meta.publicDashboardAccessToken,
+  };
+
+  const runRequest = getRunRequest();
+
+  return runRequest(datasource, queryRequest).pipe(
+    mergeMap((panelData) => {
+      // Some annotations set the topic already
+      const data = panelData?.series.length ? panelData.series : panelData.annotations;
+      if (!data?.length) {
+        return of([]);
+      }
+
+      // Add data topic to each frame
+      data.forEach((frame) => {
+        // If data topic has not been provided by the data source, make sure it's set correctly
+        if (!frame.meta?.dataTopic) {
+          frame.meta = { ...(frame.meta || {}), dataTopic: DataTopic.Annotations };
+        }
+      });
+
+      return processor.processEvents!(annotation, data).pipe(map((events) => events ?? []));
+    })
+  );
+}
