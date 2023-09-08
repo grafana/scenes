@@ -207,6 +207,10 @@ export interface SceneDataLayerProvider extends SceneObject {
   getResultsStream(): Observable<SceneDataLayerProviderResult>;
 }
 
+export interface DataLayerFilter {
+  panelId: number;
+}
+
 export interface SceneStatelessBehavior<T extends SceneObject = any> {
   (sceneObject: T): CancelActivationHandler | void;
 }
