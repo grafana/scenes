@@ -82,9 +82,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       newSize.y = newSize.y ?? rowY;
       // make sure y is adjusted (in case row moved while collapsed)
       newSize.y -= yDiff;
-      if (newSize.y! > panel.state.y!) {
+
+      if (newSize.y! !== panel.state.y!) {
         panel.setState(newSize);
       }
+
       // update insert post and y max
       yMax = Math.max(yMax, Number(newSize.y!) + Number(newSize.height!));
     }

@@ -6,7 +6,6 @@ import { Icon, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObject, SceneObjectUrlValues } from '../../../core/types';
-import { SceneObjectUrlSyncConfig } from '../../../services/SceneObjectUrlSyncConfig';
 
 import { SceneGridLayout } from './SceneGridLayout';
 import { GRID_COLUMN_COUNT } from './constants';
@@ -24,15 +23,11 @@ export interface SceneGridRowState extends SceneGridItemStateLike {
 export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   public static Component = SceneGridRowRenderer;
 
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['rowc'] });
-
   public constructor(state: Partial<SceneGridRowState>) {
     super({
       children: state.children || [],
       isCollapsible: state.isCollapsible || true,
       title: state.title || '',
-      isDraggable: state.isDraggable || true,
-      isResizable: state.isResizable || false,
       ...state,
       x: 0,
       height: 1,
@@ -84,7 +79,6 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
         {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
         <span className={styles.rowTitle}>{sceneGraph.interpolate(model, title, undefined, 'text')}</span>
       </button>
-      {isCollapsed && <div className={styles.collapsedInfo}>({model.state.children.length} panels)</div>}
       {actions && <actions.Component model={actions} />}
       {isDraggable && isCollapsed && (
         <div className={cx(styles.dragHandle, layoutDragClass)}>

@@ -1,3 +1,27 @@
+# v1.1.1 (Sat Sep 09 2023)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayout: Fix toggle row issue [#326](https://github.com/grafana/scenes/pull/326) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.0.0 (Wed Sep 06 2023)
+
+#### 💥 Breaking Change
+
+- Scenes 1.0 release prep [#323](https://github.com/grafana/scenes/pull/323) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.29.2 (Wed Sep 06 2023)
 
 #### 🐛 Bug Fix
