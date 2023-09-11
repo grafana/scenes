@@ -28,10 +28,6 @@ export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerSt
     this.addActivationHandler(() => this._onActivate());
   }
 
-  public getDataTopic(): DataTopic {
-    return DataTopic.Annotations;
-  }
-
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
 
@@ -115,9 +111,14 @@ export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerSt
     // This is only faking panel data
     const stateUpdate = { ...emptyPanelData };
     const df = arrayToDataFrame(result);
+    df.meta = {
+      ...df.meta,
+      dataTopic: DataTopic.Annotations,
+    };
+
     emptyPanelData.annotations = [df];
 
-    this._results.next({ origin: this, data: [df] });
+    this._results.next({ origin: this, data: [df], topic: DataTopic.Annotations });
 
     this.setState({
       data: stateUpdate,
