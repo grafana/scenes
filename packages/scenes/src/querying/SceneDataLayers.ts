@@ -69,10 +69,10 @@ export class SceneDataLayers extends SceneObjectBase<SceneDataLayersState> imple
           .pipe(
             mergeAll(),
             map((v) => {
-              if (v.origin.getDataTopic() === DataTopic.Annotations) {
+              if (v.topic === DataTopic.Annotations) {
                 // Is there a better, rxjs only way to combine multiple same-data-topic observables?
                 // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
-                resultsMap[v.origin.getDataTopic()].set(v.origin.state.key!, v.data);
+                resultsMap[v.topic].set(v.origin.state.key!, v.data);
               }
 
               return resultsMap;

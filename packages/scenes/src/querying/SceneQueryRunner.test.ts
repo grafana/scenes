@@ -1160,9 +1160,6 @@ class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerSta
       ...state,
     });
   }
-  public getDataTopic(): DataTopic {
-    return DataTopic.Annotations;
-  }
 
   public getResultsStream(): Observable<SceneDataLayerProviderResult> {
     const { delay } = this.state;
@@ -1176,6 +1173,7 @@ class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerSta
 
     const result = {
       origin: this,
+      topic: DataTopic.Annotations,
       data: [arrayToDataFrame(ano)],
     };
 
