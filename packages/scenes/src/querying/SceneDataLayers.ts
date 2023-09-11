@@ -10,6 +10,7 @@ import {
   SceneDataProviderResult,
   SceneObjectState,
 } from '../core/types';
+import { SceneDataTransformer } from './SceneDataTransformer';
 
 interface SceneDataLayersState extends SceneObjectState {
   layers: SceneDataLayerProvider[];
@@ -38,6 +39,11 @@ export class SceneDataLayers extends SceneObjectBase<SceneDataLayersState> imple
 
   private _onActivate() {
     const { layers } = this.state;
+
+    if (this.parent && this.parent instanceof SceneDataTransformer) {
+      throw new Error('SceneDataLayers can not be used as data provider for SceneDataTransformer.');
+    }
+
     const deactivationHandlers: CancelActivationHandler[] = [];
     for (const layer of layers) {
       deactivationHandlers.push(layer.activate());
