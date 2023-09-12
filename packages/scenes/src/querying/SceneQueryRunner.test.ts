@@ -1,4 +1,4 @@
-import { map, Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { map, Observable, of, ReplaySubject } from 'rxjs';
 
 import {
   AnnotationEvent,
