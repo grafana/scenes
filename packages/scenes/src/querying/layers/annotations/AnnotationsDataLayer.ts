@@ -120,9 +120,9 @@ export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerSt
       dataTopic: DataTopic.Annotations,
     };
 
-    emptyPanelData.annotations = [df];
+    stateUpdate.annotations = [df];
 
-    this._results.next({ origin: this, data: [df], topic: DataTopic.Annotations });
+    this._results.next({ origin: this, data: stateUpdate, topic: DataTopic.Annotations });
 
     this.setState({
       data: stateUpdate,
