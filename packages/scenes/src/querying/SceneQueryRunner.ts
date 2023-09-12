@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Subject, takeUntil, Unsubscribable } from 'rxjs';
+import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -64,7 +64,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>();
-  private _cancelationStream = new Subject<number>();
 
   public getResultsStream() {
     return this._results;
@@ -85,14 +84,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = this.getTimeCompare();
-
-    // This stream will unsubscribe from data layers, when query execution is canceled
-    this._cancelationStream.subscribe(() => {
-      if (this._dataLayersSub) {
-        this._dataLayersSub?.unsubscribe();
-        this._dataLayersSub = undefined;
-      }
-    });
 
     if (comparer) {
       this._subs.add(
@@ -135,7 +126,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = merge(observables)
         .pipe(
           mergeAll(),
-          takeUntil(this._cancelationStream.asObservable()),
           map((v) => {
             // Is there a better, rxjs only way to combine multiple same-data-topic observables?
             // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
@@ -144,6 +134,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
           })
         )
         .subscribe((result) => {
+          console.log('SceneQueryRunner', 'Data layers received', this.state.key);
           this._onLayersReceived(result);
         });
     }
@@ -274,8 +265,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public cancelQuery() {
     this._querySub?.unsubscribe();
-    // this._dataLayersSub?.unsubscribe();
-    this._cancelationStream.next(Date.now());
+
+    if (this._dataLayersSub) {
+      this._dataLayersSub.unsubscribe();
+      this._dataLayersSub = undefined;
+    }
 
     this.setState({
       data: { ...this.state.data!, state: LoadingState.Done },
