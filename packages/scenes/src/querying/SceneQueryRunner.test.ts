@@ -1,4 +1,4 @@
-import { map, Observable, of, Subject } from 'rxjs';
+import { map, Observable, of, ReplaySubject, Subject } from 'rxjs';
 
 import {
   AnnotationEvent,
@@ -34,6 +34,7 @@ import {
   SceneObjectState,
 } from '../core/types';
 import { SceneDataLayers } from './SceneDataLayers';
+import { emptyPanelData } from '../core/SceneDataNode';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -757,7 +758,7 @@ describe('SceneQueryRunner', () => {
     });
 
     describe('canceling queries', () => {
-      it('should unsubscribe from data layers when query is cancellled', async () => {
+      it('should unsubscribe from data layers when query is canceled', async () => {
         const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
         const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', delay: true });
         const queryRunner = new SceneQueryRunner({
@@ -787,7 +788,7 @@ describe('SceneQueryRunner', () => {
         expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`[]`);
       });
 
-      it('should re-subscribe to data layers when query is cancellled and run again', async () => {
+      it('should re-subscribe to data layers when query is canceled and run again', async () => {
         const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
         const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', delay: true });
         const queryRunner = new SceneQueryRunner({
@@ -1213,7 +1214,7 @@ interface TestAnnoationsDataLayerState extends SceneObjectState {
 }
 
 class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerState> implements SceneDataLayerProvider {
-  private _runs = new Subject<number>();
+  private _runs = new ReplaySubject<number>();
 
   public constructor(state: TestAnnoationsDataLayerState) {
     super({
@@ -1232,10 +1233,13 @@ class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerSta
       },
     ];
 
-    const result = {
+    const result: SceneDataLayerProviderResult = {
       origin: this,
       topic: DataTopic.Annotations,
-      data: [arrayToDataFrame(ano)],
+      data: {
+        ...emptyPanelData,
+        annotations: [arrayToDataFrame(ano)],
+      },
     };
 
     if (!delay) {

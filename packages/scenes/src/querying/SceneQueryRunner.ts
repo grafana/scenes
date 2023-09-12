@@ -7,6 +7,7 @@ import {
   DataFrame,
   DataQueryRequest,
   DataSourceApi,
+  DataTopic,
   PanelData,
   preProcessPanelData,
   rangeUtil,
@@ -18,6 +19,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
   isDataRequestEnricher,
+  SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
   SceneObjectState,
@@ -119,7 +121,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _handleDataLayers() {
     const dataLayers = sceneGraph.getDataLayers(this);
 
-    const observables: Array<Observable<SceneDataProviderResult>> = [];
+    const observables: Array<Observable<SceneDataLayerProviderResult>> = [];
 
     // This keeps track of multiple SceneDataLayers. The key responsibility od this map is to make sure individual from independent SceneDataLayers do not overwrite each other.
     const resultsMap: Map<string, PanelData> = new Map();
@@ -151,8 +153,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     let annotations: DataFrame[] = [];
 
     Array.from(results.values()).forEach((result) => {
-      if (result.annotations) {
-        annotations = annotations.concat(result.annotations);
+      if (result[DataTopic.Annotations]) {
+        annotations = annotations.concat(result[DataTopic.Annotations]);
       }
     });
 

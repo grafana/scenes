@@ -191,7 +191,7 @@ export interface SceneDataProviderResultLike<O, T> {
 }
 
 export type SceneDataProviderResult = SceneDataProviderResultLike<SceneDataProvider, PanelData>;
-export type SceneDataLayerProviderResult = SceneDataProviderResultLike<SceneDataLayerProvider, DataFrame[]> & {
+export type SceneDataLayerProviderResult = SceneDataProviderResultLike<SceneDataLayerProvider, PanelData> & {
   topic: DataTopic;
 };
 
@@ -199,7 +199,7 @@ export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
-  getResultsStream(): Observable<SceneDataProviderResult>;
+  getResultsStream?(): Observable<SceneDataProviderResult>;
 }
 
 export interface SceneDataLayerProvider extends SceneObject {
