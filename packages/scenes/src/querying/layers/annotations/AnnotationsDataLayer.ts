@@ -67,6 +67,10 @@ export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerSt
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     const { queries } = this.state;
 
+    if (this._querySub) {
+      this._querySub.unsubscribe();
+    }
+
     // Simple path when no queries exist
     if (!queries?.length) {
       this.onDataReceived([]);
