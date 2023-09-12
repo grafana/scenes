@@ -1429,14 +1429,6 @@ describe('SceneQueryRunner', () => {
           [
             {
               "config": {},
-              "name": "time",
-              "type": "time",
-              "values": [
-                100,
-              ],
-            },
-            {
-              "config": {},
               "name": "text",
               "type": "string",
               "values": [
@@ -1445,12 +1437,17 @@ describe('SceneQueryRunner', () => {
             },
             {
               "config": {},
-              "name": "tags",
+              "name": "source",
               "type": "other",
               "values": [
-                [
-                  "tag1",
-                ],
+                {
+                  "filter": {
+                    "exclude": true,
+                    "ids": [
+                      1,
+                    ],
+                  },
+                },
               ],
             },
           ]
@@ -1499,6 +1496,13 @@ class TestAnnotationsDataLayer
         tags: ['tag1'],
       },
     ];
+
+    if (this.state.fakeAnnotations) {
+      ano = this.state.fakeAnnotations().map((a) => ({
+        text: `${this.state.prefix}: Test annotation`,
+        ...a,
+      }));
+    }
 
     const result: SceneDataLayerProviderResult = {
       origin: this,
