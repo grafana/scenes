@@ -101,7 +101,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** Force a re-render, should only be needed when variable values change */
   forceRender(): void;
 
-  /** Returns a SceneObjectRef for that will resolve to this object */
+  /** Returns a SceneObjectRef that will resolve to this object */
   getRef(): SceneObjectRef<this>;
 
   /**

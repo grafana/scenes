@@ -325,7 +325,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     }
   }
 
-  /** Returns a SceneObjectRef for that will resolve to this object */
+  /** Returns a SceneObjectRef that will resolve to this object */
   public getRef(): SceneObjectRef<this> {
     if (!this._ref) {
       this._ref = new SceneObjectRef(this);
