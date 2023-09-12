@@ -757,11 +757,9 @@ describe('SceneQueryRunner', () => {
     });
 
     describe('canceling queries', () => {
-      it('cancel data layer query when SQR query cancelled', async () => {
-        const l1CancellationSpy = jest.fn();
-        const l2CancellationSpy = jest.fn();
-        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', cancellationSpy: l1CancellationSpy });
-        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', cancellationSpy: l2CancellationSpy });
+      it('should unsubscribe from data layers when query is cancellled', async () => {
+        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
+        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', delay: true });
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
@@ -781,21 +779,17 @@ describe('SceneQueryRunner', () => {
         queryRunner.activate();
 
         await new Promise((r) => setTimeout(r, 1));
-
-        expect(l1CancellationSpy).not.toHaveBeenCalled();
-        expect(l2CancellationSpy).not.toHaveBeenCalled();
-
         queryRunner.cancelQuery();
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`[]`);
 
-        expect(l1CancellationSpy).toHaveBeenCalled();
-        expect(l2CancellationSpy).toHaveBeenCalled();
+        layer1.completeRun();
+        layer2.completeRun();
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`[]`);
       });
 
-      it('cancel data layer query when SQR deactivated', async () => {
-        const l1CancellationSpy = jest.fn();
-        const l2CancellationSpy = jest.fn();
-        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', cancellationSpy: l1CancellationSpy });
-        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', cancellationSpy: l2CancellationSpy });
+      it('should re-subscribe to data layers when query is cancellled and run again', async () => {
+        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
+        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', delay: true });
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
@@ -812,17 +806,84 @@ describe('SceneQueryRunner', () => {
           ],
         });
         scene.activate();
-        const deactivate = queryRunner.activate();
+        queryRunner.activate();
 
         await new Promise((r) => setTimeout(r, 1));
+        queryRunner.cancelQuery();
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`[]`);
 
-        expect(l1CancellationSpy).not.toHaveBeenCalled();
-        expect(l2CancellationSpy).not.toHaveBeenCalled();
+        layer1.completeRun();
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`[]`);
 
-        deactivate();
-
-        expect(l1CancellationSpy).toHaveBeenCalled();
-        expect(l2CancellationSpy).toHaveBeenCalled();
+        queryRunner.runQueries();
+        await new Promise((r) => setTimeout(r, 1));
+        layer2.completeRun();
+        expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`
+          [
+            {
+              "fields": [
+                {
+                  "config": {},
+                  "name": "time",
+                  "type": "time",
+                  "values": [
+                    100,
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "text",
+                  "type": "string",
+                  "values": [
+                    "Layer 1: Test annotation",
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "tags",
+                  "type": "other",
+                  "values": [
+                    [
+                      "tag1",
+                    ],
+                  ],
+                },
+              ],
+              "length": 1,
+            },
+            {
+              "fields": [
+                {
+                  "config": {},
+                  "name": "time",
+                  "type": "time",
+                  "values": [
+                    100,
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "text",
+                  "type": "string",
+                  "values": [
+                    "Layer 2: Test annotation",
+                  ],
+                },
+                {
+                  "config": {},
+                  "name": "tags",
+                  "type": "other",
+                  "values": [
+                    [
+                      "tag1",
+                    ],
+                  ],
+                },
+              ],
+              "length": 1,
+            },
+          ]
+        `);
       });
     });
 

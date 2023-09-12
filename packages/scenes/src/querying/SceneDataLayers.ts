@@ -30,13 +30,6 @@ export class SceneDataLayers extends SceneObjectBase<SceneDataLayersState> imple
     return this._results;
   }
 
-  public cancelQuery() {
-    const { layers } = this.state;
-    for (const layer of layers) {
-      layer.cancelQuery?.();
-    }
-  }
-
   private _onActivate() {
     const { layers } = this.state;
 

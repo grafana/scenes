@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
+import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Subject, takeUntil, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -58,9 +58,11 @@ export interface DataQueryExtended extends DataQuery {
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
+  private _dataLayersSub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>();
+  private _cancelationStream = new Subject<number>();
 
   public getResultsStream() {
     return this._results;
@@ -82,6 +84,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = this.getTimeCompare();
 
+    // This stream will unsubscribe from data layers, when query execution is canceled
+    this._cancelationStream.subscribe(() => {
+      if (this._dataLayersSub) {
+        this._dataLayersSub?.unsubscribe();
+        this._dataLayersSub = undefined;
+      }
+    });
+
     if (comparer) {
       this._subs.add(
         comparer.subscribeToState((n, p) => {
@@ -102,8 +112,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.runQueries();
     }
 
-    this._handleDataLayers();
-
     return () => this._onDeactivate();
   }
 
@@ -122,21 +130,20 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       });
 
       // possibly we want to combine the results from all layers and only then update, but this is tricky ;(
-      this._subs.add(
-        merge(observables)
-          .pipe(
-            mergeAll(),
-            map((v) => {
-              // Is there a better, rxjs only way to combine multiple same-data-topic observables?
-              // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
-              resultsMap.set(v.origin.state.key!, v.data);
-              return resultsMap;
-            })
-          )
-          .subscribe((result) => {
-            this._onLayersReceived(result);
+      this._dataLayersSub = merge(observables)
+        .pipe(
+          mergeAll(),
+          takeUntil(this._cancelationStream.asObservable()),
+          map((v) => {
+            // Is there a better, rxjs only way to combine multiple same-data-topic observables?
+            // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
+            resultsMap.set(v.origin.state.key!, v.data);
+            return resultsMap;
           })
-      );
+        )
+        .subscribe((result) => {
+          this._onLayersReceived(result);
+        });
     }
   }
 
@@ -216,10 +223,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._querySub = undefined;
     }
 
-    const dataLayers = sceneGraph.getDataLayers(this);
-    dataLayers.forEach((layer) => {
-      layer.cancelQuery?.();
-    });
+    if (this._dataLayersSub) {
+      this._dataLayersSub.unsubscribe();
+      this._dataLayersSub = undefined;
+    }
 
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
@@ -265,11 +272,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public cancelQuery() {
     this._querySub?.unsubscribe();
-
-    const dataLayers = sceneGraph.getDataLayers(this);
-    dataLayers.forEach((layer) => {
-      layer.cancelQuery?.();
-    });
+    // this._dataLayersSub?.unsubscribe();
+    this._cancelationStream.next(Date.now());
 
     this.setState({
       data: { ...this.state.data!, state: LoadingState.Done },
@@ -277,6 +281,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
+    // If data layers subscription doesn't exist, create one
+    //
+    if (!this._dataLayersSub) {
+      this._handleDataLayers();
+    }
+
     const runRequest = getRunRequest();
     // Cancel any running queries
     this._querySub?.unsubscribe();
