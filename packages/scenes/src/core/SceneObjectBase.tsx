@@ -18,6 +18,7 @@ import { SceneComponentWrapper } from './SceneComponentWrapper';
 import { SceneObjectStateChangedEvent } from './events';
 import { cloneSceneObject } from './sceneGraph/utils';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
+import { SceneObjectRef } from './SceneObjectRef';
 
 export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState>
   implements SceneObject<TState>
@@ -26,6 +27,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   private _state: TState;
   private _activationHandlers: SceneActivationHandler[] = [];
   private _deactivationHandlers = new Map<object, SceneDeactivationHandler>();
+  private _ref?: SceneObjectRef<this>;
 
   protected _events?: EventBus;
   protected _parent?: SceneObject;
@@ -321,6 +323,15 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
         }
       }
     }
+  }
+
+  /** Returns a SceneObjectRef that will resolve to this object */
+  public getRef(): SceneObjectRef<this> {
+    if (!this._ref) {
+      this._ref = new SceneObjectRef(this);
+    }
+
+    return this._ref;
   }
 }
 
