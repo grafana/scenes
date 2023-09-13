@@ -4,15 +4,19 @@ import { TimeRangePicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneComponentProps, SceneObjectState } from '../core/types';
+import { SceneComponentProps, SceneControlObject, SceneObjectState } from '../core/types';
 
 export interface SceneTimePickerState extends SceneObjectState {
   hidePicker?: boolean;
   isOnCanvas?: boolean;
 }
 
-export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
+export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> implements SceneControlObject {
   public static Component = SceneTimePickerRenderer;
+
+  public getPositionPreference() {
+    return 'right' as const;
+  }
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
