@@ -656,7 +656,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
-        $data: new SceneDataLayers({ layers: [new TestAnnoationsDataLayer({ prefix: 'Layer 1' })] }),
+        $data: new SceneDataLayers({ layers: [new TestAnnotationsDataLayer({ prefix: 'Layer 1' })] }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
@@ -702,7 +702,7 @@ describe('SceneQueryRunner', () => {
       `);
     });
     it('should not block queries when layer provides data slower', async () => {
-      const layer = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
+      const layer = new TestAnnotationsDataLayer({ prefix: 'Layer 1', delay: true });
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
@@ -759,8 +759,8 @@ describe('SceneQueryRunner', () => {
 
     describe('canceling queries', () => {
       it('should unsubscribe from data layers when query is canceled', async () => {
-        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
-        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', delay: true });
+        const layer1 = new TestAnnotationsDataLayer({ prefix: 'Layer 1', delay: true });
+        const layer2 = new TestAnnotationsDataLayer({ prefix: 'Layer 2', delay: true });
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
@@ -789,8 +789,8 @@ describe('SceneQueryRunner', () => {
       });
 
       it('should re-subscribe to data layers when query is canceled and run again', async () => {
-        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
-        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', delay: true });
+        const layer1 = new TestAnnotationsDataLayer({ prefix: 'Layer 1', delay: true });
+        const layer2 = new TestAnnotationsDataLayer({ prefix: 'Layer 2', delay: true });
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
@@ -890,8 +890,8 @@ describe('SceneQueryRunner', () => {
 
     describe('Multiple layers', () => {
       it('combines multiple layers attached on the same level', async () => {
-        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1' });
-        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2' });
+        const layer1 = new TestAnnotationsDataLayer({ prefix: 'Layer 1' });
+        const layer2 = new TestAnnotationsDataLayer({ prefix: 'Layer 2' });
 
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
@@ -973,8 +973,8 @@ describe('SceneQueryRunner', () => {
         `);
       });
       it('combines multiple layers attached on different levels', async () => {
-        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1' });
-        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2' });
+        const layer1 = new TestAnnotationsDataLayer({ prefix: 'Layer 1' });
+        const layer2 = new TestAnnotationsDataLayer({ prefix: 'Layer 2' });
 
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
@@ -1065,8 +1065,8 @@ describe('SceneQueryRunner', () => {
       });
 
       it('combines multiple layers that complete non-simultaneously', async () => {
-        const layer1 = new TestAnnoationsDataLayer({ prefix: 'Layer 1', delay: true });
-        const layer2 = new TestAnnoationsDataLayer({ prefix: 'Layer 2', delay: true });
+        const layer1 = new TestAnnotationsDataLayer({ prefix: 'Layer 1', delay: true });
+        const layer2 = new TestAnnotationsDataLayer({ prefix: 'Layer 2', delay: true });
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
@@ -1194,6 +1194,266 @@ describe('SceneQueryRunner', () => {
         `);
       });
     });
+
+    describe('filtering results', () => {
+      it('should filter Grafana annotations added to a specific panel', async () => {
+        const layer1 = new TestAnnotationsDataLayer({
+          prefix: 'Layer 1',
+          fakeAnnotations: () => {
+            // This function is faking annotation events coming from Grafana data source.
+            return [
+              {
+                panelId: 1,
+                source: {
+                  type: 'dashboard',
+                },
+              },
+              {
+                panelId: 123,
+                source: {
+                  type: 'dashboard',
+                },
+              },
+              {
+                panelId: 2,
+                source: {
+                  type: 'dashboard',
+                },
+              },
+              {
+                panelId: 123,
+                source: {
+                  type: 'dashboard',
+                },
+              },
+            ];
+          },
+        });
+
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          dataLayerFilter: {
+            panelId: 123,
+          },
+          $data: new SceneDataLayers({ layers: [layer1] }),
+        });
+
+        queryRunner.activate();
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.annotations?.[0].length).toEqual(2);
+        expect(queryRunner.state.data?.annotations?.[0].fields).toMatchInlineSnapshot(`
+          [
+            {
+              "config": {},
+              "name": "text",
+              "type": "string",
+              "values": [
+                "Layer 1: Test annotation",
+                "Layer 1: Test annotation",
+              ],
+            },
+            {
+              "config": {},
+              "name": "panelId",
+              "type": "number",
+              "values": [
+                123,
+                123,
+              ],
+            },
+            {
+              "config": {},
+              "name": "source",
+              "type": "other",
+              "values": [
+                {
+                  "type": "dashboard",
+                },
+                {
+                  "type": "dashboard",
+                },
+              ],
+            },
+          ]
+        `);
+      });
+
+      it('should filter annotations with include filter specified', async () => {
+        const layer1 = new TestAnnotationsDataLayer({
+          prefix: 'Layer 1',
+          fakeAnnotations: () => {
+            // This function is faking annotation events coming from Grafana data source.
+            return [
+              {
+                source: {
+                  filter: {
+                    exclude: false,
+                    ids: [1],
+                  },
+                },
+              },
+              {
+                // this annotation should should be included in panel 123
+                source: {
+                  filter: {
+                    exclude: false,
+                    ids: [123],
+                  },
+                },
+              },
+              {
+                source: {
+                  filter: {
+                    exclude: false,
+                    ids: [2],
+                  },
+                },
+              },
+              {
+                // this annotation should should be included in panel 123
+                source: {
+                  filter: {
+                    exclude: false,
+                    ids: [123],
+                  },
+                },
+              },
+            ];
+          },
+        });
+
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          dataLayerFilter: {
+            panelId: 123,
+          },
+          $data: new SceneDataLayers({ layers: [layer1] }),
+        });
+
+        queryRunner.activate();
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.annotations?.[0].length).toEqual(2);
+        expect(queryRunner.state.data?.annotations?.[0].fields).toMatchInlineSnapshot(`
+          [
+            {
+              "config": {},
+              "name": "text",
+              "type": "string",
+              "values": [
+                "Layer 1: Test annotation",
+                "Layer 1: Test annotation",
+              ],
+            },
+            {
+              "config": {},
+              "name": "source",
+              "type": "other",
+              "values": [
+                {
+                  "filter": {
+                    "exclude": false,
+                    "ids": [
+                      123,
+                    ],
+                  },
+                },
+                {
+                  "filter": {
+                    "exclude": false,
+                    "ids": [
+                      123,
+                    ],
+                  },
+                },
+              ],
+            },
+          ]
+        `);
+      });
+
+      it('should filter annotations with exlude filter specified', async () => {
+        const layer1 = new TestAnnotationsDataLayer({
+          prefix: 'Layer 1',
+          fakeAnnotations: () => {
+            // This function is faking annotation events with exclude filter
+            return [
+              {
+                // only this annotation should we returned
+                source: {
+                  filter: {
+                    exclude: true,
+                    ids: [1],
+                  },
+                },
+              },
+              {
+                // this annotation should should be excluded from panel 123
+                source: {
+                  filter: {
+                    exclude: true,
+                    ids: [123],
+                  },
+                },
+              },
+              {
+                // this annotation should should be excluded from panel 123
+                source: {
+                  filter: {
+                    exclude: true,
+                    ids: [123],
+                  },
+                },
+              },
+            ];
+          },
+        });
+
+        const queryRunner = new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          dataLayerFilter: {
+            panelId: 123,
+          },
+          $data: new SceneDataLayers({ layers: [layer1] }),
+        });
+
+        queryRunner.activate();
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(queryRunner.state.data?.annotations?.[0].length).toEqual(1);
+        expect(queryRunner.state.data?.annotations?.[0].fields).toMatchInlineSnapshot(`
+          [
+            {
+              "config": {},
+              "name": "text",
+              "type": "string",
+              "values": [
+                "Layer 1: Test annotation",
+              ],
+            },
+            {
+              "config": {},
+              "name": "source",
+              "type": "other",
+              "values": [
+                {
+                  "filter": {
+                    "exclude": true,
+                    "ids": [
+                      1,
+                    ],
+                  },
+                },
+              ],
+            },
+          ]
+        `);
+      });
+    });
   });
 });
 
@@ -1207,16 +1467,20 @@ class CustomDataSource extends RuntimeDataSource {
   }
 }
 
-interface TestAnnoationsDataLayerState extends SceneObjectState {
+interface TestAnnotationsDataLayerState extends SceneObjectState {
   prefix: string;
   delay?: boolean;
+  fakeAnnotations?: () => AnnotationEvent[];
   cancellationSpy?: jest.Mock;
 }
 
-class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerState> implements SceneDataLayerProvider {
+class TestAnnotationsDataLayer
+  extends SceneObjectBase<TestAnnotationsDataLayerState>
+  implements SceneDataLayerProvider
+{
   private _runs = new ReplaySubject<number>();
 
-  public constructor(state: TestAnnoationsDataLayerState) {
+  public constructor(state: TestAnnotationsDataLayerState) {
     super({
       delay: false,
       ...state,
@@ -1225,13 +1489,20 @@ class TestAnnoationsDataLayer extends SceneObjectBase<TestAnnoationsDataLayerSta
 
   public getResultsStream(): Observable<SceneDataLayerProviderResult> {
     const { delay } = this.state;
-    const ano: AnnotationEvent[] = [
+    let ano: AnnotationEvent[] = [
       {
         time: 100,
         text: `${this.state.prefix}: Test annotation`,
         tags: ['tag1'],
       },
     ];
+
+    if (this.state.fakeAnnotations) {
+      ano = this.state.fakeAnnotations().map((a) => ({
+        text: `${this.state.prefix}: Test annotation`,
+        ...a,
+      }));
+    }
 
     const result: SceneDataLayerProviderResult = {
       origin: this,
