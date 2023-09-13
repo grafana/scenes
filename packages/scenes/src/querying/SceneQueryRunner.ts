@@ -12,12 +12,14 @@ import {
   preProcessPanelData,
   rangeUtil,
   ScopedVar,
+  transformDataFrame,
 } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
+  DataLayerFilter,
   isDataRequestEnricher,
   SceneDataLayerProviderResult,
   SceneDataProvider,
@@ -34,6 +36,7 @@ import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
+import { filterAnnotationsOperator } from './layers/annotations/filterAnnotationsOperator';
 
 let counter = 100;
 
@@ -49,6 +52,8 @@ export interface QueryRunnerState extends SceneObjectState {
   maxDataPoints?: number;
   liveStreaming?: boolean;
   maxDataPointsFromWidth?: boolean;
+  // Filters to be applied to data layer results before combining them with SQR results
+  dataLayerFilter?: DataLayerFilter;
   // Private runtime state
   _isWaitingForVariables?: boolean;
   _hasFetchedData?: boolean;
@@ -140,6 +145,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onLayersReceived(results: Map<string, PanelData>) {
+    const { dataLayerFilter } = this.state;
     let annotations: DataFrame[] = [];
 
     Array.from(results.values()).forEach((result) => {
@@ -148,12 +154,23 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
     });
 
-    this.setState({
-      data: {
-        ...this.state.data!,
-        annotations,
-      },
-    });
+    if (dataLayerFilter?.panelId) {
+      transformDataFrame([filterAnnotationsOperator(dataLayerFilter)], annotations).subscribe((result) => {
+        this.setState({
+          data: {
+            ...this.state.data!,
+            annotations: result,
+          },
+        });
+      });
+    } else {
+      this.setState({
+        data: {
+          ...this.state.data!,
+          annotations,
+        },
+      });
+    }
   }
 
   /**
