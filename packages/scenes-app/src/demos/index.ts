@@ -21,6 +21,7 @@ import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
+import { getAnnotationsDemo } from './annotations';
 
 export interface DemoDescriptor {
   title: string;
@@ -50,6 +51,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
     { title: 'Cursor sync', getPage: getCursorSyncTest },
     { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
+    { title: 'Annoations', getPage: getAnnotationsDemo },
     { title: 'Docs examples', getPage: getDocsExamples },
   ];
 }
