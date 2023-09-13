@@ -1,65 +1,59 @@
 import { AnnotationEvent, arrayToDataFrame, DataTopic, PanelData, AnnotationQuery } from '@grafana/data';
-import { from, map, merge, mergeAll, mergeMap, reduce, ReplaySubject, Unsubscribable } from 'rxjs';
+import { from, map, merge, mergeAll, mergeMap, reduce, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../../core/SceneDataNode';
 import { sceneGraph } from '../../../core/sceneGraph';
-import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import {
-  SceneObjectState,
-  SceneDataLayerProvider,
-  SceneDataLayerProviderResult,
-  SceneTimeRangeLike,
-} from '../../../core/types';
+import { SceneDataLayerProvider, SceneTimeRangeLike, SceneDataLayerProviderState } from '../../../core/types';
 import { getDataSource } from '../../../utils/getDataSource';
+import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { executeAnnotationQuery } from './standardAnnotationQuery';
 import { postProcessQueryResult } from './utils';
 
-interface AnnotationsDataLayerState extends SceneObjectState {
+interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   data?: PanelData;
   queries: AnnotationQuery[];
 }
 
-export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerState> implements SceneDataLayerProvider {
-  private _querySub?: Unsubscribable;
-  private _results = new ReplaySubject<SceneDataLayerProviderResult>();
+export class AnnotationsDataLayer
+  extends SceneDataLayerBase<AnnotationsDataLayerState>
+  implements SceneDataLayerProvider
+{
+  private _timeRangeSub: Unsubscribable | undefined;
+  public topic = DataTopic.Annotations;
 
   public constructor(initialState: AnnotationsDataLayerState) {
-    super(initialState);
-
-    this.addActivationHandler(() => this._onActivate());
+    super({
+      isEnabled: true,
+      ...initialState,
+    });
   }
 
-  private _onActivate() {
+  public onEnable(): void {
     const timeRange = sceneGraph.getTimeRange(this);
 
-    this._subs.add(
-      timeRange.subscribeToState(() => {
-        this.runWithTimeRange(timeRange);
-      })
-    );
+    this._timeRangeSub = timeRange.subscribeToState(() => {
+      this.runWithTimeRange(timeRange);
+    });
+
+    this.runLayer();
+  }
+
+  public onDisable(): void {
+    this._timeRangeSub?.unsubscribe();
+  }
+
+  protected onActivate() {
+    const deactivationHandle = super.onActivate();
 
     if (this.shouldRunQueriesOnActivate()) {
-      this.runQueries();
+      this.runLayer();
     }
 
-    return () => this._onDeactivate();
+    return () => {
+      deactivationHandle();
+    };
   }
 
-  private shouldRunQueriesOnActivate() {
-    if (this.state.data) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private _onDeactivate(): void {
-    if (this._querySub) {
-      this._querySub.unsubscribe();
-      this._querySub = undefined;
-    }
-  }
-
-  public runQueries() {
+  public runLayer() {
     const timeRange = sceneGraph.getTimeRange(this);
     this.runWithTimeRange(timeRange);
   }
@@ -67,8 +61,8 @@ export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerSt
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     const { queries } = this.state;
 
-    if (this._querySub) {
-      this._querySub.unsubscribe();
+    if (this.querySub) {
+      this.querySub.unsubscribe();
     }
 
     // Simple path when no queries exist
@@ -97,7 +91,7 @@ export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerSt
         );
       });
 
-    this._querySub = merge(observables)
+    this.querySub = merge(observables)
       .pipe(
         mergeAll(),
         // Combine all annotation results into a single array
@@ -111,7 +105,7 @@ export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerSt
       });
   }
 
-  public onDataReceived(result: AnnotationEvent[]) {
+  private onDataReceived(result: AnnotationEvent[]) {
     // This is only faking panel data
     const stateUpdate = { ...emptyPanelData };
     const df = arrayToDataFrame(result);
@@ -122,21 +116,18 @@ export class AnnotationsDataLayer extends SceneObjectBase<AnnotationsDataLayerSt
 
     stateUpdate.annotations = [df];
 
-    this._results.next({ origin: this, data: stateUpdate, topic: DataTopic.Annotations });
+    this.publishResults(stateUpdate, DataTopic.Annotations);
 
     this.setState({
       data: stateUpdate,
     });
   }
 
-  public getResultsStream() {
-    return this._results;
-  }
-
-  public cancelQuery() {
-    if (this._querySub) {
-      this._querySub.unsubscribe();
-      this._querySub = undefined;
+  private shouldRunQueriesOnActivate() {
+    if (this.state.data) {
+      return false;
     }
+
+    return true;
   }
 }
