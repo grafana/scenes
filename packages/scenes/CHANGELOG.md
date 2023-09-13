@@ -135,8 +135,8 @@ const scene = new EmbeddedScene({
   $data: queryRunner,
   $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
   controls: [
-    new SceneTimePicker({}), 
-    new SceneTimeRangeCompare({}) // Use this object to enable time frame comparison UI
+    new SceneTimePicker({}),
+    new SceneTimeRangeCompare({}), // Use this object to enable time frame comparison UI
   ],
   body: new SceneFlexLayout({
     direction: 'row',
@@ -148,7 +148,7 @@ const scene = new EmbeddedScene({
       }),
     ],
   }),
- });
+});
 ```
 
 ---

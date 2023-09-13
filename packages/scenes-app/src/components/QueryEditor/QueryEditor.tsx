@@ -1,10 +1,11 @@
-import { SceneObjectBase, SceneQueryRunner, SceneDataProvider, SceneObject, SceneObjectState } from '@grafana/scenes';
+import { SceneObjectBase, SceneQueryRunner, SceneObject, SceneObjectState } from '@grafana/scenes';
 
 import { QueryEditorRenderer } from './QueryEditorRenderer';
 import { DataQuery, DataSourceRef } from '@grafana/schema';
 
 import { DataSourceApi, ScopedVars } from '@grafana/data';
 import { getDataSourceSrv } from '@grafana/runtime';
+import { getClosest } from '@grafana/scenes/src/core/sceneGraph/utils';
 
 export interface QueryEditorState extends SceneObjectState {
   datasource?: DataSourceApi;
@@ -52,22 +53,13 @@ export class QueryEditor extends SceneObjectBase<QueryEditorState> {
  * Will walk up the scene object graph to the closest SceneQueryRunner
  */
 export function getSceneQueryRunner(sceneObject: SceneObject): SceneQueryRunner | undefined {
-  if (sceneObject.state.$data !== undefined) {
-    let curData: SceneDataProvider | undefined = sceneObject.state.$data;
-    while (curData !== undefined) {
-      if (curData instanceof SceneQueryRunner) {
-        return curData;
-      }
-
-      curData = curData.state.$data;
+  return getClosest(sceneObject, (obj) => {
+    if (obj.state.$data instanceof SceneQueryRunner) {
+      return obj.state.$data;
     }
-  }
 
-  if (sceneObject.parent) {
-    return getSceneQueryRunner(sceneObject.parent);
-  }
-
-  return undefined;
+    return undefined;
+  });
 }
 
 function findFirstDatasource(targets: DataQuery[]) {

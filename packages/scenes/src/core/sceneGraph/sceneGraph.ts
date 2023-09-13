@@ -4,9 +4,10 @@ import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/d
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
 
-import { SceneDataProvider, SceneLayout, SceneObject } from '../types';
+import { SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
+import { SceneDataLayers } from '../../querying/SceneDataLayers';
 
 /**
  * Get the closest node with variables
@@ -114,4 +115,20 @@ function findObjectInternal(
  */
 export function findObject(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject | null {
   return findObjectInternal(scene, check, undefined, true);
+}
+
+/**
+ * Will walk up the scene object graph up until the root and collect all SceneDataLayerProvider objects
+ */
+export function getDataLayers(sceneObject: SceneObject): SceneDataLayerProvider[] {
+  let parent: SceneObject | undefined = sceneObject;
+  let collected: SceneDataLayerProvider[] = [];
+  while (parent) {
+    if (parent.state.$data && parent.state.$data instanceof SceneDataLayers) {
+      collected = collected.concat(parent.state.$data.state.layers);
+    }
+    parent = parent.parent;
+  }
+
+  return collected;
 }

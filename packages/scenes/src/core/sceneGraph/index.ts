@@ -7,12 +7,14 @@ import {
   getVariables,
   hasVariableDependencyInLoadingState,
   interpolate,
+  getDataLayers,
 } from './sceneGraph';
 
 export const sceneGraph = {
   getVariables,
   getData,
   getTimeRange,
+  getDataLayers,
   getLayout,
   interpolate,
   lookupVariable,
