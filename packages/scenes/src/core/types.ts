@@ -15,6 +15,7 @@ import {
 import { TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
+import { SceneObjectRef } from './SceneObjectRef';
 
 export interface SceneObjectState {
   key?: string;
@@ -101,6 +102,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** Force a re-render, should only be needed when variable values change */
   forceRender(): void;
 
+  /** Returns a SceneObjectRef that will resolve to this object */
+  getRef(): SceneObjectRef<this>;
+
   /**
    * Allows external code to register code that is executed on activate and deactivate. This allow you
    * to wire up scene objects that need to respond to state changes in other objects from the outside.
@@ -145,10 +149,6 @@ export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
   onTimeRangeChange(timeRange: TimeRange): void;
   onRefresh(): void;
   getTimeZone(): TimeZone;
-}
-
-export interface SceneObjectRef {
-  ref: SceneObject;
 }
 
 export function isSceneObject(obj: any): obj is SceneObject {

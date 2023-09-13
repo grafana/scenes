@@ -1,3 +1,21 @@
+# v1.2.0 (Wed Sep 13 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneObject: Add getRef for easier SceneObjectRef usage [#330](https://github.com/grafana/scenes/pull/330) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneControlsSpacer: Fix flickering [#332](https://github.com/grafana/scenes/pull/332) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.1.1 (Sat Sep 09 2023)
 
 #### 🐛 Bug Fix
