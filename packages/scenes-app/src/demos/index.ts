@@ -51,7 +51,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
     { title: 'Cursor sync', getPage: getCursorSyncTest },
     { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
-    { title: 'Annoations', getPage: getAnnotationsDemo },
+    { title: 'Data layers', getPage: getAnnotationsDemo },
     { title: 'Docs examples', getPage: getDocsExamples },
   ];
 }
