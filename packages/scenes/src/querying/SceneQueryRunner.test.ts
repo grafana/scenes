@@ -171,6 +171,20 @@ describe('SceneQueryRunner', () => {
       expect(sentRequest?.maxDataPoints).toBe(500);
     });
 
+    it('should not run queries when runQueriesMode is set to manual', async () => {
+      const queryRunner = new SceneQueryRunner({
+        runQueriesMode: 'manual',
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data).toBeUndefined();
+    });
+
     it('should not use containerWidth by default', async () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],

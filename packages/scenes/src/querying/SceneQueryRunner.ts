@@ -52,6 +52,11 @@ export interface QueryRunnerState extends SceneObjectState {
   maxDataPoints?: number;
   liveStreaming?: boolean;
   maxDataPointsFromWidth?: boolean;
+  /**
+   * When set to auto (the default) query runner will issue queries on activate (when variable dependencies are ready) or when time range change.
+   * Set to manual to have full manual control over when queries are issued. Try not to set this. This is mainly useful for unit tests, or special edge case workflows.
+   */
+  runQueriesMode?: 'auto' | 'manual';
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
@@ -87,27 +92,31 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onActivate() {
-    const timeRange = sceneGraph.getTimeRange(this);
-    const comparer = this.getTimeCompare();
+    const runQueriesMode = this.state.runQueriesMode ?? 'auto';
 
-    if (comparer) {
+    if (runQueriesMode === 'auto') {
+      const timeRange = sceneGraph.getTimeRange(this);
+      const comparer = this.getTimeCompare();
+
+      if (comparer) {
+        this._subs.add(
+          comparer.subscribeToState((n, p) => {
+            if (n.compareWith !== p.compareWith) {
+              this.runQueries();
+            }
+          })
+        );
+      }
+
       this._subs.add(
-        comparer.subscribeToState((n, p) => {
-          if (n.compareWith !== p.compareWith) {
-            this.runQueries();
-          }
+        timeRange.subscribeToState(() => {
+          this.runWithTimeRange(timeRange);
         })
       );
-    }
 
-    this._subs.add(
-      timeRange.subscribeToState(() => {
-        this.runWithTimeRange(timeRange);
-      })
-    );
-
-    if (this.shouldRunQueriesOnActivate()) {
-      this.runQueries();
+      if (this.shouldRunQueriesOnActivate()) {
+        this.runQueries();
+      }
     }
 
     return () => this._onDeactivate();
