@@ -3,11 +3,15 @@ import {
   EmbeddedScene,
   SceneAppPage,
   SceneAppPageState,
+  SceneControlsSpacer,
+  SceneDataLayerControls,
   SceneDataLayers,
   SceneDataTransformer,
   SceneFlexItem,
   SceneFlexLayout,
   SceneQueryRunner,
+  SceneRefreshPicker,
+  SceneTimePicker,
   VizPanel,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
@@ -15,6 +19,7 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 
 export function getAnnotationsDemo(defaults: SceneAppPageState) {
   const globalAnnotations = new dataLayers.AnnotationsDataLayer({
+    name: 'Global annotations',
     queries: [
       {
         datasource: {
@@ -35,6 +40,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
   });
 
   const nestedAnnotationsDataLayer = new dataLayers.AnnotationsDataLayer({
+    name: 'Nested annotations',
     queries: [
       {
         datasource: {
@@ -55,6 +61,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
   });
 
   const independentAnnotations = new dataLayers.AnnotationsDataLayer({
+    name: 'Independent annotations',
     queries: [
       {
         datasource: {
@@ -80,6 +87,12 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
+        controls: [
+          new SceneDataLayerControls(),
+          new SceneControlsSpacer(),
+          new SceneTimePicker({}),
+          new SceneRefreshPicker({}),
+        ],
         key: 'Multiple annotations layers',
         $data: new SceneDataLayers({
           layers: [globalAnnotations],
@@ -105,6 +118,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                     $data: getQueryRunnerWithRandomWalkQuery({}),
                     title: 'Combined annotations, from SceneDataLayers only',
                     pluginId: 'timeseries',
+                    headerActions: [new SceneDataLayerControls()],
                   }),
                 }),
                 new SceneFlexItem({
@@ -123,6 +137,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                     }),
                     title: 'Combined annotations, from global and SceneQueryRunner',
                     pluginId: 'timeseries',
+                    headerActions: [new SceneDataLayerControls()],
                   }),
                 }),
               ],
@@ -163,6 +178,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                   $data: new SceneDataLayers({
                     layers: [
                       new dataLayers.AnnotationsDataLayer({
+                        name: 'Local annotations',
                         queries: [
                           {
                             datasource: {
@@ -209,6 +225,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                     }),
                     title: 'Transformed local data, global+local annotations',
                     pluginId: 'timeseries',
+                    headerActions: [new SceneDataLayerControls()],
                   }),
                 }),
               ],

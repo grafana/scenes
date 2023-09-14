@@ -202,7 +202,12 @@ export interface SceneDataProvider extends SceneObject<SceneDataState> {
   getResultsStream?(): Observable<SceneDataProviderResult>;
 }
 
-export interface SceneDataLayerProvider extends SceneObject {
+export interface SceneDataLayerProviderState extends SceneObjectState {
+  name: string;
+  isEnabled?: boolean;
+}
+
+export interface SceneDataLayerProvider extends SceneObject<SceneDataLayerProviderState> {
   cancelQuery?: () => void;
   getResultsStream(): Observable<SceneDataLayerProviderResult>;
 }
