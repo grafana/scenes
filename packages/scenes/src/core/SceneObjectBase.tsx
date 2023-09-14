@@ -222,7 +222,15 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     this._activationHandlers.forEach((handler) => {
       const result = handler();
       if (result) {
-        this._deactivationHandlers.set(result, result);
+        if (result instanceof Promise) {
+          result.then((deactivationHandler) => {
+            if (deactivationHandler) {
+              this._deactivationHandlers.set(result, deactivationHandler);
+            }
+          });
+        } else {
+          this._deactivationHandlers.set(result, result);
+        }
       }
     });
   }

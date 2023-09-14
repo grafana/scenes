@@ -118,7 +118,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   forEachChild(callback: (child: SceneObject) => void): void;
 }
 
-export type SceneActivationHandler = () => SceneDeactivationHandler | void;
+export type SceneActivationHandler = () => SceneDeactivationHandler | void | Promise<SceneDeactivationHandler | void>;
 export type SceneDeactivationHandler = () => void;
 
 /**
