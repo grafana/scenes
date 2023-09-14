@@ -3,12 +3,24 @@ import { SceneDataLayerProviderResult } from '../../core/types';
 import { TestAnnotationsDataLayer } from './TestDataLayer';
 
 describe('SceneDataLayerBase', () => {
+  const runLayerSpy = jest.fn();
   const enableSpy = jest.fn();
   const disableSpy = jest.fn();
 
   beforeEach(() => {
     enableSpy.mockClear();
     disableSpy.mockClear();
+  });
+
+  describe('when activated', () => {
+    const layer = new TestAnnotationsDataLayer({
+      name: 'Layer 1',
+      isEnabled: true,
+      runLayerSpy: runLayerSpy,
+    });
+    layer.activate();
+
+    expect(runLayerSpy).toBeCalledTimes(1);
   });
 
   describe('when enabled', () => {
