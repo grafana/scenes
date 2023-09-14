@@ -1,3 +1,4 @@
+import { css } from '@emotion/css';
 import { LoadingState } from '@grafana/schema';
 import { InlineSwitch, useTheme2 } from '@grafana/ui';
 import React, { useEffect } from 'react';
@@ -92,12 +93,7 @@ export function SceneDataLayerControl({ layer, isEnabled, onToggleLayer }: Scene
   }, [layer]);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'middle',
-      }}
-    >
+    <div className={containerStyle}>
       <ControlsLabel
         htmlFor={elementId}
         label={
@@ -121,3 +117,5 @@ export function SceneDataLayerControl({ layer, isEnabled, onToggleLayer }: Scene
     </div>
   );
 }
+
+const containerStyle = css({ display: 'flex' });
