@@ -7,6 +7,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps, SceneObject, SceneObjectState } from '../../core/types';
 import { SceneVariableState } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
+import { css } from '@emotion/css';
 
 export class VariableValueSelectors extends SceneObjectBase<SceneObjectState> {
   public static Component = VariableValueSelectorsRenderer;
@@ -32,11 +33,7 @@ function VariableValueSelectWrapper({ variable }: { variable: SceneObject<SceneV
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-      }}
-    >
+    <div className={containerStyle}>
       <VariableLabel state={state} />
       <variable.Component model={variable} />
     </div>
@@ -53,3 +50,5 @@ function VariableLabel({ state }: { state: SceneVariableState }) {
 
   return <ControlsLabel htmlFor={elementId} label={labelOrName} description={state.description ?? undefined} />;
 }
+
+const containerStyle = css({ display: 'flex' });

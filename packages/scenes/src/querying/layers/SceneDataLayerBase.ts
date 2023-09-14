@@ -101,7 +101,7 @@ export abstract class SceneDataLayerBase<T extends {} = SceneDataLayerProviderSt
     }
   }
 
-  public publishResults(data: PanelData, topic: DataTopic) {
+  protected publishResults(data: PanelData, topic: DataTopic) {
     if (this.state.isEnabled) {
       this._results.next({
         origin: this,

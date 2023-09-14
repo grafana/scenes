@@ -20,7 +20,7 @@ export class SceneDataLayerControls extends SceneObjectBase<SceneDataLayerContro
   }
 
   private _onActivate() {
-    const layers = sceneGraph.getDataLayers(this);
+    const layers = sceneGraph.getDataLayers(this, true);
     this.setState({ layersMap: layers.reduce((acc, l) => ({ ...acc, [l.state.key!]: l.state.isEnabled }), {}) });
   }
 
