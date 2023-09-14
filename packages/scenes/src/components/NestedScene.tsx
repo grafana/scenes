@@ -64,7 +64,7 @@ export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>)
 
   return (
     <div className={styles.wrapper}>
-      <div className={cx(gridRow.row, isCollapsed && gridRow.rowCollapsed)}>
+      <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
         <button
           onClick={model.onToggle}
           className={gridRow.rowTitleButton}
@@ -89,6 +89,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flexGrow: 1,
     gap: theme.spacing(1),
     cursor: 'pointer',
+  }),
+  row: css({
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: theme.spacing(1),
+  }),
+  rowCollapsed: css({
+    borderBottom: `1px solid ${theme.colors.border.weak}`,
+    paddingBottom: theme.spacing(1),
   }),
   actions: css({
     display: 'flex',
