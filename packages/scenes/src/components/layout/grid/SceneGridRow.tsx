@@ -89,7 +89,7 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
   );
 }
 
-const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
+export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
   return {
     row: css({
       width: '100%',
@@ -107,7 +107,6 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       gap: theme.spacing(1),
     }),
     rowCollapsed: css({
-      background: theme.colors.background.secondary,
       borderBottom: `1px solid ${theme.colors.border.weak}`,
     }),
     rowTitle: css({
