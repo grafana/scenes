@@ -6,53 +6,42 @@ import { MultiSelect, Select } from '@grafana/ui';
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
-import { SelectLoadingIndicator } from '../../utils/LoadingIndicator';
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key, loading } = model.useState();
+  const { value, key } = model.useState();
 
   return (
-    <Select<VariableValue, { onCancel: () => void }>
+    <Select<VariableValue>
       id={key}
       placeholder="Select value"
       width="auto"
       value={value}
       allowCustomValue
       tabSelectsValue={false}
-      isLoading={loading}
       options={model.getOptionsForSelect()}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
       }}
-      onCancel={() => {
-        model.cancel?.();
-      }}
-      components={{ LoadingIndicator: SelectLoadingIndicator }}
     />
   );
 }
 
 export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key, loading } = model.useState();
+  const { value, key } = model.useState();
   const arrayValue = isArray(value) ? value : [value];
 
   return (
-    <MultiSelect<VariableValueSingle, { onCancel: () => void }>
+    <MultiSelect<VariableValueSingle>
       id={key}
       placeholder="Select value"
       width="auto"
       value={arrayValue}
       tabSelectsValue={false}
       allowCustomValue
-      isLoading={loading}
       options={model.getOptionsForSelect()}
       closeMenuOnSelect={false}
       isClearable={true}
       onOpenMenu={() => {}}
-      onCancel={() => {
-        model.cancel?.();
-      }}
-      components={{ LoadingIndicator: SelectLoadingIndicator }}
       onChange={(newValue) => {
         model.changeValueTo(
           newValue.map((v) => v.value!),
