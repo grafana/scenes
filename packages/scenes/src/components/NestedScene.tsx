@@ -65,9 +65,15 @@ export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>)
   return (
     <div className={styles.wrapper}>
       <div className={cx(gridRow.row, isCollapsed && gridRow.rowCollapsed)}>
-        <button onClick={model.onToggle} className={gridRow.rowTitleButton}>
+        <button
+          onClick={model.onToggle}
+          className={gridRow.rowTitleButton}
+          aria-label={isCollapsed ? 'Expand scene' : 'Collapse scene'}
+        >
           {canCollapse && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
-          <span className={gridRow.rowTitle}>{sceneGraph.interpolate(model, title, undefined, 'text')}</span>
+          <span className={gridRow.rowTitle} role="heading">
+            {sceneGraph.interpolate(model, title, undefined, 'text')}
+          </span>
         </button>
         <div className={styles.actions}>{toolbarControls}</div>
       </div>

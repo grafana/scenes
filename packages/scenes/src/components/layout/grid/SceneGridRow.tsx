@@ -75,9 +75,15 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
 
   return (
     <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
-      <button onClick={model.onCollapseToggle} className={styles.rowTitleButton}>
+      <button
+        onClick={model.onCollapseToggle}
+        className={styles.rowTitleButton}
+        aria-label={isCollapsed ? 'Expand row' : 'Collapse row'}
+      >
         {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
-        <span className={styles.rowTitle}>{sceneGraph.interpolate(model, title, undefined, 'text')}</span>
+        <span className={styles.rowTitle} role="heading">
+          {sceneGraph.interpolate(model, title, undefined, 'text')}
+        </span>
       </button>
       {actions && <actions.Component model={actions} />}
       {isDraggable && isCollapsed && (
