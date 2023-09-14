@@ -5,7 +5,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
 
 interface ControlsLabelProps {
-  label: string;
+  label: string | React.ReactNode;
   htmlFor: string;
   description?: string;
 }
@@ -18,7 +18,9 @@ export function ControlsLabel(props: ControlsLabelProps) {
       <Tooltip content={props.description} placement={'bottom'}>
         <label
           className={styles.label}
-          data-testid={selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label)}
+          data-testid={
+            typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : ''
+          }
           htmlFor={props.htmlFor}
         >
           {props.label}
@@ -30,7 +32,9 @@ export function ControlsLabel(props: ControlsLabelProps) {
   return (
     <label
       className={styles.label}
-      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label)}
+      data-testid={
+        typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : ''
+      }
       htmlFor={props.htmlFor}
     >
       {props.label}
