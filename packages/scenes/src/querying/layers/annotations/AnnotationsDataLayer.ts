@@ -1,4 +1,5 @@
-import { AnnotationEvent, arrayToDataFrame, DataTopic, PanelData, AnnotationQuery } from '@grafana/data';
+import { AnnotationEvent, arrayToDataFrame, DataTopic, AnnotationQuery } from '@grafana/data';
+import { LoadingState } from '@grafana/schema';
 import { from, map, merge, mergeAll, mergeMap, reduce, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../../core/SceneDataNode';
 import { sceneGraph } from '../../../core/sceneGraph';
@@ -9,7 +10,6 @@ import { executeAnnotationQuery } from './standardAnnotationQuery';
 import { postProcessQueryResult } from './utils';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
-  data?: PanelData;
   queries: AnnotationQuery[];
 }
 
@@ -41,18 +41,6 @@ export class AnnotationsDataLayer
     this._timeRangeSub?.unsubscribe();
   }
 
-  protected onActivate() {
-    const deactivationHandle = super.onActivate();
-
-    if (this.shouldRunQueriesOnActivate()) {
-      this.runLayer();
-    }
-
-    return () => {
-      deactivationHandle();
-    };
-  }
-
   public runLayer() {
     const timeRange = sceneGraph.getTimeRange(this);
     this.runWithTimeRange(timeRange);
@@ -64,6 +52,8 @@ export class AnnotationsDataLayer
     if (this.querySub) {
       this.querySub.unsubscribe();
     }
+
+    this.publishResults({ ...emptyPanelData, state: LoadingState.Loading }, DataTopic.Annotations);
 
     // Simple path when no queries exist
     if (!queries?.length) {
@@ -117,17 +107,5 @@ export class AnnotationsDataLayer
     stateUpdate.annotations = [df];
 
     this.publishResults(stateUpdate, DataTopic.Annotations);
-
-    this.setState({
-      data: stateUpdate,
-    });
-  }
-
-  private shouldRunQueriesOnActivate() {
-    if (this.state.data) {
-      return false;
-    }
-
-    return true;
   }
 }
