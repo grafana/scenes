@@ -9,6 +9,7 @@ import {
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel } from './VizPanel';
+import { waitFor } from '@testing-library/dom';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -180,6 +181,22 @@ describe('VizPanel', () => {
 
     it('should call onPanelMigration with pluginVersion set to initial state (undefined)', () => {
       expect(onPanelMigration.mock.calls[0][0].pluginVersion).toBe(undefined);
+    });
+  });
+
+  describe('When onPanelMigration returns a Promise', () => {
+    const onPanelMigration = jest.fn().mockResolvedValue({ option2: 'hello from migration' });
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeAll(async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1();
+      pluginToLoad.onPanelMigration = onPanelMigration;
+      panel.activate();
+    });
+
+    it('should stil apply migrated options', () => {
+      expect(panel.state.options.option2).toBe('hello from migration');
     });
   });
 
