@@ -9,7 +9,6 @@ import {
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel } from './VizPanel';
-import { waitFor } from '@testing-library/dom';
 
 let pluginToLoad: PanelPlugin | undefined;
 
