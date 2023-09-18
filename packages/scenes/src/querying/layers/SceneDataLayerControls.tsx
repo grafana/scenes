@@ -1,8 +1,7 @@
 import { css } from '@emotion/css';
 import { LoadingState } from '@grafana/schema';
 import { InlineSwitch } from '@grafana/ui';
-import React, { useEffect } from 'react';
-import { map, of, switchMap, timer } from 'rxjs';
+import React from 'react';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneDataLayerProvider, SceneObjectState } from '../../core/types';
@@ -67,28 +66,8 @@ interface SceneDataLayerControlProps {
 
 export function SceneDataLayerControl({ layer, isEnabled, onToggleLayer }: SceneDataLayerControlProps) {
   const elementId = `data-layer-${layer.state.key}`;
-  const [showLoading, setShowLoading] = React.useState(false);
-
-  useEffect(() => {
-    const stateStream = layer.getResultsStream().pipe(map((r) => r.data.state));
-
-    const loadingIndicatorSub = stateStream
-      .pipe(
-        switchMap((event) => {
-          if (event === LoadingState.Loading) {
-            return timer(500).pipe(map(() => true));
-          }
-          return of(false);
-        })
-      )
-      .subscribe((v) => {
-        setShowLoading(v);
-      });
-
-    return () => {
-      loadingIndicatorSub.unsubscribe();
-    };
-  }, [layer]);
+  const { data } = layer.useState();
+  const showLoading = Boolean(data && data.state === LoadingState.Loading);
 
   return (
     <div className={containerStyle}>

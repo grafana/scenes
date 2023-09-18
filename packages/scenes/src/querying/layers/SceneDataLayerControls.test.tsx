@@ -9,7 +9,7 @@ describe('SceneDataLayerControl', () => {
     jest.useFakeTimers();
   });
 
-  it('renders loading indicator after 500ms without a response', () => {
+  it('renders loading indicator when layers state is Loading', () => {
     const layer = new TestAnnotationsDataLayer({
       name: 'Layer 1',
     });
@@ -17,15 +17,14 @@ describe('SceneDataLayerControl', () => {
     render(<SceneDataLayerControl layer={layer} isEnabled={true} onToggleLayer={() => {}} />);
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(0);
 
-    layer.activate();
     act(() => {
-      layer.startRun();
-      jest.advanceTimersByTime(499);
+      layer.activate();
     });
+
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(0);
 
     act(() => {
-      jest.advanceTimersByTime(501);
+      layer.startRun();
     });
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(1);
 
@@ -36,12 +35,6 @@ describe('SceneDataLayerControl', () => {
 
     act(() => {
       layer.startRun();
-      jest.advanceTimersByTime(499);
-    });
-    expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(0);
-
-    act(() => {
-      jest.advanceTimersByTime(501);
     });
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(1);
 
@@ -58,11 +51,9 @@ describe('SceneDataLayerControl', () => {
 
     render(<SceneDataLayerControl layer={layer} isEnabled={true} onToggleLayer={() => {}} />);
 
-    layer.activate();
-
     act(() => {
+      layer.activate();
       layer.startRun();
-      jest.advanceTimersByTime(600);
     });
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(1);
 

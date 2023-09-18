@@ -1,6 +1,5 @@
-import { AnnotationEvent, arrayToDataFrame, DataTopic, AnnotationQuery } from '@grafana/data';
-import { LoadingState } from '@grafana/schema';
-import { from, map, merge, mergeAll, mergeMap, reduce, Unsubscribable } from 'rxjs';
+import { arrayToDataFrame, DataTopic, AnnotationQuery, PanelData } from '@grafana/data';
+import { map, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../../core/SceneDataNode';
 import { sceneGraph } from '../../../core/sceneGraph';
 import { SceneDataLayerProvider, SceneTimeRangeLike, SceneDataLayerProviderState } from '../../../core/types';
@@ -10,7 +9,7 @@ import { executeAnnotationQuery } from './standardAnnotationQuery';
 import { postProcessQueryResult } from './utils';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
-  queries: AnnotationQuery[];
+  query: AnnotationQuery;
 }
 
 export class AnnotationsDataLayer
@@ -33,8 +32,6 @@ export class AnnotationsDataLayer
     this._timeRangeSub = timeRange.subscribeToState(() => {
       this.runWithTimeRange(timeRange);
     });
-
-    this.runLayer();
   }
 
   public onDisable(): void {
@@ -47,65 +44,40 @@ export class AnnotationsDataLayer
   }
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
-    const { queries } = this.state;
+    const { query } = this.state;
 
     if (this.querySub) {
       this.querySub.unsubscribe();
     }
 
-    this.publishResults({ ...emptyPanelData, state: LoadingState.Loading }, DataTopic.Annotations);
+    try {
+      const ds = await getDataSource(query.datasource || undefined, {});
 
-    // Simple path when no queries exist
-    if (!queries?.length) {
-      this.onDataReceived([]);
-    }
+      const queryExecution = executeAnnotationQuery(ds, timeRange, query).pipe(
+        map((events) => {
+          // Feels like this should be done in annotation processing, not as a separate step.
+          const processedEvents = postProcessQueryResult(query, events.events || []);
+          const stateUpdate = { ...emptyPanelData, state: events.state };
+          const df = arrayToDataFrame(processedEvents);
+          df.meta = {
+            ...df.meta,
+            dataTopic: DataTopic.Annotations,
+          };
 
-    const observables = queries
-      // get enabled queries
-      .filter((q) => q.enable)
-      // execute queries & collect results
-      .map((query) => {
-        // TODO pass scopedVars
-        return from(getDataSource(query.datasource || undefined, {})).pipe(
-          mergeMap((ds) => {
-            // TODO: There is a lot of AnnotationEvents[] -> DataFrame -> AnnotationEvents[] conversion going on here
-            // This needs to be refactored an possibly optimized to use DataFrame only.
-            // Seems like this is done to allow mappings to be applied by the data source using processEvents method.
-            return executeAnnotationQuery(ds, timeRange, query);
-          }),
-
-          map((events) => {
-            // Feels like this should be done in annotation processing, not as a separate step.
-            return postProcessQueryResult(query, events || []);
-          })
-        );
-      });
-
-    this.querySub = merge(observables)
-      .pipe(
-        mergeAll(),
-        // Combine all annotation results into a single array
-        reduce((acc: AnnotationEvent[], value: AnnotationEvent[]) => {
-          acc = acc.concat(value);
-          return acc;
+          return stateUpdate;
         })
-      )
-      .subscribe((result) => {
-        this.onDataReceived(result);
+      );
+
+      this.querySub = queryExecution.subscribe((stateUpdate) => {
+        this.onDataReceived(stateUpdate);
       });
+    } catch (e) {
+      console.error('AnnotationsDataLayer error', e);
+    }
   }
 
-  private onDataReceived(result: AnnotationEvent[]) {
+  private onDataReceived(stateUpdate: PanelData) {
     // This is only faking panel data
-    const stateUpdate = { ...emptyPanelData };
-    const df = arrayToDataFrame(result);
-    df.meta = {
-      ...df.meta,
-      dataTopic: DataTopic.Annotations,
-    };
-
-    stateUpdate.annotations = [df];
-
     this.publishResults(stateUpdate, DataTopic.Annotations);
   }
 }

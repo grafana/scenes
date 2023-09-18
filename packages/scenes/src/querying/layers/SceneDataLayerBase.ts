@@ -63,7 +63,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState =
       this.onEnable();
     }
 
-    if (this.shouldRunQueriesOnActivate()) {
+    if (this.shouldRunLayerOnActivate()) {
       this.runLayer();
     }
 
@@ -75,16 +75,21 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState =
         this.querySub = undefined;
         this.onDisable();
 
+        // Manually publishing the results to state and results stream as publishPublish results has a guard for the layer to be enabled.
         this._results.next({
           origin: this,
           data: emptyPanelData,
           topic: this.topic,
+        });
+        this.setStateHelper({
+          data: emptyPanelData,
         });
       }
 
       if (n.isEnabled && !p.isEnabled) {
         // When layer enabled, run queries.
         this.onEnable();
+        this.runLayer();
       }
     });
 
@@ -129,7 +134,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState =
     return this._results;
   }
 
-  private shouldRunQueriesOnActivate() {
+  private shouldRunLayerOnActivate() {
     if (this.state.data) {
       return false;
     }
