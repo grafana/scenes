@@ -77,6 +77,7 @@ export function SceneDataLayerControl({ layer, isEnabled, onToggleLayer }: Scene
         onCancel={() => layer.cancelQuery?.()}
         label={layer.state.name}
         description={layer.state.description}
+        error={layer.state.data?.errors?.[0].message}
       />
       <InlineSwitch id={elementId} value={isEnabled} onChange={onToggleLayer} />
     </div>

@@ -1,9 +1,11 @@
 import { arrayToDataFrame, DataTopic, AnnotationQuery } from '@grafana/data';
+import { LoadingState } from '@grafana/schema';
 import { map, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../../core/SceneDataNode';
 import { sceneGraph } from '../../../core/sceneGraph';
 import { SceneDataLayerProvider, SceneTimeRangeLike, SceneDataLayerProviderState } from '../../../core/types';
 import { getDataSource } from '../../../utils/getDataSource';
+import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { executeAnnotationQuery } from './standardAnnotationQuery';
 import { postProcessQueryResult } from './utils';
@@ -73,6 +75,18 @@ export class AnnotationsDataLayer
         this.publishResults(stateUpdate, DataTopic.Annotations);
       });
     } catch (e) {
+      this.publishResults(
+        {
+          ...emptyPanelData,
+          state: LoadingState.Error,
+          errors: [
+            {
+              message: getMessageFromError(e),
+            },
+          ],
+        },
+        DataTopic.Annotations
+      );
       console.error('AnnotationsDataLayer error', e);
     }
   }
