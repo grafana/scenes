@@ -7,6 +7,7 @@ import {
   SceneRefreshPicker,
   SceneTimePicker,
   SceneTimeRange,
+  VariableValueSelectors,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
 
@@ -30,7 +31,12 @@ export function getQueryRunnerWithRandomWalkQuery(
 export function getEmbeddedSceneDefaults() {
   return {
     $timeRange: new SceneTimeRange(),
-    controls: [new SceneControlsSpacer(), new SceneTimePicker({}), new SceneRefreshPicker({})],
+    controls: [
+      new VariableValueSelectors({}),
+      new SceneControlsSpacer(),
+      new SceneTimePicker({}),
+      new SceneRefreshPicker({}),
+    ],
   };
 }
 
