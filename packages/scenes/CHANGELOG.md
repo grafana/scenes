@@ -1,3 +1,17 @@
+# v1.3.3 (Mon Sep 18 2023)
+
+#### 🐛 Bug Fix
+
+- SceneAppPage: Fix infinite recurision of enrichDataRequest [#345](https://github.com/grafana/scenes/pull/345) ([@torkelo](https://github.com/torkelo))
+- Data layer controls: Allow hiding [#344](https://github.com/grafana/scenes/pull/344) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.3.2 (Mon Sep 18 2023)
 
 #### 🐛 Bug Fix
