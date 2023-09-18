@@ -1,3 +1,16 @@
+# v1.3.1 (Mon Sep 18 2023)
+
+#### 🐛 Bug Fix
+
+- AnnotationsDataLayer: Handle data source error [#342](https://github.com/grafana/scenes/pull/342) ([@dprokop](https://github.com/dprokop))
+- DataLayers: Allow cancelling layers from layer control [#337](https://github.com/grafana/scenes/pull/337) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.3.0 (Mon Sep 18 2023)
 
 #### 🚀 Enhancement
