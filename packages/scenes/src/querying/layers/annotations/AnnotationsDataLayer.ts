@@ -64,20 +64,16 @@ export class AnnotationsDataLayer
             dataTopic: DataTopic.Annotations,
           };
 
+          stateUpdate.annotations = [df];
           return stateUpdate;
         })
       );
 
       this.querySub = queryExecution.subscribe((stateUpdate) => {
-        this.onDataReceived(stateUpdate);
+        this.publishResults(stateUpdate, DataTopic.Annotations);
       });
     } catch (e) {
       console.error('AnnotationsDataLayer error', e);
     }
-  }
-
-  private onDataReceived(stateUpdate: PanelData) {
-    // This is only faking panel data
-    this.publishResults(stateUpdate, DataTopic.Annotations);
   }
 }
