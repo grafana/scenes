@@ -59,7 +59,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     );
   }
 
-  public cancel?(): void {
+  public onCancel(): void {
     this.setStateHelper({ loading: false });
     const sceneVarSet = this.parent as SceneVariableSet;
     sceneVarSet?.cancel(this);

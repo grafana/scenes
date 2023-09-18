@@ -1,4 +1,5 @@
 import { AnnotationEvent, arrayToDataFrame, DataTopic } from '@grafana/data';
+import { LoadingState } from '@grafana/schema';
 import { Subscription } from 'rxjs';
 import { emptyPanelData } from '../../core/SceneDataNode';
 import { SceneDataLayerProvider, SceneDataLayerProviderState } from '../../core/types';
@@ -9,6 +10,7 @@ interface TestAnnotationsDataLayerState extends SceneDataLayerProviderState {
   cancellationSpy?: jest.Mock;
   onEnableSpy?: jest.Mock;
   onDisableSpy?: jest.Mock;
+  runLayerSpy?: jest.Mock;
 }
 
 export class TestAnnotationsDataLayer
@@ -23,8 +25,15 @@ export class TestAnnotationsDataLayer
     });
   }
 
+  public startRun() {
+    this.publishResults({ ...emptyPanelData, state: LoadingState.Loading }, this.topic);
+  }
   public completeRun() {
     this.publishResults(this.getResults(), this.topic);
+  }
+
+  public completeRunWithError() {
+    this.publishResults({ ...emptyPanelData, state: LoadingState.Error }, this.topic);
   }
 
   private getResults() {
@@ -53,6 +62,8 @@ export class TestAnnotationsDataLayer
     if (this.state.cancellationSpy) {
       this.state.cancellationSpy();
     }
+
+    super.cancelQuery();
   }
 
   public onEnable(): void {
@@ -70,6 +81,11 @@ export class TestAnnotationsDataLayer
   }
 
   private setupQuerySub() {
+    this.querySub = new Subscription();
+  }
+
+  protected runLayer(): void {
+    this.state.runLayerSpy?.();
     this.querySub = new Subscription();
   }
 }
