@@ -1,13 +1,12 @@
 import { css } from '@emotion/css';
 import { LoadingState } from '@grafana/schema';
-import { InlineSwitch, useTheme2 } from '@grafana/ui';
+import { InlineSwitch } from '@grafana/ui';
 import React, { useEffect } from 'react';
 import { map, of, switchMap, timer } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneDataLayerProvider, SceneObjectState } from '../../core/types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
-import { LoadingIndicator } from '../../utils/LoadingIndicator';
 
 interface SceneDataLayerControlsState extends SceneObjectState {
   layersMap: Record<string, boolean>;
@@ -67,7 +66,6 @@ interface SceneDataLayerControlProps {
 }
 
 export function SceneDataLayerControl({ layer, isEnabled, onToggleLayer }: SceneDataLayerControlProps) {
-  const theme = useTheme2();
   const elementId = `data-layer-${layer.state.key}`;
   const [showLoading, setShowLoading] = React.useState(false);
 
@@ -96,22 +94,10 @@ export function SceneDataLayerControl({ layer, isEnabled, onToggleLayer }: Scene
     <div className={containerStyle}>
       <ControlsLabel
         htmlFor={elementId}
-        label={
-          <>
-            {layer.state.name}
-            {showLoading && (
-              <div style={{ marginLeft: theme.spacing(1), marginTop: '-1px' }}>
-                <LoadingIndicator
-                  onCancel={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    layer.cancelQuery?.();
-                  }}
-                />
-              </div>
-            )}
-          </>
-        }
+        isLoading={showLoading}
+        onCancel={() => layer.cancelQuery?.()}
+        label={layer.state.name}
+        description={layer.state.description}
       />
       <InlineSwitch id={elementId} value={isEnabled} onChange={onToggleLayer} />
     </div>

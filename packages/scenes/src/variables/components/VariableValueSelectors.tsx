@@ -4,8 +4,8 @@ import { VariableHide } from '@grafana/data';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { SceneComponentProps, SceneObject, SceneObjectState } from '../../core/types';
-import { SceneVariableState } from '../types';
+import { SceneComponentProps, SceneObjectState } from '../../core/types';
+import { SceneVariable } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 
@@ -25,7 +25,7 @@ function VariableValueSelectorsRenderer({ model }: SceneComponentProps<VariableV
   );
 }
 
-function VariableValueSelectWrapper({ variable }: { variable: SceneObject<SceneVariableState> }) {
+function VariableValueSelectWrapper({ variable }: { variable: SceneVariable }) {
   const state = variable.useState();
 
   if (state.hide === VariableHide.hideVariable) {
@@ -34,21 +34,29 @@ function VariableValueSelectWrapper({ variable }: { variable: SceneObject<SceneV
 
   return (
     <div className={containerStyle}>
-      <VariableLabel state={state} />
+      <VariableLabel model={variable} />
       <variable.Component model={variable} />
     </div>
   );
 }
 
-function VariableLabel({ state }: { state: SceneVariableState }) {
-  if (state.hide === VariableHide.hideLabel) {
+function VariableLabel({ model }: { model: SceneVariable }) {
+  if (model.state.hide === VariableHide.hideLabel) {
     return null;
   }
 
-  const elementId = `var-${state.key}`;
-  const labelOrName = state.label ?? state.name;
+  const elementId = `var-${model.state.key}`;
+  const labelOrName = model.state.label ?? model.state.name;
 
-  return <ControlsLabel htmlFor={elementId} label={labelOrName} description={state.description ?? undefined} />;
+  return (
+    <ControlsLabel
+      htmlFor={elementId}
+      isLoading={model.state.loading}
+      onCancel={() => model.onCancel?.()}
+      label={labelOrName}
+      description={model.state.description ?? undefined}
+    />
+  );
 }
 
 const containerStyle = css({ display: 'flex' });

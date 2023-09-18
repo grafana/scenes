@@ -1,31 +1,48 @@
 import React from 'react';
-import { Tooltip, useStyles2 } from '@grafana/ui';
+import { Tooltip, useStyles2, useTheme2 } from '@grafana/ui';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
+import { LoadingIndicator } from './LoadingIndicator';
 
 interface ControlsLabelProps {
-  label: string | React.ReactNode;
+  label: string;
   htmlFor: string;
   description?: string;
+  isLoading?: boolean;
+  onCancel?: () => void;
 }
 
 export function ControlsLabel(props: ControlsLabelProps) {
   const styles = useStyles2(getStyles);
+  const theme = useTheme2();
+
+  const loadingIndicator = Boolean(props.isLoading) ? (
+    <div style={{ marginLeft: theme.spacing(1), marginTop: '-1px' }}>
+      <LoadingIndicator
+        onCancel={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          props.onCancel?.();
+        }}
+      />
+    </div>
+  ) : null;
 
   if (props.description) {
     return (
-      <Tooltip content={props.description} placement={'bottom'}>
-        <label
-          className={styles.label}
-          data-testid={
-            typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : ''
-          }
-          htmlFor={props.htmlFor}
-        >
-          {props.label}
-        </label>
-      </Tooltip>
+      <label
+        className={styles.label}
+        data-testid={
+          typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : ''
+        }
+        htmlFor={props.htmlFor}
+      >
+        <Tooltip content={props.description} placement={'bottom'}>
+          <span>{props.label}</span>
+        </Tooltip>
+        {loadingIndicator}
+      </label>
     );
   }
 
@@ -38,6 +55,7 @@ export function ControlsLabel(props: ControlsLabelProps) {
       htmlFor={props.htmlFor}
     >
       {props.label}
+      {loadingIndicator}
     </label>
   );
 }

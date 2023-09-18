@@ -38,6 +38,11 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
    * A special function that locally scoped variables can implement
    **/
   isAncestorLoading?(): boolean;
+
+  /**
+   * Allows cancelling variable execution.
+   */
+  onCancel?(): void;
 }
 
 export type VariableValue = VariableValueSingle | VariableValueSingle[];

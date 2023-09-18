@@ -204,6 +204,7 @@ export interface SceneDataProvider extends SceneObject<SceneDataState> {
 
 export interface SceneDataLayerProviderState extends SceneObjectState {
   name: string;
+  description?: string;
   isEnabled?: boolean;
   data?: PanelData;
 }
