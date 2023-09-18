@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tooltip, useStyles2, useTheme2 } from '@grafana/ui';
+import { Icon, Tooltip, useStyles2, useTheme2 } from '@grafana/ui';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
@@ -10,6 +10,7 @@ interface ControlsLabelProps {
   htmlFor: string;
   description?: string;
   isLoading?: boolean;
+  error?: string;
   onCancel?: () => void;
 }
 
@@ -46,6 +47,15 @@ export function ControlsLabel(props: ControlsLabelProps) {
     );
   }
 
+  let errorIndicator = null;
+  if (props.error) {
+    errorIndicator = (
+      <Tooltip content={props.error} placement={'bottom'}>
+        <Icon className={styles.errorIcon} name="exclamation-triangle" />
+      </Tooltip>
+    );
+  }
+
   return (
     <label
       className={styles.label}
@@ -54,6 +64,7 @@ export function ControlsLabel(props: ControlsLabelProps) {
       }
       htmlFor={props.htmlFor}
     >
+      {errorIndicator}
       {props.label}
       {loadingIndicator}
     </label>
@@ -76,5 +87,10 @@ const getStyles = (theme: GrafanaTheme2) => ({
     // To make the border line up with the input border
     right: -1,
     whiteSpace: 'nowrap',
+  }),
+
+  errorIcon: css({
+    color: theme.colors.error.text,
+    marginRight: theme.spacing(1),
   }),
 });
