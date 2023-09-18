@@ -183,6 +183,22 @@ describe('VizPanel', () => {
     });
   });
 
+  describe('When onPanelMigration returns a Promise', () => {
+    const onPanelMigration = jest.fn().mockResolvedValue({ option2: 'hello from migration' });
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeAll(async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1();
+      pluginToLoad.onPanelMigration = onPanelMigration;
+      panel.activate();
+    });
+
+    it('should stil apply migrated options', () => {
+      expect(panel.state.options.option2).toBe('hello from migration');
+    });
+  });
+
   describe('Should provide a panel context', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 

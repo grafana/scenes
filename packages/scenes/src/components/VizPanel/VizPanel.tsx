@@ -106,7 +106,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     }
   }
 
-  private _pluginLoaded(plugin: PanelPlugin) {
+  private async _pluginLoaded(plugin: PanelPlugin) {
     const { options, fieldConfig, title, pluginVersion } = this.state;
 
     const panel: PanelModel = {
@@ -123,7 +123,7 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     if (plugin.onPanelMigration) {
       if (currentVersion !== this.state.pluginVersion) {
         // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
-        panel.options = plugin.onPanelMigration(panel);
+        panel.options = await plugin.onPanelMigration(panel);
       }
     }
 
