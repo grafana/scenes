@@ -1,3 +1,15 @@
+# v1.3.2 (Mon Sep 18 2023)
+
+#### 🐛 Bug Fix
+
+- Annotations filtering operator: Correctly populate filtered frames [#343](https://github.com/grafana/scenes/pull/343) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.3.1 (Mon Sep 18 2023)
 
 #### 🐛 Bug Fix
