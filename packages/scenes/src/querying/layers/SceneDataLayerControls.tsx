@@ -45,6 +45,11 @@ function SceneDataLayerControlsRenderer({ model }: SceneComponentProps<SceneData
     <>
       {layers.map((l) => {
         const elementId = `data-layer-${l.state.key}`;
+
+        if (l.state.isHidden) {
+          return null;
+        }
+
         return (
           <SceneDataLayerControl
             key={elementId}
