@@ -1,4 +1,4 @@
-import { arrayToDataFrame, DataTopic, AnnotationQuery, PanelData } from '@grafana/data';
+import { arrayToDataFrame, DataTopic, AnnotationQuery } from '@grafana/data';
 import { map, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../../core/SceneDataNode';
 import { sceneGraph } from '../../../core/sceneGraph';
