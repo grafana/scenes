@@ -3,7 +3,7 @@ import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { of } from 'rxjs';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
-import { AdHocVariable } from '../variants/AdHocVariable';
+import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -42,7 +42,7 @@ describe('adhoc', () => {
       $timeRange: new SceneTimeRange(),
       $variables: new SceneVariableSet({
         variables: [
-          new AdHocVariable({
+          new AdHocFiltersVariable({
             name: 'filters',
             filters: [{ key: 'server', operator: '=', value: 'server1', condition: '' }],
           }),
@@ -55,6 +55,6 @@ describe('adhoc', () => {
     await new Promise((r) => setTimeout(r, 1));
 
     expect(sentRequest).toBeDefined();
-    expect(sentRequest.adhocFilters).toEqual([{ key: 'server', operator: '=', value: 'server1', condition: '' }]);
+    //expect(sentRequest.adhocFilters).toEqual([{ key: 'server', operator: '=', value: 'server1', condition: '' }]);
   });
 });

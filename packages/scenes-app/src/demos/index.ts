@@ -22,6 +22,7 @@ import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
+import { getAdhocFiltersDemo } from './adhocFiltersDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -39,6 +40,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Grid with rows', getPage: getGridWithRowLayoutTest },
     { title: 'Lazy load', getPage: getLazyLoadDemo },
     { title: 'Variables', getPage: getVariablesDemo },
+    { title: 'Adhoc filters', getPage: getAdhocFiltersDemo },
     { title: 'Nested scene', getPage: getNestedScene },
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
     { title: 'Query editor', getPage: getQueryEditorDemo },
@@ -53,5 +55,5 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
     { title: 'Data layers', getPage: getAnnotationsDemo },
     { title: 'Docs examples', getPage: getDocsExamples },
-  ];
+  ].sort((a, b) => a.title.localeCompare(b.title));
 }
