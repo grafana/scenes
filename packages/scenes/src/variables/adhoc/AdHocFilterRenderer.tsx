@@ -5,6 +5,7 @@ import { AdHocFilterValue } from './AdHocFilterValue';
 import { OperatorSegment } from './OperatorSegment';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { AdHocVariableFilter } from '@grafana/data';
+import { Icon } from '@grafana/ui';
 
 interface Props {
   filter: AdHocVariableFilter;
@@ -28,6 +29,14 @@ export function AdHocFilterRenderer({ filter, placeHolder, model }: Props) {
         />
       </div>
       <AdHocFilterValue filter={filter} model={model} placeHolder={placeHolder} />
+      <button
+        className="gf-form-label query-part"
+        aria-label="Remove filter"
+        data-testid={`AdHocFilter-remove-${filter.key ?? ''}`}
+        onClick={() => model._removeFilter(filter)}
+      >
+        <Icon name="times" />
+      </button>
     </>
   );
 }

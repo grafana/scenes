@@ -12,13 +12,13 @@ export function AdHocFiltersUI({ model }: SceneComponentProps<AdHocFiltersVariab
   return (
     <div className="gf-form-inline">
       {filters.map((filter, index) => (
-        <>
-          {index > 0 && <ConditionSegment label="AND" key={`condition-${index}`} />}
+        <React.Fragment key={index}>
+          {index > 0 && <ConditionSegment label="AND" />}
           <AdHocFilterRenderer filter={filter} model={model} />
-        </>
+        </React.Fragment>
       ))}
 
-      {!readOnly && <AdHocFilterBuilder model={model} />}
+      {!readOnly && <AdHocFilterBuilder model={model} key="'builder" />}
     </div>
   );
 }

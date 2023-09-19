@@ -6,10 +6,10 @@ import { AdHocVariableFilter } from '@grafana/data';
 
 let originalGetAdhocFilters: any = undefined;
 
-export function patchGetAdhocVariables(sceneObject: SceneVariableSet) {
+export function patchGetAdhocFilters(sceneObject: SceneVariableSet) {
   const templateSrv: any = getTemplateSrv();
-  if (!templateSrv.getAdHocVariables) {
-    console.log('Failed to patch getAdHocVariables');
+  if (!templateSrv.getAdhocFilters) {
+    console.log('Failed to patch getAdhocFilters');
   }
 
   if (!originalGetAdhocFilters) {

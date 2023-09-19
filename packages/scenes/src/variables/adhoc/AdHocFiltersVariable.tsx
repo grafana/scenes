@@ -1,7 +1,7 @@
 import { SceneVariableState } from '../types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { AdHocVariableFilter, SelectableValue } from '@grafana/data';
-import { patchGetAdhocVariables } from './patchGetAdhocVariables';
+import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
@@ -32,7 +32,7 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
     });
 
     this.addActivationHandler(() => {
-      patchGetAdhocVariables(this.parent! as SceneVariableSet);
+      patchGetAdhocFilters(this.parent! as SceneVariableSet);
     });
   }
 
@@ -51,6 +51,7 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
       // If we set value we are done with this "work in progress" filter and we can add it
       if (prop === 'value') {
         this.setState({ filters: [...filters, { ..._wip, [prop]: value }], _wip: undefined });
+        console.log('setting value', this.state.filters.length);
         this._runSceneQueries();
       } else {
         this.setState({ _wip: { ...filter, [prop]: value } });
@@ -66,6 +67,11 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
     });
 
     this.setState({ filters: updatedFilters });
+    this._runSceneQueries();
+  }
+
+  public _removeFilter(filter: AdHocVariableFilter) {
+    this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
     this._runSceneQueries();
   }
 
