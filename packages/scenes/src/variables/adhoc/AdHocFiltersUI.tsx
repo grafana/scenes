@@ -10,7 +10,7 @@ export function AdHocFiltersUI({ model }: SceneComponentProps<AdHocFiltersVariab
   const { filters, readOnly } = model.useState();
 
   return (
-    <div className="gf-form-inline">
+    <div className="gf-form-inline" style={{ paddingLeft: 4 }}>
       {filters.map((filter, index) => (
         <React.Fragment key={index}>
           {index > 0 && <ConditionSegment label="AND" />}

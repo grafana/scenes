@@ -22,7 +22,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
         $variables: new SceneVariableSet({
           variables: [
             new AdHocFiltersVariable({
-              name: 'filters',
+              name: 'Filters',
               datasource: { uid: 'gdev-prometheus' },
             }),
           ],
