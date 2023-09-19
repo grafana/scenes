@@ -1,3 +1,62 @@
+# v1.3.3 (Mon Sep 18 2023)
+
+#### 🐛 Bug Fix
+
+- SceneAppPage: Fix infinite recurision of enrichDataRequest [#345](https://github.com/grafana/scenes/pull/345) ([@torkelo](https://github.com/torkelo))
+- Data layer controls: Allow hiding [#344](https://github.com/grafana/scenes/pull/344) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.3.2 (Mon Sep 18 2023)
+
+#### 🐛 Bug Fix
+
+- Annotations filtering operator: Correctly populate filtered frames [#343](https://github.com/grafana/scenes/pull/343) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.3.1 (Mon Sep 18 2023)
+
+#### 🐛 Bug Fix
+
+- AnnotationsDataLayer: Handle data source error [#342](https://github.com/grafana/scenes/pull/342) ([@dprokop](https://github.com/dprokop))
+- DataLayers: Allow cancelling layers from layer control [#337](https://github.com/grafana/scenes/pull/337) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.3.0 (Mon Sep 18 2023)
+
+#### 🚀 Enhancement
+
+- NestedScene: Update design to match grid row, add controls property and update demo scene to include variables [#335](https://github.com/grafana/scenes/pull/335) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- VizPanel: Support async migration handlers [#341](https://github.com/grafana/scenes/pull/341) ([@torkelo](https://github.com/torkelo))
+- DataLayers: Allow toggling individual layers on/off [#333](https://github.com/grafana/scenes/pull/333) ([@dprokop](https://github.com/dprokop))
+- Data layers:  Annotations [#328](https://github.com/grafana/scenes/pull/328) ([@dprokop](https://github.com/dprokop))
+- Data layers:  Isolated change [#325](https://github.com/grafana/scenes/pull/325) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.2.0 (Wed Sep 13 2023)
 
 #### 🚀 Enhancement

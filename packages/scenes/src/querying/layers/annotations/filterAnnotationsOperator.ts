@@ -11,11 +11,12 @@ export const filterAnnotationsOperator: (filters: DataLayerFilter) => CustomTran
           return data;
         }
 
-        const rows = new Set<number>();
+        const rows = Array.from({ length: data.length }, () => new Set<number>());
 
+        let frameIdx = 0;
         for (const frame of data) {
           for (let index = 0; index < frame.length; index++) {
-            if (rows.has(index)) {
+            if (rows[frameIdx].has(index)) {
               continue;
             }
             let matching = true;
@@ -49,22 +50,24 @@ export const filterAnnotationsOperator: (filters: DataLayerFilter) => CustomTran
             }
 
             if (matching) {
-              rows.add(index);
+              rows[frameIdx].add(index);
             }
           }
+          frameIdx++;
         }
 
         const processed: DataFrame[] = [];
-        const frameLength = rows.size;
 
+        frameIdx = 0;
         for (const frame of data) {
+          const frameLength = rows[frameIdx].size;
           const fields: Field[] = [];
 
           for (const field of frame.fields) {
             const buffer = [];
 
             for (let index = 0; index < frame.length; index++) {
-              if (rows.has(index)) {
+              if (rows[frameIdx].has(index)) {
                 buffer.push(field.values[index]);
                 continue;
               }
@@ -81,8 +84,8 @@ export const filterAnnotationsOperator: (filters: DataLayerFilter) => CustomTran
             fields: fields,
             length: frameLength,
           });
+          frameIdx++;
         }
-
         return processed;
       })
     );

@@ -8,14 +8,13 @@ import {
   SceneDataLayerProviderResult,
   SceneDataLayerProviderState,
 } from '../../core/types';
-
-type SceneDataLayerBaseState<T extends {} = {}> = SceneDataLayerProviderState & T;
+import { setBaseClassState } from '../../utils/utils';
 
 /**
  * Base class for data layer. Handles common implementation including enabling/disabling layer and publishing results.
  */
-export abstract class SceneDataLayerBase<T extends {} = SceneDataLayerProviderState>
-  extends SceneObjectBase<SceneDataLayerBaseState<T>>
+export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState = SceneDataLayerProviderState>
+  extends SceneObjectBase<T>
   implements SceneDataLayerProvider
 {
   /**
@@ -41,11 +40,16 @@ export abstract class SceneDataLayerBase<T extends {} = SceneDataLayerProviderSt
   public abstract onDisable(): void;
 
   /**
+   * Implement logic running the layer and setting up the querySub subscription.
+   */
+  protected abstract runLayer(): void;
+
+  /**
    * Data topic that a given layer is responsible for.
    */
   public abstract topic: DataTopic;
 
-  public constructor(initialState: SceneDataLayerBaseState<T>) {
+  public constructor(initialState: T) {
     super({
       isEnabled: true,
       ...initialState,
@@ -59,6 +63,10 @@ export abstract class SceneDataLayerBase<T extends {} = SceneDataLayerProviderSt
       this.onEnable();
     }
 
+    if (this.shouldRunLayerOnActivate()) {
+      this.runLayer();
+    }
+
     // Subscribe to layer state changes and enable/disable layer accordingly.
     this.subscribeToState((n, p) => {
       if (!n.isEnabled && this.querySub) {
@@ -67,16 +75,21 @@ export abstract class SceneDataLayerBase<T extends {} = SceneDataLayerProviderSt
         this.querySub = undefined;
         this.onDisable();
 
+        // Manually publishing the results to state and results stream as publishPublish results has a guard for the layer to be enabled.
         this._results.next({
           origin: this,
           data: emptyPanelData,
           topic: this.topic,
+        });
+        this.setStateHelper({
+          data: emptyPanelData,
         });
       }
 
       if (n.isEnabled && !p.isEnabled) {
         // When layer enabled, run queries.
         this.onEnable();
+        this.runLayer();
       }
     });
 
@@ -98,6 +111,8 @@ export abstract class SceneDataLayerBase<T extends {} = SceneDataLayerProviderSt
     if (this.querySub) {
       this.querySub.unsubscribe();
       this.querySub = undefined;
+
+      this.publishResults(emptyPanelData, this.topic);
     }
   }
 
@@ -108,10 +123,29 @@ export abstract class SceneDataLayerBase<T extends {} = SceneDataLayerProviderSt
         data,
         topic,
       });
+
+      this.setStateHelper({
+        data,
+      });
     }
   }
 
   public getResultsStream() {
     return this._results;
+  }
+
+  private shouldRunLayerOnActivate() {
+    if (this.state.data) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * This helper function is to counter the contravariance of setState
+   */
+  private setStateHelper(state: Partial<SceneDataLayerProviderState>) {
+    setBaseClassState<SceneDataLayerProviderState>(this, state);
   }
 }

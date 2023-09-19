@@ -1,16 +1,17 @@
-import { AnnotationEvent, arrayToDataFrame, DataTopic, PanelData, AnnotationQuery } from '@grafana/data';
-import { from, map, merge, mergeAll, mergeMap, reduce, Unsubscribable } from 'rxjs';
+import { arrayToDataFrame, DataTopic, AnnotationQuery } from '@grafana/data';
+import { LoadingState } from '@grafana/schema';
+import { map, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../../core/SceneDataNode';
 import { sceneGraph } from '../../../core/sceneGraph';
 import { SceneDataLayerProvider, SceneTimeRangeLike, SceneDataLayerProviderState } from '../../../core/types';
 import { getDataSource } from '../../../utils/getDataSource';
+import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { executeAnnotationQuery } from './standardAnnotationQuery';
 import { postProcessQueryResult } from './utils';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
-  data?: PanelData;
-  queries: AnnotationQuery[];
+  query: AnnotationQuery;
 }
 
 export class AnnotationsDataLayer
@@ -33,24 +34,10 @@ export class AnnotationsDataLayer
     this._timeRangeSub = timeRange.subscribeToState(() => {
       this.runWithTimeRange(timeRange);
     });
-
-    this.runLayer();
   }
 
   public onDisable(): void {
     this._timeRangeSub?.unsubscribe();
-  }
-
-  protected onActivate() {
-    const deactivationHandle = super.onActivate();
-
-    if (this.shouldRunQueriesOnActivate()) {
-      this.runLayer();
-    }
-
-    return () => {
-      deactivationHandle();
-    };
   }
 
   public runLayer() {
@@ -59,75 +46,48 @@ export class AnnotationsDataLayer
   }
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
-    const { queries } = this.state;
+    const { query } = this.state;
 
     if (this.querySub) {
       this.querySub.unsubscribe();
     }
 
-    // Simple path when no queries exist
-    if (!queries?.length) {
-      this.onDataReceived([]);
-    }
+    try {
+      const ds = await getDataSource(query.datasource || undefined, {});
 
-    const observables = queries
-      // get enabled queries
-      .filter((q) => q.enable)
-      // execute queries & collect results
-      .map((query) => {
-        // TODO pass scopedVars
-        return from(getDataSource(query.datasource || undefined, {})).pipe(
-          mergeMap((ds) => {
-            // TODO: There is a lot of AnnotationEvents[] -> DataFrame -> AnnotationEvents[] conversion going on here
-            // This needs to be refactored an possibly optimized to use DataFrame only.
-            // Seems like this is done to allow mappings to be applied by the data source using processEvents method.
-            return executeAnnotationQuery(ds, timeRange, query);
-          }),
+      const queryExecution = executeAnnotationQuery(ds, timeRange, query).pipe(
+        map((events) => {
+          // Feels like this should be done in annotation processing, not as a separate step.
+          const processedEvents = postProcessQueryResult(query, events.events || []);
+          const stateUpdate = { ...emptyPanelData, state: events.state };
+          const df = arrayToDataFrame(processedEvents);
+          df.meta = {
+            ...df.meta,
+            dataTopic: DataTopic.Annotations,
+          };
 
-          map((events) => {
-            // Feels like this should be done in annotation processing, not as a separate step.
-            return postProcessQueryResult(query, events || []);
-          })
-        );
-      });
-
-    this.querySub = merge(observables)
-      .pipe(
-        mergeAll(),
-        // Combine all annotation results into a single array
-        reduce((acc: AnnotationEvent[], value: AnnotationEvent[]) => {
-          acc = acc.concat(value);
-          return acc;
+          stateUpdate.annotations = [df];
+          return stateUpdate;
         })
-      )
-      .subscribe((result) => {
-        this.onDataReceived(result);
+      );
+
+      this.querySub = queryExecution.subscribe((stateUpdate) => {
+        this.publishResults(stateUpdate, DataTopic.Annotations);
       });
-  }
-
-  private onDataReceived(result: AnnotationEvent[]) {
-    // This is only faking panel data
-    const stateUpdate = { ...emptyPanelData };
-    const df = arrayToDataFrame(result);
-    df.meta = {
-      ...df.meta,
-      dataTopic: DataTopic.Annotations,
-    };
-
-    stateUpdate.annotations = [df];
-
-    this.publishResults(stateUpdate, DataTopic.Annotations);
-
-    this.setState({
-      data: stateUpdate,
-    });
-  }
-
-  private shouldRunQueriesOnActivate() {
-    if (this.state.data) {
-      return false;
+    } catch (e) {
+      this.publishResults(
+        {
+          ...emptyPanelData,
+          state: LoadingState.Error,
+          errors: [
+            {
+              message: getMessageFromError(e),
+            },
+          ],
+        },
+        DataTopic.Annotations
+      );
+      console.error('AnnotationsDataLayer error', e);
     }
-
-    return true;
   }
 }

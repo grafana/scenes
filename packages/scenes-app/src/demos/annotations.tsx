@@ -20,65 +20,59 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getAnnotationsDemo(defaults: SceneAppPageState) {
   const globalAnnotations = new dataLayers.AnnotationsDataLayer({
     name: 'Global annotations',
-    queries: [
-      {
-        datasource: {
-          type: 'testdata',
-          uid: 'gdev-testdata',
-        },
-        enable: true,
-        iconColor: 'yellow',
-        name: 'New annotation',
-        target: {
-          // @ts-ignore
-          lines: 10,
-          refId: 'Anno',
-          scenarioId: 'annotations',
-        },
+    query: {
+      datasource: {
+        type: 'testdata',
+        uid: 'gdev-testdata',
       },
-    ],
+      enable: true,
+      iconColor: 'yellow',
+      name: 'New annotation',
+      target: {
+        // @ts-ignore
+        lines: 10,
+        refId: 'Anno',
+        scenarioId: 'annotations',
+      },
+    },
   });
 
   const nestedAnnotationsDataLayer = new dataLayers.AnnotationsDataLayer({
     name: 'Nested annotations',
-    queries: [
-      {
-        datasource: {
-          type: 'testdata',
-          uid: 'gdev-testdata',
-        },
-        enable: true,
-        iconColor: 'red',
-        name: 'New annotation',
-        target: {
-          // @ts-ignore
-          lines: 5,
-          refId: 'Anno',
-          scenarioId: 'annotations',
-        },
+    query: {
+      datasource: {
+        type: 'testdata',
+        uid: 'gdev-testdata',
       },
-    ],
+      enable: true,
+      iconColor: 'red',
+      name: 'New annotation',
+      target: {
+        // @ts-ignore
+        lines: 5,
+        refId: 'Anno',
+        scenarioId: 'annotations',
+      },
+    },
   });
 
   const independentAnnotations = new dataLayers.AnnotationsDataLayer({
     name: 'Independent annotations',
-    queries: [
-      {
-        datasource: {
-          type: 'testdata',
-          uid: 'gdev-testdata',
-        },
-        enable: true,
-        iconColor: 'purple',
-        name: 'New annotation',
-        target: {
-          // @ts-ignore
-          lines: 3,
-          refId: 'Anno',
-          scenarioId: 'annotations',
-        },
+    query: {
+      datasource: {
+        type: 'testdata',
+        uid: 'gdev-testdata',
       },
-    ],
+      enable: true,
+      iconColor: 'purple',
+      name: 'New annotation',
+      target: {
+        // @ts-ignore
+        lines: 3,
+        refId: 'Anno',
+        scenarioId: 'annotations',
+      },
+    },
   });
 
   return new SceneAppPage({
@@ -179,23 +173,21 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                     layers: [
                       new dataLayers.AnnotationsDataLayer({
                         name: 'Local annotations',
-                        queries: [
-                          {
-                            datasource: {
-                              type: 'testdata',
-                              uid: 'gdev-testdata',
-                            },
-                            enable: true,
-                            iconColor: 'green',
-                            name: 'New annotation',
-                            target: {
-                              // @ts-ignore
-                              lines: 4,
-                              refId: 'Anno',
-                              scenarioId: 'annotations',
-                            },
+                        query: {
+                          datasource: {
+                            type: 'testdata',
+                            uid: 'gdev-testdata',
                           },
-                        ],
+                          enable: true,
+                          iconColor: 'green',
+                          name: 'New annotation',
+                          target: {
+                            // @ts-ignore
+                            lines: 4,
+                            refId: 'Anno',
+                            scenarioId: 'annotations',
+                          },
+                        },
                       }),
                     ],
                   }),

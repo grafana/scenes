@@ -1,3 +1,5 @@
+import { css } from '@emotion/css';
+import { LoadingState } from '@grafana/schema';
 import { InlineSwitch } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../../core/sceneGraph';
@@ -43,18 +45,48 @@ function SceneDataLayerControlsRenderer({ model }: SceneComponentProps<SceneData
     <>
       {layers.map((l) => {
         const elementId = `data-layer-${l.state.key}`;
+
+        if (l.state.isHidden) {
+          return null;
+        }
+
         return (
-          <div
+          <SceneDataLayerControl
             key={elementId}
-            style={{
-              display: 'flex',
-            }}
-          >
-            <ControlsLabel htmlFor={elementId} label={l.state.name} />
-            <InlineSwitch id={elementId} value={layersMap[l.state.key!]} onChange={() => model.toggleLayer(l)} />
-          </div>
+            layer={l}
+            onToggleLayer={() => model.toggleLayer(l)}
+            isEnabled={layersMap[l.state.key!]}
+          />
         );
       })}
     </>
   );
 }
+
+interface SceneDataLayerControlProps {
+  isEnabled: boolean;
+  layer: SceneDataLayerProvider;
+  onToggleLayer: () => void;
+}
+
+export function SceneDataLayerControl({ layer, isEnabled, onToggleLayer }: SceneDataLayerControlProps) {
+  const elementId = `data-layer-${layer.state.key}`;
+  const { data } = layer.useState();
+  const showLoading = Boolean(data && data.state === LoadingState.Loading);
+
+  return (
+    <div className={containerStyle}>
+      <ControlsLabel
+        htmlFor={elementId}
+        isLoading={showLoading}
+        onCancel={() => layer.cancelQuery?.()}
+        label={layer.state.name}
+        description={layer.state.description}
+        error={layer.state.data?.errors?.[0].message}
+      />
+      <InlineSwitch id={elementId} value={isEnabled} onChange={onToggleLayer} />
+    </div>
+  );
+}
+
+const containerStyle = css({ display: 'flex' });
