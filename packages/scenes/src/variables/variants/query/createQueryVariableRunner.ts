@@ -29,6 +29,11 @@ class StandardQueryRunner implements QueryRunner {
 
   public getTarget(variable: QueryVariable) {
     if (hasStandardVariableSupport(this.datasource)) {
+      // Migrate legacy queries
+      if (!isDataQueryType(variable.state.query)) {
+        variable.setState({ query: { query: variable.state.query, refId: `variable-${variable.state.name}` } });
+      }
+
       return this.datasource.variables.toDataQuery(variable.state.query);
     }
 
@@ -138,4 +143,12 @@ export let createQueryVariableRunner = createQueryVariableRunnerFactory;
  */
 export function setCreateQueryVariableRunnerFactory(fn: (datasource: DataSourceApi) => QueryRunner) {
   createQueryVariableRunner = fn;
+}
+
+function isDataQueryType(query: any): query is DataQuery {
+  if (!query) {
+    return false;
+  }
+
+  return query.hasOwnProperty('refId') && typeof query.refId === 'string';
 }
