@@ -6,6 +6,8 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersUI } from './AdHocFiltersUI';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { SceneObject } from '../../core/types';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   filters: AdHocVariableFilter[];
@@ -43,17 +45,28 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
       return;
     }
 
-    if (filter === this.state._wip) {
-      this.setState({ _wip: { ...filter, [prop]: value } });
-    } else {
-      const updatedFilters = this.state.filters.map((f) => {
-        if (f === filter) {
-          return { ...f, [prop]: value };
-        }
-        return f;
-      });
-      this.setState({ filters: updatedFilters });
+    const { filters, _wip } = this.state;
+
+    if (filter === _wip) {
+      // If we set value we are done with this "work in progress" filter and we can add it
+      if (prop === 'value') {
+        this.setState({ filters: [...filters, { ..._wip, [prop]: value }], _wip: undefined });
+        this._runSceneQueries();
+      } else {
+        this.setState({ _wip: { ...filter, [prop]: value } });
+      }
+      return;
     }
+
+    const updatedFilters = this.state.filters.map((f) => {
+      if (f === filter) {
+        return { ...f, [prop]: value };
+      }
+      return f;
+    });
+
+    this.setState({ filters: updatedFilters });
+    this._runSceneQueries();
   }
 
   /**
@@ -91,5 +104,23 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
     if (key != null) {
       this.setState({ _wip: { key, value: '', operator: '=', condition: '' } });
     }
+  }
+
+  private _runSceneQueries() {
+    const startingPoint = this.parent?.parent;
+    if (!startingPoint) {
+      console.error('AdHocFiltersVariable could not find a parent scene to broadcast changes to');
+      return;
+    }
+
+    const triggerQueriesRecursive = (startingPoint: SceneObject) => {
+      if (startingPoint instanceof SceneQueryRunner) {
+        startingPoint.runQueries();
+      } else {
+        startingPoint.forEachChild(triggerQueriesRecursive);
+      }
+    };
+
+    triggerQueriesRecursive(startingPoint);
   }
 }
