@@ -1,3 +1,15 @@
+# v1.5.1 (Wed Sep 20 2023)
+
+#### 🐛 Bug Fix
+
+- AnnotationsDataLayer: Provide inheritance extension points [#347](https://github.com/grafana/scenes/pull/347) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.5.0 (Wed Sep 20 2023)
 
 #### 🚀 Enhancement
