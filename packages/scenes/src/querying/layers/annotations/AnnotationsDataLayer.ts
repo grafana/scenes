@@ -7,7 +7,7 @@ import { SceneDataLayerProvider, SceneTimeRangeLike, SceneDataLayerProviderState
 import { getDataSource } from '../../../utils/getDataSource';
 import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
-import { executeAnnotationQuery } from './standardAnnotationQuery';
+import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { postProcessQueryResult } from './utils';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
@@ -53,20 +53,11 @@ export class AnnotationsDataLayer
     }
 
     try {
-      const ds = await getDataSource(query.datasource || undefined, {});
+      const ds = await this.resolveDataSource(query);
 
       const queryExecution = executeAnnotationQuery(ds, timeRange, query).pipe(
         map((events) => {
-          // Feels like this should be done in annotation processing, not as a separate step.
-          const processedEvents = postProcessQueryResult(query, events.events || []);
-          const stateUpdate = { ...emptyPanelData, state: events.state };
-          const df = arrayToDataFrame(processedEvents);
-          df.meta = {
-            ...df.meta,
-            dataTopic: DataTopic.Annotations,
-          };
-
-          stateUpdate.annotations = [df];
+          const stateUpdate = this.processEvents(query, events);
           return stateUpdate;
         })
       );
@@ -89,5 +80,23 @@ export class AnnotationsDataLayer
       );
       console.error('AnnotationsDataLayer error', e);
     }
+  }
+
+  protected async resolveDataSource(query: AnnotationQuery) {
+    return await getDataSource(query.datasource || undefined, {});
+  }
+
+  protected processEvents(query: AnnotationQuery, events: AnnotationQueryResults) {
+    const processedEvents = postProcessQueryResult(query, events.events || []);
+    const stateUpdate = { ...emptyPanelData, state: events.state };
+    const df = arrayToDataFrame(processedEvents);
+    df.meta = {
+      ...df.meta,
+      dataTopic: DataTopic.Annotations,
+    };
+
+    stateUpdate.annotations = [df];
+
+    return stateUpdate;
   }
 }

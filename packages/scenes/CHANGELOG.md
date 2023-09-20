@@ -1,3 +1,40 @@
+# v1.5.1 (Wed Sep 20 2023)
+
+#### 🐛 Bug Fix
+
+- AnnotationsDataLayer: Provide inheritance extension points [#347](https://github.com/grafana/scenes/pull/347) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.5.0 (Wed Sep 20 2023)
+
+#### 🚀 Enhancement
+
+- Variables: Fix issue with previous fix [#350](https://github.com/grafana/scenes/pull/350) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.4.0 (Wed Sep 20 2023)
+
+#### 🚀 Enhancement
+
+- Variables: Fixes issue with running variable queries with custom or legacy runner [#348](https://github.com/grafana/scenes/pull/348) ([@torkelo](https://github.com/torkelo))
+- QueryVariable: Fixes queries with older model [#340](https://github.com/grafana/scenes/pull/340) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.3.3 (Mon Sep 18 2023)
 
 #### 🐛 Bug Fix
