@@ -8,7 +8,7 @@ import { getDataSource } from '../../../utils/getDataSource';
 import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { executeAnnotationQuery } from './standardAnnotationQuery';
-import { postProcessQueryResult } from './utils';
+import { dedupAnnotations, postProcessQueryResult } from './utils';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
@@ -58,7 +58,9 @@ export class AnnotationsDataLayer
       const queryExecution = executeAnnotationQuery(ds, timeRange, query).pipe(
         map((events) => {
           // Feels like this should be done in annotation processing, not as a separate step.
-          const processedEvents = postProcessQueryResult(query, events.events || []);
+          let processedEvents = postProcessQueryResult(query, events.events || []);
+          processedEvents = dedupAnnotations(processedEvents);
+
           const stateUpdate = { ...emptyPanelData, state: events.state };
           const df = arrayToDataFrame(processedEvents);
           df.meta = {
