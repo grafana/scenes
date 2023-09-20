@@ -22,7 +22,7 @@ import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
-import { getBreakdownDemo } from './groupByAction';
+import { getBreakdownDemo } from './breakdownDemo';
 
 export interface DemoDescriptor {
   title: string;

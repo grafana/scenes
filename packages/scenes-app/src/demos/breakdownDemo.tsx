@@ -16,6 +16,8 @@ import {
   sceneGraph,
   SceneByFrameRepeater,
   SceneDataNode,
+  SceneObjectUrlSyncConfig,
+  SceneObjectUrlValues,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 import { Button, Tab, TabsBar, RadioButtonGroup, useStyles2 } from '@grafana/ui';
@@ -38,6 +40,8 @@ export function getBreakdownDemo(defaults: SceneAppPageState) {
               maxHeight: 500,
               body: PanelBuilders.timeseries()
                 .setTitle('HTTP Requests')
+                .setOption('legend', { showLegend: false })
+                .setCustomFieldConfig('fillOpacity', 9)
                 .setData(
                   new SceneQueryRunner({
                     queries: [
@@ -50,7 +54,7 @@ export function getBreakdownDemo(defaults: SceneAppPageState) {
                   })
                 )
                 .setHeaderActions(
-                  new BreakdownBehavior({
+                  new BreakdownActionButton({
                     isEnabled: false,
                     childIndex: 1,
                     getBreakdownScene: getBreakdownScene,
@@ -66,7 +70,7 @@ export function getBreakdownDemo(defaults: SceneAppPageState) {
   });
 }
 
-export interface BreakdownBehaviorState extends SceneObjectState {
+export interface BreakdownActionButtonState extends SceneObjectState {
   isEnabled: boolean;
   childIndex: number;
   getBreakdownScene: () => SceneObject;
@@ -75,18 +79,49 @@ export interface BreakdownBehaviorState extends SceneObjectState {
 /**
  * Just a proof of concept example of a behavior
  */
-export class BreakdownBehavior extends SceneObjectBase<BreakdownBehaviorState> {
+export class BreakdownActionButton extends SceneObjectBase<BreakdownActionButtonState> {
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['breakdown'] });
   private _breakdownScene?: SceneObject;
 
+  constructor(state: BreakdownActionButtonState) {
+    super(state);
+
+    this.addActivationHandler(() => {
+      // Enable breakdown on activation if set by url sync
+      if (this.state.isEnabled && !this._breakdownScene) {
+        this.addBreakdownScene();
+      }
+    });
+  }
+
+  public getUrlState() {
+    return { breakdown: this.state.isEnabled ? '1' : '0' };
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues) {
+    if (values.breakdown && !this.state.isEnabled) {
+      this.setState({ isEnabled: true });
+    } else if (this.state.isEnabled) {
+      this.setState({ isEnabled: false });
+    }
+  }
+
   public onToggle = () => {
-    const { isEnabled, childIndex, getBreakdownScene } = this.state;
+    const { isEnabled } = this.state;
     const layout = sceneGraph.getLayout(this)!;
 
     if (isEnabled) {
       layout.setState({ children: layout.state.children.filter((c) => c !== this._breakdownScene) });
       this.setState({ isEnabled: false });
-      return;
+    } else {
+      this.addBreakdownScene();
+      this.setState({ isEnabled: true });
     }
+  };
+
+  private addBreakdownScene() {
+    const { childIndex, getBreakdownScene } = this.state;
+    const layout = sceneGraph.getLayout(this)!;
 
     this._breakdownScene = getBreakdownScene();
 
@@ -97,10 +132,9 @@ export class BreakdownBehavior extends SceneObjectBase<BreakdownBehaviorState> {
     ];
 
     layout.setState({ children: newChildren });
-    this.setState({ isEnabled: true });
-  };
+  }
 
-  public static Component = ({ model }: SceneComponentProps<BreakdownBehavior>) => {
+  public static Component = ({ model }: SceneComponentProps<BreakdownActionButton>) => {
     const { isEnabled } = model.useState();
     return (
       <Button onClick={model.onToggle} variant={isEnabled ? 'primary' : 'secondary'} size="sm">
@@ -185,6 +219,7 @@ export class VariableTabLayout extends SceneObjectBase<VariableTabLayoutState> {
 function getStyles(theme: GrafanaTheme2) {
   return {
     container: css({
+      marginLeft: theme.spacing(2),
       flexGrow: 1,
       display: 'flex',
       minHeight: '100%',
@@ -256,8 +291,9 @@ function getBreakdownScene() {
                 .setTitle(getFrameDisplayName(frame, frameIndex))
                 .setData(new SceneDataNode({ data: { ...data, series: [frame] } }))
                 .setOption('legend', { showLegend: false })
+                .setCustomFieldConfig('fillOpacity', 9)
                 .setHeaderActions(
-                  new BreakdownBehavior({
+                  new BreakdownActionButton({
                     isEnabled: false,
                     childIndex: frameIndex + 1,
                     getBreakdownScene: () => getSecondLevelBreakdown(getFrameDisplayName(frame, frameIndex)),
@@ -318,6 +354,7 @@ function getSecondLevelBreakdown(labelFilter: string) {
               minHeight: 200,
               body: PanelBuilders.timeseries()
                 .setTitle(getFrameDisplayName(frame, frameIndex))
+                .setCustomFieldConfig('fillOpacity', 9)
                 .setData(new SceneDataNode({ data: { ...data, series: [frame] } }))
                 .build(),
             });
