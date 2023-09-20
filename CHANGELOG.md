@@ -1,3 +1,16 @@
+# v1.5.0 (Wed Sep 20 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Fix issue with previous fix [#350](https://github.com/grafana/scenes/pull/350) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.4.0 (Wed Sep 20 2023)
 
 #### 🚀 Enhancement
