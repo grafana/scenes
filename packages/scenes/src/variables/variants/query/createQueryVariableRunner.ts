@@ -1,18 +1,12 @@
 import { from, mergeMap, Observable, of } from 'rxjs';
 
-import {
-  DataQuery,
-  DataQueryRequest,
-  DataSourceApi,
-  getDefaultTimeRange,
-  LoadingState,
-  PanelData,
-} from '@grafana/data';
+import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { hasCustomVariableSupport, hasLegacyVariableSupport, hasStandardVariableSupport } from './guards';
 
 import { QueryVariable } from './QueryVariable';
+import { DataQuery } from '@grafana/schema';
 
 export interface RunnerArgs {
   searchFilter?: string;
@@ -29,12 +23,7 @@ class StandardQueryRunner implements QueryRunner {
 
   public getTarget(variable: QueryVariable) {
     if (hasStandardVariableSupport(this.datasource)) {
-      // Migrate legacy queries
-      if (!isDataQueryType(variable.state.query)) {
-        variable.setState({ query: { query: variable.state.query, refId: `variable-${variable.state.name}` } });
-      }
-
-      return this.datasource.variables.toDataQuery(variable.state.query);
+      return this.datasource.variables.toDataQuery(ensureVariableQueryModelIsADataQuery(variable.state.query));
     }
 
     throw new Error("Couldn't create a target with supplied arguments.");
@@ -49,7 +38,7 @@ class StandardQueryRunner implements QueryRunner {
       return this._runRequest(this.datasource, request);
     }
 
-    return this._runRequest(this.datasource, request, this.datasource.variables.query);
+    return this._runRequest(this.datasource, request, this.datasource.variables.query.bind(this.datasource.variables));
   }
 }
 
@@ -112,7 +101,7 @@ class CustomQueryRunner implements QueryRunner {
     if (!this.datasource.variables.query) {
       return this._runRequest(this.datasource, request);
     }
-    return this._runRequest(this.datasource, request, this.datasource.variables.query);
+    return this._runRequest(this.datasource, request, this.datasource.variables.query.bind(this.datasource.variables));
   }
 }
 
@@ -145,10 +134,21 @@ export function setCreateQueryVariableRunnerFactory(fn: (datasource: DataSourceA
   createQueryVariableRunner = fn;
 }
 
-function isDataQueryType(query: any): query is DataQuery {
-  if (!query) {
-    return false;
+/**
+ * Fixes old legacy query string models and adds refId if missing
+ */
+function ensureVariableQueryModelIsADataQuery(variable: QueryVariable) {
+  const query = variable.state.query;
+
+  // Turn into query object if it's just a string
+  if (!query || typeof query !== 'object') {
+    return { query: query, refId: `variable-${variable.state.name}` };
   }
 
-  return query.hasOwnProperty('refId') && typeof query.refId === 'string';
+  // Add potentially missing refId
+  if (query.refId == null) {
+    return { ...variable.state.query, refId: `variable-${variable.state.name}` };
+  }
+
+  return variable.state.query;
 }
