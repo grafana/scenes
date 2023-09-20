@@ -18,15 +18,15 @@ import {
   SceneDataNode,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
-import { Button, Tab, TabsBar, RadioButtonGroup, useStyles2, LegendDisplayMode, BigValueGraphMode } from '@grafana/ui';
+import { Button, Tab, TabsBar, RadioButtonGroup, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { css } from '@emotion/css';
 import { GrafanaTheme2, getFrameDisplayName } from '@grafana/data';
 
-export function getGoupByActionDemo(defaults: SceneAppPageState) {
+export function getBreakdownDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Breakdown POC',
+    subTitle: 'Example of how a dynamic breakdown scene could work',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
@@ -236,8 +236,74 @@ function getBreakdownScene() {
       body: new SplittableLayoutItem({
         isSplit: false,
         single: new SceneFlexLayout({
+          direction: 'column',
           children: [
             new SceneFlexItem({
+              minHeight: 300,
+              body: PanelBuilders.timeseries().setTitle('HTTP Requests').build(),
+            }),
+          ],
+        }),
+        split: new SceneByFrameRepeater({
+          body: new SceneFlexLayout({
+            direction: 'column',
+            children: [],
+          }),
+          getLayoutChild: (data, frame, frameIndex) => {
+            return new SceneFlexItem({
+              minHeight: 200,
+              body: PanelBuilders.timeseries()
+                .setTitle(getFrameDisplayName(frame, frameIndex))
+                .setData(new SceneDataNode({ data: { ...data, series: [frame] } }))
+                .setOption('legend', { showLegend: false })
+                .setHeaderActions(
+                  new BreakdownBehavior({
+                    isEnabled: false,
+                    childIndex: frameIndex + 1,
+                    getBreakdownScene: () => getSecondLevelBreakdown(getFrameDisplayName(frame, frameIndex)),
+                  })
+                )
+                .build(),
+            });
+          },
+        }),
+      }),
+    }),
+  });
+}
+
+function getSecondLevelBreakdown(labelFilter: string) {
+  return new SceneFlexItem({
+    body: new VariableTabLayout({
+      $variables: new SceneVariableSet({
+        variables: [
+          new QueryVariable({
+            name: 'groupby_lvl2',
+            label: 'Group by',
+            datasource: { uid: 'gdev-prometheus' },
+            query: 'label_names(grafana_http_request_duration_seconds_bucket)',
+            value: '',
+            text: '',
+          }),
+        ],
+      }),
+      variableName: 'groupby_lvl2',
+      $data: new SceneQueryRunner({
+        queries: [
+          {
+            refId: 'A',
+            datasource: { uid: 'gdev-prometheus' },
+            expr: `sum(rate(grafana_http_request_duration_seconds_bucket${labelFilter}[$__rate_interval])) by($groupby, $groupby_lvl2)`,
+          },
+        ],
+      }),
+      body: new SplittableLayoutItem({
+        isSplit: false,
+        single: new SceneFlexLayout({
+          direction: 'column',
+          children: [
+            new SceneFlexItem({
+              minHeight: 300,
               body: PanelBuilders.timeseries().setTitle('HTTP Requests').build(),
             }),
           ],
