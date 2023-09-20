@@ -22,6 +22,7 @@ import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
+import { getGoupByActionDemo } from './groupByAction';
 
 export interface DemoDescriptor {
   title: string;
@@ -53,5 +54,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
     { title: 'Data layers', getPage: getAnnotationsDemo },
     { title: 'Docs examples', getPage: getDocsExamples },
+    { title: 'Group by action', getPage: getGoupByActionDemo },
   ];
 }
