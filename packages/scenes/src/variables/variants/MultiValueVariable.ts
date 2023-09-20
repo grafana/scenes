@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash';
-import { map, Observable, of } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
@@ -30,8 +30,6 @@ export interface MultiValueVariableState extends SceneVariableState {
   defaultToAll?: boolean;
   allValue?: string;
   placeholder?: string;
-  lazyValue?: string;
-  includeNoValue?: boolean;
 }
 
 export interface VariableGetOptionsArgs {
@@ -53,11 +51,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * This function is called on when SceneVariableSet is activated or when a dependency changes.
    */
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
-    // if our current value is same as lazy value we have nothing to do
-    // if (this.state.lazyValue === this.state.value) {
-    //   return of({});
-    // }
-
     return this.getValueOptions({}).pipe(
       map((options) => {
         this.updateValueGivenNewOptions(options);
@@ -82,10 +75,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       value: this.state.value,
       text: this.state.text,
     };
-
-    if (this.state.includeNoValue) {
-      stateUpdate.options?.unshift({ value: '', label: '' });
-    }
 
     if (options.length === 0) {
       // TODO handle the no value state

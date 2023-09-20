@@ -8,7 +8,7 @@ import { MultiValueVariable } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key, includeNoValue } = model.useState();
+  const { value, key } = model.useState();
 
   return (
     <Select<VariableValue>
@@ -18,7 +18,6 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       value={value}
       allowCustomValue
       tabSelectsValue={false}
-      isClearable={includeNoValue}
       options={model.getOptionsForSelect()}
       onChange={(newValue) => {
         model.changeValueTo(newValue?.value ?? '', newValue?.label ?? '');
