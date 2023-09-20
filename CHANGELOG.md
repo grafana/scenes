@@ -1,3 +1,17 @@
+# v1.4.0 (Wed Sep 20 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Fixes issue with running variable queries with custom or legacy runner [#348](https://github.com/grafana/scenes/pull/348) ([@torkelo](https://github.com/torkelo))
+  - QueryVariable: Fixes queries with older model [#340](https://github.com/grafana/scenes/pull/340) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.3.3 (Mon Sep 18 2023)
 
 #### 🐛 Bug Fix
