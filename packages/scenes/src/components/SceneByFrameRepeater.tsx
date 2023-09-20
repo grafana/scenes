@@ -17,13 +17,19 @@ export class SceneByFrameRepeater extends SceneObjectBase<SceneByFrameRepeaterSt
     super(state);
 
     this.addActivationHandler(() => {
+      const data = sceneGraph.getData(this);
+
       this._subs.add(
-        sceneGraph.getData(this).subscribeToState((data) => {
+        data.subscribeToState((data) => {
           if (data.data?.state === LoadingState.Done) {
             this.performRepeat(data.data);
           }
         })
       );
+
+      if (data.state.data) {
+        this.performRepeat(data.state.data);
+      }
     });
   }
 

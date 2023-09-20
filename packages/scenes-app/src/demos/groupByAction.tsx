@@ -14,12 +14,14 @@ import {
   SceneComponentProps,
   SceneObject,
   sceneGraph,
+  SceneByFrameRepeater,
+  SceneDataNode,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
-import { Button, Tab, TabsBar, TabContent, useStyles2 } from '@grafana/ui';
+import { Button, Tab, TabsBar, RadioButtonGroup, useStyles2, LegendDisplayMode, BigValueGraphMode } from '@grafana/ui';
 import React from 'react';
 import { css } from '@emotion/css';
-import { GrafanaTheme2 } from '@grafana/data';
+import { GrafanaTheme2, getFrameDisplayName } from '@grafana/data';
 
 export function getGoupByActionDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -32,6 +34,7 @@ export function getGoupByActionDemo(defaults: SceneAppPageState) {
           direction: 'column',
           children: [
             new SceneFlexItem({
+              minHeight: 300,
               maxHeight: 500,
               body: PanelBuilders.timeseries()
                 .setTitle('HTTP Requests')
@@ -75,10 +78,6 @@ export interface BreakdownBehaviorState extends SceneObjectState {
 export class BreakdownBehavior extends SceneObjectBase<BreakdownBehaviorState> {
   private _breakdownScene?: SceneObject;
 
-  public constructor(state: BreakdownBehaviorState) {
-    super(state);
-  }
-
   public onToggle = () => {
     const { isEnabled, childIndex, getBreakdownScene } = this.state;
     const layout = sceneGraph.getLayout(this)!;
@@ -120,12 +119,23 @@ export interface VariableTabLayoutState extends SceneObjectState {
  * Just a proof of concept example of a behavior
  */
 export class VariableTabLayout extends SceneObjectBase<VariableTabLayoutState> {
-  public constructor(state: VariableTabLayoutState) {
-    super(state);
+  public onSplitChange = (split: boolean) => {
+    if (this.state.body instanceof SplittableLayoutItem) {
+      this.state.body.setState({ isSplit: split });
+    }
+  };
+
+  public getSplitState(): { splittable: boolean; isSplit: boolean } {
+    if (this.state.body instanceof SplittableLayoutItem) {
+      return { splittable: true, isSplit: this.state.body.state.isSplit };
+    }
+
+    return { isSplit: false, splittable: false };
   }
 
   public static Component = ({ model }: SceneComponentProps<VariableTabLayout>) => {
     const { variableName, body } = model.useState();
+    const bodyState = body.useState();
     const styles = useStyles2(getStyles);
     const variable = sceneGraph.lookupVariable(variableName, model);
 
@@ -138,6 +148,12 @@ export class VariableTabLayout extends SceneObjectBase<VariableTabLayoutState> {
     }
 
     const { loading, options } = variable.useState();
+    const radioOptions = [
+      { value: false, label: 'Single graph' },
+      { value: true, label: 'Split' },
+    ];
+
+    let { splittable, isSplit } = model.getSplitState();
 
     return (
       <div className={styles.container}>
@@ -152,6 +168,11 @@ export class VariableTabLayout extends SceneObjectBase<VariableTabLayoutState> {
               onChangeTab={() => variable.changeValueTo(option.value, option.label)}
             />
           ))}
+          {splittable && (
+            <div className={styles.tabControls}>
+              <RadioButtonGroup options={radioOptions} value={isSplit} onChange={model.onSplitChange} />
+            </div>
+          )}
         </TabsBar>
         <div className={styles.content}>
           <body.Component model={body} />
@@ -178,6 +199,12 @@ function getStyles(theme: GrafanaTheme2) {
       paddingRight: theme.spacing(2),
       fontWeight: theme.typography.fontWeightMedium,
     }),
+    tabControls: css({
+      flexGrow: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+    }),
   };
 }
 
@@ -197,26 +224,54 @@ function getBreakdownScene() {
         ],
       }),
       variableName: 'groupby',
-      body: new SceneFlexLayout({
-        children: [
-          new SceneFlexItem({
-            body: PanelBuilders.timeseries()
-              .setTitle('HTTP Requests')
-              .setData(
-                new SceneQueryRunner({
-                  queries: [
-                    {
-                      refId: 'A',
-                      datasource: { uid: 'gdev-prometheus' },
-                      expr: 'sum(rate(grafana_http_request_duration_seconds_bucket[$__rate_interval])) by($groupby)',
-                    },
-                  ],
-                })
-              )
-              .build(),
-          }),
+      $data: new SceneQueryRunner({
+        queries: [
+          {
+            refId: 'A',
+            datasource: { uid: 'gdev-prometheus' },
+            expr: 'sum(rate(grafana_http_request_duration_seconds_bucket[$__rate_interval])) by($groupby)',
+          },
         ],
+      }),
+      body: new SplittableLayoutItem({
+        isSplit: false,
+        single: new SceneFlexLayout({
+          children: [
+            new SceneFlexItem({
+              body: PanelBuilders.timeseries().setTitle('HTTP Requests').build(),
+            }),
+          ],
+        }),
+        split: new SceneByFrameRepeater({
+          body: new SceneFlexLayout({
+            direction: 'column',
+            children: [],
+          }),
+          getLayoutChild: (data, frame, frameIndex) => {
+            return new SceneFlexItem({
+              minHeight: 200,
+              body: PanelBuilders.timeseries()
+                .setTitle(getFrameDisplayName(frame, frameIndex))
+                .setData(new SceneDataNode({ data: { ...data, series: [frame] } }))
+                .build(),
+            });
+          },
+        }),
       }),
     }),
   });
+}
+
+export interface SplittableLayoutItemState extends SceneObjectState {
+  isSplit: boolean;
+  single: SceneObject;
+  split: SceneObject;
+}
+
+export class SplittableLayoutItem extends SceneObjectBase<SplittableLayoutItemState> {
+  public static Component = ({ model }: SceneComponentProps<SplittableLayoutItem>) => {
+    const { isSplit, split, single } = model.useState();
+
+    return isSplit ? <split.Component model={split} /> : <single.Component model={single} />;
+  };
 }
