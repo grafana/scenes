@@ -23,7 +23,7 @@ class StandardQueryRunner implements QueryRunner {
 
   public getTarget(variable: QueryVariable) {
     if (hasStandardVariableSupport(this.datasource)) {
-      return this.datasource.variables.toDataQuery(ensureVariableQueryModelIsADataQuery(variable.state.query));
+      return this.datasource.variables.toDataQuery(ensureVariableQueryModelIsADataQuery(variable));
     }
 
     throw new Error("Couldn't create a target with supplied arguments.");
