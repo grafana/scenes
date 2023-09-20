@@ -27,11 +27,16 @@ export interface AnnotationQueryOptions {
   panel: PanelModel;
 }
 
+export interface AnnotationQueryResults {
+  state: LoadingState;
+  events: AnnotationEvent[];
+}
+
 export function executeAnnotationQuery(
   datasource: DataSourceApi,
   timeRange: SceneTimeRangeLike,
   query: AnnotationQuery
-): Observable<{ state: LoadingState; events: AnnotationEvent[] }> {
+): Observable<AnnotationQueryResults> {
   // Check if we should use the old annotationQuery method
   if (datasource.annotationQuery && shouldUseLegacyRunner(datasource)) {
     console.warn('Using deprecated annotationQuery method, please upgrade your datasource');
