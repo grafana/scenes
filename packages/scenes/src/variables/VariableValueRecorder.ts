@@ -12,7 +12,11 @@ export class VariableValueRecorder {
   public recordCurrentDependencyValuesForSceneObject(sceneObject: SceneObject) {
     this.clearValues();
 
-    for (const variableName of sceneObject.variableDependency!.getNames()) {
+    if (!sceneObject.variableDependency) {
+      return;
+    }
+
+    for (const variableName of sceneObject.variableDependency.getNames()) {
       const variable = sceneGraph.lookupVariable(variableName, sceneObject);
       if (variable) {
         this._values.set(variable, variable.getValue());
@@ -52,7 +56,11 @@ export class VariableValueRecorder {
       return false;
     }
 
-    for (const variableName of sceneObject.variableDependency!.getNames()) {
+    if (!sceneObject.variableDependency) {
+      return false;
+    }
+
+    for (const variableName of sceneObject.variableDependency.getNames()) {
       const variable = sceneGraph.lookupVariable(variableName, sceneObject);
       if (variable && this._values.has(variable)) {
         const value = this._values.get(variable);
