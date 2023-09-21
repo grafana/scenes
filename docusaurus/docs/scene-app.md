@@ -21,10 +21,11 @@ Scenes come with the following objects that make it easy to build highly interac
 Define a new Scenes app using the `SceneApp` object :
 
 ```tsx
-const getSceneApp = () =>
-  new SceneApp({
+function getSceneApp() {
+  return new SceneApp({
     pages: [],
   });
+}
 ```
 
 ### Step 2. Render the Scenes app in a plugin
@@ -33,7 +34,7 @@ Define a component that will render the Scenes app:
 
 ```tsx
 function MyApp() {
-  const scene = useMemo(() => getSceneApp(), []);
+  const scene = useSceneApp(getSceneApp);
 
   return <scene.Component model={scene} />;
 }
