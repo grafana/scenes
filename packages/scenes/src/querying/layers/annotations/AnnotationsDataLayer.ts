@@ -6,6 +6,8 @@ import { sceneGraph } from '../../../core/sceneGraph';
 import { SceneDataLayerProvider, SceneTimeRangeLike, SceneDataLayerProviderState } from '../../../core/types';
 import { getDataSource } from '../../../utils/getDataSource';
 import { getMessageFromError } from '../../../utils/getMessageFromError';
+import { writeSceneLog } from '../../../utils/writeSceneLog';
+import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
@@ -20,6 +22,15 @@ export class AnnotationsDataLayer
 {
   private _timeRangeSub: Unsubscribable | undefined;
   public topic = DataTopic.Annotations;
+
+  protected _variableDependency: VariableDependencyConfig<AnnotationsDataLayerState> = new VariableDependencyConfig(
+    this,
+    {
+      statePaths: ['query'],
+      onVariableUpdatesCompleted: (variables, dependencyChanged) =>
+        this.onVariableUpdatesCompleted(variables, dependencyChanged),
+    }
+  );
 
   public constructor(initialState: AnnotationsDataLayerState) {
     super({
@@ -41,6 +52,7 @@ export class AnnotationsDataLayer
   }
 
   public runLayer() {
+    writeSceneLog('AnnotationsDataLayer', 'run layer');
     const timeRange = sceneGraph.getTimeRange(this);
     this.runWithTimeRange(timeRange);
   }
@@ -52,10 +64,16 @@ export class AnnotationsDataLayer
       this.querySub.unsubscribe();
     }
 
+    if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
+      writeSceneLog('AnnotationsDataLayer', 'Variable dependency is in loading state, skipping query execution');
+      this.setState({ _isWaitingForVariables: true });
+      return;
+    }
+
     try {
       const ds = await this.resolveDataSource(query);
 
-      const queryExecution = executeAnnotationQuery(ds, timeRange, query).pipe(
+      const queryExecution = executeAnnotationQuery(ds, timeRange, query, this).pipe(
         map((events) => {
           const stateUpdate = this.processEvents(query, events);
           return stateUpdate;

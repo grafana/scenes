@@ -9,11 +9,14 @@ import {
   SceneDataLayerProviderState,
 } from '../../core/types';
 import { setBaseClassState } from '../../utils/utils';
+import { writeSceneLog } from '../../utils/writeSceneLog';
+import { SceneVariable } from '../../variables/types';
+import { VariableValueRecorder } from '../../variables/VariableValueRecorder';
 
 /**
  * Base class for data layer. Handles common implementation including enabling/disabling layer and publishing results.
  */
-export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState = SceneDataLayerProviderState>
+export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   extends SceneObjectBase<T>
   implements SceneDataLayerProvider
 {
@@ -48,6 +51,8 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState =
    * Data topic that a given layer is responsible for.
    */
   public abstract topic: DataTopic;
+
+  private _variableValueRecorder = new VariableValueRecorder();
 
   public constructor(initialState: T) {
     super({
@@ -105,6 +110,20 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState =
     }
 
     this.onDisable();
+
+    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
+  }
+
+  protected onVariableUpdatesCompleted(variables: Set<SceneVariable>, dependencyChanged: boolean): void {
+    writeSceneLog('SceneDataLayerBase', 'onVariableUpdatesCompleted');
+    if (this.state._isWaitingForVariables && this.shouldRunLayerOnActivate()) {
+      this.runLayer();
+      return;
+    }
+
+    if (dependencyChanged) {
+      this.runLayer();
+    }
   }
 
   public cancelQuery() {
@@ -135,6 +154,14 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState =
   }
 
   private shouldRunLayerOnActivate() {
+    if (this._variableValueRecorder.hasDependenciesChanged(this)) {
+      writeSceneLog(
+        'SceneDataLayerBase',
+        'Variable dependency changed while inactive, shouldRunLayerOnActivate returns true'
+      );
+      return true;
+    }
+
     if (this.state.data) {
       return false;
     }
