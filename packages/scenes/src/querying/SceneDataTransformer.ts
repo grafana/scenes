@@ -1,5 +1,6 @@
-import { DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
-import { map, ReplaySubject, Unsubscribable } from 'rxjs';
+import { DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
+import { toDataQueryError } from '@grafana/runtime';
+import { catchError, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformOperator, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
@@ -118,7 +119,24 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     };
 
     this._transformSub = transformDataFrame(transformations, data.series, ctx)
-      .pipe(map((series) => ({ ...data, series })))
+      .pipe(
+        map((series) => ({ ...data, series })),
+        catchError((err) => {
+          console.error('Error transforming data: ', err);
+          const sourceErr = this.getSourceData().state.data?.errors || [];
+
+          const transformationError = toDataQueryError(err);
+          transformationError.message = `Error transforming data: ${transformationError.message}`;
+
+          const result: PanelData = {
+            ...data,
+            state: LoadingState.Error,
+            // Combine transformation error with upstream errors
+            errors: [...sourceErr, transformationError],
+          };
+          return of(result);
+        })
+      )
       .subscribe((data) => {
         this._results.next({ origin: this, data });
         this.setState({ data });
