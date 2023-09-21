@@ -1,3 +1,17 @@
+# v1.5.2 (Thu Sep 21 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneDataTransformer: Handle transformation errors [#354](https://github.com/grafana/scenes/pull/354) ([@dprokop](https://github.com/dprokop))
+  - AnnotationsDataLayer: Events deduplication [#351](https://github.com/grafana/scenes/pull/351) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.5.1 (Wed Sep 20 2023)
 
 #### 🐛 Bug Fix
