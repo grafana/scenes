@@ -2,8 +2,10 @@ import React from 'react';
 import { DateTime, dateTime, rangeUtil, TimeRange } from '@grafana/data';
 import { ButtonGroup, ButtonSelect, Checkbox, Icon, ToolbarButton } from '@grafana/ui';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectState } from '../core/types';
+import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
+import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
+import { parseUrlParam } from '../utils/parseUrlParam';
 
 export interface TimeRangeCompareProvider {
   getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
@@ -37,6 +39,7 @@ export class SceneTimeRangeCompare
   implements TimeRangeCompareProvider
 {
   static Component = SceneTimeRangeCompareRenderer;
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
 
   public constructor(state: Partial<SceneTimeRangeCompareState>) {
     super({ compareOptions: DEFAULT_COMPARE_OPTIONS, ...state });
@@ -108,6 +111,27 @@ export class SceneTimeRangeCompare
     }
 
     return undefined;
+  }
+
+  public getUrlState(): SceneObjectUrlValues {
+    return {
+      compareWith: this.state.compareWith,
+    };
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues) {
+    if (!values.compareWith) {
+      return;
+    }
+
+    const update: Partial<SceneTimeRangeCompareState> = {};
+    const compareWith = parseUrlParam(values.compareWith);
+
+    if (compareWith) {
+      update.compareWith = compareWith;
+    }
+
+    this.setState(update);
   }
 }
 
