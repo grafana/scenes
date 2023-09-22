@@ -41,7 +41,8 @@ function MyApp() {
 ```
 
 :::note
-Memoize `SceneApp` using `React.useMemo` to avoid unnecessary re-renders.
+Memoize and cache the creation of your `SceneApp` instance using useSceneApp hook. This is very important for url syncing to work properly and it also makes sure data and scene app state
+is not lost when users move away from you app and back.
 :::
 
 In the app plugin, render the Scenes app:
