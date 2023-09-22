@@ -1,3 +1,15 @@
+# v1.6.0 (Fri Sep 22 2023)
+
+#### 🚀 Enhancement
+
+- AnnotationsDataLayer: Add variables support [#358](https://github.com/grafana/scenes/pull/358) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.5.3 (Fri Sep 22 2023)
 
 #### 🐛 Bug Fix
