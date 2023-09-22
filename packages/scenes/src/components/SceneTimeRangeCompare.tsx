@@ -124,14 +124,21 @@ export class SceneTimeRangeCompare
       return;
     }
 
-    const update: Partial<SceneTimeRangeCompareState> = {};
     const compareWith = parseUrlParam(values.compareWith);
 
     if (compareWith) {
-      update.compareWith = compareWith;
-    }
+      const compareOptions = this.getCompareOptions(sceneGraph.getTimeRange(this).state.value);
 
-    this.setState(update);
+      if (compareOptions.find(({ value }) => value === compareWith)) {
+        this.setState({
+          compareWith,
+        });
+      } else {
+        this.setState({
+          compareWith: '__previousPeriod',
+        });
+      }
+    }
   }
 }
 
