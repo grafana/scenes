@@ -1,3 +1,15 @@
+# v1.5.3 (Fri Sep 22 2023)
+
+#### 🐛 Bug Fix
+
+- SceneApp: Introduce a useSceneApp hook that should replace useMemo as method of caching SceneApp instance [#357](https://github.com/grafana/scenes/pull/357) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.5.2 (Thu Sep 21 2023)
 
 #### 🐛 Bug Fix
