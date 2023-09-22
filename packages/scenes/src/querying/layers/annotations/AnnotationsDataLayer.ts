@@ -7,7 +7,6 @@ import { SceneDataLayerProvider, SceneTimeRangeLike, SceneDataLayerProviderState
 import { getDataSource } from '../../../utils/getDataSource';
 import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { writeSceneLog } from '../../../utils/writeSceneLog';
-import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
@@ -23,20 +22,14 @@ export class AnnotationsDataLayer
   private _timeRangeSub: Unsubscribable | undefined;
   public topic = DataTopic.Annotations;
 
-  protected _variableDependency: VariableDependencyConfig<AnnotationsDataLayerState> = new VariableDependencyConfig(
-    this,
-    {
-      statePaths: ['query'],
-      onVariableUpdatesCompleted: (variables, dependencyChanged) =>
-        this.onVariableUpdatesCompleted(variables, dependencyChanged),
-    }
-  );
-
   public constructor(initialState: AnnotationsDataLayerState) {
-    super({
-      isEnabled: true,
-      ...initialState,
-    });
+    super(
+      {
+        isEnabled: true,
+        ...initialState,
+      },
+      ['query']
+    );
   }
 
   public onEnable(): void {

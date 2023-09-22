@@ -11,6 +11,7 @@ import {
 import { setBaseClassState } from '../../utils/utils';
 import { writeSceneLog } from '../../utils/writeSceneLog';
 import { SceneVariable } from '../../variables/types';
+import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { VariableValueRecorder } from '../../variables/VariableValueRecorder';
 
 /**
@@ -54,12 +55,21 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
 
   private _variableValueRecorder = new VariableValueRecorder();
 
-  public constructor(initialState: T) {
+  protected _variableDependency: VariableDependencyConfig<T> = new VariableDependencyConfig(this, {
+    onVariableUpdatesCompleted: (variables, dependencyChanged) =>
+      this.onVariableUpdatesCompleted(variables, dependencyChanged),
+  });
+
+  /**
+   * For variables support in data layer provide variableDependencyStatePaths with keys of the state to be scanned for variables.
+   */
+  public constructor(initialState: T, variableDependencyStatePaths: Array<keyof T> = []) {
     super({
       isEnabled: true,
       ...initialState,
     });
 
+    this._variableDependency.setPaths(variableDependencyStatePaths);
     this.addActivationHandler(() => this.onActivate());
   }
 
