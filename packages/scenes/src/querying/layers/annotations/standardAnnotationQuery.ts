@@ -16,7 +16,7 @@ import {
 import { getRunRequest } from '@grafana/runtime';
 import { shouldUseLegacyRunner, standardAnnotationSupport } from './standardAnnotationsSupport';
 import { Dashboard, LoadingState } from '@grafana/schema';
-import { SceneTimeRangeLike } from '../../../core/types';
+import { SceneObject, SceneTimeRangeLike } from '../../../core/types';
 let counter = 100;
 function getNextRequestId() {
   return 'AQ' + counter++;
@@ -35,7 +35,8 @@ export interface AnnotationQueryResults {
 export function executeAnnotationQuery(
   datasource: DataSourceApi,
   timeRange: SceneTimeRangeLike,
-  query: AnnotationQuery
+  query: AnnotationQuery,
+  layer: SceneObject
 ): Observable<AnnotationQueryResults> {
   // Check if we should use the old annotationQuery method
   if (datasource.annotationQuery && shouldUseLegacyRunner(datasource)) {
@@ -94,6 +95,7 @@ export function executeAnnotationQuery(
     __interval: { text: interval.interval, value: interval.interval },
     __interval_ms: { text: interval.intervalMs.toString(), value: interval.intervalMs },
     __annotation: { text: annotation.name, value: annotation },
+    __sceneObject: { text: '__sceneObject', value: layer },
   };
 
   const queryRequest: DataQueryRequest = {

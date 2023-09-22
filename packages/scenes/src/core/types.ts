@@ -208,6 +208,9 @@ export interface SceneDataLayerProviderState extends SceneObjectState {
   data?: PanelData;
   isEnabled?: boolean;
   isHidden?: boolean;
+
+  // Private runtime state
+  _isWaitingForVariables?: boolean;
 }
 
 export interface SceneDataLayerProvider extends SceneObject<SceneDataLayerProviderState> {
