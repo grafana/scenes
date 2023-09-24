@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { act, getAllByRole, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import selectEvent from 'react-select-event';
+import { select } from 'react-select-event';
 
 import { DataSourceSrv, setDataSourceSrv, setTemplateSrv } from '@grafana/runtime';
 
@@ -37,16 +37,12 @@ describe('AdHocFilter', () => {
 
     // Select key
     await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-    const selectEl = screen.getByTestId('AdHocFilterKey-');
+    const wrapper = screen.getByTestId('AdHocFilter-');
 
-    expect(selectEl).toBeInTheDocument();
-    await selectEvent.select(selectEl, 'key3', { container: document.body });
+    const selects = getAllByRole(wrapper, 'combobox');
 
-    // Select value
-    await userEvent.click(screen.getByText('Select value'));
-    // There are already some filters rendered
-    const selectEl2 = screen.getAllByTestId('AdHocFilterValue-value-wrapper')[2];
-    await selectEvent.select(selectEl2, 'val3', { container: document.body });
+    await waitFor(() => select(selects[0], 'key3', { container: document.body }));
+    await waitFor(() => select(selects[2], 'val3', { container: document.body }));
 
     expect(variable.state.filters.length).toBe(3);
   });
@@ -62,13 +58,11 @@ describe('AdHocFilter', () => {
   it('changes filter', async () => {
     const { variable } = setup();
 
-    // Select key
-    await userEvent.click(screen.getByText('val1'));
-    const selectEl = screen.getAllByTestId('AdHocFilterValue-value-wrapper')[0];
-    expect(selectEl).toBeInTheDocument();
-    await selectEvent.select(selectEl, 'val4', { container: document.body });
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
 
-    // Only after value is selected the addFilter is called
+    await waitFor(() => select(selects[2], 'val4', { container: document.body }));
+
     expect(variable.state.filters[0].value).toBe('val4');
   });
 });

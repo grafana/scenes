@@ -30,12 +30,11 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueValue = filter.value !== '' ? toOption(filter.value) : null;
 
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.wrapper} data-testid={`AdHocFilter-${filter.key}`}>
       <Select
         disabled={model.state.readOnly}
         className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
         width="auto"
-        data-testid={`AdHocFilterKey-${filter.key ?? ''}`}
         value={keyValue}
         placeholder={'Select label'}
         options={state.keys}
@@ -60,11 +59,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         width="auto"
         onChange={(v) => model._updateFilter(filter, 'operator', v.value)}
       />
-
       <Select
         disabled={model.state.readOnly}
         className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
-        data-testid="AdHocFilterValue-value-wrapper"
         width="auto"
         value={valueValue}
         placeholder={'value'}
@@ -81,7 +78,6 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
           setState({ ...state, isValuesOpen: false });
         }}
       />
-
       <Button
         variant="secondary"
         aria-label="Remove filter"

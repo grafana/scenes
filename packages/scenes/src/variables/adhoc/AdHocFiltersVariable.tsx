@@ -52,7 +52,6 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
       // If we set value we are done with this "work in progress" filter and we can add it
       if (prop === 'value') {
         this.setState({ filters: [...filters, { ..._wip, [prop]: value }], _wip: undefined });
-        console.log('setting value', this.state.filters.length);
         this._runSceneQueries();
       } else {
         this.setState({ _wip: { ...filter, [prop]: value } });
@@ -85,7 +84,6 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public async _getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
-    console.log('_getKeys', currentKey);
     const ds = await getDataSourceSrv().get(this.state.datasource);
     if (!ds || !ds.getTagKeys) {
       return [];
@@ -100,7 +98,6 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
   public async _getValuesFor(filter: AdHocVariableFilter): Promise<Array<SelectableValue<string>>> {
-    console.log('getValuesFor', filter);
     const ds = await getDataSourceSrv().get(this.state.datasource);
 
     if (!ds || !ds.getTagValues) {
