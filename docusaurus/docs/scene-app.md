@@ -21,10 +21,11 @@ Scenes come with the following objects that make it easy to build highly interac
 Define a new Scenes app using the `SceneApp` object :
 
 ```tsx
-const getSceneApp = () =>
-  new SceneApp({
+function getSceneApp() {
+  return new SceneApp({
     pages: [],
   });
+}
 ```
 
 ### Step 2. Render the Scenes app in a plugin
@@ -33,14 +34,15 @@ Define a component that will render the Scenes app:
 
 ```tsx
 function MyApp() {
-  const scene = useMemo(() => getSceneApp(), []);
+  const scene = useSceneApp(getSceneApp);
 
   return <scene.Component model={scene} />;
 }
 ```
 
 :::note
-Memoize `SceneApp` using `React.useMemo` to avoid unnecessary re-renders.
+Memoize and cache the creation of your `SceneApp` instance using useSceneApp hook. This is very important for url syncing to work properly and it also makes sure data and scene app state
+is not lost when users move away from you app and back.
 :::
 
 In the app plugin, render the Scenes app:

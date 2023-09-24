@@ -9,11 +9,15 @@ import {
   SceneDataLayerProviderState,
 } from '../../core/types';
 import { setBaseClassState } from '../../utils/utils';
+import { writeSceneLog } from '../../utils/writeSceneLog';
+import { SceneVariable } from '../../variables/types';
+import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
+import { VariableValueRecorder } from '../../variables/VariableValueRecorder';
 
 /**
  * Base class for data layer. Handles common implementation including enabling/disabling layer and publishing results.
  */
-export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState = SceneDataLayerProviderState>
+export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   extends SceneObjectBase<T>
   implements SceneDataLayerProvider
 {
@@ -49,12 +53,23 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState =
    */
   public abstract topic: DataTopic;
 
-  public constructor(initialState: T) {
+  private _variableValueRecorder = new VariableValueRecorder();
+
+  protected _variableDependency: VariableDependencyConfig<T> = new VariableDependencyConfig(this, {
+    onVariableUpdatesCompleted: (variables, dependencyChanged) =>
+      this.onVariableUpdatesCompleted(variables, dependencyChanged),
+  });
+
+  /**
+   * For variables support in data layer provide variableDependencyStatePaths with keys of the state to be scanned for variables.
+   */
+  public constructor(initialState: T, variableDependencyStatePaths: Array<keyof T> = []) {
     super({
       isEnabled: true,
       ...initialState,
     });
 
+    this._variableDependency.setPaths(variableDependencyStatePaths);
     this.addActivationHandler(() => this.onActivate());
   }
 
@@ -105,6 +120,20 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState =
     }
 
     this.onDisable();
+
+    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
+  }
+
+  protected onVariableUpdatesCompleted(variables: Set<SceneVariable>, dependencyChanged: boolean): void {
+    writeSceneLog('SceneDataLayerBase', 'onVariableUpdatesCompleted');
+    if (this.state._isWaitingForVariables && this.shouldRunLayerOnActivate()) {
+      this.runLayer();
+      return;
+    }
+
+    if (dependencyChanged) {
+      this.runLayer();
+    }
   }
 
   public cancelQuery() {
@@ -135,6 +164,14 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState =
   }
 
   private shouldRunLayerOnActivate() {
+    if (this._variableValueRecorder.hasDependenciesChanged(this)) {
+      writeSceneLog(
+        'SceneDataLayerBase',
+        'Variable dependency changed while inactive, shouldRunLayerOnActivate returns true'
+      );
+      return true;
+    }
+
     if (this.state.data) {
       return false;
     }

@@ -109,6 +109,10 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     return this._dependencies;
   }
 
+  public setPaths(paths: Array<keyof TState>) {
+    this._statePaths = paths;
+  }
+
   private scanStateForDependencies(state: TState) {
     this._dependencies.clear();
     this.scanCount += 1;

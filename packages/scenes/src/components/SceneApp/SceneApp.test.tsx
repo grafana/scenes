@@ -8,7 +8,7 @@ import { SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneCanvasText } from '../SceneCanvasText';
-import { SceneApp } from './SceneApp';
+import { SceneApp, useSceneApp } from './SceneApp';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneRouteMatch } from './types';
 
@@ -334,6 +334,24 @@ describe('SceneApp', () => {
         expect(await screen.findByTestId('default-fallback-content')).toBeInTheDocument();
       });
     });
+  });
+
+  it('useSceneApp should cache instance', () => {
+    const getSceneApp1 = () =>
+      new SceneApp({
+        pages: [],
+      });
+
+    const getSceneApp2 = () =>
+      new SceneApp({
+        pages: [],
+      });
+
+    const app1 = useSceneApp(getSceneApp1);
+    const app2 = useSceneApp(getSceneApp2);
+
+    expect(app1).toBe(useSceneApp(getSceneApp1));
+    expect(app2).toBe(useSceneApp(getSceneApp2));
   });
 });
 

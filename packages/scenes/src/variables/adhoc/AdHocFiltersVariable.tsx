@@ -1,6 +1,6 @@
 import { SceneVariableState } from '../types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { AdHocVariableFilter, SelectableValue } from '@grafana/data';
+import { AdHocVariableFilter, SelectableValue, VariableHide } from '@grafana/data';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { DataSourceRef } from '@grafana/schema';
@@ -28,6 +28,7 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
       filters: [],
       baseFilters: [],
       datasource: null,
+      hide: VariableHide.hideLabel,
       ...initialState,
     });
 
@@ -71,6 +72,11 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
   }
 
   public _removeFilter(filter: AdHocVariableFilter) {
+    if (filter === this.state._wip) {
+      this.setState({ _wip: undefined });
+      return;
+    }
+
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
     this._runSceneQueries();
   }
@@ -79,8 +85,8 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public async _getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    console.log('_getKeys', currentKey);
     const ds = await getDataSourceSrv().get(this.state.datasource);
-
     if (!ds || !ds.getTagKeys) {
       return [];
     }
@@ -94,6 +100,7 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
   public async _getValuesFor(filter: AdHocVariableFilter): Promise<Array<SelectableValue<string>>> {
+    console.log('getValuesFor', filter);
     const ds = await getDataSourceSrv().get(this.state.datasource);
 
     if (!ds || !ds.getTagValues) {
@@ -106,10 +113,15 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
     return metrics.map((m) => ({ label: m.text, value: m.text }));
   }
 
-  public _addWip(key: string | null | undefined) {
-    if (key != null) {
-      this.setState({ _wip: { key, value: '', operator: '=', condition: '' } });
-    }
+  public _addWip() {
+    this.setState({ _wip: { key: '', value: '', operator: '=', condition: '' } });
+  }
+
+  public _getOperators() {
+    return ['=', '!=', '<', '>', '=~', '!~'].map<SelectableValue<string>>((value) => ({
+      label: value,
+      value,
+    }));
   }
 
   private _runSceneQueries() {

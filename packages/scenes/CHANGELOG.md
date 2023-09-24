@@ -1,3 +1,40 @@
+# v1.6.0 (Fri Sep 22 2023)
+
+#### 🚀 Enhancement
+
+- AnnotationsDataLayer: Add variables support [#358](https://github.com/grafana/scenes/pull/358) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.5.3 (Fri Sep 22 2023)
+
+#### 🐛 Bug Fix
+
+- SceneApp: Introduce a useSceneApp hook that should replace useMemo as method of caching SceneApp instance [#357](https://github.com/grafana/scenes/pull/357) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.5.2 (Thu Sep 21 2023)
+
+#### 🐛 Bug Fix
+
+- SceneDataTransformer: Handle transformation errors [#354](https://github.com/grafana/scenes/pull/354) ([@dprokop](https://github.com/dprokop))
+- AnnotationsDataLayer: Events deduplication [#351](https://github.com/grafana/scenes/pull/351) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.5.1 (Wed Sep 20 2023)
 
 #### 🐛 Bug Fix
@@ -84,8 +121,8 @@
 
 - VizPanel: Support async migration handlers [#341](https://github.com/grafana/scenes/pull/341) ([@torkelo](https://github.com/torkelo))
 - DataLayers: Allow toggling individual layers on/off [#333](https://github.com/grafana/scenes/pull/333) ([@dprokop](https://github.com/dprokop))
-- Data layers:  Annotations [#328](https://github.com/grafana/scenes/pull/328) ([@dprokop](https://github.com/dprokop))
-- Data layers:  Isolated change [#325](https://github.com/grafana/scenes/pull/325) ([@dprokop](https://github.com/dprokop))
+- Data layers: Annotations [#328](https://github.com/grafana/scenes/pull/328) ([@dprokop](https://github.com/dprokop))
+- Data layers: Isolated change [#325](https://github.com/grafana/scenes/pull/325) ([@dprokop](https://github.com/dprokop))
 
 #### Authors: 2
 

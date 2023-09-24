@@ -27,14 +27,10 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
               datasource: { uid: 'gdev-prometheus' },
               query: { query: 'label_values(job)', refId: 'A' },
             }),
-            new QueryVariable({
-              name: 'instance',
-              datasource: { uid: 'gdev-prometheus' },
-              query: { query: 'label_values(instance)', refId: 'A' },
-            }),
             new AdHocFiltersVariable({
               name: 'Filters',
               datasource: { uid: 'gdev-prometheus' },
+              filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
             }),
           ],
         }),
@@ -52,6 +48,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                         datasource: { uid: 'gdev-prometheus' },
                         expr: 'ALERTS',
                         format: 'table',
+                        instant: true,
                       },
                     ],
                   })

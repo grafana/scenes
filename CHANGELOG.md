@@ -1,3 +1,43 @@
+# v1.6.0 (Fri Sep 22 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AnnotationsDataLayer: Add variables support [#358](https://github.com/grafana/scenes/pull/358) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.5.3 (Fri Sep 22 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneApp: Introduce a useSceneApp hook that should replace useMemo as method of caching SceneApp instance [#357](https://github.com/grafana/scenes/pull/357) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.5.2 (Thu Sep 21 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneDataTransformer: Handle transformation errors [#354](https://github.com/grafana/scenes/pull/354) ([@dprokop](https://github.com/dprokop))
+  - AnnotationsDataLayer: Events deduplication [#351](https://github.com/grafana/scenes/pull/351) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.5.1 (Wed Sep 20 2023)
 
 #### 🐛 Bug Fix

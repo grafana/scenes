@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { AdHocFilterKey } from './AdHocFilterKey';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
-import { ConditionSegment } from './ConditionSegment';
+import { Button } from '@grafana/ui';
+import { AdHocFilterSeparator } from './AdHocFilterSeparator';
 
 interface Props {
   model: AdHocFiltersVariable;
@@ -13,13 +13,22 @@ export function AdHocFilterBuilder({ model }: Props) {
   const { filters, _wip } = model.useState();
 
   if (!_wip) {
-    return <AdHocFilterKey model={model} filterKey={null} onChange={(key) => model._addWip(key.value)} />;
+    return (
+      <Button
+        variant="secondary"
+        icon="plus"
+        tooltip={'Add filter'}
+        aria-label="Add filter"
+        data-testid={`AdHocFilter-add`}
+        onClick={() => model._addWip()}
+      />
+    );
   }
 
   return (
     <>
-      {filters.length > 0 && <ConditionSegment label="AND" />}
-      <AdHocFilterRenderer filter={_wip} placeHolder={'Select value'} model={model} />
+      {filters.length > 0 && <AdHocFilterSeparator />}
+      <AdHocFilterRenderer filter={_wip} model={model} />
     </>
   );
 }

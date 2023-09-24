@@ -5,8 +5,9 @@ import {
   SceneFlexLayout,
   SceneFlexItem,
   SceneReactObject,
+  useSceneApp,
 } from '@grafana/scenes';
-import React, { useMemo, CSSProperties, useCallback } from 'react';
+import React, { CSSProperties, useCallback } from 'react';
 import { demoUrl, prefixRoute } from '../utils/utils.routing';
 import { DATASOURCE_REF, ROUTES } from '../constants';
 import { DemoDescriptor, getDemos } from '../demos';
@@ -15,7 +16,7 @@ import { config } from '@grafana/runtime';
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
 
-const getScene = () => {
+function getDemoSceneApp() {
   const demos = getDemos();
 
   return new SceneApp({
@@ -63,10 +64,10 @@ const getScene = () => {
       }),
     ],
   });
-};
+}
 
 export const DemoListPage = () => {
-  const scene = useMemo(() => getScene(), []);
+  const scene = useSceneApp(getDemoSceneApp);
   return <scene.Component model={scene} />;
 };
 

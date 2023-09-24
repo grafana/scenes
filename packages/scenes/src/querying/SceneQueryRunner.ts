@@ -14,7 +14,7 @@ import {
   ScopedVar,
   transformDataFrame,
 } from '@grafana/data';
-import { getRunRequest } from '@grafana/runtime';
+import { getRunRequest, toDataQueryError } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -346,6 +346,17 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
+
+      const result = {
+        ...emptyPanelData,
+        ...this.state.data,
+        state: LoadingState.Error,
+        errors: [toDataQueryError(err)],
+      };
+
+      this.setState({
+        data: result,
+      });
     }
   }
 

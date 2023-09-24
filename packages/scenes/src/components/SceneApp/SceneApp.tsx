@@ -33,3 +33,21 @@ export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequ
     );
   };
 }
+
+const sceneAppCache = new Map<object, SceneApp>();
+
+/**
+ * Caches the the resulting SceneApp returned by the factory function so that it's only called once during the lifetime of the browser tab
+ */
+export function useSceneApp(factory: () => SceneApp) {
+  const cachedApp = sceneAppCache.get(factory);
+
+  if (cachedApp) {
+    return cachedApp;
+  }
+
+  const newApp = factory();
+  sceneAppCache.set(factory, newApp);
+
+  return newApp;
+}

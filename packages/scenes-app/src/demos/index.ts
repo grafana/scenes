@@ -23,6 +23,7 @@ import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
 import { getAdhocFiltersDemo } from './adhocFiltersDemo';
+import { getTransformationsTest } from './transformations';
 
 export interface DemoDescriptor {
   title: string;
@@ -54,6 +55,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Cursor sync', getPage: getCursorSyncTest },
     { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
     { title: 'Data layers', getPage: getAnnotationsDemo },
+    { title: 'Transformations', getPage: getTransformationsTest },
     { title: 'Docs examples', getPage: getDocsExamples },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
