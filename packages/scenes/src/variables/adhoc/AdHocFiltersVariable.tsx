@@ -13,13 +13,10 @@ import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyn
 export interface AdHocFiltersVariableState extends SceneVariableState {
   filters: AdHocVariableFilter[];
   baseFilters: AdHocVariableFilter[];
+  /** Datasource to use for getTagKeys and getTagValues and also controls which scene queries the filters should apply to */
   datasource: DataSourceRef | null;
+  /** Controls if the filters can be changed */
   readOnly?: boolean;
-  /**
-   * If you want to use the adhoc filter in queries and control how it's applied manually like a normal template variable then you
-   * need to set this property.
-   */
-  expressionRenderer?: (filters: AdHocVariableFilter[]) => string;
   /** New filter being added */
   _wip?: AdHocVariableFilter;
 }

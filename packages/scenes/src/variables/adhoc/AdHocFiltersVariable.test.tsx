@@ -161,7 +161,7 @@ function setup() {
             queries: [
               {
                 refId: 'A',
-                expr: 'my_metric',
+                expr: 'my_metric{$filters}',
               },
             ],
           }),
