@@ -20,7 +20,6 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
   DataLayerFilter,
-  isDataRequestEnricher,
   SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
@@ -37,6 +36,7 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
 import { filterAnnotationsOperator } from './layers/annotations/filterAnnotationsOperator';
+import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 
 let counter = 100;
 
@@ -490,14 +490,4 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
-}
-
-function getEnrichedDataRequest(sourceRunner: SceneQueryRunner): Partial<DataQueryRequest> | null {
-  const root = sourceRunner.getRoot();
-
-  if (isDataRequestEnricher(root)) {
-    return root.enrichDataRequest(sourceRunner);
-  }
-
-  return null;
 }

@@ -8,6 +8,7 @@ import { TestScene } from '../../../variables/TestScene';
 import { TestVariable } from '../../../variables/variants/TestVariable';
 import { SceneDataLayers } from '../../SceneDataLayers';
 import { AnnotationsDataLayer } from './AnnotationsDataLayer';
+import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithRequestEnricher';
 
 let mockedEvents: Array<Partial<Field>> = [];
 
@@ -315,6 +316,29 @@ describe('AnnotationsDataLayer', () => {
         // Should execute query a second time
         expect(runRequestMock.mock.calls.length).toBe(2);
       });
+    });
+  });
+
+  describe('enriching annotation query request', () => {
+    it('should use data enricher if provided', async () => {
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        query: { name: 'Test', enable: true, iconColor: 'red', theActualQuery: '$A' },
+      });
+
+      const scene = new TestSceneWithRequestEnricher({
+        $data: new SceneDataLayers({
+          layers: [layer],
+        }),
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      expect(sentRequest?.app).toBe('enriched');
     });
   });
 });

@@ -22,10 +22,9 @@ import { DataQuery } from '@grafana/schema';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneCanvasText } from '../components/SceneCanvasText';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
-import { SceneObjectBase } from '../core/SceneObjectBase';
-import { DataRequestEnricher, SceneObject, SceneObjectState } from '../core/types';
 import { SceneDataLayers } from './SceneDataLayers';
 import { TestAnnotationsDataLayer } from './layers/TestDataLayer';
+import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
@@ -620,12 +619,6 @@ describe('SceneQueryRunner', () => {
   });
 
   test('enriching query request', async () => {
-    class TestSceneWithRequestEnricher extends SceneObjectBase<SceneObjectState> implements DataRequestEnricher {
-      public enrichDataRequest(source: SceneObject) {
-        return { app: 'enriched' };
-      }
-    }
-
     const queryRunner = new SceneQueryRunner({
       queries: [{ refId: 'A' }],
       $timeRange: new SceneTimeRange(),
