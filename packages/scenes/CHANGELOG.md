@@ -1,3 +1,15 @@
+# v1.8.0 (Mon Sep 25 2023)
+
+#### 🚀 Enhancement
+
+- VizPanel: Allow options and field config updates [#363](https://github.com/grafana/scenes/pull/363) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.7.1 (Mon Sep 25 2023)
 
 #### 🐛 Bug Fix
