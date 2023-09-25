@@ -1,3 +1,21 @@
+# v1.7.0 (Mon Sep 25 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimeRangeCompare: Enable URL sync [#360](https://github.com/grafana/scenes/pull/360) ([@dprokop](https://github.com/dprokop))
+
+#### 🐛 Bug Fix
+
+- Prevent publishing to github pages [#362](https://github.com/grafana/scenes/pull/362) ([@tolzhabayev](https://github.com/tolzhabayev))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Timur Olzhabayev ([@tolzhabayev](https://github.com/tolzhabayev))
+
+---
+
 # v1.6.0 (Fri Sep 22 2023)
 
 #### 🚀 Enhancement
