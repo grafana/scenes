@@ -3,13 +3,18 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { select } from 'react-select-event';
 
-import { DataSourceSrv, setDataSourceSrv, setTemplateSrv } from '@grafana/runtime';
+import { DataSourceSrv, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
 
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
-import { SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
+import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { SceneTimeRange } from '../../core/SceneTimeRange';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { SceneCanvasText } from '../../components/SceneCanvasText';
+import { DataQueryRequest, DataSourceApi, LoadingState, PanelData, getDefaultTimeRange } from '@grafana/data';
+import { Observable, of } from 'rxjs';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -56,7 +61,7 @@ describe('AdHocFilter', () => {
   });
 
   it('changes filter', async () => {
-    const { variable } = setup();
+    const { variable, runRequest } = setup();
 
     const wrapper = screen.getByTestId('AdHocFilter-key1');
     const selects = getAllByRole(wrapper, 'combobox');
@@ -64,8 +69,17 @@ describe('AdHocFilter', () => {
     await waitFor(() => select(selects[2], 'val4', { container: document.body }));
 
     expect(variable.state.filters[0].value).toBe('val4');
+
+    // should run query for scene query runner
+    expect(runRequest.mock.calls.length).toBe(2);
   });
 });
+
+const runRequestMock = {
+  fn: jest.fn(),
+};
+
+let runRequestSet = false;
 
 function setup() {
   setDataSourceSrv({
@@ -77,9 +91,26 @@ function setup() {
         getTagValues() {
           return [{ text: 'val3' }, { text: 'val4' }];
         },
+        getRef() {
+          return { uid: 'my-ds-uid' };
+        },
       };
     },
+    getInstanceSettings() {
+      return { uid: 'my-ds-uid' };
+    },
   } as unknown as DataSourceSrv);
+
+  // Workaround because you can only call setRunRequest once
+  runRequestMock.fn = jest.fn();
+
+  if (!runRequestSet) {
+    runRequestSet = true;
+    setRunRequest((ds: DataSourceApi, request: DataQueryRequest): Observable<PanelData> => {
+      runRequestMock.fn(ds, request);
+      return of({ series: [], state: LoadingState.Done, timeRange: getDefaultTimeRange() });
+    });
+  }
 
   setTemplateSrv(templateSrv);
 
@@ -101,16 +132,29 @@ function setup() {
   });
 
   const scene = new EmbeddedScene({
+    $timeRange: new SceneTimeRange(),
     $variables: new SceneVariableSet({
       variables: [variable],
     }),
     controls: [new VariableValueSelectors({})],
     body: new SceneFlexLayout({
-      children: [],
+      children: [
+        new SceneFlexItem({
+          $data: new SceneQueryRunner({
+            queries: [
+              {
+                refId: 'A',
+                expr: 'my_metric',
+              },
+            ],
+          }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        }),
+      ],
     }),
   });
 
   const { unmount } = render(<scene.Component model={scene} />);
 
-  return { scene, variable, unmount };
+  return { scene, variable, unmount, runRequest: runRequestMock.fn };
 }

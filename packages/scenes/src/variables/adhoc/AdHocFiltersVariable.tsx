@@ -1,6 +1,6 @@
 import { SceneVariableState } from '../types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { AdHocVariableFilter, SelectableValue, VariableHide } from '@grafana/data';
+import { AdHocVariableFilter, DataSourceInstanceSettings, SelectableValue, VariableHide } from '@grafana/data';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { DataSourceRef } from '@grafana/schema';
@@ -20,6 +20,9 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
 
 export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableState> {
   static Component = AdHocFiltersUI;
+
+  private _scopedVars = { __sceneObject: { value: this } };
+  private _dataSourceSrv = getDataSourceSrv();
 
   public constructor(initialState: Partial<AdHocFiltersVariableState>) {
     super({
@@ -84,7 +87,7 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public async _getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
-    const ds = await getDataSourceSrv().get(this.state.datasource);
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     if (!ds || !ds.getTagKeys) {
       return [];
     }
@@ -98,7 +101,7 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
   public async _getValuesFor(filter: AdHocVariableFilter): Promise<Array<SelectableValue<string>>> {
-    const ds = await getDataSourceSrv().get(this.state.datasource);
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
 
     if (!ds || !ds.getTagValues) {
       return [];
@@ -128,8 +131,14 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
       return;
     }
 
+    const ourDS = this._dataSourceSrv.getInstanceSettings(this.state.datasource, this._scopedVars);
+    if (!ourDS) {
+      console.error('AdHocFiltersVariable ds not found', this.state.datasource);
+      return;
+    }
+
     const triggerQueriesRecursive = (startingPoint: SceneObject) => {
-      if (startingPoint instanceof SceneQueryRunner) {
+      if (startingPoint instanceof SceneQueryRunner && this._isSameDS(ourDS, startingPoint.state.datasource)) {
         startingPoint.runQueries();
       } else {
         startingPoint.forEachChild(triggerQueriesRecursive);
@@ -137,5 +146,23 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
     };
 
     triggerQueriesRecursive(startingPoint);
+  }
+
+  private _isSameDS(ourDS: DataSourceInstanceSettings, queryRunnerDS: DataSourceRef | null | undefined) {
+    // This function does some initial checks to try to avoid haing to call _dataSourceSrv.getInstanceSettings
+    // Which is only needed when queryRunner is using data source variable but the adhoc filter is not
+
+    if (this.state.datasource === queryRunnerDS) {
+      return true;
+    }
+
+    // This works when both are using a variable as well
+    if (this.state.datasource?.uid === queryRunnerDS?.uid) {
+      return true;
+    }
+
+    // Finally the fool proof check that works when either we or the query runner is using a variable ds
+    const resolved = this._dataSourceSrv.getInstanceSettings(queryRunnerDS, this._scopedVars);
+    return ourDS?.uid === resolved?.uid;
   }
 }

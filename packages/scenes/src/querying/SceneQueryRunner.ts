@@ -52,8 +52,6 @@ export interface QueryRunnerState extends SceneObjectState {
   maxDataPoints?: number;
   liveStreaming?: boolean;
   maxDataPointsFromWidth?: boolean;
-  // Which ad-hoc filters this query runner depends on
-  adHocFilterNames?: string[];
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
@@ -77,7 +75,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
-    statePaths: ['queries', 'datasource', 'adHocFilterNames'],
+    statePaths: ['queries', 'datasource'],
     onVariableUpdatesCompleted: (variables, dependencyChanged) =>
       this.onVariableUpdatesCompleted(variables, dependencyChanged),
   });

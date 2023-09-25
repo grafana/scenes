@@ -17,7 +17,7 @@ export function AdHocFilterBuilder({ model }: Props) {
       <Button
         variant="secondary"
         icon="plus"
-        tooltip={'Add filter'}
+        title={'Add filter'}
         aria-label="Add filter"
         data-testid={`AdHocFilter-add`}
         onClick={() => model._addWip()}

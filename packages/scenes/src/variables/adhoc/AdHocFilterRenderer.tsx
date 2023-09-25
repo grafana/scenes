@@ -81,6 +81,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       <Button
         variant="secondary"
         aria-label="Remove filter"
+        title="Remove filter"
         className={styles.removeButton}
         icon="times"
         data-testid={`AdHocFilter-remove-${filter.key ?? ''}`}
@@ -135,6 +136,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
     paddingLeft: theme.spacing(3 / 2),
     paddingRight: theme.spacing(3 / 2),
     borderLeft: 'none',
-    borderColor: theme.components.input.borderColor,
+    // To not have button background and last select border intersect
+    position: 'relative',
+    left: '1px',
   }),
 });
