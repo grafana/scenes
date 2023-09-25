@@ -4,10 +4,11 @@ import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { SceneComponentProps } from '../../core/types';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
-import { Icon, InlineLabel, useStyles2 } from '@grafana/ui';
+import { useStyles2 } from '@grafana/ui';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { AdHocFilterSeparator } from './AdHocFilterSeparator';
+import { ControlsLabel } from '../../utils/ControlsLabel';
 
 export function AdHocFiltersUI({ model }: SceneComponentProps<AdHocFiltersVariable>) {
   const { filters, readOnly } = model.useState();
@@ -15,9 +16,7 @@ export function AdHocFiltersUI({ model }: SceneComponentProps<AdHocFiltersVariab
 
   return (
     <div className={styles.wrapper}>
-      <InlineLabel width={'auto'}>
-        <Icon name="filter" className={styles.filterIcon} /> Filters
-      </InlineLabel>
+      <ControlsLabel label="Filters" icon="filter" />
 
       {filters.map((filter, index) => (
         <React.Fragment key={index}>

@@ -24,6 +24,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
           variables: [
             new QueryVariable({
               name: 'cluster',
+              description: 'Cluster variable description',
               datasource: { uid: 'gdev-prometheus' },
               query: { query: 'label_values(job)', refId: 'A' },
             }),
