@@ -89,7 +89,7 @@ describe('AdHocFilter', () => {
       locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
     });
 
-    expect(variable.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl', condition: '' });
+    expect(variable.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl' });
   });
 });
 
@@ -139,13 +139,11 @@ function setup() {
         key: 'key1',
         operator: '=',
         value: 'val1',
-        condition: '',
       },
       {
         key: 'key2',
         operator: '=',
         value: 'val2',
-        condition: '',
       },
     ],
   });

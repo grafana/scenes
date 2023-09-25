@@ -15,6 +15,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   baseFilters: AdHocVariableFilter[];
   datasource: DataSourceRef | null;
   readOnly?: boolean;
+  /**
+   * If you want to use the adhoc filter in queries and control how it's applied manually like a normal template variable then you
+   * need to set this property.
+   */
+  expressionRenderer?: (filters: AdHocVariableFilter[]) => string;
   /** New filter being added */
   _wip?: AdHocVariableFilter;
 }
@@ -35,6 +40,7 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
       baseFilters: [],
       datasource: null,
       hide: VariableHide.hideLabel,
+
       ...initialState,
     });
 
@@ -120,7 +126,7 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
   }
 
   public _addWip() {
-    this.setState({ _wip: { key: '', value: '', operator: '=', condition: '' } });
+    this.setState({ _wip: { key: '', value: '', operator: '=' } });
   }
 
   public _getOperators() {
