@@ -42,10 +42,10 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                 .setTitle('ALERTS')
                 .setData(
                   new SceneQueryRunner({
+                    datasource: { uid: 'gdev-prometheus' },
                     queries: [
                       {
                         refId: 'A',
-                        datasource: { uid: 'gdev-prometheus' },
                         expr: 'ALERTS',
                         format: 'table',
                         instant: true,

@@ -7,7 +7,8 @@ import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersUI } from './AdHocFiltersUI';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
-import { SceneObject } from '../../core/types';
+import { SceneObject, SceneObjectUrlSyncHandler } from '../../core/types';
+import { AdHocFiltersVariableUrlSyncHandler } from './urlSync';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   filters: AdHocVariableFilter[];
@@ -20,6 +21,8 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
 
 export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableState> {
   static Component = AdHocFiltersUI;
+
+  protected _urlSync: SceneObjectUrlSyncHandler = new AdHocFiltersVariableUrlSyncHandler(this);
 
   private _scopedVars = { __sceneObject: { value: this } };
   private _dataSourceSrv = getDataSourceSrv();
@@ -69,8 +72,7 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
       return f;
     });
 
-    this.setState({ filters: updatedFilters });
-    this._runSceneQueries();
+    this.updateFilters(updatedFilters);
   }
 
   public _removeFilter(filter: AdHocVariableFilter) {
@@ -79,7 +81,11 @@ export class AdHocFiltersVariable extends SceneObjectBase<AdHocFiltersVariableSt
       return;
     }
 
-    this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
+    this.updateFilters(this.state.filters.filter((f) => f !== filter));
+  }
+
+  public updateFilters(filters: AdHocVariableFilter[]) {
+    this.setState({ filters });
     this._runSceneQueries();
   }
 

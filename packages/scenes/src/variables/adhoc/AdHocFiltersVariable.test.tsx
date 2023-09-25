@@ -1,9 +1,9 @@
-import { getAllByRole, render, screen, waitFor } from '@testing-library/react';
+import { act, getAllByRole, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { select } from 'react-select-event';
 
-import { DataSourceSrv, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
+import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
 
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
@@ -73,6 +73,24 @@ describe('AdHocFilter', () => {
     // should run query for scene query runner
     expect(runRequest.mock.calls.length).toBe(2);
   });
+
+  it('url sync works', async () => {
+    const { variable } = setup();
+
+    act(() => {
+      variable._updateFilter(variable.state.filters[0], 'value', 'newValue');
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=key1%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
+    });
+
+    expect(variable.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl', condition: '' });
+  });
 });
 
 const runRequestMock = {
@@ -115,6 +133,7 @@ function setup() {
   setTemplateSrv(templateSrv);
 
   const variable = new AdHocFiltersVariable({
+    name: 'filters',
     filters: [
       {
         key: 'key1',
@@ -153,6 +172,10 @@ function setup() {
       ],
     }),
   });
+
+  locationService.push('/');
+
+  scene.initUrlSync();
 
   const { unmount } = render(<scene.Component model={scene} />);
 
