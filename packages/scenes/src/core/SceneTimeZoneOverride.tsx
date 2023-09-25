@@ -1,8 +1,8 @@
 import { TimeZone } from '@grafana/schema';
-import { evaluateTimeRange } from './SceneTimeRange';
 import { SceneTimeRangeLike, SceneTimeRangeState } from './types';
 import { SceneTimeRangeTransformerBase } from './SceneTimeRangeTransformerBase';
 import { getDefaultTimeRange } from '@grafana/data';
+import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 
 interface SceneTimeZoneOverrideState extends SceneTimeRangeState {
   timeZone: TimeZone;
