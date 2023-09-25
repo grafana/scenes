@@ -8,7 +8,7 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersUI } from './AdHocFiltersUI';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneObject, SceneObjectUrlSyncHandler } from '../../core/types';
-import { AdHocFiltersVariableUrlSyncHandler } from './urlSync';
+import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   filters: AdHocVariableFilter[];
