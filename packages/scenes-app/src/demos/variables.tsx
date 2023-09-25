@@ -13,6 +13,7 @@ import {
   SceneAppPageState,
   behaviors,
   PanelBuilders,
+  IntervalVariable,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -62,6 +63,17 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
               isMulti: true,
               text: '',
               options: [],
+            }),
+            new IntervalVariable({
+              name: 'intervalVariable',
+              options: [],
+              refresh: VariableRefresh.onTimeRangeChanged,
+            }),
+            new IntervalVariable({
+              name: 'intervalVariableAuto',
+              options: [],
+              auto: true,
+              refresh: VariableRefresh.onTimeRangeChanged,
             }),
           ],
         }),
@@ -142,6 +154,31 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                                 })
                               )
                               .build(),
+                          }),
+                        ],
+                      }),
+                    }),
+                  }),
+                  new SceneFlexItem({
+                    body: new NestedScene({
+                      title: 'Collapsable variables that use built-in variables variants',
+                      canCollapse: true,
+                      body: new SceneFlexLayout({
+                        direction: 'row',
+                        children: [
+                          new SceneFlexItem({
+                            body: new SceneCanvasText({
+                              text: 'Interval Variable: ${intervalVariable}',
+                              fontSize: 20,
+                              align: 'center',
+                            }),
+                          }),
+                          new SceneFlexItem({
+                            body: new SceneCanvasText({
+                              text: 'Interval Variable Auto: ${intervalVariableAuto}',
+                              fontSize: 20,
+                              align: 'center',
+                            }),
                           }),
                         ],
                       }),
