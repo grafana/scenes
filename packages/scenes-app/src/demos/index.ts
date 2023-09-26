@@ -24,6 +24,7 @@ import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
 import { getTransformationsTest } from './transformations';
 import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
+import { getDataFilteringTest } from './filteringData';
 
 export interface DemoDescriptor {
   title: string;
@@ -56,6 +57,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Data layers', getPage: getAnnotationsDemo },
     { title: 'Transformations', getPage: getTransformationsTest },
     { title: 'Dynamic panel options and field config', getPage: getDynamicVizOptionsTest },
+    { title: 'Data filtering', getPage: getDataFilteringTest },
     { title: 'Docs examples', getPage: getDocsExamples },
   ];
 }
