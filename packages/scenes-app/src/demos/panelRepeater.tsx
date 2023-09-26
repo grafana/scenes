@@ -45,8 +45,8 @@ export function getPanelRepeaterTest(defaults: SceneAppPageState) {
                 children: [
                   new SceneFlexItem({
                     body: PanelBuilders.timeseries()
-                      .setTitle('aaa')
-                      .setOption('legend', { displayMode: LegendDisplayMode.Hidden })
+                      .setTitle('Time series')
+                      .setOption('legend', { showLegend: false })
                       .build(),
                   }),
                   new SceneFlexItem({
