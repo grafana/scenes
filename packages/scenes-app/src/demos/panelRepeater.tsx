@@ -1,3 +1,4 @@
+import { getFrameDisplayName } from '@grafana/data';
 import {
   EmbeddedScene,
   PanelBuilders,
@@ -9,7 +10,7 @@ import {
   SceneFlexLayout,
   SceneToolbarInput,
 } from '@grafana/scenes';
-import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
+import { BigValueGraphMode } from '@grafana/schema';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getPanelRepeaterTest(defaults: SceneAppPageState) {
