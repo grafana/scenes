@@ -30,16 +30,15 @@ import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
-import { cloneDeep, merge } from 'lodash';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
+  title: string;
+  description?: string;
   /**
    * This is usually a plugin id that references a core plugin or an external plugin. But this can also reference a
    * runtime registered PanelPlugin registered via function registerScenePanelPlugin.
    */
   pluginId: string;
-  title: string;
-  description?: string;
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
@@ -52,9 +51,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   pluginInstanceState?: any;
 }
 
-export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
-  VizPanelState<TOptions, TFieldConfig>
-> {
+export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>> {
   public static Component = VizPanelRenderer;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -162,7 +159,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return this._panelContext!;
   }
 
-  public onTimeRangeChange = (timeRange: AbsoluteTimeRange) => {
+  public onChangeTimeRange = (timeRange: AbsoluteTimeRange) => {
     const sceneTimeRange = sceneGraph.getTimeRange(this);
     sceneTimeRange.onTimeRangeChange({
       raw: {
@@ -174,52 +171,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     });
   };
 
-  public onTitleChange = (title: string) => {
-    this.setState({ title });
+  public onOptionsChange = (options: TOptions) => {
+    this.setState({ options });
   };
 
-  public onDescriptionChange = (description: string) => {
-    this.setState({ description });
-  };
-
-  public onDisplayModeChange = (displayMode: 'default' | 'transparent') => {
-    this.setState({ displayMode });
-  };
-
-  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false) => {
-    const { fieldConfig, options } = this.state;
-
-    // When replace is true, we want to replace the entire options object. Default will be applied.
-    const nextOptions = replace ? optionsUpdate : merge(cloneDeep(options), optionsUpdate);
-
-    const withDefaults = getPanelOptionsWithDefaults({
-      plugin: this._plugin!,
-      currentOptions: nextOptions,
-      currentFieldConfig: fieldConfig,
-      isAfterPluginChange: false,
-    });
-
-    this.setState({
-      options: withDefaults.options,
-    });
-  };
-
-  public onFieldConfigChange = (fieldConfigUpdate: FieldConfigSource<DeepPartial<TFieldConfig>>, replace?: boolean) => {
-    const { fieldConfig, options } = this.state;
-
-    // When replace is true, we want to replace the entire field config. Default will be applied.
-    const nextFieldConfig = replace ? fieldConfigUpdate : merge(cloneDeep(fieldConfig), fieldConfigUpdate);
-
-    const withDefaults = getPanelOptionsWithDefaults({
-      plugin: this._plugin!,
-      currentOptions: options,
-      currentFieldConfig: nextFieldConfig,
-      isAfterPluginChange: false,
-    });
-
-    this.setState({
-      fieldConfig: withDefaults.fieldConfig,
-    });
+  public onFieldConfigChange = (fieldConfig: FieldConfigSource<TFieldConfig>) => {
+    this.setState({ fieldConfig });
   };
 
   public interpolate = ((value: string, scoped?: ScopedVars, format?: string | VariableCustomFormatterFn) => {

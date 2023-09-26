@@ -27,7 +27,6 @@ interface OptionsPlugin1 {
 interface FieldConfigPlugin1 {
   customProp?: boolean;
   customProp2?: boolean;
-  customProp3?: string;
   junkProp?: boolean;
 }
 
@@ -72,10 +71,6 @@ function getTestPlugin1() {
         name: 'customProp2',
         path: 'customProp2',
         defaultValue: false,
-      });
-      builder.addTextInput({
-        name: 'customProp3',
-        path: 'customProp3',
       });
     },
   });
@@ -130,20 +125,9 @@ describe('VizPanel', () => {
           process: (value) => value,
           shouldApply: () => true,
         },
-        {
-          id: 'color',
-          path: 'color',
-          name: 'Color',
-          description: 'Color of the series',
-          editor: () => null,
-          override: () => null,
-          process: (value) => value,
-          shouldApply: () => true,
-        },
       ];
     });
   });
-
   describe('when activated', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 
@@ -180,128 +164,6 @@ describe('VizPanel', () => {
 
     it('should should remove props that are not defined for plugin', () => {
       expect(panel.state.fieldConfig.defaults.custom?.junkProp).toEqual(undefined);
-    });
-  });
-
-  describe('updating options', () => {
-    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
-
-    beforeEach(async () => {
-      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
-        pluginId: 'custom-plugin-id',
-        fieldConfig: {
-          defaults: { custom: { junkProp: true } },
-          overrides: [],
-        },
-      });
-
-      pluginToLoad = getTestPlugin1();
-      panel.activate();
-    });
-
-    test('should update partial options by merging with existing', () => {
-      panel.onOptionsChange({
-        option2: 'updated option',
-      });
-
-      expect(panel.state.options.showThresholds).toBe(true);
-      expect(panel.state.options.option2).toBe('updated option');
-    });
-    test('should update partial options without merging', () => {
-      panel.onOptionsChange({
-        option2: 'updated option',
-      });
-
-      expect(panel.state.options.showThresholds).toBe(true);
-      expect(panel.state.options.option2).toBe('updated option');
-
-      panel.onOptionsChange({
-        showThresholds: false,
-      });
-
-      expect(panel.state.options.showThresholds).toBe(false);
-      expect(panel.state.options.option2).toBe('updated option');
-
-      panel.onOptionsChange(
-        {
-          showThresholds: false,
-        },
-        true
-      );
-
-      expect(panel.state.options.showThresholds).toBe(false);
-      expect(panel.state.options.option2).not.toBeDefined();
-    });
-  });
-
-  describe('updating field config', () => {
-    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
-
-    beforeEach(async () => {
-      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
-        pluginId: 'custom-plugin-id',
-        fieldConfig: {
-          defaults: { custom: { junkProp: true } },
-          overrides: [],
-        },
-      });
-
-      pluginToLoad = getTestPlugin1();
-      panel.activate();
-    });
-    test('should update partial field config by merging with existing', () => {
-      panel.onFieldConfigChange({
-        defaults: {
-          unit: 'new unit',
-          custom: {
-            customProp2: true,
-          },
-        },
-        overrides: [],
-      });
-
-      expect(panel.state.fieldConfig.defaults.unit).toBe('new unit');
-      expect(panel.state.fieldConfig.defaults.custom?.customProp).toBe(false);
-      expect(panel.state.fieldConfig.defaults.custom?.customProp2).toBe(true);
-    });
-
-    test('should update partial field config without merging', () => {
-      // Updating field config
-      panel.onFieldConfigChange({
-        defaults: {
-          unit: 'new unit',
-          custom: {
-            customProp2: true,
-            customProp3: 'this will be removed after update',
-          },
-        },
-        overrides: [],
-      });
-
-      expect(panel.state.fieldConfig.defaults.unit).toBe('new unit');
-      expect(panel.state.fieldConfig.defaults.custom?.customProp).toBe(false);
-      expect(panel.state.fieldConfig.defaults.custom?.customProp2).toBe(true);
-      expect(panel.state.fieldConfig.defaults.custom?.customProp3).toBe('this will be removed after update');
-
-      // Updating field config again but this time requesting replace
-      panel.onFieldConfigChange(
-        {
-          defaults: {
-            decimals: 10,
-            custom: {
-              customProp: false,
-            },
-          },
-          overrides: [],
-        },
-        true
-      );
-
-      expect(panel.state.fieldConfig.defaults.unit).toBe('flop'); // restored to default
-      expect(panel.state.fieldConfig.defaults.decimals).toBe(10);
-      expect(panel.state.fieldConfig.defaults.custom?.customProp).toBe(false);
-      expect(panel.state.fieldConfig.defaults.custom?.customProp2).toBe(false); // restored to default
-      expect(panel.state.fieldConfig.defaults.custom?.customProp3).toBe(undefined); // restored to default
     });
   });
 

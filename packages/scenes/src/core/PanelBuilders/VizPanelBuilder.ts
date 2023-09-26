@@ -1,16 +1,16 @@
+import { FieldConfigSource } from '@grafana/data';
+import { merge, cloneDeep } from 'lodash';
+
 import { VizPanel, VizPanelState } from '../../components/VizPanel/VizPanel';
 import { DeepPartial } from '../types';
-import { FieldConfigBuilder } from './FieldConfigBuilder';
 import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
-import { PanelOptionsBuilder } from './PanelOptionsBuilder';
 import { StandardFieldConfig, StandardFieldConfigInterface } from './types';
 
-export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
+export class VizPanelBuilder<TOptions, TFieldConfig extends {}>
   implements StandardFieldConfigInterface<StandardFieldConfig, VizPanelBuilder<TOptions, TFieldConfig>, 'set'>
 {
   private _state: VizPanelState<TOptions, TFieldConfig> = {} as VizPanelState<TOptions, TFieldConfig>;
-  private _fieldConfigBuilder: FieldConfigBuilder<TFieldConfig>;
-  private _panelOptionsBuilder: PanelOptionsBuilder<TOptions>;
+  private _overridesBuilder = new FieldConfigOverridesBuilder<TFieldConfig>();
 
   public constructor(
     pluginId: string,
@@ -24,9 +24,15 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
     this._state.hoverHeader = false;
     this._state.pluginId = pluginId;
     this._state.pluginVersion = pluginVersion;
+    const fieldConfig: FieldConfigSource<TFieldConfig> = {
+      defaults: {
+        custom: defaultFieldConfig ? cloneDeep(defaultFieldConfig()) : ({} as TFieldConfig),
+      }, // use field config factory that will provide default field config
+      overrides: [],
+    };
 
-    this._fieldConfigBuilder = new FieldConfigBuilder(defaultFieldConfig);
-    this._panelOptionsBuilder = new PanelOptionsBuilder(defaultOptions);
+    this._state.options = defaultOptions ? cloneDeep(defaultOptions()) : ({} as TOptions);
+    this._state.fieldConfig = fieldConfig;
   }
 
   /**
@@ -81,105 +87,104 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    * Set color.
    */
   public setColor(color: StandardFieldConfig['color']): this {
-    this._fieldConfigBuilder.setColor(color);
-    return this;
+    return this.setFieldConfigDefaults('color', color);
   }
 
   /**
    * Set number of decimals to show.
    */
   public setDecimals(decimals: StandardFieldConfig['decimals']): this {
-    this._fieldConfigBuilder.setDecimals(decimals);
-    return this;
+    return this.setFieldConfigDefaults('decimals', decimals);
   }
 
   /**
    * Set field display name.
    */
   public setDisplayName(displayName: StandardFieldConfig['displayName']): this {
-    this._fieldConfigBuilder.setDisplayName(displayName);
-    return this;
+    return this.setFieldConfigDefaults('displayName', displayName);
   }
 
   /**
    * Set the standard field config property filterable.
    */
   public setFilterable(filterable: StandardFieldConfig['filterable']): this {
-    this._fieldConfigBuilder.setFilterable(filterable);
-    return this;
+    return this.setFieldConfigDefaults('filterable', filterable);
   }
 
   /**
    * Set data links.
    */
   public setLinks(links: StandardFieldConfig['links']): this {
-    this._fieldConfigBuilder.setLinks(links);
-    return this;
+    return this.setFieldConfigDefaults('links', links);
   }
 
   /**
    * Set value mappings.
    */
   public setMappings(mappings: StandardFieldConfig['mappings']): this {
-    this._fieldConfigBuilder.setMappings(mappings);
-    return this;
+    return this.setFieldConfigDefaults('mappings', mappings);
   }
 
   /**
    * Set the standard field config property max.
    */
   public setMax(max: StandardFieldConfig['max']): this {
-    this._fieldConfigBuilder.setMax(max);
-    return this;
+    return this.setFieldConfigDefaults('max', max);
   }
 
   /**
    * Set the standard field config property min.
    */
   public setMin(min: StandardFieldConfig['min']): this {
-    this._fieldConfigBuilder.setMin(min);
-    return this;
+    return this.setFieldConfigDefaults('min', min);
   }
 
   /**
    * Set the standard field config property noValue.
    */
   public setNoValue(noValue: StandardFieldConfig['noValue']): this {
-    this._fieldConfigBuilder.setNoValue(noValue);
-    return this;
+    return this.setFieldConfigDefaults('noValue', noValue);
   }
 
   /**
    * Set the standard field config property thresholds.
    */
   public setThresholds(thresholds: StandardFieldConfig['thresholds']): this {
-    this._fieldConfigBuilder.setThresholds(thresholds);
-    return this;
+    return this.setFieldConfigDefaults('thresholds', thresholds);
   }
 
   /**
    * Set the standard field config property unit.
    */
   public setUnit(unit: StandardFieldConfig['unit']): this {
-    this._fieldConfigBuilder.setUnit(unit);
-    return this;
-  }
-
-  public setCustomFieldConfig<T extends TFieldConfig, K extends keyof T>(id: K, value: DeepPartial<T[K]>): this {
-    this._fieldConfigBuilder.setCustomFieldConfig(id, value);
-    return this;
-  }
-
-  public setOverrides(builder: (b: FieldConfigOverridesBuilder<TFieldConfig>) => void): this {
-    this._fieldConfigBuilder.setOverrides(builder);
-    return this;
+    return this.setFieldConfigDefaults('unit', unit);
   }
 
   /**
    * Set an individual panel option. This will merge the value with the existing options.
    */
   public setOption<T extends TOptions, K extends keyof T>(id: K, value: DeepPartial<T[K]>): this {
-    this._panelOptionsBuilder.setOption(id, value);
+    this._state.options = merge(this._state.options, { [id]: value });
+    return this;
+  }
+
+  /**
+   * Set an individual custom field config value. This will merge the value with the existing custom field config.
+   */
+  public setCustomFieldConfig<T extends TFieldConfig, K extends keyof T>(id: K, value: DeepPartial<T[K]>): this {
+    this._state.fieldConfig.defaults = {
+      ...this._state.fieldConfig.defaults,
+      custom: merge(this._state.fieldConfig.defaults.custom, { [id]: value }),
+    };
+
+    return this;
+  }
+
+  /**
+   * Configure overrides for the field config. This will merge the overrides with the existing overrides.
+   */
+  public setOverrides(builder: (b: FieldConfigOverridesBuilder<TFieldConfig>) => void): this {
+    builder(this._overridesBuilder);
     return this;
   }
 
@@ -219,12 +224,20 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    * Build the panel.
    */
   public build() {
-    const panel = new VizPanel<TOptions, TFieldConfig>({
+    return new VizPanel<TOptions, TFieldConfig>({
       ...this._state,
-      options: this._panelOptionsBuilder.build(),
-      fieldConfig: this._fieldConfigBuilder.build(),
+      fieldConfig: {
+        defaults: this._state.fieldConfig.defaults,
+        overrides: this._overridesBuilder.build(),
+      },
     });
+  }
 
-    return panel;
+  private setFieldConfigDefaults<T extends keyof StandardFieldConfig>(key: T, value: StandardFieldConfig[T]) {
+    this._state.fieldConfig.defaults = {
+      ...this._state.fieldConfig.defaults,
+      [key]: value,
+    };
+    return this;
   }
 }

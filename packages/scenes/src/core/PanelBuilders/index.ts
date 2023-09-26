@@ -178,6 +178,3 @@ export const PanelBuilders = {
     );
   },
 };
-
-export { PanelOptionsBuilders } from './PanelOptionsBuilders';
-export { FieldConfigBuilders } from './FieldConfigBuilders';

@@ -23,7 +23,6 @@ import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
 import { getTransformationsTest } from './transformations';
-import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
 
 export interface DemoDescriptor {
   title: string;
@@ -55,7 +54,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
     { title: 'Data layers', getPage: getAnnotationsDemo },
     { title: 'Transformations', getPage: getTransformationsTest },
-    { title: 'Dynamic panel options and field config', getPage: getDynamicVizOptionsTest },
     { title: 'Docs examples', getPage: getDocsExamples },
   ];
 }

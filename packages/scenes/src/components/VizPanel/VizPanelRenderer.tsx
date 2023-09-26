@@ -127,7 +127,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                         replaceVariables={model.interpolate}
                         onOptionsChange={model.onOptionsChange}
                         onFieldConfigChange={model.onFieldConfigChange}
-                        onChangeTimeRange={model.onTimeRangeChange}
+                        onChangeTimeRange={model.onChangeTimeRange}
                         eventBus={getAppEvents()}
                       />
                     )}
