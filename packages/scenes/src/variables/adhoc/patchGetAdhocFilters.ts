@@ -1,41 +1,43 @@
 import { getDataSourceSrv, getTemplateSrv } from '@grafana/runtime';
-import { SceneVariableSet } from '../sets/SceneVariableSet';
-import { sceneGraph } from '../../core/sceneGraph';
-import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocVariableFilter } from '@grafana/data';
 
 let originalGetAdhocFilters: any = undefined;
+let allActiveFilterSets = new Set<AdHocFilterSet>();
 
-export function patchGetAdhocFilters(sceneObject: SceneVariableSet) {
+export function patchGetAdhocFilters(filterSet: AdHocFilterSet) {
+  filterSet.addActivationHandler(() => {
+    allActiveFilterSets.add(filterSet);
+    return () => allActiveFilterSets.delete(filterSet);
+  });
+
+  if (originalGetAdhocFilters) {
+    return;
+  }
+
   const templateSrv: any = getTemplateSrv();
   if (!templateSrv.getAdhocFilters) {
     console.log('Failed to patch getAdhocFilters');
   }
 
-  if (!originalGetAdhocFilters) {
-    originalGetAdhocFilters = templateSrv.getAdhocFilters;
-  }
+  originalGetAdhocFilters = templateSrv.getAdhocFilters;
 
-  templateSrv.getAdhocFilters = function (dsName: string): AdHocVariableFilter[] {
-    if (sceneObject.isActive) {
-      const variableSet = sceneGraph.getVariables(sceneObject);
-      const ds = getDataSourceSrv().getInstanceSettings(dsName);
-
-      if (!ds) {
-        return [];
-      }
-
-      for (const variable of variableSet.state.variables) {
-        if (variable instanceof AdHocFiltersVariable) {
-          if (variable.state.datasource?.uid === ds.uid) {
-            return variable.state.baseFilters.concat(...variable.state.filters);
-          }
-        }
-      }
-
-      return [];
-    } else {
+  templateSrv.getAdhocFilters = function getAdhocFiltersScenePatch(dsName: string): AdHocVariableFilter[] {
+    if (allActiveFilterSets.size === 0) {
       return originalGetAdhocFilters.call(templateSrv);
     }
+
+    const ds = getDataSourceSrv().getInstanceSettings(dsName);
+    if (!ds) {
+      return [];
+    }
+
+    for (const filter of allActiveFilterSets.values()) {
+      if (filter.state.datasource?.uid === ds.uid) {
+        return filter.state.baseFilters.concat(...filter.state.filters);
+      }
+    }
+
+    return [];
   }.bind(templateSrv);
 }

@@ -7,9 +7,8 @@ import {
   SceneAppPage,
   SceneAppPageState,
   PanelBuilders,
-  AdHocFiltersVariable,
+  AdHocFilterSet,
   SceneQueryRunner,
-  QueryVariable,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 
@@ -24,21 +23,13 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
         getScene: () => {
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),
-            $variables: new SceneVariableSet({
-              variables: [
-                new QueryVariable({
-                  name: 'cluster',
-                  description: 'Cluster variable description',
-                  datasource: { uid: 'gdev-prometheus' },
-                  query: { query: 'label_values(job)', refId: 'A' },
-                }),
-                new AdHocFiltersVariable({
-                  name: 'Filters',
-                  datasource: { uid: 'gdev-prometheus' },
-                  filters: [{ key: 'job', operator: '=', value: 'grafana' }],
-                }),
-              ],
-            }),
+            controls: [
+              new AdHocFilterSet({
+                name: 'Filters',
+                datasource: { uid: 'gdev-prometheus' },
+                filters: [{ key: 'job', operator: '=', value: 'grafana' }],
+              }),
+            ],
             body: new SceneFlexLayout({
               direction: 'row',
               children: [
@@ -74,11 +65,11 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
             ...getEmbeddedSceneDefaults(),
             $variables: new SceneVariableSet({
               variables: [
-                new AdHocFiltersVariable({
-                  name: 'Filters',
-                  datasource: { uid: 'gdev-prometheus' },
-                  filters: [{ key: 'job', operator: '=', value: 'grafana' }],
-                }),
+                // new AdHocFiltersVariable({
+                //   name: 'Filters',
+                //   datasource: { uid: 'gdev-prometheus' },
+                //   filters: [{ key: 'job', operator: '=', value: 'grafana' }],
+                // }),
               ],
             }),
             body: new SceneFlexLayout({

@@ -3,16 +3,16 @@ import React from 'react';
 import { AdHocVariableFilter } from '@grafana/data';
 import { SegmentAsync } from '@grafana/ui';
 
-import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocFilterSet } from './AdHocFiltersSet';
 
 interface Props {
-  model: AdHocFiltersVariable;
+  model: AdHocFilterSet;
   filter: AdHocVariableFilter;
   placeHolder?: string;
 }
 
 export function AdHocFilterValue({ filter, placeHolder, model }: Props) {
-  const loadValues = () => model._getValuesFor(filter);
+  const loadValues = () => model.getValuesFor(filter);
 
   return (
     <div data-testid="AdHocFilterValue-value-wrapper">

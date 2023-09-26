@@ -42,7 +42,6 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
               text: '',
               options: [],
             }),
-
             new TestVariable({
               name: 'handler',
               query: 'A.$server.$pod.*',

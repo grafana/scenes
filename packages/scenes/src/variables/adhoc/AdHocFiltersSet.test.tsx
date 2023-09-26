@@ -6,10 +6,9 @@ import { select } from 'react-select-event';
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
 
 import { EmbeddedScene } from '../../components/EmbeddedScene';
-import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
-import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocFilterSet } from './AdHocFiltersSet';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
@@ -38,7 +37,7 @@ describe('AdHocFilter', () => {
   });
 
   it('adds filter', async () => {
-    const { variable } = setup();
+    const { filtersSet } = setup();
 
     // Select key
     await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -49,36 +48,36 @@ describe('AdHocFilter', () => {
     await waitFor(() => select(selects[0], 'key3', { container: document.body }));
     await waitFor(() => select(selects[2], 'val3', { container: document.body }));
 
-    expect(variable.state.filters.length).toBe(3);
+    expect(filtersSet.state.filters.length).toBe(3);
   });
 
   it('removes filter', async () => {
-    const { variable } = setup();
+    const { filtersSet } = setup();
 
     await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
 
-    expect(variable.state.filters.length).toBe(1);
+    expect(filtersSet.state.filters.length).toBe(1);
   });
 
   it('changes filter', async () => {
-    const { variable, runRequest } = setup();
+    const { filtersSet, runRequest } = setup();
 
     const wrapper = screen.getByTestId('AdHocFilter-key1');
     const selects = getAllByRole(wrapper, 'combobox');
 
     await waitFor(() => select(selects[2], 'val4', { container: document.body }));
 
-    expect(variable.state.filters[0].value).toBe('val4');
+    expect(filtersSet.state.filters[0].value).toBe('val4');
 
     // should run query for scene query runner
     expect(runRequest.mock.calls.length).toBe(2);
   });
 
   it('url sync works', async () => {
-    const { variable } = setup();
+    const { filtersSet } = setup();
 
     act(() => {
-      variable._updateFilter(variable.state.filters[0], 'value', 'newValue');
+      filtersSet._updateFilter(filtersSet.state.filters[0], 'value', 'newValue');
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -89,7 +88,7 @@ describe('AdHocFilter', () => {
       locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
     });
 
-    expect(variable.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl' });
+    expect(filtersSet.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl' });
   });
 });
 
@@ -132,7 +131,7 @@ function setup() {
 
   setTemplateSrv(templateSrv);
 
-  const variable = new AdHocFiltersVariable({
+  const filtersSet = new AdHocFilterSet({
     name: 'filters',
     filters: [
       {
@@ -151,9 +150,9 @@ function setup() {
   const scene = new EmbeddedScene({
     $timeRange: new SceneTimeRange(),
     $variables: new SceneVariableSet({
-      variables: [variable],
+      variables: [],
     }),
-    controls: [new VariableValueSelectors({})],
+    controls: [filtersSet],
     body: new SceneFlexLayout({
       children: [
         new SceneFlexItem({
@@ -177,5 +176,5 @@ function setup() {
 
   const { unmount } = render(<scene.Component model={scene} />);
 
-  return { scene, variable, unmount, runRequest: runRequestMock.fn };
+  return { scene, filtersSet, unmount, runRequest: runRequestMock.fn };
 }

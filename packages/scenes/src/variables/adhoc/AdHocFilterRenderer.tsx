@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 
-import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
 import { Button, Select, useStyles2 } from '@grafana/ui';
 import { css } from '@emotion/css';
 
 interface Props {
   filter: AdHocVariableFilter;
-  model: AdHocFiltersVariable;
+  model: AdHocFilterSet;
 }
 
 export function AdHocFilterRenderer({ filter, model }: Props) {
@@ -44,7 +44,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         isLoading={state.isKeysLoading}
         onOpenMenu={async () => {
           setState({ ...state, isKeysLoading: true });
-          const keys = await model._getKeys(filter.key);
+          const keys = await model.getKeys(filter.key);
           setState({ ...state, isKeysLoading: false, isKeysOpen: true, keys });
         }}
         onCloseMenu={() => {
@@ -71,7 +71,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         isLoading={state.isValuesLoading}
         onOpenMenu={async () => {
           setState({ ...state, isValuesLoading: true });
-          const values = await model._getValuesFor(filter);
+          const values = await model.getValuesFor(filter);
           setState({ ...state, isValuesLoading: false, isValuesOpen: true, values });
         }}
         onCloseMenu={() => {

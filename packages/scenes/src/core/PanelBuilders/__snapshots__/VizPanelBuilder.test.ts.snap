@@ -74,6 +74,8 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 
 exports[`VizPanelBuilder options and field config standard panels defaults provides gauge defaults 1`] = `
 {
+  "minVizHeight": 75,
+  "minVizWidth": 75,
   "showThresholdLabels": false,
   "showThresholdMarkers": true,
 }

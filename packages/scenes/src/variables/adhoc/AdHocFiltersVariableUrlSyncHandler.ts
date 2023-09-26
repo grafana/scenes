@@ -1,9 +1,9 @@
 import { AdHocVariableFilter } from '@grafana/data';
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } from '../../core/types';
-import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocFilterSet } from './AdHocFiltersSet';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
-  public constructor(private _variable: AdHocFiltersVariable) {}
+  public constructor(private _variable: AdHocFilterSet) {}
 
   private getKey(): string {
     return `var-${this._variable.state.name}`;
