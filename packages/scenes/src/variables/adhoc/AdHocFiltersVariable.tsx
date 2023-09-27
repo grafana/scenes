@@ -2,11 +2,14 @@ import React from 'react';
 import { AdHocVariableFilter } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent } from '../types';
-import { AdHocFilterSet } from './AdHocFiltersSet';
+import { AdHocFilterSet, AdHocFilterSetState } from './AdHocFiltersSet';
 import { SceneComponentProps } from '../../core/types';
 import { VariableHide } from '@grafana/schema';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
+  /**
+   * Important that you set applyFiltersTo: 'manual' when you create the set.
+   */
   set: AdHocFilterSet;
   /**
    * This is the expression that the filters resulted in. Defaults to
@@ -15,18 +18,31 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   filterExpression?: string;
 }
 
+export type AdHocFiltersVariableCreateHelperArgs = Pick<
+  AdHocFilterSetState,
+  'name' | 'filters' | 'baseFilters' | 'datasource' | 'getTagKeysProvider' | 'getTagValuesProvider'
+>;
+
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
   implements SceneVariable<AdHocFiltersVariableState>
 {
-  public constructor(state: Partial<AdHocFiltersVariableState>) {
-    super({
+  /** Helper factory function that makes sure AdHocFilterSet is created correctly  */
+  public static create(state: AdHocFiltersVariableCreateHelperArgs): AdHocFiltersVariable {
+    return new AdHocFiltersVariable({
       type: 'adhoc',
       hide: VariableHide.hideLabel,
-      name: state.name ?? state.set?.state.name ?? 'Filters',
-      set: state.set ?? new AdHocFilterSet({}),
-      ...state,
+      name: state.name ?? 'Filters',
+      set: new AdHocFilterSet({
+        ...state,
+        // Main reason for this helper factory functyion
+        applyMode: 'manual',
+      }),
     });
+  }
+
+  public constructor(state: AdHocFiltersVariableState) {
+    super(state);
 
     // Subscribe to filter changes and up the variable value (filterExpression)
     this.addActivationHandler(() => {

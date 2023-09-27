@@ -1,25 +1,21 @@
-import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 
 describe('AdHocFiltersVariable', () => {
   it('AdHocFiltersVariable by default renders a prometheus / loki compatible label filter', () => {
-    const variable = new AdHocFiltersVariable({
-      name: 'Filters',
-      set: new AdHocFilterSet({
-        name: 'Filters',
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-          },
-          {
-            key: 'key2',
-            operator: '=~',
-            value: '[val2]',
-          },
-        ],
-      }),
+    const variable = AdHocFiltersVariable.create({
+      datasource: { uid: 'hello' },
+      filters: [
+        {
+          key: 'key1',
+          operator: '=',
+          value: 'val1',
+        },
+        {
+          key: 'key2',
+          operator: '=~',
+          value: '[val2]',
+        },
+      ],
     });
 
     variable.activate();

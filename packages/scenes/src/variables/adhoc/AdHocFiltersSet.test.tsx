@@ -8,7 +8,7 @@ import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTem
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
-import { AdHocFilterSet } from './AdHocFiltersSet';
+import { AdHocFilterSet, AdHocFilterSetState } from './AdHocFiltersSet';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
@@ -90,6 +90,47 @@ describe('AdHocFilter', () => {
 
     expect(filtersSet.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl' });
   });
+
+  it('Can override and replace getTagKeys and getTagValues', async () => {
+    const { filtersSet } = setup({
+      getTagKeysProvider: () => {
+        return Promise.resolve({ replace: true, values: [{ text: 'hello', value: '1' }] });
+      },
+      getTagValuesProvider: () => {
+        return Promise.resolve({ replace: true, values: [{ text: 'v', value: '2' }] });
+      },
+    });
+
+    const keys = await filtersSet._getKeys(null);
+    expect(keys).toEqual([{ label: 'hello', value: '1' }]);
+
+    const values = await filtersSet._getValuesFor(filtersSet.state.filters[0]);
+    expect(values).toEqual([{ label: 'v', value: '2' }]);
+  });
+
+  it('Can override and add keys and values', async () => {
+    const { filtersSet } = setup({
+      getTagKeysProvider: () => {
+        return Promise.resolve({ values: [{ text: 'hello', value: '1' }] });
+      },
+      getTagValuesProvider: () => {
+        return Promise.resolve({ values: [{ text: 'v', value: '2' }] });
+      },
+    });
+
+    const keys = await filtersSet._getKeys(null);
+    expect(keys).toEqual([
+      { label: 'key3', value: 'key3' },
+      { label: 'hello', value: '1' },
+    ]);
+
+    const values = await filtersSet._getValuesFor(filtersSet.state.filters[0]);
+    expect(values).toEqual([
+      { label: 'val3', value: 'val3' },
+      { label: 'val4', value: 'val4' },
+      { label: 'v', value: '2' },
+    ]);
+  });
 });
 
 const runRequestMock = {
@@ -98,7 +139,7 @@ const runRequestMock = {
 
 let runRequestSet = false;
 
-function setup() {
+function setup(overrides?: Partial<AdHocFilterSetState>) {
   setDataSourceSrv({
     get() {
       return {
@@ -145,6 +186,7 @@ function setup() {
         value: 'val2',
       },
     ],
+    ...overrides,
   });
 
   const scene = new EmbeddedScene({

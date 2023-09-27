@@ -44,7 +44,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         isLoading={state.isKeysLoading}
         onOpenMenu={async () => {
           setState({ ...state, isKeysLoading: true });
-          const keys = await model.getKeys(filter.key);
+          const keys = await model._getKeys(filter.key);
           setState({ ...state, isKeysLoading: false, isKeysOpen: true, keys });
         }}
         onCloseMenu={() => {
@@ -71,7 +71,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         isLoading={state.isValuesLoading}
         onOpenMenu={async () => {
           setState({ ...state, isValuesLoading: true });
-          const values = await model.getValuesFor(filter);
+          const values = await model._getValuesFor(filter);
           setState({ ...state, isValuesLoading: false, isValuesOpen: true, values });
         }}
         onCloseMenu={() => {

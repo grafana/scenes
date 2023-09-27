@@ -1,5 +1,11 @@
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { AdHocVariableFilter, DataSourceInstanceSettings, GrafanaTheme2, SelectableValue } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  DataSourceInstanceSettings,
+  GrafanaTheme2,
+  MetricFindValue,
+  SelectableValue,
+} from '@grafana/data';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
@@ -15,20 +21,49 @@ import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { css } from '@emotion/css';
 
 export interface AdHocFilterSetState extends SceneObjectState {
-  name: string;
+  /** Defaults to Filters */
+  name?: string;
   /** The visible filters */
   filters: AdHocVariableFilter[];
   /** Base filters to always apply when looking up keys*/
-  baseFilters: AdHocVariableFilter[];
+  baseFilters?: AdHocVariableFilter[];
   /** Datasource to use for getTagKeys and getTagValues and also controls which scene queries the filters should apply to */
   datasource: DataSourceRef | null;
   /** Controls if the filters can be changed */
   readOnly?: boolean;
-  /** Defaults to same-datasource which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet */
-  applyFiltersTo?: 'same-datasource' | 'manual';
-  /** New filter being added */
+  /**
+   * Defaults to same-datasource which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
+   * In manual mode no queries are rerun on changes and you have to manual apply the filter to what ever queries you want.
+   */
+  applyMode?: 'same-datasource' | 'manual';
+  /**
+   * Extension hook for customizing the key lookup.
+   * Return replace: true if you want to override the default lookup and
+   * Return replace: false will just combine the results.
+   */
+  getTagKeysProvider?: getTagKeysProvider;
+  /**
+   * Extension hook for customizing the value lookup.
+   * Return replace: true if you want to override the default lookup.
+   * Return replace: false to combine the results.
+   */
+  getTagValuesProvider?: getTagValuesProvider;
+
+  /**
+   * @internal state of the new filter being added
+   */
   _wip?: AdHocVariableFilter;
 }
+
+export type getTagKeysProvider = (
+  set: AdHocFilterSet,
+  currentKey: string | null
+) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
+
+export type getTagValuesProvider = (
+  set: AdHocFilterSet,
+  filter: AdHocVariableFilter
+) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
 
 export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
   static Component = AdHocFiltersSetRenderer;
@@ -44,11 +79,11 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       filters: [],
       baseFilters: [],
       datasource: null,
-      applyFiltersTo: 'same-datasource',
+      applyMode: 'same-datasource',
       ...initialState,
     });
 
-    if (this.state.applyFiltersTo === 'same-datasource') {
+    if (this.state.applyMode === 'same-datasource') {
       patchGetAdhocFilters(this);
     }
   }
@@ -98,21 +133,38 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
-  public async getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+  public async _getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    const override = await this.state.getTagKeysProvider?.(this, currentKey);
+
+    if (override && override.replace) {
+      return override.values.map(toSelectableValue);
+    }
+
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     if (!ds || !ds.getTagKeys) {
       return [];
     }
 
-    const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters);
-    const metrics = await ds.getTagKeys({ filters: otherFilters });
-    return metrics.map((m) => ({ label: m.text, value: m.text }));
+    const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters!);
+    let keys = await ds.getTagKeys({ filters: otherFilters });
+
+    if (override) {
+      keys = keys.concat(override.values);
+    }
+
+    return keys.map(toSelectableValue);
   }
 
   /**
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
-  public async getValuesFor(filter: AdHocVariableFilter): Promise<Array<SelectableValue<string>>> {
+  public async _getValuesFor(filter: AdHocVariableFilter): Promise<Array<SelectableValue<string>>> {
+    const override = await this.state.getTagValuesProvider?.(this, filter);
+
+    if (override && override.replace) {
+      return override.values.map(toSelectableValue);
+    }
+
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
 
     if (!ds || !ds.getTagValues) {
@@ -120,9 +172,14 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
     }
 
     // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters);
-    const metrics = await ds.getTagValues({ key: filter.key, filters: otherFilters });
-    return metrics.map((m) => ({ label: m.text, value: m.text }));
+    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters!);
+    let values = await ds.getTagValues({ key: filter.key, filters: otherFilters });
+
+    if (override) {
+      values = values.concat(override.values);
+    }
+
+    return values.map(toSelectableValue);
   }
 
   public _addWip() {
@@ -138,7 +195,7 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
 
   private _runSceneQueries() {
     // In manual mode we do not trigger any queries
-    if (this.state.applyFiltersTo === 'manual') {
+    if (this.state.applyMode === 'manual') {
       return;
     }
 
@@ -215,3 +272,10 @@ const getStyles = (theme: GrafanaTheme2) => ({
     paddingRight: theme.spacing(0.5),
   }),
 });
+
+function toSelectableValue({ text, value }: MetricFindValue): SelectableValue<string> {
+  return {
+    label: text,
+    value: String(value ?? text),
+  };
+}

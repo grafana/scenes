@@ -30,8 +30,9 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
             controls: [
               new AdHocFilterSet({
                 name: 'Filters',
+                // Only want keys for this series
+                baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS' }],
                 datasource: { uid: 'gdev-prometheus' },
-                filters: [{ key: 'job', operator: '=', value: 'grafana' }],
               }),
             ],
             body: new SceneFlexLayout({
@@ -68,14 +69,9 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
             ...getEmbeddedSceneDefaults(),
             $variables: new SceneVariableSet({
               variables: [
-                new AdHocFiltersVariable({
-                  set: new AdHocFilterSet({
-                    name: 'Filters',
-                    datasource: { uid: 'gdev-prometheus' },
-                    filters: [{ key: 'job', operator: '=', value: 'grafana' }],
-                    // Important to set the set to manual
-                    applyFiltersTo: 'manual',
-                  }),
+                AdHocFiltersVariable.create({
+                  datasource: { uid: 'gdev-prometheus' },
+                  filters: [{ key: 'job', operator: '=', value: 'grafana' }],
                 }),
               ],
             }),

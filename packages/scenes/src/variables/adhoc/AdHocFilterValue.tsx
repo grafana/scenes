@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function AdHocFilterValue({ filter, placeHolder, model }: Props) {
-  const loadValues = () => model.getValuesFor(filter);
+  const loadValues = () => model._getValuesFor(filter);
 
   return (
     <div data-testid="AdHocFilterValue-value-wrapper">
