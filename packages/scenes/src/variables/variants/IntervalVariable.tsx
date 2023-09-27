@@ -1,11 +1,10 @@
-import { getDefaultTimeRange, rangeUtil } from '@grafana/data';
+import { rangeUtil } from '@grafana/data';
 import { VariableRefresh } from '@grafana/schema';
-import { config, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
 import { renderSelectForVariable } from '../components/VariableValueSelect';
-import { VariableValueOption } from '../types';
-import { VariableDependencyConfig } from '../VariableDependencyConfig';
+import { SceneVariableValueChangedEvent, VariableValue, VariableValueOption } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 
 export interface IntervalVariableState extends MultiValueVariableState {
@@ -17,11 +16,6 @@ export interface IntervalVariableState extends MultiValueVariableState {
 }
 
 export class IntervalVariable extends MultiValueVariable<IntervalVariableState> {
-  // does it have dependencies?
-  protected _variableDependency = new VariableDependencyConfig(this, {
-    statePaths: ['query'],
-  });
-
   public constructor(initialState: Partial<IntervalVariableState>) {
     super({
       type: 'interval',
@@ -36,7 +30,24 @@ export class IntervalVariable extends MultiValueVariable<IntervalVariableState> 
       refresh: VariableRefresh.onTimeRangeChanged,
       ...initialState,
     });
+
+    this.addActivationHandler(this._onActivate);
   }
+
+  private _onActivate = () => {
+    const timeRange = sceneGraph.getTimeRange(this);
+
+    this._subs.add(
+      timeRange.subscribeToState(() => {
+        console.log('time range changed');
+        // time range change should trigger a new interval calculation
+        this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+      })
+    );
+
+    // Return deactivation handler;
+    // return this._onDeactivate;
+  };
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
     const match = this.state.query.match(/(["'])(.*?)\1|\w+/g) ?? [];
@@ -51,7 +62,7 @@ export class IntervalVariable extends MultiValueVariable<IntervalVariableState> 
         options.unshift({
           label: 'auto',
           text: 'auto',
-          value: '$__auto_interval_' + this.state.name,
+          value: '$auto',
           selected: false,
         });
       }
@@ -64,15 +75,26 @@ export class IntervalVariable extends MultiValueVariable<IntervalVariableState> 
     return of(options);
   }
 
-  private getAutoRefreshInteval(minRefreshInterval) {
-    const timeRange = sceneGraph.getTimeRange(this).state.value || getDefaultTimeRange();
-    // where is this window coming from?
+  public getValue(): VariableValue {
+    if (this.state.value === '$auto') {
+      return this.getAutoRefreshInteval(this.state.auto_min);
+    }
+
+    return this.state.value;
+  }
+
+  private getAutoRefreshInteval(minRefreshInterval: string) {
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
     const resolution = window?.innerWidth ?? 2000;
-    return rangeUtil.calculateInterval(
+    const intervalObject = rangeUtil.calculateInterval(
       timeRange,
       resolution, // the max pixels possibles
       minRefreshInterval
     );
+
+    console.log('interval updated from getAutoRefreshInterval', intervalObject);
+
+    return intervalObject.interval;
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
