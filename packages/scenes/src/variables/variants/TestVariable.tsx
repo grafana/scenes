@@ -17,6 +17,7 @@ export interface TestVariableState extends MultiValueVariableState {
   delayMs?: number;
   issuedQuery?: string;
   refresh?: VariableRefresh;
+  throwError?: string;
   optionsToReturn: VariableValueOption[];
 }
 
@@ -53,6 +54,10 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
 
     return new Observable<VariableValueOption[]>((observer) => {
       this.setState({ loading: true });
+
+      if (this.state.throwError) {
+        throw new Error(this.state.throwError);
+      }
 
       const sub = this.completeUpdate.subscribe({
         next: () => {
