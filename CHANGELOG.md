@@ -1,3 +1,59 @@
+# v1.8.1 (Wed Sep 27 2023)
+
+#### 🐛 Bug Fix
+
+- Demos: Fix panel repeater demo [#369](https://github.com/grafana/scenes/pull/369) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.8.0 (Mon Sep 25 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Allow options and field config updates [#363](https://github.com/grafana/scenes/pull/363) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.7.1 (Mon Sep 25 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AnnotationsDataLayer: Support query request enriching [#364](https://github.com/grafana/scenes/pull/364) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.7.0 (Mon Sep 25 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimeRangeCompare: Enable URL sync [#360](https://github.com/grafana/scenes/pull/360) ([@dprokop](https://github.com/dprokop))
+
+#### 🐛 Bug Fix
+
+- Prevent publishing to github pages [#362](https://github.com/grafana/scenes/pull/362) ([@tolzhabayev](https://github.com/tolzhabayev))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Timur Olzhabayev ([@tolzhabayev](https://github.com/tolzhabayev))
+
+---
+
 # v1.6.0 (Fri Sep 22 2023)
 
 #### 🚀 Enhancement

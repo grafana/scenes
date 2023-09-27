@@ -1,3 +1,39 @@
+# v1.8.0 (Mon Sep 25 2023)
+
+#### 🚀 Enhancement
+
+- VizPanel: Allow options and field config updates [#363](https://github.com/grafana/scenes/pull/363) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.7.1 (Mon Sep 25 2023)
+
+#### 🐛 Bug Fix
+
+- AnnotationsDataLayer: Support query request enriching [#364](https://github.com/grafana/scenes/pull/364) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.7.0 (Mon Sep 25 2023)
+
+#### 🚀 Enhancement
+
+- SceneTimeRangeCompare: Enable URL sync [#360](https://github.com/grafana/scenes/pull/360) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.6.0 (Fri Sep 22 2023)
 
 #### 🚀 Enhancement

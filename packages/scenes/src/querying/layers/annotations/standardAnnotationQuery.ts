@@ -17,6 +17,8 @@ import { getRunRequest } from '@grafana/runtime';
 import { shouldUseLegacyRunner, standardAnnotationSupport } from './standardAnnotationsSupport';
 import { Dashboard, LoadingState } from '@grafana/schema';
 import { SceneObject, SceneTimeRangeLike } from '../../../core/types';
+import { getEnrichedDataRequest } from '../../getEnrichedDataRequest';
+
 let counter = 100;
 function getNextRequestId() {
   return 'AQ' + counter++;
@@ -113,8 +115,7 @@ export function executeAnnotationQuery(
         refId: 'Anno',
       },
     ],
-    // TODO
-    //publicDashboardAccessToken: options.dashboard.meta.publicDashboardAccessToken,
+    ...getEnrichedDataRequest(layer),
   };
 
   const runRequest = getRunRequest();

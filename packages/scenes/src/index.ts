@@ -69,7 +69,7 @@ export { SceneApp, useSceneApp } from './components/SceneApp/SceneApp';
 export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
 export { SceneObjectRef } from './core/SceneObjectRef';
-export { PanelBuilders } from './core/PanelBuilders';
+export { PanelBuilders, PanelOptionsBuilders, FieldConfigBuilders } from './core/PanelBuilders';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 
 export const sceneUtils = {
