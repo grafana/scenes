@@ -35,6 +35,7 @@ export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 export { MultiValueVariable } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { AdHocFilterSet } from './variables/adhoc/AdHocFiltersSet';
+export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 
 export { type UrlSyncManagerLike as UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';

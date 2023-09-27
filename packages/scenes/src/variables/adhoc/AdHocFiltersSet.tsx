@@ -16,7 +16,9 @@ import { css } from '@emotion/css';
 
 export interface AdHocFilterSetState extends SceneObjectState {
   name: string;
+  /** The visible filters */
   filters: AdHocVariableFilter[];
+  /** Base filters to always apply when looking up keys*/
   baseFilters: AdHocVariableFilter[];
   /** Datasource to use for getTagKeys and getTagValues and also controls which scene queries the filters should apply to */
   datasource: DataSourceRef | null;
@@ -38,7 +40,7 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
 
   public constructor(initialState: Partial<AdHocFilterSetState>) {
     super({
-      name: '',
+      name: 'Filters',
       filters: [],
       baseFilters: [],
       datasource: null,
@@ -135,6 +137,11 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
   }
 
   private _runSceneQueries() {
+    // In manual mode we do not trigger any queries
+    if (this.state.applyFiltersTo === 'manual') {
+      return;
+    }
+
     const startingPoint = this.parent;
     if (!startingPoint) {
       console.error('AdHocFiltersVariable could not find a parent scene to broadcast changes to');

@@ -9,16 +9,20 @@ import {
   PanelBuilders,
   AdHocFilterSet,
   SceneQueryRunner,
+  AdHocFiltersVariable,
+  SceneCanvasText,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 
 export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Test of adhoc variables',
+    subTitle: `Adhoc filters can be used as a standalone component (AdHocFilterSet) added to a controls array. By default datasources will apply the filters automatically to all queries of the same data source.
+     You can add filters via AdHocFiltersVariable added to a SceneVariableSet. Then it renders to a label filter expression you can use in specific queries.
+    `,
     tabs: [
       new SceneAppPage({
-        title: 'Automatic',
+        title: 'Automatically applied',
         url: `${defaults.url}/auto`,
         getScene: () => {
           return new EmbeddedScene({
@@ -53,36 +57,53 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                 }),
               ],
             }),
-            $timeRange: new SceneTimeRange(),
           });
         },
       }),
       new SceneAppPage({
-        title: 'Manual',
+        title: 'As variable',
         url: `${defaults.url}/manual`,
         getScene: () => {
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),
             $variables: new SceneVariableSet({
               variables: [
-                // new AdHocFiltersVariable({
-                //   name: 'Filters',
-                //   datasource: { uid: 'gdev-prometheus' },
-                //   filters: [{ key: 'job', operator: '=', value: 'grafana' }],
-                // }),
+                new AdHocFiltersVariable({
+                  set: new AdHocFilterSet({
+                    name: 'Filters',
+                    datasource: { uid: 'gdev-prometheus' },
+                    filters: [{ key: 'job', operator: '=', value: 'grafana' }],
+                    // Important to set the set to manual
+                    applyFiltersTo: 'manual',
+                  }),
+                }),
               ],
             }),
             body: new SceneFlexLayout({
-              direction: 'row',
+              direction: 'column',
               children: [
                 new SceneFlexItem({
-                  body: PanelBuilders.text()
-                    .setTitle('Text panel')
-                    .setOption(
-                      'content',
-                      `Using adhoc filters in manual mode means you can use them in a query as a normal variable.
-
-example: ALERTS{$Filters}`
+                  ySizing: 'content',
+                  body: new SceneCanvasText({
+                    text: `Using AdHocFilterSet in manual mode and inside an AdHocFiltersVariable. The query below is interpolated to ALERTS{$Filters}`,
+                    fontSize: 14,
+                  }),
+                }),
+                new SceneFlexItem({
+                  body: PanelBuilders.table()
+                    .setTitle('ALERTS')
+                    .setData(
+                      new SceneQueryRunner({
+                        datasource: { uid: 'gdev-prometheus' },
+                        queries: [
+                          {
+                            refId: 'A',
+                            expr: 'ALERTS{$Filters}',
+                            format: 'table',
+                            instant: true,
+                          },
+                        ],
+                      })
                     )
                     .build(),
                 }),

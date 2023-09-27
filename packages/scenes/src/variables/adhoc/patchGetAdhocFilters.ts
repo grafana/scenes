@@ -16,8 +16,9 @@ export function patchGetAdhocFilters(filterSet: AdHocFilterSet) {
   }
 
   const templateSrv: any = getTemplateSrv();
-  if (!templateSrv.getAdhocFilters) {
+  if (!templateSrv?.getAdhocFilters) {
     console.log('Failed to patch getAdhocFilters');
+    return;
   }
 
   originalGetAdhocFilters = templateSrv.getAdhocFilters;
@@ -34,7 +35,7 @@ export function patchGetAdhocFilters(filterSet: AdHocFilterSet) {
 
     for (const filter of allActiveFilterSets.values()) {
       if (filter.state.datasource?.uid === ds.uid) {
-        return filter.state.baseFilters.concat(...filter.state.filters);
+        return filter.state.filters;
       }
     }
 
