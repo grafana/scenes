@@ -355,7 +355,10 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 exports[`VizPanelBuilder options and field config standard panels defaults provides xychart defaults 2`] = `
 {
   "defaults": {
-    "custom": undefined,
+    "custom": {
+      "label": "auto",
+      "show": "points",
+    },
   },
   "overrides": [],
 }
