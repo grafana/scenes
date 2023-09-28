@@ -1,3 +1,15 @@
+# v1.8.1 (Wed Sep 27 2023)
+
+#### 🐛 Bug Fix
+
+- Demos: Fix panel repeater demo [#369](https://github.com/grafana/scenes/pull/369) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.8.0 (Mon Sep 25 2023)
 
 #### 🚀 Enhancement

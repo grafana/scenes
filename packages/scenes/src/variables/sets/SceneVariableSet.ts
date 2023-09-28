@@ -224,17 +224,16 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     this._variablesToUpdate.delete(variable);
   }
 
-  /**
-   * TODO handle this properly (and show error in UI).
-   * Not sure if this should be handled here on in MultiValueVariable
-   */
   private _handleVariableError(variable: SceneVariable, err: Error) {
     const update = this._updating.get(variable);
     update?.subscription?.unsubscribe();
 
     this._updating.delete(variable);
     this._variablesToUpdate.delete(variable);
-    variable.setState({ loading: false, error: err });
+
+    variable.setState({ loading: false, error: err.message });
+
+    console.error('SceneVariableSet updateAndValidate error', err);
 
     writeVariableTraceLog(variable, 'updateAndValidate error', err);
   }
