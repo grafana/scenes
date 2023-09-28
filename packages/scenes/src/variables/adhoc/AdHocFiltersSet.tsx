@@ -38,8 +38,8 @@ export interface AdHocFilterSetState extends SceneObjectState {
   applyMode?: 'same-datasource' | 'manual';
   /**
    * Extension hook for customizing the key lookup.
-   * Return replace: true if you want to override the default lookup and
-   * Return replace: false will just combine the results.
+   * Return replace: true if you want to override the default lookup
+   * Return replace: false if you want to combine the results with the default lookup
    */
   getTagKeysProvider?: getTagKeysProvider;
   /**
