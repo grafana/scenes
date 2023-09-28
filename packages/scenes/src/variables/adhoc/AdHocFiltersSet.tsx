@@ -33,7 +33,7 @@ export interface AdHocFilterSetState extends SceneObjectState {
   readOnly?: boolean;
   /**
    * Defaults to same-datasource which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
-   * In manual mode no queries are rerun on changes and you have to manual apply the filter to what ever queries you want.
+   * In manual mode no queries are re-run on changes, and you have to manually apply the filter to whatever queries you want.
    */
   applyMode?: 'same-datasource' | 'manual';
   /**
