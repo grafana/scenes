@@ -530,6 +530,20 @@ describe('SceneVariableList', () => {
       expect(innerSet.isVariableLoadingOrWaitingToUpdate(scopedA)).toBe(false);
     });
   });
+
+  describe('When variable throws error', () => {
+    it('Should start update process', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], throwError: 'Danger!' });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+      });
+
+      scene.activate();
+
+      expect(A.state.error).toBe('Danger!');
+    });
+  });
 });
 
 interface TestSceneObjectState extends SceneObjectState {

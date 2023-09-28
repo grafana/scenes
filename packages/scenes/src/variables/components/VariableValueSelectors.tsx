@@ -54,6 +54,7 @@ function VariableLabel({ model }: { model: SceneVariable }) {
       isLoading={model.state.loading}
       onCancel={() => model.onCancel?.()}
       label={labelOrName}
+      error={model.state.error}
       description={model.state.description ?? undefined}
     />
   );
