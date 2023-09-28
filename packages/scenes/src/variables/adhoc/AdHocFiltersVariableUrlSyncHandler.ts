@@ -72,6 +72,7 @@ function toFilter(value: string | number | boolean | undefined | null): AdHocVar
     key: parts[0],
     operator: parts[1],
     value: parts[2],
+    condition: '',
   };
 }
 
