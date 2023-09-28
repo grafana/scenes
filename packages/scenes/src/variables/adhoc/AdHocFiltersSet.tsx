@@ -32,19 +32,19 @@ export interface AdHocFilterSetState extends SceneObjectState {
   readOnly?: boolean;
   /**
    * Defaults to same-datasource which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
-   * In manual mode no queries are rerun on changes and you have to manual apply the filter to what ever queries you want.
+   * In manual mode no queries are re-run on changes, and you have to manually apply the filter to whatever queries you want.
    */
   applyMode?: 'same-datasource' | 'manual';
   /**
    * Extension hook for customizing the key lookup.
-   * Return replace: true if you want to override the default lookup and
-   * Return replace: false will just combine the results.
+   * Return replace: true if you want to override the default lookup
+   * Return replace: false if you want to combine the results with the default lookup
    */
   getTagKeysProvider?: getTagKeysProvider;
   /**
    * Extension hook for customizing the value lookup.
    * Return replace: true if you want to override the default lookup.
-   * Return replace: false to combine the results.
+   * Return replace: false if you want to combine the results with the default lookup
    */
   getTagValuesProvider?: getTagValuesProvider;
 
