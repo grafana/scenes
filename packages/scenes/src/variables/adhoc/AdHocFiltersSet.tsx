@@ -15,7 +15,6 @@ import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyn
 import { useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { ControlsLabel } from '../../utils/ControlsLabel';
-import { AdHocFilterSeparator } from './AdHocFilterSeparator';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { css } from '@emotion/css';
@@ -251,7 +250,6 @@ export function AdHocFiltersSetRenderer({ model }: SceneComponentProps<AdHocFilt
 
       {filters.map((filter, index) => (
         <React.Fragment key={index}>
-          {index > 0 && <AdHocFilterSeparator />}
           <AdHocFilterRenderer filter={filter} model={model} />
         </React.Fragment>
       ))}

@@ -179,11 +179,13 @@ function setup(overrides?: Partial<AdHocFilterSetState>) {
         key: 'key1',
         operator: '=',
         value: 'val1',
+        condition: '',
       },
       {
         key: 'key2',
         operator: '=',
         value: 'val2',
+        condition: '',
       },
     ],
     ...overrides,
