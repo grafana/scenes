@@ -1,83 +1,67 @@
-import { rangeUtil } from '@grafana/data';
+import { rangeUtil, SelectableValue } from '@grafana/data';
 import { VariableRefresh } from '@grafana/schema';
+import { Select } from '@grafana/ui';
+import React from 'react';
 import { Observable, of } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
+import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps } from '../../core/types';
-import { renderSelectForVariable } from '../components/VariableValueSelect';
-import { SceneVariableValueChangedEvent, VariableValue, VariableValueOption } from '../types';
-import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
+import {
+  SceneVariable,
+  SceneVariableState,
+  SceneVariableValueChangedEvent,
+  ValidateAndUpdateResult,
+  VariableValue,
+  VariableValueOption,
+} from '../types';
 
-export interface IntervalVariableState extends MultiValueVariableState {
-  query: string;
-  auto: boolean;
-  auto_min: string;
-  auto_count: number;
+export interface IntervalVariableState extends SceneVariableState {
+  intervals: string[];
+  value: string;
+  options: VariableValueOption[];
+  autoEnabled: boolean;
+  autoMinInterval: string;
+  autoStepCount: number;
   refresh: VariableRefresh;
 }
 
-export class IntervalVariable extends MultiValueVariable<IntervalVariableState> {
+export class IntervalVariable
+  extends SceneObjectBase<IntervalVariableState>
+  implements SceneVariable<IntervalVariableState>
+{
   public constructor(initialState: Partial<IntervalVariableState>) {
     super({
       type: 'interval',
-      query: '1m,10m,30m,1h,6h,12h,1d,7d,14d,30d',
       value: '',
-      text: '',
-      name: '',
-      auto_count: 30,
-      auto_min: '10s',
       options: [],
-      auto: false,
+      intervals: ['1m', '10m', '30m', '1h', '6h', '12h', '1d', '7d', '14d', '30d'],
+      name: '',
+      autoStepCount: 30,
+      autoMinInterval: '10s',
+      autoEnabled: false,
       refresh: VariableRefresh.onTimeRangeChanged,
       ...initialState,
     });
-
-    this.addActivationHandler(this._onActivate);
   }
 
-  private _onActivate = () => {
-    const timeRange = sceneGraph.getTimeRange(this);
-
-    this._subs.add(
-      timeRange.subscribeToState(() => {
-        console.log('time range changed');
-        // time range change should trigger a new interval calculation
-        this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-      })
-    );
-
-    // Return deactivation handler;
-    // return this._onDeactivate;
-  };
-
-  public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
-    const match = this.state.query.match(/(["'])(.*?)\1|\w+/g) ?? [];
-    const options = match.map((text) => {
-      text = text.replace(/["']+/g, '');
-      return { label: text.trim(), text: text.trim(), value: text.trim(), selected: false };
+  public getOptionsForSelect(): Array<SelectableValue<string>> {
+    const options = this.state.intervals.map((interval) => {
+      return { value: interval, label: interval };
     });
 
-    if (this.state.auto) {
-      // add auto option if missing
-      if (options.length && options[0].text !== 'auto') {
-        options.unshift({
-          label: 'auto',
-          text: 'auto',
-          value: '$auto',
-          selected: false,
-        });
+    if (this.state.autoEnabled) {
+      // add autoEnabled option if missing
+      if (options.length && options[0].value !== '$auto') {
+        options.unshift({ value: '$auto', label: 'Auto' });
       }
     }
 
-    if (options.length === 0) {
-      options.push({ label: 'No interval found', text: '', value: '', selected: false });
-    }
-
-    return of(options);
+    return options;
   }
 
   public getValue(): VariableValue {
     if (this.state.value === '$auto') {
-      return this.getAutoRefreshInteval(this.state.auto_min);
+      return this.getAutoRefreshInteval(this.state.autoMinInterval);
     }
 
     return this.state.value;
@@ -97,7 +81,41 @@ export class IntervalVariable extends MultiValueVariable<IntervalVariableState> 
     return intervalObject.interval;
   }
 
-  public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
-    return renderSelectForVariable(model);
+  public _onChange = (value: SelectableValue<string>) => {
+    this.setState({ value: value.value!, label: value.label! });
+    this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+  };
+
+  public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
+    const { value } = this.state;
+    // If auto the value can change (can optimize this bit later and only publish this when the calculated value actually changed)
+    if (value === '$auto') {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    } else if (!this.state.value) {
+      // Todo set to first option in this.state.intervals
+      const firstOption = this.state.intervals[0];
+      this.setState({ value: firstOption });
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+    return of({});
+  }
+
+  public static Component = ({ model }: SceneComponentProps<IntervalVariable>) => {
+    const { key, value } = model.useState();
+    // should we use the renderSelectForVariable here? or just the select?
+    return (
+      <Select<string, { onCancel: () => void }>
+        id={key}
+        placeholder="Select value"
+        width="auto"
+        value={value}
+        tabSelectsValue={false}
+        options={model.getOptionsForSelect()}
+        onChange={model._onChange}
+        onCancel={() => {
+          // do we need to impelement this?
+        }}
+      />
+    );
   };
 }

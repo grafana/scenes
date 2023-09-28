@@ -72,7 +72,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
             new IntervalVariable({
               name: 'intervalVariableAuto',
               options: [],
-              auto: true,
+              autoEnabled: true,
               refresh: VariableRefresh.onTimeRangeChanged,
             }),
           ],
