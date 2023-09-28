@@ -45,7 +45,7 @@ export interface AdHocFilterSetState extends SceneObjectState {
   /**
    * Extension hook for customizing the value lookup.
    * Return replace: true if you want to override the default lookup.
-   * Return replace: false to combine the results.
+   * Return replace: false if you want to combine the results with the default lookup
    */
   getTagValuesProvider?: getTagValuesProvider;
 
