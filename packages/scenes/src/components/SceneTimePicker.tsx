@@ -5,6 +5,7 @@ import { TimeRangePicker } from '@grafana/ui';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObjectState } from '../core/types';
+import { TimeRange, toUtc } from '@grafana/data';
 
 export interface SceneTimePickerState extends SceneObjectState {
   hidePicker?: boolean;
@@ -26,7 +27,9 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
   }
 
   function onZoom() {
-    timeRange.onZoom(2);
+    const zoomedTimeRange = getZoomedTimeRange(timeRangeState.value, 2);
+
+    timeRange.onTimeRangeChange(zoomedTimeRange);
   }
 
   return (
@@ -43,4 +46,16 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       onChangeFiscalYearStartMonth={() => {}}
     />
   );
+}
+
+function getZoomedTimeRange(timeRange: TimeRange, factor: number): TimeRange {
+  const timespan = timeRange.to.valueOf() - timeRange.from.valueOf();
+  const center = timeRange.to.valueOf() - timespan / 2;
+  // If the timepsan is 0, zooming out would do nothing, so we force a zoom out to 30s
+  const newTimespan = timespan === 0 ? 30000 : timespan * factor;
+
+  const to = center + newTimespan / 2;
+  const from = center - newTimespan / 2;
+
+  return { from: toUtc(from), to: toUtc(to), raw: { from: toUtc(from), to: toUtc(to) } };
 }
