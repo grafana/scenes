@@ -182,7 +182,7 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
   }
 
   public _addWip() {
-    this.setState({ _wip: { key: '', value: '', operator: '=' } });
+    this.setState({ _wip: { key: '', value: '', operator: '=', condition: '' } });
   }
 
   public _getOperators() {
