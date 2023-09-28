@@ -25,6 +25,10 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
     return null;
   }
 
+  function onZoom() {
+    timeRange.onZoom(2);
+  }
+
   return (
     <TimeRangePicker
       isOnCanvas={isOnCanvas ?? true}
@@ -34,7 +38,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       fiscalYearStartMonth={0}
       onMoveBackward={() => {}}
       onMoveForward={() => {}}
-      onZoom={() => {}}
+      onZoom={onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={() => {}}
     />

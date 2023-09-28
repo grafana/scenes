@@ -1,4 +1,4 @@
-import { getTimeZone, TimeRange } from '@grafana/data';
+import { AbsoluteTimeRange, getTimeZone, TimeRange, toUtc } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -107,6 +107,34 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onRefresh = () => {
     this.setState({ value: evaluateTimeRange(this.state.from, this.state.to, this.getTimeZone()) });
+  };
+
+  private getZoomedTimeRange = (factor: number): AbsoluteTimeRange => {
+    const range = this.state.value;
+
+    const timespan = range.to.valueOf() - range.from.valueOf();
+    const center = range.to.valueOf() - timespan / 2;
+    // If the timepsan is 0, zooming out would do nothing, so we force a zoom out to 30s
+    const newTimespan = timespan === 0 ? 30000 : timespan * factor;
+
+    const to = center + newTimespan / 2;
+    const from = center - newTimespan / 2;
+
+    return { from, to };
+  };
+
+  public onZoom = (scale: number) => {
+    const update: Partial<SceneTimeRangeState> = {};
+
+    const zoomedTimeRange = this.getZoomedTimeRange(scale);
+    const rawZoomedTimeRange = {
+      from: toUtc(zoomedTimeRange.from),
+      to: toUtc(zoomedTimeRange.to),
+    };
+
+    update.value = evaluateTimeRange(rawZoomedTimeRange.from, rawZoomedTimeRange.to, this.getTimeZone());
+
+    this.setState(update);
   };
 
   public getUrlState() {
