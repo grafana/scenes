@@ -65,26 +65,29 @@ export class IntervalVariable
   }
 
   public getOptionsForSelect(): Array<SelectableValue<string>> {
-    const options = this.state.intervals.map((interval) => {
-      return { value: interval, label: interval };
-    });
+    const { value: currentValue, intervals, autoEnabled } = this.state;
 
-    if (this.state.autoEnabled) {
-      // add autoEnabled option if missing
-      if (options.length && options[0].value !== '$auto') {
-        options.unshift({ value: AUTO_VARIABLE_VALUE, label: AUTO_VARIABLE_TEXT });
-      }
+    let options = intervals.map((interval) => ({ value: interval, label: interval }));
+
+    if (autoEnabled) {
+      options = [{ value: AUTO_VARIABLE_VALUE, label: AUTO_VARIABLE_TEXT }, ...options];
+    }
+
+    // If the current value is not in the list of intervals, add it to the list
+    if (currentValue && !options.some((option) => option.value === currentValue)) {
+      options.push({ value: currentValue, label: currentValue });
     }
 
     return options;
   }
 
   public getValue(): VariableValue {
-    if (this.state.value === AUTO_VARIABLE_VALUE) {
-      return this.getAutoRefreshInteval(this.state.autoStepCount, this.state.autoMinInterval);
+    const { value, autoStepCount, autoMinInterval } = this.state;
+    if (value === AUTO_VARIABLE_VALUE) {
+      return this.getAutoRefreshInteval(autoStepCount, autoMinInterval);
     }
 
-    return this.state.value;
+    return value;
   }
 
   private getAutoRefreshInteval(autoStepCount: number, minRefreshInterval: string) {
@@ -99,15 +102,21 @@ export class IntervalVariable
   };
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
-    const { value } = this.state;
-    // If 'Auto' the value can change (can optimize this bit later and only publish this when the calculated value actually changed)
+    const { value, intervals } = this.state;
+    let shouldPublish = false;
+
     if (value === AUTO_VARIABLE_VALUE) {
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    } else if (!this.state.value) {
-      const firstOption = this.state.intervals[0];
+      shouldPublish = true;
+    } else if (!value && intervals.length > 0) {
+      const firstOption = intervals[0];
       this.setState({ value: firstOption });
+      shouldPublish = true;
+    }
+
+    if (shouldPublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
+
     return of({});
   }
 
