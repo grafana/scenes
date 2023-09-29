@@ -27,7 +27,7 @@ export class SceneTimeZoneOverride
     this.setState({
       ...timeRange,
       timeZone: this.state.timeZone,
-      value: evaluateTimeRange(timeRange.from, timeRange.to, this.state.timeZone),
+      value: evaluateTimeRange(timeRange.from, timeRange.to, this.state.timeZone, timeRange.fiscalYearStartMonth),
     });
   }
 
@@ -36,6 +36,14 @@ export class SceneTimeZoneOverride
   }
 
   public onTimeZoneChange(timeZone: string): void {
-    this.setState({ timeZone, value: evaluateTimeRange(this.state.from, this.state.to, this.state.timeZone) });
+    this.setState({
+      timeZone,
+      value: evaluateTimeRange(
+        this.state.from,
+        this.state.to,
+        this.state.timeZone,
+        this.getAncestorTimeRange().state.fiscalYearStartMonth
+      ),
+    });
   }
 }
