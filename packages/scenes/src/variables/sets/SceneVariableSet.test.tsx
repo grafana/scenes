@@ -544,6 +544,28 @@ describe('SceneVariableList', () => {
       expect(A.state.error).toBe('Danger!');
     });
   });
+
+  describe('When nesting SceneVariableSet', () => {
+    it('Should update variables in dependency order', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+
+        nested: new TestScene({
+          $variables: new SceneVariableSet({ variables: [B] }),
+        }),
+      });
+
+      scene.activate();
+      scene.state.nested!.activate();
+
+      // Nested variable on a lower level should wait for it's dependency
+      expect(A.state.loading).toBe(true);
+      expect(B.state.loading).toBe(false);
+    });
+  });
 });
 
 interface TestSceneObjectState extends SceneObjectState {
