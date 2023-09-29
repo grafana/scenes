@@ -8,7 +8,6 @@ import { SceneComponentProps, SceneObjectState } from '../core/types';
 import { TimeRange, toUtc } from '@grafana/data';
 
 export interface SceneTimePickerState extends SceneObjectState {
-  onZoom?: (timeRange: TimeRange, callback: (timeRange: TimeRange) => void) => void;
   hidePicker?: boolean;
   isOnCanvas?: boolean;
 }
@@ -16,14 +15,14 @@ export interface SceneTimePickerState extends SceneObjectState {
 export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
   public static Component = SceneTimePickerRenderer;
 
-  public onZoom = (timeRange: TimeRange, callback: (timeRange: TimeRange) => void) => {
+  public onZoom(timeRange: TimeRange, callback: (timeRange: TimeRange) => void): void {
     const zoomedTimeRange = getZoomedTimeRange(timeRange, 2);
     callback(zoomedTimeRange);
-  };
+  }
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
-  const { hidePicker, isOnCanvas, onZoom } = model.useState();
+  const { hidePicker, isOnCanvas } = model.useState();
   const timeRange = sceneGraph.getTimeRange(model);
   const timeZone = timeRange.getTimeZone();
   const timeRangeState = timeRange.useState();
@@ -41,7 +40,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       fiscalYearStartMonth={0}
       onMoveBackward={() => {}}
       onMoveForward={() => {}}
-      onZoom={() => onZoom?.(timeRangeState.value, timeRange.onTimeRangeChange)}
+      onZoom={() => model.onZoom(timeRangeState.value, timeRange.onTimeRangeChange)}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={() => {}}
     />
