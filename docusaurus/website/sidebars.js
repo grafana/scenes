@@ -54,6 +54,7 @@ const sidebars = {
         'advanced-activation-handlers',
         'advanced-data',
         'advanced-variables',
+        'advanced-adhoc-filters',
         'advanced-behaviors',
         'advanced-custom-datasource',
         'advanced-time-range-comparison',
