@@ -128,4 +128,47 @@ describe('IntervalVariable', () => {
       expect(changeEvent).toBeDefined();
     });
   });
+
+  describe('Url syncing', () => {
+    it('getUrlState should return value when variable is selected', () => {
+      const variable = new IntervalVariable({
+        name: 'intervalTest',
+        intervals: ['1s', '1m', '1h'],
+        autoEnabled: true,
+        autoMinInterval: '10s',
+        autoStepCount: 30,
+        refresh: VariableRefresh.onTimeRangeChanged,
+        value: '1m',
+      });
+
+      expect(variable.getUrlState()).toEqual({ 'var-intervalTest': '1m' });
+    });
+
+    it('getUrlState should return value $__auto when auto option is selected', () => {
+      const variable = new IntervalVariable({
+        name: 'intervalTest',
+        intervals: ['1s', '1m', '1h'],
+        autoEnabled: true,
+        autoMinInterval: '10s',
+        autoStepCount: 30,
+        refresh: VariableRefresh.onTimeRangeChanged,
+        value: AUTO_VARIABLE_VALUE,
+      });
+
+      expect(variable.getUrlState()).toEqual({ 'var-intervalTest': '$__auto' });
+    });
+    it('fromUrlState should update value for intervalText variable', async () => {
+      const variable = new IntervalVariable({
+        name: 'intervalTest',
+        intervals: ['1s', '1m', '1h'],
+        autoEnabled: true,
+        autoMinInterval: '10s',
+        autoStepCount: 30,
+        refresh: VariableRefresh.onTimeRangeChanged,
+        value: AUTO_VARIABLE_VALUE,
+      });
+      variable.urlSync?.updateFromUrl({ ['var-intervalTest']: '2d' });
+      expect(variable.state.value).toEqual('2d');
+    });
+  });
 });

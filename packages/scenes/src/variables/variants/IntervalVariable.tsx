@@ -60,6 +60,7 @@ export class IntervalVariable
       update.value = val;
     }
 
+    // What happen if the value is not in the list of intervals?
     this.setState(update);
   }
 
@@ -103,7 +104,6 @@ export class IntervalVariable
     if (value === AUTO_VARIABLE_VALUE) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     } else if (!this.state.value) {
-      // Todo set to first option in this.state.intervals
       const firstOption = this.state.intervals[0];
       this.setState({ value: firstOption });
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
