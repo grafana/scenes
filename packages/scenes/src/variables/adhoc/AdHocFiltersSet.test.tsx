@@ -88,8 +88,8 @@ describe('AdHocFilter', () => {
       locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
     });
 
-    expect(filtersSet.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl' });
-    expect(filtersSet.state.filters[1]).toEqual({ key: 'keyUrl', operator: '=~', value: 'urlVal' });
+    expect(filtersSet.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl', condition: '' });
+    expect(filtersSet.state.filters[1]).toEqual({ key: 'keyUrl', operator: '=~', value: 'urlVal', condition: '' });
   });
 
   it('url sync from empty filters array works', async () => {
