@@ -127,7 +127,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                         replaceVariables={model.interpolate}
                         onOptionsChange={model.onOptionsChange}
                         onFieldConfigChange={model.onFieldConfigChange}
-                        onChangeTimeRange={model.onChangeTimeRange}
+                        onChangeTimeRange={model.onTimeRangeChange}
                         eventBus={getAppEvents()}
                       />
                     )}
@@ -176,5 +176,11 @@ function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | un
     return pluginLoadingError;
   }
 
-  return data.error ? data.error.message : undefined;
+  let message = data.error ? data.error.message : undefined;
+
+  // Handling multiple errors with a single string until we integrate VizPanel with inspector
+  if (data.errors) {
+    message = data.errors.map((e) => e.message).join(', ');
+  }
+  return message;
 }

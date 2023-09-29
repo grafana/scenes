@@ -1,5 +1,5 @@
 import React from 'react';
-import { MonoTypeOperatorFunction, Unsubscribable } from 'rxjs';
+import { MonoTypeOperatorFunction, Observable, Unsubscribable } from 'rxjs';
 
 import {
   BusEvent,
@@ -7,6 +7,7 @@ import {
   BusEventType,
   DataFrame,
   DataQueryRequest,
+  DataTopic,
   DataTransformContext,
   PanelData,
   TimeRange,
@@ -14,6 +15,7 @@ import {
 import { TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
+import { SceneObjectRef } from './SceneObjectRef';
 
 export interface SceneObjectState {
   key?: string;
@@ -100,6 +102,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** Force a re-render, should only be needed when variable values change */
   forceRender(): void;
 
+  /** Returns a SceneObjectRef that will resolve to this object */
+  getRef(): SceneObjectRef<this>;
+
   /**
    * Allows external code to register code that is executed on activate and deactivate. This allow you
    * to wire up scene objects that need to respond to state changes in other objects from the outside.
@@ -137,6 +142,8 @@ export interface SceneTimeRangeState extends SceneObjectState {
   fiscalYearStartMonth?: number;
   value: TimeRange;
   timeZone?: TimeZone;
+  /** weekStart will change the global date locale so having multiple different weekStart values is not supported  */
+  weekStart?: string;
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
@@ -144,10 +151,6 @@ export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
   onTimeRangeChange(timeRange: TimeRange): void;
   onRefresh(): void;
   getTimeZone(): TimeZone;
-}
-
-export interface SceneObjectRef {
-  ref: SceneObject;
 }
 
 export function isSceneObject(obj: any): obj is SceneObject {
@@ -184,10 +187,41 @@ export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
 
+export interface SceneDataProviderResultLike<O, T> {
+  origin: O;
+  data: T;
+}
+
+export type SceneDataProviderResult = SceneDataProviderResultLike<SceneDataProvider, PanelData>;
+export type SceneDataLayerProviderResult = SceneDataProviderResultLike<SceneDataLayerProvider, PanelData> & {
+  topic: DataTopic;
+};
+
 export interface SceneDataProvider extends SceneObject<SceneDataState> {
   setContainerWidth?: (width: number) => void;
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
+  getResultsStream?(): Observable<SceneDataProviderResult>;
+}
+
+export interface SceneDataLayerProviderState extends SceneObjectState {
+  name: string;
+  description?: string;
+  data?: PanelData;
+  isEnabled?: boolean;
+  isHidden?: boolean;
+
+  // Private runtime state
+  _isWaitingForVariables?: boolean;
+}
+
+export interface SceneDataLayerProvider extends SceneObject<SceneDataLayerProviderState> {
+  cancelQuery?: () => void;
+  getResultsStream(): Observable<SceneDataLayerProviderResult>;
+}
+
+export interface DataLayerFilter {
+  panelId: number;
 }
 
 export interface SceneStatelessBehavior<T extends SceneObject = any> {

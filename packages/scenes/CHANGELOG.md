@@ -1,3 +1,231 @@
+# v1.9.0 (Fri Sep 29 2023)
+
+#### 🚀 Enhancement
+
+- SceneVariableSet: Show and log errors [#371](https://github.com/grafana/scenes/pull/371) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- SceneTimeRange: Add weekStart support and make sure fiscalYearMonth is used everywhere [#375](https://github.com/grafana/scenes/pull/375) ([@torkelo](https://github.com/torkelo))
+- EmbeddedScene: Patch TimeSrv [#379](https://github.com/grafana/scenes/pull/379) ([@dprokop](https://github.com/dprokop))
+- AdHocFiltersSet and AdhocFiltersVariable with manual and automatic modes [#346](https://github.com/grafana/scenes/pull/346) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.8.0 (Mon Sep 25 2023)
+
+#### 🚀 Enhancement
+
+- VizPanel: Allow options and field config updates [#363](https://github.com/grafana/scenes/pull/363) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.7.1 (Mon Sep 25 2023)
+
+#### 🐛 Bug Fix
+
+- AnnotationsDataLayer: Support query request enriching [#364](https://github.com/grafana/scenes/pull/364) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.7.0 (Mon Sep 25 2023)
+
+#### 🚀 Enhancement
+
+- SceneTimeRangeCompare: Enable URL sync [#360](https://github.com/grafana/scenes/pull/360) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.6.0 (Fri Sep 22 2023)
+
+#### 🚀 Enhancement
+
+- AnnotationsDataLayer: Add variables support [#358](https://github.com/grafana/scenes/pull/358) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.5.3 (Fri Sep 22 2023)
+
+#### 🐛 Bug Fix
+
+- SceneApp: Introduce a useSceneApp hook that should replace useMemo as method of caching SceneApp instance [#357](https://github.com/grafana/scenes/pull/357) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.5.2 (Thu Sep 21 2023)
+
+#### 🐛 Bug Fix
+
+- SceneDataTransformer: Handle transformation errors [#354](https://github.com/grafana/scenes/pull/354) ([@dprokop](https://github.com/dprokop))
+- AnnotationsDataLayer: Events deduplication [#351](https://github.com/grafana/scenes/pull/351) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.5.1 (Wed Sep 20 2023)
+
+#### 🐛 Bug Fix
+
+- AnnotationsDataLayer: Provide inheritance extension points [#347](https://github.com/grafana/scenes/pull/347) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.5.0 (Wed Sep 20 2023)
+
+#### 🚀 Enhancement
+
+- Variables: Fix issue with previous fix [#350](https://github.com/grafana/scenes/pull/350) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.4.0 (Wed Sep 20 2023)
+
+#### 🚀 Enhancement
+
+- Variables: Fixes issue with running variable queries with custom or legacy runner [#348](https://github.com/grafana/scenes/pull/348) ([@torkelo](https://github.com/torkelo))
+- QueryVariable: Fixes queries with older model [#340](https://github.com/grafana/scenes/pull/340) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.3.3 (Mon Sep 18 2023)
+
+#### 🐛 Bug Fix
+
+- SceneAppPage: Fix infinite recurision of enrichDataRequest [#345](https://github.com/grafana/scenes/pull/345) ([@torkelo](https://github.com/torkelo))
+- Data layer controls: Allow hiding [#344](https://github.com/grafana/scenes/pull/344) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.3.2 (Mon Sep 18 2023)
+
+#### 🐛 Bug Fix
+
+- Annotations filtering operator: Correctly populate filtered frames [#343](https://github.com/grafana/scenes/pull/343) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.3.1 (Mon Sep 18 2023)
+
+#### 🐛 Bug Fix
+
+- AnnotationsDataLayer: Handle data source error [#342](https://github.com/grafana/scenes/pull/342) ([@dprokop](https://github.com/dprokop))
+- DataLayers: Allow cancelling layers from layer control [#337](https://github.com/grafana/scenes/pull/337) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.3.0 (Mon Sep 18 2023)
+
+#### 🚀 Enhancement
+
+- NestedScene: Update design to match grid row, add controls property and update demo scene to include variables [#335](https://github.com/grafana/scenes/pull/335) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- VizPanel: Support async migration handlers [#341](https://github.com/grafana/scenes/pull/341) ([@torkelo](https://github.com/torkelo))
+- DataLayers: Allow toggling individual layers on/off [#333](https://github.com/grafana/scenes/pull/333) ([@dprokop](https://github.com/dprokop))
+- Data layers: Annotations [#328](https://github.com/grafana/scenes/pull/328) ([@dprokop](https://github.com/dprokop))
+- Data layers: Isolated change [#325](https://github.com/grafana/scenes/pull/325) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.2.0 (Wed Sep 13 2023)
+
+#### 🚀 Enhancement
+
+- SceneObject: Add getRef for easier SceneObjectRef usage [#330](https://github.com/grafana/scenes/pull/330) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- SceneControlsSpacer: Fix flickering [#332](https://github.com/grafana/scenes/pull/332) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.1.1 (Sat Sep 09 2023)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayout: Fix toggle row issue [#326](https://github.com/grafana/scenes/pull/326) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.0.0 (Wed Sep 06 2023)
+
+#### 💥 Breaking Change
+
+- Scenes 1.0 release prep [#323](https://github.com/grafana/scenes/pull/323) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v0.29.2 (Wed Sep 06 2023)
 
 #### 🐛 Bug Fix
@@ -95,8 +323,8 @@ const scene = new EmbeddedScene({
   $data: queryRunner,
   $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
   controls: [
-    new SceneTimePicker({}), 
-    new SceneTimeRangeCompare({}) // Use this object to enable time frame comparison UI
+    new SceneTimePicker({}),
+    new SceneTimeRangeCompare({}), // Use this object to enable time frame comparison UI
   ],
   body: new SceneFlexLayout({
     direction: 'row',
@@ -108,7 +336,7 @@ const scene = new EmbeddedScene({
       }),
     ],
   }),
- });
+});
 ```
 
 ---

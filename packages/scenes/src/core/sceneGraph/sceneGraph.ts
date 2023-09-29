@@ -4,9 +4,10 @@ import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/d
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
 
-import { SceneDataProvider, SceneLayout, SceneObject } from '../types';
+import { SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
+import { SceneDataLayers } from '../../querying/SceneDataLayers';
 
 /**
  * Get the closest node with variables
@@ -114,4 +115,38 @@ function findObjectInternal(
  */
 export function findObject(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject | null {
   return findObjectInternal(scene, check, undefined, true);
+}
+
+/**
+ * Will walk up the scene object graph up until the root and collect all SceneDataLayerProvider objects.
+ * When localOnly set to true, it will only collect the closest layers.
+ */
+export function getDataLayers(sceneObject: SceneObject, localOnly = false): SceneDataLayerProvider[] {
+  let parent: SceneObject | undefined = sceneObject;
+  let collected: SceneDataLayerProvider[] = [];
+
+  let source;
+  while (parent) {
+    // Handling case when SceneDataLayers is attached to SceneDataProvider different than SceneDataLayers
+    // i.e. SceneDataLayers is attached to a SceneQueryRunner
+    if (parent.state.$data && !(parent.state.$data instanceof SceneDataLayers)) {
+      if (parent.state.$data.state.$data instanceof SceneDataLayers) {
+        source = parent.state.$data.state.$data;
+      }
+    }
+
+    if (parent.state.$data && parent.state.$data instanceof SceneDataLayers) {
+      source = parent.state.$data;
+    }
+    if (source) {
+      collected = collected.concat(source.state.layers);
+      if (localOnly) {
+        break;
+      }
+    }
+
+    parent = parent.parent;
+  }
+
+  return collected;
 }

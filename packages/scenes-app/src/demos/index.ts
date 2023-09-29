@@ -21,6 +21,11 @@ import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
+import { getAnnotationsDemo } from './annotations';
+import { getAdhocFiltersDemo } from './adhocFiltersDemo';
+import { getTransformationsTest } from './transformations';
+import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
+import { getDataFilteringTest } from './filteringData';
 
 export interface DemoDescriptor {
   title: string;
@@ -38,6 +43,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Grid with rows', getPage: getGridWithRowLayoutTest },
     { title: 'Lazy load', getPage: getLazyLoadDemo },
     { title: 'Variables', getPage: getVariablesDemo },
+    { title: 'Adhoc filters', getPage: getAdhocFiltersDemo },
     { title: 'Nested scene', getPage: getNestedScene },
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
     { title: 'Query editor', getPage: getQueryEditorDemo },
@@ -49,7 +55,11 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Split layout', getPage: getSplitTest },
     { title: 'Query cancellation', getPage: getQueryCancellationTest },
     { title: 'Cursor sync', getPage: getCursorSyncTest },
-    { title: 'Time range comparison 2', getPage: getTimeRangeComparisonTest },
+    { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
+    { title: 'Data layers', getPage: getAnnotationsDemo },
+    { title: 'Transformations', getPage: getTransformationsTest },
+    { title: 'Dynamic panel options and field config', getPage: getDynamicVizOptionsTest },
+    { title: 'Data filtering', getPage: getDataFilteringTest },
     { title: 'Docs examples', getPage: getDocsExamples },
-  ];
+  ].sort((a, b) => a.title.localeCompare(b.title));
 }

@@ -2,7 +2,6 @@ import { VariableRefresh } from '@grafana/data';
 import {
   SceneFlexLayout,
   SceneTimeRange,
-  VariableValueSelectors,
   SceneVariableSet,
   TestVariable,
   EmbeddedScene,
@@ -45,7 +44,6 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
               text: '',
               options: [],
             }),
-
             new TestVariable({
               name: 'handler',
               query: 'A.$server.$pod.*',
@@ -191,7 +189,6 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
           ],
         }),
         $timeRange: new SceneTimeRange(),
-        controls: [new VariableValueSelectors({}), ...getEmbeddedSceneDefaults().controls],
       });
     },
   });

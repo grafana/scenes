@@ -7,6 +7,7 @@ export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
 export * as behaviors from './behaviors';
+export * as dataLayers from './querying/layers';
 
 export { SceneObjectBase } from './core/SceneObjectBase';
 export { SceneDataNode } from './core/SceneDataNode';
@@ -14,6 +15,9 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
+export { SceneDataLayers } from './querying/SceneDataLayers';
+export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
+export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
 
@@ -31,6 +35,8 @@ export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 export { MultiValueVariable } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
+export { AdHocFilterSet } from './variables/adhoc/AdHocFiltersSet';
+export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 
 export { type UrlSyncManagerLike as UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
@@ -60,11 +66,11 @@ export {
   type SceneAppDrilldownView,
   type SceneAppRoute,
 } from './components/SceneApp/types';
-export { SceneApp } from './components/SceneApp/SceneApp';
+export { SceneApp, useSceneApp } from './components/SceneApp/SceneApp';
 export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
 export { SceneObjectRef } from './core/SceneObjectRef';
-export { PanelBuilders } from './core/PanelBuilders';
+export { PanelBuilders, PanelOptionsBuilders, FieldConfigBuilders } from './core/PanelBuilders';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 
 export const sceneUtils = {

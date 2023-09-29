@@ -1,6 +1,6 @@
 {
   "author": "Grafana Labs",
-  "license": "AGPL-3.0-only",
+  "license": "Apache-2.0",
   "private": true,
   "name": "grafana-scenes",
   "version": "0.15.0",
@@ -33,7 +33,9 @@
     "docs:build": "yarn workspace website run build",
     "test:lib": "lerna run test --scope '@grafana/scenes' --",
     "dev:lib": "lerna run dev --scope '@grafana/scenes' --",
-    "dev:app": "lerna run dev --scope 'scenes-app' --"
+    "dev:app": "lerna run dev --scope 'scenes-app' --",
+    "test": "lerna run test --scope '@grafana/scenes' -- --watch",
+    "typecheck": "lerna run typecheck"
   },
   "resolutions": {
     "@types/react": "17.0.42"

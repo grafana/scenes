@@ -1,11 +1,13 @@
-import { css } from '@emotion/css';
-import React, { CSSProperties, useCallback } from 'react';
+import { css, cx } from '@emotion/css';
+import React from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, ToolbarButton, useStyles2 } from '@grafana/ui';
+import { Icon, ToolbarButton, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneComponentProps, SceneLayout, SceneObjectState } from '../core/types';
+import { getSceneGridRowStyles } from './layout/grid/SceneGridRow';
+import { sceneGraph } from '../core/sceneGraph';
 
 interface NestedSceneState extends SceneObjectState {
   title: string;
@@ -13,7 +15,7 @@ interface NestedSceneState extends SceneObjectState {
   canCollapse?: boolean;
   canRemove?: boolean;
   body: SceneLayout;
-  actions?: SceneObject[];
+  controls?: SceneObject[];
 }
 
 /**
@@ -42,13 +44,14 @@ export class NestedScene extends SceneObjectBase<NestedSceneState> {
 }
 
 export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>) {
-  const { title, isCollapsed, canCollapse, canRemove, body, actions } = model.useState();
+  const { title, isCollapsed, canCollapse, canRemove, body, controls } = model.useState();
+  const gridRow = useStyles2(getSceneGridRowStyles);
   const styles = useStyles2(getStyles);
 
-  const toolbarActions = (actions ?? []).map((action) => <action.Component key={action.state.key} model={action} />);
+  const toolbarControls = (controls ?? []).map((action) => <action.Component key={action.state.key} model={action} />);
 
   if (canRemove) {
-    toolbarActions.push(
+    toolbarControls.push(
       <ToolbarButton
         icon="times"
         variant={'default'}
@@ -60,26 +63,19 @@ export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>)
   }
 
   return (
-    <div className={styles.row}>
-      <div className={styles.rowHeader}>
-        <Stack gap={0}>
-          <div className={styles.title} role="heading" aria-level={1}>
-            {title}
-          </div>
-          {canCollapse && (
-            <div className={styles.toggle}>
-              <Button
-                size="sm"
-                icon={isCollapsed ? 'angle-down' : 'angle-up'}
-                fill="text"
-                variant="secondary"
-                aria-label={isCollapsed ? 'Expand scene' : 'Collapse scene'}
-                onClick={model.onToggle}
-              />
-            </div>
-          )}
-        </Stack>
-        <div className={styles.actions}>{toolbarActions}</div>
+    <div className={styles.wrapper}>
+      <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
+        <button
+          onClick={model.onToggle}
+          className={gridRow.rowTitleButton}
+          aria-label={isCollapsed ? 'Expand scene' : 'Collapse scene'}
+        >
+          {canCollapse && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
+          <span className={gridRow.rowTitle} role="heading">
+            {sceneGraph.interpolate(model, title, undefined, 'text')}
+          </span>
+        </button>
+        <div className={styles.actions}>{toolbarControls}</div>
       </div>
       {!isCollapsed && <body.Component model={body} />}
     </div>
@@ -87,21 +83,22 @@ export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>)
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  row: css({
+  wrapper: css({
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
     gap: theme.spacing(1),
     cursor: 'pointer',
   }),
-  toggle: css({}),
-  title: css({
-    fontSize: theme.typography.h5.fontSize,
-  }),
-  rowHeader: css({
+  row: css({
+    width: '100%',
     display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(2),
+    justifyContent: 'space-between',
+    gap: theme.spacing(1),
+  }),
+  rowCollapsed: css({
+    borderBottom: `1px solid ${theme.colors.border.weak}`,
+    paddingBottom: theme.spacing(1),
   }),
   actions: css({
     display: 'flex',
@@ -115,28 +112,3 @@ const getStyles = (theme: GrafanaTheme2) => ({
 function isSceneLayoutItem(x: SceneObject): x is SceneObject<SceneObjectState & { body: SceneObject | undefined }> {
   return 'body' in x.state;
 }
-
-interface StackProps {
-  direction?: CSSProperties['flexDirection'];
-  alignItems?: CSSProperties['alignItems'];
-  wrap?: boolean;
-  gap?: number;
-  flexGrow?: CSSProperties['flexGrow'];
-}
-
-const Stack = ({ children, ...props }: React.PropsWithChildren<StackProps>) => {
-  const styles = useStyles2(useCallback((theme) => getStackStyles(theme, props), [props]));
-
-  return <div className={styles.root}>{children}</div>;
-};
-
-const getStackStyles = (theme: GrafanaTheme2, props: StackProps) => ({
-  root: css({
-    display: 'flex',
-    flexDirection: props.direction ?? 'row',
-    flexWrap: props.wrap ?? true ? 'wrap' : undefined,
-    alignItems: props.alignItems,
-    gap: theme.spacing(props.gap ?? 2),
-    flexGrow: props.flexGrow,
-  }),
-});

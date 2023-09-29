@@ -1,7 +1,15 @@
-import { toUtc } from '@grafana/data';
+import { toUtc, setWeekStart } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
+import { config } from '@grafana/runtime';
+
+jest.mock('@grafana/data', () => ({
+  ...jest.requireActual('@grafana/data'),
+  setWeekStart: jest.fn(),
+}));
+
+config.bootData = { user: { weekStart: 'monday' } } as any;
 
 describe('SceneTimeRange', () => {
   it('when created should evaluate time range', () => {
@@ -24,6 +32,15 @@ describe('SceneTimeRange', () => {
       from: 'now-1h',
       to: 'now',
     });
+  });
+
+  it('When weekStart i set should call on activation', () => {
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', weekStart: 'saturday' });
+    const deactivate = timeRange.activate();
+    expect(setWeekStart).toHaveBeenCalledWith('saturday');
+
+    deactivate();
+    expect(setWeekStart).toHaveBeenCalledWith('monday');
   });
 
   it('updateFromUrl with ISO time', () => {

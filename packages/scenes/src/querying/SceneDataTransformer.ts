@@ -1,9 +1,11 @@
-import { DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
-import { map, Unsubscribable } from 'rxjs';
+import { DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
+import { toDataQueryError } from '@grafana/runtime';
+import { catchError, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { CustomTransformOperator, SceneDataProvider, SceneDataState } from '../core/types';
+import { CustomTransformOperator, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
+import { SceneDataLayers } from './SceneDataLayers';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -22,7 +24,7 @@ export interface SceneDataTransformerState extends SceneDataState {
  */
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> implements SceneDataProvider {
   private _transformSub?: Unsubscribable;
-
+  private _results = new ReplaySubject<SceneDataProviderResult>();
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
    */
@@ -58,6 +60,9 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   private getSourceData(): SceneDataProvider {
     if (this.state.$data) {
+      if (this.state.$data instanceof SceneDataLayers) {
+        throw new Error('SceneDataLayers can not be used as data provider for SceneDataTransformer.');
+      }
       return this.state.$data;
     }
 
@@ -91,6 +96,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     this.getSourceData().cancelQuery?.();
   }
 
+  public getResultsStream() {
+    return this._results;
+  }
+
   private transform(data: PanelData | undefined) {
     const transformations = this.state.transformations || [];
 
@@ -110,7 +119,27 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     };
 
     this._transformSub = transformDataFrame(transformations, data.series, ctx)
-      .pipe(map((series) => ({ ...data, series })))
-      .subscribe((data) => this.setState({ data }));
+      .pipe(
+        map((series) => ({ ...data, series })),
+        catchError((err) => {
+          console.error('Error transforming data: ', err);
+          const sourceErr = this.getSourceData().state.data?.errors || [];
+
+          const transformationError = toDataQueryError(err);
+          transformationError.message = `Error transforming data: ${transformationError.message}`;
+
+          const result: PanelData = {
+            ...data,
+            state: LoadingState.Error,
+            // Combine transformation error with upstream errors
+            errors: [...sourceErr, transformationError],
+          };
+          return of(result);
+        })
+      )
+      .subscribe((data) => {
+        this._results.next({ origin: this, data });
+        this.setState({ data });
+      });
   }
 }

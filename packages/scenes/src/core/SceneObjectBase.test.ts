@@ -77,6 +77,14 @@ describe('SceneObject', () => {
     expect(clone.state.name).toBe('new name');
   });
 
+  it('Can get SceneObjectRef', () => {
+    const scene = new TestScene({});
+    const ref = scene.getRef();
+
+    expect(scene).toBe(ref.resolve());
+    expect(ref).toBe(scene.getRef());
+  });
+
   it('Cannot modify state', () => {
     const scene = new TestScene({ name: 'name' });
     expect(() => {
