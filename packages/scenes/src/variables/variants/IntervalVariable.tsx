@@ -59,8 +59,6 @@ export class IntervalVariable
     if (typeof val === 'string') {
       update.value = val;
     }
-
-    // What happen if the value is not in the list of intervals?
     this.setState(update);
   }
 

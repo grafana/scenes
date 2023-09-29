@@ -20,7 +20,24 @@ describe('IntervalVariable', () => {
         { label: '1h', value: '1h' },
       ]);
     });
+
+    it('Should add non existing value to intervals when provided', async () => {
+      const variable = new IntervalVariable({
+        name: 'intervalTest',
+        intervals: ['1s', '1m', '1h'],
+        refresh: VariableRefresh.onTimeRangeChanged,
+        value: '1d',
+      });
+
+      expect(variable.getOptionsForSelect()).toEqual([
+        { label: '1s', value: '1s' },
+        { label: '1m', value: '1m' },
+        { label: '1h', value: '1h' },
+        { label: '1d', value: '1d' },
+      ]);
+    });
   });
+
   describe('When intervals are not provided', () => {
     it('Should generate correctly the default options', async () => {
       const variable = new IntervalVariable({
