@@ -1,4 +1,4 @@
-import { getTimeZone, TimeRange } from '@grafana/data';
+import { getTimeZone, setWeekStart, TimeRange } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -8,6 +8,7 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
+import { config } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to'] });
@@ -19,10 +20,10 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     const value = evaluateTimeRange(from, to, timeZone || getTimeZone(), state.fiscalYearStartMonth);
     super({ from, to, timeZone, value, ...state });
 
-    this.addActivationHandler(this._onActivate);
+    this.addActivationHandler(this._onActivate.bind(this));
   }
 
-  private _onActivate = () => {
+  private _onActivate() {
     // When SceneTimeRange has no time zone provided, find closest source of time zone and subscribe to it
     if (!this.state.timeZone) {
       const timeZoneSource = this.getTimeZoneSource();
@@ -43,7 +44,18 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
         );
       }
     }
-  };
+
+    if (this.state.weekStart) {
+      setWeekStart(this.state.weekStart);
+    }
+
+    // Deactivation handler that restore weekStart if it was changed
+    return () => {
+      if (this.state.weekStart) {
+        setWeekStart(config.bootData.user.weekStart);
+      }
+    };
+  }
 
   /**
    * Will traverse up the scene graph to find the closest SceneTimeRangeLike with time zone set
