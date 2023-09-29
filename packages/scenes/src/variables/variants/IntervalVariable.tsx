@@ -61,20 +61,15 @@ export class IntervalVariable
 
   public getValue(): VariableValue {
     if (this.state.value === '$auto') {
-      return this.getAutoRefreshInteval(this.state.autoMinInterval);
+      return this.getAutoRefreshInteval(this.state.autoStepCount, this.state.autoMinInterval);
     }
 
     return this.state.value;
   }
 
-  private getAutoRefreshInteval(minRefreshInterval: string) {
+  private getAutoRefreshInteval(autoStepCount: number, minRefreshInterval: string) {
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const resolution = window?.innerWidth ?? 2000;
-    const intervalObject = rangeUtil.calculateInterval(
-      timeRange,
-      resolution, // the max pixels possibles
-      minRefreshInterval
-    );
+    const intervalObject = rangeUtil.calculateInterval(timeRange, autoStepCount, minRefreshInterval);
 
     console.log('interval updated from getAutoRefreshInterval', intervalObject);
 
