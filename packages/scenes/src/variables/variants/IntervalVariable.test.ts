@@ -91,6 +91,7 @@ describe('IntervalVariable', () => {
       });
 
       expect(variable.getValue()).toEqual('10m');
+      expect(variable.state.name).toEqual('intervalTest');
     });
 
     it('should return the selected value if auto is not selected', async () => {

@@ -5,7 +5,8 @@ import React from 'react';
 import { Observable, of } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps } from '../../core/types';
+import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
+import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
 import { AUTO_VARIABLE_TEXT, AUTO_VARIABLE_VALUE } from '../constants';
 import {
   SceneVariable,
@@ -40,6 +41,26 @@ export class IntervalVariable
       refresh: VariableRefresh.onTimeRangeChanged,
       ...initialState,
     });
+
+    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: [this.getKey()] });
+  }
+
+  private getKey(): string {
+    return `var-${this.state.name}`;
+  }
+
+  public getUrlState() {
+    return { [this.getKey()]: this.state.value };
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues) {
+    const update: Partial<IntervalVariableState> = {};
+    const val = values[this.getKey()];
+    if (typeof val === 'string') {
+      update.value = val;
+    }
+
+    this.setState(update);
   }
 
   public getOptionsForSelect(): Array<SelectableValue<string>> {
@@ -72,7 +93,7 @@ export class IntervalVariable
   }
 
   public _onChange = (value: SelectableValue<string>) => {
-    this.setState({ value: value.value!, label: value.label! });
+    this.setState({ value: value.value! });
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
   };
 
