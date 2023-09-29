@@ -6,19 +6,18 @@ import { Observable, of } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps } from '../../core/types';
+import { AUTO_VARIABLE_TEXT, AUTO_VARIABLE_VALUE } from '../constants';
 import {
   SceneVariable,
   SceneVariableState,
   SceneVariableValueChangedEvent,
   ValidateAndUpdateResult,
   VariableValue,
-  VariableValueOption,
 } from '../types';
 
 export interface IntervalVariableState extends SceneVariableState {
   intervals: string[];
   value: string;
-  options: VariableValueOption[];
   autoEnabled: boolean;
   autoMinInterval: string;
   autoStepCount: number;
@@ -33,7 +32,6 @@ export class IntervalVariable
     super({
       type: 'interval',
       value: '',
-      options: [],
       intervals: ['1m', '10m', '30m', '1h', '6h', '12h', '1d', '7d', '14d', '30d'],
       name: '',
       autoStepCount: 30,
@@ -52,7 +50,7 @@ export class IntervalVariable
     if (this.state.autoEnabled) {
       // add autoEnabled option if missing
       if (options.length && options[0].value !== '$auto') {
-        options.unshift({ value: '$auto', label: 'Auto' });
+        options.unshift({ value: AUTO_VARIABLE_VALUE, label: AUTO_VARIABLE_TEXT });
       }
     }
 
@@ -60,7 +58,7 @@ export class IntervalVariable
   }
 
   public getValue(): VariableValue {
-    if (this.state.value === '$auto') {
+    if (this.state.value === AUTO_VARIABLE_VALUE) {
       return this.getAutoRefreshInteval(this.state.autoStepCount, this.state.autoMinInterval);
     }
 
@@ -80,8 +78,8 @@ export class IntervalVariable
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     const { value } = this.state;
-    // If auto the value can change (can optimize this bit later and only publish this when the calculated value actually changed)
-    if (value === '$auto') {
+    // If 'Auto' the value can change (can optimize this bit later and only publish this when the calculated value actually changed)
+    if (value === AUTO_VARIABLE_VALUE) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     } else if (!this.state.value) {
       // Todo set to first option in this.state.intervals

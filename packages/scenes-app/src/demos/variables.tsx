@@ -15,6 +15,7 @@ import {
   PanelBuilders,
   IntervalVariable,
 } from '@grafana/scenes';
+import { AUTO_VARIABLE_VALUE } from '@grafana/scenes/src/variables/constants';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getVariablesDemo(defaults: SceneAppPageState) {
@@ -66,14 +67,14 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
             }),
             new IntervalVariable({
               name: 'intervalVariable',
-              options: [],
+              intervals: ['1d', '1m'],
               refresh: VariableRefresh.onTimeRangeChanged,
             }),
             new IntervalVariable({
               name: 'intervalVariableAuto',
-              options: [],
               autoEnabled: true,
               refresh: VariableRefresh.onTimeRangeChanged,
+              value: AUTO_VARIABLE_VALUE,
             }),
           ],
         }),

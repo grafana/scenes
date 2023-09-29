@@ -2,6 +2,8 @@ export const ALL_VARIABLE_TEXT = 'All';
 export const ALL_VARIABLE_VALUE = '$__all';
 export const NONE_VARIABLE_TEXT = 'None';
 export const NONE_VARIABLE_VALUE = '';
+export const AUTO_VARIABLE_TEXT = 'Auto';
+export const AUTO_VARIABLE_VALUE = '$__auto';
 
 // Grafana core source: https://github.com/grafana/grafana/blob/main/public/app/features/variables/utils.ts#L23
 /*
