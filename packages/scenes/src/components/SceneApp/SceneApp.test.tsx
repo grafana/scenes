@@ -3,7 +3,7 @@ import { PluginPageProps } from '@grafana/runtime';
 import { screen, render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import React from 'react';
-import { Router } from 'react-router-dom';
+import { renderAppInsideRouterWithStartingUrl } from '../../../utils/test/utils';
 import { SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
@@ -78,7 +78,7 @@ describe('SceneApp', () => {
       ],
     });
 
-    beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test'));
+    beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test'));
 
     it('should render correct page on mount', async () => {
       expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe('SceneApp', () => {
       ],
     });
 
-    beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test'));
+    beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test'));
 
     it('should render correct breadcrumbs', async () => {
       expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Container page']);
@@ -193,7 +193,7 @@ describe('SceneApp', () => {
         ],
       });
 
-      beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test-drilldown'));
+      beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test-drilldown'));
 
       it('should render a drilldown page', async () => {
         expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
@@ -254,7 +254,7 @@ describe('SceneApp', () => {
           ],
         });
 
-        beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/main/drilldown/10'));
+        beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/main/drilldown/10'));
 
         it('should render a drilldown page', async () => {
           expect(await screen.findByText('10 drilldown!')).toBeInTheDocument();
@@ -305,7 +305,7 @@ describe('SceneApp', () => {
         ],
       });
 
-      beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test/tab'));
+      beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test/tab'));
 
       it('should render a drilldown that is part of tab page', async () => {
         expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
@@ -365,15 +365,6 @@ function setupScene(inspectableObject: SceneObject) {
 
 function getDrilldownScene(match: SceneRouteMatch<{ id: string }>) {
   return setupScene(new SceneCanvasText({ text: `${match.params.id} drilldown!` }));
-}
-
-function renderAppInsideRouterWithStartingUrl(app: SceneApp, startingUrl: string) {
-  history.push(startingUrl);
-  render(
-    <Router history={history}>
-      <app.Component model={app} />
-    </Router>
-  );
 }
 
 function flattenPageNav(pageNav: NavModelItem | undefined) {

@@ -2,10 +2,12 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import React from 'react';
+import { sceneGraph } from '../core/sceneGraph';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObject } from '../core/types';
 import { getUrlSyncManager } from '../services/UrlSyncManager';
+import { _patchTimeSrv } from '../utils/compatibility/patchTimeSrv';
 
 export interface EmbeddedSceneState extends SceneObjectState {
   /**
@@ -25,7 +27,14 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
     super(state);
 
     this.addActivationHandler(() => {
-      return () => getUrlSyncManager().cleanUp(this);
+      // Patching for backwards compatibility with timeSrv in some of core Grafana data sources.
+      // Certain core data sources assume a global time range, which is not the case in Scenes.
+      // This is patching for a simple case when there is a single global time range in a scene.
+      const _unpatchTimeSrv = _patchTimeSrv(sceneGraph.getTimeRange(this));
+      return () => {
+        _unpatchTimeSrv?.();
+        getUrlSyncManager().cleanUp(this);
+      };
     });
   }
 
