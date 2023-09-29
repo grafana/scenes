@@ -70,9 +70,6 @@ export class IntervalVariable
   private getAutoRefreshInteval(autoStepCount: number, minRefreshInterval: string) {
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const intervalObject = rangeUtil.calculateInterval(timeRange, autoStepCount, minRefreshInterval);
-
-    console.log('interval updated from getAutoRefreshInterval', intervalObject);
-
     return intervalObject.interval;
   }
 
@@ -97,9 +94,8 @@ export class IntervalVariable
 
   public static Component = ({ model }: SceneComponentProps<IntervalVariable>) => {
     const { key, value } = model.useState();
-    // should we use the renderSelectForVariable here? or just the select?
     return (
-      <Select<string, { onCancel: () => void }>
+      <Select
         id={key}
         placeholder="Select value"
         width="auto"
@@ -107,9 +103,6 @@ export class IntervalVariable
         tabSelectsValue={false}
         options={model.getOptionsForSelect()}
         onChange={model._onChange}
-        onCancel={() => {
-          // do we need to impelement this?
-        }}
       />
     );
   };

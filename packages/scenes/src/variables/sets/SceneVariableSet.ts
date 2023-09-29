@@ -194,7 +194,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       this._updating.set(variable, variableToUpdate);
       writeVariableTraceLog(variable, 'updateAndValidate started');
 
-      console.log('refreshing update batch', variable.state.name);
       variableToUpdate.subscription = variable.validateAndUpdate().subscribe({
         next: () => this._validateAndUpdateCompleted(variable),
         error: (err) => this._handleVariableError(variable, err),
