@@ -134,7 +134,11 @@ const getDynamicSplitScene = () => {
                       })
                     )
                     .setHeaderActions(
-                      <IconButton name="x" onClick={() => splitter.setState({ secondary: defaultSecondary })} />
+                      <IconButton
+                        name="x"
+                        onClick={() => splitter.setState({ secondary: defaultSecondary })}
+                        aria-label="remove"
+                      />
                     )
                     .build(),
                 }),
