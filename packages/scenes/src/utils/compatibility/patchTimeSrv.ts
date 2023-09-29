@@ -7,7 +7,6 @@ import { writeSceneLog } from '../writeSceneLog';
  * This function is called from EmbededScene component.
  **/
 export function _patchTimeSrv(timeRange: SceneTimeRangeLike) {
-  // Time range patched already from a higher level
   if ((window as any).__timeRangeSceneObject) {
     writeSceneLog('_patchTimeSrv', 'already patched');
     return;
