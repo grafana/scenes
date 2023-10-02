@@ -15,10 +15,13 @@ export interface SceneTimePickerState extends SceneObjectState {
 export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
   public static Component = SceneTimePickerRenderer;
 
-  public onZoom(timeRange: TimeRange, callback: (timeRange: TimeRange) => void): void {
-    const zoomedTimeRange = getZoomedTimeRange(timeRange, 2);
-    callback(zoomedTimeRange);
-  }
+  public onZoom = () => {
+    const timeRange = sceneGraph.getTimeRange(this);
+    const timeRangeState = timeRange.useState();
+
+    const zoomedTimeRange = getZoomedTimeRange(timeRangeState.value, 2);
+    timeRange.onTimeRangeChange(zoomedTimeRange);
+  };
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
@@ -40,7 +43,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       fiscalYearStartMonth={0}
       onMoveBackward={() => {}}
       onMoveForward={() => {}}
-      onZoom={() => model.onZoom(timeRangeState.value, timeRange.onTimeRangeChange)}
+      onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={() => {}}
     />
