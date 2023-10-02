@@ -20,10 +20,10 @@ export function adhocFiltersExamples() {
       type: 'prometheus',
       uid: '<PROVIDE_GRAFANA_DS_UID>',
     },
-    // You do no need to set baseFilters but they are useful if you want to limit label suggestions to only those you deem relevant for the scene.
-    // These are not shown in the UI
+    // You don't need to set baseFilters, but they're useful if you want to limit label suggestions to only those you deem relevant for the scene.
+    // These are not shown in the UI.
     baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS', condition: '' }],
-    // If you want to have any default filters added by default you can specify those here
+    // If you want to have any default filters added by default, you can specify those here.
     filters: [],
   });
 
