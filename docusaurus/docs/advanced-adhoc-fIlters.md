@@ -93,10 +93,10 @@ $variables: new SceneVariableSet({
 }),
 ```
 
-As you can see `AdHocFiltersVariable` should not be created using the normal constructor but the static factory function `AdHocFiltersVariable.create`. This factory function helps create both the variable
+As you can see, you shouldn't create `AdHocFiltersVariable` using the normal constructor but the static factory function `AdHocFiltersVariable.create`. This factory function helps create both the variable
 and the inner `AdHocFilterSet` and makes sure the inner set has `applyMode` set to `manual`.
 
-With this variable you can now use the filters easily in specific queries by using it as a normal variable.
+With this variable, you can now use the filters easily in specific queries by using it as a normal variable.
 
 Example:
 
