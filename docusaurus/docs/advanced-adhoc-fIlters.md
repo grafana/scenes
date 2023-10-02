@@ -8,7 +8,7 @@ the user can control which keys (labels) to filter on.
 
 ## Automically applied to queries
 
-Adhoc filters are supported directly by many data sources. This means they will handle automtically applying the filters to all the queries that match the data source you specify on the AdhocFilterSet.
+Adhoc filters are supported directly by many data sources. This means they handle automatically applying filters to all the queries that match the data source you specify on the `AdhocFilterSet`.
 
 ### Step 1. Create the AdHocFilterSet
 
