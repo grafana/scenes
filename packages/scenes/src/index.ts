@@ -56,7 +56,7 @@ export {
   SceneFlexLayout,
   SceneFlexItem,
   type SceneFlexItemState,
-  type SceneFlexItemStateLike,
+  type SceneFlexItemLike,
 } from './components/layout/SceneFlexLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
