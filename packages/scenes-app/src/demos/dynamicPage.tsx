@@ -8,6 +8,7 @@ import {
   SceneRefreshPicker,
   SceneAppPageState,
   PanelBuilders,
+  SceneReactObject,
 } from '@grafana/scenes';
 import React from 'react';
 import { demoUrl } from '../utils/utils.routing';
@@ -22,6 +23,19 @@ export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
     $timeRange: new SceneTimeRange(),
     controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
     tabs: defaultTabs,
+    // render fallback page with loading message while tabs are loading
+    // so user doesn't see "page not found" message
+    getFallbackPage: () =>
+      new SceneAppPage({
+        title: 'Loading...',
+        url: '',
+        getScene: () =>
+          new EmbeddedScene({
+            body: new SceneReactObject({
+              component: () => <p>Please wait...</p>,
+            }),
+          }),
+      }),
   });
 
   page.addActivationHandler(() => {
@@ -30,6 +44,9 @@ export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
         page.setState({
           tabs: [...defaultTabs, getSceneAppPage('/tab2', 'Humidity')],
           renderTitle: renderTitleWithImageSuffix,
+          // remove fallback page once everything is loaded
+          // so user will see "page not found" if tab is indeed non existing
+          getFallbackPage: undefined,
         });
       }, 2000);
       return () => clearTimeout(cancel);
