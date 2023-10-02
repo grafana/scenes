@@ -11,6 +11,7 @@ import { SceneCanvasText } from '../SceneCanvasText';
 import { SceneApp, useSceneApp } from './SceneApp';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneRouteMatch } from './types';
+import { SceneReactObject } from '../SceneReactObject';
 
 let history = createMemoryHistory();
 let pluginPageProps: PluginPageProps | undefined;
@@ -332,6 +333,41 @@ describe('SceneApp', () => {
       it('When url does not match any drilldown sub page show fallback route', async () => {
         history.push('/test/tab/drilldown-id/does-not-exist');
         expect(await screen.findByTestId('default-fallback-content')).toBeInTheDocument();
+      });
+    });
+
+    describe('Custom fallback page', () => {
+      const page1Obj = new SceneCanvasText({ text: 'Page 1' });
+      const page1Scene = setupScene(page1Obj);
+      const app = new SceneApp({
+        pages: [
+          new SceneAppPage({
+            title: 'Test',
+            url: '/test',
+            getScene: () => {
+              return page1Scene;
+            },
+            getFallbackPage: () => {
+              return new SceneAppPage({
+                title: 'Loading',
+                url: '',
+                getScene: () =>
+                  new EmbeddedScene({
+                    body: new SceneReactObject({
+                      component: () => <div data-testid="custom-fallback-content">Loading...</div>,
+                    }),
+                  }),
+              });
+            },
+          }),
+        ],
+      });
+
+      it('should render custom fallback page if url does not match', async () => {
+        renderAppInsideRouterWithStartingUrl(history, app, '/test');
+        expect(await screen.findByTestId(page1Obj.state.key!)).toBeInTheDocument();
+        history.push('/test/does-not-exist');
+        expect(await screen.findByTestId('custom-fallback-content')).toBeInTheDocument();
       });
     });
   });

@@ -150,7 +150,7 @@ function getFallbackRoute(page: SceneAppPage, routeProps: RouteComponentProps) {
     <Route
       key={'fallback route'}
       render={(props) => {
-        const fallbackPage = getDefaultFallbackPage();
+        const fallbackPage = page.state.getFallbackPage?.() ?? getDefaultFallbackPage();
         return <SceneAppPageView page={fallbackPage} routeProps={routeProps} />;
       }}
     ></Route>
