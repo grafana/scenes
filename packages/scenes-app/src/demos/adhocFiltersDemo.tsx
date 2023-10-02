@@ -34,6 +34,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                 baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS', condition: '' }],
                 datasource: { uid: 'gdev-prometheus' },
               }),
+              ...getEmbeddedSceneDefaults().controls,
             ],
             body: new SceneFlexLayout({
               direction: 'row',

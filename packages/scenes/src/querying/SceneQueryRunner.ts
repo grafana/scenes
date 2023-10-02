@@ -4,6 +4,7 @@ import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribab
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
+  AdHocVariableFilter,
   DataFrame,
   DataQueryRequest,
   DataSourceApi,
@@ -14,7 +15,7 @@ import {
   ScopedVar,
   transformDataFrame,
 } from '@grafana/data';
-import { getRunRequest, toDataQueryError } from '@grafana/runtime';
+import { getDataSourceSrv, getRunRequest, toDataQueryError } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -23,6 +24,7 @@ import {
   SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
+  SceneObject,
   SceneObjectState,
   SceneTimeRangeLike,
 } from '../core/types';
@@ -37,6 +39,7 @@ import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
 import { filterAnnotationsOperator } from './layers/annotations/filterAnnotationsOperator';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
+import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 
 let counter = 100;
 
@@ -69,6 +72,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>();
+  private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
+
+  // Closest filter set (if any)
+  private _filterSet?: AdHocFilterSet;
 
   public getResultsStream() {
     return this._results;
@@ -316,9 +323,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     const { queries } = this.state;
-    const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
-      __sceneObject: { text: '__sceneObject', value: this },
-    };
 
     // Simple path when no queries exist
     if (!queries?.length) {
@@ -328,7 +332,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     try {
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
-      const ds = await getDataSource(datasource, sceneObjectScopedVar);
+      const ds = await getDataSource(datasource, this._scopedVars);
 
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
 
@@ -364,9 +368,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   ): [DataQueryRequest, DataQueryRequest | undefined] => {
     const comparer = this.getTimeCompare();
     const { minInterval, queries } = this.state;
-    const sceneObjectScopedVar: Record<string, ScopedVar<SceneQueryRunner>> = {
-      __sceneObject: { text: '__sceneObject', value: this },
-    };
 
     let secondaryRequest: DataQueryRequest | undefined;
 
@@ -380,7 +381,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       intervalMs: 1000,
       targets: cloneDeep(queries),
       maxDataPoints: this.getMaxDataPoints(),
-      scopedVars: sceneObjectScopedVar,
+      scopedVars: this._scopedVars,
       startTime: Date.now(),
       liveStreaming: this.state.liveStreaming,
       rangeRaw: {
@@ -390,6 +391,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       // This asks the scene root to provide context properties like app, panel and dashboardUID
       ...getEnrichedDataRequest(this),
     };
+
+    const filters = this.getAdhocFilters(ds.uid);
+    if (filters) {
+      // @ts-ignore (Temporary ignore until we update @grafana/data)
+      request.filters = filters;
+    }
 
     request.targets = request.targets.map((query) => {
       if (!query.datasource) {
@@ -485,6 +492,45 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       return found;
     });
+  }
+
+  /**
+   * Walk up scene graph and find the closest filterset with matching data source
+   */
+  private getAdhocFilters(ourDataSourceUid: string): AdHocVariableFilter[] | undefined {
+    /// If we already have found a filter use it
+    if (this._filterSet) {
+      return this._filterSet.state.filters;
+    }
+
+    const set = getClosest(this, (s) => {
+      let found = null;
+      if (s instanceof AdHocFilterSet && s.state.datasource?.uid === this.state.datasource?.uid) {
+        return s;
+      }
+      s.forEachChild((child) => {
+        if (child instanceof AdHocFilterSet && child.state.datasource?.uid === this.state.datasource?.uid) {
+          found = child;
+        }
+      });
+      return found;
+    });
+
+    if (!set || set.state.applyMode !== 'same-datasource') {
+      return undefined;
+    }
+
+    const setDataSource = getDataSourceSrv().getInstanceSettings(set?.state.datasource, this._scopedVars);
+
+    if (setDataSource?.uid !== ourDataSourceUid) {
+      return undefined;
+    }
+
+    // Subscribe to filter set state changes so that queries are re-issued when it changes
+    this._filterSet = set;
+    this._subs.add(this._filterSet?.subscribeToState(() => this.runQueries()));
+
+    return this._filterSet.state.filters;
   }
 }
 
