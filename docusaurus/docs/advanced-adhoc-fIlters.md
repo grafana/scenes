@@ -12,7 +12,7 @@ Adhoc filters are supported directly by many data sources. This means they handl
 
 ### Step 1. Create the AdHocFilterSet
 
-Start by defining the AdHocFilterSet.
+Start by defining the `AdHocFilterSet`.
 
 ```ts
 const filterSet = new AdHocFilterSet({
