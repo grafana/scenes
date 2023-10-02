@@ -3,7 +3,7 @@ id: advanced-adhoc-filters
 title: Adhoc filters
 ---
 
-Adhoc filters are very powerful ways to dynamically change the scope (filtering) of queries in your scene view. Unlike variables that usually control a predefined label / dimension with adhoc filters
+Adhoc filters provide a very powerful way to dynamically change the scope or filtering of queries in your scene view. Unlike variables, which usually control a predefined label or dimension with adhoc filters,
 the user can control what keys (labels) to filter on.
 
 ## Automically applied to queries
