@@ -114,7 +114,7 @@ Example:
 })
 ```
 
-As you can see the query contains the variable expression `$Filters`. The name of the variable is of course something you can change. By default the `AdHocFiltersVariable` will render the filters to valid
+As you can see, the query contains the variable expression `$Filters`. Of course, you can change the name of the variable. By default the `AdHocFiltersVariable` will render the filters to valid
 Prometheus label filter expressions separated by a comma.
 
 
