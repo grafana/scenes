@@ -77,8 +77,8 @@ With these two functions you can completely customize the key and value look up.
 If you don't want filters to be applied to all queries of the same data source as that of the `AdHocFilterSet` and want more control over which queries it's applied to, you can set `applyMode` to `manual` and
 then use the filters how ever you want. You could, for example, subscribe to the `AdHocFilterSet` state and then use the filters to modify the scene in some interesting way.
 
-There is another way you can use the manual mode and that is via the `AdHocFiltersVariable`. This object is an alternative to `AdHocFilterSet`. With `AdHocFiltersVariable` you
-do not add it the controls array you add it to a `SceneVariableSet` as one of your variables. The UI is then rendered as part of `VariableValueSelectors`.
+There's another way you can use the manual mode and that's by way of the `AdHocFiltersVariable`. This object is an alternative to `AdHocFilterSet`. With `AdHocFiltersVariable`, you
+don't add it the controls array but instead add it to a `SceneVariableSet` as one of your variables. The UI is then rendered as part of `VariableValueSelectors`.
 
 Example:
 
