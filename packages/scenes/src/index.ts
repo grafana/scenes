@@ -52,7 +52,12 @@ export { SceneTimeRangeTransformerBase } from './core/SceneTimeRangeTransformerB
 export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
-export { SceneFlexLayout, SceneFlexItem, type SceneFlexItemState } from './components/layout/SceneFlexLayout';
+export {
+  SceneFlexLayout,
+  SceneFlexItem,
+  type SceneFlexItemState,
+  type SceneFlexItemStateLike,
+} from './components/layout/SceneFlexLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
