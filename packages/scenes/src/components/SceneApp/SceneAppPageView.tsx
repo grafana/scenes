@@ -1,6 +1,6 @@
 import { NavModelItem, UrlQueryMap } from '@grafana/data';
 import { PluginPage } from '@grafana/runtime';
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 
 import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
@@ -20,17 +20,21 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   const containerState = containerPage.useState();
   const params = useAppQueryParams();
   const scene = page.getScene(routeProps.match);
-  const [initialized, setInitialized] = useState(false);
+  const isInitialized = containerState.initializedScene === scene;
 
   useLayoutEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
-    if (!initialized) {
+    if (!isInitialized) {
       containerPage.initializeScene(scene);
-      setInitialized(true);
     }
-  }, [initialized, scene, containerPage]);
+  }, [scene, containerPage, isInitialized]);
 
-  if (!initialized) {
+  // Clear initializedScene when unmounting
+  useEffect(() => {
+    return () => containerPage.setState({ initializedScene: undefined });
+  }, [containerPage]);
+
+  if (!isInitialized) {
     return null;
   }
 
