@@ -214,7 +214,7 @@ describe('SceneQueryRunner', () => {
         filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
       });
 
-      const scene = new EmbeddedScene({
+      new EmbeddedScene({
         $data: queryRunner,
         controls: [filterSet],
         body: new SceneCanvasText({ text: 'hello' }),

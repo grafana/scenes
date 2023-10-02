@@ -12,7 +12,6 @@ import {
   PanelData,
   preProcessPanelData,
   rangeUtil,
-  ScopedVar,
   transformDataFrame,
 } from '@grafana/data';
 import { getDataSourceSrv, getRunRequest, toDataQueryError } from '@grafana/runtime';
@@ -24,7 +23,6 @@ import {
   SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
-  SceneObject,
   SceneObjectState,
   SceneTimeRangeLike,
 } from '../core/types';
