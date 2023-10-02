@@ -1,3 +1,23 @@
+# v1.10.0 (Mon Oct 02 2023)
+
+#### 🚀 Enhancement
+
+- Variables: Implement Interval Variable [#365](https://github.com/grafana/scenes/pull/365) ([@axelavargas](https://github.com/axelavargas))
+- Variables: Support skipUrlSync option [#376](https://github.com/grafana/scenes/pull/376) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- SceneFlexLayout: Export SceneFlexItemLike [#385](https://github.com/grafana/scenes/pull/385) ([@torkelo](https://github.com/torkelo))
+- SceneAppPage: Custom fallback page [#380](https://github.com/grafana/scenes/pull/380) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 3
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+- Domas ([@domasx2](https://github.com/domasx2))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.9.0 (Fri Sep 29 2023)
 
 #### 🚀 Enhancement
