@@ -72,8 +72,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _results = new ReplaySubject<SceneDataProviderResult>();
   private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
 
-  // Closest filter set (if any)
-  private _filterSet?: AdHocFilterSet;
+  // Closest filter set if found)
+  private _adhocFilterSet?: AdHocFilterSet;
+  private _adhocFilterSub?: Unsubscribable;
 
   public getResultsStream() {
     return this._results;
@@ -242,6 +243,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
+    if (this._adhocFilterSub) {
+      this._adhocFilterSub.unsubscribe();
+    }
+
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
@@ -332,6 +337,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
+      if (!this._adhocFilterSet) {
+        this.findAndSubscribeToAdhocFilters(ds.uid);
+      }
+
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
@@ -390,10 +399,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       ...getEnrichedDataRequest(this),
     };
 
-    const filters = this.getAdhocFilters(ds.uid);
-    if (filters) {
+    if (this._adhocFilterSet) {
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.filters = filters;
+      request.filters = this._adhocFilterSet.state.filters;
     }
 
     request.targets = request.targets.map((query) => {
@@ -495,12 +503,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private getAdhocFilters(ourDataSourceUid: string): AdHocVariableFilter[] | undefined {
-    /// If we already have found a filter use it
-    if (this._filterSet) {
-      return this._filterSet.state.filters;
-    }
-
+  private findAndSubscribeToAdhocFilters(ourDataSourceUid: string) {
     const set = getClosest(this, (s) => {
       let found = null;
       if (s instanceof AdHocFilterSet && s.state.datasource?.uid === this.state.datasource?.uid) {
@@ -525,10 +528,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     // Subscribe to filter set state changes so that queries are re-issued when it changes
-    this._filterSet = set;
-    this._subs.add(this._filterSet?.subscribeToState(() => this.runQueries()));
-
-    return this._filterSet.state.filters;
+    this._adhocFilterSet = set;
+    this._adhocFilterSub = this._adhocFilterSet?.subscribeToState(() => this.runQueries());
   }
 }
 
