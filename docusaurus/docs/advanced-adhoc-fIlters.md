@@ -29,7 +29,7 @@ const filterSet = new AdHocFilterSet({
 });
 ```
 
-Next you just add this filterSet to the controls array of your EmbeddedScene or SceneAppPage depending on where you want it.
+Next, you add this `filterSet` to the controls array of your `EmbeddedScene` or `SceneAppPage` depending on where you want it.
 
 
 ### How the automatic mode works
