@@ -32,7 +32,7 @@ const filterSet = new AdHocFilterSet({
 Next, you add this `filterSet` to the controls array of your `EmbeddedScene` or `SceneAppPage` depending on where you want it.
 
 
-### How the automatic mode works
+### How automatic mode works
 
 The behavior of `AdHocFilterSet` is controlled by the `applyMode` option. When set to `same-datasource`, which is the default, any change to any filter will automatically re-trigger all
 SceneQueryRunners in the scene that are configured with the same data source uid as the that of the `AdHocFilterSet`. The data source implementation will handle modifying all the queries
