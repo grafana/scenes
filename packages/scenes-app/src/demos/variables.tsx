@@ -17,6 +17,7 @@ import {
   SceneRefreshPicker,
   DataSourceVariable,
   SceneQueryRunner,
+  TextBoxVariable,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -28,7 +29,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
     controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
     tabs: [
       new SceneAppPage({
-        title: 'Query variables',
+        title: 'Async and chained',
         url: `${defaults.url}/query`,
         getScene: () => {
           return new EmbeddedScene({
@@ -97,7 +98,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
         },
       }),
       new SceneAppPage({
-        title: 'Data source',
+        title: 'Data source and textbox',
         url: `${defaults.url}/ds`,
         getScene: () => {
           return new EmbeddedScene({
@@ -108,6 +109,9 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   name: 'ds',
                   pluginId: 'grafana-testdata-datasource',
                 }),
+                new TextBoxVariable({
+                  name: 'search',
+                }),
               ],
             }),
             body: new SceneFlexLayout({
@@ -115,7 +119,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
               children: [
                 new SceneFlexItem({
                   body: PanelBuilders.timeseries()
-                    .setTitle('datasource: $ds')
+                    .setTitle('datasource: $ds, search = $search')
                     .setData(
                       new SceneQueryRunner({
                         datasource: { uid: '$ds' },
@@ -123,7 +127,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                           {
                             refId: 'A',
                             scenarioId: 'random_walk',
-                            alias: 'ds = $ds',
+                            alias: 'ds = $ds, search = $search',
                           },
                         ],
                       })
