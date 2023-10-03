@@ -72,7 +72,7 @@ const filterSet = new AdHocFilterSet({
 
 With these two functions, you can completely customize the key and value look up. With the `replace` property on the return object, you can control if the result should either replace the default implementation (results) or augment the default result with, for example, keys/labels from another data source.
 
-## Manual mode and using AdHocFiltersVariable
+## Manual mode and using `AdHocFiltersVariable`
 
 If you don't want filters to be applied to all queries of the same data source as that of the `AdHocFilterSet` and want more control over which queries it's applied to, you can set `applyMode` to `manual` and
 then use the filters how ever you want. You could, for example, subscribe to the `AdHocFilterSet` state and then use the filters to modify the scene in some interesting way.
