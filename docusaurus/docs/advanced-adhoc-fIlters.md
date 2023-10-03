@@ -35,7 +35,7 @@ Next, you add this `filterSet` to the controls array of your `EmbeddedScene` or 
 ### How automatic mode works
 
 The behavior of `AdHocFilterSet` is controlled by the `applyMode` option. When set to `same-datasource`, which is the default, any change to any filter will automatically re-trigger all
-SceneQueryRunners in the scene that are configured with the same data source uid as the that of the `AdHocFilterSet`. The data source implementation will handle modifying all the queries
+`SceneQueryRunners` in the scene that are configured with the same data source UID as the one of the `AdHocFilterSet`. The data source implementation will handle modifying all the queries
 to include the current filters.
 
 ## Customize the tag and value suggestions
