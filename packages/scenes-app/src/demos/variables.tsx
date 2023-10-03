@@ -76,6 +76,10 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                 new IntervalVariable({
                   name: 'interval',
                   intervals: ['1d', '1m'],
+                  autoEnabled: true,
+                  autoStepCount: 30,
+                  autoMinInterval: '10s',
+                  description: 'Auto step count 30, auto min interval 10s',
                   refresh: VariableRefresh.onTimeRangeChanged,
                 }),
               ],
