@@ -1,3 +1,16 @@
+# v1.11.0 (Tue Oct 03 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - TimePicker: Show and update fiscal year month [#386](https://github.com/grafana/scenes/pull/386) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.10.0 (Mon Oct 02 2023)
 
 #### 🚀 Enhancement
