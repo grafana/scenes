@@ -70,7 +70,7 @@ const filterSet = new AdHocFilterSet({
 });
 ```
 
-With these two functions you can completely customize the key and value look up. With the replace property on the return object you can control if the result should either replace the default implementation (results) or augment the default result with for example keys/labels from another data source.
+With these two functions, you can completely customize the key and value look up. With the `replace` property on the return object, you can control if the result should either replace the default implementation (results) or augment the default result with, for example, keys/labels from another data source.
 
 ## Manual mode and using AdHocFiltersVariable
 
