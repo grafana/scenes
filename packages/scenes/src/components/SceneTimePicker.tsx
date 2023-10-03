@@ -48,7 +48,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
   );
 }
 
-function getZoomedTimeRange(timeRange: TimeRange, factor: number): TimeRange {
+export function getZoomedTimeRange(timeRange: TimeRange, factor: number): TimeRange {
   const timespan = timeRange.to.valueOf() - timeRange.from.valueOf();
   const center = timeRange.to.valueOf() - timespan / 2;
   // If the timepsan is 0, zooming out would do nothing, so we force a zoom out to 30s
