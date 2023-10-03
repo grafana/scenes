@@ -253,10 +253,18 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   }
 
   public getKeys(): string[] {
+    if (this._sceneObject.state.skipUrlSync) {
+      return [];
+    }
+
     return [this.getKey()];
   }
 
   public getUrlState(): SceneObjectUrlValues {
+    if (this._sceneObject.state.skipUrlSync) {
+      return {};
+    }
+
     let urlValue: string | string[] | null = null;
     let value = this._sceneObject.state.value;
 

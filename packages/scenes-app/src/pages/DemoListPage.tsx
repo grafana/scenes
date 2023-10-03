@@ -25,7 +25,6 @@ function getDemoSceneApp() {
       new SceneAppPage({
         title: 'Demos',
         key: 'SceneAppPage Demos',
-        hideFromBreadcrumbs: true,
         url: prefixRoute(ROUTES.Demos),
         getScene: () => {
           return new EmbeddedScene({

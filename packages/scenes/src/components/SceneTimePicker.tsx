@@ -20,6 +20,11 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
     const zoomedTimeRange = getZoomedTimeRange(timeRange.state.value, 2);
     timeRange.onTimeRangeChange(zoomedTimeRange);
   };
+
+  public onChangeFiscalYearStartMonth = (month: number) => {
+    const timeRange = sceneGraph.getTimeRange(this);
+    timeRange.setState({ fiscalYearStartMonth: month });
+  };
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
@@ -38,12 +43,12 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       value={timeRangeState.value}
       onChange={timeRange.onTimeRangeChange}
       timeZone={timeZone}
-      fiscalYearStartMonth={0}
+      fiscalYearStartMonth={timeRangeState.fiscalYearStartMonth}
       onMoveBackward={() => {}}
       onMoveForward={() => {}}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
-      onChangeFiscalYearStartMonth={() => {}}
+      onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
     />
   );
 }

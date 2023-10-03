@@ -12,7 +12,9 @@ import {
   SceneAppPageState,
   behaviors,
   PanelBuilders,
+  IntervalVariable,
 } from '@grafana/scenes';
+import { AUTO_VARIABLE_VALUE } from '@grafana/scenes/src/variables/constants';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getVariablesDemo(defaults: SceneAppPageState) {
@@ -42,7 +44,6 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
               text: '',
               options: [],
             }),
-
             new TestVariable({
               name: 'handler',
               query: 'A.$server.$pod.*',
@@ -61,6 +62,17 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
               isMulti: true,
               text: '',
               options: [],
+            }),
+            new IntervalVariable({
+              name: 'intervalVariable',
+              intervals: ['1d', '1m'],
+              refresh: VariableRefresh.onTimeRangeChanged,
+            }),
+            new IntervalVariable({
+              name: 'intervalVariableAuto',
+              autoEnabled: true,
+              refresh: VariableRefresh.onTimeRangeChanged,
+              value: AUTO_VARIABLE_VALUE,
             }),
           ],
         }),
@@ -141,6 +153,31 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                                 })
                               )
                               .build(),
+                          }),
+                        ],
+                      }),
+                    }),
+                  }),
+                  new SceneFlexItem({
+                    body: new NestedScene({
+                      title: 'Collapsable variables that use built-in variables variants',
+                      canCollapse: true,
+                      body: new SceneFlexLayout({
+                        direction: 'row',
+                        children: [
+                          new SceneFlexItem({
+                            body: new SceneCanvasText({
+                              text: 'Interval Variable: ${intervalVariable}',
+                              fontSize: 20,
+                              align: 'center',
+                            }),
+                          }),
+                          new SceneFlexItem({
+                            body: new SceneCanvasText({
+                              text: 'Interval Variable Auto: ${intervalVariableAuto}',
+                              fontSize: 20,
+                              align: 'center',
+                            }),
                           }),
                         ],
                       }),

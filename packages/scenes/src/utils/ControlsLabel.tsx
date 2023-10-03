@@ -1,16 +1,17 @@
 import React from 'react';
 import { Icon, Tooltip, useStyles2, useTheme2 } from '@grafana/ui';
 import { selectors } from '@grafana/e2e-selectors';
-import { GrafanaTheme2 } from '@grafana/data';
+import { GrafanaTheme2, IconName } from '@grafana/data';
 import { css } from '@emotion/css';
 import { LoadingIndicator } from './LoadingIndicator';
 
 interface ControlsLabelProps {
   label: string;
-  htmlFor: string;
+  htmlFor?: string;
   description?: string;
   isLoading?: boolean;
   error?: string;
+  icon?: IconName;
   onCancel?: () => void;
 }
 
@@ -30,23 +31,6 @@ export function ControlsLabel(props: ControlsLabelProps) {
     </div>
   ) : null;
 
-  if (props.description) {
-    return (
-      <label
-        className={styles.label}
-        data-testid={
-          typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : ''
-        }
-        htmlFor={props.htmlFor}
-      >
-        <Tooltip content={props.description} placement={'bottom'}>
-          <span>{props.label}</span>
-        </Tooltip>
-        {loadingIndicator}
-      </label>
-    );
-  }
-
   let errorIndicator = null;
   if (props.error) {
     errorIndicator = (
@@ -56,7 +40,7 @@ export function ControlsLabel(props: ControlsLabelProps) {
     );
   }
 
-  return (
+  const label = (
     <label
       className={styles.label}
       data-testid={
@@ -65,10 +49,21 @@ export function ControlsLabel(props: ControlsLabelProps) {
       htmlFor={props.htmlFor}
     >
       {errorIndicator}
+      {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
       {props.label}
       {loadingIndicator}
     </label>
   );
+
+  if (props.description) {
+    return (
+      <Tooltip content={props.description} placement={'bottom'}>
+        {label}
+      </Tooltip>
+    );
+  }
+
+  return label;
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
@@ -87,10 +82,12 @@ const getStyles = (theme: GrafanaTheme2) => ({
     // To make the border line up with the input border
     right: -1,
     whiteSpace: 'nowrap',
+    gap: theme.spacing(0.5),
   }),
-
   errorIcon: css({
     color: theme.colors.error.text,
-    marginRight: theme.spacing(1),
+  }),
+  normalIcon: css({
+    color: theme.colors.text.secondary,
   }),
 });

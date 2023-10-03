@@ -34,6 +34,9 @@ export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 export { MultiValueVariable } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
+export { IntervalVariable } from './variables/variants/IntervalVariable';
+export { AdHocFilterSet } from './variables/adhoc/AdHocFiltersSet';
+export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 
 export { type UrlSyncManagerLike as UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
@@ -50,7 +53,12 @@ export { SceneTimeRangeTransformerBase } from './core/SceneTimeRangeTransformerB
 export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
-export { SceneFlexLayout, SceneFlexItem, type SceneFlexItemState } from './components/layout/SceneFlexLayout';
+export {
+  SceneFlexLayout,
+  SceneFlexItem,
+  type SceneFlexItemState,
+  type SceneFlexItemLike,
+} from './components/layout/SceneFlexLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';

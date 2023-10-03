@@ -390,5 +390,18 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toEqual(['2', '1']);
       expect(variable.state.text).toEqual(['B', 'A']);
     });
+
+    it('Can disable url sync', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        value: '1',
+        text: 'A',
+        delayMs: 0,
+        skipUrlSync: true,
+      });
+
+      expect(variable.urlSync?.getUrlState()).toEqual({});
+      expect(variable.urlSync?.getKeys()).toEqual([]);
+    });
   });
 });
