@@ -40,7 +40,7 @@ to include the current filters.
 
 ## Customize the tag and value suggestions
 
-By default the tag (label) suggestions will come from the data source implementation of `getTagKeys``. Existing filters and `baseFilters`  should be taken into account when suggestions are fetched so that filters
+By default the tag (label) suggestions will come from the data source implementation of `getTagKeys`. You should take existing filters and `baseFilters` into account when fetching suggestions so that filters
 can also impact the suggested tags and values of other filters. This behavior that other filters are taken into account is new and not all data sources support it yet.
 
 Values are fetched from the data source implementation of `getTagValues`. Both tag keys and tag values can be customized with the two state properties: `getTagKeysProvider` and `getTagValuesProvider`.
