@@ -1,16 +1,9 @@
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import {
-  AdHocVariableFilter,
-  DataSourceInstanceSettings,
-  GrafanaTheme2,
-  MetricFindValue,
-  SelectableValue,
-} from '@grafana/data';
+import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
-import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
-import { SceneComponentProps, SceneObject, SceneObjectState, SceneObjectUrlSyncHandler } from '../../core/types';
+import { SceneComponentProps, SceneObjectState, SceneObjectUrlSyncHandler } from '../../core/types';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { useStyles2 } from '@grafana/ui';
 import React from 'react';
@@ -98,7 +91,6 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       // If we set value we are done with this "work in progress" filter and we can add it
       if (prop === 'value') {
         this.setState({ filters: [...filters, { ..._wip, [prop]: value }], _wip: undefined });
-        this._runSceneQueries();
       } else {
         this.setState({ _wip: { ...filter, [prop]: value } });
       }
@@ -112,7 +104,7 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       return f;
     });
 
-    this.updateFilters(updatedFilters);
+    this.setState({ filters: updatedFilters });
   }
 
   public _removeFilter(filter: AdHocVariableFilter) {
@@ -121,12 +113,7 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       return;
     }
 
-    this.updateFilters(this.state.filters.filter((f) => f !== filter));
-  }
-
-  public updateFilters(filters: AdHocVariableFilter[]) {
-    this.setState({ filters });
-    this._runSceneQueries();
+    this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
   }
 
   /**
@@ -190,53 +177,6 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       label: value,
       value,
     }));
-  }
-
-  private _runSceneQueries() {
-    // In manual mode we do not trigger any queries
-    if (this.state.applyMode === 'manual') {
-      return;
-    }
-
-    const startingPoint = this.parent;
-    if (!startingPoint) {
-      console.error('AdHocFiltersVariable could not find a parent scene to broadcast changes to');
-      return;
-    }
-
-    const ourDS = this._dataSourceSrv.getInstanceSettings(this.state.datasource, this._scopedVars);
-    if (!ourDS) {
-      console.error('AdHocFiltersVariable ds not found', this.state.datasource);
-      return;
-    }
-
-    const triggerQueriesRecursive = (startingPoint: SceneObject) => {
-      if (startingPoint instanceof SceneQueryRunner && this._isSameDS(ourDS, startingPoint.state.datasource)) {
-        startingPoint.runQueries();
-      } else {
-        startingPoint.forEachChild(triggerQueriesRecursive);
-      }
-    };
-
-    triggerQueriesRecursive(startingPoint);
-  }
-
-  private _isSameDS(ourDS: DataSourceInstanceSettings, queryRunnerDS: DataSourceRef | null | undefined) {
-    // This function does some initial checks to try to avoid haing to call _dataSourceSrv.getInstanceSettings
-    // Which is only needed when queryRunner is using data source variable but the adhoc filter is not
-
-    if (this.state.datasource === queryRunnerDS) {
-      return true;
-    }
-
-    // This works when both are using a variable as well
-    if (this.state.datasource?.uid === queryRunnerDS?.uid) {
-      return true;
-    }
-
-    // Finally the fool proof check that works when either we or the query runner is using a variable ds
-    const resolved = this._dataSourceSrv.getInstanceSettings(queryRunnerDS, this._scopedVars);
-    return ourDS?.uid === resolved?.uid;
   }
 }
 
