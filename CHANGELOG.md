@@ -1,3 +1,24 @@
+# v1.12.0 (Tue Oct 03 2023)
+
+#### 🚀 Enhancement
+
+- AdhocFilters: Add docs for AdhocFilterSet and AdhocFiltersVariable [#377](https://github.com/grafana/scenes/pull/377) ([@torkelo](https://github.com/torkelo) [@dprokop](https://github.com/dprokop))
+- `@grafana/scenes`
+  - AdhocFilters: Pass filters via request object [#382](https://github.com/grafana/scenes/pull/382) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimeRange: Implement onZoom behavior [#374](https://github.com/grafana/scenes/pull/374) ([@polibb](https://github.com/polibb))
+
+#### Authors: 3
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Polina Boneva ([@polibb](https://github.com/polibb))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.11.1 (Tue Oct 03 2023)
 
 #### 🐛 Bug Fix

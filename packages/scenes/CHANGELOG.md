@@ -1,3 +1,20 @@
+# v1.12.0 (Tue Oct 03 2023)
+
+#### 🚀 Enhancement
+
+- AdhocFilters: Pass filters via request object [#382](https://github.com/grafana/scenes/pull/382) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- SceneTimeRange: Implement onZoom behavior [#374](https://github.com/grafana/scenes/pull/374) ([@polibb](https://github.com/polibb))
+
+#### Authors: 2
+
+- Polina Boneva ([@polibb](https://github.com/polibb))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.11.1 (Tue Oct 03 2023)
 
 #### 🐛 Bug Fix
