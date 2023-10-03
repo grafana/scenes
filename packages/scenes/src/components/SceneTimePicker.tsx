@@ -13,6 +13,11 @@ export interface SceneTimePickerState extends SceneObjectState {
 
 export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
   public static Component = SceneTimePickerRenderer;
+
+  public onChangeFiscalYearStartMonth = (month: number) => {
+    const timeRange = sceneGraph.getTimeRange(this);
+    timeRange.setState({ fiscalYearStartMonth: month });
+  };
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
@@ -31,12 +36,12 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       value={timeRangeState.value}
       onChange={timeRange.onTimeRangeChange}
       timeZone={timeZone}
-      fiscalYearStartMonth={0}
+      fiscalYearStartMonth={timeRangeState.fiscalYearStartMonth}
       onMoveBackward={() => {}}
       onMoveForward={() => {}}
       onZoom={() => {}}
       onChangeTimeZone={timeRange.onTimeZoneChange}
-      onChangeFiscalYearStartMonth={() => {}}
+      onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
     />
   );
 }
