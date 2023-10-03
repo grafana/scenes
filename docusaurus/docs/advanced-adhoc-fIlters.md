@@ -38,7 +38,7 @@ The behavior of `AdHocFilterSet` is controlled by the `applyMode` option. When s
 SceneQueryRunners in the scene that are configured with the same data source uid as the that of the `AdHocFilterSet`. The data source implementation will handle modifying all the queries
 to include the current filters.
 
-## Customizing the tag and value suggestions
+## Customize the tag and value suggestions
 
 By default the tag (label) suggestions will come from the data source implementation of `getTagKeys``. Existing filters and `baseFilters`  should be taken into account when suggestions are fetched so that filters
 can also impact the suggested tags and values of other filters. This behavior that other filters are taken into account is new and not all data sources support it yet.
