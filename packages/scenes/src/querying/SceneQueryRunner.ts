@@ -4,7 +4,6 @@ import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribab
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
-  AdHocVariableFilter,
   DataFrame,
   DataQueryRequest,
   DataSourceApi,
@@ -518,13 +517,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     });
 
     if (!set || set.state.applyMode !== 'same-datasource') {
-      return undefined;
+      return;
     }
 
     const setDataSource = getDataSourceSrv().getInstanceSettings(set?.state.datasource, this._scopedVars);
 
     if (setDataSource?.uid !== ourDataSourceUid) {
-      return undefined;
+      return;
     }
 
     // Subscribe to filter set state changes so that queries are re-issued when it changes
