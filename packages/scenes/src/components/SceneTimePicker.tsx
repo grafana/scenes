@@ -17,9 +17,7 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
 
   public onZoom = () => {
     const timeRange = sceneGraph.getTimeRange(this);
-    const timeRangeState = timeRange.useState();
-
-    const zoomedTimeRange = getZoomedTimeRange(timeRangeState.value, 2);
+    const zoomedTimeRange = getZoomedTimeRange(timeRange.state.value, 2);
     timeRange.onTimeRangeChange(zoomedTimeRange);
   };
 }
