@@ -1,3 +1,16 @@
+# v1.11.1 (Tue Oct 03 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneAppPageView: Fixes react and scene state missmatch [#381](https://github.com/grafana/scenes/pull/381) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.11.0 (Tue Oct 03 2023)
 
 #### 🚀 Enhancement
