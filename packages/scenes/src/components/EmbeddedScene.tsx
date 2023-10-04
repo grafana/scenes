@@ -26,10 +26,8 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
     super(state);
 
     this.addActivationHandler(() => {
-      // Patching for backwards compatibility with timeSrv in some of core Grafana data sources.
-      // Certain core data sources assume a global time range, which is not the case in Scenes.
-      // This is patching for a simple case when there is a single global time range in a scene.
-      // const unpatchTimeSrv = patchTimeSrv(sceneGraph.getTimeRange(this));
+      // This function is setting window.__grafanaSceneContext which is used from Grafana core in the old services TimeSrv and TemplateSrv.
+      // This works as a backward compatability method to support accessing scene time range and variables from those old services.
       const unsetGlobalScene = setWindowGrafanaSceneContext(this);
       return () => {
         unsetGlobalScene();
