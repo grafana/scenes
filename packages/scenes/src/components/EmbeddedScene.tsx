@@ -2,12 +2,10 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import React from 'react';
-import { sceneGraph } from '../core/sceneGraph';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObject } from '../core/types';
 import { getUrlSyncManager } from '../services/UrlSyncManager';
-import { patchTimeSrv } from '../utils/compatibility/patchTimeSrv';
 import { setWindowGrafanaScene } from '../utils/compatibility/setWindowGrafanaScene';
 
 export interface EmbeddedSceneState extends SceneObjectState {
