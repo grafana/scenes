@@ -7,7 +7,8 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObject } from '../core/types';
 import { getUrlSyncManager } from '../services/UrlSyncManager';
-import { _patchTimeSrv } from '../utils/compatibility/patchTimeSrv';
+import { patchTimeSrv } from '../utils/compatibility/patchTimeSrv';
+import { setWindowGrafanaScene } from '../utils/compatibility/setWindowGrafanaScene';
 
 export interface EmbeddedSceneState extends SceneObjectState {
   /**
@@ -30,9 +31,10 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
       // Patching for backwards compatibility with timeSrv in some of core Grafana data sources.
       // Certain core data sources assume a global time range, which is not the case in Scenes.
       // This is patching for a simple case when there is a single global time range in a scene.
-      const _unpatchTimeSrv = _patchTimeSrv(sceneGraph.getTimeRange(this));
+      // const unpatchTimeSrv = patchTimeSrv(sceneGraph.getTimeRange(this));
+      const unsetGlobalScene = setWindowGrafanaScene(this);
       return () => {
-        _unpatchTimeSrv?.();
+        unsetGlobalScene();
         getUrlSyncManager().cleanUp(this);
       };
     });

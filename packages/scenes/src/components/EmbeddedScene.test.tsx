@@ -1,5 +1,6 @@
 import { EmbeddedScene } from './EmbeddedScene';
 import { SceneFlexLayout } from './layout/SceneFlexLayout';
+import { SceneCanvasText } from './SceneCanvasText';
 import { SceneTimePicker } from './SceneTimePicker';
 
 describe('Scene', () => {
@@ -13,5 +14,20 @@ describe('Scene', () => {
 
     // TODO make this a proper render rest
     expect(scene.state.body).toBeDefined();
+  });
+
+  describe('When activated', () => {
+    test('Should set global window.__grafanaScene object', () => {
+      const scene = new EmbeddedScene({
+        body: new SceneCanvasText({ text: 'Hello World' }),
+      });
+
+      const deactivate = scene.activate();
+
+      expect((window as any).__grafanaScene).toBe(scene);
+
+      deactivate();
+      expect((window as any).__grafanaScene).toBeUndefined();
+    });
   });
 });
