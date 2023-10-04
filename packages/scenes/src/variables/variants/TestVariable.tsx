@@ -18,7 +18,7 @@ export interface TestVariableState extends MultiValueVariableState {
   issuedQuery?: string;
   refresh?: VariableRefresh;
   throwError?: string;
-  optionsToReturn: VariableValueOption[];
+  optionsToReturn?: VariableValueOption[];
 }
 
 /**
@@ -42,7 +42,6 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       query: 'Query',
       options: [],
       refresh: VariableRefresh.onDashboardLoad,
-      optionsToReturn: [],
       ...initialState,
     });
   }
@@ -102,7 +101,7 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
   }
 
   private getOptions(interpolatedQuery: string) {
-    if (this.state.optionsToReturn.length > 0) {
+    if (this.state.optionsToReturn) {
       return this.state.optionsToReturn;
     }
 
