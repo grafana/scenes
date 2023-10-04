@@ -35,7 +35,7 @@ export class SceneTimeZoneOverride
     return this.state.timeZone;
   }
 
-  public onTimeZoneChange(timeZone: string): void {
+  public setTimeZone(timeZone: string) {
     this.setState({
       timeZone,
       value: evaluateTimeRange(
@@ -45,5 +45,9 @@ export class SceneTimeZoneOverride
         this.getAncestorTimeRange().state.fiscalYearStartMonth
       ),
     });
+  }
+  /** @deprecated */
+  public onTimeZoneChange(timeZone: string): void {
+    this.setTimeZone(timeZone);
   }
 }
