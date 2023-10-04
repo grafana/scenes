@@ -58,14 +58,14 @@ describe('SceneTimeRange', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
     const stateSpy = jest.spyOn(timeRange, 'setState');
 
-    timeRange.onTimeRangeChange({
+    timeRange.setTimeRange({
       from: toUtc('2020-01-01'),
       to: toUtc('2020-01-02'),
       raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
     });
     expect(stateSpy).toBeCalledTimes(1);
 
-    timeRange.onTimeRangeChange({
+    timeRange.setTimeRange({
       from: toUtc('2020-01-01'),
       to: toUtc('2020-01-02'),
       raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },

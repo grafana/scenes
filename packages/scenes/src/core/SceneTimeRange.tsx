@@ -95,7 +95,12 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     return getTimeZone();
   }
 
+  /** @deprecated Use `setTimeRange` instead. */
   public onTimeRangeChange = (timeRange: TimeRange) => {
+    this.setTimeRange(timeRange);
+  };
+
+  public setTimeRange = (timeRange: TimeRange) => {
     const update: Partial<SceneTimeRangeState> = {};
 
     if (typeof timeRange.raw.from === 'string') {
@@ -118,7 +123,12 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     }
   };
 
+  /** @deprecated Use `setTimeZone` instead.*/
   public onTimeZoneChange = (timeZone: TimeZone) => {
+    this.setTimeZone(timeZone);
+  };
+
+  public setTimeZone = (timeZone: TimeZone) => {
     this.setState({ timeZone });
   };
 
