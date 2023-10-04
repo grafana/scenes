@@ -1,3 +1,15 @@
+# v1.14.0 (Wed Oct 04 2023)
+
+#### 🚀 Enhancement
+
+- Variables: Fix issue with all value state and no options [#391](https://github.com/grafana/scenes/pull/391) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.13.0 (Wed Oct 04 2023)
 
 #### 🚀 Enhancement
