@@ -145,6 +145,23 @@ describe('MultiValueVariable', () => {
       expect(variable.state.options).toEqual(variable.state.optionsToReturn);
       expect(changeEvent).toBeDefined();
     });
+
+    it('Should default to $__all even when no options are returned', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [],
+        defaultToAll: true,
+        value: [],
+        text: [],
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
+      expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
+    });
   });
 
   describe('changeValueTo', () => {

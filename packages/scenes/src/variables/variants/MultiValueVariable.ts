@@ -77,7 +77,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     };
 
     if (options.length === 0) {
-      // TODO handle the no value state
+      if (this.state.defaultToAll || this.state.includeAll) {
+        stateUpdate.value = ALL_VARIABLE_VALUE;
+        stateUpdate.text = ALL_VARIABLE_TEXT;
+      }
     } else if (this.hasAllValue()) {
       // If value is set to All then we keep it set to All but just store the options
     } else if (this.state.isMulti) {
