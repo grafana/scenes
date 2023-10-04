@@ -111,12 +111,12 @@ describe('SceneApp', () => {
               titleIcon: 'grafana',
               tabSuffix: () => <strong>tab1 suffix</strong>,
               url: '/test/tab1',
-              getScene: () => setupScene(t1Object),
+              getScene: () => setupScene(t1Object, 'tab1-scene'),
             }),
             new SceneAppPage({
               title: 'Tab2',
               url: '/test/tab2',
-              getScene: () => setupScene(t2Object),
+              getScene: () => setupScene(t2Object, 'tab2-scene'),
             }),
           ],
         }),
@@ -132,6 +132,11 @@ describe('SceneApp', () => {
 
     it('should render correct breadcrumbs', async () => {
       expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Container page']);
+    });
+
+    it('Inner embedded scene should be active and connected to containerPage', async () => {
+      expect((window as any).__grafanaSceneContext.state.key).toBe('tab1-scene');
+      expect((window as any).__grafanaSceneContext.parent.state.title).toBe('Container page');
     });
 
     it('should render tab title with icon and suffix', async () => {
@@ -157,6 +162,8 @@ describe('SceneApp', () => {
       expect(await screen.findByTestId(t2Object.state.key!)).toBeInTheDocument();
       expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
       expect(screen.queryByTestId(t1Object.state.key!)).not.toBeInTheDocument();
+
+      expect((window as any).__grafanaSceneContext.state.key).toBe('tab2-scene');
     });
   });
 
@@ -203,6 +210,10 @@ describe('SceneApp', () => {
 
         expect(await screen.findByText('some-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
+
+        // Verify embedded scene is activated and is connected to it's parent page
+        expect((window as any).__grafanaSceneContext.state.key).toBe('drilldown-scene-some-id');
+        expect((window as any).__grafanaSceneContext.parent.state.key).toBe('drilldown-page');
 
         // Verify pageNav is correct
         expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Drilldown some-id', 'Top level page']);
@@ -391,8 +402,9 @@ describe('SceneApp', () => {
   });
 });
 
-function setupScene(inspectableObject: SceneObject) {
+function setupScene(inspectableObject: SceneObject, key?: string) {
   return new EmbeddedScene({
+    key,
     body: new SceneFlexLayout({
       children: [new SceneFlexItem({ body: inspectableObject })],
     }),
@@ -400,7 +412,10 @@ function setupScene(inspectableObject: SceneObject) {
 }
 
 function getDrilldownScene(match: SceneRouteMatch<{ id: string }>) {
-  return setupScene(new SceneCanvasText({ text: `${match.params.id} drilldown!` }));
+  return setupScene(
+    new SceneCanvasText({ text: `${match.params.id} drilldown!` }),
+    `drilldown-scene-${match.params.id}`
+  );
 }
 
 function flattenPageNav(pageNav: NavModelItem | undefined) {
