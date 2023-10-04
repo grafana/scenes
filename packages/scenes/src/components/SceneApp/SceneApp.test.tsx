@@ -135,8 +135,8 @@ describe('SceneApp', () => {
     });
 
     it('Inner embedded scene should be active and connected to containerPage', async () => {
-      expect((window as any).__grafanaScene.state.key).toBe('tab1-scene');
-      expect((window as any).__grafanaScene.parent.state.title).toBe('Container page');
+      expect((window as any).__grafanaSceneContext.state.key).toBe('tab1-scene');
+      expect((window as any).__grafanaSceneContext.parent.state.title).toBe('Container page');
     });
 
     it('should render tab title with icon and suffix', async () => {
@@ -163,7 +163,7 @@ describe('SceneApp', () => {
       expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
       expect(screen.queryByTestId(t1Object.state.key!)).not.toBeInTheDocument();
 
-      expect((window as any).__grafanaScene.state.key).toBe('tab2-scene');
+      expect((window as any).__grafanaSceneContext.state.key).toBe('tab2-scene');
     });
   });
 
@@ -212,8 +212,8 @@ describe('SceneApp', () => {
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
 
         // Verify embedded scene is activated and is connected to it's parent page
-        expect((window as any).__grafanaScene.state.key).toBe('drilldown-scene-some-id');
-        expect((window as any).__grafanaScene.parent.state.key).toBe('drilldown-page');
+        expect((window as any).__grafanaSceneContext.state.key).toBe('drilldown-scene-some-id');
+        expect((window as any).__grafanaSceneContext.parent.state.key).toBe('drilldown-page');
 
         // Verify pageNav is correct
         expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Drilldown some-id', 'Top level page']);

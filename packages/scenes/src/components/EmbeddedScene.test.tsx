@@ -17,17 +17,17 @@ describe('Scene', () => {
   });
 
   describe('When activated', () => {
-    test('Should set global window.__grafanaScene object', () => {
+    test('Should set global window.__grafanaSceneContext object', () => {
       const scene = new EmbeddedScene({
         body: new SceneCanvasText({ text: 'Hello World' }),
       });
 
       const deactivate = scene.activate();
 
-      expect((window as any).__grafanaScene).toBe(scene);
+      expect((window as any).__grafanaSceneContext).toBe(scene);
 
       deactivate();
-      expect((window as any).__grafanaScene).toBeUndefined();
+      expect((window as any).__grafanaSceneContext).toBeUndefined();
     });
   });
 });

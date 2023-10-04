@@ -6,7 +6,7 @@ import React from 'react';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObject } from '../core/types';
 import { getUrlSyncManager } from '../services/UrlSyncManager';
-import { setWindowGrafanaScene } from '../utils/compatibility/setWindowGrafanaScene';
+import { setWindowGrafanaSceneContext } from '../utils/compatibility/setWindowGrafanaSceneContext';
 
 export interface EmbeddedSceneState extends SceneObjectState {
   /**
@@ -30,7 +30,7 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
       // Certain core data sources assume a global time range, which is not the case in Scenes.
       // This is patching for a simple case when there is a single global time range in a scene.
       // const unpatchTimeSrv = patchTimeSrv(sceneGraph.getTimeRange(this));
-      const unsetGlobalScene = setWindowGrafanaScene(this);
+      const unsetGlobalScene = setWindowGrafanaSceneContext(this);
       return () => {
         unsetGlobalScene();
         getUrlSyncManager().cleanUp(this);
