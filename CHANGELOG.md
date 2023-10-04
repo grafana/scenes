@@ -1,3 +1,16 @@
+# v1.13.0 (Wed Oct 04 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Compatability: Add global window object that points to the current active EmbeddedScene [#390](https://github.com/grafana/scenes/pull/390) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.12.0 (Tue Oct 03 2023)
 
 #### 🚀 Enhancement
