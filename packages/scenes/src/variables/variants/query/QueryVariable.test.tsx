@@ -26,7 +26,7 @@ import { EmbeddedScene } from '../../../components/EmbeddedScene';
 import { SceneVariableSet } from '../../sets/SceneVariableSet';
 import { VariableValueSelectors } from '../../components/VariableValueSelectors';
 import { SceneCanvasText } from '../../../components/SceneCanvasText';
-import { getAllByRole, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setRunRequest } from '@grafana/runtime';
 
