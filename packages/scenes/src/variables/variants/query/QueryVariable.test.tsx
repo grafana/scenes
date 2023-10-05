@@ -299,7 +299,6 @@ describe('QueryVariable', () => {
       // wait for debounce
       await new Promise((r) => setTimeout(r, 500));
 
-      //screen.debug();
       expect(runRequestMock).toBeCalledTimes(2);
       expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
     });
