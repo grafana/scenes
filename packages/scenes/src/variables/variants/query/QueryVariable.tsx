@@ -43,11 +43,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     statePaths: ['regex', 'query', 'datasource'],
   });
 
-  /**
-   * True when we detect $__searchFilter in query model
-   */
-  //private _searchFilterDetected?: boolean;
-
   public constructor(initialState: Partial<QueryVariableState>) {
     super({
       type: 'query',
@@ -55,7 +50,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       value: '',
       text: '',
       options: [],
-      datasource: {},
+      datasource: null,
       regex: '',
       query: { refId: 'A' },
       refresh: VariableRefresh.onDashboardLoad,
@@ -151,7 +146,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
   private _updateOptionsBasedOnSearchFilter = debounce(async (searchFilter: string) => {
     const result = await lastValueFrom(this.getValueOptions({ searchFilter }));
     this.setState({ options: result, loading: false });
-  }, 500);
+  }, 400);
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
     return renderSelectForVariable(model);
