@@ -10,7 +10,7 @@ export interface SceneFlexItemStateLike extends SceneObjectState {}
 export interface SceneFlexItemLike extends SceneObject<SceneFlexItemStateLike> {}
 
 interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridItemPlacement {
-  children: SceneFlexItemLike[];
+  children: Array<SceneFlexItemLike | SceneObject>;
 }
 
 export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState> implements SceneLayout {
@@ -96,6 +96,7 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
     const style: CSSObject = {};
 
     style.display = 'grid';
+    style.flexGrow = 1;
     style.gridTemplateRows = state.rows;
     style.gridTemplateColumns = state.columns;
     style.rowGap = state.rowGap || '8px';

@@ -66,6 +66,7 @@ export function getPanelRepeaterTest(defaults: SceneAppPageState) {
         controls: [
           new SceneToolbarInput({
             value: '2',
+            label: 'Series count',
             onChange: (newValue) => {
               queryRunner.setState({
                 queries: [
