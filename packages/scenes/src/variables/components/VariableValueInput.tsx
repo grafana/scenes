@@ -24,5 +24,5 @@ export function VariableValueInput({ model }: SceneComponentProps<TextBoxVariabl
     [setTextValue]
   );
 
-  return <Input id={key} placeholder="Enter variable value" value={textValue} loading={loading} onChange={onChange} />;
+  return <Input id={key} placeholder="Enter value" value={textValue} loading={loading} onChange={onChange} />;
 }
