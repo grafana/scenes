@@ -1,6 +1,13 @@
 import { from, mergeMap, Observable, of } from 'rxjs';
 
-import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
+import {
+  DataQueryRequest,
+  DataSourceApi,
+  getDefaultTimeRange,
+  LoadingState,
+  PanelData,
+  StandardVariableQuery,
+} from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { hasCustomVariableSupport, hasLegacyVariableSupport, hasStandardVariableSupport } from './guards';
@@ -14,7 +21,7 @@ export interface RunnerArgs {
 }
 
 export interface QueryRunner {
-  getTarget: (variable: QueryVariable) => DataQuery;
+  getTarget: (variable: QueryVariable) => DataQuery | string;
   runRequest: (args: RunnerArgs, request: DataQueryRequest) => Observable<PanelData>;
 }
 
@@ -53,7 +60,7 @@ class LegacyQueryRunner implements QueryRunner {
     throw new Error("Couldn't create a target with supplied arguments.");
   }
 
-  public runRequest({ variable }: RunnerArgs, request: DataQueryRequest) {
+  public runRequest({ variable, searchFilter }: RunnerArgs, request: DataQueryRequest) {
     if (!hasLegacyVariableSupport(this.datasource)) {
       return getEmptyMetricFindValueObservable();
     }
@@ -66,8 +73,7 @@ class LegacyQueryRunner implements QueryRunner {
           name: variable.state.name,
           type: variable.state.type,
         },
-        // TODO: add support for search filter
-        // searchFilter
+        searchFilter,
       })
     ).pipe(
       mergeMap((values) => {
@@ -137,7 +143,7 @@ export function setCreateQueryVariableRunnerFactory(fn: (datasource: DataSourceA
 /**
  * Fixes old legacy query string models and adds refId if missing
  */
-function ensureVariableQueryModelIsADataQuery(variable: QueryVariable) {
+function ensureVariableQueryModelIsADataQuery(variable: QueryVariable): StandardVariableQuery {
   const query = variable.state.query;
 
   // Turn into query object if it's just a string
@@ -147,8 +153,8 @@ function ensureVariableQueryModelIsADataQuery(variable: QueryVariable) {
 
   // Add potentially missing refId
   if (query.refId == null) {
-    return { ...variable.state.query, refId: `variable-${variable.state.name}` };
+    return { ...query, refId: `variable-${variable.state.name}` } as StandardVariableQuery;
   }
 
-  return variable.state.query;
+  return variable.state.query as StandardVariableQuery;
 }

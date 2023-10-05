@@ -10,6 +10,7 @@ import {
   PanelData,
   PluginType,
   ScopedVars,
+  StandardVariableQuery,
   StandardVariableSupport,
   toDataFrame,
   toUtc,
@@ -83,7 +84,9 @@ class FakeQueryRunner implements QueryRunner {
   public constructor(private datasource: DataSourceApi, private _runRequest: jest.Mock) {}
 
   public getTarget(variable: QueryVariable) {
-    return (this.datasource.variables as StandardVariableSupport<DataSourceApi>).toDataQuery(variable.state.query);
+    return (this.datasource.variables as StandardVariableSupport<DataSourceApi>).toDataQuery(
+      variable.state.query as StandardVariableQuery
+    );
   }
   public runRequest(args: RunnerArgs, request: DataQueryRequest) {
     return this._runRequest(

@@ -18,6 +18,7 @@ import {
   DataSourceVariable,
   SceneQueryRunner,
   TextBoxVariable,
+  QueryVariable,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -135,6 +136,38 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                           },
                         ],
                       })
+                    )
+                    .build(),
+                }),
+              ],
+            }),
+          });
+        },
+      }),
+      new SceneAppPage({
+        title: 'Search filter',
+        url: `${defaults.url}/search`,
+        getScene: () => {
+          return new EmbeddedScene({
+            controls: [new VariableValueSelectors({})],
+            $variables: new SceneVariableSet({
+              variables: [
+                new QueryVariable({
+                  name: 'server',
+                  query: { query: 'A.$__searchFilter', refId: 'A' },
+                  datasource: { uid: 'gdev-testdata' },
+                }),
+              ],
+            }),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  body: PanelBuilders.text()
+                    .setTitle('Variable with search filter')
+                    .setOption(
+                      'content',
+                      'This is a very old messy feature that allows data sources to filter down the options in a query variable dropdown based on what the user has typed in. Only implemented by very few data sources (Graphite, SQL, Datadog)'
                     )
                     .build(),
                 }),

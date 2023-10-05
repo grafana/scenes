@@ -2,6 +2,7 @@ import { SceneObject, SceneObjectState } from '../core/types';
 import { VARIABLE_REGEX } from './constants';
 
 import { SceneVariable, SceneVariableDependencyConfigLike } from './types';
+import { safeStringifyValue } from './utils';
 
 interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   /**
@@ -152,13 +153,3 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     }
   }
 }
-
-const safeStringifyValue = (value: unknown) => {
-  try {
-    return JSON.stringify(value, null);
-  } catch (error) {
-    console.error(error);
-  }
-
-  return '';
-};

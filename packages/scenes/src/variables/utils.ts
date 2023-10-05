@@ -8,3 +8,13 @@ export function isVariableValueEqual(a: VariableValue | null | undefined, b: Var
 
   return isEqual(a, b);
 }
+
+export function safeStringifyValue(value: unknown) {
+  try {
+    return JSON.stringify(value, null);
+  } catch (error) {
+    console.error(error);
+  }
+
+  return '';
+}
