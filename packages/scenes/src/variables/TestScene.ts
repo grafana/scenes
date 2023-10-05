@@ -6,7 +6,7 @@ import { VariableDependencyConfig } from './VariableDependencyConfig';
  * Used in a couple of unit tests
  */
 export interface TestSceneState extends SceneObjectState {
-  nested?: TestScene;
+  nested?: SceneObject;
   /** To test logic for inactive scene objects  */
   hidden?: SceneObject;
 }
