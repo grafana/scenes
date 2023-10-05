@@ -1,16 +1,20 @@
+import { VariableRefresh } from '@grafana/data';
 import {
   SceneFlexLayout,
   SceneTimeRange,
   SceneVariableSet,
+  TestVariable,
   EmbeddedScene,
   SceneFlexItem,
   SceneCanvasText,
   NestedScene,
   SceneAppPage,
   SceneAppPageState,
+  behaviors,
   PanelBuilders,
-  QueryVariable,
+  IntervalVariable,
 } from '@grafana/scenes';
+import { AUTO_VARIABLE_VALUE } from '@grafana/scenes/src/variables/constants';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getVariablesDemo(defaults: SceneAppPageState) {
@@ -22,19 +26,81 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
         ...getEmbeddedSceneDefaults(),
         $variables: new SceneVariableSet({
           variables: [
-            new QueryVariable({
+            new TestVariable({
               name: 'server',
-              datasource: { uid: 'gdev-prometheus' },
-              defaultToAll: true,
-              includeAll: true,
+              query: 'A.*',
+              value: 'server',
+              text: '',
+              delayMs: 1000,
+              options: [],
+              refresh: VariableRefresh.onTimeRangeChanged,
+            }),
+            new TestVariable({
+              name: 'pod',
+              query: 'A.$server.*',
+              value: 'pod',
+              delayMs: 1000,
               isMulti: true,
-              allValue: '.*',
-              query: { query: 'label_names(asdasd)' },
+              text: '',
+              options: [],
+            }),
+            new TestVariable({
+              name: 'handler',
+              query: 'A.$server.$pod.*',
+              value: 'pod',
+              delayMs: 1000,
+              isMulti: true,
+              text: '',
+              options: [],
+              refresh: VariableRefresh.onTimeRangeChanged,
+            }),
+            new TestVariable({
+              name: 'lonelyOne',
+              query: 'B.*',
+              value: '',
+              delayMs: 1000,
+              isMulti: true,
+              text: '',
+              options: [],
+            }),
+            new IntervalVariable({
+              name: 'intervalVariable',
+              intervals: ['1d', '1m'],
+              refresh: VariableRefresh.onTimeRangeChanged,
+            }),
+            new IntervalVariable({
+              name: 'intervalVariableAuto',
+              autoEnabled: true,
+              refresh: VariableRefresh.onTimeRangeChanged,
+              value: AUTO_VARIABLE_VALUE,
             }),
           ],
         }),
         body: new SceneFlexLayout({
           direction: 'row',
+          $behaviors: [
+            new behaviors.ActWhenVariableChanged({
+              variableName: 'lonelyOne',
+              onChange: (variable) => {
+                console.log('lonelyOne effect', variable);
+
+                const t = setTimeout(() => {
+                  console.log('lonelyOne post effect');
+                }, 5000);
+
+                return () => {
+                  console.log('lonelyOne cancel effect');
+                  clearTimeout(t);
+                };
+              },
+            }),
+            new behaviors.ActWhenVariableChanged({
+              variableName: 'server',
+              onChange: (variable) => {
+                console.log('server effect', variable);
+              },
+            }),
+          ],
           children: [
             new SceneFlexItem({
               body: new SceneFlexLayout({
