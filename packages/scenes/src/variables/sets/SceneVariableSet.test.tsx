@@ -5,7 +5,7 @@ import { VariableRefresh } from '@grafana/data';
 
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObjectState, SceneObject, SceneComponentProps } from '../../core/types';
+import { SceneObjectState, SceneComponentProps } from '../../core/types';
 import { TestVariable } from '../variants/TestVariable';
 
 import { SceneVariableSet } from './SceneVariableSet';
