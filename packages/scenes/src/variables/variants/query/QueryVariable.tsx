@@ -107,7 +107,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
   private getRequest(target: DataQuery | string, searchFilter?: string) {
     const scopedVars: ScopedVars = {
       __sceneObject: { text: '__sceneObject', value: this },
-      variable: { text: this.getValueText(), value: this.getValue() },
     };
 
     if (searchFilter) {
