@@ -1,7 +1,7 @@
 import { isArray } from 'lodash';
 import React from 'react';
 
-import { MultiSelect, Select } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
@@ -9,6 +9,14 @@ import { VariableValue, VariableValueSingle } from '../types';
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key } = model.useState();
+
+  const onInputChange = model.onSearchChange
+    ? (value: string, meta: InputActionMeta) => {
+        if (meta.action === 'input-change') {
+          model.onSearchChange!(value);
+        }
+      }
+    : undefined;
 
   return (
     <Select<VariableValue>
@@ -18,6 +26,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       value={value}
       allowCustomValue
       tabSelectsValue={false}
+      onInputChange={onInputChange}
       options={model.getOptionsForSelect()}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
@@ -30,6 +39,14 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
   const { value, key } = model.useState();
   const arrayValue = isArray(value) ? value : [value];
 
+  const onInputChange = model.onSearchChange
+    ? (value: string, meta: InputActionMeta) => {
+        if (meta.action === 'input-change') {
+          model.onSearchChange!(value);
+        }
+      }
+    : undefined;
+
   return (
     <MultiSelect<VariableValueSingle>
       id={key}
@@ -41,7 +58,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       options={model.getOptionsForSelect()}
       closeMenuOnSelect={false}
       isClearable={true}
-      onOpenMenu={() => {}}
+      onInputChange={onInputChange}
       onChange={(newValue) => {
         model.changeValueTo(
           newValue.map((v) => v.value!),
