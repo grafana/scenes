@@ -1,28 +1,38 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 
-import { Input } from '@grafana/ui';
+import { AutoSizeInput } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { TextBoxVariable } from '../variants/TextBoxVariable';
-import { useDebounce } from 'react-use';
 
 export function VariableValueInput({ model }: SceneComponentProps<TextBoxVariable>) {
   const { value, key, loading } = model.useState();
-  const [textValue, setTextValue] = useState(value);
-  useDebounce(
-    () => {
-      model.setValue(textValue);
-    },
-    250,
-    [textValue]
-  );
 
-  const onChange = useCallback(
+  const onBlur = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setTextValue(e.target.value);
+      model.setValue(e.currentTarget.value);
     },
-    [setTextValue]
+    [model]
   );
 
-  return <Input id={key} placeholder="Enter value" value={textValue} loading={loading} onChange={onChange} />;
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        model.setValue(e.currentTarget.value);
+      }
+    },
+    [model]
+  );
+
+  return (
+    <AutoSizeInput
+      id={key}
+      placeholder="Enter value"
+      minWidth={15}
+      defaultValue={value}
+      loading={loading}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
+    />
+  );
 }
