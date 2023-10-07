@@ -31,6 +31,7 @@ import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
 import { cloneDeep, merge } from 'lodash';
+import { VizPanelContext } from './VizPanelContext';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -47,6 +48,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   hoverHeader?: boolean;
   menu?: VizPanelMenu;
   headerActions?: React.ReactNode | SceneObject | SceneObject[];
+  /**
+   * For advanced use cases like adding and deleting annotation events
+   */
+  panelContext?: Partial<VizPanelContext>;
   // internal state
   pluginLoadError?: string;
   pluginInstanceState?: any;
@@ -325,26 +330,20 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     const sync = getCursorSyncScope(this);
 
     this._panelContext = {
-      // @ts-ignore Waits for core release
       eventsScope: sync ? sync.getEventsScope() : '__global_',
       eventBus: sync ? sync.getEventsBus(this) : getAppEvents(),
-      app: CoreApp.Unknown, // TODO,
+      app: CoreApp.Unknown,
       sync: () => {
         if (sync) {
           return sync.state.sync;
         }
         return DashboardCursorSync.Off;
-      }, // TODO
+      },
       onSeriesColorChange: this._onSeriesColorChange,
       onToggleSeriesVisibility: this._onSeriesVisibilityChange,
       onToggleLegendSort: this._onToggleLegendSort,
       onInstanceStateChange: this._onInstanceStateChange,
-      onAnnotationCreate: () => {}, //this.onAnnotationCreate,
-      onAnnotationUpdate: () => {}, //this.onAnnotationUpdate,
-      onAnnotationDelete: () => {}, //this.onAnnotationDelete,
-      canAddAnnotations: () => false, //props.dashboard.canAddAnnotations.bind(props.dashboard),
-      canEditAnnotations: () => false, //props.dashboard.canEditAnnotations.bind(props.dashboard),
-      canDeleteAnnotations: () => false, // props.dashboard.canDeleteAnnotations.bind(props.dashboard),
+      ...this.state.panelContext,
     };
   }
 }
