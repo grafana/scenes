@@ -31,7 +31,6 @@ import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
 import { cloneDeep, merge } from 'lodash';
-import { VizPanelContext } from './VizPanelContext';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -48,10 +47,6 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   hoverHeader?: boolean;
   menu?: VizPanelMenu;
   headerActions?: React.ReactNode | SceneObject | SceneObject[];
-  /**
-   * For advanced use cases like adding and deleting annotation events
-   */
-  panelContext?: Partial<VizPanelContext>;
   // internal state
   pluginLoadError?: string;
   pluginInstanceState?: any;
@@ -67,8 +62,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   });
 
   // Not part of state as this is not serializable
+  protected _panelContext?: PanelContext;
   private _plugin?: PanelPlugin;
-  private _panelContext?: PanelContext;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
   private _structureRev: number = 0;
@@ -91,8 +86,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     if (!this._plugin) {
       this._loadPlugin(this.state.pluginId);
     }
-
-    this.buildPanelContext();
   }
 
   private _loadPlugin(pluginId: string) {
@@ -161,7 +154,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public getPanelContext(): PanelContext {
     if (!this._panelContext) {
-      this.buildPanelContext();
+      this._panelContext = this.buildPanelContext();
     }
 
     return this._panelContext!;
@@ -326,10 +319,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     } as TOptions);
   };
 
-  private buildPanelContext() {
+  protected buildPanelContext(): PanelContext {
     const sync = getCursorSyncScope(this);
 
-    this._panelContext = {
+    return {
       eventsScope: sync ? sync.getEventsScope() : '__global_',
       eventBus: sync ? sync.getEventsBus(this) : getAppEvents(),
       app: CoreApp.Unknown,
@@ -343,7 +336,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       onToggleSeriesVisibility: this._onSeriesVisibilityChange,
       onToggleLegendSort: this._onToggleLegendSort,
       onInstanceStateChange: this._onInstanceStateChange,
-      ...this.state.panelContext,
     };
   }
 }
