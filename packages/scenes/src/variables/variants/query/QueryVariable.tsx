@@ -51,7 +51,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       datasource: null,
       regex: '',
       refresh: VariableRefresh.onDashboardLoad,
-      sort: VariableSort.alphabeticalAsc,
+      sort: VariableSort.disabled,
       ...initialState,
     });
   }
