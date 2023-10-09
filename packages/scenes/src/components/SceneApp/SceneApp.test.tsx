@@ -173,7 +173,8 @@ describe('SceneApp', () => {
       const page1Scene = setupScene(p1Object);
 
       const app = new SceneApp({
-        key: 'app',
+        name: 'cool-app-123',
+        key: 'cool-app-123',
         pages: [
           // Page with tabs
           new SceneAppPage({
@@ -223,6 +224,10 @@ describe('SceneApp', () => {
         expect(await screen.findByText('some-other-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
         expect(screen.queryByText('some-id drilldown!')).not.toBeInTheDocument();
+
+        // Verify data enricher is forwarded to SceneApp
+        const page = (window as any).__grafanaSceneContext.parent as SceneAppPage;
+        expect(page.enrichDataRequest(page)).toEqual({ app: 'cool-app-123' });
       });
 
       it('When url does not match any drilldown sub page show fallback route', async () => {
