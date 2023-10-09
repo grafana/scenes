@@ -117,14 +117,14 @@ describe('DataSourceVariable', () => {
       expect(variable.state.error).toEqual('No data sources found');
     });
 
-    it('Should add default as first item when addDefaultOption is true', async () => {
+    it('Should add default as first item when defaultOptionEnabled is true', async () => {
       const variable = new DataSourceVariable({
         name: 'test',
         options: [],
         value: '',
         text: '',
         pluginId: 'prometheus',
-        addDefaultOption: true,
+        defaultOptionEnabled: true,
       });
 
       await lastValueFrom(variable.validateAndUpdate());

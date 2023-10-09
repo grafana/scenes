@@ -23,7 +23,7 @@ export interface DataSourceVariableState extends MultiValueVariableState {
   /**
    * For backwards compatability with old dashboards, will likely be removed
    */
-  addDefaultOption?: boolean;
+  defaultOptionEnabled?: boolean;
 }
 
 export class DataSourceVariable extends MultiValueVariable<DataSourceVariableState> {
@@ -66,7 +66,7 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
         options.push({ label: source.name, value: source.uid });
       }
 
-      if (this.state.addDefaultOption && isDefault(source, regex)) {
+      if (this.state.defaultOptionEnabled && isDefault(source, regex)) {
         options.push({ label: 'default', value: 'default' });
       }
     }
