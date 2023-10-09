@@ -50,6 +50,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   // internal state
   pluginLoadError?: string;
   pluginInstanceState?: any;
+  extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
@@ -319,10 +320,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     } as TOptions);
   };
 
-  protected buildPanelContext(): PanelContext {
+  private buildPanelContext(): PanelContext {
     const sync = getCursorSyncScope(this);
 
-    return {
+    const context = {
       eventsScope: sync ? sync.getEventsScope() : '__global_',
       eventBus: sync ? sync.getEventsBus(this) : getAppEvents(),
       app: CoreApp.Unknown,
@@ -337,6 +338,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       onToggleLegendSort: this._onToggleLegendSort,
       onInstanceStateChange: this._onInstanceStateChange,
     };
+
+    if (this.state.extendPanelContext) {
+      this.state.extendPanelContext(this, context);
+    }
+
+    return context;
   }
 }
 
