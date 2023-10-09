@@ -6,16 +6,17 @@ import { SceneObject } from '../../core/types';
 
 import { DataSourceVariable } from './DataSourceVariable';
 import { VariableCustomFormatterFn } from '../types';
+import { DataSourceSrv, GetDataSourceListFilters, setDataSourceSrv } from '@grafana/runtime';
 
-function getDataSource(name: string, type: string, isDefault = false): DataSourceInstanceSettings {
+function getDataSource(overrides: Partial<DataSourceInstanceSettings>): DataSourceInstanceSettings {
   return {
     id: 1,
-    uid: 'c8eceabb-0275-4108-8f03-8f74faf4bf6d',
-    type,
-    name,
+    uid: '1',
+    type: 'prometheus',
+    name: 'name',
     meta: {
-      id: type,
-      name,
+      id: 'prometheus',
+      name: 'name',
       type: PluginType.datasource,
       info: {
         author: { name: 'Grafana Labs' },
@@ -35,20 +36,34 @@ function getDataSource(name: string, type: string, isDefault = false): DataSourc
     jsonData: {},
     access: 'proxy',
     readOnly: false,
-    isDefault,
+    isDefault: false,
+    ...overrides,
   };
 }
 
-jest.mock('@grafana/runtime', () => ({
-  ...jest.requireActual('@grafana/runtime'),
-  getDataSourceSrv: () => ({
-    getList: () => [
-      getDataSource('prometheus-mocked', 'prometheus'),
-      getDataSource('slow-prometheus-mocked', 'prometheus', true),
-      getDataSource('elastic-mocked', 'elastic'),
-    ],
-  }),
-}));
+const getDataSourceListMock = jest.fn().mockImplementation((filters: GetDataSourceListFilters) => {
+  if (filters.pluginId === 'prometheus') {
+    return [
+      getDataSource({ name: 'prometheus-mocked', type: 'prometheus', uid: 'prometheus-mocked-uid' }),
+      getDataSource({
+        name: 'slow-prometheus-mocked',
+        type: 'prometheus',
+        uid: 'slow-prometheus-mocked-uid',
+        isDefault: true,
+      }),
+    ];
+  }
+
+  if (filters.pluginId === 'elastic') {
+    return [getDataSource({ name: 'elastic-mocked', type: 'elastic', uid: 'elastic-mocked-uid' })];
+  }
+
+  return [];
+});
+
+setDataSourceSrv({
+  getList: getDataSourceListMock,
+} as any as DataSourceSrv);
 
 jest.mock('../../core/sceneGraph', () => {
   return {
@@ -99,35 +114,31 @@ describe('DataSourceVariable', () => {
 
       expect(variable.state.value).toEqual('');
       expect(variable.state.text).toEqual('');
-      expect(variable.state.options).toEqual([
-        {
-          label: 'No data sources found',
-          value: '',
-        },
-      ]);
+      expect(variable.state.error).toEqual('No data sources found');
     });
 
-    it('Should default to first item datasource when options available', async () => {
+    it('Should add default as first item when addDefaultOption is true', async () => {
       const variable = new DataSourceVariable({
         name: 'test',
         options: [],
         value: '',
         text: '',
         pluginId: 'prometheus',
+        addDefaultOption: true,
       });
 
       await lastValueFrom(variable.validateAndUpdate());
 
-      expect(variable.state.value).toEqual('prometheus-mocked');
+      expect(variable.state.value).toEqual('prometheus-mocked-uid');
       expect(variable.state.text).toEqual('prometheus-mocked');
       expect(variable.state.options).toEqual([
         {
           label: 'prometheus-mocked',
-          value: 'prometheus-mocked',
+          value: 'prometheus-mocked-uid',
         },
         {
           label: 'slow-prometheus-mocked',
-          value: 'slow-prometheus-mocked',
+          value: 'slow-prometheus-mocked-uid',
         },
         {
           label: 'default',
@@ -147,12 +158,11 @@ describe('DataSourceVariable', () => {
 
       await lastValueFrom(variable.validateAndUpdate());
 
-      expect(variable.state.value).toEqual('prometheus-mocked');
+      expect(variable.state.value).toEqual('prometheus-mocked-uid');
       expect(variable.state.text).toEqual('prometheus-mocked');
       expect(variable.state.options).toEqual([
-        { label: 'prometheus-mocked', value: 'prometheus-mocked' },
-        { label: 'slow-prometheus-mocked', value: 'slow-prometheus-mocked' },
-        { label: 'default', value: 'default' },
+        { label: 'prometheus-mocked', value: 'prometheus-mocked-uid' },
+        { label: 'slow-prometheus-mocked', value: 'slow-prometheus-mocked-uid' },
       ]);
     });
   });
@@ -170,9 +180,11 @@ describe('DataSourceVariable', () => {
 
       await lastValueFrom(variable.validateAndUpdate());
 
-      expect(variable.state.value).toEqual('slow-prometheus-mocked');
+      expect(variable.state.value).toEqual('slow-prometheus-mocked-uid');
       expect(variable.state.text).toEqual('slow-prometheus-mocked');
-      expect(variable.state.options).toEqual([{ label: 'slow-prometheus-mocked', value: 'slow-prometheus-mocked' }]);
+      expect(variable.state.options).toEqual([
+        { label: 'slow-prometheus-mocked', value: 'slow-prometheus-mocked-uid' },
+      ]);
     });
 
     it('Should generate correctly the options after interpolating variables', async () => {
@@ -187,9 +199,11 @@ describe('DataSourceVariable', () => {
 
       await lastValueFrom(variable.validateAndUpdate());
 
-      expect(variable.state.value).toEqual('slow-prometheus-mocked');
+      expect(variable.state.value).toEqual('slow-prometheus-mocked-uid');
       expect(variable.state.text).toEqual('slow-prometheus-mocked');
-      expect(variable.state.options).toEqual([{ label: 'slow-prometheus-mocked', value: 'slow-prometheus-mocked' }]);
+      expect(variable.state.options).toEqual([
+        { label: 'slow-prometheus-mocked', value: 'slow-prometheus-mocked-uid' },
+      ]);
     });
   });
 
@@ -199,13 +213,13 @@ describe('DataSourceVariable', () => {
         name: 'test',
         options: [],
         pluginId: 'prometheus',
-        value: 'slow-prometheus-mocked',
+        value: 'slow-prometheus-mocked-uid',
         text: 'slow-prometheus-mocked',
       });
 
       await lastValueFrom(variable.validateAndUpdate());
 
-      expect(variable.state.value).toBe('slow-prometheus-mocked');
+      expect(variable.state.value).toBe('slow-prometheus-mocked-uid');
       expect(variable.state.text).toBe('slow-prometheus-mocked');
     });
 
@@ -215,13 +229,13 @@ describe('DataSourceVariable', () => {
         options: [],
         isMulti: true,
         pluginId: 'prometheus',
-        value: ['prometheus-mocked', 'slow-prometheus-mocked', 'elastic-mocked'],
+        value: ['prometheus-mocked-uid', 'slow-prometheus-mocked-uid', 'elastic-mocked-uid'],
         text: ['prometheus-mocked', 'slow-prometheus-mocked', 'elastic-mocked'],
       });
 
       await lastValueFrom(variable.validateAndUpdate());
 
-      expect(variable.state.value).toEqual(['prometheus-mocked', 'slow-prometheus-mocked']);
+      expect(variable.state.value).toEqual(['prometheus-mocked-uid', 'slow-prometheus-mocked-uid']);
       expect(variable.state.text).toEqual(['prometheus-mocked', 'slow-prometheus-mocked']);
     });
 
@@ -231,13 +245,13 @@ describe('DataSourceVariable', () => {
         options: [],
         isMulti: true,
         pluginId: 'elastic',
-        value: ['prometheus-mocked', 'slow-prometheus-mocked'],
+        value: ['prometheus-mocked-uid', 'slow-prometheus-mocked-uid'],
         text: ['prometheus-mocked', 'slow-prometheus-mocked'],
       });
 
       await lastValueFrom(variable.validateAndUpdate());
 
-      expect(variable.state.value).toEqual(['elastic-mocked']);
+      expect(variable.state.value).toEqual(['elastic-mocked-uid']);
       expect(variable.state.text).toEqual(['elastic-mocked']);
     });
   });
