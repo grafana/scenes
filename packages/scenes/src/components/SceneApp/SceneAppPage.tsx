@@ -61,6 +61,10 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   }
 
   public enrichDataRequest(source: SceneObject) {
+    if (this.state.getParentPage) {
+      return this.state.getParentPage().enrichDataRequest(source);
+    }
+
     if (!this.parent) {
       return null;
     }
