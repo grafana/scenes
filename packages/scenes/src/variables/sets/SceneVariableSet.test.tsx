@@ -522,6 +522,20 @@ describe('SceneVariableList', () => {
 
       expect(innerSet.isVariableLoadingOrWaitingToUpdate(scopedA)).toBe(false);
     });
+
+    it('Should ignore isActivate state', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const set = new SceneVariableSet({ variables: [A] });
+      const deactivate = set.activate();
+
+      // Should start variables with no dependencies
+      expect(A.state.loading).toBe(true);
+      A.signalUpdateCompleted();
+
+      deactivate();
+
+      expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(false);
+    });
   });
 
   describe('When variable throws error', () => {
