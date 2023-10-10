@@ -55,11 +55,15 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                 const className = sceneChild.getClassName?.();
 
                 return isLazy ? (
-                  <LazyLoader key={sceneChild.state.key!} data-panelid={sceneChild.state.key} className={className}>
+                  <LazyLoader
+                    key={sceneChild.state.key!}
+                    data-griditem-key={sceneChild.state.key}
+                    className={className}
+                  >
                     <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </LazyLoader>
                 ) : (
-                  <div key={sceneChild.state.key} data-panelid={sceneChild.state.key} className={className}>
+                  <div key={sceneChild.state.key} data-griditem-key={sceneChild.state.key} className={className}>
                     <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
                   </div>
                 );
