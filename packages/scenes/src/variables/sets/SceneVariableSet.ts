@@ -315,11 +315,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * Return true if variable is waiting to update or currently updating
    */
   public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable) {
-    // If we have not activated yet then variables are not up to date
-    if (!this.isActive) {
-      return true;
-    }
-
     if (variable.isAncestorLoading && variable.isAncestorLoading()) {
       return true;
     }
