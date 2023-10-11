@@ -5,12 +5,23 @@ import React, { ComponentType, CSSProperties, useMemo } from 'react';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../../core/types';
 
-export interface SceneFlexItemStateLike extends SceneObjectState {}
-
-export interface SceneFlexItemLike extends SceneObject<SceneFlexItemStateLike> {}
-
 interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridItemPlacement {
-  children: SceneFlexItemLike[];
+  children: Array<SceneCSSGridItem | SceneObject>;
+  templateRows: CSSProperties['gridTemplateRows'];
+  templateColumns: CSSProperties['gridTemplateColumns'];
+  rowGap?: CSSProperties['rowGap'];
+  columnGap?: CSSProperties['columnGap'];
+  justifyItems?: CSSProperties['justifyItems'];
+  alignItems?: CSSProperties['alignItems'];
+  justifyContent?: CSSProperties['justifyContent'];
+
+  /**
+   * True when the item should rendered but not visible.
+   * Useful for conditional display of layout items
+   */
+  isHidden?: boolean;
+
+  md?: SceneCSSGridLayoutState;
 }
 
 export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState> implements SceneLayout {
@@ -21,7 +32,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
   }
 }
 
-function SceneCSSGridLayoutRenderer({ model, parentState }: SceneCSSGridItemRenderProps<SceneCSSGridLayout>) {
+function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<SceneCSSGridLayout>) {
   const { children, isHidden } = model.useState();
   const style = useLayoutStyle(model.state);
 
@@ -40,21 +51,11 @@ function SceneCSSGridLayoutRenderer({ model, parentState }: SceneCSSGridItemRend
 }
 
 export interface SceneCSSGridItemPlacement {
-  rows: CSSProperties['gridTemplateRows'];
-  columns: CSSProperties['gridTemplateColumns'];
-  rowGap?: CSSProperties['rowGap'];
-  columnGap?: CSSProperties['columnGap'];
-  justifyItems?: CSSProperties['justifyItems'];
-  alignItems?: CSSProperties['alignItems'];
-  justifyContent?: CSSProperties['justifyContent'];
-
   /**
    * True when the item should rendered but not visible.
    * Useful for conditional display of layout items
    */
   isHidden?: boolean;
-
-  md?: SceneCSSGridItemPlacement;
 }
 
 export interface SceneCSSGridItemState extends SceneCSSGridItemPlacement, SceneObjectState {
@@ -96,8 +97,8 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
     const style: CSSObject = {};
 
     style.display = 'grid';
-    style.gridTemplateRows = state.rows;
-    style.gridTemplateColumns = state.columns;
+    style.gridTemplateRows = state.templateRows;
+    style.gridTemplateColumns = state.templateColumns;
     style.rowGap = state.rowGap || '8px';
     style.columnGap = state.columnGap || '8px';
     style.justifyItems = state.justifyItems || 'unset';
@@ -105,8 +106,8 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
     style.justifyContent = state.justifyContent || 'unset';
 
     style[theme.breakpoints.down('md')] = {
-      gridTemplateRows: state.md?.rows,
-      columns: state.md?.columns,
+      gridTemplateRows: state.md?.templateRows,
+      columns: state.md?.templateColumns,
       rowGap: state.md?.rowGap || '8px',
       columnGap: state.md?.columnGap || '8px',
       justifyItems: state.md?.justifyItems || 'unset',
