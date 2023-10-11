@@ -6,7 +6,7 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneTimeRangeState } from '../core/types';
 import { EmbeddedScene } from './EmbeddedScene';
 import { SceneFlexLayout } from './layout/SceneFlexLayout';
-import { getZoomedTimeRange, SceneTimePicker, SceneTimePickerState } from './SceneTimePicker';
+import { getShiftedTimeRange, getZoomedTimeRange, SceneTimePicker, SceneTimePickerState, TimeRangeDirection } from './SceneTimePicker';
 
 function setupScene(
   timeRangeProps: Partial<SceneTimeRangeState> = {},
@@ -95,5 +95,65 @@ it('calculates zoomed time range correctly', () => {
       from: toUtc(zoomedFrom),
       to: toUtc(zoomedTo),
     },
+  });
+});
+
+it('calculates backward shift correctly', () => {
+  const from = dateTime('2023-12-17T10:00:00.433Z');
+  const to = dateTime('2023-12-17T12:00:00.433Z');
+  const upperLimit = dateTime('2023-12-17T15:48:27.433Z').valueOf();
+  const timeRange = {
+    from,
+    to,
+    raw: { from, to },
+  };
+
+  const shiftedRange = getShiftedTimeRange(TimeRangeDirection.Backward, timeRange, upperLimit);
+  const expectedFrom = toUtc(dateTime('2023-12-17T09:00:00.433Z').valueOf());
+  const expectedTo = toUtc(dateTime('2023-12-17T11:00:00.433Z').valueOf());
+  expect(shiftedRange).toEqual({
+    from: expectedFrom,
+    to: expectedTo,
+    raw: { from: expectedFrom, to: expectedTo }
+  });
+});
+
+it ('calculates forward shift correctly', () => {
+  const from = dateTime('2023-12-17T10:00:00.433Z');
+  const to = dateTime('2023-12-17T12:00:00.433Z');
+  const upperLimit = dateTime('2023-12-17T15:48:27.433Z').valueOf();
+  const timeRange = {
+    from,
+    to,
+    raw: { from, to },
+  };
+
+  const shiftedRange = getShiftedTimeRange(TimeRangeDirection.Forward, timeRange, upperLimit);
+  const expectedFrom = toUtc(dateTime('2023-12-17T11:00:00.433Z').valueOf());
+  const expectedTo = toUtc(dateTime('2023-12-17T13:00:00.433Z').valueOf());
+  expect(shiftedRange).toEqual({
+    from: expectedFrom,
+    to: expectedTo,
+    raw: { from: expectedFrom, to: expectedTo }
+  });
+});
+
+it ('calculates forward shift when moving past upper limit correctly', () => {
+  const from = dateTime('2023-12-17T10:00:00.433Z');
+  const to = dateTime('2023-12-17T12:00:00.433Z');
+  const upperLimit = dateTime('2023-12-17T12:30:00.433Z');
+  const timeRange = {
+    from,
+    to,
+    raw: { from, to },
+  };
+
+  const shiftedRange = getShiftedTimeRange(TimeRangeDirection.Forward, timeRange, upperLimit.valueOf());
+  const expectedFrom = toUtc(from.valueOf());
+  const expectedTo = toUtc(upperLimit.valueOf());
+  expect(shiftedRange).toEqual({
+    from: expectedFrom,
+    to: expectedTo,
+    raw: { from: expectedFrom, to: expectedTo }
   });
 });
