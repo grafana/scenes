@@ -1,3 +1,15 @@
+# v1.15.1 (Wed Oct 11 2023)
+
+#### 🐛 Bug Fix
+
+- Scenes: Interval Variable now considers $__auto_interval [#407](https://github.com/grafana/scenes/pull/407) ([@axelavargas](https://github.com/axelavargas))
+
+#### Authors: 1
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
 # v1.15.0 (Tue Oct 10 2023)
 
 #### 🚀 Enhancement
