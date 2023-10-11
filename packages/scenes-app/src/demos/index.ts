@@ -26,6 +26,7 @@ import { getAdhocFiltersDemo } from './adhocFiltersDemo';
 import { getTransformationsTest } from './transformations';
 import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
 import { getDataFilteringTest } from './filteringData';
+import { getCssGridLayoutDemo } from './cssGridLayoutDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -61,5 +62,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Dynamic panel options and field config', getPage: getDynamicVizOptionsTest },
     { title: 'Data filtering', getPage: getDataFilteringTest },
     { title: 'Docs examples', getPage: getDocsExamples },
+    { title: 'CSS Grid Layout', getPage: getCssGridLayoutDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
