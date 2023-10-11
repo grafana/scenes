@@ -57,6 +57,7 @@ export class IntervalVariable
     const update: Partial<IntervalVariableState> = {};
     const val = values[this.getKey()];
     if (typeof val === 'string') {
+      // support old auto interval url value
       if (val.startsWith('$__auto_interval_')) {
         update.value = AUTO_VARIABLE_VALUE;
       } else {
