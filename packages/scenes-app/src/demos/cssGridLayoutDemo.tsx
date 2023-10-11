@@ -23,8 +23,8 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
     getScene: () => {
       const layout = new SceneCSSGridLayout({
         children: getLayoutChildren(10),
-        columns: columnTemplateOptions[0],
-        rows: 'auto',
+        templateColumns: columnTemplateOptions[0],
+        templateRows: 'auto',
         rowGap: '8px',
       });
 
@@ -38,7 +38,7 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
 
       const templateSelector = new TemplateSelector({
         value: '1fr auto 1fr',
-        onChange: (template) => layout.setState({ columns: template }),
+        onChange: (template) => layout.setState({ templateColumns: template }),
       });
 
       return new EmbeddedScene({
