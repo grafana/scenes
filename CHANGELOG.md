@@ -1,3 +1,16 @@
+# v1.17.0 (Wed Oct 11 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimePicker: Add posibility to navigate backwards/forwards an absolute time range [#408](https://github.com/grafana/scenes/pull/408) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v1.16.0 (Wed Oct 11 2023)
 
 #### 🚀 Enhancement
