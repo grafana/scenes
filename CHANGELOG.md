@@ -1,3 +1,16 @@
+# v1.16.0 (Wed Oct 11 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneVariableSet: isVariableLoadingOrWaitingToUpdate should ignore isActive state [#405](https://github.com/grafana/scenes/pull/405) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.15.1 (Wed Oct 11 2023)
 
 #### 🐛 Bug Fix
