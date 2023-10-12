@@ -44,13 +44,27 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
+  /**
+   * Only shows header on hover, absolutly positioned above the panel.
+   */
   hoverHeader?: boolean;
+  /**
+   * Controls a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
+   * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
+   */
   menu?: VizPanelMenu;
+  /**
+   * Add action to the top right panel header
+   */
   headerActions?: React.ReactNode | SceneObject | SceneObject[];
-  // internal state
-  pluginLoadError?: string;
-  pluginInstanceState?: any;
+  /**
+   * Mainly for advanced use cases that need custom handling of PanelContext callbacks.
+   */
   extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
+  /** Internal */
+  _pluginLoadError?: string;
+  /** Internal */
+  _pluginInstanceState?: any;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
@@ -103,7 +117,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         });
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
-        this.setState({ pluginLoadError: (err as Error).message });
+        this.setState({ _pluginLoadError: (err as Error).message });
       }
     }
   }
@@ -288,7 +302,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   private _onInstanceStateChange = (state: any) => {
-    this.setState({ pluginInstanceState: state });
+    this.setState({ _pluginInstanceState: state });
   };
 
   private _onToggleLegendSort = (sortKey: string) => {

@@ -16,7 +16,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     description,
     options,
     fieldConfig,
-    pluginLoadError,
+    _pluginLoadError,
     $data,
     displayMode,
     hoverHeader,
@@ -93,7 +93,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           title={titleInterpolated}
           description={description ? () => model.interpolate(description) : ''}
           loadingState={data.state}
-          statusMessage={getChromeStatusMessage(data, pluginLoadError)}
+          statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
           width={width}
           height={height}
           displayMode={displayMode}
