@@ -1,3 +1,16 @@
+# v1.18.0 (Thu Oct 12 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Adds extendPanelContext so that consumers can control some of the PanelContext functions [#409](https://github.com/grafana/scenes/pull/409) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.17.0 (Wed Oct 11 2023)
 
 #### 🚀 Enhancement
