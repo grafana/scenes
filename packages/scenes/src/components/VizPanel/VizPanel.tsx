@@ -61,6 +61,11 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Mainly for advanced use cases that need custom handling of PanelContext callbacks.
    */
   extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
+  /**
+   * @internal
+   * Only for use from core to handle migration from old angular panels
+   **/
+  _UNSAFE_customMigrationHandler?: (panel: PanelModel, plugin: PanelPlugin) => void;
   /** Internal */
   _pluginLoadError?: string;
   /** Internal */
@@ -123,7 +128,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   private async _pluginLoaded(plugin: PanelPlugin) {
-    const { options, fieldConfig, title, pluginVersion } = this.state;
+    const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
       title,
@@ -135,6 +140,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     };
 
     const currentVersion = this._getPluginVersion(plugin);
+
+    if (_UNSAFE_customMigrationHandler) {
+      _UNSAFE_customMigrationHandler(panel, plugin);
+    }
 
     if (plugin.onPanelMigration) {
       if (currentVersion !== this.state.pluginVersion) {
