@@ -27,7 +27,7 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
       const layout = new SceneCSSGridLayout({
         children: getLayoutChildren(10),
         templateColumns: columnTemplateOptions[0],
-        templateRows: '100%',
+        templateRows: rowTemplateOptions[0],
         rowGap: '8px',
       });
 
