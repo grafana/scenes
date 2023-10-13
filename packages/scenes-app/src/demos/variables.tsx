@@ -203,6 +203,7 @@ function getGraphAndTextPanel() {
 * pod: $pod
 * handler: $handler
 * interval: $interval
+* [Link that updates pod = AAG and AAH](\${__url.path}\${__url.params:exclude:var-pod}&var-pod=AAG&var-pod=AAH)
 
           `
           )

@@ -1,5 +1,5 @@
-import { isArray } from 'lodash';
-import React from 'react';
+import { isArray, isEqual } from 'lodash';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
 
@@ -37,7 +37,18 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
 
 export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key } = model.useState();
-  const arrayValue = isArray(value) ? value : [value];
+  const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
+
+  // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
+  const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
+
+  // Detect value changes outside
+  useEffect(() => {
+    console.log('value changed outside');
+    setUncommittedValue(arrayValue);
+  }, [arrayValue]);
+
+  console.log('VariableValueSelectMulti render');
 
   const onInputChange = model.onSearchChange
     ? (value: string, meta: InputActionMeta) => {
@@ -52,18 +63,18 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       id={key}
       placeholder="Select value"
       width="auto"
-      value={arrayValue}
+      value={uncommittedValue}
       tabSelectsValue={false}
       allowCustomValue
       options={model.getOptionsForSelect()}
       closeMenuOnSelect={false}
       isClearable={true}
       onInputChange={onInputChange}
+      onBlur={() => {
+        model.changeValueTo(uncommittedValue);
+      }}
       onChange={(newValue) => {
-        model.changeValueTo(
-          newValue.map((v) => v.value!),
-          newValue.map((v) => v.label!)
-        );
+        setUncommittedValue(newValue.map((x) => x.value!));
       }}
     />
   );
