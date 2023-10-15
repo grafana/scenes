@@ -22,6 +22,6 @@ describe('AdHocFiltersVariable', () => {
 
     variable.activate();
 
-    expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]",`);
+    expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]"`);
   });
 });
