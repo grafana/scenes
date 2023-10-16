@@ -1,11 +1,12 @@
 import React from 'react';
-import { DateTime, dateTime, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonGroup, ButtonSelect, Checkbox, Icon, ToolbarButton } from '@grafana/ui';
+import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
+import { ButtonGroup, Checkbox, Dropdown, Menu, ToolbarButton, useStyles2 } from '@grafana/ui';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { parseUrlParam } from '../utils/parseUrlParam';
+import { css } from '@emotion/css';
 
 export interface TimeRangeCompareProvider {
   getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
@@ -143,48 +144,92 @@ export class SceneTimeRangeCompare
 }
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
+  const styles = useStyles2(getStyles);
+
   const { compareWith, compareOptions } = model.useState();
-  const [enabled, setEnabled] = React.useState(false || Boolean(compareWith));
+  const [isOpen, setIsOpen] = React.useState(Boolean(compareWith) || false);
   const value = compareOptions.find((o) => o.value === compareWith);
+  const enabled = Boolean(value);
 
   const onClick = () => {
-    setEnabled(!enabled);
+    setIsOpen(!enabled);
     if (enabled && Boolean(compareWith)) {
       model.onClearCompare();
     }
   };
 
-  return (
-    <ButtonGroup>
-      <ToolbarButton
-        variant="canvas"
-        tooltip="Enable time frame comparison"
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          onClick();
-        }}
-      >
-        <Checkbox label=" " value={enabled} onClick={onClick} />
-        Time frame comparison
-      </ToolbarButton>
-
-      {enabled ? (
-        <ButtonSelect
-          variant="canvas"
-          value={value}
-          options={enabled ? compareOptions : []}
-          onChange={(v) => {
-            model.onCompareWithChanged(v.value!);
+  const menuItems = () => (
+    <Menu>
+      {compareOptions.map(({ label, value }, idx) => (
+        <Menu.Item
+          key={idx}
+          label={label}
+          onClick={() => {
+            model.onCompareWithChanged(value);
+            setIsOpen(false);
           }}
         />
-      ) : (
-        <ToolbarButton
-          icon={<Icon name="angle-down" size="md" />}
-          style={{ cursor: !enabled ? 'not-allowed' : 'pointer' }}
-          variant="canvas"
-        />
-      )}
+      ))}
+    </Menu>
+  );
+
+  return (
+    <ButtonGroup>
+      <Dropdown overlay={menuItems} placement="bottom-end" onVisibleChange={setIsOpen}>
+        <div className={styles.container}>
+          <div className={styles.canvas}>
+            <Checkbox
+              id="timeWindowComparisonToggle"
+              value={enabled}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onClick();
+              }}
+            />
+          </div>
+
+          <ToolbarButton
+            variant="canvas"
+            tooltip="Enable time frame comparison"
+            isOpen={isOpen}
+            aria-label="Time frame comparison"
+          >
+            Time frame comparison
+            {enabled && <span className={styles.value}>{value?.label}</span>}
+          </ToolbarButton>
+        </div>
+      </Dropdown>
     </ButtonGroup>
   );
+}
+
+function getStyles(theme: GrafanaTheme2) {
+  return {
+    canvas: css({
+      marginRight: '-1px',
+
+      height: theme.spacing(theme.components.height.md),
+      padding: theme.spacing(0, 1),
+      borderRadius: theme.shape.radius.default,
+      lineHeight: `${theme.components.height.md * theme.spacing.gridSize - 2}px`,
+      fontWeight: theme.typography.fontWeightMedium,
+      border: `1px solid ${theme.colors.secondary.border}`,
+
+      color: theme.colors.text.primary,
+      background: theme.colors.secondary.main,
+
+      '&:hover': {
+        color: theme.colors.text.primary,
+        background: theme.colors.secondary.shade,
+        border: `1px solid ${theme.colors.border.medium}`,
+      },
+    }),
+    container: css({ display: 'flex', alignItems: 'center' }),
+    value: css({
+      marginLeft: theme.spacing(1),
+      borderLeft: `1px solid ${theme.colors.border.medium}`,
+      paddingLeft: theme.spacing(1),
+    }),
+  };
 }
