@@ -68,6 +68,10 @@ export class AdHocFiltersVariable
       expr += `${this._renderFilter(filter)},`;
     }
 
+    if (expr.length > 0) {
+      expr = expr.slice(0, -1);
+    }
+
     this.setState({ filterExpression: expr });
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
   }
