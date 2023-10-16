@@ -1,3 +1,15 @@
+# v1.19.0 (Mon Oct 16 2023)
+
+#### 🚀 Enhancement
+
+- AdHocVariable: Fixes trailing comma [#411](https://github.com/grafana/scenes/pull/411) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.18.0 (Thu Oct 12 2023)
 
 #### 🚀 Enhancement
