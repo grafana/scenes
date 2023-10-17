@@ -49,11 +49,12 @@ export class AdHocFiltersVariable
       this._subs.add(
         this.state.set.subscribeToState((newState, prevState) => {
           if (newState.filters !== prevState.filters) {
-            this._filtersChanged(newState.filters);
+            this._updateFilterExpression(newState.filters, true);
           }
         })
       );
-      this._filtersChanged(this.state.set.state.filters);
+
+      this._updateFilterExpression(this.state.set.state.filters, false);
     });
   }
 
@@ -61,7 +62,7 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
-  private _filtersChanged(filters: AdHocVariableFilter[]) {
+  private _updateFilterExpression(filters: AdHocVariableFilter[], publishEvent: boolean) {
     let expr = '';
 
     for (const filter of filters) {
@@ -72,8 +73,14 @@ export class AdHocFiltersVariable
       expr = expr.slice(0, -1);
     }
 
+    if (expr === this.state.filterExpression) {
+      return;
+    }
+
     this.setState({ filterExpression: expr });
-    this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    if (publishEvent) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
   }
 
   private _renderFilter(filter: AdHocVariableFilter) {
