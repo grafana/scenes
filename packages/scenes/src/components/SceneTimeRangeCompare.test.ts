@@ -1,7 +1,7 @@
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { EmbeddedScene } from './EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
-import { PREVIOUS_PERIOD_COMPARE_OPTION, SceneTimeRangeCompare } from './SceneTimeRangeCompare';
+import { NO_COMPARE_OPTION, PREVIOUS_PERIOD_COMPARE_OPTION, SceneTimeRangeCompare } from './SceneTimeRangeCompare';
 
 describe('SceneTimeRangeCompare', () => {
   describe('given a time range', () => {
@@ -16,10 +16,15 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(9);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(10);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
@@ -68,10 +73,15 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(9);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(10);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
@@ -124,10 +134,15 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(8);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(9);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
@@ -172,10 +187,15 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(8);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(9);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
@@ -220,10 +240,15 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(7);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(8);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
                 [
+                  {
+                    "label": "No comparison",
+                    "value": "__noPeriod",
+                  },
                   {
                     "label": "Previous period",
                     "value": "__previousPeriod",
@@ -267,10 +292,15 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(6);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(7);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
                   [
+                    {
+                      "label": "No comparison",
+                      "value": "__noPeriod",
+                    },
                     {
                       "label": "Previous period",
                       "value": "__previousPeriod",
@@ -307,10 +337,15 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(6);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(7);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
                     [
+                      {
+                        "label": "No comparison",
+                        "value": "__noPeriod",
+                      },
                       {
                         "label": "Previous period",
                         "value": "__previousPeriod",
@@ -347,10 +382,15 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(4);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(5);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
