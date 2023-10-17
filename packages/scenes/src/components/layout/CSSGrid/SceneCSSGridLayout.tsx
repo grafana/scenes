@@ -82,11 +82,16 @@ function SceneCSSGridItemRenderer({ model, parentState }: SceneCSSGridItemRender
   }
 
   return (
-    <div>
+    <div className={itemContainer}>
       <body.Component model={body} />
     </div>
   );
 }
+
+const itemContainer = css({
+  // Needed for VizPanel
+  position: 'relative',
+});
 
 function useLayoutStyle(state: SceneCSSGridLayoutState) {
   return useMemo(() => {
@@ -104,6 +109,7 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
     style.justifyItems = state.justifyItems || 'unset';
     style.alignItems = state.alignItems || 'unset';
     style.justifyContent = state.justifyContent || 'unset';
+    style.flexGrow = 1;
 
     style[theme.breakpoints.down('md')] = {
       gridTemplateRows: state.md?.templateRows,

@@ -17,18 +17,13 @@ export interface EmbeddedSceneState extends SceneObjectState {
    * Top row of variable selectors, filters, time pickers and custom actions.
    */
   controls?: SceneObject[];
-  /**
-   * Optional value to disable flexbox
-   */
-  flex?: boolean;
 }
 
 export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
   public static Component = EmbeddedSceneRenderer;
 
   public constructor(state: EmbeddedSceneState) {
-    // Default flex is true
-    super({ flex: true, ...state });
+    super(state);
 
     this.addActivationHandler(() => {
       // This function is setting window.__grafanaSceneContext which is used from Grafana core in the old services TimeSrv and TemplateSrv.
@@ -53,8 +48,8 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
 }
 
 function EmbeddedSceneRenderer({ model }: SceneComponentProps<EmbeddedScene>) {
-  const { body, controls, flex } = model.useState();
-  const styles = useStyles2(getStyles(flex));
+  const { body, controls } = model.useState();
+  const styles = useStyles2(getStyles);
 
   return (
     <div className={styles.container}>
@@ -72,7 +67,7 @@ function EmbeddedSceneRenderer({ model }: SceneComponentProps<EmbeddedScene>) {
   );
 }
 
-const getStyles = (flex?: boolean) => (theme: GrafanaTheme2) => {
+const getStyles = (theme: GrafanaTheme2) => {
   return {
     container: css({
       flexGrow: 1,
@@ -82,9 +77,9 @@ const getStyles = (flex?: boolean) => (theme: GrafanaTheme2) => {
       flexDirection: 'column',
     }),
     body: css({
-      flexGrow: flex ? 1 : 0,
-      display: flex ? 'flex' : 'block',
-      gap: flex ? '8px' : 'unset',
+      flexGrow: 1,
+      display: 'flex',
+      gap: theme.spacing(1),
     }),
     controls: css({
       display: 'flex',

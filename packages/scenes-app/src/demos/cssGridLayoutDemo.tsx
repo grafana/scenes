@@ -7,17 +7,18 @@ import {
   SceneAppPageState,
   SceneCSSGridLayout,
   SceneComponentProps,
-  SceneFlexItem,
   SceneObjectBase,
   SceneObjectState,
   SceneToolbarInput,
+  SceneCSSGridItem,
 } from '@grafana/scenes';
 import { Select } from '@grafana/ui';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 import { ControlsLabel } from '@grafana/scenes/src/utils/ControlsLabel';
+import { SelectableValue } from '@grafana/data';
 
-const columnTemplateOptions = ['2fr 1fr auto', '1fr auto', 'auto', '3fr 2fr 1fr'];
-const rowTemplateOptions = ['auto', '100%', '1fr auto 1fr'];
+const columnTemplateOptions = ['repeat(3, 1fr)', '2fr 1fr 1fr', 'auto'];
+const rowTemplateOptions = ['150px repeat(4, 100px)', 'repeat(4, 1fr)', '100%', 'auto'];
 
 export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -40,23 +41,23 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
       });
 
       const columnSelector = new TemplateSelector({
-        value: '1fr auto 1fr',
+        label: 'Column template',
+        value: columnTemplateOptions[0],
         options: columnTemplateOptions,
         onChange: (template) => layout.setState({ templateColumns: template }),
       });
 
       const rowSelector = new TemplateSelector({
-        value: 'auto',
+        label: 'Row template',
+        value: rowTemplateOptions[0],
         options: rowTemplateOptions,
         onChange: (template) => layout.setState({ templateRows: template }),
       });
 
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
-        key: 'Flex layout embedded scene',
         controls: [inputControl, columnSelector, rowSelector],
         body: layout,
-        flex: false,
       });
     },
   });
@@ -66,10 +67,8 @@ function getLayoutChildren(count: number) {
   return Array.from(
     Array(count),
     (v, index) =>
-      new SceneFlexItem({
-        minWidth: 300,
-        minHeight: 300,
-        body: PanelBuilders.timeseries()
+      new SceneCSSGridItem({
+        body: PanelBuilders.stat()
           .setTitle(`Panel ${count}`)
           .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
           .build(),
@@ -78,22 +77,28 @@ function getLayoutChildren(count: number) {
 }
 
 export interface TemplateSelectorState extends SceneObjectState {
+  label: string;
   value: string;
   onChange: (template: string) => void;
   options: string[];
 }
 
 export class TemplateSelector extends SceneObjectBase<TemplateSelectorState> {
+  public onChange = (v: SelectableValue<string>) => {
+    this.setState({ value: v.value! });
+    this.state.onChange(v.value!);
+  };
+
   public static Component = ({ model }: SceneComponentProps<TemplateSelector>) => {
-    const { value, onChange, options } = model.useState();
+    const { value, options, label } = model.useState();
 
     const opts = options.map((t) => ({ label: t, value: t }));
     const optionValue = opts.find((x) => x.value === value) ?? options[0];
 
     return (
       <div style={{ display: 'flex' }}>
-        <ControlsLabel label="Column template" />
-        <Select value={optionValue} options={opts} onChange={(v) => onChange(v.value!)} />
+        <ControlsLabel label={label} />
+        <Select value={optionValue} options={opts} onChange={model.onChange} />
       </div>
     );
   };
