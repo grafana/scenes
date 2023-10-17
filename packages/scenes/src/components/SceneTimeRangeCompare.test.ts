@@ -466,4 +466,32 @@ describe('SceneTimeRangeCompare', () => {
     timeRange.setState({ from: 'now-8d', to: 'now' });
     expect(comparer.state.compareWith).toBe(PREVIOUS_PERIOD_COMPARE_OPTION.value);
   });
+
+  test('should allow for clearing comparison', () => {
+    const timeRange = new SceneTimeRange({
+      from: 'now-3d',
+      to: 'now',
+    });
+
+    const comparer = new SceneTimeRangeCompare({});
+
+    const scene = new EmbeddedScene({
+      $timeRange: timeRange,
+      body: new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: comparer })],
+      }),
+    });
+
+    scene.activate();
+    // activating comparer manually as we do not render scene in this test
+    comparer.activate();
+    expect(comparer.state.compareWith).toBeUndefined();
+
+    // Check that we can remove previously selected comparison
+    comparer.onCompareWithChanged('7d');
+    expect(comparer.state.compareWith).toBe('7d');
+
+    comparer.onCompareWithChanged(NO_COMPARE_OPTION.value);
+    expect(comparer.state.compareWith).toBeUndefined();
+  });
 });

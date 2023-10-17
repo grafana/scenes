@@ -166,7 +166,6 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
     <Menu>
       {compareOptions.map(({ label, value }, idx) => (
         <>
-          {idx === 1 && <Menu.Divider />}
           <Menu.Item
             key={idx}
             label={label}
@@ -175,6 +174,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
               setIsOpen(false);
             }}
           />
+          {value === NO_PERIOD_VALUE && <Menu.Divider />}
         </>
       ))}
     </Menu>
