@@ -42,6 +42,10 @@ in a typical dashboard panel when you view the **JSON** tab in the panel inspect
 
 `VizPanel` has a property named `headerActions` that can be either `React.ReactNode` or a custom `SceneObject`. This property is useful if you want to place links or buttons in the top right corner of the panel header. For example:
 
+## Menu
+
+The menu property of type VizPanelMenu is optionl, when set it defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is rendered. So the best way to add dynamic menu actions and links is by adding them in a [behavior](./advanced-behaviors.md) attached to the menu.
+
 ```ts
 new VizPanel({
   pluginId: 'timeseries',

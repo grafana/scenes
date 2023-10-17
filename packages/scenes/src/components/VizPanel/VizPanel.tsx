@@ -44,12 +44,32 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
+  /**
+   * Only shows header on hover, absolutly positioned above the panel.
+   */
   hoverHeader?: boolean;
+  /**
+   * Defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
+   * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
+   */
   menu?: VizPanelMenu;
+  /**
+   * Add action to the top right panel header
+   */
   headerActions?: React.ReactNode | SceneObject | SceneObject[];
-  // internal state
-  pluginLoadError?: string;
-  pluginInstanceState?: any;
+  /**
+   * Mainly for advanced use cases that need custom handling of PanelContext callbacks.
+   */
+  extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
+  /**
+   * @internal
+   * Only for use from core to handle migration from old angular panels
+   **/
+  _UNSAFE_customMigrationHandler?: (panel: PanelModel, plugin: PanelPlugin) => void;
+  /** Internal */
+  _pluginLoadError?: string;
+  /** Internal */
+  _pluginInstanceState?: any;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
@@ -62,8 +82,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   });
 
   // Not part of state as this is not serializable
+  protected _panelContext?: PanelContext;
   private _plugin?: PanelPlugin;
-  private _panelContext?: PanelContext;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
   private _structureRev: number = 0;
@@ -86,8 +106,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     if (!this._plugin) {
       this._loadPlugin(this.state.pluginId);
     }
-
-    this.buildPanelContext();
   }
 
   private _loadPlugin(pluginId: string) {
@@ -104,13 +122,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         });
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
-        this.setState({ pluginLoadError: (err as Error).message });
+        this.setState({ _pluginLoadError: (err as Error).message });
       }
     }
   }
 
   private async _pluginLoaded(plugin: PanelPlugin) {
-    const { options, fieldConfig, title, pluginVersion } = this.state;
+    const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
       title,
@@ -122,6 +140,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     };
 
     const currentVersion = this._getPluginVersion(plugin);
+
+    if (_UNSAFE_customMigrationHandler) {
+      _UNSAFE_customMigrationHandler(panel, plugin);
+    }
 
     if (plugin.onPanelMigration) {
       if (currentVersion !== this.state.pluginVersion) {
@@ -156,7 +178,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public getPanelContext(): PanelContext {
     if (!this._panelContext) {
-      this.buildPanelContext();
+      this._panelContext = this.buildPanelContext();
     }
 
     return this._panelContext!;
@@ -289,7 +311,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   private _onInstanceStateChange = (state: any) => {
-    this.setState({ pluginInstanceState: state });
+    this.setState({ _pluginInstanceState: state });
   };
 
   private _onToggleLegendSort = (sortKey: string) => {
@@ -321,31 +343,30 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     } as TOptions);
   };
 
-  private buildPanelContext() {
+  private buildPanelContext(): PanelContext {
     const sync = getCursorSyncScope(this);
 
-    this._panelContext = {
-      // @ts-ignore Waits for core release
+    const context = {
       eventsScope: sync ? sync.getEventsScope() : '__global_',
       eventBus: sync ? sync.getEventsBus(this) : getAppEvents(),
-      app: CoreApp.Unknown, // TODO,
+      app: CoreApp.Unknown,
       sync: () => {
         if (sync) {
           return sync.state.sync;
         }
         return DashboardCursorSync.Off;
-      }, // TODO
+      },
       onSeriesColorChange: this._onSeriesColorChange,
       onToggleSeriesVisibility: this._onSeriesVisibilityChange,
       onToggleLegendSort: this._onToggleLegendSort,
       onInstanceStateChange: this._onInstanceStateChange,
-      onAnnotationCreate: () => {}, //this.onAnnotationCreate,
-      onAnnotationUpdate: () => {}, //this.onAnnotationUpdate,
-      onAnnotationDelete: () => {}, //this.onAnnotationDelete,
-      canAddAnnotations: () => false, //props.dashboard.canAddAnnotations.bind(props.dashboard),
-      canEditAnnotations: () => false, //props.dashboard.canEditAnnotations.bind(props.dashboard),
-      canDeleteAnnotations: () => false, // props.dashboard.canDeleteAnnotations.bind(props.dashboard),
     };
+
+    if (this.state.extendPanelContext) {
+      this.state.extendPanelContext(this, context);
+    }
+
+    return context;
   }
 }
 

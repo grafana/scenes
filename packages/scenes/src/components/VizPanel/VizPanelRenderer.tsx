@@ -9,6 +9,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
+import { css } from '@emotion/css';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -16,7 +17,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     description,
     options,
     fieldConfig,
-    pluginLoadError,
+    _pluginLoadError,
     $data,
     displayMode,
     hoverHeader,
@@ -87,13 +88,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
   return (
-    <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
+    <div ref={ref as RefCallback<HTMLDivElement>} className={wrapperDivStyles} data-viz-panel-key={model.state.key}>
       {width > 0 && height > 0 && (
         <PanelChrome
           title={titleInterpolated}
           description={description ? () => model.interpolate(description) : ''}
           loadingState={data.state}
-          statusMessage={getChromeStatusMessage(data, pluginLoadError)}
+          statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
           width={width}
           height={height}
           displayMode={displayMode}
@@ -184,3 +185,9 @@ function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | un
   }
   return message;
 }
+
+const wrapperDivStyles = css({
+  position: 'absolute',
+  width: '100%',
+  height: '100%',
+});

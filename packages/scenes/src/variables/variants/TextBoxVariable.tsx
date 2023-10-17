@@ -31,8 +31,10 @@ export class TextBoxVariable
   }
 
   public setValue(newValue: string) {
-    this.setState({ value: newValue });
-    this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    if (newValue !== this.state.value) {
+      this.setState({ value: newValue });
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
   }
 
   private getKey(): string {

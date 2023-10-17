@@ -21,6 +21,10 @@ export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValu
           return frames;
         }
 
+        if (frames[0].fields.length === 0) {
+          return [];
+        }
+
         const processedDataFrames = getProcessedDataFrames(frames);
         const metrics: MetricFindValue[] = [];
 
