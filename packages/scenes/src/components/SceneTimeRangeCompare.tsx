@@ -1,12 +1,12 @@
-import React from 'react';
+import { css } from '@emotion/css';
 import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonGroup, Checkbox, Dropdown, Menu, ToolbarButton, useStyles2 } from '@grafana/ui';
+import { ButtonGroup, Dropdown, Menu, ToolbarButton, useStyles2 } from '@grafana/ui';
+import React from 'react';
+import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
-import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { parseUrlParam } from '../utils/parseUrlParam';
-import { css } from '@emotion/css';
 
 export interface TimeRangeCompareProvider {
   getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
@@ -18,10 +18,16 @@ interface SceneTimeRangeCompareState extends SceneObjectState {
 }
 
 const PREVIOUS_PERIOD_VALUE = '__previousPeriod';
+const NO_PERIOD_VALUE = '__noPeriod';
 
 export const PREVIOUS_PERIOD_COMPARE_OPTION = {
   label: 'Previous period',
   value: PREVIOUS_PERIOD_VALUE,
+};
+
+export const NO_COMPARE_OPTION = {
+  label: 'No comparison',
+  value: NO_PERIOD_VALUE,
 };
 
 export const DEFAULT_COMPARE_OPTIONS = [
@@ -75,13 +81,18 @@ export class SceneTimeRangeCompare
     });
 
     return [
+      NO_COMPARE_OPTION,
       PREVIOUS_PERIOD_COMPARE_OPTION,
       ...DEFAULT_COMPARE_OPTIONS.slice(matchIndex).map(({ label, value }) => ({ label, value })),
     ];
   };
 
   public onCompareWithChanged = (compareWith: string) => {
-    this.setState({ compareWith });
+    if (compareWith === NO_PERIOD_VALUE) {
+      this.onClearCompare();
+    } else {
+      this.setState({ compareWith });
+    }
   };
 
   public onClearCompare = () => {
@@ -151,24 +162,20 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
   const value = compareOptions.find((o) => o.value === compareWith);
   const enabled = Boolean(value);
 
-  const onClick = () => {
-    setIsOpen(!enabled);
-    if (enabled && Boolean(compareWith)) {
-      model.onClearCompare();
-    }
-  };
-
   const menuItems = () => (
     <Menu>
       {compareOptions.map(({ label, value }, idx) => (
-        <Menu.Item
-          key={idx}
-          label={label}
-          onClick={() => {
-            model.onCompareWithChanged(value);
-            setIsOpen(false);
-          }}
-        />
+        <>
+          {idx === 1 && <Menu.Divider />}
+          <Menu.Item
+            key={idx}
+            label={label}
+            onClick={() => {
+              model.onCompareWithChanged(value);
+              setIsOpen(false);
+            }}
+          />
+        </>
       ))}
     </Menu>
   );
@@ -176,25 +183,8 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
   return (
     <ButtonGroup>
       <Dropdown overlay={menuItems} placement="bottom-end" onVisibleChange={setIsOpen}>
-        <div className={styles.container}>
-          <div className={styles.canvas}>
-            <Checkbox
-              id="timeWindowComparisonToggle"
-              value={enabled}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                onClick();
-              }}
-            />
-          </div>
-
-          <ToolbarButton
-            variant="canvas"
-            tooltip="Enable time frame comparison"
-            isOpen={isOpen}
-            aria-label="Time frame comparison"
-          >
+        <div>
+          <ToolbarButton variant="canvas" tooltip="Enable time frame comparison" isOpen={isOpen}>
             Time frame comparison
             {enabled && <span className={styles.value}>{value?.label}</span>}
           </ToolbarButton>
@@ -206,26 +196,6 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
 
 function getStyles(theme: GrafanaTheme2) {
   return {
-    canvas: css({
-      marginRight: '-1px',
-
-      height: theme.spacing(theme.components.height.md),
-      padding: theme.spacing(0, 1),
-      borderRadius: theme.shape.radius.default,
-      lineHeight: `${theme.components.height.md * theme.spacing.gridSize - 2}px`,
-      fontWeight: theme.typography.fontWeightMedium,
-      border: `1px solid ${theme.colors.secondary.border}`,
-
-      color: theme.colors.text.primary,
-      background: theme.colors.secondary.main,
-
-      '&:hover': {
-        color: theme.colors.text.primary,
-        background: theme.colors.secondary.shade,
-        border: `1px solid ${theme.colors.border.medium}`,
-      },
-    }),
-    container: css({ display: 'flex', alignItems: 'center' }),
     value: css({
       marginLeft: theme.spacing(1),
       borderLeft: `1px solid ${theme.colors.border.medium}`,
