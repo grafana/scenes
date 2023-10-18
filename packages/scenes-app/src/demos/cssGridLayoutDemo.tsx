@@ -18,7 +18,8 @@ import { ControlsLabel } from '@grafana/scenes/src/utils/ControlsLabel';
 import { SelectableValue } from '@grafana/data';
 
 const columnTemplateOptions = ['repeat(3, 1fr)', '2fr 1fr 1fr', 'auto'];
-const rowTemplateOptions = ['150px repeat(4, 100px)', 'repeat(4, 1fr)', '100%', 'auto'];
+const rowTemplateOptions = ['unset', 'auto', '150px repeat(4, 100px)', 'repeat(4, 1fr)', '100%'];
+const autoRowOptions = ['auto', '150px', '1fr', '100%'];
 
 export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -54,9 +55,16 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
         onChange: (template) => layout.setState({ templateRows: template }),
       });
 
+      const autoRowsSelector = new TemplateSelector({
+        label: 'Auto rows',
+        value: autoRowOptions[0],
+        options: autoRowOptions,
+        onChange: (template) => layout.setState({ autoRows: template }),
+      });
+
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
-        controls: [inputControl, columnSelector, rowSelector],
+        controls: [inputControl, columnSelector, rowSelector, autoRowsSelector],
         body: layout,
       });
     },
