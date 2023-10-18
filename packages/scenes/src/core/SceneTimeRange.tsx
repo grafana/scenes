@@ -1,4 +1,4 @@
-import { dateTimeFormat, getTimeZone, setWeekStart, TimeRange } from '@grafana/data';
+import { getTimeZone, setWeekStart, TimeRange } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -96,19 +96,18 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   }
 
   public onTimeRangeChange = (timeRange: TimeRange) => {
-    const tz = this.getTimeZone();
     const update: Partial<SceneTimeRangeState> = {};
 
     if (typeof timeRange.raw.from === 'string') {
       update.from = timeRange.raw.from;
     } else {
-      update.from = dateTimeFormat(timeRange.raw.from, { timeZone: tz });
+      update.from = timeRange.raw.from.toISOString();
     }
 
     if (typeof timeRange.raw.to === 'string') {
       update.to = timeRange.raw.to;
     } else {
-      update.to = dateTimeFormat(timeRange.raw.to, { timeZone: tz });
+      update.to = timeRange.raw.to.toISOString();
     }
 
     update.value = evaluateTimeRange(update.from, update.to, this.getTimeZone(), this.state.fiscalYearStartMonth);
