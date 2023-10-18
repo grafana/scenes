@@ -28,9 +28,11 @@ class TestObj extends SceneObjectBase<TestObjectState> {
     if (typeof values.name === 'string') {
       this.setState({ name: values.name ?? 'NA' });
     }
+
     if (Array.isArray(values.array)) {
       this.setState({ array: values.array });
     }
+
     if (values.hasOwnProperty('optional')) {
       this.setState({ optional: typeof values.optional === 'string' ? values.optional : undefined });
     }
@@ -118,6 +120,29 @@ describe('UrlSyncManager', () => {
       locationService.partial({ name: currentState.name });
       // Should not affect state (same instance)
       expect(obj.state).toBe(currentState);
+    });
+
+    it('should ignore state update when path also changed', () => {
+      const obj = new TestObj({ name: 'test' });
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
+      });
+
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
+
+      deactivate = scene.activate();
+
+      obj.setState({ optional: 'newValue' });
+
+      // Should not affect state
+      expect(locationService.getSearchObject().optional).toBe('newValue');
+
+      // Move to new path
+      locationService.push('/new/path');
+
+      // Expect state to remain
+      expect(obj.state.optional).toBe('newValue');
     });
   });
 
