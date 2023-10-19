@@ -19,7 +19,7 @@ import { SelectableValue } from '@grafana/data';
 
 const columnTemplateOptions = ['repeat(3, 1fr)', '2fr 1fr 1fr', 'auto'];
 const rowTemplateOptions = ['unset', 'auto', '150px repeat(4, 100px)', 'repeat(4, 1fr)', '100%'];
-const autoRowOptions = ['auto', '150px', '1fr', '100%'];
+const autoRowOptions = ['auto', '150px', '250px'];
 
 export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
