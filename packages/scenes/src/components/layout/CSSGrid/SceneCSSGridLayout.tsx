@@ -7,7 +7,8 @@ import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from 
 
 interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridItemPlacement {
   children: Array<SceneCSSGridItem | SceneObject>;
-  templateRows: CSSProperties['gridTemplateRows'];
+  autoRows?: CSSProperties['gridAutoRows'];
+  templateRows?: CSSProperties['gridTemplateRows'];
   templateColumns: CSSProperties['gridTemplateColumns'];
   rowGap?: CSSProperties['rowGap'];
   columnGap?: CSSProperties['columnGap'];
@@ -102,8 +103,9 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
     const style: CSSObject = {};
 
     style.display = 'grid';
-    style.gridTemplateRows = state.templateRows;
     style.gridTemplateColumns = state.templateColumns;
+    style.gridTemplateRows = state.templateRows || 'unset';
+    style.gridAutoRows = state.autoRows || 'unset';
     style.rowGap = state.rowGap || '8px';
     style.columnGap = state.columnGap || '8px';
     style.justifyItems = state.justifyItems || 'unset';
