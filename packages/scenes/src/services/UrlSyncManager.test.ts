@@ -59,6 +59,23 @@ describe('UrlSyncManager', () => {
     listenUnregister();
   });
 
+  describe('getUrlState', () => {
+    it('returns the full url state', () => {
+      const obj = new TestObj({ name: 'test', optional: 'handler', array: ['A', 'B'] });
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
+      });
+
+      urlManager = new UrlSyncManager();
+
+      expect(urlManager.getUrlState(scene)).toEqual({
+        name: 'test',
+        optional: 'handler',
+        array: ['A', 'B'],
+      });
+    });
+  });
+
   describe('When state changes', () => {
     it('should update url', () => {
       const obj = new TestObj({ name: 'test' });
