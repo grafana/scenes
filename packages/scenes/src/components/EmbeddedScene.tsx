@@ -67,7 +67,7 @@ function EmbeddedSceneRenderer({ model }: SceneComponentProps<EmbeddedScene>) {
   );
 }
 
-function getStyles(theme: GrafanaTheme2) {
+const getStyles = (theme: GrafanaTheme2) => {
   return {
     container: css({
       flexGrow: 1,
@@ -79,7 +79,7 @@ function getStyles(theme: GrafanaTheme2) {
     body: css({
       flexGrow: 1,
       display: 'flex',
-      gap: '8px',
+      gap: theme.spacing(1),
     }),
     controls: css({
       display: 'flex',
@@ -88,4 +88,4 @@ function getStyles(theme: GrafanaTheme2) {
       flexWrap: 'wrap',
     }),
   };
-}
+};
