@@ -5,6 +5,7 @@ import { getAdvancedCustomObjectScene } from '../../../../docusaurus/docs/advanc
 import { getCustomObjectScene, getDataAndTimeRangeScene } from '../../../../docusaurus/docs/core-concepts';
 import { getHelloWorldScene } from '../../../../docusaurus/docs/getting-started';
 import {
+  getCSSGridLayoutScene,
   getFlexBoxLayoutScene,
   getGridLayoutScene,
   getSplitLayoutScene,
@@ -37,6 +38,11 @@ const docs = [
     title: 'Flexbox layout',
     url: 'scene-layout-flexbox',
     getScene: getFlexBoxLayoutScene,
+  },
+  {
+    title: 'CSS grid layout',
+    url: 'scene-layout-css-grid',
+    getScene: getCSSGridLayoutScene,
   },
   {
     title: 'Grid layout',

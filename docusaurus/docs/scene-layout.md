@@ -162,6 +162,58 @@ new SceneFlexLayout({
 
 In the preceding example, we use the `md` property to override the default responsive behavior that changes a row layout to a column layout. We also apply a tighter `minHeight` constraint.
 
+## CSS grid layout
+
+As an alternative to `SceneFlexLayout`, `SceneCSSGridLayout` is available to wrap scene items in a CSS Grid.
+
+```ts
+const scene = new EmbeddedScene({
+  body: new SceneCSSGridLayout({
+    templateColumns: `repeat(2, 1fr)`,
+    children: [new SceneFlexItem({ minHeight: 200 }), new SceneFlexItem({ minHeight: 300 })],
+  }),
+});
+```
+
+`SceneCSSGridLayout` accepts `children` the same as `SceneFlexLayout`, and has the following properties for applying CSS grid styles:
+
+```ts
+autoRows?: CSSProperties['gridAutoRows'];
+templateRows?: CSSProperties['gridTemplateRows'];
+templateColumns: CSSProperties['gridTemplateColumns'];
+rowGap?: CSSProperties['rowGap'];
+columnGap?: CSSProperties['columnGap'];
+justifyItems?: CSSProperties['justifyItems'];
+alignItems?: CSSProperties['alignItems'];
+justifyContent?: CSSProperties['justifyContent'];
+// For sizing constaints on smaller screens
+md?: SceneCSSGridLayoutState;
+```
+
+All properties are optional except for `children` and `templateColumns`. `rowGap` and `columGap` default to `8px`.
+
+To build a grid with 3 columns, rows with a height of 150px and a gap between items of 5px, it would look like this:
+
+```ts
+const scene = new EmbeddedScene({
+  body: new SceneCSSGridLayout({
+    templateColumns: `repeat(3, 1fr)`,
+    autoRows: '150px',
+    rowGap: '5px',
+    columnGap: '5px',
+    children: [
+      new SceneFlexItem({ minHeight: 150 }),
+      new SceneFlexItem({ minHeight: 150 }),
+      new SceneFlexItem({ minHeight: 150 }),
+      new SceneFlexItem({ minHeight: 150 }),
+      new SceneFlexItem({ minHeight: 150 }),
+      new SceneFlexItem({ minHeight: 150 }),
+      new SceneFlexItem({ minHeight: 150 }),
+    ],
+  }),
+});
+```
+
 ## Grid layout
 
 `SceneGridLayout` allows you to build scenes as grids. This is the default behavior of Dashboards in Grafana, and grid layout lets you add a similar experience to your scene.
