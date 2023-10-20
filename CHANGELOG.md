@@ -1,3 +1,22 @@
+# v1.19.1 (Fri Oct 20 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimeRange: Respect time zone when updating time range [#420](https://github.com/grafana/scenes/pull/420) ([@dprokop](https://github.com/dprokop))
+  - UrlSync: Fixes and one update [#419](https://github.com/grafana/scenes/pull/419) ([@torkelo](https://github.com/torkelo))
+  - AdhocFilterVariable: Render expr (value) in constructor [#417](https://github.com/grafana/scenes/pull/417) ([@torkelo](https://github.com/torkelo))
+  - Revert "SceneTimeRange: Respect time zone when updating time range" [#418](https://github.com/grafana/scenes/pull/418) ([@torkelo](https://github.com/torkelo))
+  - AdHocFiltersVariable: Fixes issue with unnessary change events [#414](https://github.com/grafana/scenes/pull/414) ([@torkelo](https://github.com/torkelo))
+  - SceneTimeRange: Respect time zone when updating time range [#413](https://github.com/grafana/scenes/pull/413) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.19.0 (Mon Oct 16 2023)
 
 #### 🚀 Enhancement
