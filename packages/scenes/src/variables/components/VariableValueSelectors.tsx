@@ -4,12 +4,16 @@ import { VariableHide } from '@grafana/data';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { SceneComponentProps, SceneObjectState } from '../../core/types';
+import { ControlsLayout, SceneComponentProps, SceneObjectState } from '../../core/types';
 import { SceneVariable } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 
-export class VariableValueSelectors extends SceneObjectBase<SceneObjectState> {
+export interface VariableValueSelectorsState extends SceneObjectState {
+  layout?: ControlsLayout;
+}
+
+export class VariableValueSelectors extends SceneObjectBase<VariableValueSelectorsState> {
   public static Component = VariableValueSelectorsRenderer;
 }
 
@@ -19,13 +23,18 @@ function VariableValueSelectorsRenderer({ model }: SceneComponentProps<VariableV
   return (
     <>
       {variables.variables.map((variable) => (
-        <VariableValueSelectWrapper key={variable.state.key} variable={variable} />
+        <VariableValueSelectWrapper key={variable.state.key} variable={variable} layout={model.state.layout} />
       ))}
     </>
   );
 }
 
-function VariableValueSelectWrapper({ variable }: { variable: SceneVariable }) {
+interface Props {
+  layout?: ControlsLayout;
+  variable: SceneVariable;
+}
+
+function VariableValueSelectWrapper({ variable, layout }: Props) {
   const state = variable.useState();
 
   if (state.hide === VariableHide.hideVariable) {

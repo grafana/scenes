@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
-import { Button, Select, useStyles2 } from '@grafana/ui';
+import { Button, Field, Select, useStyles2 } from '@grafana/ui';
 import { css } from '@emotion/css';
 
 interface Props {
@@ -28,6 +28,64 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
   const keyValue = filter.key !== '' ? toOption(filter.key) : null;
   const valueValue = filter.value !== '' ? toOption(filter.value) : null;
+
+  const keySelect = (
+    <Select
+      disabled={model.state.readOnly}
+      className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
+      width="auto"
+      value={keyValue}
+      placeholder={'Select label'}
+      options={state.keys}
+      onChange={(v) => model._updateFilter(filter, 'key', v.value)}
+      autoFocus={filter.key === ''}
+      isOpen={state.isKeysOpen}
+      isLoading={state.isKeysLoading}
+      onOpenMenu={async () => {
+        setState({ ...state, isKeysLoading: true });
+        const keys = await model._getKeys(filter.key);
+        setState({ ...state, isKeysLoading: false, isKeysOpen: true, keys });
+      }}
+      onCloseMenu={() => {
+        setState({ ...state, isKeysOpen: false });
+      }}
+      openMenuOnFocus={true}
+    />
+  );
+
+  if (model.state.layout === 'simple') {
+    if (filter.key) {
+      return (
+        <Field label={filter.key ?? ''} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
+          <Select
+            disabled={model.state.readOnly}
+            className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
+            width="auto"
+            value={valueValue}
+            placeholder={'value'}
+            options={state.values}
+            onChange={(v) => model._updateFilter(filter, 'value', v.value)}
+            isOpen={state.isValuesOpen}
+            isLoading={state.isValuesLoading}
+            onOpenMenu={async () => {
+              setState({ ...state, isValuesLoading: true });
+              const values = await model._getValuesFor(filter);
+              setState({ ...state, isValuesLoading: false, isValuesOpen: true, values });
+            }}
+            onCloseMenu={() => {
+              setState({ ...state, isValuesOpen: false });
+            }}
+          />
+        </Field>
+      );
+    } else {
+      return (
+        <Field label={'Select label'} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
+          {keySelect}
+        </Field>
+      );
+    }
+  }
 
   return (
     <div className={styles.wrapper} data-testid={`AdHocFilter-${filter.key}`}>
@@ -59,25 +117,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         width="auto"
         onChange={(v) => model._updateFilter(filter, 'operator', v.value)}
       />
-      <Select
-        disabled={model.state.readOnly}
-        className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
-        width="auto"
-        value={valueValue}
-        placeholder={'value'}
-        options={state.values}
-        onChange={(v) => model._updateFilter(filter, 'value', v.value)}
-        isOpen={state.isValuesOpen}
-        isLoading={state.isValuesLoading}
-        onOpenMenu={async () => {
-          setState({ ...state, isValuesLoading: true });
-          const values = await model._getValuesFor(filter);
-          setState({ ...state, isValuesLoading: false, isValuesOpen: true, values });
-        }}
-        onCloseMenu={() => {
-          setState({ ...state, isValuesOpen: false });
-        }}
-      />
+      {valueSelect}
       <Button
         variant="secondary"
         aria-label="Remove filter"
@@ -92,6 +132,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
+  field: css({
+    marginBottom: 0,
+  }),
   wrapper: css({
     display: 'flex',
     '> *': {

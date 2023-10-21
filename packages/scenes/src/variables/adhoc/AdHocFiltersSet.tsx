@@ -23,6 +23,7 @@ export interface AdHocFilterSetState extends SceneObjectState {
   datasource: DataSourceRef | null;
   /** Controls if the filters can be changed */
   readOnly?: boolean;
+  layout?: 'simple' | 'advanced' | 'old';
   /**
    * Defaults to same-datasource which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
    * In manual mode no queries are re-run on changes, and you have to manually apply the filter to whatever queries you want.
@@ -72,6 +73,7 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       baseFilters: [],
       datasource: null,
       applyMode: 'same-datasource',
+      layout: 'old',
       ...initialState,
     });
 
@@ -181,12 +183,12 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
 }
 
 export function AdHocFiltersSetRenderer({ model }: SceneComponentProps<AdHocFilterSet>) {
-  const { filters, readOnly } = model.useState();
+  const { filters, readOnly, layout, name } = model.useState();
   const styles = useStyles2(getStyles);
 
   return (
     <div className={styles.wrapper}>
-      <ControlsLabel label="Filters" icon="filter" />
+      {layout === 'old' && <ControlsLabel label={name ?? 'Filters'} icon="filter" />}
 
       {filters.map((filter, index) => (
         <React.Fragment key={index}>

@@ -20,7 +20,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
 
 export type AdHocFiltersVariableCreateHelperArgs = Pick<
   AdHocFilterSetState,
-  'name' | 'filters' | 'baseFilters' | 'datasource' | 'getTagKeysProvider' | 'getTagValuesProvider'
+  'name' | 'filters' | 'baseFilters' | 'datasource' | 'getTagKeysProvider' | 'getTagValuesProvider' | 'name' | 'layout'
 >;
 
 export class AdHocFiltersVariable

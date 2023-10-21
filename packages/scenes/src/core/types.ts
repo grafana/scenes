@@ -227,3 +227,5 @@ export interface DataLayerFilter {
 export interface SceneStatelessBehavior<T extends SceneObject = any> {
   (sceneObject: T): CancelActivationHandler | void;
 }
+
+export type ControlsLayout = 'horizontal' | 'vertical';
