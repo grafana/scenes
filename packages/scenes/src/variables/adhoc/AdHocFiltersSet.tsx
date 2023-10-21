@@ -204,8 +204,8 @@ export function AdHocFiltersSetRenderer({ model }: SceneComponentProps<AdHocFilt
 const getStyles = (theme: GrafanaTheme2) => ({
   wrapper: css({
     display: 'flex',
-    gap: theme.spacing(1),
-    alignItems: 'center',
+    gap: theme.spacing(2),
+    alignItems: 'flex-end',
   }),
   filterIcon: css({
     color: theme.colors.text.secondary,

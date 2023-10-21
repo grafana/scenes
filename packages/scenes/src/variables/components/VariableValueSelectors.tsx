@@ -8,6 +8,7 @@ import { ControlsLayout, SceneComponentProps, SceneObjectState } from '../../cor
 import { SceneVariable } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
+import { ControlsLabelVertical } from '../../utils/ControlsLabelVertical';
 
 export interface VariableValueSelectorsState extends SceneObjectState {
   layout?: ControlsLayout;
@@ -29,44 +30,69 @@ function VariableValueSelectorsRenderer({ model }: SceneComponentProps<VariableV
   );
 }
 
-interface Props {
+interface VariableSelectProps {
   layout?: ControlsLayout;
   variable: SceneVariable;
 }
 
-function VariableValueSelectWrapper({ variable, layout }: Props) {
+function VariableValueSelectWrapper({ variable, layout }: VariableSelectProps) {
   const state = variable.useState();
 
   if (state.hide === VariableHide.hideVariable) {
     return null;
   }
 
+  if (layout === 'vertical') {
+    return (
+      <div className={verticalContainer}>
+        <VariableLabel variable={variable} layout={layout} />
+        <variable.Component model={variable} />
+      </div>
+    );
+  }
+
   return (
     <div className={containerStyle}>
-      <VariableLabel model={variable} />
+      <VariableLabel variable={variable} />
       <variable.Component model={variable} />
     </div>
   );
 }
 
-function VariableLabel({ model }: { model: SceneVariable }) {
-  if (model.state.hide === VariableHide.hideLabel) {
+function VariableLabel({ variable, layout }: VariableSelectProps) {
+  const { state } = variable;
+
+  if (variable.state.hide === VariableHide.hideLabel) {
     return null;
   }
 
-  const elementId = `var-${model.state.key}`;
-  const labelOrName = model.state.label ?? model.state.name;
+  const elementId = `var-${state.key}`;
+  const labelOrName = state.label ?? state.name;
+
+  if (layout === 'vertical') {
+    return (
+      <ControlsLabelVertical
+        htmlFor={elementId}
+        isLoading={state.loading}
+        onCancel={() => variable.onCancel?.()}
+        label={labelOrName}
+        error={state.error}
+        description={state.description ?? undefined}
+      />
+    );
+  }
 
   return (
     <ControlsLabel
       htmlFor={elementId}
-      isLoading={model.state.loading}
-      onCancel={() => model.onCancel?.()}
+      isLoading={state.loading}
+      onCancel={() => variable.onCancel?.()}
       label={labelOrName}
-      error={model.state.error}
-      description={model.state.description ?? undefined}
+      error={state.error}
+      description={state.description ?? undefined}
     />
   );
 }
 
 const containerStyle = css({ display: 'flex' });
+const verticalContainer = css({ display: 'flex', flexDirection: 'column' });

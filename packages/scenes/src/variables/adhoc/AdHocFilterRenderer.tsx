@@ -4,6 +4,7 @@ import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
 import { Button, Field, Select, useStyles2 } from '@grafana/ui';
 import { css } from '@emotion/css';
+import { ControlsLabelVertical } from '../../utils/ControlsLabelVertical';
 
 interface Props {
   filter: AdHocVariableFilter;
@@ -77,8 +78,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
   if (model.state.layout === 'simple') {
     if (filter.key) {
+      const label = <ControlsLabelVertical label={filter.key ?? ''} onRemove={() => model._removeFilter(filter)} />;
+
       return (
-        <Field label={filter.key ?? ''} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
+        <Field label={label} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
           {valueSelect}
         </Field>
       );
