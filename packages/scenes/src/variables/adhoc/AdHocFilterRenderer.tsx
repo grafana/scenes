@@ -29,6 +29,28 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const keyValue = filter.key !== '' ? toOption(filter.key) : null;
   const valueValue = filter.value !== '' ? toOption(filter.value) : null;
 
+  const valueSelect = (
+    <Select
+      disabled={model.state.readOnly}
+      className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
+      width="auto"
+      value={valueValue}
+      placeholder={'value'}
+      options={state.values}
+      onChange={(v) => model._updateFilter(filter, 'value', v.value)}
+      isOpen={state.isValuesOpen}
+      isLoading={state.isValuesLoading}
+      onOpenMenu={async () => {
+        setState({ ...state, isValuesLoading: true });
+        const values = await model._getValuesFor(filter);
+        setState({ ...state, isValuesLoading: false, isValuesOpen: true, values });
+      }}
+      onCloseMenu={() => {
+        setState({ ...state, isValuesOpen: false });
+      }}
+    />
+  );
+
   const keySelect = (
     <Select
       disabled={model.state.readOnly}
@@ -57,25 +79,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     if (filter.key) {
       return (
         <Field label={filter.key ?? ''} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
-          <Select
-            disabled={model.state.readOnly}
-            className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
-            width="auto"
-            value={valueValue}
-            placeholder={'value'}
-            options={state.values}
-            onChange={(v) => model._updateFilter(filter, 'value', v.value)}
-            isOpen={state.isValuesOpen}
-            isLoading={state.isValuesLoading}
-            onOpenMenu={async () => {
-              setState({ ...state, isValuesLoading: true });
-              const values = await model._getValuesFor(filter);
-              setState({ ...state, isValuesLoading: false, isValuesOpen: true, values });
-            }}
-            onCloseMenu={() => {
-              setState({ ...state, isValuesOpen: false });
-            }}
-          />
+          {valueSelect}
         </Field>
       );
     } else {
@@ -89,27 +93,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
   return (
     <div className={styles.wrapper} data-testid={`AdHocFilter-${filter.key}`}>
-      <Select
-        disabled={model.state.readOnly}
-        className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
-        width="auto"
-        value={keyValue}
-        placeholder={'Select label'}
-        options={state.keys}
-        onChange={(v) => model._updateFilter(filter, 'key', v.value)}
-        autoFocus={filter.key === ''}
-        isOpen={state.isKeysOpen}
-        isLoading={state.isKeysLoading}
-        onOpenMenu={async () => {
-          setState({ ...state, isKeysLoading: true });
-          const keys = await model._getKeys(filter.key);
-          setState({ ...state, isKeysLoading: false, isKeysOpen: true, keys });
-        }}
-        onCloseMenu={() => {
-          setState({ ...state, isKeysOpen: false });
-        }}
-        openMenuOnFocus={true}
-      />
+      {keySelect}
       <Select
         value={filter.operator}
         disabled={model.state.readOnly}
