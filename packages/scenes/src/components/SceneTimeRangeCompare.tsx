@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonGroup, Dropdown, Menu, ToolbarButton, useStyles2 } from '@grafana/ui';
+import { ButtonGroup, Checkbox, Dropdown, Menu, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -174,32 +174,35 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
               setIsOpen(false);
             }}
           />
-          {value === NO_PERIOD_VALUE && <Menu.Divider />}
+          {value === NO_PERIOD_VALUE && <Menu.Divider key={idx} />}
         </>
       ))}
     </Menu>
   );
 
   return (
-    <ButtonGroup>
-      <Dropdown overlay={menuItems} placement="bottom-end" onVisibleChange={setIsOpen}>
-        <div>
-          <ToolbarButton variant="canvas" tooltip="Enable time frame comparison" isOpen={isOpen}>
-            Time frame comparison
-            {enabled && <span className={styles.value}>{value?.label}</span>}
-          </ToolbarButton>
-        </div>
-      </Dropdown>
-    </ButtonGroup>
+    <Dropdown overlay={menuItems} placement="bottom-end" onVisibleChange={setIsOpen}>
+      <ButtonGroup>
+        <ToolbarButton variant="canvas">
+          <Checkbox value={enabled} readOnly className={styles.checkbox} />
+          <span className={styles.label}>Time frame comparison</span>
+        </ToolbarButton>
+
+        <ToolbarButton variant="canvas" tooltip="Enable time frame comparison" isOpen={isOpen}>
+          {enabled && <span>{value?.label}</span>}
+        </ToolbarButton>
+      </ButtonGroup>
+    </Dropdown>
   );
 }
 
 function getStyles(theme: GrafanaTheme2) {
   return {
-    value: css({
+    checkbox: css({
+      marginTop: '-1px',
+    }),
+    label: css({
       marginLeft: theme.spacing(1),
-      borderLeft: `1px solid ${theme.colors.border.medium}`,
-      paddingLeft: theme.spacing(1),
     }),
   };
 }
