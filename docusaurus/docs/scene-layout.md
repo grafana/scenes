@@ -197,7 +197,7 @@ To build a grid with 3 columns, rows with a height of 150px and a gap between it
 ```ts
 const scene = new EmbeddedScene({
   body: new SceneCSSGridLayout({
-    templateColumns: `repeat(3, 1fr)`,
+    templateColumns: `repeat(auto-fit, minmax(400px, 1fr))`,
     autoRows: '150px',
     rowGap: '5px',
     columnGap: '5px',
