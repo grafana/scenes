@@ -10,7 +10,6 @@ import {
   SceneObjectBase,
   SceneObjectState,
   SceneToolbarInput,
-  SceneCSSGridItem,
 } from '@grafana/scenes';
 import { Select } from '@grafana/ui';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
@@ -73,15 +72,11 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
 }
 
 function getLayoutChildren(count: number) {
-  return Array.from(
-    Array(count),
-    (v, index) =>
-      new SceneCSSGridItem({
-        body: PanelBuilders.stat()
-          .setTitle(`Panel ${count}`)
-          .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
-          .build(),
-      })
+  return Array.from(Array(count), (v, index) =>
+    PanelBuilders.stat()
+      .setTitle(`Panel ${count}`)
+      .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
+      .build()
   );
 }
 
