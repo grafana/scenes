@@ -21,7 +21,7 @@ export interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridL
 export interface SceneCSSGridLayoutOptions {
   /**
    * Useful for setting a height on items without specifying how many rows there will be.
-   * Defaults to 30px
+   * Defaults to 320px
    */
   autoRows?: CSSProperties['gridAutoRows'];
   /**
