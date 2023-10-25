@@ -27,6 +27,7 @@ import { getTransformationsTest } from './transformations';
 import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
 import { getDataFilteringTest } from './filteringData';
 import { getCssGridLayoutDemo } from './cssGridLayoutDemo';
+import { getPanelHeaderActions } from './panelHeaderActions';
 
 export interface DemoDescriptor {
   title: string;
@@ -63,5 +64,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Data filtering', getPage: getDataFilteringTest },
     { title: 'Docs examples', getPage: getDocsExamples },
     { title: 'CSS Grid Layout', getPage: getCssGridLayoutDemo },
+    { title: 'Panel header actions', getPage: getPanelHeaderActions },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
