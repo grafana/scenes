@@ -1,6 +1,7 @@
 import {
   EmbeddedScene,
   PanelBuilders,
+  SceneCSSGridItem,
   SceneCSSGridLayout,
   SceneFlexItem,
   SceneFlexLayout,
@@ -62,22 +63,22 @@ export function getCSSGridLayoutScene() {
       templateColumns: 'repeat(2, 1fr)',
       autoRows: '150px',
       children: [
-        new SceneFlexItem({
+        new SceneCSSGridItem({
           body: PanelBuilders.timeseries().setTitle('Time series').build(),
         }),
-        new SceneFlexItem({
+        new SceneCSSGridItem({
           body: PanelBuilders.table().setTitle('Time series').build(),
         }),
-        new SceneFlexItem({
+        new SceneCSSGridItem({
           body: PanelBuilders.timeseries().setTitle('Time series').build(),
         }),
-        new SceneFlexItem({
+        new SceneCSSGridItem({
           body: PanelBuilders.table().setTitle('Time series').build(),
         }),
-        new SceneFlexItem({
+        new SceneCSSGridItem({
           body: PanelBuilders.timeseries().setTitle('Table').build(),
         }),
-        new SceneFlexItem({
+        new SceneCSSGridItem({
           body: PanelBuilders.table().setTitle('Table').build(),
         }),
       ],

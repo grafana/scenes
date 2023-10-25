@@ -170,7 +170,14 @@ As an alternative to `SceneFlexLayout`, `SceneCSSGridLayout` is available to wra
 const scene = new EmbeddedScene({
   body: new SceneCSSGridLayout({
     templateColumns: `repeat(2, 1fr)`,
-    children: [new SceneFlexItem({ minHeight: 200 }), new SceneFlexItem({ minHeight: 300 })],
+    children: [
+      new SceneCSSGridItem({
+        body: PanelBuilders.timeseries().setTitle('Time series').build(),
+      }),
+      new SceneCSSGridItem({
+        body: PanelBuilders.table().setTitle('Table').build(),
+      }),
+    ],
   }),
 });
 ```
@@ -181,8 +188,10 @@ const scene = new EmbeddedScene({
 autoRows?: CSSProperties['gridAutoRows'];
 templateRows?: CSSProperties['gridTemplateRows'];
 templateColumns: CSSProperties['gridTemplateColumns'];
-rowGap?: CSSProperties['rowGap'];
-columnGap?: CSSProperties['columnGap'];
+/** In Grafana design system grid units (8px)  */
+rowGap: number;
+/** In Grafana design system grid units (8px)  */
+columnGap: number;
 justifyItems?: CSSProperties['justifyItems'];
 alignItems?: CSSProperties['alignItems'];
 justifyContent?: CSSProperties['justifyContent'];
@@ -199,16 +208,21 @@ const scene = new EmbeddedScene({
   body: new SceneCSSGridLayout({
     templateColumns: `repeat(auto-fit, minmax(400px, 1fr))`,
     autoRows: '150px',
-    rowGap: '5px',
-    columnGap: '5px',
+    rowGap: 1,
+    columnGap: 1,
     children: [
-      new SceneFlexItem({ minHeight: 150 }),
-      new SceneFlexItem({ minHeight: 150 }),
-      new SceneFlexItem({ minHeight: 150 }),
-      new SceneFlexItem({ minHeight: 150 }),
-      new SceneFlexItem({ minHeight: 150 }),
-      new SceneFlexItem({ minHeight: 150 }),
-      new SceneFlexItem({ minHeight: 150 }),
+      new SceneCSSGridItem({
+        body: PanelBuilders.timeseries().setTitle('Time series').build(),
+      }),
+      new SceneCSSGridItem({
+        body: PanelBuilders.table().setTitle('Table').build(),
+      }),
+      new SceneCSSGridItem({
+        body: PanelBuilders.timeseries().setTitle('Time series').build(),
+      }),
+      new SceneCSSGridItem({
+        body: PanelBuilders.table().setTitle('Table').build(),
+      }),
     ],
   }),
 });
