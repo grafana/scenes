@@ -218,9 +218,13 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       description: 'SQL string quoting and commas for use in IN statements and other scenarios',
       formatter: (value) => {
         // escape single quotes by pairing them
-        const regExp = new RegExp(`'`, 'g');
+        const regExp = new RegExp(`'|"`, 'g');
+        const replacements = new Map([
+          ["'", "''"],
+          ['"', '\\"'],
+        ]);
         if (isArray(value)) {
-          return map(value, (v: string) => `'${replace(v, regExp, "''")}'`).join(',');
+          return map(value, (v: string) => `'${replace(v, regExp, function (matched) { return replacements.get(matched) ?? ''; })}'`).join(',');
         }
 
         let strVal = typeof value === 'string' ? value : String(value);
