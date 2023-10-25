@@ -17,9 +17,9 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 import { ControlsLabel } from '@grafana/scenes/src/utils/ControlsLabel';
 import { SelectableValue } from '@grafana/data';
 
-const columnTemplateOptions = ['repeat(3, 1fr)', '2fr 1fr 1fr', 'auto'];
-const rowTemplateOptions = ['unset', 'auto', '150px repeat(4, 100px)', 'repeat(4, 1fr)', '100%'];
-const autoRowOptions = ['auto', '150px', '250px'];
+const columnTemplateOptions = ['repeat(auto-fit, minmax(400px, 1fr))', 'repeat(3, 1fr)', '2fr 1fr 1fr', 'auto'];
+const rowTemplateOptions = ['unset', 'auto', '350px repeat(4, 150px)', 'repeat(4, 1fr)', '100%'];
+const autoRowOptions = ['150px', '250px', 'auto'];
 
 export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -30,7 +30,8 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
         children: getLayoutChildren(10),
         templateColumns: columnTemplateOptions[0],
         templateRows: rowTemplateOptions[0],
-        rowGap: '8px',
+        autoRows: autoRowOptions[0],
+        rowGap: 2,
       });
 
       const inputControl = new SceneToolbarInput({
