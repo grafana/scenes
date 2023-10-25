@@ -325,23 +325,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     }
   }
 
-  /**
-   * A utility function to find the closest ancestor of a given type. This function expects
-   * to find it and will throw an error if it does noit.
-   */
-  public getAncestor<ParentType>(type: { new (...args: never[]): ParentType }): ParentType {
-    let parent: SceneObject | undefined = this;
-
-    while (parent) {
-      if (parent instanceof type) {
-        return parent;
-      }
-      parent = parent.parent;
-    }
-
-    throw new Error('Unable to find parent of type ' + type.name);
-  }
-
   /** Returns a SceneObjectRef that will resolve to this object */
   public getRef(): SceneObjectRef<this> {
     if (!this._ref) {

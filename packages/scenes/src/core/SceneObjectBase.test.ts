@@ -271,23 +271,4 @@ describe('SceneObject', () => {
       expect(() => deactivateScene()).toThrow();
     });
   });
-
-  describe('getAncestor', () => {
-    it('Can get ancestor', () => {
-      const innerObj = new SceneCanvasText({ text: 'hello' });
-      const scene = new SceneFlexLayout({
-        children: [
-          new SceneFlexItem({
-            body: innerObj,
-          }),
-        ],
-      });
-
-      expect(innerObj.getAncestor(SceneFlexLayout)).toBe(scene);
-      expect(innerObj.getAncestor(SceneFlexItem)).toBe(scene.state.children![0]);
-      expect(() => {
-        innerObj.getAncestor(TestScene);
-      }).toThrow();
-    });
-  });
 });

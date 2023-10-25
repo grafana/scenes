@@ -166,4 +166,23 @@ describe('sceneGraph', () => {
       });
     });
   });
+
+  describe('getAncestor', () => {
+    it('Can get ancestor', () => {
+      const innerObj = new SceneCanvasText({ text: 'hello' });
+      const scene = new SceneFlexLayout({
+        children: [
+          new SceneFlexItem({
+            body: innerObj,
+          }),
+        ],
+      });
+
+      expect(sceneGraph.getAncestor(innerObj, SceneFlexLayout)).toBe(scene);
+      expect(sceneGraph.getAncestor(innerObj, SceneFlexItem)).toBe(scene.state.children![0]);
+      expect(() => {
+        sceneGraph.getAncestor(innerObj, EmbeddedScene);
+      }).toThrow();
+    });
+  });
 });
