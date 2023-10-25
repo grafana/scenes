@@ -1,6 +1,5 @@
-import { css } from '@emotion/css';
-import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonGroup, Checkbox, Dropdown, Menu, ToolbarButton, useStyles2 } from '@grafana/ui';
+import { DateTime, dateTime, rangeUtil, TimeRange } from '@grafana/data';
+import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -155,54 +154,44 @@ export class SceneTimeRangeCompare
 }
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
-  const styles = useStyles2(getStyles);
-
   const { compareWith, compareOptions } = model.useState();
-  const [isOpen, setIsOpen] = React.useState(Boolean(compareWith) || false);
-  const value = compareOptions.find((o) => o.value === compareWith);
+
+  const [previousCompare, setPreviousCompare] = React.useState(compareWith);
+  const value = compareOptions.find(({ value }) => value === compareWith);
   const enabled = Boolean(value);
 
-  const menuItems = () => (
-    <Menu>
-      {compareOptions.map(({ label, value }, idx) => (
-        <>
-          <Menu.Item
-            key={idx}
-            label={label}
-            onClick={() => {
-              model.onCompareWithChanged(value);
-              setIsOpen(false);
-            }}
-          />
-          {value === NO_PERIOD_VALUE && <Menu.Divider key={idx} />}
-        </>
-      ))}
-    </Menu>
-  );
+  const onClick = () => {
+    if (enabled) {
+      setPreviousCompare(compareWith);
+      model.onClearCompare();
+    } else if (!enabled) {
+      model.onCompareWithChanged(previousCompare || PREVIOUS_PERIOD_VALUE);
+    }
+  };
 
   return (
-    <Dropdown overlay={menuItems} placement="bottom-end" onVisibleChange={setIsOpen}>
-      <ButtonGroup>
-        <ToolbarButton variant="canvas">
-          <Checkbox value={enabled} readOnly className={styles.checkbox} />
-          <span className={styles.label}>Time frame comparison</span>
-        </ToolbarButton>
+    <ButtonGroup>
+      <ToolbarButton
+        variant="canvas"
+        tooltip="Enable time frame comparison"
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onClick();
+        }}
+      >
+        <Checkbox label=" " value={enabled} onClick={onClick} />
+        Comparison
+      </ToolbarButton>
 
-        <ToolbarButton variant="canvas" tooltip="Enable time frame comparison" isOpen={isOpen}>
-          {enabled && <span>{value?.label}</span>}
-        </ToolbarButton>
-      </ButtonGroup>
-    </Dropdown>
+      <ButtonSelect
+        variant="canvas"
+        value={value}
+        options={compareOptions}
+        onChange={(v) => {
+          model.onCompareWithChanged(v.value!);
+        }}
+      />
+    </ButtonGroup>
   );
-}
-
-function getStyles(theme: GrafanaTheme2) {
-  return {
-    checkbox: css({
-      marginTop: '-1px',
-    }),
-    label: css({
-      marginLeft: theme.spacing(1),
-    }),
-  };
 }

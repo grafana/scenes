@@ -1,7 +1,11 @@
+import { screen } from '@testing-library/dom';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { EmbeddedScene } from './EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 import { NO_COMPARE_OPTION, PREVIOUS_PERIOD_COMPARE_OPTION, SceneTimeRangeCompare } from './SceneTimeRangeCompare';
+import userEvent from '@testing-library/user-event';
+import { render } from '@testing-library/react';
+import React from 'react';
 
 describe('SceneTimeRangeCompare', () => {
   describe('given a time range', () => {
@@ -493,5 +497,48 @@ describe('SceneTimeRangeCompare', () => {
 
     comparer.onCompareWithChanged(NO_COMPARE_OPTION.value);
     expect(comparer.state.compareWith).toBeUndefined();
+  });
+
+  test('properly saves last selected value', async () => {
+    const timeRange = new SceneTimeRange({
+      from: 'now-3d',
+      to: 'now',
+    });
+
+    const comparer = new SceneTimeRangeCompare({});
+
+    const scene = new EmbeddedScene({
+      $timeRange: timeRange,
+      body: new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: comparer })],
+      }),
+    });
+
+    render(<scene.Component model={scene} />);
+
+    // Is undefined by default
+    expect(comparer.state.compareWith).toBeUndefined();
+
+    let checkbox = screen.getByRole('checkbox');
+    await userEvent.click(checkbox);
+
+    // On checkbox click, previous period gets automatically selected
+    expect(comparer.state.compareWith).toBe(PREVIOUS_PERIOD_COMPARE_OPTION.value);
+
+    // Choose three days before option
+    await userEvent.click(screen.getByRole('button', { name: PREVIOUS_PERIOD_COMPARE_OPTION.label }));
+    await userEvent.click(screen.getByRole('menuitemradio', { name: '3 days before' }));
+
+    expect(comparer.state.compareWith).toBe('3d');
+
+    // Uncheck checkbox
+    await userEvent.click(checkbox);
+    expect(comparer.state.compareWith).toBeUndefined();
+
+    // Check it again
+    await userEvent.click(checkbox);
+
+    // Default value should be previously compared value
+    expect(comparer.state.compareWith).toBe('3d');
   });
 });
