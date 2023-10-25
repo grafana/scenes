@@ -9,8 +9,12 @@ interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridItemPlac
   children: Array<SceneCSSGridItem | SceneObject>;
   /**
    * Useful for setting a height on items without specifying how many rows there will be.
+   * Defaults to 30px
    */
   autoRows?: CSSProperties['gridAutoRows'];
+  /**
+   * This overrides the autoRows with a specific row template.
+   */
   templateRows?: CSSProperties['gridTemplateRows'];
   /**
    * Defaults to repeat(auto-fit, minmax(400px, 1fr)). This pattern us useful for equally sized items with a min width of 400px
@@ -21,16 +25,14 @@ interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridItemPlac
   rowGap: number;
   /** In Grafana design system grid units (8px)  */
   columnGap: number;
-  justifyItems?: CSSProperties['justifyItems'];
-  alignItems?: CSSProperties['alignItems'];
-  justifyContent?: CSSProperties['justifyContent'];
-
   /**
    * True when the item should rendered but not visible.
    * Useful for conditional display of layout items
    */
   isHidden?: boolean;
-
+  /**
+   * For media query for sceens smaller than md breakpoint
+   */
   md?: SceneCSSGridLayoutState;
 }
 
@@ -42,6 +44,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
       rowGap: 1,
       columnGap: 1,
       templateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+      autoRows: state.autoRows ?? `320px`,
       children: state.children ?? [],
       ...state,
     });
@@ -126,9 +129,6 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
     style.gridAutoRows = state.autoRows || 'unset';
     style.rowGap = theme.spacing(state.rowGap ?? 1);
     style.columnGap = theme.spacing(state.columnGap ?? 1);
-    style.justifyItems = state.justifyItems || 'unset';
-    style.alignItems = state.alignItems || 'unset';
-    style.justifyContent = state.justifyContent || 'unset';
     style.flexGrow = 1;
 
     if (state.md) {
@@ -137,9 +137,6 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
         gridTemplateColumns: state.md?.templateColumns,
         rowGap: state.md.rowGap ? theme.spacing(state.md?.rowGap ?? 1) : undefined,
         columnGap: state.md.columnGap ? theme.spacing(state.md?.rowGap ?? 1) : undefined,
-        justifyItems: state.md?.justifyItems,
-        alignItems: state.md?.alignItems,
-        justifyContent: state.md?.justifyContent,
       };
     }
 
