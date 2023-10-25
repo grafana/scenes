@@ -30,6 +30,7 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
         children: getLayoutChildren(10),
         templateColumns: columnTemplateOptions[0],
         templateRows: rowTemplateOptions[0],
+        rowGap: '8px',
       });
 
       const inputControl = new SceneToolbarInput({
