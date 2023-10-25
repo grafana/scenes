@@ -8,6 +8,7 @@ import {
   getDataLayers,
   hasVariableDependencyInLoadingState,
   interpolate,
+  getAncestor,
 } from './sceneGraph';
 
 export const sceneGraph = {
@@ -20,4 +21,5 @@ export const sceneGraph = {
   lookupVariable,
   hasVariableDependencyInLoadingState,
   findObject,
+  getAncestor,
 };
