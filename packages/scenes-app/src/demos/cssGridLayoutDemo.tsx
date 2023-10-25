@@ -10,7 +10,6 @@ import {
   SceneObjectBase,
   SceneObjectState,
   SceneToolbarInput,
-  SceneCSSGridItem,
 } from '@grafana/scenes';
 import { Select } from '@grafana/ui';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
