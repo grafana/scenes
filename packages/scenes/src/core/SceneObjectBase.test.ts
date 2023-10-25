@@ -5,8 +5,6 @@ import { SceneObjectBase } from './SceneObjectBase';
 import { SceneObjectStateChangedEvent } from './events';
 import { SceneObject, SceneObjectState } from './types';
 import { SceneTimeRange } from '../core/SceneTimeRange';
-import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
-import { SceneCanvasText } from '../components/SceneCanvasText';
 
 interface TestSceneState extends SceneObjectState {
   name?: string;
