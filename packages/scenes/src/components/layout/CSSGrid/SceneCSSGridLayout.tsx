@@ -5,8 +5,20 @@ import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../../core/types';
 import { config } from '@grafana/runtime';
 
-interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridItemPlacement {
+export interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridLayoutOptions {
   children: Array<SceneCSSGridItem | SceneObject>;
+  /**
+   * True when the item should rendered but not visible.
+   * Useful for conditional display of layout items
+   */
+  isHidden?: boolean;
+  /**
+   * For media query for sceens smaller than md breakpoint
+   */
+  md?: SceneCSSGridLayoutOptions;
+}
+
+export interface SceneCSSGridLayoutOptions {
   /**
    * Useful for setting a height on items without specifying how many rows there will be.
    * Defaults to 30px
@@ -25,15 +37,9 @@ interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridItemPlac
   rowGap: number;
   /** In Grafana design system grid units (8px)  */
   columnGap: number;
-  /**
-   * True when the item should rendered but not visible.
-   * Useful for conditional display of layout items
-   */
-  isHidden?: boolean;
-  /**
-   * For media query for sceens smaller than md breakpoint
-   */
-  md?: SceneCSSGridLayoutState;
+  justifyItems?: CSSProperties['justifyItems'];
+  alignItems?: CSSProperties['alignItems'];
+  justifyContent?: CSSProperties['justifyContent'];
 }
 
 export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState> implements SceneLayout {
@@ -129,6 +135,9 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
     style.gridAutoRows = state.autoRows || 'unset';
     style.rowGap = theme.spacing(state.rowGap ?? 1);
     style.columnGap = theme.spacing(state.columnGap ?? 1);
+    style.justifyItems = state.justifyItems || 'unset';
+    style.alignItems = state.alignItems || 'unset';
+    style.justifyContent = state.justifyContent || 'unset';
     style.flexGrow = 1;
 
     if (state.md) {
@@ -137,6 +146,9 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
         gridTemplateColumns: state.md?.templateColumns,
         rowGap: state.md.rowGap ? theme.spacing(state.md?.rowGap ?? 1) : undefined,
         columnGap: state.md.columnGap ? theme.spacing(state.md?.rowGap ?? 1) : undefined,
+        justifyItems: state.md?.justifyItems,
+        alignItems: state.md?.alignItems,
+        justifyContent: state.md?.justifyContent,
       };
     }
 
