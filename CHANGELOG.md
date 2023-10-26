@@ -1,3 +1,38 @@
+# v1.20.0 (Thu Oct 26 2023)
+
+### Release Notes
+
+#### DataSourceVariable: Value should be uid, and other fixes ([#400](https://github.com/grafana/scenes/pull/400))
+
+DataSourceVariable value is now the uid of the data source not the name. Please test and verify that your data source variables works like before.
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Fixes SQL formatting and escaping double quotes [#433](https://github.com/grafana/scenes/pull/433) ([@piggito](https://github.com/piggito) [@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- [cr] adds docs for SceneCSSGridLayout [#423](https://github.com/grafana/scenes/pull/423) ([@jewbetcha](https://github.com/jewbetcha) [@torkelo](https://github.com/torkelo))
+- Refactor demo list page, use grid layout, add search [#432](https://github.com/grafana/scenes/pull/432) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - SceneGraph: Add utility function getAncestor [#428](https://github.com/grafana/scenes/pull/428) ([@torkelo](https://github.com/torkelo))
+  - VizPanel: Make VizPanel usable without relative position parent [#430](https://github.com/grafana/scenes/pull/430) ([@torkelo](https://github.com/torkelo))
+  - SceneCSSGridLayout: Make rowGap and columnGap use grid units [#431](https://github.com/grafana/scenes/pull/431) ([@torkelo](https://github.com/torkelo))
+  - Export VizPanelBuilder [#429](https://github.com/grafana/scenes/pull/429) ([@torkelo](https://github.com/torkelo))
+  - DataSourceVariable: Value should be uid, and other fixes [#400](https://github.com/grafana/scenes/pull/400) ([@torkelo](https://github.com/torkelo))
+  - [cr] creates SceneCSSGridLayout to use CSS Grid with SceneFlexItems [#392](https://github.com/grafana/scenes/pull/392) ([@jewbetcha](https://github.com/jewbetcha) [@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- Coleman Rollins ([@jewbetcha](https://github.com/jewbetcha))
+- Juan Luis Peña Wagner ([@piggito](https://github.com/piggito))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.19.1 (Fri Oct 20 2023)
 
 #### 🐛 Bug Fix
