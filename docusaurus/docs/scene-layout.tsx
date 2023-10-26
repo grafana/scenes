@@ -60,8 +60,10 @@ export function getCSSGridLayoutScene() {
   const scene = new EmbeddedScene({
     $data: queryRunner,
     body: new SceneCSSGridLayout({
-      templateColumns: 'repeat(2, 1fr)',
+      templateColumns: `repeat(auto-fit, minmax(400px, 1fr))`,
       autoRows: '150px',
+      rowGap: 2,
+      columnGap: 2,
       children: [
         new SceneCSSGridItem({
           body: PanelBuilders.timeseries().setTitle('Time series').build(),
