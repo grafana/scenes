@@ -1,32 +1,60 @@
 import { css, CSSObject } from '@emotion/css';
-import { config } from '@grafana/runtime';
 import React, { ComponentType, CSSProperties, useMemo } from 'react';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../../core/types';
+import { config } from '@grafana/runtime';
 
-interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridItemPlacement {
+export interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridLayoutOptions {
   children: Array<SceneCSSGridItem | SceneObject>;
-  autoRows?: CSSProperties['gridAutoRows'];
-  templateRows?: CSSProperties['gridTemplateRows'];
-  templateColumns: CSSProperties['gridTemplateColumns'];
-  rowGap?: CSSProperties['rowGap'];
-  columnGap?: CSSProperties['columnGap'];
-  justifyItems?: CSSProperties['justifyItems'];
-  alignItems?: CSSProperties['alignItems'];
-  justifyContent?: CSSProperties['justifyContent'];
-
   /**
    * True when the item should rendered but not visible.
    * Useful for conditional display of layout items
    */
   isHidden?: boolean;
+  /**
+   * For media query for sceens smaller than md breakpoint
+   */
+  md?: SceneCSSGridLayoutOptions;
+}
 
-  md?: SceneCSSGridLayoutState;
+export interface SceneCSSGridLayoutOptions {
+  /**
+   * Useful for setting a height on items without specifying how many rows there will be.
+   * Defaults to 320px
+   */
+  autoRows?: CSSProperties['gridAutoRows'];
+  /**
+   * This overrides the autoRows with a specific row template.
+   */
+  templateRows?: CSSProperties['gridTemplateRows'];
+  /**
+   * Defaults to repeat(auto-fit, minmax(400px, 1fr)). This pattern us useful for equally sized items with a min width of 400px
+   * and dynamic max width split equally among columns.
+   */
+  templateColumns: CSSProperties['gridTemplateColumns'];
+  /** In Grafana design system grid units (8px)  */
+  rowGap: number;
+  /** In Grafana design system grid units (8px)  */
+  columnGap: number;
+  justifyItems?: CSSProperties['justifyItems'];
+  alignItems?: CSSProperties['alignItems'];
+  justifyContent?: CSSProperties['justifyContent'];
 }
 
 export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState> implements SceneLayout {
   public static Component = SceneCSSGridLayoutRenderer;
+
+  public constructor(state: Partial<SceneCSSGridLayoutState>) {
+    super({
+      rowGap: 1,
+      columnGap: 1,
+      templateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+      autoRows: state.autoRows ?? `320px`,
+      children: state.children ?? [],
+      ...state,
+    });
+  }
 
   public isDraggable(): boolean {
     return false;
@@ -98,30 +126,31 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
   return useMemo(() => {
     const {} = state;
     // only need breakpoints so accessing theme from config instead of context is ok
-    const theme = config.theme2;
-
     const style: CSSObject = {};
+    const theme = config.theme2;
 
     style.display = 'grid';
     style.gridTemplateColumns = state.templateColumns;
     style.gridTemplateRows = state.templateRows || 'unset';
     style.gridAutoRows = state.autoRows || 'unset';
-    style.rowGap = state.rowGap || '8px';
-    style.columnGap = state.columnGap || '8px';
+    style.rowGap = theme.spacing(state.rowGap ?? 1);
+    style.columnGap = theme.spacing(state.columnGap ?? 1);
     style.justifyItems = state.justifyItems || 'unset';
     style.alignItems = state.alignItems || 'unset';
     style.justifyContent = state.justifyContent || 'unset';
     style.flexGrow = 1;
 
-    style[theme.breakpoints.down('md')] = {
-      gridTemplateRows: state.md?.templateRows,
-      columns: state.md?.templateColumns,
-      rowGap: state.md?.rowGap || '8px',
-      columnGap: state.md?.columnGap || '8px',
-      justifyItems: state.md?.justifyItems || 'unset',
-      alignItems: state.md?.alignItems || 'unset',
-      justifyContent: state.md?.justifyContent || 'unset',
-    };
+    if (state.md) {
+      style[theme.breakpoints.down('md')] = {
+        gridTemplateRows: state.md?.templateRows,
+        gridTemplateColumns: state.md?.templateColumns,
+        rowGap: state.md.rowGap ? theme.spacing(state.md?.rowGap ?? 1) : undefined,
+        columnGap: state.md.columnGap ? theme.spacing(state.md?.rowGap ?? 1) : undefined,
+        justifyItems: state.md?.justifyItems,
+        alignItems: state.md?.alignItems,
+        justifyContent: state.md?.justifyContent,
+      };
+    }
 
     return css(style);
   }, [state]);

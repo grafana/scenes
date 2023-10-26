@@ -103,7 +103,14 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     } else {
       // Single valued variable
       const foundCurrent = options.find((x) => x.value === this.state.value);
-      if (!foundCurrent) {
+      if (foundCurrent) {
+        // When updating the initial state from URL the text property is set the same as value
+        // Here we can correct the text value state
+        if (foundCurrent.label !== this.state.text) {
+          stateUpdate.text = foundCurrent.label;
+        }
+      } else {
+        // Current value is found in options
         if (this.state.defaultToAll) {
           stateUpdate.value = ALL_VARIABLE_VALUE;
           stateUpdate.text = ALL_VARIABLE_TEXT;

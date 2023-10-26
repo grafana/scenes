@@ -61,6 +61,22 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toBe('A');
     });
 
+    it('Should update text representation if current matched option has different text value', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [{ label: 'displayName for A', value: 'A' }],
+        value: 'A',
+        text: 'A',
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe('A');
+      expect(variable.state.text).toBe('displayName for A');
+    });
+
     it('Should maintain the valid values when multiple selected', async () => {
       const variable = new TestVariable({
         name: 'test',
