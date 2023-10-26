@@ -216,16 +216,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.SQLString,
       name: 'SQL string',
       description: 'SQL string quoting and commas for use in IN statements and other scenarios',
-      formatter: (value) => {
-        // escape single quotes by pairing them
-        const regExp = new RegExp(`'`, 'g');
-        if (isArray(value)) {
-          return map(value, (v: string) => `'${replace(v, regExp, "''")}'`).join(',');
-        }
-
-        let strVal = typeof value === 'string' ? value : String(value);
-        return `'${replace(strVal, regExp, "''")}'`;
-      },
+      formatter: sqlStringFormatter,
     },
     {
       id: VariableFormatID.Date,
@@ -346,4 +337,21 @@ function formatQueryParameter(name: string, value: VariableValueSingle): string 
 
 export function isAllValue(value: VariableValueSingle) {
   return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value[0] === ALL_VARIABLE_VALUE);
+}
+
+const SQL_ESCAPE_MAP: Record<string, string> = {
+  "'": "''",
+  '"': '\\"',
+};
+
+function sqlStringFormatter(value: VariableValue) {
+  // escape single quotes by pairing them
+  const regExp = new RegExp(`'|"`, 'g');
+
+  if (isArray(value)) {
+    return map(value, (v: string) => `'${replace(v, regExp, (match) => SQL_ESCAPE_MAP[match] ?? '')}'`).join(',');
+  }
+
+  let strVal = typeof value === 'string' ? value : String(value);
+  return `'${replace(strVal, regExp, (match) => SQL_ESCAPE_MAP[match] ?? '')}'`;
 }
