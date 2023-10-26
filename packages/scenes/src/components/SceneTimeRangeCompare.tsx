@@ -30,14 +30,9 @@ export const NO_COMPARE_OPTION = {
 };
 
 export const DEFAULT_COMPARE_OPTIONS = [
-  { label: '1 day before', value: '24h' },
-  { label: '3 days before', value: '3d' },
-  { label: '1 week before', value: '1w' },
-  { label: '2 weeks before', value: '2w' },
-  { label: '1 month before', value: '1M' },
-  { label: '3 months before', value: '3M' },
-  { label: '6 months before', value: '6M' },
-  { label: '1 year before', value: '1y' },
+  { label: 'Day before', value: '24h' },
+  { label: 'Week before', value: '1w' },
+  { label: 'Month before', value: '1M' },
 ];
 
 export class SceneTimeRangeCompare
