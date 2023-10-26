@@ -1,11 +1,12 @@
-import { DateTime, dateTime, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton } from '@grafana/ui';
+import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
+import { ButtonGroup, ButtonSelect, Checkbox, Icon, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { parseUrlParam } from '../utils/parseUrlParam';
+import { css } from '@emotion/css';
 
 export interface TimeRangeCompareProvider {
   getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
@@ -149,9 +150,12 @@ export class SceneTimeRangeCompare
 }
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
+  const styles = useStyles2(getStyles);
   const { compareWith, compareOptions } = model.useState();
 
   const [previousCompare, setPreviousCompare] = React.useState(compareWith);
+  const previousValue = compareOptions.find(({ value }) => value === previousCompare) || PREVIOUS_PERIOD_COMPARE_OPTION;
+
   const value = compareOptions.find(({ value }) => value === compareWith);
   const enabled = Boolean(value);
 
@@ -160,7 +164,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
       setPreviousCompare(compareWith);
       model.onClearCompare();
     } else if (!enabled) {
-      model.onCompareWithChanged(previousCompare || PREVIOUS_PERIOD_VALUE);
+      model.onCompareWithChanged(previousValue.value);
     }
   };
 
@@ -179,14 +183,35 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
         Comparison
       </ToolbarButton>
 
-      <ButtonSelect
-        variant="canvas"
-        value={value}
-        options={compareOptions}
-        onChange={(v) => {
-          model.onCompareWithChanged(v.value!);
-        }}
-      />
+      {enabled ? (
+        <ButtonSelect
+          variant="canvas"
+          value={value}
+          options={compareOptions}
+          onChange={(v) => {
+            model.onCompareWithChanged(v.value!);
+          }}
+        />
+      ) : (
+        <ToolbarButton className={styles.previewButton} disabled variant="canvas">
+          {previousValue.label}
+          <Icon name="angle-down" size="md" />
+        </ToolbarButton>
+      )}
     </ButtonGroup>
   );
+}
+
+function getStyles(theme: GrafanaTheme2) {
+  return {
+    previewButton: css({
+      cursor: 'not-allowed',
+
+      div: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: theme.spacing(0.5),
+      },
+    }),
+  };
 }
