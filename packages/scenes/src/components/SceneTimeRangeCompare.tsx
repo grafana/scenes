@@ -1,5 +1,5 @@
 import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonGroup, ButtonSelect, Checkbox, Icon, ToolbarButton, useStyles2 } from '@grafana/ui';
+import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -154,7 +154,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
   const { compareWith, compareOptions } = model.useState();
 
   const [previousCompare, setPreviousCompare] = React.useState(compareWith);
-  const previousValue = compareOptions.find(({ value }) => value === previousCompare) || PREVIOUS_PERIOD_COMPARE_OPTION;
+  const previousValue = compareOptions.find(({ value }) => value === previousCompare) ?? DEFAULT_COMPARE_OPTIONS[0];
 
   const value = compareOptions.find(({ value }) => value === compareWith);
   const enabled = Boolean(value);
@@ -193,9 +193,8 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
           }}
         />
       ) : (
-        <ToolbarButton className={styles.previewButton} disabled variant="canvas">
+        <ToolbarButton className={styles.previewButton} disabled variant="canvas" isOpen={false}>
           {previousValue.label}
-          <Icon name="angle-down" size="md" />
         </ToolbarButton>
       )}
     </ButtonGroup>
@@ -205,12 +204,10 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
 function getStyles(theme: GrafanaTheme2) {
   return {
     previewButton: css({
-      cursor: 'not-allowed',
-
-      div: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: theme.spacing(0.5),
+      '&:disabled': {
+        border: `1px solid ${theme.colors.secondary.border}`,
+        color: theme.colors.text.disabled,
+        opacity: 1,
       },
     }),
   };
