@@ -1,7 +1,7 @@
 import { TestScene } from '../TestScene';
 
 import { sceneInterpolator } from '../interpolation/sceneInterpolator';
-import { locationService } from '@grafana/runtime';
+import { config, locationService } from '@grafana/runtime';
 
 describe('url macros', () => {
   it('Can get full url via ${__url}', () => {
@@ -16,6 +16,17 @@ describe('url macros', () => {
     locationService.push('/my-plugin/my-page?from=now-5m&to=now');
 
     expect(sceneInterpolator(scene, '${__url.path}')).toBe('/my-plugin/my-page');
+  });
+
+  it('${__url} and ${__url.path} includes grafana sub path', () => {
+    config.appSubUrl = '/grafana';
+
+    const scene = new TestScene({});
+    locationService.push('/my-plugin/my-page?from=now-5m&to=now');
+    expect(sceneInterpolator(scene, '${__url}')).toBe('/grafana/my-plugin/my-page?from=now-5m&to=now');
+    expect(sceneInterpolator(scene, '${__url.path}')).toBe('/grafana/my-plugin/my-page');
+
+    config.appSubUrl = '';
   });
 
   it('Can get only state via ${__url.params}', () => {
