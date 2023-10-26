@@ -8,7 +8,6 @@ import { ControlsLayout, SceneComponentProps, SceneObjectState } from '../../cor
 import { SceneVariable } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
-import { ControlsLabelVertical } from '../../utils/ControlsLabelVertical';
 
 export interface VariableValueSelectorsState extends SceneObjectState {
   layout?: ControlsLayout;
@@ -69,19 +68,6 @@ function VariableLabel({ variable, layout }: VariableSelectProps) {
   const elementId = `var-${state.key}`;
   const labelOrName = state.label ?? state.name;
 
-  if (layout === 'vertical') {
-    return (
-      <ControlsLabelVertical
-        htmlFor={elementId}
-        isLoading={state.loading}
-        onCancel={() => variable.onCancel?.()}
-        label={labelOrName}
-        error={state.error}
-        description={state.description ?? undefined}
-      />
-    );
-  }
-
   return (
     <ControlsLabel
       htmlFor={elementId}
@@ -89,6 +75,7 @@ function VariableLabel({ variable, layout }: VariableSelectProps) {
       onCancel={() => variable.onCancel?.()}
       label={labelOrName}
       error={state.error}
+      layout={layout}
       description={state.description ?? undefined}
     />
   );

@@ -34,7 +34,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
         url: `${defaults.url}/query`,
         getScene: () => {
           return new EmbeddedScene({
-            controls: [new VariableValueSelectors({ layout: 'vertical' })],
+            controls: [new VariableValueSelectors({})],
             $variables: new SceneVariableSet({
               variables: [
                 new TestVariable({

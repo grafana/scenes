@@ -3,7 +3,7 @@ import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } 
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
-import { SceneComponentProps, SceneObjectState, SceneObjectUrlSyncHandler } from '../../core/types';
+import { SceneComponentProps, SceneObjectState, SceneObjectUrlSyncHandler, ControlsLayout } from '../../core/types';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { useStyles2 } from '@grafana/ui';
 import React from 'react';
@@ -23,7 +23,12 @@ export interface AdHocFilterSetState extends SceneObjectState {
   datasource: DataSourceRef | null;
   /** Controls if the filters can be changed */
   readOnly?: boolean;
-  layout?: 'simple' | 'advanced' | 'old';
+  /**
+   * @experimental
+   * Controls the layout and design of the label.
+   * Vertical layout does not yet support operator selector.
+   */
+  layout?: ControlsLayout;
   /**
    * Defaults to same-datasource which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
    * In manual mode no queries are re-run on changes, and you have to manually apply the filter to whatever queries you want.
@@ -73,7 +78,7 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       baseFilters: [],
       datasource: null,
       applyMode: 'same-datasource',
-      layout: 'old',
+      layout: 'horizontal',
       ...initialState,
     });
 
@@ -188,7 +193,7 @@ export function AdHocFiltersSetRenderer({ model }: SceneComponentProps<AdHocFilt
 
   return (
     <div className={styles.wrapper}>
-      {layout === 'old' && <ControlsLabel label={name ?? 'Filters'} icon="filter" />}
+      {layout !== 'vertical' && <ControlsLabel label={name ?? 'Filters'} icon="filter" />}
 
       {filters.map((filter, index) => (
         <React.Fragment key={index}>

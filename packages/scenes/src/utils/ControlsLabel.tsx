@@ -1,9 +1,10 @@
 import React from 'react';
-import { Icon, Tooltip, useStyles2, useTheme2 } from '@grafana/ui';
+import { Icon, IconButton, Tooltip, useStyles2, useTheme2 } from '@grafana/ui';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, IconName } from '@grafana/data';
 import { css } from '@emotion/css';
 import { LoadingIndicator } from './LoadingIndicator';
+import { ControlsLayout } from '../core/types';
 
 interface ControlsLabelProps {
   label: string;
@@ -12,7 +13,9 @@ interface ControlsLabelProps {
   isLoading?: boolean;
   error?: string;
   icon?: IconName;
+  layout?: ControlsLayout;
   onCancel?: () => void;
+  onRemove?: () => void;
 }
 
 export function ControlsLabel(props: ControlsLabelProps) {
@@ -40,34 +43,48 @@ export function ControlsLabel(props: ControlsLabelProps) {
     );
   }
 
-  const label = (
-    <label
-      className={styles.label}
-      data-testid={
-        typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : ''
-      }
-      htmlFor={props.htmlFor}
-    >
-      {errorIndicator}
-      {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
-      {props.label}
-      {loadingIndicator}
-    </label>
-  );
+  const testId =
+    typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : '';
+  let labelElement: JSX.Element;
+
+  // The vertical layout has different css class and order of elements (label always first)
+
+  if (props.layout === 'vertical') {
+    labelElement = (
+      <label className={styles.verticalLabel} data-testid={testId} htmlFor={props.htmlFor}>
+        {props.label}
+        {errorIndicator}
+        {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
+        {loadingIndicator}
+        {props.onRemove && (
+          <IconButton variant="secondary" size="xs" name="times" onClick={props.onRemove} tooltip={'Remove'} />
+        )}
+      </label>
+    );
+  } else {
+    labelElement = (
+      <label className={styles.horizontalLabel} data-testid={testId} htmlFor={props.htmlFor}>
+        {errorIndicator}
+        {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
+        {props.label}
+        {loadingIndicator}
+      </label>
+    );
+  }
 
   if (props.description) {
     return (
       <Tooltip content={props.description} placement={'bottom'}>
-        {label}
+        {labelElement}
       </Tooltip>
     );
   }
 
-  return label;
+  return labelElement;
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  label: css({
+  horizontalLabel: css({
     background: theme.isDark ? theme.colors.background.primary : theme.colors.background.secondary,
     display: `flex`,
     alignItems: 'center',
@@ -83,6 +100,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
     right: -1,
     whiteSpace: 'nowrap',
     gap: theme.spacing(0.5),
+  }),
+  verticalLabel: css({
+    display: `flex`,
+    alignItems: 'center',
+    fontWeight: theme.typography.fontWeightMedium,
+    fontSize: theme.typography.bodySmall.fontSize,
+    lineHeight: theme.typography.bodySmall.lineHeight,
+    whiteSpace: 'nowrap',
+    marginBottom: theme.spacing(0.5),
+    gap: theme.spacing(1),
   }),
   errorIcon: css({
     color: theme.colors.error.text,

@@ -28,6 +28,7 @@ import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
 import { getDataFilteringTest } from './filteringData';
 import { getCssGridLayoutDemo } from './cssGridLayoutDemo';
 import { getPanelHeaderActions } from './panelHeaderActions';
+import { getVerticalControlsLayoutDemo } from './verticalControlsLayoutDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -65,5 +66,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Docs examples', getPage: getDocsExamples },
     { title: 'CSS Grid Layout', getPage: getCssGridLayoutDemo },
     { title: 'Panel header actions', getPage: getPanelHeaderActions },
+    { title: 'Vertical controls layout', getPage: getVerticalControlsLayoutDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
