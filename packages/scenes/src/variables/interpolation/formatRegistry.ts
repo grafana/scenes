@@ -353,5 +353,5 @@ function sqlStringFormatter(value: VariableValue) {
   }
 
   let strVal = typeof value === 'string' ? value : String(value);
-  return `'${replace(strVal, regExp, "''")}'`;
+  return `'${replace(strVal, regExp, (match) => SQL_ESCAPE_MAP[match] ?? '')}'`;
 }
