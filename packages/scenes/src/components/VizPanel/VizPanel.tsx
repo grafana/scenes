@@ -14,6 +14,7 @@ import {
   compareDataFrameStructures,
   applyFieldOverrides,
   PluginType,
+  LinkModel,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -32,6 +33,10 @@ import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
 import { cloneDeep, merge } from 'lodash';
 
+interface VizPanelLinksState extends SceneObjectState {
+  links?: LinkModel[];
+}
+
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
    * This is usually a plugin id that references a core plugin or an external plugin. But this can also reference a
@@ -40,6 +45,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   pluginId: string;
   title: string;
   description?: string;
+  links?: LinkModel[];
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
@@ -53,6 +59,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
    */
   menu?: VizPanelMenu;
+  /**
+   * Defines a menu that renders panel link.
+   **/
+  panelLinks?: SceneObject<VizPanelLinksState>;
   /**
    * Add action to the top right panel header
    */

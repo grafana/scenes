@@ -55,6 +55,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   const titleItems: React.ReactNode[] = [];
 
+  if (model.state.panelLinks) {
+    const panelLinks = model.state.panelLinks;
+    titleItems.push(<panelLinks.Component model={panelLinks} key={panelLinks.state.key} />);
+  }
+
   // If we have local time range show that in panel header
   if (model.state.$timeRange) {
     titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} key={model.state.key} />);
