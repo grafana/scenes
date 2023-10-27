@@ -154,7 +154,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
   const { compareWith, compareOptions } = model.useState();
 
   const [previousCompare, setPreviousCompare] = React.useState(compareWith);
-  const previousValue = compareOptions.find(({ value }) => value === previousCompare) ?? DEFAULT_COMPARE_OPTIONS[0];
+  const previousValue = compareOptions.find(({ value }) => value === previousCompare) ?? PREVIOUS_PERIOD_COMPARE_OPTION;
 
   const value = compareOptions.find(({ value }) => value === compareWith);
   const enabled = Boolean(value);
