@@ -33,10 +33,6 @@ import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
 import { cloneDeep, merge } from 'lodash';
 
-interface VizPanelLinksState extends SceneObjectState {
-  links?: LinkModel[];
-}
-
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
    * This is usually a plugin id that references a core plugin or an external plugin. But this can also reference a
@@ -62,7 +58,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   /**
    * Defines a menu that renders panel link.
    **/
-  panelLinks?: SceneObject<VizPanelLinksState>;
+  titleItems?: React.ReactNode | SceneObject | SceneObject[];
   /**
    * Add action to the top right panel header
    */

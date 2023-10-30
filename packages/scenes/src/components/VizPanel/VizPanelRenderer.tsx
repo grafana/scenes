@@ -23,6 +23,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     hoverHeader,
     menu,
     headerActions,
+    titleItems,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
@@ -53,16 +54,25 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     $data.setContainerWidth(width);
   }
 
-  const titleItems: React.ReactNode[] = [];
+  let titleItemsElement: React.ReactNode[] = [];
 
-  if (model.state.panelLinks) {
-    const panelLinks = model.state.panelLinks;
-    titleItems.push(<panelLinks.Component model={panelLinks} key={panelLinks.state.key} />);
+  if (titleItems) {
+    if (Array.isArray(titleItems)) {
+      titleItemsElement = titleItemsElement.concat(
+        titleItems.map((titleItem) => {
+          return <titleItem.Component model={titleItem} key={`${titleItem.state.key}`} />;
+        })
+      );
+    } else if (isSceneObject(titleItems)) {
+      titleItemsElement.push(<titleItems.Component model={titleItems} />);
+    } else {
+      titleItemsElement.push(titleItems);
+    }
   }
 
   // If we have local time range show that in panel header
   if (model.state.$timeRange) {
-    titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} key={model.state.key} />);
+    titleItemsElement.push(<model.state.$timeRange.Component model={model.state.$timeRange} key={model.state.key} />);
   }
 
   let panelMenu;
@@ -105,7 +115,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             height={height}
             displayMode={displayMode}
             hoverHeader={hoverHeader}
-            titleItems={titleItems}
+            titleItems={titleItemsElement}
             dragClass={dragClass}
             actions={actionsElement}
             dragClassCancel={dragClassCancel}
