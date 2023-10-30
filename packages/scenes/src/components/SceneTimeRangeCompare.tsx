@@ -1,12 +1,11 @@
-import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
+import { DateTime, dateTime, rangeUtil, TimeRange } from '@grafana/data';
+import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { parseUrlParam } from '../utils/parseUrlParam';
-import { css } from '@emotion/css';
 
 export interface TimeRangeCompareProvider {
   getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
@@ -14,6 +13,7 @@ export interface TimeRangeCompareProvider {
 
 interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
+  previousCompareWith?: string;
   compareOptions: Array<{ label: string; value: string }>;
 }
 
@@ -43,7 +43,7 @@ export class SceneTimeRangeCompare
   static Component = SceneTimeRangeCompareRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
 
-  public constructor(state: Partial<SceneTimeRangeCompareState>) {
+  public constructor(state: Partial<Omit<SceneTimeRangeCompareState, 'previousCompareWith'>>) {
     super({ compareOptions: DEFAULT_COMPARE_OPTIONS, ...state });
     this.addActivationHandler(this._onActivate);
   }
@@ -82,16 +82,16 @@ export class SceneTimeRangeCompare
     ];
   };
 
-  public onCompareWithChanged = (compareWith: string) => {
+  public onCompareWithChanged = (compareWith?: string) => {
     if (compareWith === NO_PERIOD_VALUE) {
       this.onClearCompare();
     } else {
-      this.setState({ compareWith });
+      this.setState({ compareWith, previousCompareWith: this.state.compareWith });
     }
   };
 
   public onClearCompare = () => {
-    this.setState({ compareWith: undefined });
+    this.setState({ compareWith: undefined, previousCompareWith: this.state.compareWith });
   };
 
   public getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined {
@@ -150,21 +150,16 @@ export class SceneTimeRangeCompare
 }
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
-  const styles = useStyles2(getStyles);
-  const { compareWith, compareOptions } = model.useState();
-
-  const [previousCompare, setPreviousCompare] = React.useState(compareWith);
-  const previousValue = compareOptions.find(({ value }) => value === previousCompare) ?? PREVIOUS_PERIOD_COMPARE_OPTION;
+  const { compareWith, previousCompareWith, compareOptions } = model.useState();
+  const enabled = Boolean(compareWith);
 
   const value = compareOptions.find(({ value }) => value === compareWith);
-  const enabled = Boolean(value);
-
   const onClick = () => {
+    console.log('onClick', previousCompareWith, compareWith);
     if (enabled) {
-      setPreviousCompare(compareWith);
       model.onClearCompare();
     } else if (!enabled) {
-      model.onCompareWithChanged(previousValue.value);
+      model.onCompareWithChanged(previousCompareWith || PREVIOUS_PERIOD_VALUE);
     }
   };
 
@@ -183,32 +178,14 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
         Comparison
       </ToolbarButton>
 
-      {enabled ? (
-        <ButtonSelect
-          variant="canvas"
-          value={value}
-          options={compareOptions}
-          onChange={(v) => {
-            model.onCompareWithChanged(v.value!);
-          }}
-        />
-      ) : (
-        <ToolbarButton className={styles.previewButton} disabled variant="canvas" isOpen={false}>
-          {previousValue.label}
-        </ToolbarButton>
-      )}
+      <ButtonSelect
+        variant="canvas"
+        value={value}
+        options={compareOptions}
+        onChange={(v) => {
+          model.onCompareWithChanged(v.value!);
+        }}
+      />
     </ButtonGroup>
   );
-}
-
-function getStyles(theme: GrafanaTheme2) {
-  return {
-    previewButton: css({
-      '&:disabled': {
-        border: `1px solid ${theme.colors.secondary.border}`,
-        color: theme.colors.text.disabled,
-        opacity: 1,
-      },
-    }),
-  };
 }
