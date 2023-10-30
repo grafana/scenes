@@ -383,7 +383,7 @@ describe('SceneTimeRangeCompare', () => {
     // Is undefined by default
     expect(comparer.state.compareWith).toBeUndefined();
 
-    let checkbox = screen.getByRole('checkbox');
+    let checkbox = screen.getByLabelText('Enable time frame comparison');
     await userEvent.click(checkbox);
 
     // On checkbox click, previous period gets automatically selected
@@ -398,6 +398,7 @@ describe('SceneTimeRangeCompare', () => {
     // Uncheck checkbox
     await userEvent.click(checkbox);
     expect(comparer.state.compareWith).toBeUndefined();
+    expect(comparer.state.previousCompareWith).toBe('1w');
 
     // Check it again
     await userEvent.click(checkbox);

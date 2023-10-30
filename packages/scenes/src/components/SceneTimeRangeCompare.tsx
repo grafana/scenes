@@ -155,7 +155,6 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
 
   const value = compareOptions.find(({ value }) => value === compareWith);
   const onClick = () => {
-    console.log('onClick', previousCompareWith, compareWith);
     if (enabled) {
       model.onClearCompare();
     } else if (!enabled) {
