@@ -405,6 +405,27 @@ describe('SceneApp', () => {
     expect(app1).toBe(useSceneApp(getSceneApp1));
     expect(app2).toBe(useSceneApp(getSceneApp2));
   });
+
+  it('SceneAppState should support a key value store', () => {
+    const getSceneApp = () =>
+      new SceneApp({
+        pages: [],
+        store: {
+          foo: 1,
+          bar: 'one',
+          baz: false,
+        }
+      });
+
+    const app = useSceneApp(getSceneApp);
+
+    const { store } = app.useState();
+    const { foo, bar, baz } = store!;
+
+    expect(foo).toBe(1);
+    expect(bar).toBe('one');
+    expect(baz).toBe(false);
+  });
 });
 
 function setupScene(inspectableObject: SceneObject, key?: string) {

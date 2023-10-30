@@ -16,7 +16,7 @@ export interface SceneAppState extends SceneObjectState {
   // Array of SceneAppPage objects that are considered app's top level pages
   pages: SceneAppPageLike[];
   name?: string;
-  store?: Map<string, SceneAppStoreValue>
+  store?: {[key: string]: SceneAppStoreValue};
 }
 
 export interface SceneAppRoute {
