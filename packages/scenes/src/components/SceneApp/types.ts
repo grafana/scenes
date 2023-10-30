@@ -10,10 +10,13 @@ export interface SceneRouteMatch<Params extends { [K in keyof Params]?: string }
   url: string;
 }
 
+export type SceneAppStoreValue = string | number | boolean;
+
 export interface SceneAppState extends SceneObjectState {
   // Array of SceneAppPage objects that are considered app's top level pages
   pages: SceneAppPageLike[];
   name?: string;
+  store?: Map<string, SceneAppStoreValue>
 }
 
 export interface SceneAppRoute {
