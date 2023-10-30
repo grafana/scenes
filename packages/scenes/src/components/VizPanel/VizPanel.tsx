@@ -41,7 +41,6 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   pluginId: string;
   title: string;
   description?: string;
-  links?: LinkModel[];
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
