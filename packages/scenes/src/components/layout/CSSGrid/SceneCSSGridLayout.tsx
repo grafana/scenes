@@ -85,6 +85,11 @@ export interface SceneCSSGridItemPlacement {
    * Useful for conditional display of layout items
    */
   isHidden?: boolean;
+  /**
+   * Useful for making content span across multiple rows or columns
+   */
+  gridColumn?: CSSProperties['gridColumn'];
+  gridRow?: CSSProperties['gridRow'];
 }
 
 export interface SceneCSSGridItemState extends SceneCSSGridItemPlacement, SceneObjectState {
@@ -105,22 +110,18 @@ function SceneCSSGridItemRenderer({ model, parentState }: SceneCSSGridItemRender
   }
 
   const { body, isHidden } = model.useState();
+  const style = useItemStyle(model.state);
 
   if (!body || isHidden) {
     return null;
   }
 
   return (
-    <div className={itemContainer}>
+    <div className={style}>
       <body.Component model={body} />
     </div>
   );
 }
-
-const itemContainer = css({
-  // Needed for VizPanel
-  position: 'relative',
-});
 
 function useLayoutStyle(state: SceneCSSGridLayoutState) {
   return useMemo(() => {
@@ -151,6 +152,20 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
         justifyContent: state.md?.justifyContent,
       };
     }
+
+    return css(style);
+  }, [state]);
+}
+
+function useItemStyle(state: SceneCSSGridItemState) {
+  return useMemo(() => {
+    const {} = state;
+    const style: CSSObject = {};
+
+    style.gridColumn = state.gridColumn || 'unset';
+    style.gridRow = state.gridRow || 'unset';
+    // Needed for VizPanel
+    style.position = 'relative';
 
     return css(style);
   }, [state]);
