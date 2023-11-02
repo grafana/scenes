@@ -159,7 +159,6 @@ function useLayoutStyle(state: SceneCSSGridLayoutState) {
 
 function useItemStyle(state: SceneCSSGridItemState) {
   return useMemo(() => {
-    const {} = state;
     const style: CSSObject = {};
 
     style.gridColumn = state.gridColumn || 'unset';
