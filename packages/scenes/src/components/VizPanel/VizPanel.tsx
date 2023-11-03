@@ -54,6 +54,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   menu?: VizPanelMenu;
   /**
+   * Defines a menu that renders panel link.
+   **/
+  titleItems?: React.ReactNode | SceneObject | SceneObject[];
+  /**
    * Add action to the top right panel header
    */
   headerActions?: React.ReactNode | SceneObject | SceneObject[];
