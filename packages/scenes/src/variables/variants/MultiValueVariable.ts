@@ -77,7 +77,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     };
 
     if (options.length === 0) {
-      // TODO handle the no value state
+      if (this.state.defaultToAll || this.state.includeAll) {
+        stateUpdate.value = ALL_VARIABLE_VALUE;
+        stateUpdate.text = ALL_VARIABLE_TEXT;
+      }
     } else if (this.hasAllValue()) {
       // If value is set to All then we keep it set to All but just store the options
     } else if (this.state.isMulti) {
@@ -100,7 +103,14 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     } else {
       // Single valued variable
       const foundCurrent = options.find((x) => x.value === this.state.value);
-      if (!foundCurrent) {
+      if (foundCurrent) {
+        // When updating the initial state from URL the text property is set the same as value
+        // Here we can correct the text value state
+        if (foundCurrent.label !== this.state.text) {
+          stateUpdate.text = foundCurrent.label;
+        }
+      } else {
+        // Current value is found in options
         if (this.state.defaultToAll) {
           stateUpdate.value = ALL_VARIABLE_VALUE;
           stateUpdate.text = ALL_VARIABLE_TEXT;
@@ -241,6 +251,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
     return options;
   }
+
+  /**
+   * Can be used by subclasses to do custom handling of option search based on search input
+   */
+  public onSearchChange?(searchFilter: string): void;
 }
 
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
@@ -253,10 +268,18 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   }
 
   public getKeys(): string[] {
+    if (this._sceneObject.state.skipUrlSync) {
+      return [];
+    }
+
     return [this.getKey()];
   }
 
   public getUrlState(): SceneObjectUrlValues {
+    if (this._sceneObject.state.skipUrlSync) {
+      return {};
+    }
+
     let urlValue: string | string[] | null = null;
     let value = this._sceneObject.state.value;
 

@@ -9,6 +9,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
+import { css } from '@emotion/css';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -16,12 +17,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     description,
     options,
     fieldConfig,
-    pluginLoadError,
+    _pluginLoadError,
     $data,
     displayMode,
     hoverHeader,
     menu,
     headerActions,
+    titleItems,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
@@ -52,11 +54,25 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     $data.setContainerWidth(width);
   }
 
-  const titleItems: React.ReactNode[] = [];
+  let titleItemsElement: React.ReactNode[] = [];
+
+  if (titleItems) {
+    if (Array.isArray(titleItems)) {
+      titleItemsElement = titleItemsElement.concat(
+        titleItems.map((titleItem) => {
+          return <titleItem.Component model={titleItem} key={`${titleItem.state.key}`} />;
+        })
+      );
+    } else if (isSceneObject(titleItems)) {
+      titleItemsElement.push(<titleItems.Component model={titleItems} />);
+    } else {
+      titleItemsElement.push(titleItems);
+    }
+  }
 
   // If we have local time range show that in panel header
   if (model.state.$timeRange) {
-    titleItems.push(<model.state.$timeRange.Component model={model.state.$timeRange} key={model.state.key} />);
+    titleItemsElement.push(<model.state.$timeRange.Component model={model.state.$timeRange} key={model.state.key} />);
   }
 
   let panelMenu;
@@ -87,57 +103,59 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
   return (
-    <div ref={ref as RefCallback<HTMLDivElement>} style={{ position: 'absolute', width: '100%', height: '100%' }}>
-      {width > 0 && height > 0 && (
-        <PanelChrome
-          title={titleInterpolated}
-          description={description ? () => model.interpolate(description) : ''}
-          loadingState={data.state}
-          statusMessage={getChromeStatusMessage(data, pluginLoadError)}
-          width={width}
-          height={height}
-          displayMode={displayMode}
-          hoverHeader={hoverHeader}
-          titleItems={titleItems}
-          dragClass={dragClass}
-          actions={actionsElement}
-          dragClassCancel={dragClassCancel}
-          padding={plugin.noPadding ? 'none' : 'md'}
-          menu={panelMenu}
-          onCancelQuery={model.onCancelQuery}
-        >
-          {(innerWidth, innerHeight) => (
-            <>
-              <ErrorBoundaryAlert dependencies={[plugin, data]}>
-                <PluginContextProvider meta={plugin.meta}>
-                  <PanelContextProvider value={model.getPanelContext()}>
-                    {isReadyToRender && (
-                      <PanelComponent
-                        id={1}
-                        data={data}
-                        title={title}
-                        timeRange={data.timeRange}
-                        timeZone={timeZone}
-                        options={options}
-                        fieldConfig={fieldConfig}
-                        transparent={false}
-                        width={innerWidth}
-                        height={innerHeight}
-                        renderCounter={0}
-                        replaceVariables={model.interpolate}
-                        onOptionsChange={model.onOptionsChange}
-                        onFieldConfigChange={model.onFieldConfigChange}
-                        onChangeTimeRange={model.onTimeRangeChange}
-                        eventBus={getAppEvents()}
-                      />
-                    )}
-                  </PanelContextProvider>
-                </PluginContextProvider>
-              </ErrorBoundaryAlert>
-            </>
-          )}
-        </PanelChrome>
-      )}
+    <div className={relativeWrapper}>
+      <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
+        {width > 0 && height > 0 && (
+          <PanelChrome
+            title={titleInterpolated}
+            description={description ? () => model.interpolate(description) : ''}
+            loadingState={data.state}
+            statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
+            width={width}
+            height={height}
+            displayMode={displayMode}
+            hoverHeader={hoverHeader}
+            titleItems={titleItemsElement}
+            dragClass={dragClass}
+            actions={actionsElement}
+            dragClassCancel={dragClassCancel}
+            padding={plugin.noPadding ? 'none' : 'md'}
+            menu={panelMenu}
+            onCancelQuery={model.onCancelQuery}
+          >
+            {(innerWidth, innerHeight) => (
+              <>
+                <ErrorBoundaryAlert dependencies={[plugin, data]}>
+                  <PluginContextProvider meta={plugin.meta}>
+                    <PanelContextProvider value={model.getPanelContext()}>
+                      {isReadyToRender && (
+                        <PanelComponent
+                          id={1}
+                          data={data}
+                          title={title}
+                          timeRange={data.timeRange}
+                          timeZone={timeZone}
+                          options={options}
+                          fieldConfig={fieldConfig}
+                          transparent={false}
+                          width={innerWidth}
+                          height={innerHeight}
+                          renderCounter={0}
+                          replaceVariables={model.interpolate}
+                          onOptionsChange={model.onOptionsChange}
+                          onFieldConfigChange={model.onFieldConfigChange}
+                          onChangeTimeRange={model.onTimeRangeChange}
+                          eventBus={getAppEvents()}
+                        />
+                      )}
+                    </PanelContextProvider>
+                  </PluginContextProvider>
+                </ErrorBoundaryAlert>
+              </>
+            )}
+          </PanelChrome>
+        )}
+      </div>
     </div>
   );
 }
@@ -184,3 +202,20 @@ function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | un
   }
   return message;
 }
+
+const relativeWrapper = css({
+  position: 'relative',
+  width: '100%',
+  height: '100%',
+});
+
+/**
+ * Sadly this this absolute wrapper is needed for the panel to adopt smaller sizes.
+ * The combo of useMeasure and PanelChrome makes the panel take up the width it get's but that makes it impossible to
+ * Then adapt to smaller space (say resizing the browser window or undocking menu).
+ */
+const absoluteWrapper = css({
+  position: 'absolute',
+  width: '100%',
+  height: '100%',
+});

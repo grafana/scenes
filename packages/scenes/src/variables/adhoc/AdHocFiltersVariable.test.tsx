@@ -1,7 +1,8 @@
+import { SceneVariableValueChangedEvent } from '../types';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 
 describe('AdHocFiltersVariable', () => {
-  it('AdHocFiltersVariable by default renders a prometheus / loki compatible label filter', () => {
+  it('By default renders a prometheus / loki compatible label filter', () => {
     const variable = AdHocFiltersVariable.create({
       datasource: { uid: 'hello' },
       filters: [
@@ -22,6 +23,49 @@ describe('AdHocFiltersVariable', () => {
 
     variable.activate();
 
-    expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]",`);
+    expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]"`);
+  });
+
+  it('Should not publish event on activation', () => {
+    const variable = AdHocFiltersVariable.create({
+      datasource: { uid: 'hello' },
+      filters: [
+        {
+          key: 'key1',
+          operator: '=',
+          value: 'val1',
+          condition: '',
+        },
+      ],
+    });
+
+    const evtHandler = jest.fn();
+    variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+    variable.activate();
+
+    expect(evtHandler).not.toHaveBeenCalled();
+  });
+
+  it('Should not publish event on when expr did not change', () => {
+    const variable = AdHocFiltersVariable.create({
+      datasource: { uid: 'hello' },
+      filters: [
+        {
+          key: 'key1',
+          operator: '=',
+          value: 'val1',
+          condition: '',
+        },
+      ],
+    });
+
+    variable.activate();
+
+    const evtHandler = jest.fn();
+    variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+    variable.state.set.setState({ filters: variable.state.set.state.filters.slice(0) });
+
+    expect(evtHandler).not.toHaveBeenCalled();
   });
 });

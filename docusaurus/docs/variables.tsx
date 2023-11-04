@@ -18,6 +18,7 @@ export function getVariablesScene() {
     },
     query: {
       query: 'label_values(prometheus_http_requests_total,handler)',
+      refId: 'A',
     },
   });
 

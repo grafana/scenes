@@ -27,7 +27,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     }
 
     const filters = deserializeUrlToFilters(urlValue);
-    this._variable.updateFilters(filters);
+    this._variable.setState({ filters });
   }
 }
 

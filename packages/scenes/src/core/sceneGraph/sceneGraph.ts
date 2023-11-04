@@ -64,13 +64,16 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   for (const name of sceneObject.variableDependency.getNames()) {
+    console.log('dependency', name);
     const variable = lookupVariable(name, sceneObject);
     if (!variable) {
       continue;
     }
 
     const set = variable.parent as SceneVariables;
-    return set.isVariableLoadingOrWaitingToUpdate(variable);
+    if (set.isVariableLoadingOrWaitingToUpdate(variable)) {
+      return true;
+    }
   }
 
   return false;
@@ -149,4 +152,24 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
   }
 
   return collected;
+}
+
+/**
+ * A utility function to find the closest ancestor of a given type. This function expects
+ * to find it and will throw an error if it does noit.
+ */
+export function getAncestor<ParentType>(
+  sceneObject: SceneObject,
+  ancestorType: { new (...args: never[]): ParentType }
+): ParentType {
+  let parent: SceneObject | undefined = sceneObject;
+
+  while (parent) {
+    if (parent instanceof ancestorType) {
+      return parent;
+    }
+    parent = parent.parent;
+  }
+
+  throw new Error('Unable to find parent of type ' + ancestorType.name);
 }

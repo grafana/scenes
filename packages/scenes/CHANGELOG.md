@@ -1,3 +1,252 @@
+# v1.20.1 (Mon Oct 30 2023)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Allow title items configuration [#437](https://github.com/grafana/scenes/pull/437) ([@dprokop](https://github.com/dprokop))
+- SceneByFrameRepeater: Fixes issue with not processing repeats on activation when there is data [#436](https://github.com/grafana/scenes/pull/436) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.20.0 (Thu Oct 26 2023)
+
+### Release Notes
+
+#### DataSourceVariable: Value should be uid, and other fixes ([#400](https://github.com/grafana/scenes/pull/400))
+
+DataSourceVariable value is now the uid of the data source not the name. Please test and verify that your data source variables works like before.
+
+---
+
+#### 🚀 Enhancement
+
+- Variables: Fixes SQL formatting and escaping double quotes [#433](https://github.com/grafana/scenes/pull/433) ([@piggito](https://github.com/piggito) [@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- SceneGraph: Add utility function getAncestor [#428](https://github.com/grafana/scenes/pull/428) ([@torkelo](https://github.com/torkelo))
+- VizPanel: Make VizPanel usable without relative position parent [#430](https://github.com/grafana/scenes/pull/430) ([@torkelo](https://github.com/torkelo))
+- SceneCSSGridLayout: Make rowGap and columnGap use grid units [#431](https://github.com/grafana/scenes/pull/431) ([@torkelo](https://github.com/torkelo))
+- Export VizPanelBuilder [#429](https://github.com/grafana/scenes/pull/429) ([@torkelo](https://github.com/torkelo))
+- DataSourceVariable: Value should be uid, and other fixes [#400](https://github.com/grafana/scenes/pull/400) ([@torkelo](https://github.com/torkelo))
+- [cr] creates SceneCSSGridLayout to use CSS Grid with SceneFlexItems [#392](https://github.com/grafana/scenes/pull/392) ([@jewbetcha](https://github.com/jewbetcha) [@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- Coleman Rollins ([@jewbetcha](https://github.com/jewbetcha))
+- Juan Luis Peña Wagner ([@piggito](https://github.com/piggito))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.19.1 (Fri Oct 20 2023)
+
+#### 🐛 Bug Fix
+
+- SceneTimeRange: Respect time zone when updating time range [#420](https://github.com/grafana/scenes/pull/420) ([@dprokop](https://github.com/dprokop))
+- UrlSync: Fixes and one update [#419](https://github.com/grafana/scenes/pull/419) ([@torkelo](https://github.com/torkelo))
+- AdhocFilterVariable: Render expr (value) in constructor [#417](https://github.com/grafana/scenes/pull/417) ([@torkelo](https://github.com/torkelo))
+- Revert "SceneTimeRange: Respect time zone when updating time range" [#418](https://github.com/grafana/scenes/pull/418) ([@torkelo](https://github.com/torkelo))
+- AdHocFiltersVariable: Fixes issue with unnessary change events [#414](https://github.com/grafana/scenes/pull/414) ([@torkelo](https://github.com/torkelo))
+- SceneTimeRange: Respect time zone when updating time range [#413](https://github.com/grafana/scenes/pull/413) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.19.0 (Mon Oct 16 2023)
+
+#### 🚀 Enhancement
+
+- AdHocVariable: Fixes trailing comma [#411](https://github.com/grafana/scenes/pull/411) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.18.0 (Thu Oct 12 2023)
+
+#### 🚀 Enhancement
+
+- VizPanel: Adds extendPanelContext so that consumers can control some of the PanelContext functions [#409](https://github.com/grafana/scenes/pull/409) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.17.0 (Wed Oct 11 2023)
+
+#### 🚀 Enhancement
+
+- SceneTimePicker: Add posibility to navigate backwards/forwards an absolute time range [#408](https://github.com/grafana/scenes/pull/408) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v1.16.0 (Wed Oct 11 2023)
+
+#### 🚀 Enhancement
+
+- SceneVariableSet: isVariableLoadingOrWaitingToUpdate should ignore isActive state [#405](https://github.com/grafana/scenes/pull/405) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.15.1 (Wed Oct 11 2023)
+
+#### 🐛 Bug Fix
+
+- Scenes: Interval Variable now considers $\_\_auto_interval [#407](https://github.com/grafana/scenes/pull/407) ([@axelavargas](https://github.com/axelavargas))
+
+#### Authors: 1
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
+# v1.15.0 (Tue Oct 10 2023)
+
+#### 🚀 Enhancement
+
+- Markup: element data keys changes [#403](https://github.com/grafana/scenes/pull/403) ([@torkelo](https://github.com/torkelo))
+- QueryVariable: Fix sort default value [#398](https://github.com/grafana/scenes/pull/398) ([@torkelo](https://github.com/torkelo))
+- QueryVariable: Support for queries that contain "$\_\_searchFilter" [#395](https://github.com/grafana/scenes/pull/395) ([@torkelo](https://github.com/torkelo))
+- TextBoxVariable: Fixes and make it auto size [#394](https://github.com/grafana/scenes/pull/394) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- VizPanel: Add support for a custom migration handler [#396](https://github.com/grafana/scenes/pull/396) ([@torkelo](https://github.com/torkelo))
+- SceneAppPage: Fix enrichDataRequest call for drilldown pages [#402](https://github.com/grafana/scenes/pull/402) ([@torkelo](https://github.com/torkelo))
+- ActWhenVariableChanged: Add behavior to onChange callback [#393](https://github.com/grafana/scenes/pull/393) ([@torkelo](https://github.com/torkelo))
+- Variables: Updates the demo scene [#388](https://github.com/grafana/scenes/pull/388) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.14.0 (Wed Oct 04 2023)
+
+#### 🚀 Enhancement
+
+- Variables: Fix issue with all value state and no options [#391](https://github.com/grafana/scenes/pull/391) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.13.0 (Wed Oct 04 2023)
+
+#### 🚀 Enhancement
+
+- Compatability: Add global window object that points to the current active EmbeddedScene [#390](https://github.com/grafana/scenes/pull/390) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.12.0 (Tue Oct 03 2023)
+
+#### 🚀 Enhancement
+
+- AdhocFilters: Pass filters via request object [#382](https://github.com/grafana/scenes/pull/382) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- SceneTimeRange: Implement onZoom behavior [#374](https://github.com/grafana/scenes/pull/374) ([@polibb](https://github.com/polibb))
+
+#### Authors: 2
+
+- Polina Boneva ([@polibb](https://github.com/polibb))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.11.1 (Tue Oct 03 2023)
+
+#### 🐛 Bug Fix
+
+- SceneAppPageView: Fixes react and scene state missmatch [#381](https://github.com/grafana/scenes/pull/381) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.11.0 (Tue Oct 03 2023)
+
+#### 🚀 Enhancement
+
+- TimePicker: Show and update fiscal year month [#386](https://github.com/grafana/scenes/pull/386) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.10.0 (Mon Oct 02 2023)
+
+#### 🚀 Enhancement
+
+- Variables: Implement Interval Variable [#365](https://github.com/grafana/scenes/pull/365) ([@axelavargas](https://github.com/axelavargas))
+- Variables: Support skipUrlSync option [#376](https://github.com/grafana/scenes/pull/376) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- SceneFlexLayout: Export SceneFlexItemLike [#385](https://github.com/grafana/scenes/pull/385) ([@torkelo](https://github.com/torkelo))
+- SceneAppPage: Custom fallback page [#380](https://github.com/grafana/scenes/pull/380) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 3
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+- Domas ([@domasx2](https://github.com/domasx2))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.9.0 (Fri Sep 29 2023)
+
+#### 🚀 Enhancement
+
+- SceneVariableSet: Show and log errors [#371](https://github.com/grafana/scenes/pull/371) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- SceneTimeRange: Add weekStart support and make sure fiscalYearMonth is used everywhere [#375](https://github.com/grafana/scenes/pull/375) ([@torkelo](https://github.com/torkelo))
+- EmbeddedScene: Patch TimeSrv [#379](https://github.com/grafana/scenes/pull/379) ([@dprokop](https://github.com/dprokop))
+- AdHocFiltersSet and AdhocFiltersVariable with manual and automatic modes [#346](https://github.com/grafana/scenes/pull/346) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.8.0 (Mon Sep 25 2023)
 
 #### 🚀 Enhancement

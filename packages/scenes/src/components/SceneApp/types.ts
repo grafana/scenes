@@ -60,6 +60,12 @@ export interface SceneAppPageState extends SceneObjectState {
    * The current initialized scene, this is set by the framework after scene url initialization
    **/
   initializedScene?: SceneObject;
+
+  /**
+   * Function that returns a fallback scene app page,
+   * to be rendered when url does not match current page exactly or any of tabs or drilldowns.
+   */
+  getFallbackPage?: () => SceneAppPageLike;
 }
 
 export interface SceneAppPageLike extends SceneObject<SceneAppPageState>, DataRequestEnricher {

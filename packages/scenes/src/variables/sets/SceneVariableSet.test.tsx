@@ -5,7 +5,7 @@ import { VariableRefresh } from '@grafana/data';
 
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObjectState, SceneObject, SceneComponentProps } from '../../core/types';
+import { SceneObjectState, SceneComponentProps } from '../../core/types';
 import { TestVariable } from '../variants/TestVariable';
 
 import { SceneVariableSet } from './SceneVariableSet';
@@ -14,14 +14,7 @@ import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { LocalValueVariable } from '../variants/LocalValueVariable';
-
-interface TestSceneState extends SceneObjectState {
-  nested?: SceneObject;
-  /** To test logic for inactive scene objects  */
-  hidden?: SceneObject;
-}
-
-class TestScene extends SceneObjectBase<TestSceneState> {}
+import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
@@ -290,8 +283,8 @@ describe('SceneVariableList', () => {
   describe('When variables have change when re-activated broadcast changes', () => {
     it('Should notify only active objects of change', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
-      const nestedObj = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
-      const inActiveSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const nestedObj = new TestObjectWithVariableDependency({ title: '$A', variableValueChanged: 0 });
+      const inActiveSceneObject = new TestObjectWithVariableDependency({ title: '$A', variableValueChanged: 0 });
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A] }),
@@ -323,7 +316,7 @@ describe('SceneVariableList', () => {
     it('Should notify scene objects if deactivated during chained update', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
       const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [], delayMs: 1 });
-      const nestedSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const nestedSceneObject = new TestObjectWithVariableDependency({ title: '$A', variableValueChanged: 0 });
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A, B] }),
@@ -349,7 +342,7 @@ describe('SceneVariableList', () => {
     it('Should handle being deactivated right away', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 1 });
       const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [], delayMs: 1 });
-      const sceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const sceneObject = new TestObjectWithVariableDependency({ title: '$A', variableValueChanged: 0 });
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A, B] }),
@@ -377,7 +370,7 @@ describe('SceneVariableList', () => {
         isMulti: true,
       });
 
-      const nestedSceneObject = new TestSceneObect({ title: '$A', variableValueChanged: 0 });
+      const nestedSceneObject = new TestObjectWithVariableDependency({ title: '$A', variableValueChanged: 0 });
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A] }),
@@ -401,7 +394,7 @@ describe('SceneVariableList', () => {
     it('Should start update process', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const B = new TestVariable({ name: 'B', query: 'A.*', value: '', text: '', options: [] });
-      const nestedObj = new TestSceneObect({ title: '$B', variableValueChanged: 0 });
+      const nestedObj = new TestObjectWithVariableDependency({ title: '$B', variableValueChanged: 0 });
       const set = new SceneVariableSet({ variables: [A] });
 
       const scene = new TestScene({
@@ -491,7 +484,9 @@ describe('SceneVariableList', () => {
       const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
 
       const set = new SceneVariableSet({ variables: [A, B] });
-      set.activate();
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
 
       // Should start variables with no dependencies
       expect(A.state.loading).toBe(true);
@@ -529,6 +524,20 @@ describe('SceneVariableList', () => {
 
       expect(innerSet.isVariableLoadingOrWaitingToUpdate(scopedA)).toBe(false);
     });
+
+    it('Should ignore isActivate state', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const set = new SceneVariableSet({ variables: [A] });
+      const deactivate = set.activate();
+
+      // Should start variables with no dependencies
+      expect(A.state.loading).toBe(true);
+      A.signalUpdateCompleted();
+
+      deactivate();
+
+      expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(false);
+    });
   });
 
   describe('When variable throws error', () => {
@@ -563,21 +572,36 @@ describe('SceneVariableList', () => {
 
       // Nested variable on a lower level should wait for it's dependency
       expect(A.state.loading).toBe(true);
-      expect(B.state.loading).toBe(false);
+      expect(B.state.loading).toBe(undefined);
+
+      // When A on a higher level completes start B on the lower level
+      A.signalUpdateCompleted();
+      expect(B.state.loading).toBe(true);
+    });
+
+    it('Should update lower level variable when parnent changes', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+
+        nested: new TestScene({
+          $variables: new SceneVariableSet({ variables: [B] }),
+        }),
+      });
+
+      scene.activate();
+      scene.state.nested!.activate();
+
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+
+      expect(B.state.value).toBe('AAA');
+
+      // Now change variable A
+      A.changeValueTo('AB');
+      expect(B.state.loading).toBe(true);
     });
   });
 });
-
-interface TestSceneObjectState extends SceneObjectState {
-  title: string;
-  variableValueChanged: number;
-}
-
-export class TestSceneObect extends SceneObjectBase<TestSceneObjectState> {
-  protected _variableDependency = new VariableDependencyConfig(this, {
-    statePaths: ['title'],
-    onReferencedVariableValueChanged: () => {
-      this.setState({ variableValueChanged: this.state.variableValueChanged + 1 });
-    },
-  });
-}

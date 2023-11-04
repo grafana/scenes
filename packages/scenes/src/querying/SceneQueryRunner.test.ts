@@ -25,9 +25,11 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayers } from './SceneDataLayers';
 import { TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
+import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
-  getRef: () => ({ uid: 'test' }),
+  uid: 'test-uid',
+  getRef: () => ({ uid: 'test-uid' }),
   query: () =>
     of({
       data: [
@@ -68,8 +70,14 @@ jest.mock('@grafana/runtime', () => ({
     return runRequestMock(ds, request);
   },
   getDataSourceSrv: () => {
-    return { get: getDataSourceMock };
+    return {
+      get: getDataSourceMock,
+      getInstanceSettings: () => ({ uid: 'test-uid' }),
+    };
   },
+  getTemplateSrv: () => ({
+    getAdhocFilters: jest.fn(),
+  }),
   config: {
     theme: {
       palette: {
@@ -132,7 +140,7 @@ describe('SceneQueryRunner', () => {
           "targets": [
             {
               "datasource": {
-                "uid": "test",
+                "uid": "test-uid",
               },
               "refId": "A",
             },
@@ -193,6 +201,44 @@ describe('SceneQueryRunner', () => {
 
       expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
       expect(getDataSourceCall[1].__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
+    });
+
+    it('should pass adhoc filters via request object', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filterSet = new AdHocFilterSet({
+        datasource: { uid: 'test-uid' },
+        filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
+      });
+
+      new EmbeddedScene({
+        $data: queryRunner,
+        controls: [filterSet],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].filters).toEqual(filterSet.state.filters);
+
+      // Verify updating filter re-triggers query
+      filterSet._updateFilter(filterSet.state.filters[0], 'value', 'newValue');
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+
+      const runRequestCall2 = runRequestMock.mock.calls[1];
+      expect(runRequestCall2[1].filters).toEqual(filterSet.state.filters);
     });
   });
 
@@ -1375,7 +1421,7 @@ describe('SceneQueryRunner', () => {
             // This function is faking annotation events with exclude filter
             return [
               {
-                // only this annotation should we returned
+                // this annotation should we returned
                 source: {
                   filter: {
                     exclude: true,

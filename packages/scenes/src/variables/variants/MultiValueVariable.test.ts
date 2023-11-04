@@ -61,6 +61,22 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toBe('A');
     });
 
+    it('Should update text representation if current matched option has different text value', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [{ label: 'displayName for A', value: 'A' }],
+        value: 'A',
+        text: 'A',
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe('A');
+      expect(variable.state.text).toBe('displayName for A');
+    });
+
     it('Should maintain the valid values when multiple selected', async () => {
       const variable = new TestVariable({
         name: 'test',
@@ -144,6 +160,23 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
       expect(variable.state.options).toEqual(variable.state.optionsToReturn);
       expect(changeEvent).toBeDefined();
+    });
+
+    it('Should default to $__all even when no options are returned', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [],
+        defaultToAll: true,
+        value: [],
+        text: [],
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
+      expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
     });
   });
 
@@ -389,6 +422,19 @@ describe('MultiValueVariable', () => {
       variable.urlSync?.updateFromUrl({ ['var-test']: ['2', '1'] });
       expect(variable.state.value).toEqual(['2', '1']);
       expect(variable.state.text).toEqual(['B', 'A']);
+    });
+
+    it('Can disable url sync', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        value: '1',
+        text: 'A',
+        delayMs: 0,
+        skipUrlSync: true,
+      });
+
+      expect(variable.urlSync?.getUrlState()).toEqual({});
+      expect(variable.urlSync?.getKeys()).toEqual([]);
     });
   });
 });

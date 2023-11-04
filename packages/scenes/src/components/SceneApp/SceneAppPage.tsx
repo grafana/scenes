@@ -61,6 +61,10 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   }
 
   public enrichDataRequest(source: SceneObject) {
+    if (this.state.getParentPage) {
+      return this.state.getParentPage().enrichDataRequest(source);
+    }
+
     if (!this.parent) {
       return null;
     }
@@ -150,7 +154,7 @@ function getFallbackRoute(page: SceneAppPage, routeProps: RouteComponentProps) {
     <Route
       key={'fallback route'}
       render={(props) => {
-        const fallbackPage = getDefaultFallbackPage();
+        const fallbackPage = page.state.getFallbackPage?.() ?? getDefaultFallbackPage();
         return <SceneAppPageView page={fallbackPage} routeProps={routeProps} />;
       }}
     ></Route>

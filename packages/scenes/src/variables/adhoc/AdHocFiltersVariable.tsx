@@ -42,18 +42,22 @@ export class AdHocFiltersVariable
   }
 
   public constructor(state: AdHocFiltersVariableState) {
-    super(state);
+    super({
+      ...state,
+      filterExpression: state.filterExpression ?? renderFilters(state.set.state.filters),
+    });
 
     // Subscribe to filter changes and up the variable value (filterExpression)
     this.addActivationHandler(() => {
       this._subs.add(
         this.state.set.subscribeToState((newState, prevState) => {
           if (newState.filters !== prevState.filters) {
-            this._filtersChanged(newState.filters);
+            this._updateFilterExpression(newState.filters, true);
           }
         })
       );
-      this._filtersChanged(this.state.set.state.filters);
+
+      this._updateFilterExpression(this.state.set.state.filters, false);
     });
   }
 
@@ -61,33 +65,49 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
-  private _filtersChanged(filters: AdHocVariableFilter[]) {
-    let expr = '';
+  private _updateFilterExpression(filters: AdHocVariableFilter[], publishEvent: boolean) {
+    let expr = renderFilters(filters);
 
-    for (const filter of filters) {
-      expr += `${this._renderFilter(filter)},`;
+    if (expr === this.state.filterExpression) {
+      return;
     }
 
     this.setState({ filterExpression: expr });
-    this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-  }
 
-  private _renderFilter(filter: AdHocVariableFilter) {
-    let value = '';
-
-    if (filter.operator === '=~' || filter.operator === '!~¨') {
-      value = escapeLabelValueInRegexSelector(filter.value);
-    } else {
-      value = escapeLabelValueInExactSelector(filter.value);
+    if (publishEvent) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
-
-    return `${filter.key}${filter.operator}"${value}"`;
   }
 
   // Same UI as the standalone AdHocFilterSet
   public static Component = ({ model }: SceneComponentProps<AdHocFiltersVariable>) => {
     return <AdHocFilterSet.Component model={model.state.set} />;
   };
+}
+
+function renderFilters(filters: AdHocVariableFilter[]) {
+  let expr = '';
+  for (const filter of filters) {
+    expr += `${renderFilter(filter)},`;
+  }
+
+  if (expr.length > 0) {
+    expr = expr.slice(0, -1);
+  }
+
+  return expr;
+}
+
+function renderFilter(filter: AdHocVariableFilter) {
+  let value = '';
+
+  if (filter.operator === '=~' || filter.operator === '!~¨') {
+    value = escapeLabelValueInRegexSelector(filter.value);
+  } else {
+    value = escapeLabelValueInExactSelector(filter.value);
+  }
+
+  return `${filter.key}${filter.operator}"${value}"`;
 }
 
 // based on the openmetrics-documentation, the 3 symbols we have to handle are:

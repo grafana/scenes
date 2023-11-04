@@ -162,9 +162,76 @@ new SceneFlexLayout({
 
 In the preceding example, we use the `md` property to override the default responsive behavior that changes a row layout to a column layout. We also apply a tighter `minHeight` constraint.
 
+## CSS grid layout
+
+As an alternative to `SceneFlexLayout`, `SceneCSSGridLayout` is available to wrap scene items in a CSS Grid.
+
+```ts
+const scene = new EmbeddedScene({
+  body: new SceneCSSGridLayout({
+    templateColumns: `repeat(auto-fit, minmax(400px, 1fr))`,
+    children: [
+      PanelBuilders.timeseries().setTitle('Graph 1').build(),
+      PanelBuilders.timeseries().setTitle('Graph 2').build(),
+    ],
+  }),
+});
+```
+
+`SceneCSSGridLayout` accepts `children` the same as `SceneFlexLayout`, and has the following properties for applying CSS grid styles:
+
+```ts
+autoRows?: CSSProperties['gridAutoRows'];
+templateRows?: CSSProperties['gridTemplateRows'];
+templateColumns: CSSProperties['gridTemplateColumns'];
+/** In Grafana design system grid units (8px)  */
+rowGap: number;
+/** In Grafana design system grid units (8px)  */
+columnGap: number;
+justifyItems?: CSSProperties['justifyItems'];
+alignItems?: CSSProperties['alignItems'];
+justifyContent?: CSSProperties['justifyContent'];
+// For sizing constaints on smaller screens
+md?: SceneCSSGridLayoutState;
+```
+
+With CSS Grid it's easy to build a dynamic grid of panels where panel size constraints can be specific on the grid itself instead of each panel. Very useful
+for building grids of equally sized panels.
+
+The grid layout below is configured to have child elements with a minimum size of 400px and if there is more space available split it equally. The height
+is set using autoRows. This configuration will enable a very responsive layout of equally sized panels.
+
+```ts
+const scene = new EmbeddedScene({
+  body: new SceneCSSGridLayout({
+    templateColumns: `repeat(auto-fit, minmax(400px, 1fr))`,
+    autoRows: '150px',
+    rowGap: 2,
+    columnGap: 2,
+    children: [
+      new SceneCSSGridItem({
+        body: PanelBuilders.timeseries().setTitle('Time series').build(),
+      }),
+      new SceneCSSGridItem({
+        body: PanelBuilders.table().setTitle('Table').build(),
+      }),
+      new SceneCSSGridItem({
+        body: PanelBuilders.timeseries().setTitle('Time series').build(),
+      }),
+      new SceneCSSGridItem({
+        body: PanelBuilders.table().setTitle('Table').build(),
+      }),
+    ],
+  }),
+});
+```
+
+The SceneCSSGridItem wrapper around each child is optional.
+
 ## Grid layout
 
-`SceneGridLayout` allows you to build scenes as grids. This is the default behavior of Dashboards in Grafana, and grid layout lets you add a similar experience to your scene.
+`SceneGridLayout` allows you to build scenes as grids of elements that can be dragged and moved around. This is the default layout used by the core Dashboard experiance in Grafana. It is
+not recommended for scene app plugins unless you need users to be able to move panels around.
 
 ### Step 1. Create a scene
 

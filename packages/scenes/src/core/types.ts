@@ -142,6 +142,8 @@ export interface SceneTimeRangeState extends SceneObjectState {
   fiscalYearStartMonth?: number;
   value: TimeRange;
   timeZone?: TimeZone;
+  /** weekStart will change the global date locale so having multiple different weekStart values is not supported  */
+  weekStart?: string;
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {

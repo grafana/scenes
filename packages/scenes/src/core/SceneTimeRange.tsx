@@ -1,4 +1,4 @@
-import { getTimeZone, TimeRange } from '@grafana/data';
+import { getTimeZone, setWeekStart, TimeRange } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -8,6 +8,7 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
+import { config } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to'] });
@@ -16,13 +17,13 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     const from = state.from ?? 'now-6h';
     const to = state.to ?? 'now';
     const timeZone = state.timeZone;
-    const value = evaluateTimeRange(from, to, timeZone || getTimeZone());
+    const value = evaluateTimeRange(from, to, timeZone || getTimeZone(), state.fiscalYearStartMonth);
     super({ from, to, timeZone, value, ...state });
 
-    this.addActivationHandler(this._onActivate);
+    this.addActivationHandler(this._onActivate.bind(this));
   }
 
-  private _onActivate = () => {
+  private _onActivate() {
     // When SceneTimeRange has no time zone provided, find closest source of time zone and subscribe to it
     if (!this.state.timeZone) {
       const timeZoneSource = this.getTimeZoneSource();
@@ -31,14 +32,30 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
           timeZoneSource.subscribeToState((n, p) => {
             if (n.timeZone !== undefined && n.timeZone !== p.timeZone) {
               this.setState({
-                value: evaluateTimeRange(this.state.from, this.state.to, timeZoneSource.getTimeZone()),
+                value: evaluateTimeRange(
+                  this.state.from,
+                  this.state.to,
+                  timeZoneSource.getTimeZone(),
+                  this.state.fiscalYearStartMonth
+                ),
               });
             }
           })
         );
       }
     }
-  };
+
+    if (this.state.weekStart) {
+      setWeekStart(this.state.weekStart);
+    }
+
+    // Deactivation handler that restore weekStart if it was changed
+    return () => {
+      if (this.state.weekStart) {
+        setWeekStart(config.bootData.user.weekStart);
+      }
+    };
+  }
 
   /**
    * Will traverse up the scene graph to find the closest SceneTimeRangeLike with time zone set
@@ -80,20 +97,32 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeRangeChange = (timeRange: TimeRange) => {
     const update: Partial<SceneTimeRangeState> = {};
+    const updateToEval: Partial<SceneTimeRangeState> = {};
 
     if (typeof timeRange.raw.from === 'string') {
       update.from = timeRange.raw.from;
+      updateToEval.from = timeRange.raw.from;
     } else {
       update.from = timeRange.raw.from.toISOString();
+      // @ts-expect-error Need an update in core API
+      updateToEval.from = timeRange.raw.from.toISOString(true);
     }
 
     if (typeof timeRange.raw.to === 'string') {
       update.to = timeRange.raw.to;
+      updateToEval.to = timeRange.raw.to;
     } else {
       update.to = timeRange.raw.to.toISOString();
+      // @ts-expect-error Need an update in core API
+      updateToEval.to = timeRange.raw.to.toISOString(true);
     }
 
-    update.value = evaluateTimeRange(update.from, update.to, this.getTimeZone());
+    update.value = evaluateTimeRange(
+      updateToEval.from,
+      updateToEval.to,
+      this.getTimeZone(),
+      this.state.fiscalYearStartMonth
+    );
 
     // Only update if time range actually changed
     if (update.from !== this.state.from || update.to !== this.state.to) {
@@ -106,7 +135,9 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   public onRefresh = () => {
-    this.setState({ value: evaluateTimeRange(this.state.from, this.state.to, this.getTimeZone()) });
+    this.setState({
+      value: evaluateTimeRange(this.state.from, this.state.to, this.getTimeZone(), this.state.fiscalYearStartMonth),
+    });
   };
 
   public getUrlState() {
@@ -131,7 +162,12 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.to = to;
     }
 
-    update.value = evaluateTimeRange(update.from ?? this.state.from, update.to ?? this.state.to, this.getTimeZone());
+    update.value = evaluateTimeRange(
+      update.from ?? this.state.from,
+      update.to ?? this.state.to,
+      this.getTimeZone(),
+      this.state.fiscalYearStartMonth
+    );
     this.setState(update);
   }
 }

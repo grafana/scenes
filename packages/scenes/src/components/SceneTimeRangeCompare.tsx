@@ -1,11 +1,12 @@
+import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
+import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
-import { DateTime, dateTime, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonGroup, ButtonSelect, Checkbox, Icon, ToolbarButton } from '@grafana/ui';
+import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
-import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { parseUrlParam } from '../utils/parseUrlParam';
+import { css } from '@emotion/css';
 
 export interface TimeRangeCompareProvider {
   getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
@@ -17,21 +18,22 @@ interface SceneTimeRangeCompareState extends SceneObjectState {
 }
 
 const PREVIOUS_PERIOD_VALUE = '__previousPeriod';
+const NO_PERIOD_VALUE = '__noPeriod';
 
 export const PREVIOUS_PERIOD_COMPARE_OPTION = {
   label: 'Previous period',
   value: PREVIOUS_PERIOD_VALUE,
 };
 
+export const NO_COMPARE_OPTION = {
+  label: 'No comparison',
+  value: NO_PERIOD_VALUE,
+};
+
 export const DEFAULT_COMPARE_OPTIONS = [
-  { label: '1 day before', value: '24h' },
-  { label: '3 days before', value: '3d' },
-  { label: '1 week before', value: '1w' },
-  { label: '2 weeks before', value: '2w' },
-  { label: '1 month before', value: '1M' },
-  { label: '3 months before', value: '3M' },
-  { label: '6 months before', value: '6M' },
-  { label: '1 year before', value: '1y' },
+  { label: 'Day before', value: '24h' },
+  { label: 'Week before', value: '1w' },
+  { label: 'Month before', value: '1M' },
 ];
 
 export class SceneTimeRangeCompare
@@ -74,13 +76,18 @@ export class SceneTimeRangeCompare
     });
 
     return [
+      NO_COMPARE_OPTION,
       PREVIOUS_PERIOD_COMPARE_OPTION,
       ...DEFAULT_COMPARE_OPTIONS.slice(matchIndex).map(({ label, value }) => ({ label, value })),
     ];
   };
 
   public onCompareWithChanged = (compareWith: string) => {
-    this.setState({ compareWith });
+    if (compareWith === NO_PERIOD_VALUE) {
+      this.onClearCompare();
+    } else {
+      this.setState({ compareWith });
+    }
   };
 
   public onClearCompare = () => {
@@ -143,14 +150,21 @@ export class SceneTimeRangeCompare
 }
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
+  const styles = useStyles2(getStyles);
   const { compareWith, compareOptions } = model.useState();
-  const [enabled, setEnabled] = React.useState(false || Boolean(compareWith));
-  const value = compareOptions.find((o) => o.value === compareWith);
+
+  const [previousCompare, setPreviousCompare] = React.useState(compareWith);
+  const previousValue = compareOptions.find(({ value }) => value === previousCompare) ?? PREVIOUS_PERIOD_COMPARE_OPTION;
+
+  const value = compareOptions.find(({ value }) => value === compareWith);
+  const enabled = Boolean(value);
 
   const onClick = () => {
-    setEnabled(!enabled);
-    if (enabled && Boolean(compareWith)) {
+    if (enabled) {
+      setPreviousCompare(compareWith);
       model.onClearCompare();
+    } else if (!enabled) {
+      model.onCompareWithChanged(previousValue.value);
     }
   };
 
@@ -166,25 +180,35 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
         }}
       >
         <Checkbox label=" " value={enabled} onClick={onClick} />
-        Time frame comparison
+        Comparison
       </ToolbarButton>
 
       {enabled ? (
         <ButtonSelect
           variant="canvas"
           value={value}
-          options={enabled ? compareOptions : []}
+          options={compareOptions}
           onChange={(v) => {
             model.onCompareWithChanged(v.value!);
           }}
         />
       ) : (
-        <ToolbarButton
-          icon={<Icon name="angle-down" size="md" />}
-          style={{ cursor: !enabled ? 'not-allowed' : 'pointer' }}
-          variant="canvas"
-        />
+        <ToolbarButton className={styles.previewButton} disabled variant="canvas" isOpen={false}>
+          {previousValue.label}
+        </ToolbarButton>
       )}
     </ButtonGroup>
   );
+}
+
+function getStyles(theme: GrafanaTheme2) {
+  return {
+    previewButton: css({
+      '&:disabled': {
+        border: `1px solid ${theme.colors.secondary.border}`,
+        color: theme.colors.text.disabled,
+        opacity: 1,
+      },
+    }),
+  };
 }
