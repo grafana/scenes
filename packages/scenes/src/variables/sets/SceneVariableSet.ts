@@ -333,12 +333,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return true;
     }
 
-    console.log(
-      'variable',
-      variable.state.name,
-      'loading or waiting',
-      this._variablesToUpdate.has(variable) || this._updating.has(variable)
-    );
     return this._variablesToUpdate.has(variable) || this._updating.has(variable);
   }
 }
