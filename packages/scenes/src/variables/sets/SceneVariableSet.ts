@@ -30,7 +30,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * This makes sure SceneVariableSet's higher up in the chain notify us when parent level variables complete update batches.
    **/
   protected _variableDependency = new SceneVariableSetVariableDependencyHandler(
-    this._handleParentLevelVariableChange.bind(this)
+    this._handleParentVariableUpdatesCompleted.bind(this)
   );
 
   public getByName(name: string): SceneVariable | undefined {
@@ -270,8 +270,12 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    *
    * This is the main mechanism lower level variable set's react to changes on higher levels.
    */
-  private _handleParentLevelVariableChange() {
-    console.log('parent level change');
+  private _handleParentVariableUpdatesCompleted(changedVariables: Set<SceneVariable>) {
+    // First loop through changed variables and add any of our variables that depend on the higher level variable to the update queue
+    for (const changedVar of changedVariables) {
+      this._addDependentVariablesToUpdateQueue(changedVar);
+    }
+
     if (this._updating.size === 0 && this._variablesToUpdate.size > 0) {
       this._updateNextBatch();
     }
@@ -349,7 +353,7 @@ function writeVariableTraceLog(variable: SceneVariable, message: string, err?: E
 }
 
 class SceneVariableSetVariableDependencyHandler implements SceneVariableDependencyConfigLike {
-  public constructor(private _variableUpdatesCompleted: () => void) {}
+  public constructor(private _variableUpdatesCompleted: (changedVariables: Set<SceneVariable>) => void) {}
 
   private _emptySet = new Set<string>();
 
@@ -361,7 +365,7 @@ class SceneVariableSetVariableDependencyHandler implements SceneVariableDependen
     return false;
   }
 
-  public variableUpdatesCompleted(_: Set<SceneVariable>): void {
-    this._variableUpdatesCompleted();
+  public variableUpdatesCompleted(changedVariables: Set<SceneVariable>): void {
+    this._variableUpdatesCompleted(changedVariables);
   }
 }
