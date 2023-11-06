@@ -1,4 +1,4 @@
-import { isArray, isEqual } from 'lodash';
+import { isArray } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
