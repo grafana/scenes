@@ -2,13 +2,19 @@ import React from 'react';
 
 import {
   FieldConfigProperty,
+  FieldType,
+  LoadingState,
   PanelPlugin,
+  getDefaultTimeRange,
   standardEditorsRegistry,
   standardFieldConfigEditorRegistry,
+  toDataFrame,
 } from '@grafana/data';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel } from './VizPanel';
+import { SceneDataNode } from '../../core/SceneDataNode';
+import { SeriesVisibilityChangeMode } from '@grafana/ui';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -76,6 +82,10 @@ function getTestPlugin1() {
       builder.addTextInput({
         name: 'customProp3',
         path: 'customProp3',
+      });
+      builder.addTextInput({
+        name: 'Hide from',
+        path: 'hideFrom',
       });
     },
   });
@@ -244,11 +254,13 @@ describe('VizPanel', () => {
           defaults: { custom: { junkProp: true } },
           overrides: [],
         },
+        $data: getDataNodeWithTestData(),
       });
 
       pluginToLoad = getTestPlugin1();
       panel.activate();
     });
+
     test('should update partial field config by merging with existing', () => {
       panel.onFieldConfigChange({
         defaults: {
@@ -302,6 +314,15 @@ describe('VizPanel', () => {
       expect(panel.state.fieldConfig.defaults.custom?.customProp).toBe(false);
       expect(panel.state.fieldConfig.defaults.custom?.customProp2).toBe(false); // restored to default
       expect(panel.state.fieldConfig.defaults.custom?.customProp3).toBe(undefined); // restored to default
+    });
+
+    test('Can toggle visibility on an off', () => {
+      panel.applyFieldConfig(panel.state.$data?.state.data);
+
+      panel.getPanelContext().onToggleSeriesVisibility!('B', SeriesVisibilityChangeMode.ToggleSelection);
+      expect(panel.state.fieldConfig.overrides.length).toBe(1);
+      panel.getPanelContext().onToggleSeriesVisibility!('B', SeriesVisibilityChangeMode.ToggleSelection);
+      expect(panel.state.fieldConfig.overrides.length).toBe(0);
     });
   });
 
@@ -359,3 +380,20 @@ describe('VizPanel', () => {
     });
   });
 });
+
+function getDataNodeWithTestData() {
+  return new SceneDataNode({
+    data: {
+      state: LoadingState.Loading,
+      timeRange: getDefaultTimeRange(),
+      series: [
+        toDataFrame({
+          fields: [
+            { name: 'A', type: FieldType.string, values: ['A', 'B', 'C'] },
+            { name: 'B', type: FieldType.string, values: ['A', 'B', 'C'] },
+          ],
+        }),
+      ],
+    },
+  });
+}
