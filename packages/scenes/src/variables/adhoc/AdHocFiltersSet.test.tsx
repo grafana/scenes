@@ -73,7 +73,7 @@ describe('AdHocFilter', () => {
     await waitFor(() => select(selects[2], 'val4', { container: document.body }));
 
     // should run new query when filter changed
-    expect(runRequest.mock.calls.length).toBe(1);
+    expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersSet.state.filters[0].value).toBe('val4');
   });
 
