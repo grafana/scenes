@@ -1,7 +1,11 @@
+import { screen } from '@testing-library/dom';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { EmbeddedScene } from './EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
-import { PREVIOUS_PERIOD_COMPARE_OPTION, SceneTimeRangeCompare } from './SceneTimeRangeCompare';
+import { NO_COMPARE_OPTION, PREVIOUS_PERIOD_COMPARE_OPTION, SceneTimeRangeCompare } from './SceneTimeRangeCompare';
+import userEvent from '@testing-library/user-event';
+import { render } from '@testing-library/react';
+import React from 'react';
 
 describe('SceneTimeRangeCompare', () => {
   describe('given a time range', () => {
@@ -16,45 +20,30 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(9);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(5);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
                 },
                 {
-                  "label": "1 day before",
+                  "label": "Day before",
                   "value": "24h",
                 },
                 {
-                  "label": "3 days before",
-                  "value": "3d",
-                },
-                {
-                  "label": "1 week before",
+                  "label": "Week before",
                   "value": "1w",
                 },
                 {
-                  "label": "2 weeks before",
-                  "value": "2w",
-                },
-                {
-                  "label": "1 month before",
+                  "label": "Month before",
                   "value": "1M",
-                },
-                {
-                  "label": "3 months before",
-                  "value": "3M",
-                },
-                {
-                  "label": "6 months before",
-                  "value": "6M",
-                },
-                {
-                  "label": "1 year before",
-                  "value": "1y",
                 },
               ]
             `);
@@ -68,45 +57,30 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(9);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(5);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
                 },
                 {
-                  "label": "1 day before",
+                  "label": "Day before",
                   "value": "24h",
                 },
                 {
-                  "label": "3 days before",
-                  "value": "3d",
-                },
-                {
-                  "label": "1 week before",
+                  "label": "Week before",
                   "value": "1w",
                 },
                 {
-                  "label": "2 weeks before",
-                  "value": "2w",
-                },
-                {
-                  "label": "1 month before",
+                  "label": "Month before",
                   "value": "1M",
-                },
-                {
-                  "label": "3 months before",
-                  "value": "3M",
-                },
-                {
-                  "label": "6 months before",
-                  "value": "6M",
-                },
-                {
-                  "label": "1 year before",
-                  "value": "1y",
                 },
               ]
             `);
@@ -124,41 +98,26 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(8);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(4);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
                 },
                 {
-                  "label": "3 days before",
-                  "value": "3d",
-                },
-                {
-                  "label": "1 week before",
+                  "label": "Week before",
                   "value": "1w",
                 },
                 {
-                  "label": "2 weeks before",
-                  "value": "2w",
-                },
-                {
-                  "label": "1 month before",
+                  "label": "Month before",
                   "value": "1M",
-                },
-                {
-                  "label": "3 months before",
-                  "value": "3M",
-                },
-                {
-                  "label": "6 months before",
-                  "value": "6M",
-                },
-                {
-                  "label": "1 year before",
-                  "value": "1y",
                 },
               ]
             `);
@@ -172,41 +131,26 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(8);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(4);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
                 },
                 {
-                  "label": "3 days before",
-                  "value": "3d",
-                },
-                {
-                  "label": "1 week before",
+                  "label": "Week before",
                   "value": "1w",
                 },
                 {
-                  "label": "2 weeks before",
-                  "value": "2w",
-                },
-                {
-                  "label": "1 month before",
+                  "label": "Month before",
                   "value": "1M",
-                },
-                {
-                  "label": "3 months before",
-                  "value": "3M",
-                },
-                {
-                  "label": "6 months before",
-                  "value": "6M",
-                },
-                {
-                  "label": "1 year before",
-                  "value": "1y",
                 },
               ]
             `);
@@ -220,37 +164,26 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(7);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(4);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
                 [
+                  {
+                    "label": "No comparison",
+                    "value": "__noPeriod",
+                  },
                   {
                     "label": "Previous period",
                     "value": "__previousPeriod",
                   },
                   {
-                    "label": "1 week before",
+                    "label": "Week before",
                     "value": "1w",
                   },
                   {
-                    "label": "2 weeks before",
-                    "value": "2w",
-                  },
-                  {
-                    "label": "1 month before",
+                    "label": "Month before",
                     "value": "1M",
-                  },
-                  {
-                    "label": "3 months before",
-                    "value": "3M",
-                  },
-                  {
-                    "label": "6 months before",
-                    "value": "6M",
-                  },
-                  {
-                    "label": "1 year before",
-                    "value": "1y",
                   },
                 ]
               `);
@@ -267,33 +200,22 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(6);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(3);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
                   [
+                    {
+                      "label": "No comparison",
+                      "value": "__noPeriod",
+                    },
                     {
                       "label": "Previous period",
                       "value": "__previousPeriod",
                     },
                     {
-                      "label": "2 weeks before",
-                      "value": "2w",
-                    },
-                    {
-                      "label": "1 month before",
+                      "label": "Month before",
                       "value": "1M",
-                    },
-                    {
-                      "label": "3 months before",
-                      "value": "3M",
-                    },
-                    {
-                      "label": "6 months before",
-                      "value": "6M",
-                    },
-                    {
-                      "label": "1 year before",
-                      "value": "1y",
                     },
                   ]
                 `);
@@ -307,33 +229,22 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(6);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(3);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
                     [
+                      {
+                        "label": "No comparison",
+                        "value": "__noPeriod",
+                      },
                       {
                         "label": "Previous period",
                         "value": "__previousPeriod",
                       },
                       {
-                        "label": "2 weeks before",
-                        "value": "2w",
-                      },
-                      {
-                        "label": "1 month before",
+                        "label": "Month before",
                         "value": "1M",
-                      },
-                      {
-                        "label": "3 months before",
-                        "value": "3M",
-                      },
-                      {
-                        "label": "6 months before",
-                        "value": "6M",
-                      },
-                      {
-                        "label": "1 year before",
-                        "value": "1y",
                       },
                     ]
                   `);
@@ -347,25 +258,22 @@ describe('SceneTimeRangeCompare', () => {
 
         const result = comparer.getCompareOptions(timeRange.state.value);
 
-        expect(result).toHaveLength(4);
-        expect(result[0]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
+        expect(result).toHaveLength(3);
+        expect(result[0]).toBe(NO_COMPARE_OPTION);
+        expect(result[1]).toBe(PREVIOUS_PERIOD_COMPARE_OPTION);
         expect(result).toMatchInlineSnapshot(`
               [
+                {
+                  "label": "No comparison",
+                  "value": "__noPeriod",
+                },
                 {
                   "label": "Previous period",
                   "value": "__previousPeriod",
                 },
                 {
-                  "label": "3 months before",
-                  "value": "3M",
-                },
-                {
-                  "label": "6 months before",
-                  "value": "6M",
-                },
-                {
-                  "label": "1 year before",
-                  "value": "1y",
+                  "label": "Month before",
+                  "value": "1M",
                 },
               ]
             `);
@@ -425,5 +333,76 @@ describe('SceneTimeRangeCompare', () => {
 
     timeRange.setState({ from: 'now-8d', to: 'now' });
     expect(comparer.state.compareWith).toBe(PREVIOUS_PERIOD_COMPARE_OPTION.value);
+  });
+
+  test('should allow for clearing comparison', () => {
+    const timeRange = new SceneTimeRange({
+      from: 'now-3d',
+      to: 'now',
+    });
+
+    const comparer = new SceneTimeRangeCompare({});
+
+    const scene = new EmbeddedScene({
+      $timeRange: timeRange,
+      body: new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: comparer })],
+      }),
+    });
+
+    scene.activate();
+    // activating comparer manually as we do not render scene in this test
+    comparer.activate();
+    expect(comparer.state.compareWith).toBeUndefined();
+
+    // Check that we can remove previously selected comparison
+    comparer.onCompareWithChanged('7d');
+    expect(comparer.state.compareWith).toBe('7d');
+
+    comparer.onCompareWithChanged(NO_COMPARE_OPTION.value);
+    expect(comparer.state.compareWith).toBeUndefined();
+  });
+
+  test('properly saves last selected value', async () => {
+    const timeRange = new SceneTimeRange({
+      from: 'now-3d',
+      to: 'now',
+    });
+
+    const comparer = new SceneTimeRangeCompare({});
+
+    const scene = new EmbeddedScene({
+      $timeRange: timeRange,
+      body: new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: comparer })],
+      }),
+    });
+
+    render(<scene.Component model={scene} />);
+
+    // Is undefined by default
+    expect(comparer.state.compareWith).toBeUndefined();
+
+    let checkbox = screen.getByRole('checkbox');
+    await userEvent.click(checkbox);
+
+    // On checkbox click, previous period gets automatically selected
+    expect(comparer.state.compareWith).toBe(PREVIOUS_PERIOD_COMPARE_OPTION.value);
+
+    // Choose week before option
+    await userEvent.click(screen.getByRole('button', { name: PREVIOUS_PERIOD_COMPARE_OPTION.label }));
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'Week before' }));
+
+    expect(comparer.state.compareWith).toBe('1w');
+
+    // Uncheck checkbox
+    await userEvent.click(checkbox);
+    expect(comparer.state.compareWith).toBeUndefined();
+
+    // Check it again
+    await userEvent.click(checkbox);
+
+    // Default value should be previously compared value
+    expect(comparer.state.compareWith).toBe('1w');
   });
 });

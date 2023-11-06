@@ -4,12 +4,11 @@ import { LoadingState, PanelData, DataFrame } from '@grafana/data';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneComponentProps, SceneObjectState } from '../core/types';
-import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
+import { SceneComponentProps, SceneLayout, SceneObject, SceneObjectState } from '../core/types';
 
 interface SceneByFrameRepeaterState extends SceneObjectState {
-  body: SceneFlexLayout;
-  getLayoutChild(data: PanelData, frame: DataFrame, frameIndex: number): SceneFlexItem;
+  body: SceneLayout;
+  getLayoutChild(data: PanelData, frame: DataFrame, frameIndex: number): SceneObject;
 }
 
 export class SceneByFrameRepeater extends SceneObjectBase<SceneByFrameRepeaterState> {
@@ -17,18 +16,24 @@ export class SceneByFrameRepeater extends SceneObjectBase<SceneByFrameRepeaterSt
     super(state);
 
     this.addActivationHandler(() => {
+      const dataProvider = sceneGraph.getData(this);
+
       this._subs.add(
-        sceneGraph.getData(this).subscribeToState((data) => {
+        dataProvider.subscribeToState((data) => {
           if (data.data?.state === LoadingState.Done) {
             this.performRepeat(data.data);
           }
         })
       );
+
+      if (dataProvider.state.data) {
+        this.performRepeat(dataProvider.state.data);
+      }
     });
   }
 
   private performRepeat(data: PanelData) {
-    const newChildren: SceneFlexItem[] = [];
+    const newChildren: SceneObject[] = [];
 
     for (let seriesIndex = 0; seriesIndex < data.series.length; seriesIndex++) {
       const layoutChild = this.state.getLayoutChild(data, data.series[seriesIndex], seriesIndex);

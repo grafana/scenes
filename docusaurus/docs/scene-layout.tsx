@@ -1,6 +1,8 @@
 import {
   EmbeddedScene,
   PanelBuilders,
+  SceneCSSGridItem,
+  SceneCSSGridLayout,
   SceneFlexItem,
   SceneFlexLayout,
   SceneGridItem,
@@ -32,6 +34,53 @@ export function getFlexBoxLayoutScene() {
           body: PanelBuilders.timeseries().setTitle('Time series').build(),
         }),
         new SceneFlexItem({
+          body: PanelBuilders.table().setTitle('Table').build(),
+        }),
+      ],
+    }),
+  });
+
+  return scene;
+}
+
+export function getCSSGridLayoutScene() {
+  const queryRunner = new SceneQueryRunner({
+    datasource: {
+      type: 'prometheus',
+      uid: 'gdev-prometheus',
+    },
+    queries: [
+      {
+        refId: 'A',
+        expr: 'rate(prometheus_http_requests_total{}[5m])',
+      },
+    ],
+  });
+
+  const scene = new EmbeddedScene({
+    $data: queryRunner,
+    body: new SceneCSSGridLayout({
+      templateColumns: `repeat(auto-fit, minmax(400px, 1fr))`,
+      autoRows: '150px',
+      rowGap: 2,
+      columnGap: 2,
+      children: [
+        new SceneCSSGridItem({
+          body: PanelBuilders.timeseries().setTitle('Time series').build(),
+        }),
+        new SceneCSSGridItem({
+          body: PanelBuilders.table().setTitle('Time series').build(),
+        }),
+        new SceneCSSGridItem({
+          body: PanelBuilders.timeseries().setTitle('Time series').build(),
+        }),
+        new SceneCSSGridItem({
+          body: PanelBuilders.table().setTitle('Time series').build(),
+        }),
+        new SceneCSSGridItem({
+          body: PanelBuilders.timeseries().setTitle('Table').build(),
+        }),
+        new SceneCSSGridItem({
           body: PanelBuilders.table().setTitle('Table').build(),
         }),
       ],

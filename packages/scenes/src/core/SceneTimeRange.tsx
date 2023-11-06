@@ -97,20 +97,32 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeRangeChange = (timeRange: TimeRange) => {
     const update: Partial<SceneTimeRangeState> = {};
+    const updateToEval: Partial<SceneTimeRangeState> = {};
 
     if (typeof timeRange.raw.from === 'string') {
       update.from = timeRange.raw.from;
+      updateToEval.from = timeRange.raw.from;
     } else {
       update.from = timeRange.raw.from.toISOString();
+      // @ts-expect-error Need an update in core API
+      updateToEval.from = timeRange.raw.from.toISOString(true);
     }
 
     if (typeof timeRange.raw.to === 'string') {
       update.to = timeRange.raw.to;
+      updateToEval.to = timeRange.raw.to;
     } else {
       update.to = timeRange.raw.to.toISOString();
+      // @ts-expect-error Need an update in core API
+      updateToEval.to = timeRange.raw.to.toISOString(true);
     }
 
-    update.value = evaluateTimeRange(update.from, update.to, this.getTimeZone(), this.state.fiscalYearStartMonth);
+    update.value = evaluateTimeRange(
+      updateToEval.from,
+      updateToEval.to,
+      this.getTimeZone(),
+      this.state.fiscalYearStartMonth
+    );
 
     // Only update if time range actually changed
     if (update.from !== this.state.from || update.to !== this.state.to) {

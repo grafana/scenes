@@ -59,6 +59,7 @@ export {
   type SceneFlexItemState,
   type SceneFlexItemLike,
 } from './components/layout/SceneFlexLayout';
+export { SceneCSSGridLayout, SceneCSSGridItem } from './components/layout/CSSGrid/SceneCSSGridLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
@@ -76,6 +77,7 @@ export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
 export { SceneObjectRef } from './core/SceneObjectRef';
 export { PanelBuilders, PanelOptionsBuilders, FieldConfigBuilders } from './core/PanelBuilders';
+export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 
 export const sceneUtils = {

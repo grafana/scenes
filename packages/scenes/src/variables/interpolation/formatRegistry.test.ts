@@ -60,7 +60,11 @@ describe('formatRegistry', () => {
     expect(formatValue(VariableFormatID.DoubleQuote, ['test', `test"2`])).toBe('"test","test\\"2"');
 
     expect(formatValue(VariableFormatID.SQLString, "test'value")).toBe(`'test''value'`);
+    expect(formatValue(VariableFormatID.SQLString, 'test"value')).toBe(`'test\\"value'`);
     expect(formatValue(VariableFormatID.SQLString, ['test', "test'value2"])).toBe(`'test','test''value2'`);
+    expect(formatValue(VariableFormatID.SQLString, ['test', "test'value2", 'test"value3'])).toBe(
+      `'test','test''value2','test\\"value3'`
+    );
 
     expect(formatValue(VariableFormatID.Date, 1594671549254)).toBe('2020-07-13T20:19:09.254Z');
     expect(formatValue(VariableFormatID.Date, 1594671549254, 'text', ['seconds'])).toBe('1594671549');

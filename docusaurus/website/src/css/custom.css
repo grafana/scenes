@@ -94,28 +94,34 @@ html[data-theme='dark'] {
 
 /* admonitions */
 
+.alert {
+  --ifm-alert-background-color-highlight: var(--secondary-shade);
+  --ifm-alert-background-color: var(--background-secondary);
+  --ifm-alert-border-color: var(--text-secondary);
+}
+
 .alert--info {
-  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--info-shade), transparent 80%);
-  --ifm-alert-background-color: color-mix(in srgb, var(--info-main), transparent 80%);
-  --ifm-alert-border-color: color-mix(in srgb, var(--info-border), transparent 80%);
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--info-shade), transparent 70%);
+  --ifm-alert-background-color: color-mix(in srgb, var(--info-main), transparent 75%);
+  --ifm-alert-border-color: color-mix(in srgb, var(--info-border), transparent 15%);
 }
 
 .alert--warning {
-  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--warning-shade), transparent 60%);
-  --ifm-alert-background-color: color-mix(in srgb, var(--warning-main), transparent 60%);
-  --ifm-alert-border-color: color-mix(in srgb, var(--warning-border), transparent 60%);
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--warning-shade), transparent 70%);
+  --ifm-alert-background-color: color-mix(in srgb, var(--warning-main), transparent 75%);
+  --ifm-alert-border-color: color-mix(in srgb, var(--warning-border), transparent 15%);
 }
 
 .alert--success {
-  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--success-shade), transparent 60%);
-  --ifm-alert-background-color: color-mix(in srgb, var(--success-main), transparent 60%);
-  --ifm-alert-border-color: color-mix(in srgb, var(--success-border), transparent 60%);
+  --ifm-alert-background-color-highlight: color-mix(in srgb, var(--success-shade), transparent 70%);
+  --ifm-alert-background-color: color-mix(in srgb, var(--success-main), transparent 75%);
+  --ifm-alert-border-color: color-mix(in srgb, var(--success-border), transparent 15%);
 }
 
 .alert--danger {
   --ifm-alert-background-color-highlight: color-mix(in srgb, var(--error-shade), transparent 70%);
-  --ifm-alert-background-color: color-mix(in srgb, var(--error-main), transparent 70%);
-  --ifm-alert-border-color: color-mix(in srgb, var(--error-border), transparent 70%);
+  --ifm-alert-background-color: color-mix(in srgb, var(--error-main), transparent 75%);
+  --ifm-alert-border-color: color-mix(in srgb, var(--error-border), transparent 15%);
 }
 
 /* cards */
