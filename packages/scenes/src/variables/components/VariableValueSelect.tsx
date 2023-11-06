@@ -44,11 +44,8 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
 
   // Detect value changes outside
   useEffect(() => {
-    console.log('value changed outside');
     setUncommittedValue(arrayValue);
   }, [arrayValue]);
-
-  console.log('VariableValueSelectMulti render');
 
   const onInputChange = model.onSearchChange
     ? (value: string, meta: InputActionMeta) => {
