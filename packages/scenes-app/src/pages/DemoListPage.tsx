@@ -76,6 +76,7 @@ export class DemoList extends SceneObjectBase<DemoListState> {
       body: new SceneCSSGridLayout({
         children: [],
         templateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        autoRows: 'unset',
       }),
       searchQuery: '',
     });
