@@ -264,10 +264,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   /**
-   * This is called by any parent level variable set to notify scene that an update batch is completed
-   * We don't really care about what variables changed. We just kick of another updateBatch cycle but
-   * only if we have variables waiting to update and no update being currently processed.
-   *
+   * This is called by any parent level variable set to notify scene that an update batch is completed.
    * This is the main mechanism lower level variable set's react to changes on higher levels.
    */
   private _handleParentVariableUpdatesCompleted(changedVariables: Set<SceneVariable>) {
@@ -276,7 +273,8 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       this._addDependentVariablesToUpdateQueue(changedVar);
     }
 
-    if (this._updating.size === 0 && this._variablesToUpdate.size > 0) {
+    // If we have variables to update but none are currently updating kick of a new update batch
+    if (this._variablesToUpdate.size > 0 && this._updating.size === 0) {
       this._updateNextBatch();
     }
   }
