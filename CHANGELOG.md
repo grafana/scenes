@@ -1,3 +1,27 @@
+# v1.21.0 (Mon Nov 06 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Multi select batch update [#410](https://github.com/grafana/scenes/pull/410) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- DemoList: Fixes demo list card height [#435](https://github.com/grafana/scenes/pull/435) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - VizPanel: Fixes series visibility toggling [#444](https://github.com/grafana/scenes/pull/444) ([@torkelo](https://github.com/torkelo))
+  - Vertical layout for variable selectors and a simple mode for adhoc filters [#427](https://github.com/grafana/scenes/pull/427) ([@torkelo](https://github.com/torkelo))
+  - feat: support gridRow and gridColumn for SceneCSSGridItem [#440](https://github.com/grafana/scenes/pull/440) ([@erj826](https://github.com/erj826))
+  - Remove checkbox from time window comparison [#415](https://github.com/grafana/scenes/pull/415) ([@javiruiz01](https://github.com/javiruiz01) [@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- Eric Jacobson ([@erj826](https://github.com/erj826))
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.20.1 (Mon Oct 30 2023)
 
 #### 🐛 Bug Fix
