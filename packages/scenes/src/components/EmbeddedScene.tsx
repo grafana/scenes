@@ -83,8 +83,8 @@ const getStyles = (theme: GrafanaTheme2) => {
     }),
     controls: css({
       display: 'flex',
-      gap: theme.spacing(1),
-      alignItems: 'center',
+      gap: theme.spacing(2),
+      alignItems: 'flex-end',
       flexWrap: 'wrap',
     }),
   };

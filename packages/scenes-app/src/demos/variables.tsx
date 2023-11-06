@@ -42,6 +42,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   query: 'A.*',
                   value: 'server',
                   text: '',
+                  description: 'Server name',
                   delayMs: 1000,
                   options: [],
                   refresh: VariableRefresh.onTimeRangeChanged,
