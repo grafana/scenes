@@ -13,7 +13,7 @@ import {
   rangeUtil,
   transformDataFrame,
 } from '@grafana/data';
-import { getDataSourceSrv, getRunRequest, toDataQueryError } from '@grafana/runtime';
+import { getRunRequest, toDataQueryError } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
