@@ -4,6 +4,7 @@ import { IconName, Input, ToolbarButton } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../core/types';
+import { ControlsLabel } from '../utils/ControlsLabel';
 
 export interface ToolbarButtonState extends SceneObjectState {
   icon: IconName;
@@ -20,6 +21,7 @@ export class SceneToolbarButton extends SceneObjectBase<ToolbarButtonState> {
 
 export interface SceneToolbarInputState extends SceneObjectState {
   value?: string;
+  label?: string;
   onChange: (value: number) => void;
 }
 
@@ -28,13 +30,16 @@ export class SceneToolbarInput extends SceneObjectBase<SceneToolbarInputState> {
     const state = model.useState();
 
     return (
-      <Input
-        defaultValue={state.value}
-        width={8}
-        onBlur={(evt) => {
-          model.state.onChange(parseInt(evt.currentTarget.value, 10));
-        }}
-      />
+      <div style={{ display: 'flex' }}>
+        {state.label && <ControlsLabel label={state.label} />}
+        <Input
+          defaultValue={state.value}
+          width={8}
+          onBlur={(evt) => {
+            model.state.onChange(parseInt(evt.currentTarget.value, 10));
+          }}
+        />
+      </div>
     );
   };
 }

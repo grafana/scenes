@@ -6,7 +6,13 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneTimeRangeState } from '../core/types';
 import { EmbeddedScene } from './EmbeddedScene';
 import { SceneFlexLayout } from './layout/SceneFlexLayout';
-import { getShiftedTimeRange, getZoomedTimeRange, SceneTimePicker, SceneTimePickerState, TimeRangeDirection } from './SceneTimePicker';
+import {
+  getShiftedTimeRange,
+  getZoomedTimeRange,
+  SceneTimePicker,
+  SceneTimePickerState,
+  TimeRangeDirection,
+} from './SceneTimePicker';
 
 function setupScene(
   timeRangeProps: Partial<SceneTimeRangeState> = {},
@@ -114,11 +120,11 @@ it('calculates backward shift correctly', () => {
   expect(shiftedRange).toEqual({
     from: expectedFrom,
     to: expectedTo,
-    raw: { from: expectedFrom, to: expectedTo }
+    raw: { from: expectedFrom, to: expectedTo },
   });
 });
 
-it ('calculates forward shift correctly', () => {
+it('calculates forward shift correctly', () => {
   const from = dateTime('2023-12-17T10:00:00.433Z');
   const to = dateTime('2023-12-17T12:00:00.433Z');
   const upperLimit = dateTime('2023-12-17T15:48:27.433Z').valueOf();
@@ -134,11 +140,11 @@ it ('calculates forward shift correctly', () => {
   expect(shiftedRange).toEqual({
     from: expectedFrom,
     to: expectedTo,
-    raw: { from: expectedFrom, to: expectedTo }
+    raw: { from: expectedFrom, to: expectedTo },
   });
 });
 
-it ('calculates forward shift when moving past upper limit correctly', () => {
+it('calculates forward shift when moving past upper limit correctly', () => {
   const from = dateTime('2023-12-17T10:00:00.433Z');
   const to = dateTime('2023-12-17T12:00:00.433Z');
   const upperLimit = dateTime('2023-12-17T12:30:00.433Z');
@@ -154,6 +160,6 @@ it ('calculates forward shift when moving past upper limit correctly', () => {
   expect(shiftedRange).toEqual({
     from: expectedFrom,
     to: expectedTo,
-    raw: { from: expectedFrom, to: expectedTo }
+    raw: { from: expectedFrom, to: expectedTo },
   });
 });

@@ -30,14 +30,14 @@ export class CursorSync extends SceneObjectBase<CursorSyncState> {
     return new PanelContextEventBus(this.parent, panel);
   };
 
-  public getEventsScope = () => {
+  public getEventsScope() {
     if (!this.parent) {
       throw new Error('EnableCursorSync cannot be used as a standalone scene object');
     }
     // Since EnableCursorSync is a behavior, it is not a parent to any object in the scene graph.
     // We need to get it's parent in order to provide correct EventBus context to the children.
-    return this.parent.state.key;
-  };
+    return this.parent.state.key!;
+  }
 }
 
 // This serves as a shared EventsBus that is shared by children or CursorSync behavior.

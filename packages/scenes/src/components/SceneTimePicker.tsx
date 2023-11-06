@@ -28,14 +28,18 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
 
   public onMoveBackward = () => {
     const timeRange = sceneGraph.getTimeRange(this);
-    const { state: { value: range } }  = timeRange;
+    const {
+      state: { value: range },
+    } = timeRange;
 
     timeRange.onTimeRangeChange(getShiftedTimeRange(TimeRangeDirection.Backward, range, Date.now()));
   };
 
   public onMoveForward = () => {
     const timeRange = sceneGraph.getTimeRange(this);
-    const { state: { value: range } }  = timeRange;
+    const {
+      state: { value: range },
+    } = timeRange;
 
     timeRange.onTimeRangeChange(getShiftedTimeRange(TimeRangeDirection.Forward, range, Date.now()));
   };
@@ -81,7 +85,7 @@ export function getZoomedTimeRange(timeRange: TimeRange, factor: number): TimeRa
 
 export enum TimeRangeDirection {
   Backward,
-  Forward
+  Forward,
 }
 
 export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRange, upperLimit: number): TimeRange {
@@ -109,6 +113,6 @@ export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRang
   return {
     from,
     to,
-    raw: { from, to }
+    raw: { from, to },
   };
 }
