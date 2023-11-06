@@ -40,6 +40,7 @@ export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
               delayMs: 1000,
               options: [],
               refresh: VariableRefresh.onTimeRangeChanged,
+              description: 'Server name',
             }),
             new TestVariable({
               name: 'pod',

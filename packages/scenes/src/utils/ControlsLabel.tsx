@@ -21,6 +21,7 @@ interface ControlsLabelProps {
 export function ControlsLabel(props: ControlsLabelProps) {
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
+  const isVertical = props.layout === 'vertical';
 
   const loadingIndicator = Boolean(props.isLoading) ? (
     <div style={{ marginLeft: theme.spacing(1), marginTop: '-1px' }}>
@@ -49,7 +50,7 @@ export function ControlsLabel(props: ControlsLabelProps) {
 
   // The vertical layout has different css class and order of elements (label always first)
 
-  if (props.layout === 'vertical') {
+  if (isVertical) {
     labelElement = (
       <label className={styles.verticalLabel} data-testid={testId} htmlFor={props.htmlFor}>
         {props.label}
@@ -74,7 +75,7 @@ export function ControlsLabel(props: ControlsLabelProps) {
 
   if (props.description) {
     return (
-      <Tooltip content={props.description} placement={'bottom'}>
+      <Tooltip content={props.description} placement={isVertical ? 'top' : 'bottom'}>
         {labelElement}
       </Tooltip>
     );
