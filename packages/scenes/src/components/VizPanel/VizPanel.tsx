@@ -216,7 +216,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     const { fieldConfig, options } = this.state;
 
     // When replace is true, we want to replace the entire options object. Default will be applied.
-    const nextOptions = replace ? optionsUpdate : merge(cloneDeep(options), optionsUpdate);
+    const nextOptions = replace ? optionsUpdate : Object.assign(cloneDeep(options), optionsUpdate);
 
     const withDefaults = getPanelOptionsWithDefaults({
       plugin: this._plugin!,
