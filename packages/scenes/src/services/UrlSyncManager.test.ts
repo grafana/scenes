@@ -15,13 +15,19 @@ interface TestObjectState extends SceneObjectState {
   optional?: string;
   array?: string[];
   other?: string;
+  child?: TestObjectChild;
 }
 
 class TestObj extends SceneObjectBase<TestObjectState> {
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['name', 'array', 'optional'] });
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['name', 'array', 'optional', 'child'] });
 
   public getUrlState() {
-    return { name: this.state.name, array: this.state.array, optional: this.state.optional };
+    return {
+      name: this.state.name,
+      array: this.state.array,
+      optional: this.state.optional,
+      child: Boolean(this.state.child) ? '1' : undefined,
+    };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
@@ -35,6 +41,38 @@ class TestObj extends SceneObjectBase<TestObjectState> {
 
     if (values.hasOwnProperty('optional')) {
       this.setState({ optional: typeof values.optional === 'string' ? values.optional : undefined });
+    }
+
+    if (values.hasOwnProperty('child')) {
+      this.setState({
+        child: typeof values.child === 'string' ? new TestObjectChild({ childUrlFlag: 'initial' }) : undefined,
+      });
+    }
+  }
+}
+
+interface TestObjectChildState extends SceneObjectState {
+  childUrlFlag: string;
+}
+
+class TestObjectChild extends SceneObjectBase<TestObjectChildState> {
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['childUrlFlag'] });
+
+  public constructor(state: TestObjectChildState) {
+    super(state);
+
+    this.addActivationHandler(() => {
+      this.setState({ childUrlFlag: 'new state after activation' });
+    });
+  }
+
+  public getUrlState() {
+    return { childUrlFlag: this.state.childUrlFlag };
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues) {
+    if (values.hasOwnProperty('childUrlFlag')) {
+      this.setState({ childUrlFlag: typeof values.childUrlFlag === 'string' ? values.childUrlFlag : undefined });
     }
   }
 }
@@ -369,6 +407,32 @@ describe('UrlSyncManager', () => {
 
       // Should not update state
       expect(obj1.state.name).toBe('B');
+    });
+  });
+
+  describe('When url sync state change triggers another url sync', () => {
+    it('Should sync state with latest url state', () => {
+      const obj1 = new TestObj({ name: 'A' });
+      const scene1 = new SceneFlexLayout({
+        children: [obj1],
+      });
+
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene1);
+
+      deactivate = scene1.activate();
+
+      // Updating flag2 and flag1 to a value via URL
+      locationService.partial({ child: '1', childUrlFlag: 'child url state 1' });
+
+      expect(obj1.state.child).toBeDefined();
+
+      // child simulates a $variables state
+      if (obj1.state.child) {
+        obj1.state.child.activate();
+      }
+
+      expect(obj1.state.child?.state.childUrlFlag).toBe('child url state 1');
     });
   });
 });
