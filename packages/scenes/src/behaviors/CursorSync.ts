@@ -1,6 +1,6 @@
 import { BusEvent, BusEventHandler, BusEventType, EventBus, EventFilterOptions } from '@grafana/data';
 import { DashboardCursorSync } from '@grafana/schema';
-import { filter, Observable, Unsubscribable } from 'rxjs';
+import { Observable, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneObjectState } from '../core/types';
@@ -56,9 +56,8 @@ class PanelContextEventBus implements EventBus {
       };
 
       const sub = this._source.subscribeToEvent(eventType, handler);
-
       return () => sub.unsubscribe();
-    }).pipe(filter((event) => (event as any).origin !== this._eventsOrigin));
+    });
   }
 
   public subscribe<T extends BusEvent>(eventType: BusEventType<T>, handler: BusEventHandler<T>): Unsubscribable {
