@@ -102,6 +102,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const data = dataWithFieldConfig!;
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
+  const context = model.getPanelContext();
+  const panelId = context.instanceState?.legacyPanelId ?? 1;
+
   return (
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
@@ -127,10 +130,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
               <>
                 <ErrorBoundaryAlert dependencies={[plugin, data]}>
                   <PluginContextProvider meta={plugin.meta}>
-                    <PanelContextProvider value={model.getPanelContext()}>
+                    <PanelContextProvider value={context}>
                       {isReadyToRender && (
                         <PanelComponent
-                          id={1}
+                          id={panelId}
                           data={data}
                           title={title}
                           timeRange={data.timeRange}
