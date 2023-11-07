@@ -34,9 +34,10 @@ export class CursorSync extends SceneObjectBase<CursorSyncState> {
     if (!this.parent) {
       throw new Error('EnableCursorSync cannot be used as a standalone scene object');
     }
+
     // Since EnableCursorSync is a behavior, it is not a parent to any object in the scene graph.
     // We need to get it's parent in order to provide correct EventBus context to the children.
-    return this.parent.state.key!;
+    return this.state.key!;
   }
 }
 
@@ -45,7 +46,7 @@ class PanelContextEventBus implements EventBus {
   public constructor(private _source: SceneObject, private _eventsOrigin: SceneObject) {}
 
   public publish<T extends BusEvent>(event: T): void {
-    (event as any).origin = this._eventsOrigin;
+    (event as any).origin = this;
     this._eventsOrigin.publishEvent(event, true);
   }
 
@@ -56,6 +57,7 @@ class PanelContextEventBus implements EventBus {
       };
 
       const sub = this._source.subscribeToEvent(eventType, handler);
+
       return () => sub.unsubscribe();
     });
   }
