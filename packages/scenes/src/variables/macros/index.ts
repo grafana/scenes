@@ -4,6 +4,7 @@ import { TimeFromAndToMacro, TimezoneMacro, UrlTimeRangeMacro } from './timeMacr
 import { AllVariablesMacro } from './AllVariablesMacro';
 import { DataMacro, FieldMacro, SeriesMacro, ValueMacro } from './dataMacros';
 import { UrlMacro } from './urlMacros';
+import { OrgMacro, UserMacro } from './contextMacros';
 
 export const macrosIndex: Record<string, MacroVariableConstructor> = {
   [DataLinkBuiltInVars.includeVars]: AllVariablesMacro,
@@ -16,4 +17,6 @@ export const macrosIndex: Record<string, MacroVariableConstructor> = {
   ['__from']: TimeFromAndToMacro,
   ['__to']: TimeFromAndToMacro,
   ['__timezone']: TimezoneMacro,
+  ['__user']: UserMacro,
+  ['__org']: OrgMacro,
 };
