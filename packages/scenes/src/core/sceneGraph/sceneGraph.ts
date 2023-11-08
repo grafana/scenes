@@ -70,7 +70,9 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
     }
 
     const set = variable.parent as SceneVariables;
-    return set.isVariableLoadingOrWaitingToUpdate(variable);
+    if (set.isVariableLoadingOrWaitingToUpdate(variable)) {
+      return true;
+    }
   }
 
   return false;
