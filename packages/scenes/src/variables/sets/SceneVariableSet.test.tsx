@@ -579,7 +579,7 @@ describe('SceneVariableList', () => {
       expect(B.state.loading).toBe(true);
     });
 
-    it('Should update lower level variable when parnent changes', async () => {
+    it('Should update lower-level variable when parent changes', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
 
