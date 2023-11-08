@@ -28,6 +28,7 @@ jest.mock('@grafana/runtime', () => ({
 interface OptionsPlugin1 {
   showThresholds: boolean;
   option2?: string;
+  sortBy?: string[];
 }
 
 interface FieldConfigPlugin1 {
@@ -217,6 +218,18 @@ describe('VizPanel', () => {
       expect(panel.state.options.showThresholds).toBe(true);
       expect(panel.state.options.option2).toBe('updated option');
     });
+
+    test('should always allow overriding array values', () => {
+      panel.onOptionsChange({ sortBy: ['asc'] });
+      expect(panel.state.options.sortBy).toEqual(['asc']);
+
+      panel.onOptionsChange({ sortBy: ['desc'] });
+      expect(panel.state.options.sortBy).toEqual(['desc']);
+
+      panel.onOptionsChange({ sortBy: [] });
+      expect(panel.state.options.sortBy).toEqual([]);
+    });
+
     test('should update partial options without merging', () => {
       panel.onOptionsChange({
         option2: 'updated option',

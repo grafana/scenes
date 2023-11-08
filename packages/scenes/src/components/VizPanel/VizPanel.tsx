@@ -30,7 +30,7 @@ import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
-import { cloneDeep, merge } from 'lodash';
+import { cloneDeep, isArray, merge, mergeWith } from 'lodash';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -216,7 +216,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     const { fieldConfig, options } = this.state;
 
     // When replace is true, we want to replace the entire options object. Default will be applied.
-    const nextOptions = replace ? optionsUpdate : merge(cloneDeep(options), optionsUpdate);
+    const nextOptions = replace
+      ? optionsUpdate
+      : mergeWith(cloneDeep(options), optionsUpdate, (_, srcValue) => {
+          if (isArray(srcValue)) {
+            return srcValue;
+          }
+          return;
+        });
 
     const withDefaults = getPanelOptionsWithDefaults({
       plugin: this._plugin!,
