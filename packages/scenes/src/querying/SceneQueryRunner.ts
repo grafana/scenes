@@ -13,7 +13,7 @@ import {
   rangeUtil,
   transformDataFrame,
 } from '@grafana/data';
-import { getDataSourceSrv, getRunRequest, toDataQueryError } from '@grafana/runtime';
+import { getRunRequest, toDataQueryError } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -337,7 +337,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const ds = await getDataSource(datasource, this._scopedVars);
 
       if (!this._adhocFilterSet) {
-        this.findAndSubscribeToAdhocFilters(ds.uid);
+        this.findAndSubscribeToAdhocFilters();
       }
 
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
@@ -502,7 +502,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private findAndSubscribeToAdhocFilters(ourDataSourceUid: string) {
+  private findAndSubscribeToAdhocFilters() {
     const set = getClosest(this, (s) => {
       let found = null;
       if (s instanceof AdHocFilterSet && s.state.datasource?.uid === this.state.datasource?.uid) {
@@ -517,12 +517,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     });
 
     if (!set || set.state.applyMode !== 'same-datasource') {
-      return;
-    }
-
-    const setDataSource = getDataSourceSrv().getInstanceSettings(set?.state.datasource, this._scopedVars);
-
-    if (setDataSource?.uid !== ourDataSourceUid) {
       return;
     }
 
