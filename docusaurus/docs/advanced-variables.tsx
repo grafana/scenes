@@ -106,7 +106,7 @@ export class MyCoolMacro implements FormatVariable {
 
   public getValue(fieldPath?: string) {
     if (fieldPath) {
-      return this._context.state[fieldPath];
+      return (this._context.state as any)[fieldPath];
     }
 
     return this._context.state.key!;
