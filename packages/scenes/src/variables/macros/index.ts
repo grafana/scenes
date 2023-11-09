@@ -20,3 +20,20 @@ export const macrosIndex: Record<string, MacroVariableConstructor> = {
   ['__user']: UserMacro,
   ['__org']: OrgMacro,
 };
+
+/**
+ * Allows you to register a variable expression macro that can then be used in strings with syntax ${<macro_name>.<fieldPath>}
+ * Call this on app activation and unregister the macro on deactivation.
+ * @returns a function that unregisters the macro
+ */
+export function registerVariableMacro(name: string, macro: MacroVariableConstructor): () => void {
+  if (macrosIndex[name]) {
+    throw new Error(`Macro already registered ${name}`);
+  }
+
+  macrosIndex[name] = macro;
+
+  return () => {
+    delete macrosIndex[name];
+  };
+}
