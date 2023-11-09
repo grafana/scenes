@@ -149,6 +149,69 @@ function TextInterpolatorRenderer({ model }: SceneComponentProps<TextInterpolato
 
 The preceding code will render a scene with a template variable, text input, and a preformatted text block. Modify the text in the text input to `${greetings} World!`, and the preformatted text box will update. Change the variable value at the top of the scene, and that will also update the preformatted text block.
 
+### Custom variable macros
+
+You can register a custom variable macro using `sceneUtils.registerVariableMacro`. A variable macro is useful for variable expressions you want to be evaluted dynamically based on some context. Examples of core variables
+that are implemented as macros.
+
+* ${__url.params:include:var-from,var-to}
+* ${__user.login}
+
+Example:
+
+```ts
+export function getVariablesSceneWithCustomMacro() {
+  const scene = new EmbeddedScene({
+    // Attach the a behavior to the SceneApp or top level scene object that registers and unregisters the macro
+    $behaviors: [registerMacro],
+    controls: [new VariableValueSelectors({})],
+    body: new SceneFlexLayout({
+      direction: 'column',
+      children: [
+        new SceneFlexItem({
+          minHeight: 300,
+          body: new TextInterpolator('Testing my macro ${__sceneInfo.key}'),
+        }),
+      ],
+    }),
+  });
+
+  return scene;
+}
+
+/**
+ * Macro to support ${__sceneInfo.<stateKey>} which will evaluate to the state key value of the
+ * context scene object where the string is interpolated.
+ */
+export class MyCoolMacro implements FormatVariable {
+  public state: { name: string; type: string };
+
+  public constructor(name: string, private _context: SceneObject) {
+    this.state = { name: name, type: '__sceneInfo' };
+  }
+
+  public getValue(fieldPath?: string) {
+    if (fieldPath) {
+      return (this._context.state as any)[fieldPath];
+    }
+
+    return this._context.state.key!;
+  }
+
+  public getValueText?(): string {
+    return '';
+  }
+}
+
+function registerMacro() {
+  const unregister = sceneUtils.registerVariableMacro('__sceneInfo', MyCoolMacro);
+  return () => unregister();
+}
+```
+
+
 ## Source code
 
 [View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/advanced-variables.tsx)
+
+
