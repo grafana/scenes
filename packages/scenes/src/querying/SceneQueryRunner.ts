@@ -1,9 +1,11 @@
 import { cloneDeep } from 'lodash';
 import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef, DataTransformerConfig, LoadingState } from '@grafana/schema';
 
 import {
+  AlertStateInfo,
+  // AlertStateInfo,
   DataFrame,
   DataQueryRequest,
   DataSourceApi,
@@ -19,6 +21,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
   DataLayerFilter,
+  // SceneDataLayerProvider,
   SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
@@ -150,24 +153,64 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onLayersReceived(results: Map<string, PanelData>) {
+    const dataLayers = sceneGraph.getDataLayers(this);
     const { dataLayerFilter } = this.state;
     let annotations: DataFrame[] = [];
+    let alertStates: DataFrame[] = [];
+    const layerKeys = Array.from(results.keys());
 
-    Array.from(results.values()).forEach((result) => {
-      if (result[DataTopic.Annotations]) {
-        annotations = annotations.concat(result[DataTopic.Annotations]);
+    Array.from(results.values()).forEach((result, i) => {
+      const layerKey = layerKeys[i];
+      const layer = dataLayers.find((l) => l.state.key === layerKey);
+      if (layer) {
+        if (layer.topic === DataTopic.Annotations && result[DataTopic.Annotations]) {
+          annotations = annotations.concat(result[DataTopic.Annotations]);
+        }
+
+        // @ts-expect-error TODO: use DataTopic.AlertStates when exposed from core grafana
+        if (layer.topic === 'alertStates') {
+          alertStates = alertStates.concat(result.series);
+        }
       }
     });
 
     if (dataLayerFilter?.panelId) {
-      transformDataFrame([filterAnnotationsOperator(dataLayerFilter)], annotations).subscribe((result) => {
-        this.setState({
-          data: {
-            ...this.state.data!,
-            annotations: result,
-          },
+      if (annotations.length > 0) {
+        transformDataFrame([filterAnnotationsOperator(dataLayerFilter)], annotations).subscribe((result) => {
+          this.setState({
+            data: {
+              ...this.state.data!,
+              annotations: result,
+            },
+          });
         });
-      });
+      }
+
+      if (alertStates.length > 0) {
+        // Transformation below is an equivalent to https://github.com/grafana/grafana/blob/main/public/app/features/query/state/DashboardQueryRunner/DashboardQueryRunner.ts#L63
+        // We are filtering alert states by panel id, taking first one and transforming it to AlertStateInfo.
+        transformDataFrame(FILTER_PANEL_ALERT_STATES_TRANSFORMATIONS(dataLayerFilter.panelId), alertStates).subscribe(
+          (result) => {
+            if (result.length > 0) {
+              const alertRule = result[0];
+
+              const alertState: AlertStateInfo = alertRule.fields.reduce((acc, field) => {
+                return {
+                  [field.name]: field.values[0],
+                  ...acc,
+                };
+              }, {} as AlertStateInfo);
+
+              this.setState({
+                data: {
+                  ...this.state.data!,
+                  alertState,
+                },
+              });
+            }
+          }
+        );
+      }
     } else {
       this.setState({
         data: {
@@ -450,7 +493,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
-    // Will combine annotations & --- from data layer providers
+    // Will combine annotations & alert state from data layer providers
     const dataWithLayersApplied = this._combineDataLayers(preProcessedData);
 
     let hasFetchedData = this.state._hasFetchedData;
@@ -465,6 +508,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _combineDataLayers(data: PanelData) {
     if (this.state.data && this.state.data.annotations) {
       data.annotations = (data.annotations || []).concat(this.state.data.annotations);
+    }
+
+    if (this.state.data && this.state.data.alertState) {
+      data.alertState = this.state.data.alertState;
     }
 
     return data;
@@ -529,3 +576,30 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }
+
+const FILTER_PANEL_ALERT_STATES_TRANSFORMATIONS: (panelId: number) => DataTransformerConfig[] = (panelId) => [
+  {
+    id: 'filterByValue',
+    options: {
+      filters: [
+        {
+          fieldName: 'panelId',
+          config: {
+            id: 'equal',
+            options: {
+              value: panelId,
+            },
+          },
+        },
+      ],
+      type: 'include',
+      match: 'any',
+    },
+  },
+  {
+    id: 'limit',
+    options: {
+      limitField: 1,
+    },
+  },
+];
