@@ -11,6 +11,9 @@ import {
   VariableDependencyConfig,
   CustomVariable,
   sceneGraph,
+  FormatVariable,
+  SceneObject,
+  sceneUtils,
 } from '@grafana/scenes';
 import { TextArea } from '@grafana/ui';
 
@@ -69,4 +72,52 @@ function TextInterpolatorRenderer({ model }: SceneComponentProps<TextInterpolato
       <pre>{interpolatedText}</pre>
     </div>
   );
+}
+
+export function getVariablesSceneWithCustomMacro() {
+  const scene = new EmbeddedScene({
+    // Attach the a behavior to the SceneApp or top level scene object that registers and unregisters the macro
+    $behaviors: [registerMacro],
+    controls: [new VariableValueSelectors({})],
+    body: new SceneFlexLayout({
+      direction: 'column',
+      children: [
+        new SceneFlexItem({
+          minHeight: 300,
+          body: new TextInterpolator('Testing my macro ${__sceneInfo.key}'),
+        }),
+      ],
+    }),
+  });
+
+  return scene;
+}
+
+/**
+ * Macro to support ${__sceneInfo.<stateKey>} which will evaluate to the state key value of the
+ * context scene object where the string is interpolated.
+ */
+export class MyCoolMacro implements FormatVariable {
+  public state: { name: string; type: string };
+
+  public constructor(name: string, private _context: SceneObject) {
+    this.state = { name: name, type: '__sceneInfo' };
+  }
+
+  public getValue(fieldPath?: string) {
+    if (fieldPath) {
+      return this._context.state[fieldPath];
+    }
+
+    return this._context.state.key!;
+  }
+
+  public getValueText?(): string {
+    return '';
+  }
+}
+
+function registerMacro() {
+  const unregister = sceneUtils.registerVariableMacro('__sceneInfo', MyCoolMacro);
+  return () => unregister();
 }
