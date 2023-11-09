@@ -1,3 +1,23 @@
+# v1.21.1 (Thu Nov 09 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Register variable macro [#452](https://github.com/grafana/scenes/pull/452) ([@torkelo](https://github.com/torkelo))
+  - Variables: Support for variables on lower levels to depend on variables on higher levels [#443](https://github.com/grafana/scenes/pull/443) ([@torkelo](https://github.com/torkelo))
+  - VizPanel: Handle empty arrays when merging new panel options [#447](https://github.com/grafana/scenes/pull/447) ([@javiruiz01](https://github.com/javiruiz01))
+  - PanelContext: Eventbus should not filter out local events [#445](https://github.com/grafana/scenes/pull/445) ([@torkelo](https://github.com/torkelo))
+  - Variables: Support __org and __user variable macros [#449](https://github.com/grafana/scenes/pull/449) ([@torkelo](https://github.com/torkelo))
+  - SceneQueryRunner: Fixes adhoc filters when using a variable data source [#422](https://github.com/grafana/scenes/pull/422) ([@torkelo](https://github.com/torkelo))
+  - VizPanel: Support passing legacyPanelId to PanelProps [#446](https://github.com/grafana/scenes/pull/446) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.21.0 (Mon Nov 06 2023)
 
 #### 🚀 Enhancement
