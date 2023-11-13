@@ -97,6 +97,26 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toEqual(['A', 'C']);
     });
 
+    it('Should update text representation if current matched text array values are not valid', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        value: ['1', '2'],
+        text: ['1'],
+        delayMs: 0,
+        isMulti: true,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual(['1', '2']);
+      expect(variable.state.text).toEqual(['A', 'B']);
+    });
+
     it('Should pick first option if none of the current values are valid', async () => {
       const variable = new TestVariable({
         name: 'test',
