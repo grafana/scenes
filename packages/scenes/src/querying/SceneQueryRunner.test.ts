@@ -23,7 +23,7 @@ import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneCanvasText } from '../components/SceneCanvasText';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayers } from './SceneDataLayers';
-import { TestAnnotationsDataLayer } from './layers/TestDataLayer';
+import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 
@@ -1491,6 +1491,36 @@ describe('SceneQueryRunner', () => {
               ],
             },
           ]
+        `);
+      });
+
+      it('filters alert states for a given panel', async () => {
+        const layer1 = new TestAnnotationsDataLayer({ name: 'Layer 1' });
+        const layer2 = new TestAlertStatesDataLayer({ name: 'Layer 2' });
+
+        const queryRunner = new SceneQueryRunner({
+          dataLayerFilter: {
+            panelId: 123,
+          },
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          $data: new SceneDataLayers({ layers: [layer1, layer2] }),
+        });
+
+        expect(queryRunner.state.data).toBeUndefined();
+
+        queryRunner.activate();
+        layer1.completeRun();
+        layer2.completeRun();
+
+        await new Promise((r) => setTimeout(r, 1));
+        expect(queryRunner.state.data?.alertState).toMatchInlineSnapshot(`
+          {
+            "dashboardId": 1,
+            "id": 1,
+            "panelId": 123,
+            "state": "alerting",
+          }
         `);
       });
     });
