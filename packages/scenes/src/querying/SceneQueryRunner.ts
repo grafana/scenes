@@ -5,7 +5,6 @@ import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
   AlertStateInfo,
-  // AlertStateInfo,
   DataFrame,
   DataFrameView,
   DataQueryRequest,
