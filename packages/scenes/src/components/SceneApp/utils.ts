@@ -1,6 +1,6 @@
 import React from 'react';
 import { RouteComponentProps, useLocation } from 'react-router-dom';
-import { UrlQueryMap, urlUtil } from '@grafana/data';
+import { UrlQueryMap, locationUtil, urlUtil } from '@grafana/data';
 import { locationSearchToObject, locationService } from '@grafana/runtime';
 import { SceneObject } from '../../core/types';
 
@@ -28,7 +28,7 @@ export function getUrlWithAppState(path: string, preserveParams?: string[]): str
     }
   }
 
-  return urlUtil.renderUrl(path, paramsCopy);
+  return urlUtil.renderUrl(locationUtil.assureBaseUrl(path), paramsCopy);
 }
 
 export function renderSceneComponentWithRouteProps(sceneObject: SceneObject, routeProps: RouteComponentProps) {
