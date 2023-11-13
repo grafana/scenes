@@ -105,8 +105,9 @@ describe('MultiValueVariable', () => {
           { label: 'A', value: '1' },
           { label: 'B', value: '2' },
         ],
+        // since we only sync value to URL after URL sync both value and text will have the "value" representation
         value: ['1', '2'],
-        text: ['1'],
+        text: ['1', '2'],
         delayMs: 0,
         isMulti: true,
       });
