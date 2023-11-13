@@ -1,3 +1,22 @@
+# v1.22.0 (Mon Nov 13 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Handle alert states data layer [#454](https://github.com/grafana/scenes/pull/454) ([@dprokop](https://github.com/dprokop) [@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Urls: Make sure urls include sub path [#434](https://github.com/grafana/scenes/pull/434) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.21.1 (Thu Nov 09 2023)
 
 #### 🐛 Bug Fix
