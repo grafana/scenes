@@ -1,15 +1,15 @@
 import React, { RefCallback } from 'react';
 import { useMeasure } from 'react-use';
 
-import { PanelData, PluginContextProvider } from '@grafana/data';
+import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
-import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
+import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
 import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -38,6 +38,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // Not sure we need to subscribe to this state
   const timeZone = sceneGraph.getTimeRange(model).getTimeZone();
+
+  const alertStateStyles = useStyles2(getAlertStateStyles);
 
   if (!plugin) {
     return <div>Loading plugin panel...</div>;
@@ -75,6 +77,26 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     titleItemsElement.push(<model.state.$timeRange.Component model={model.state.$timeRange} key={model.state.key} />);
   }
 
+  if (dataWithFieldConfig.alertState) {
+    titleItemsElement.push(
+      <Tooltip content={dataWithFieldConfig.alertState.state ?? 'unknown'} key={`alert-states-icon-${model.state.key}`}>
+        <PanelChrome.TitleItem
+          className={cx({
+            [alertStateStyles.ok]: dataWithFieldConfig.alertState.state === AlertState.OK,
+            [alertStateStyles.pending]: dataWithFieldConfig.alertState.state === AlertState.Pending,
+            [alertStateStyles.alerting]: dataWithFieldConfig.alertState.state === AlertState.Alerting,
+          })}
+        >
+          <Icon
+            name={dataWithFieldConfig.alertState.state === 'alerting' ? 'heart-break' : 'heart'}
+            className="panel-alert-icon"
+            size="md"
+          />
+        </PanelChrome.TitleItem>
+      </Tooltip>
+    );
+  }
+
   let panelMenu;
   if (menu) {
     panelMenu = <menu.Component model={menu} />;
@@ -100,6 +122,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // Data is always returned. For non-data panels, empty PanelData is returned.
   const data = dataWithFieldConfig!;
+
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
   const context = model.getPanelContext();
@@ -222,3 +245,17 @@ const absoluteWrapper = css({
   width: '100%',
   height: '100%',
 });
+
+const getAlertStateStyles = (theme: GrafanaTheme2) => {
+  return {
+    ok: css({
+      color: theme.colors.success.text,
+    }),
+    pending: css({
+      color: theme.colors.warning.text,
+    }),
+    alerting: css({
+      color: theme.colors.error.text,
+    }),
+  };
+};

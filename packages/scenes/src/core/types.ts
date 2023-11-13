@@ -216,6 +216,7 @@ export interface SceneDataLayerProviderState extends SceneObjectState {
 }
 
 export interface SceneDataLayerProvider extends SceneObject<SceneDataLayerProviderState> {
+  topic: DataTopic;
   cancelQuery?: () => void;
   getResultsStream(): Observable<SceneDataLayerProviderResult>;
 }

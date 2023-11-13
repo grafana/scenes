@@ -4,14 +4,15 @@ import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribab
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
+  AlertStateInfo,
   DataFrame,
+  DataFrameView,
   DataQueryRequest,
   DataSourceApi,
   DataTopic,
   PanelData,
   preProcessPanelData,
   rangeUtil,
-  transformDataFrame,
 } from '@grafana/data';
 import { getRunRequest, toDataQueryError } from '@grafana/runtime';
 
@@ -19,6 +20,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
   DataLayerFilter,
+  // SceneDataLayerProvider,
   SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
@@ -34,7 +36,7 @@ import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
-import { filterAnnotationsOperator } from './layers/annotations/filterAnnotationsOperator';
+import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 
@@ -150,32 +152,54 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onLayersReceived(results: Map<string, PanelData>) {
+    const dataLayers = sceneGraph.getDataLayers(this);
     const { dataLayerFilter } = this.state;
     let annotations: DataFrame[] = [];
+    let alertStates: DataFrame[] = [];
+    let alertState: AlertStateInfo | undefined;
+    const layerKeys = Array.from(results.keys());
 
-    Array.from(results.values()).forEach((result) => {
-      if (result[DataTopic.Annotations]) {
-        annotations = annotations.concat(result[DataTopic.Annotations]);
+    Array.from(results.values()).forEach((result, i) => {
+      const layerKey = layerKeys[i];
+      const layer = dataLayers.find((l) => l.state.key === layerKey);
+      if (layer) {
+        if (layer.topic === DataTopic.Annotations && result[DataTopic.Annotations]) {
+          annotations = annotations.concat(result[DataTopic.Annotations]);
+        }
+
+        // @ts-expect-error TODO: use DataTopic.AlertStates when exposed from core grafana
+        if (layer.topic === 'alertStates') {
+          alertStates = alertStates.concat(result.series);
+        }
       }
     });
 
     if (dataLayerFilter?.panelId) {
-      transformDataFrame([filterAnnotationsOperator(dataLayerFilter)], annotations).subscribe((result) => {
-        this.setState({
-          data: {
-            ...this.state.data!,
-            annotations: result,
-          },
-        });
-      });
-    } else {
-      this.setState({
-        data: {
-          ...this.state.data!,
-          annotations,
-        },
-      });
+      if (annotations.length > 0) {
+        annotations = filterAnnotations(annotations, dataLayerFilter);
+      }
+
+      if (alertStates.length > 0) {
+        for (const frame of alertStates) {
+          const frameView = new DataFrameView<AlertStateInfo>(frame);
+
+          for (const row of frameView) {
+            if (row.panelId === dataLayerFilter.panelId) {
+              alertState = row;
+              break;
+            }
+          }
+        }
+      }
     }
+
+    this.setState({
+      data: {
+        ...this.state.data!,
+        annotations,
+        alertState: alertState ?? this.state.data?.alertState,
+      },
+    });
   }
 
   /**
@@ -450,7 +474,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
-    // Will combine annotations & --- from data layer providers
+    // Will combine annotations & alert state from data layer providers
     const dataWithLayersApplied = this._combineDataLayers(preProcessedData);
 
     let hasFetchedData = this.state._hasFetchedData;
@@ -465,6 +489,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _combineDataLayers(data: PanelData) {
     if (this.state.data && this.state.data.annotations) {
       data.annotations = (data.annotations || []).concat(this.state.data.annotations);
+    }
+
+    if (this.state.data && this.state.data.alertState) {
+      data.alertState = this.state.data.alertState;
     }
 
     return data;
