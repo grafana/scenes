@@ -1,19 +1,19 @@
 import { cloneDeep } from 'lodash';
 import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, DataTransformerConfig, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
   AlertStateInfo,
   // AlertStateInfo,
   DataFrame,
+  DataFrameView,
   DataQueryRequest,
   DataSourceApi,
   DataTopic,
   PanelData,
   preProcessPanelData,
   rangeUtil,
-  transformDataFrame,
 } from '@grafana/data';
 import { getRunRequest, toDataQueryError } from '@grafana/runtime';
 
@@ -37,7 +37,7 @@ import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
-import { filterAnnotationsOperator } from './layers/annotations/filterAnnotationsOperator';
+import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 
@@ -157,6 +157,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const { dataLayerFilter } = this.state;
     let annotations: DataFrame[] = [];
     let alertStates: DataFrame[] = [];
+    let alertState: AlertStateInfo | undefined;
     const layerKeys = Array.from(results.keys());
 
     Array.from(results.values()).forEach((result, i) => {
@@ -176,49 +177,30 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (dataLayerFilter?.panelId) {
       if (annotations.length > 0) {
-        transformDataFrame([filterAnnotationsOperator(dataLayerFilter)], annotations).subscribe((result) => {
-          this.setState({
-            data: {
-              ...this.state.data!,
-              annotations: result,
-            },
-          });
-        });
+        annotations = filterAnnotations(annotations, dataLayerFilter);
       }
 
       if (alertStates.length > 0) {
-        // Transformation below is an equivalent to https://github.com/grafana/grafana/blob/main/public/app/features/query/state/DashboardQueryRunner/DashboardQueryRunner.ts#L63
-        // We are filtering alert states by panel id, taking first one and transforming it to AlertStateInfo.
-        transformDataFrame(FILTER_PANEL_ALERT_STATES_TRANSFORMATIONS(dataLayerFilter.panelId), alertStates).subscribe(
-          (result) => {
-            if (result.length > 0) {
-              const alertRule = result[0];
+        for (const frame of alertStates) {
+          const frameView = new DataFrameView<AlertStateInfo>(frame);
 
-              const alertState: AlertStateInfo = alertRule.fields.reduce((acc, field) => {
-                return {
-                  [field.name]: field.values[0],
-                  ...acc,
-                };
-              }, {} as AlertStateInfo);
-
-              this.setState({
-                data: {
-                  ...this.state.data!,
-                  alertState,
-                },
-              });
+          for (const row of frameView) {
+            if (row.panelId === dataLayerFilter.panelId) {
+              alertState = row;
+              break;
             }
           }
-        );
+        }
       }
-    } else {
-      this.setState({
-        data: {
-          ...this.state.data!,
-          annotations,
-        },
-      });
     }
+
+    this.setState({
+      data: {
+        ...this.state.data!,
+        annotations,
+        alertState: alertState ?? this.state.data?.alertState,
+      },
+    });
   }
 
   /**
@@ -576,30 +558,3 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
 }
-
-const FILTER_PANEL_ALERT_STATES_TRANSFORMATIONS: (panelId: number) => DataTransformerConfig[] = (panelId) => [
-  {
-    id: 'filterByValue',
-    options: {
-      filters: [
-        {
-          fieldName: 'panelId',
-          config: {
-            id: 'equal',
-            options: {
-              value: panelId,
-            },
-          },
-        },
-      ],
-      type: 'include',
-      match: 'any',
-    },
-  },
-  {
-    id: 'limit',
-    options: {
-      limitField: 1,
-    },
-  },
-];
