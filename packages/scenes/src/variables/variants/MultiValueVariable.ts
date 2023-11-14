@@ -87,6 +87,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       // If we are a multi valued variable validate the current values are among the options
       const currentValues = Array.isArray(this.state.value) ? this.state.value : [this.state.value];
       const validValues = currentValues.filter((v) => options.find((o) => o.value === v));
+      const validTexts = validValues.map((v) => options.find((o) => o.value === v)!.label);
 
       // If no valid values pick the first option
       if (validValues.length === 0) {
@@ -95,8 +96,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         stateUpdate.text = defaultState.text;
       }
       // We have valid values, if it's different from current valid values update current values
-      else if (!isEqual(validValues, this.state.value)) {
-        const validTexts = validValues.map((v) => options.find((o) => o.value === v)!.label);
+      else if (!isEqual(validValues, this.state.value) || !isEqual(validTexts, this.state.text)) {
         stateUpdate.value = validValues;
         stateUpdate.text = validTexts;
       }
