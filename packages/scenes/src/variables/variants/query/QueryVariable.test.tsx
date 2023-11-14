@@ -271,6 +271,63 @@ describe('QueryVariable', () => {
     });
   });
 
+  describe('When sort is provided', () => {
+    beforeEach(() => {
+      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+    });
+
+    it('should return options order by natural sort Desc', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: 8,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val11', value: 'val11' },
+      ]);
+    });
+
+    it('should return options order by natural sort Asc', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: 7,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val11', value: 'val11' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val1', value: 'val1' },
+      ]);
+    });
+
+    it('should return options order by alphabeticalAsc', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: 1,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val11', value: 'val11' },
+      ]);
+    });
+  });
+
   describe('Query with __searchFilter', () => {
     beforeEach(() => {
       runRequestMock.mockClear();
