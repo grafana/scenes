@@ -1,3 +1,16 @@
+# v1.22.1 (Tue Nov 14 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Fixes url sync issue for key/value multi value variables [#455](https://github.com/grafana/scenes/pull/455) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.22.0 (Mon Nov 13 2023)
 
 #### 🚀 Enhancement
