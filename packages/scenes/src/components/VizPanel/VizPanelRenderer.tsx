@@ -14,7 +14,6 @@ import { css, cx } from '@emotion/css';
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
     title,
-    description,
     options,
     fieldConfig,
     _pluginLoadError,
@@ -35,6 +34,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
+  const descriptionInterpolated = model.getDescription();
 
   // Not sure we need to subscribe to this state
   const timeZone = sceneGraph.getTimeRange(model).getTimeZone();
@@ -134,7 +134,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         {width > 0 && height > 0 && (
           <PanelChrome
             title={titleInterpolated}
-            description={description ? () => model.interpolate(description) : ''}
+            description={descriptionInterpolated}
             loadingState={data.state}
             statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
             width={width}
