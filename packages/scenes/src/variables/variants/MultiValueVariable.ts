@@ -30,6 +30,11 @@ export interface MultiValueVariableState extends SceneVariableState {
   defaultToAll?: boolean;
   allValue?: string;
   placeholder?: string;
+  /**
+   * For multi value variables, this option controls how many values to show before they are collapsed into +N.
+   * Defaults to 5
+   */
+  maxVisibleValues?: number;
 }
 
 export interface VariableGetOptionsArgs {
