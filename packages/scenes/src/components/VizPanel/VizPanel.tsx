@@ -90,7 +90,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   private _plugin?: PanelPlugin;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
-  private _structureRev: number = 0;
+  private _structureRev = 0;
+  private _cachedPluginOptions: Record<string, { options: DeepPartial<TOptions>, fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>> }> = {};
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
@@ -101,9 +102,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       ...state,
     });
 
-    this.addActivationHandler(() => {
-      this._onActivate();
-    });
+    this.addActivationHandler(() => this._onActivate());
   }
 
   private _onActivate() {
@@ -174,6 +173,33 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   private _getPluginVersion(plugin: PanelPlugin): string {
     return plugin && plugin.meta.info.version ? plugin.meta.info.version : config.buildInfo.version;
+  }
+
+  public changePlugin(newPluginId: string) {
+    this._cachedPluginOptions[this.state.pluginId] = {
+      options: this.state.options,
+      fieldConfig: this.state.fieldConfig
+    };
+
+    const cachedPluginOptions = this._cachedPluginOptions[newPluginId];
+    if (cachedPluginOptions) {
+      this.setState({
+        pluginId: newPluginId,
+        pluginVersion: undefined,
+        options: cachedPluginOptions.options,
+        fieldConfig: cachedPluginOptions.fieldConfig,
+      })
+    } else {
+      this.setState({
+        pluginId: newPluginId,
+        pluginVersion: undefined,
+        options: {},
+        fieldConfig: { defaults: {}, overrides: [] },
+      });
+    }
+
+    this._loadPlugin(newPluginId);
+    this._structureRev++;
   }
 
   public getPlugin(): PanelPlugin | undefined {
