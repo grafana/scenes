@@ -91,7 +91,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
   private _structureRev = 0;
-  private _cachedPluginOptions: Record<string, { options: DeepPartial<TOptions>, fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>> }> = {};
+  private _cachedPluginOptions: Record<
+    string,
+    { options: DeepPartial<TOptions>; fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>> } | undefined
+  > = {};
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
@@ -168,6 +171,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       options: withDefaults.options,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
+      pluginId: plugin.meta.id,
     });
   }
 
@@ -176,27 +180,26 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   public changePlugin(newPluginId: string) {
+    const { title, options, fieldConfig, pluginId } = this.state;
     this._cachedPluginOptions[this.state.pluginId] = {
-      options: this.state.options,
-      fieldConfig: this.state.fieldConfig
+      options,
+      fieldConfig,
     };
 
+    const panel: PanelModel = {
+      title,
+      options,
+      fieldConfig,
+      id: 1,
+      type: newPluginId,
+    };
+    const newOptions = this._plugin?.onPanelTypeChanged?.(panel, pluginId, options, fieldConfig);
     const cachedPluginOptions = this._cachedPluginOptions[newPluginId];
-    if (cachedPluginOptions) {
-      this.setState({
-        pluginId: newPluginId,
-        pluginVersion: undefined,
-        options: cachedPluginOptions.options,
-        fieldConfig: cachedPluginOptions.fieldConfig,
-      })
-    } else {
-      this.setState({
-        pluginId: newPluginId,
-        pluginVersion: undefined,
-        options: {},
-        fieldConfig: { defaults: {}, overrides: [] },
-      });
-    }
+    const newState = {
+      options: { ...cachedPluginOptions?.options, ...newOptions },
+      fieldConfig: cachedPluginOptions?.fieldConfig ?? { defaults: {}, overrides: [] },
+    };
+    this.setState(newState);
 
     this._loadPlugin(newPluginId);
     this._structureRev++;
