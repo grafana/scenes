@@ -23,6 +23,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     menu,
     headerActions,
     titleItems,
+    description,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
@@ -133,7 +134,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         {width > 0 && height > 0 && (
           <PanelChrome
             title={titleInterpolated}
-            description={model.getDescription}
+            description={description?.trim() ? model.getDescription : undefined}
             loadingState={data.state}
             statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
             width={width}
