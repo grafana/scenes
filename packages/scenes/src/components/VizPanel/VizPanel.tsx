@@ -260,14 +260,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return sceneGraph.interpolate(this, value, scoped, format);
   }) as InterpolateFunction;
 
-  public getDescription(): string {
+  public getDescription = () => {
     const { description } = this.state;
     if (description) {
       const markdown = this.interpolate(description);
       return renderMarkdown(markdown);
     }
     return '';
-  }
+  };
 
   /**
    * Called from the react render path to apply the field config to the data provided by the data provider
