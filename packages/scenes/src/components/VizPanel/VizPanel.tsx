@@ -14,6 +14,7 @@ import {
   compareDataFrameStructures,
   applyFieldOverrides,
   PluginType,
+  renderMarkdown,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -258,6 +259,15 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public interpolate = ((value: string, scoped?: ScopedVars, format?: string | VariableCustomFormatterFn) => {
     return sceneGraph.interpolate(this, value, scoped, format);
   }) as InterpolateFunction;
+
+  public getDescription = () => {
+    const { description } = this.state;
+    if (description) {
+      const markdown = this.interpolate(description);
+      return renderMarkdown(markdown);
+    }
+    return '';
+  };
 
   /**
    * Called from the react render path to apply the field config to the data provided by the data provider

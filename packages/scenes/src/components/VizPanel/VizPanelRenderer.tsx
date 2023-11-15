@@ -14,7 +14,6 @@ import { css, cx } from '@emotion/css';
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
     title,
-    description,
     options,
     fieldConfig,
     _pluginLoadError,
@@ -134,7 +133,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         {width > 0 && height > 0 && (
           <PanelChrome
             title={titleInterpolated}
-            description={description ? () => model.interpolate(description) : ''}
+            description={model.getDescription}
             loadingState={data.state}
             statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
             width={width}
