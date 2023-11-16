@@ -12,75 +12,62 @@ import {
   PanelBuilders,
   SceneVariableSet,
   DataSourceVariable,
-  SceneComponentProps,
-  SceneObject,
 } from '@grafana/scenes';
 import React from 'react';
 import { prefixRoute } from '../utils/utils.routing';
-import { DataSourceInstanceSettings, GrafanaTheme2 } from '@grafana/data';
-import { css } from '@emotion/css';
-import { Button, Field, Spinner, Switch, VerticalGroup } from '@grafana/ui';
+import { Spinner } from '@grafana/ui';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from '../demos/utils';
-import { SceneAppState } from '@grafana/scenes/src/components/SceneApp/types';
-import { DataSourcePicker } from '@grafana/runtime';
+import { DynamicAppSettings } from './DynamicAppSettings';
+import { AppSettings } from './shared';
+import { loadSettings, saveSettings } from './loadSettings';
+import { locationService } from '@grafana/runtime';
 
 interface DynamicAppState extends SceneObjectState {
-  initialDataSource?: string;
-  showPanelDescriptions?: boolean;
-  isInitialized?: boolean;
-  isConfigured?: boolean;
-  settings: DynamicAppSettings;
+  settings?: AppSettings;
 }
 
-class DynamicApp extends SceneObjectBase<DynamicAppState> {
+export class DynamicApp extends SceneObjectBase<DynamicAppState> {
   constructor(state: DynamicAppState) {
     super(state);
-    this.addActivationHandler(this._activationHandler.bind(this));
-  }
-
-  private _activationHandler() {
-    if (this.state.isInitialized) {
-      return;
-    }
-
-    // Set initializing (loading) page
-    this._updateState({
-      pages: [getInitializingPage()],
+    this.addActivationHandler(() => {
+      this._activationHandler();
     });
-
-    setTimeout(() => this._initializeCompleted(), 2000);
   }
 
-  private _updateState(appState: Partial<SceneAppState>, customState?: Partial<DynamicAppState>) {
-    const app = sceneGraph.getAncestor(this, SceneApp);
-    app.setState(appState);
-
-    if (customState) {
-      this.setState(customState);
+  private async _activationHandler() {
+    if (!this.state.settings) {
+      // Set loading page
+      this._updatePages([getLoadingPage()]);
     }
-  }
 
-  private _initializeCompleted() {
-    if (!this.state.isConfigured) {
-      this._updateState(
-        {
-          pages: [getInitialSetupPage()],
-        },
-        {
-          isInitialized: true,
-        }
-      );
+    const settings = await loadSettings();
+    this.setState({ settings });
+
+    if (settings.isConfigured) {
+      this._updatePages(buildAppPages(settings));
     } else {
-      this._updateState(
-        {
-          pages: buildAppPages(this.state),
-        },
-        {
-          isInitialized: true,
-        }
-      );
+      this._updatePages([getFirstSetupPage()]);
     }
   }
+
+  private _updatePages(pages: SceneAppPage[]) {
+    const app = sceneGraph.getAncestor(this, SceneApp);
+    app.setState({ pages });
+  }
+
+  public onChangeSettings = (settings: Partial<AppSettings>) => {
+    this.setState({ settings: { ...this.state.settings, ...settings } });
+    saveSettings(this.state.settings!);
+
+    if (this.state.settings?.isConfigured) {
+      this._updatePages(buildAppPages(this.state.settings!));
+    }
+  };
+
+  public onCompleteSetup = () => {
+    this.onChangeSettings({ isConfigured: true });
+    locationService.push(prefixRoute('dynamic-app'));
+  };
 }
 
 function buildDynamicApp() {
@@ -96,22 +83,22 @@ export const DynamicAppPage = () => {
   return <scene.Component model={scene} />;
 };
 
-export function getInitializingPage(): SceneAppPage {
+export function getLoadingPage(): SceneAppPage {
   return new SceneAppPage({
     title: 'Dynamic app',
     url: `${prefixRoute('dynamic-app')}`,
-    getScene: getInitializingScene,
+    getScene: getLoadingScene,
     getFallbackPage: () => {
       return new SceneAppPage({
         title: 'Dynamic app',
         url: `${prefixRoute('dynamic-app')}`,
-        getScene: getInitializingScene,
+        getScene: getLoadingScene,
       });
     },
   });
 }
 
-export function getInitialSetupPage(): SceneAppPage {
+export function getFirstSetupPage(): SceneAppPage {
   return new SceneAppPage({
     title: 'Initial app setup',
     subTitle: 'Before using the app you have a few settings to configure',
@@ -120,7 +107,7 @@ export function getInitialSetupPage(): SceneAppPage {
   });
 }
 
-function getInitializingScene() {
+function getLoadingScene() {
   return new EmbeddedScene({
     body: new SceneFlexLayout({
       direction: 'column',
@@ -141,7 +128,7 @@ function getInitializingScene() {
   });
 }
 
-export function buildAppPages(state: DynamicAppState): SceneAppPage[] {
+export function buildAppPages(settings: AppSettings): SceneAppPage[] {
   return [
     new SceneAppPage({
       title: 'Dynamic app',
@@ -152,11 +139,12 @@ export function buildAppPages(state: DynamicAppState): SceneAppPage[] {
         new SceneAppPage({
           title: 'Overview',
           url: `${prefixRoute('dynamic-app')}/overview`,
-          getScene: getOverviewScene,
+          getScene: getOverviewScene(settings),
         }),
         new SceneAppPage({
           title: 'Settings',
           url: `${prefixRoute('dynamic-app')}/settings`,
+          preserveUrlKeys: [],
           getScene: getSettingsScene,
         }),
       ],
@@ -164,23 +152,34 @@ export function buildAppPages(state: DynamicAppState): SceneAppPage[] {
   ];
 }
 
-function getOverviewScene() {
-  return new EmbeddedScene({
-    $variables: getDataSourceVariable(),
-    ...getEmbeddedSceneDefaults(),
-    body: new SceneFlexLayout({
-      direction: 'column',
-      children: [
-        new SceneFlexItem({
-          minWidth: '70%',
-          body: PanelBuilders.timeseries()
-            .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }))
-            .setTitle('Trends')
-            .build(),
-        }),
-      ],
-    }),
-  });
+function getOverviewScene(settings: AppSettings) {
+  return () => {
+    return new EmbeddedScene({
+      $variables: getDataSourceVariable(settings),
+      ...getEmbeddedSceneDefaults(),
+      body: new SceneFlexLayout({
+        direction: 'column',
+        children: [
+          new SceneFlexItem({
+            minWidth: '70%',
+            body: getVisualization(settings),
+          }),
+        ],
+      }),
+    });
+  };
+}
+
+function getVisualization(settings: AppSettings) {
+  const panel = PanelBuilders.timeseries()
+    .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }))
+    .setTitle('Trends');
+
+  if (settings.showPanelDescriptions) {
+    panel.setDescription('This is a panel description');
+  }
+
+  return panel.build();
 }
 
 function getSettingsScene() {
@@ -189,74 +188,14 @@ function getSettingsScene() {
   });
 }
 
-class DynamicAppSettings extends SceneObjectBase<SceneObjectState> {
-  public constructor(state: SceneObjectState) {
-    super(state);
-  }
-
-  public onChangeDataSource = (ds: DataSourceInstanceSettings) => {};
-
-  static Component = ({ model }: SceneComponentProps<DynamicAppSettings>) => {
-    const { initialDataSource, isConfigured } = getDynamicApp(model).useState();
-
-    return (
-      <VerticalGroup>
-        <Field label="Data source">
-          <DataSourcePicker
-            current={initialDataSource}
-            pluginId="grafana-testdata-datasource"
-            onChange={model.onChangeDataSource}
-          />
-        </Field>
-
-        <Field label="Show panel descriptions">
-          <Switch />
-        </Field>
-
-        {!isConfigured && <Button>Complete setup</Button>}
-      </VerticalGroup>
-    );
-  };
-}
-
-function getDataSourceVariable() {
+function getDataSourceVariable(settings: AppSettings) {
   return new SceneVariableSet({
     variables: [
       new DataSourceVariable({
         name: 'ds',
         pluginId: 'grafana-testdata-datasource',
-        skipUrlSync: true,
+        value: settings.initialDataSource,
       }),
     ],
   });
 }
-
-function getDynamicApp(model: SceneObject): DynamicApp {
-  let obj = model;
-
-  while (true) {
-    if (obj.parent) {
-      obj = obj.parent;
-    } else if (obj instanceof SceneAppPage && obj.state.getParentPage) {
-      obj = obj.state.getParentPage();
-    } else {
-      break;
-    }
-  }
-
-  if (obj.state.$behaviors?.[0] instanceof DynamicApp) {
-    return obj.state.$behaviors?.[0];
-  }
-
-  throw new Error('DynamicApp behavior not found at scene app root');
-}
-
-const getStyles = (theme: GrafanaTheme2) => ({
-  root: css({
-    display: 'flex',
-    flexGrow: 1,
-    flexDirection: 'column',
-    alignSelf: 'baseline',
-    gap: theme.spacing(2),
-  }),
-});
