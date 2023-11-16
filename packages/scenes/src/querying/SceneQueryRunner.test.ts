@@ -539,7 +539,9 @@ describe('SceneQueryRunner', () => {
 
   describe('when time range changed while in-active', () => {
     it('It should re-issue new query', async () => {
-      const timeRange = new SceneTimeRange();
+      const from = '2000-01-01';
+      const to = '2000-01-02';
+      const timeRange = new SceneTimeRange({from, to});
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: timeRange,
@@ -556,6 +558,10 @@ describe('SceneQueryRunner', () => {
 
       deactivateQueryRunner();
 
+      await new Promise((r) => setTimeout(r, 1));
+
+      const differentTo = '2000-01-03'
+      timeRange.setState({from, to: differentTo});
       timeRange.onRefresh();
 
       queryRunner.activate();
@@ -567,6 +573,41 @@ describe('SceneQueryRunner', () => {
     });
   });
 
+  describe('when time range changed to identify range while in-active', () => {
+    it('It should not re-issue new query', async () => {
+      const from = '2000-01-01';
+      const to = '2000-01-02';
+      const timeRange = new SceneTimeRange({from, to});
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: timeRange,
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      const deactivateQueryRunner = queryRunner.activate();
+
+      // When consumer viz is rendered with width 1000
+      await new Promise((r) => setTimeout(r, 1));
+      // Should query
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+
+      deactivateQueryRunner();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      timeRange.setState({from, to});
+      timeRange.onRefresh();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should not any new query
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+    });
+  });
+  
   describe('time frame comparison', () => {
     test('should run query with time range comparison', async () => {
       const timeRange = new SceneTimeRange({
