@@ -573,7 +573,7 @@ describe('SceneQueryRunner', () => {
     });
   });
 
-  describe('when time range changed to identify range while in-active', () => {
+  describe('when time range changed to identical range while in-active', () => {
     it('It should not re-issue new query', async () => {
       const from = '2000-01-01';
       const to = '2000-01-02';
@@ -596,6 +596,7 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
+      // Setting the state to an equivalent time range
       timeRange.setState({from, to});
       timeRange.onRefresh();
 
