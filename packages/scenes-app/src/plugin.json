@@ -32,6 +32,13 @@
       "path": "/a/%PLUGIN_ID%/demos",
       "role": "Admin",
       "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Dynamic app",
+      "path": "/a/%PLUGIN_ID%/dynamic-app",
+      "role": "Admin",
+      "addToNav": true
     }
   ],
   "dependencies": {
