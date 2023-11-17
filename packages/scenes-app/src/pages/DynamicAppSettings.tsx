@@ -20,7 +20,7 @@ export class DynamicAppSettings extends SceneObjectBase<SceneObjectState> {
 
     return (
       <VerticalGroup>
-        <Field label="Data source">
+        <Field label="Default data source">
           <DataSourcePicker
             current={settings?.initialDataSource}
             pluginId="grafana-testdata-datasource"

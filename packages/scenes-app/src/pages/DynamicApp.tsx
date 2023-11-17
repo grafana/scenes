@@ -102,7 +102,7 @@ export function getFirstSetupPage(): SceneAppPage {
   return new SceneAppPage({
     title: 'Initial app setup',
     subTitle: 'Before using the app you have a few settings to configure',
-    url: `${prefixRoute('dynamic-app')}/settings`,
+    url: `${prefixRoute('dynamic-app')}`,
     getScene: getSettingsScene,
   });
 }
