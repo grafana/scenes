@@ -35,6 +35,10 @@ export interface AdHocFilterSetState extends SceneObjectState {
    */
   applyMode?: 'same-datasource' | 'manual';
   /**
+   * Filter out the keys that do not match the regex.
+   */
+  tagKeyRegexFilter?: RegExp;
+  /**
    * Extension hook for customizing the key lookup.
    * Return replace: true if you want to override the default lookup
    * Return replace: false if you want to combine the results with the default lookup
@@ -143,6 +147,11 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
 
     if (override) {
       keys = keys.concat(override.values);
+    }
+
+    const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
+    if (tagKeyRegexFilter) {
+      keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
     return keys.map(toSelectableValue);

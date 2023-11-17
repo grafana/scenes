@@ -146,6 +146,15 @@ describe('AdHocFilter', () => {
       { label: 'v', value: '2' },
     ]);
   });
+
+  it('Can filter by regex', async () => {
+    const { filtersSet } = setup({
+      tagKeyRegexFilter: new RegExp('x.*'),
+    });
+
+    const keys = await filtersSet._getKeys(null);
+    expect(keys).toEqual([]);
+  });
 });
 
 const runRequestMock = {
