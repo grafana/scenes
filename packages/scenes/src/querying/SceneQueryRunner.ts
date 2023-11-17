@@ -247,10 +247,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _isDataTimeRangeStale(data: PanelData) {
     const timeRange = sceneGraph.getTimeRange(this);
 
-    if (data.timeRange === timeRange.state.value) {
+    const stateTimeRange = timeRange.state.value;
+    const dataTimeRange = data.timeRange;
+
+    if (
+      (stateTimeRange.from.unix() === dataTimeRange.from.unix()) &&
+      (stateTimeRange.to.unix() === dataTimeRange.to.unix()) 
+    ) {
       return false;
     }
-
     writeSceneLog('SceneQueryRunner', 'Data time range is stale');
     return true;
   }
