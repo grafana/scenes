@@ -1,3 +1,15 @@
+# v1.23.1 (Fri Nov 17 2023)
+
+#### 🐛 Bug Fix
+
+- fix: compare time ranges using actual unix time vs objects [#468](https://github.com/grafana/scenes/pull/468) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 1
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+---
+
 # v1.23.0 (Fri Nov 17 2023)
 
 #### 🚀 Enhancement
