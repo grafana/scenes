@@ -1,3 +1,25 @@
+# v1.23.0 (Fri Nov 17 2023)
+
+#### 🚀 Enhancement
+
+- Variables: Add natural sort from core grafana to query variables [#459](https://github.com/grafana/scenes/pull/459) ([@axelavargas](https://github.com/axelavargas))
+
+#### 🐛 Bug Fix
+
+- Adhoc filters: Add tagKeyRegexFilter prop [#469](https://github.com/grafana/scenes/pull/469) ([@anaivanov](https://github.com/anaivanov))
+- VizPanel: Don't show popup when description is empty [#465](https://github.com/grafana/scenes/pull/465) ([@dprokop](https://github.com/dprokop))
+- VIzPanel: Support markdown in panel description [#464](https://github.com/grafana/scenes/pull/464) ([@dprokop](https://github.com/dprokop))
+- Variables: No wrapping selects [#461](https://github.com/grafana/scenes/pull/461) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 4
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+- Ana Ivanov ([@anaivanov](https://github.com/anaivanov))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.22.1 (Tue Nov 14 2023)
 
 #### 🐛 Bug Fix
