@@ -558,8 +558,6 @@ describe('SceneQueryRunner', () => {
 
       deactivateQueryRunner();
 
-      await new Promise((r) => setTimeout(r, 1));
-
       const differentTo = '2000-01-03'
       timeRange.setState({from, to: differentTo});
       timeRange.onRefresh();
@@ -593,8 +591,6 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toEqual(1);
 
       deactivateQueryRunner();
-
-      await new Promise((r) => setTimeout(r, 1));
 
       // Setting the state to an equivalent time range
       timeRange.setState({from, to});
