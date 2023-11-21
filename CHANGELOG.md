@@ -1,3 +1,16 @@
+# v1.24.0 (Tue Nov 21 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Add type guards for variables [#472](https://github.com/grafana/scenes/pull/472) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 1
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
 # v1.23.1 (Fri Nov 17 2023)
 
 #### 🐛 Bug Fix
