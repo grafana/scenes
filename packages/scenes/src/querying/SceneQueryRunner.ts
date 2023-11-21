@@ -152,6 +152,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onLayersReceived(results: Map<string, PanelData>) {
+    const timeRange = sceneGraph.getTimeRange(this);
     const dataLayers = sceneGraph.getDataLayers(this);
     const { dataLayerFilter } = this.state;
     let annotations: DataFrame[] = [];
@@ -193,7 +194,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
     }
 
-    const baseStateUpdate = this.state.data ? this.state.data : emptyPanelData;
+    const baseStateUpdate = this.state.data ? this.state.data : { ...emptyPanelData, timeRange: timeRange.state.value };
 
     this.setState({
       data: {
