@@ -3,6 +3,15 @@ import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntim
 import { cloneSceneObjectState } from './core/sceneGraph/utils';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { registerVariableMacro } from './variables/macros';
+import {
+  isAdHocVariable,
+  isQueryVariable,
+  isTextBoxVariable,
+  isCustomVariable,
+  isDataSourceVariable,
+  isConstantVariable,
+  isIntervalVariable,
+} from './variables/variants/guards';
 
 export * from './core/types';
 export * from './core/events';
@@ -88,4 +97,13 @@ export const sceneUtils = {
   registerRuntimeDataSource,
   registerVariableMacro,
   cloneSceneObjectState,
+
+  // Variable guards
+  isAdHocVariable,
+  isConstantVariable,
+  isCustomVariable,
+  isDataSourceVariable,
+  isIntervalVariable,
+  isQueryVariable,
+  isTextBoxVariable,
 };
