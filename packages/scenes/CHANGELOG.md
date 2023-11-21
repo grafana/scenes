@@ -1,3 +1,15 @@
+# v1.24.1 (Tue Nov 21 2023)
+
+#### 🐛 Bug Fix
+
+- Fix non-null assertion in SceneQueryRunner [#474](https://github.com/grafana/scenes/pull/474) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.24.0 (Tue Nov 21 2023)
 
 #### 🚀 Enhancement
