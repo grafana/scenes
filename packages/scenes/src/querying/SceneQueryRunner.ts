@@ -193,9 +193,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
     }
 
+    const baseStateUpdate = this.state.data ? this.state.data : emptyPanelData;
+
     this.setState({
       data: {
-        ...this.state.data!,
+        ...baseStateUpdate,
         annotations,
         alertState: alertState ?? this.state.data?.alertState,
       },
@@ -251,8 +253,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const dataTimeRange = data.timeRange;
 
     if (
-      (stateTimeRange.from.unix() === dataTimeRange.from.unix()) &&
-      (stateTimeRange.to.unix() === dataTimeRange.to.unix()) 
+      stateTimeRange.from.unix() === dataTimeRange.from.unix() &&
+      stateTimeRange.to.unix() === dataTimeRange.to.unix()
     ) {
       return false;
     }
