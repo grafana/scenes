@@ -152,6 +152,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onLayersReceived(results: Map<string, PanelData>) {
+    const timeRange = sceneGraph.getTimeRange(this);
     const dataLayers = sceneGraph.getDataLayers(this);
     const { dataLayerFilter } = this.state;
     let annotations: DataFrame[] = [];
@@ -193,9 +194,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
     }
 
+    const baseStateUpdate = this.state.data ? this.state.data : { ...emptyPanelData, timeRange: timeRange.state.value };
+
     this.setState({
       data: {
-        ...this.state.data!,
+        ...baseStateUpdate,
         annotations,
         alertState: alertState ?? this.state.data?.alertState,
       },
@@ -251,8 +254,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const dataTimeRange = data.timeRange;
 
     if (
-      (stateTimeRange.from.unix() === dataTimeRange.from.unix()) &&
-      (stateTimeRange.to.unix() === dataTimeRange.to.unix()) 
+      stateTimeRange.from.unix() === dataTimeRange.from.unix() &&
+      stateTimeRange.to.unix() === dataTimeRange.to.unix()
     ) {
       return false;
     }
