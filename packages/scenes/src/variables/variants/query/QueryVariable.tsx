@@ -64,7 +64,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       return of([]);
     }
 
-    this.setState({ loading: true });
+    this.setState({ loading: true, error: null });
 
     return from(
       getDataSource(this.state.datasource, {
