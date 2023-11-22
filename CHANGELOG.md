@@ -1,3 +1,17 @@
+# v1.24.2 (Wed Nov 22 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Clear error state [#476](https://github.com/grafana/scenes/pull/476) ([@torkelo](https://github.com/torkelo))
+  - Variables: Fixes validation issue where the current saved value only matches text representation [#475](https://github.com/grafana/scenes/pull/475) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.24.1 (Tue Nov 21 2023)
 
 #### 🐛 Bug Fix
