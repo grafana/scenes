@@ -309,8 +309,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       }),
     };
 
-    if (!(pluginDataSupport.alertStates || pluginDataSupport.annotations)) {
+    if (!pluginDataSupport.alertStates) {
       this._dataWithFieldConfig.alertState = undefined;
+    }
+
+    if (!pluginDataSupport.annotations) {
       this._dataWithFieldConfig.annotations = undefined;
     }
 

@@ -416,6 +416,30 @@ describe('VizPanel', () => {
       expect(dataToRender.annotations).toBe(undefined);
     });
 
+    it('should provide alert states if plugin supports alert states topic', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1({ alertStates: true, annotations: false });
+      panel.activate();
+      await Promise.resolve();
+
+      const testData = getTestData();
+      const dataToRender = panel.applyFieldConfig(testData);
+      expect(dataToRender.alertState).toBe(testData.alertState);
+      expect(dataToRender.annotations).toBe(undefined);
+    });
+
+    it('should provide annotations if plugin supports annotations topic', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1({ alertStates: false, annotations: true });
+      panel.activate();
+      await Promise.resolve();
+
+      const testData = getTestData();
+      const dataToRender = panel.applyFieldConfig(testData);
+      expect(dataToRender.alertState).toBe(undefined);
+      expect(dataToRender.annotations).toBe(testData.annotations);
+    });
+
     it('should provide alert states and annotations if plugin supports these topics', async () => {
       panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
       pluginToLoad = getTestPlugin1({ alertStates: true, annotations: true });
