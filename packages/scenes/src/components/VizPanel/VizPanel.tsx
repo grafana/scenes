@@ -15,6 +15,7 @@ import {
   applyFieldOverrides,
   PluginType,
   renderMarkdown,
+  PanelPluginDataSupport,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -273,12 +274,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
    * Called from the react render path to apply the field config to the data provided by the data provider
    */
   public applyFieldConfig(rawData?: PanelData): PanelData {
-    const plugin = this._plugin!;
+    const plugin = this._plugin;
 
     if (!plugin || plugin.meta.skipDataQuery || !rawData) {
       // TODO setup time range subscription instead
       return emptyPanelData;
     }
+
+    const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
 
     const fieldConfigRegistry = plugin.fieldConfigRegistry;
     const prevFrames = this._prevData?.series;
@@ -305,6 +308,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         timeZone: rawData.request?.timezone,
       }),
     };
+
+    if (!pluginDataSupport.alertStates) {
+      this._dataWithFieldConfig.alertState = undefined;
+    }
+
+    if (!pluginDataSupport.annotations) {
+      this._dataWithFieldConfig.annotations = undefined;
+    }
 
     return this._dataWithFieldConfig;
   }
