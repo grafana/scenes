@@ -1,3 +1,15 @@
+# v1.24.3 (Thu Nov 23 2023)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Only pass data layers to panel when plugin supports them [#477](https://github.com/grafana/scenes/pull/477) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.24.2 (Wed Nov 22 2023)
 
 #### 🐛 Bug Fix
