@@ -9,6 +9,9 @@ import {
   standardEditorsRegistry,
   standardFieldConfigEditorRegistry,
   toDataFrame,
+  PanelPluginDataSupport,
+  AlertState,
+  PanelData,
 } from '@grafana/data';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
@@ -38,7 +41,7 @@ interface FieldConfigPlugin1 {
   junkProp?: boolean;
 }
 
-function getTestPlugin1() {
+function getTestPlugin1(dataSupport?: PanelPluginDataSupport) {
   const pluginToLoad = getPanelPlugin(
     {
       id: 'custom-plugin-id',
@@ -47,6 +50,12 @@ function getTestPlugin1() {
   );
 
   pluginToLoad.meta.info.version = '1.0.0';
+  pluginToLoad.meta.skipDataQuery = false;
+
+  if (dataSupport) {
+    pluginToLoad.setDataSupport(dataSupport);
+  }
+
   pluginToLoad.setPanelOptions((builder) => {
     builder.addBooleanSwitch({
       name: 'Show thresholds',
@@ -392,21 +401,67 @@ describe('VizPanel', () => {
       });
     });
   });
+
+  describe('Data support', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    it('should not provide alert states and annotations by default', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+      await Promise.resolve();
+
+      const dataToRender = panel.applyFieldConfig(getTestData());
+      expect(dataToRender.alertState).toBe(undefined);
+      expect(dataToRender.annotations).toBe(undefined);
+    });
+
+    it('should provide alert states and annotations if plugin supports these topics', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1({ alertStates: true, annotations: true });
+      panel.activate();
+      await Promise.resolve();
+
+      const testData = getTestData();
+      const dataToRender = panel.applyFieldConfig(testData);
+      expect(dataToRender.alertState).toBe(testData.alertState);
+      expect(dataToRender.annotations).toBe(testData.annotations);
+    });
+  });
 });
 
 function getDataNodeWithTestData() {
   return new SceneDataNode({
-    data: {
-      state: LoadingState.Loading,
-      timeRange: getDefaultTimeRange(),
-      series: [
-        toDataFrame({
-          fields: [
-            { name: 'A', type: FieldType.string, values: ['A', 'B', 'C'] },
-            { name: 'B', type: FieldType.string, values: ['A', 'B', 'C'] },
-          ],
-        }),
-      ],
-    },
+    data: getTestData(),
   });
+}
+
+function getTestData(): PanelData {
+  return {
+    state: LoadingState.Loading,
+    timeRange: getDefaultTimeRange(),
+    annotations: [
+      toDataFrame({
+        fields: [
+          { name: 'time', values: [1, 2, 2, 5, 5] },
+          { name: 'id', values: ['1', '2', '2', '5', '5'] },
+          { name: 'text', values: ['t1', 't2', 't3', 't4', 't5'] },
+        ],
+      }),
+    ],
+    alertState: {
+      dashboardId: 1,
+      panelId: 18,
+      state: AlertState.Pending,
+      id: 123,
+    },
+    series: [
+      toDataFrame({
+        fields: [
+          { name: 'A', type: FieldType.string, values: ['A', 'B', 'C'] },
+          { name: 'B', type: FieldType.string, values: ['A', 'B', 'C'] },
+        ],
+      }),
+    ],
+  };
 }
