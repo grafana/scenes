@@ -26,6 +26,7 @@ import { SceneDataLayers } from './SceneDataLayers';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
+import { emptyPanelData } from '../core/SceneDataNode';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -402,6 +403,40 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
+    it('Should execute query when variable updates and data layer response was received before', async () => {
+      const variable = new TestVariable({ name: 'A', value: 'AA', text: 'AA', query: 'A.*' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+        maxDataPointsFromWidth: true,
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      queryRunner.setContainerWidth(1000);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Verify no query executed
+      expect(runRequestMock.mock.calls.length).toBe(0);
+
+      // Simulate data layer received
+      queryRunner.setState({ data: emptyPanelData });
+
+      // Now variable completes
+      variable.signalUpdateCompleted();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(1);
+    });
+
     it('Should execute query again after variable changed while inactive', async () => {
       const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({
@@ -541,7 +576,7 @@ describe('SceneQueryRunner', () => {
     it('It should re-issue new query', async () => {
       const from = '2000-01-01';
       const to = '2000-01-02';
-      const timeRange = new SceneTimeRange({from, to});
+      const timeRange = new SceneTimeRange({ from, to });
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: timeRange,
@@ -558,8 +593,8 @@ describe('SceneQueryRunner', () => {
 
       deactivateQueryRunner();
 
-      const differentTo = '2000-01-03'
-      timeRange.setState({from, to: differentTo});
+      const differentTo = '2000-01-03';
+      timeRange.setState({ from, to: differentTo });
       timeRange.onRefresh();
 
       queryRunner.activate();
@@ -575,7 +610,7 @@ describe('SceneQueryRunner', () => {
     it('It should not re-issue new query', async () => {
       const from = '2000-01-01';
       const to = '2000-01-02';
-      const timeRange = new SceneTimeRange({from, to});
+      const timeRange = new SceneTimeRange({ from, to });
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: timeRange,
@@ -593,7 +628,7 @@ describe('SceneQueryRunner', () => {
       deactivateQueryRunner();
 
       // Setting the state to an equivalent time range
-      timeRange.setState({from, to});
+      timeRange.setState({ from, to });
       timeRange.onRefresh();
 
       queryRunner.activate();
@@ -604,7 +639,7 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toEqual(1);
     });
   });
-  
+
   describe('time frame comparison', () => {
     test('should run query with time range comparison', async () => {
       const timeRange = new SceneTimeRange({
