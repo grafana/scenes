@@ -210,7 +210,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * the query execution on activate was stopped due to VariableSet still not having processed all variables.
    */
   private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
-    if (this.state._isWaitingForVariables && this.shouldRunQueriesOnActivate()) {
+    if (this.state._isWaitingForVariables) {
       this.runQueries();
       return;
     }
