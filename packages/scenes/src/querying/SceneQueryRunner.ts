@@ -290,7 +290,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       if (this.state.maxDataPointsFromWidth && !this.state.maxDataPoints) {
         // As this is called from render path we need to wait for next tick before running queries
         setTimeout(() => {
-          if (this.isActive && !this._querySub) {
+          if (this.isActive && !this.state._hasFetchedData) {
             this.runQueries();
           }
         }, 0);
