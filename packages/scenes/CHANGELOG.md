@@ -1,3 +1,20 @@
+# v1.24.4 (Fri Nov 24 2023)
+
+#### 🐛 Bug Fix
+
+- VizPanelRenderer: Round visualization width pushed to data provider [#478](https://github.com/grafana/scenes/pull/478) ([@dprokop](https://github.com/dprokop))
+
+#### ⚠️ Pushed to `main`
+
+- Revert "VizPanelRenderer: Round viz width pushed to data provider" ([@dprokop](https://github.com/dprokop))
+- VizPanelRenderer: Round viz width pushed to data provider ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.24.3 (Thu Nov 23 2023)
 
 #### 🐛 Bug Fix
