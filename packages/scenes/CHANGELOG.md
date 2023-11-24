@@ -1,3 +1,15 @@
+# v1.24.5 (Fri Nov 24 2023)
+
+#### 🐛 Bug Fix
+
+- SceneQueryRunner: Fixes issue with waiting for variables [#481](https://github.com/grafana/scenes/pull/481) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.24.4 (Fri Nov 24 2023)
 
 #### 🐛 Bug Fix
