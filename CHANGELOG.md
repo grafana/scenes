@@ -1,3 +1,16 @@
+# v1.24.6 (Mon Nov 27 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Fixes issue with cloned scene query runner would issue new query [#482](https://github.com/grafana/scenes/pull/482) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.24.5 (Fri Nov 24 2023)
 
 #### 🐛 Bug Fix
