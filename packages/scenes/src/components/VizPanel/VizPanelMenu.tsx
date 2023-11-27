@@ -27,7 +27,7 @@ export class VizPanelMenu extends SceneObjectBase<VizPanelMenuState> {
 }
 
 function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
-  const { items } = model.useState();
+  const { items = [] } = model.useState();
 
   const renderItems = (items: PanelMenuItem[]) => {
     return items.map((item) =>
@@ -46,9 +46,6 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
       )
     );
   };
-  if (!items) {
-    return null;
-  }
 
   return <Menu>{renderItems(items)}</Menu>;
 }
