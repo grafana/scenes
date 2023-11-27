@@ -279,7 +279,7 @@ describe('SceneQueryRunner', () => {
   });
 
   describe('when activated and maxDataPointsFromWidth set to true', () => {
-    it('should run queries', async () => {
+    it('should run queries when container width is received', async () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
@@ -301,6 +301,31 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+
+    it('should not run queries when container width is received and data has already been fetched', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        maxDataPointsFromWidth: true,
+      });
+
+      queryRunner.activate();
+      queryRunner.setContainerWidth(1000);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      const clonedQueryRunner = queryRunner.clone();
+      clonedQueryRunner.activate();
+      clonedQueryRunner.setContainerWidth(1000);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // should not issue new query
+      expect(runRequestMock.mock.calls.length).toBe(1);
     });
   });
 
