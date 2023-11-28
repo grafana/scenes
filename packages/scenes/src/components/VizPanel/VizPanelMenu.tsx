@@ -10,6 +10,8 @@ interface VizPanelMenuState extends SceneObjectState {
 
 export class VizPanelMenu extends SceneObjectBase<VizPanelMenuState> {
   static Component = VizPanelMenuRenderer;
+  // The menu is rendered inside an Overlay that sets focus on mount. so we switch this component to render
+  // right away to make sure the <Menu> component is rendered on mount so that takes focus.
   static UNSAFE_renderBeforeActive = true;
 
   // Allows adding menu items dynamically
