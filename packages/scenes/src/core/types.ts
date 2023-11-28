@@ -230,3 +230,8 @@ export interface SceneStatelessBehavior<T extends SceneObject = any> {
 }
 
 export type ControlsLayout = 'horizontal' | 'vertical';
+
+export interface SceneObjectClass<TState extends SceneObjectState = SceneObjectState> {
+  Component?: SceneComponent<SceneObject<TState>>;
+  UNSAFE_renderBeforeActive?: boolean;
+}

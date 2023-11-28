@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 
-import { SceneComponentProps, SceneObject } from './types';
+import { SceneComponentProps, SceneObject, SceneObjectClass } from './types';
 
 function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...otherProps }: SceneComponentProps<T>) {
-  const ClassType = model.constructor as SceneObjectType;
+  const ClassType = model.constructor as SceneObjectClass;
   const Component = ClassType.Component ?? EmptyRenderer;
   const [activated, setActivated] = React.useState(false);
 
@@ -26,9 +26,4 @@ export const SceneComponentWrapper = React.memo(SceneComponentWrapperWithoutMemo
 
 function EmptyRenderer<T>(_: SceneComponentProps<T>): React.ReactElement | null {
   return null;
-}
-
-interface SceneObjectType {
-  Component?: React.ComponentType<any>;
-  UNSAFE_renderBeforeActive?: boolean;
 }
