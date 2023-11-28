@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { PanelMenuItem } from '@grafana/data';
 import { Menu } from '@grafana/ui';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -10,6 +10,7 @@ interface VizPanelMenuState extends SceneObjectState {
 
 export class VizPanelMenu extends SceneObjectBase<VizPanelMenuState> {
   static Component = VizPanelMenuRenderer;
+  static UNSAFE_renderBeforeActive = true;
 
   // Allows adding menu items dynamically
   public addItem(item: PanelMenuItem) {
@@ -28,13 +29,6 @@ export class VizPanelMenu extends SceneObjectBase<VizPanelMenuState> {
 
 function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
   const { items = [] } = model.useState();
-  const ref = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.focus();
-    }
-  }, []);
 
   const renderItems = (items: PanelMenuItem[]) => {
     return items.map((item) =>
@@ -54,5 +48,5 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
     );
   };
 
-  return <Menu ref={ref}>{renderItems(items)}</Menu>;
+  return <Menu>{renderItems(items)}</Menu>;
 }
