@@ -1,3 +1,22 @@
+# v1.25.0 (Fri Dec 01 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Macros: Support $_interval[_ms] variable [#487](https://github.com/grafana/scenes/pull/487) ([@dprokop](https://github.com/dprokop))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanelMenu: Fix auto focus / keyboard navigation issue [#483](https://github.com/grafana/scenes/pull/483) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.24.6 (Mon Nov 27 2023)
 
 #### 🐛 Bug Fix
