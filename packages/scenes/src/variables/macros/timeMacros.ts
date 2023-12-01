@@ -96,12 +96,15 @@ export class IntervalMacro implements FormatVariable {
   public getValue() {
     const data = getData(this._sceneObject);
 
-    if (data && data.getInterval) {
-      const interval = data.getInterval();
-      if (this.state.name === '__interval_ms') {
-        return interval.intervalMs;
+    if (data) {
+      const request = data.state.data?.request;
+      if (!request) {
+        return '';
       }
-      return interval.interval;
+      if (this.state.name === '__interval_ms') {
+        return request.intervalMs;
+      }
+      return request.interval;
     }
 
     return '';
