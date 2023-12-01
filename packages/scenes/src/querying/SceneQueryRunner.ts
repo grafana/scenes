@@ -59,7 +59,6 @@ export interface QueryRunnerState extends SceneObjectState {
   // Private runtime state
   _isWaitingForVariables?: boolean;
   _hasFetchedData?: boolean;
-  _lastRequest?: [DataQueryRequest, DataQueryRequest | undefined];
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -381,13 +380,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         // change subscribe callback below to pipe operator
         this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)])
           .pipe(timeShiftQueryResponseOperator)
-          .subscribe((data) => {
-            this.onDataReceived(data, [request, secondaryRequest]);
-          });
+          .subscribe(this.onDataReceived);
       } else {
-        this._querySub = runRequest(ds, request).subscribe((data) => {
-          this.onDataReceived(data, [request, undefined]);
-        });
+        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
       }
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
@@ -481,7 +476,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return [request, secondaryRequest];
   };
 
-  private onDataReceived = (data: PanelData, request: [DataQueryRequest, DataQueryRequest | undefined]) => {
+  private onDataReceived = (data: PanelData) => {
     this._results.next({ origin: this, data });
 
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
@@ -496,7 +491,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       hasFetchedData = true;
     }
 
-    this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData, _lastRequest: request });
+    this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
   };
 
   private _combineDataLayers(data: PanelData) {
@@ -568,8 +563,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public getInterval(): IntervalValues {
     return {
-      interval: this.state._lastRequest?.[0].interval ?? '1s',
-      intervalMs: this.state._lastRequest?.[0].intervalMs ?? 1000,
+      interval: this.state.data?.request?.interval ?? '1s',
+      intervalMs: this.state.data?.request?.intervalMs ?? 1000,
     };
   }
 }
