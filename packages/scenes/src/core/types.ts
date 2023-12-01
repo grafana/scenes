@@ -9,7 +9,6 @@ import {
   DataQueryRequest,
   DataTopic,
   DataTransformContext,
-  IntervalValues,
   PanelData,
   TimeRange,
 } from '@grafana/data';
@@ -203,7 +202,6 @@ export interface SceneDataProvider extends SceneObject<SceneDataState> {
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
   getResultsStream?(): Observable<SceneDataProviderResult>;
-  getInterval?(): IntervalValues;
 }
 
 export interface SceneDataLayerProviderState extends SceneObjectState {
