@@ -10,6 +10,7 @@ import {
   DataQueryRequest,
   DataSourceApi,
   DataTopic,
+  IntervalValues,
   PanelData,
   preProcessPanelData,
   rangeUtil,
@@ -20,7 +21,6 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
   DataLayerFilter,
-  // SceneDataLayerProvider,
   SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
@@ -59,6 +59,7 @@ export interface QueryRunnerState extends SceneObjectState {
   // Private runtime state
   _isWaitingForVariables?: boolean;
   _hasFetchedData?: boolean;
+  _lastRequest?: [DataQueryRequest, DataQueryRequest | undefined];
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -380,9 +381,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         // change subscribe callback below to pipe operator
         this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)])
           .pipe(timeShiftQueryResponseOperator)
-          .subscribe(this.onDataReceived);
+          .subscribe((data) => {
+            this.onDataReceived(data, [request, secondaryRequest]);
+          });
       } else {
-        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+        this._querySub = runRequest(ds, request).subscribe((data) => {
+          this.onDataReceived(data, [request, undefined]);
+        });
       }
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
@@ -476,7 +481,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return [request, secondaryRequest];
   };
 
-  private onDataReceived = (data: PanelData) => {
+  private onDataReceived = (data: PanelData, request: [DataQueryRequest, DataQueryRequest | undefined]) => {
     this._results.next({ origin: this, data });
 
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
@@ -491,7 +496,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       hasFetchedData = true;
     }
 
-    this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
+    this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData, _lastRequest: request });
   };
 
   private _combineDataLayers(data: PanelData) {
@@ -559,6 +564,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // Subscribe to filter set state changes so that queries are re-issued when it changes
     this._adhocFilterSet = set;
     this._adhocFilterSub = this._adhocFilterSet?.subscribeToState(() => this.runQueries());
+  }
+
+  public getInterval(): IntervalValues {
+    return {
+      interval: this.state._lastRequest?.[0].interval ?? '1s',
+      intervalMs: this.state._lastRequest?.[0].intervalMs ?? 1000,
+    };
   }
 }
 
