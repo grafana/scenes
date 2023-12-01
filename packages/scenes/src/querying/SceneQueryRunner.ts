@@ -10,6 +10,7 @@ import {
   DataQueryRequest,
   DataSourceApi,
   DataTopic,
+  IntervalValues,
   PanelData,
   preProcessPanelData,
   rangeUtil,
@@ -20,7 +21,6 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
   DataLayerFilter,
-  // SceneDataLayerProvider,
   SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
@@ -559,6 +559,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // Subscribe to filter set state changes so that queries are re-issued when it changes
     this._adhocFilterSet = set;
     this._adhocFilterSub = this._adhocFilterSet?.subscribeToState(() => this.runQueries());
+  }
+
+  public getInterval(): IntervalValues {
+    return {
+      interval: this.state.data?.request?.interval ?? '1s',
+      intervalMs: this.state.data?.request?.intervalMs ?? 1000,
+    };
   }
 }
 

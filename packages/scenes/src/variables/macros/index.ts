@@ -1,6 +1,6 @@
 import { DataLinkBuiltInVars } from '@grafana/data';
 import { MacroVariableConstructor } from './types';
-import { TimeFromAndToMacro, TimezoneMacro, UrlTimeRangeMacro } from './timeMacros';
+import { IntervalMacro, TimeFromAndToMacro, TimezoneMacro, UrlTimeRangeMacro } from './timeMacros';
 import { AllVariablesMacro } from './AllVariablesMacro';
 import { DataMacro, FieldMacro, SeriesMacro, ValueMacro } from './dataMacros';
 import { UrlMacro } from './urlMacros';
@@ -19,6 +19,8 @@ export const macrosIndex: Record<string, MacroVariableConstructor> = {
   ['__timezone']: TimezoneMacro,
   ['__user']: UserMacro,
   ['__org']: OrgMacro,
+  ['__interval']: IntervalMacro,
+  ['__interval_ms']: IntervalMacro,
 };
 
 /**

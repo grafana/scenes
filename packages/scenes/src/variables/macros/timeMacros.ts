@@ -1,5 +1,6 @@
 import { dateTimeFormat, urlUtil } from '@grafana/data';
 import { getTimeRange } from '../../core/sceneGraph/getTimeRange';
+import { getData } from '../../core/sceneGraph/sceneGraph';
 import { SceneObject } from '../../core/types';
 import { FormatVariable } from '../interpolation/formatRegistry';
 import { SkipFormattingValue } from './types';
@@ -77,5 +78,32 @@ export class TimezoneMacro implements FormatVariable {
 
   public getValueText?(): string {
     return this.getValue();
+  }
+}
+
+/**
+ * Handles $__interval and $__intervalMs expression.
+ */
+export class IntervalMacro implements FormatVariable {
+  public state: { name: string; type: string };
+  private _sceneObject: SceneObject;
+
+  public constructor(name: string, sceneObject: SceneObject) {
+    this.state = { name: name, type: 'time_macro' };
+    this._sceneObject = sceneObject;
+  }
+
+  public getValue() {
+    const data = getData(this._sceneObject);
+
+    if (data && data.getInterval) {
+      const interval = data.getInterval();
+      if (this.state.name === '__interval_ms') {
+        return interval.intervalMs;
+      }
+      return interval.interval;
+    }
+
+    return '';
   }
 }

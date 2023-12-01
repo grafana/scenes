@@ -100,6 +100,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     return this._results;
   }
 
+  public getInterval() {
+    return this.getSourceData().getInterval?.() || { interval: '1s', intervalMs: 1000 };
+  }
+
   private transform(data: PanelData | undefined) {
     const transformations = this.state.transformations || [];
 
