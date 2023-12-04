@@ -36,6 +36,8 @@ export interface QueryVariableState extends MultiValueVariableState {
   regex: string;
   refresh: VariableRefresh;
   sort: VariableSort;
+  /** @internal Only for use inside core dashboards */
+  definition?: string;
 }
 
 export class QueryVariable extends MultiValueVariable<QueryVariableState> {

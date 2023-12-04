@@ -84,6 +84,14 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   description: 'Auto step count 30, auto min interval 10s',
                   refresh: VariableRefresh.onTimeRangeChanged,
                 }),
+
+                new QueryVariable({
+                  name: 'serverUsingDefinition',
+                  label: 'Server with definition',
+                  query: { query: '*', refId: 'A' },
+                  datasource: { uid: 'gdev-testdata' },
+                  definition: '*',
+                }),
               ],
             }),
             body: new SceneFlexLayout({
@@ -157,6 +165,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   name: 'server',
                   query: { query: 'A.$__searchFilter', refId: 'A' },
                   datasource: { uid: 'gdev-testdata' },
+                  definition: 'A.$__searchFilter',
                 }),
               ],
             }),
@@ -204,6 +213,7 @@ function getGraphAndTextPanel() {
 * pod: $pod
 * handler: $handler
 * interval: $interval
+* serverUsingDefinition: $serverUsingDefinition
 * [Link that updates pod = AAG and AAH](\${__url.path}\${__url.params:exclude:var-pod}&var-pod=AAG&var-pod=AAH)
 
           `
