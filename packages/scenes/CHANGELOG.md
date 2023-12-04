@@ -1,3 +1,20 @@
+# v1.26.0 (Mon Dec 04 2023)
+
+#### 🚀 Enhancement
+
+- Variables:  Query - Add optional `definition` prop to state [#489](https://github.com/grafana/scenes/pull/489) ([@axelavargas](https://github.com/axelavargas))
+
+#### 🐛 Bug Fix
+
+- Simplify interval macro [#488](https://github.com/grafana/scenes/pull/488) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.25.0 (Fri Dec 01 2023)
 
 #### 🚀 Enhancement
