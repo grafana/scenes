@@ -36,6 +36,7 @@ export interface QueryVariableState extends MultiValueVariableState {
   regex: string;
   refresh: VariableRefresh;
   sort: VariableSort;
+  definition?: string;
 }
 
 export class QueryVariable extends MultiValueVariable<QueryVariableState> {
@@ -53,6 +54,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       datasource: null,
       regex: '',
       query: { refId: 'A' },
+      definition: '',
       refresh: VariableRefresh.onDashboardLoad,
       sort: VariableSort.disabled,
       ...initialState,
