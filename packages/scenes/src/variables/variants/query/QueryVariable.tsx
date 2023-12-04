@@ -36,7 +36,7 @@ export interface QueryVariableState extends MultiValueVariableState {
   regex: string;
   refresh: VariableRefresh;
   sort: VariableSort;
-  /** @internal Only for use inside core dashboards  */ 
+  /** @internal Only for use inside core dashboards */
   definition?: string;
 }
 
@@ -55,7 +55,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       datasource: null,
       regex: '',
       query: { refId: 'A' },
-      definition: '',
       refresh: VariableRefresh.onDashboardLoad,
       sort: VariableSort.disabled,
       ...initialState,
