@@ -1,3 +1,21 @@
+# v1.27.0 (Tue Dec 05 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Expose events for interactions [#491](https://github.com/grafana/scenes/pull/491) ([@dprokop](https://github.com/dprokop))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - QueryVariable: Run query with scene time range on when configured to run on load [#490](https://github.com/grafana/scenes/pull/490) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.26.0 (Mon Dec 04 2023)
 
 #### 🚀 Enhancement
