@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   CoreApp,
   DataQueryRequest,
-  getDefaultTimeRange,
   LoadingState,
   PanelData,
   ScopedVars,
@@ -115,10 +114,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       scopedVars.__searchFilter = { value: searchFilter, text: searchFilter };
     }
 
-    const range =
-      this.state.refresh === VariableRefresh.onTimeRangeChanged
-        ? sceneGraph.getTimeRange(this).state.value
-        : getDefaultTimeRange();
+    const range = sceneGraph.getTimeRange(this).state.value;
 
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
