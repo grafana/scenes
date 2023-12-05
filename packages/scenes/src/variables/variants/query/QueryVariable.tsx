@@ -115,10 +115,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       scopedVars.__searchFilter = { value: searchFilter, text: searchFilter };
     }
 
-    const range =
-      this.state.refresh === VariableRefresh.onTimeRangeChanged
-        ? sceneGraph.getTimeRange(this).state.value
-        : getDefaultTimeRange();
+    const range = sceneGraph.getTimeRange(this).state.value;
 
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,

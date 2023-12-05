@@ -179,18 +179,25 @@ describe('QueryVariable', () => {
     });
 
     describe('when refresh on dashboard load set', () => {
-      it('Should issue variable query with default time range', async () => {
+      it('Should issue variable query with current time range', async () => {
         const variable = new QueryVariable({
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
         });
 
+        const scene = new EmbeddedScene({
+          $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+          $variables: new SceneVariableSet({ variables: [variable] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+        scene.activate();
+
         await lastValueFrom(variable.validateAndUpdate());
 
-        expect(runRequestMock).toBeCalledTimes(1);
         const call = runRequestMock.mock.calls[0];
-        expect(call[1].range).toEqual(getDefaultTimeRange());
+        expect(call[1].range.raw.from).toEqual('now-5m');
+        expect(call[1].range.raw.to).toEqual('now');
       });
 
       it('Should not issue variable query when the closest time range changes if refresh on dahboard load is set', async () => {
@@ -213,7 +220,7 @@ describe('QueryVariable', () => {
 
         // Uses default time range
         expect(call1[1].range.raw).toEqual({
-          from: 'now-6h',
+          from: 'now-1h',
           to: 'now',
         });
 
