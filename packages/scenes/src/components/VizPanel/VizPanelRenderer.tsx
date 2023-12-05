@@ -137,6 +137,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             description={description?.trim() ? model.getDescription : undefined}
             loadingState={data.state}
             statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
+            statusMessageOnClick={model.onStatusMessageClick}
             width={width}
             height={height}
             displayMode={displayMode}
