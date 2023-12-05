@@ -33,6 +33,7 @@ import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
 import { cloneDeep, isArray, merge, mergeWith } from 'lodash';
+import { UserActionEvent } from '../../core/events';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -106,6 +107,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this.addActivationHandler(() => {
       this._onActivate();
     });
+
+    if (state.menu) {
+      state.menu.addActivationHandler(() => {
+        this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-menu-shown' }), true);
+      });
+    }
   }
 
   private _onActivate() {
@@ -262,6 +269,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }) as InterpolateFunction;
 
   public getDescription = () => {
+    this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-description-shown' }), true);
+
     const { description } = this.state;
     if (description) {
       const markdown = this.interpolate(description);
@@ -321,8 +330,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   public onCancelQuery = () => {
+    this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-cancel-query-clicked' }), true);
     const data = sceneGraph.getData(this);
     data.cancelQuery?.();
+  };
+
+  public onStatusMessageClick = () => {
+    this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-status-message-clicked' }), true);
   };
 
   /**
