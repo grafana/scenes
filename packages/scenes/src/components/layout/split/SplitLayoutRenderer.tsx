@@ -6,7 +6,7 @@ import { SplitLayout } from './SplitLayout';
 import { Splitter } from './Splitter';
 
 export function SplitLayoutRenderer({ model }: SceneFlexItemRenderProps<SplitLayout>) {
-  const { primary, secondary, direction, isHidden } = model.useState();
+  const { primary, secondary, direction, isHidden, initialSize } = model.useState();
 
   if (isHidden) {
     return null;
@@ -15,7 +15,7 @@ export function SplitLayoutRenderer({ model }: SceneFlexItemRenderProps<SplitLay
   const Prim = primary.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
   const Sec = secondary.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
   return (
-    <Splitter direction={direction}>
+    <Splitter direction={direction} initialSize={initialSize ?? 0.5}>
       <Prim key={primary.state.key} model={primary} parentState={model.state} />
       <Sec key={secondary.state.key} model={secondary} parentState={model.state} />
     </Splitter>
