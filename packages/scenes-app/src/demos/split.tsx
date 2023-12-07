@@ -27,6 +27,7 @@ const basicDemo = () =>
         ...getEmbeddedSceneDefaults(),
         key: 'Flex layout embedded scene',
         body: new SplitLayout({
+          initialSize: 0.7,
           direction: 'row',
           primary: PanelBuilders.timeseries()
             .setTitle('Dynamic height and width')

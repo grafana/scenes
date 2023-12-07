@@ -7,6 +7,7 @@ interface SplitLayoutState extends SceneObjectState, SceneFlexItemPlacement {
   primary: SceneFlexItemLike;
   secondary: SceneFlexItemLike;
   direction: 'row' | 'column';
+  initialSize?: number;
 }
 
 export class SplitLayout extends SceneObjectBase<SplitLayoutState> {
