@@ -400,7 +400,7 @@ function getStyles(theme: GrafanaTheme2) {
       flexGrow: 1,
       overflow: 'hidden',
     }),
-    panel: css({ display: 'flex', overflow: 'hidden', position: 'relative', flexBasis: 0 }),
+    panel: css({ display: 'flex', position: 'relative', flexBasis: 0 }),
   };
 }
 
