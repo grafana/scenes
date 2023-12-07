@@ -1,3 +1,16 @@
+# v1.28.0 (Thu Dec 07 2023)
+
+#### 🚀 Enhancement
+
+- SplitLayout: Allow setting initial size [#496](https://github.com/grafana/scenes/pull/496) ([@cedricziel](https://github.com/cedricziel) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Cedric Ziel ([@cedricziel](https://github.com/cedricziel))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v1.27.0 (Tue Dec 05 2023)
 
 #### 🚀 Enhancement
