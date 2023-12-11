@@ -73,7 +73,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   /**
    * Check if current value is valid given new options. If not update the value.
    */
-  private updateValueGivenNewOptions(options: VariableValueOption[]) {
+  protected updateValueGivenNewOptions(options: VariableValueOption[]) {
     // Remember current value and text
     const { value: currentValue, text: currentText } = this.state;
 
