@@ -11,9 +11,6 @@ import {
   SceneComponentProps,
   SceneCSSGridLayout,
   SceneObject,
-  QueryVariable,
-  SceneVariableSet,
-  VariableValueSelectors,
 } from '@grafana/scenes';
 import React from 'react';
 import { demoUrl, prefixRoute } from '../utils/utils.routing';
@@ -24,24 +21,6 @@ import { config } from '@grafana/runtime';
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
 
-export const appFilter = new QueryVariable({
-  name: 'app',
-  datasource: { uid: 'gdev-prometheus' },
-  query: 'label_values(app)',
-});
-
-export const server = new QueryVariable({
-  name: 'server',
-  datasource: { uid: 'gdev-prometheus' },
-  query: 'label_values({app="$app"}, server)',
-});
-
-export const geohash = new QueryVariable({
-  name: 'geohash',
-  datasource: { uid: 'gdev-prometheus' },
-  query: 'label_values({server="$server"}, geohash)',
-});
-
 function getDemoSceneApp() {
   return new SceneApp({
     name: 'scenes-demos-app',
@@ -49,10 +28,6 @@ function getDemoSceneApp() {
       new SceneAppPage({
         title: 'Demos',
         key: 'SceneAppPage Demos',
-        $variables: new SceneVariableSet({
-          variables: [appFilter, server, geohash],
-        }), // added
-        controls: [new VariableValueSelectors({})], // added
         url: prefixRoute(ROUTES.Demos),
         getScene: () => {
           return new EmbeddedScene({
