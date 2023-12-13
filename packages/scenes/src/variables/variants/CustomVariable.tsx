@@ -6,6 +6,7 @@ import { renderSelectForVariable } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
+import { sceneGraph } from '../../core/sceneGraph';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
@@ -29,7 +30,10 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
-    const match = this.state.query.match(/(?:\\,|[^,])+/g) ?? [];
+    const interpolated = sceneGraph.interpolate(this, this.state.query);
+    console.log('interpolated', interpolated);
+    const match = interpolated.match(/(?:\\,|[^,])+/g) ?? [];
+
     const options = match.map((text) => {
       text = text.replace(/\\,/g, ',');
       const textMatch = /^(.+)\s:\s(.+)$/g.exec(text) ?? [];

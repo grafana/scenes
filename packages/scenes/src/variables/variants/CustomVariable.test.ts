@@ -1,6 +1,8 @@
 import { lastValueFrom } from 'rxjs';
 
 import { CustomVariable } from './CustomVariable';
+import { TestScene } from '../TestScene';
+import { SceneVariableSet } from '../sets/SceneVariableSet';
 
 describe('CustomVariable', () => {
   describe('When empty query is provided', () => {
@@ -229,6 +231,31 @@ describe('CustomVariable', () => {
 
       expect(variable.state.value).toEqual(['A']);
       expect(variable.state.text).toEqual(['A']);
+    });
+  });
+
+  describe('When query contains other variables', () => {
+    it('Should interpolate query', async () => {
+      const A = new CustomVariable({
+        name: 'A',
+        options: [],
+        query: 'value1,value2',
+        value: '',
+        text: '',
+      });
+      const B = new CustomVariable({
+        name: 'B',
+        options: [],
+        query: '1,2,$A',
+        value: '',
+        text: '',
+      });
+
+      const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
+      scene.activate();
+
+      expect(A.state.value).toBe('value1');
+      expect(B.state.options[2].value).toBe('value1');
     });
   });
 });
