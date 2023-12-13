@@ -102,6 +102,7 @@ describe('SceneVariableList', () => {
     it('Should start update process of chained dependency', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+      // Important here that variable C only depends on B
       const C = new TestVariable({ name: 'C', query: 'value=$B', value: '', text: '', options: [] });
 
       const scene = new TestScene({
