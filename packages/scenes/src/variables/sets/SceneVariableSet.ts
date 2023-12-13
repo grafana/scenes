@@ -253,14 +253,12 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
   private _handleVariableValueChanged(variableThatChanged: SceneVariable) {
     this._variablesThatHaveChanged.add(variableThatChanged);
+    this._addDependentVariablesToUpdateQueue(variableThatChanged);
 
     // Ignore this change if it is currently updating
-    if (this._updating.has(variableThatChanged)) {
-      return;
+    if (!this._updating.has(variableThatChanged)) {
+      this._updateNextBatch();
     }
-
-    this._addDependentVariablesToUpdateQueue(variableThatChanged);
-    this._updateNextBatch();
   }
 
   /**
