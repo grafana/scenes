@@ -18,6 +18,7 @@ import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 import { VizPanel } from './VizPanel';
 import { SceneDataNode } from '../../core/SceneDataNode';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
+import { SceneTimeRange } from '../../core/SceneTimeRange';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -450,6 +451,33 @@ describe('VizPanel', () => {
       const dataToRender = panel.applyFieldConfig(testData);
       expect(dataToRender.alertState).toBe(testData.alertState);
       expect(dataToRender.annotations).toBe(testData.annotations);
+    });
+  });
+
+  describe('Non data plugin', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    it('Should subscribe to time range and force re-render by doing a state change', async () => {
+      const timeRange = new SceneTimeRange();
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        $timeRange: timeRange,
+      });
+
+      pluginToLoad = getTestPlugin1();
+      pluginToLoad.meta.skipDataQuery = true;
+
+      panel.activate();
+
+      await Promise.resolve();
+
+      let stateChanged = 0;
+      panel.subscribeToState(() => stateChanged++);
+
+      timeRange.setState({ from: 'now-1h', to: 'now' });
+
+      // Verifies that VizPanel subscribes to time range changes and updates it's internal state (to force re-render)
+      expect(stateChanged).toBe(1);
     });
   });
 });
