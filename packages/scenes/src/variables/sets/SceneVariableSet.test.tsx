@@ -98,6 +98,35 @@ describe('SceneVariableList', () => {
       expect(B.state.value).toBe('ABA');
       expect(C.state.loading).toBe(true);
     });
+
+    it('Should start update process of chained dependency', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+      const C = new TestVariable({ name: 'C', query: 'value=$B', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [C, B, A] }),
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+      C.signalUpdateCompleted();
+
+      // When changing A should start B but not C (yet)
+      A.changeValueTo('AB');
+
+      expect(B.state.loading).toBe(true);
+      expect(C.state.loading).toBe(false);
+
+      B.signalUpdateCompleted();
+      expect(B.state.value).toBe('ABA');
+      expect(C.state.loading).toBe(true);
+
+      C.signalUpdateCompleted();
+      expect(C.state.value).toBe('value=ABA');
+    });
   });
 
   describe('When deactivated', () => {
