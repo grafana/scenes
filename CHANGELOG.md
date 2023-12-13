@@ -1,3 +1,16 @@
+# v1.28.1 (Wed Dec 13 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Fixes issue with chained variable and cascading updates [#501](https://github.com/grafana/scenes/pull/501) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.28.0 (Thu Dec 07 2023)
 
 #### 🚀 Enhancement
