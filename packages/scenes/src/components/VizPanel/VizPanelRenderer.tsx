@@ -1,12 +1,12 @@
 import React, { RefCallback } from 'react';
 import { useMeasure } from 'react-use';
 
-import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider } from '@grafana/data';
+import { AlertState, GrafanaTheme2, PanelData, PanelPlugin, PluginContextProvider } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
+import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject, SceneTimeRangeLike } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 import { css, cx } from '@emotion/css';
@@ -32,12 +32,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataObject = sceneGraph.getData(model);
   const rawData = dataObject.useState();
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
+  const sceneTimeRange = sceneGraph.getTimeRange(model);
+  const timeZone = sceneTimeRange.getTimeZone();
+  const timeRange = getPanelTimeRange(sceneTimeRange, plugin, dataWithFieldConfig);
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
-
-  // Not sure we need to subscribe to this state
-  const timeZone = sceneGraph.getTimeRange(model).getTimeZone();
 
   const alertStateStyles = useStyles2(getAlertStateStyles);
 
@@ -160,7 +160,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           id={panelId}
                           data={data}
                           title={title}
-                          timeRange={data.timeRange}
+                          timeRange={timeRange}
                           timeZone={timeZone}
                           options={options}
                           fieldConfig={fieldConfig}
@@ -260,3 +260,15 @@ const getAlertStateStyles = (theme: GrafanaTheme2) => {
     }),
   };
 };
+
+function getPanelTimeRange(sceneTimeRange: SceneTimeRangeLike, plugin: PanelPlugin | undefined, data?: PanelData) {
+  if (!plugin || plugin.meta.skipDataQuery) {
+    return sceneTimeRange.state.value;
+  }
+
+  if (data && data.request?.range) {
+    return data.request.range;
+  }
+
+  return sceneTimeRange.state.value;
+}

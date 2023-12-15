@@ -12,12 +12,16 @@ import {
   PanelPluginDataSupport,
   AlertState,
   PanelData,
+  PanelProps,
+  toUtc,
 } from '@grafana/data';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel } from './VizPanel';
 import { SceneDataNode } from '../../core/SceneDataNode';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
+import { SceneTimeRange } from '../../core/SceneTimeRange';
+import { act, render, screen } from '@testing-library/react';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -26,6 +30,11 @@ jest.mock('@grafana/runtime', () => ({
   getPluginImportUtils: () => ({
     getPanelPluginFromCache: jest.fn(() => pluginToLoad),
   }),
+}));
+
+jest.mock('react-use', () => ({
+  ...jest.requireActual('react-use'),
+  useMeasure: () => [() => {}, { width: 500, height: 500 }],
 }));
 
 interface OptionsPlugin1 {
@@ -41,12 +50,19 @@ interface FieldConfigPlugin1 {
   junkProp?: boolean;
 }
 
+let panelProps: PanelProps | undefined;
+let panelRenderCount = 0;
+
 function getTestPlugin1(dataSupport?: PanelPluginDataSupport) {
   const pluginToLoad = getPanelPlugin(
     {
       id: 'custom-plugin-id',
     },
-    () => <div>My custom panel</div>
+    (props) => {
+      panelProps = props;
+      panelRenderCount++;
+      return <div>My custom panel</div>;
+    }
   );
 
   pluginToLoad.meta.info.version = '1.0.0';
@@ -450,6 +466,84 @@ describe('VizPanel', () => {
       const dataToRender = panel.applyFieldConfig(testData);
       expect(dataToRender.alertState).toBe(testData.alertState);
       expect(dataToRender.annotations).toBe(testData.annotations);
+    });
+  });
+
+  describe('VizPanel panel rendering ', () => {
+    beforeEach(() => {
+      panelRenderCount = 0;
+      panelProps = undefined;
+    });
+
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    describe('data plugin', () => {
+      it('Should re-render when there is new data', async () => {
+        const data = getDataNodeWithTestData();
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          pluginId: 'custom-plugin-id',
+          $timeRange: new SceneTimeRange(),
+          $data: data,
+        });
+
+        pluginToLoad = getTestPlugin1();
+
+        render(<panel.Component model={panel} />);
+
+        expect(await screen.findByText('My custom panel')).toBeInTheDocument();
+
+        expect(panelRenderCount).toBe(1);
+
+        act(() => {
+          data.setState({
+            data: {
+              ...data.state.data,
+              state: LoadingState.Loading,
+              timeRange: {
+                from: toUtc('2022-01-01'),
+                to: toUtc('2022-01-02'),
+                raw: { from: toUtc('2022-01-01'), to: toUtc('2022-01-02') },
+              },
+            },
+          });
+        });
+
+        expect(panelRenderCount).toBe(2);
+        expect(panelProps?.data.state).toBe(LoadingState.Loading);
+        // Verify panel props time range comes from data time range
+        expect(panelProps?.data.timeRange.from.toISOString()).toEqual('2022-01-01T00:00:00.000Z');
+      });
+    });
+
+    describe('Non data plugin', () => {
+      it('When time range change should re-render with new time range', async () => {
+        const timeRange = new SceneTimeRange();
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          pluginId: 'custom-plugin-id',
+          $timeRange: timeRange,
+        });
+
+        pluginToLoad = getTestPlugin1();
+        pluginToLoad.meta.skipDataQuery = true;
+
+        render(<panel.Component model={panel} />);
+
+        expect(await screen.findByText('My custom panel')).toBeInTheDocument();
+
+        expect(panelRenderCount).toBe(1);
+        expect(panelProps?.timeRange.raw.from).toBe('now-6h');
+
+        act(() => {
+          timeRange.onTimeRangeChange({
+            from: toUtc('2020-01-01'),
+            to: toUtc('2020-01-02'),
+            raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
+          });
+        });
+
+        expect(panelRenderCount).toBe(2);
+        expect(panelProps?.timeRange.from.toISOString()).toEqual('2020-01-01T00:00:00.000Z');
+      });
     });
   });
 });

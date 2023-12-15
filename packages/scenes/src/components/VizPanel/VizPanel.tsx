@@ -179,6 +179,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
     });
+
+    // Non data panels needs to be re-rendered when time range change
+    if (plugin.meta.skipDataQuery) {
+      const sceneTimeRange = sceneGraph.getTimeRange(this);
+      this._subs.add(sceneTimeRange.subscribeToState(() => this.forceRender()));
+    }
   }
 
   private _getPluginVersion(plugin: PanelPlugin): string {
