@@ -31,7 +31,6 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
     const interpolated = sceneGraph.interpolate(this, this.state.query);
-    console.log('interpolated', interpolated);
     const match = interpolated.match(/(?:\\,|[^,])+/g) ?? [];
 
     const options = match.map((text) => {
