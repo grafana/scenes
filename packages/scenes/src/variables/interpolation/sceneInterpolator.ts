@@ -9,6 +9,8 @@ import { formatRegistry, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
 import { lookupVariable } from '../lookupVariable';
 import { macrosIndex } from '../macros';
+import { IntervalMacro } from '../macros/timeMacros';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 
 /**
  * This function will try to parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
@@ -33,6 +35,15 @@ export function sceneInterpolator(
     const variableName = var1 || var2 || var3;
     const fmt = fmt2 || fmt3 || format;
     const variable = lookupFormatVariable(variableName, match, scopedVars, sceneObject);
+
+    // This condition is handling a special case for Prometheus data source that relies on interval variables interpolation in the backend./
+    if (
+      variable instanceof IntervalMacro &&
+      sceneObject instanceof SceneQueryRunner &&
+      sceneObject.state.datasource?.type === 'prometheus'
+    ) {
+      return match;
+    }
 
     if (!variable) {
       return match;
