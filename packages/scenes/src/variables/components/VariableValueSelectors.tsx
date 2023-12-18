@@ -29,12 +29,12 @@ function VariableValueSelectorsRenderer({ model }: SceneComponentProps<VariableV
   );
 }
 
-interface VariableSelectProps {
+export interface VariableSelectProps {
   layout?: ControlsLayout;
   variable: SceneVariable;
 }
 
-function VariableValueSelectWrapper({ variable, layout }: VariableSelectProps) {
+export function VariableValueSelectWrapper({ variable, layout }: VariableSelectProps) {
   const state = variable.useState();
 
   if (state.hide === VariableHide.hideVariable) {
