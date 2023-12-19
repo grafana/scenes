@@ -49,10 +49,6 @@ interface TableVizState extends SceneObjectState {
 }
 
 class TableViz extends SceneObjectBase<TableVizState> {
-  public addExpandedRow(row: SceneObject) {
-    this.setState({ expandedRows: [...(this.state.expandedRows ?? []), row] });
-  }
-
   static Component = ({ model }: SceneComponentProps<TableViz>) => {
     const { data } = sceneGraph.getData(model).useState();
 
@@ -102,12 +98,14 @@ interface ExpandedRowProps {
 function TableVizExpandedRow({ tableViz, row }: ExpandedRowProps) {
   const { expandedRows } = tableViz.useState();
 
-  useEffect(() => {
-    const expandedRow = buildExpandedRowScene(row.handler);
-    tableViz.addExpandedRow(expandedRow);
-  }, [row, tableViz]);
-
   const rowScene = expandedRows?.find((scene) => scene.state.key === row.handler);
+
+  useEffect(() => {
+    if (!rowScene) {
+      const newRowScene = buildExpandedRowScene(row.handler);
+      tableViz.setState({ expandedRows: [...(tableViz.state.expandedRows ?? []), newRowScene] });
+    }
+  }, [row, tableViz, rowScene]);
 
   return rowScene ? <rowScene.Component model={rowScene} /> : null;
 }
