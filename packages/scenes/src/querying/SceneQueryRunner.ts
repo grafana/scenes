@@ -38,6 +38,7 @@ import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
+import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
 
 let counter = 100;
 
@@ -368,7 +369,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const ds = await getDataSource(datasource, this._scopedVars);
 
       if (!this._adhocFilterSet) {
-        this.findAndSubscribeToAdhocFilters();
+        this.findAndSubscribeToAdhocFilters(datasource?.uid);
       }
 
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
@@ -537,19 +538,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private findAndSubscribeToAdhocFilters() {
-    const set = getClosest(this, (s) => {
-      let found = null;
-      if (s instanceof AdHocFilterSet && s.state.datasource?.uid === this.state.datasource?.uid) {
-        return s;
-      }
-      s.forEachChild((child) => {
-        if (child instanceof AdHocFilterSet && child.state.datasource?.uid === this.state.datasource?.uid) {
-          found = child;
-        }
-      });
-      return found;
-    });
+  private findAndSubscribeToAdhocFilters(uid: string | undefined) {
+    const set = findActiveAdHocFilterSetByUid(uid);
 
     if (!set || set.state.applyMode !== 'same-datasource') {
       return;

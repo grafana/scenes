@@ -224,6 +224,7 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data).toBeUndefined();
 
       queryRunner.activate();
+      filterSet.activate();
 
       await new Promise((r) => setTimeout(r, 1));
 
