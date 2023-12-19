@@ -1,8 +1,6 @@
 import { getDataSourceSrv, getTemplateSrv } from '@grafana/runtime';
 import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocVariableFilter } from '@grafana/data';
-import { SceneObject } from '../../core/types';
-import { sceneGraph } from '../../core/sceneGraph';
 
 let originalGetAdhocFilters: any = undefined;
 let allActiveFilterSets = new Set<AdHocFilterSet>();
