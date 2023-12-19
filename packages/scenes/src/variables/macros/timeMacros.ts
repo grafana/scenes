@@ -99,7 +99,7 @@ export class IntervalMacro implements FormatVariable {
     if (data) {
       const request = data.state.data?.request;
       if (!request) {
-        return '';
+        return `\${${this.state.name}}`;
       }
       if (this.state.name === '__interval_ms') {
         return request.intervalMs;
@@ -107,6 +107,6 @@ export class IntervalMacro implements FormatVariable {
       return request.interval;
     }
 
-    return '';
+    return `\${${this.state.name}}`;
   }
 }
