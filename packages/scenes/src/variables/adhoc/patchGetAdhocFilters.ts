@@ -42,3 +42,13 @@ export function patchGetAdhocFilters(filterSet: AdHocFilterSet) {
     return [];
   }.bind(templateSrv);
 }
+
+export function findActiveAdHocFilterSetByUid(dsUid: string | undefined): AdHocFilterSet | undefined {
+  for (const filter of allActiveFilterSets.values()) {
+    if (filter.state.datasource?.uid === dsUid) {
+      return filter;
+    }
+  }
+
+  return undefined;
+}
