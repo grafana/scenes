@@ -1,3 +1,18 @@
+# v1.28.2 (Tue Dec 19 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Improve the way to find adhoc filter set [#506](https://github.com/grafana/scenes/pull/506) ([@torkelo](https://github.com/torkelo))
+  - CustomVariable: Interpolate query [#502](https://github.com/grafana/scenes/pull/502) ([@torkelo](https://github.com/torkelo))
+  - VizPanel Re-render skipDataQuery panels when time range change [#492](https://github.com/grafana/scenes/pull/492) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.28.1 (Wed Dec 13 2023)
 
 #### 🐛 Bug Fix
