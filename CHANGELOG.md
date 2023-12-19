@@ -1,3 +1,16 @@
+# v1.28.3 (Tue Dec 19 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - IntervalVariable: Makes it return the original variable expression when data or request is not present [#508](https://github.com/grafana/scenes/pull/508) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.28.2 (Tue Dec 19 2023)
 
 #### 🐛 Bug Fix
