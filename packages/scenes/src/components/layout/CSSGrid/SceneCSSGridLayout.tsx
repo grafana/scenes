@@ -65,7 +65,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
 }
 
 function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<SceneCSSGridLayout>) {
-  const { children, isHidden } = model.useState();
+  const { children, isHidden, isLazy } = model.useState();
   const style = useLayoutStyle(model.state);
 
   if (isHidden) {
@@ -76,6 +76,13 @@ function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<Scene
     <div className={style}>
       {children.map((item) => {
         const Component = item.Component as ComponentType<SceneCSSGridItemRenderProps<SceneObject>>;
+        if (isLazy) {
+          return (
+              <LazyLoader key={item.state.key!} className={style}>
+                <Component key={item.state.key} model={item} parentState={model.state} />;
+              </LazyLoader>
+          );
+        }
         return <Component key={item.state.key} model={item} parentState={model.state} />;
       })}
     </div>
@@ -93,7 +100,6 @@ export interface SceneCSSGridItemPlacement {
    */
   gridColumn?: CSSProperties['gridColumn'];
   gridRow?: CSSProperties['gridRow'];
-  isLazy?: boolean;
 }
 
 export interface SceneCSSGridItemState extends SceneCSSGridItemPlacement, SceneObjectState {
@@ -113,19 +119,11 @@ function SceneCSSGridItemRenderer({ model, parentState }: SceneCSSGridItemRender
     throw new Error('SceneCSSGridItem must be a child of SceneCSSGridLayout');
   }
 
-  const { body, isHidden, key } = model.useState();
+  const { body, isHidden } = model.useState();
   const style = useItemStyle(model.state);
 
   if (!body || isHidden) {
     return null;
-  }
-
-  if (parentState.isLazy) {
-    return (
-      <LazyLoader key={key!} className={style}>
-        <body.Component model={body} />
-      </LazyLoader>
-    );
   }
 
   return (
