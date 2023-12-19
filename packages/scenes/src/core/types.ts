@@ -144,8 +144,8 @@ export interface SceneTimeRangeState extends SceneObjectState {
   timeZone?: TimeZone;
   /** weekStart will change the global date locale so having multiple different weekStart values is not supported  */
   weekStart?: string;
-  /** delayNow will delay the "now" value by the specified duration */
-  delayNow?: string;
+  /** Override the now time by entering a time delay. Use this option to accommodate known delays in data aggregation to avoid null values. */
+  nowDelay?: string;
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {

@@ -120,7 +120,7 @@ describe('SceneTimeRange', () => {
 
   describe('delay now', () => {
     it('when created should evaluate time range applying the delay value to now', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', delayNow: '1m' });
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', nowDelay: '1m' });
       expect(timeRange.state.value.raw.from).toBe('now-1h');
       expect(timeRange.state.value.raw.to).toBe('now-1m');
     });
@@ -129,14 +129,14 @@ describe('SceneTimeRange', () => {
       const timeRange = new SceneTimeRange({
         from: '2021-01-01T10:00:00.000Z',
         to: '2021-02-03T01:20:00.000Z',
-        delayNow: '1m',
+        nowDelay: '1m',
       });
       expect(timeRange.state.value.raw.from).toBe('2021-01-01T10:00:00.000Z');
       expect(timeRange.state.value.raw.to).toBe('2021-02-03T01:20:00.000Z');
     });
 
     it('should apply delay after time range changes', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', delayNow: '1m' });
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', nowDelay: '1m' });
       const stateSpy = jest.spyOn(timeRange, 'setState');
 
       timeRange.onTimeRangeChange({
@@ -158,13 +158,13 @@ describe('SceneTimeRange', () => {
     });
 
     it('should apply the delay to the value when time range refreshed', async () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', delayNow: '1m' });
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', nowDelay: '1m' });
       timeRange.onRefresh();
       expect(timeRange.state.value.raw.to).toBe('now-1m');
     });
 
     it('should apply the delay to the value when updating from URL', async () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', delayNow: '1m' });
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', nowDelay: '1m' });
 
       timeRange.urlSync?.updateFromUrl({
         from: 'now-6h',
@@ -176,7 +176,7 @@ describe('SceneTimeRange', () => {
 
     it('should apply delay when updating time zone from the closest range with time zone specified', () => {
       const outerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'America/New_York' });
-      const innerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', delayNow: '1m' });
+      const innerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', nowDelay: '1m' });
       const scene = new SceneFlexLayout({
         $timeRange: outerTimeRange,
         children: [
@@ -191,12 +191,12 @@ describe('SceneTimeRange', () => {
       expect(innerTimeRange.state.value.raw.to).toBe('now-1m');
     });
 
-    it('should NOT apply delay from the closest range with time delayNow specified', () => {
+    it('should NOT apply delay from the closest range with time nowDelay specified', () => {
       const outerTimeRange = new SceneTimeRange({
         from: 'now-1h',
         to: 'now',
         timeZone: 'America/New_York',
-        delayNow: '1m',
+        nowDelay: '1m',
       });
       const innerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
       const scene = new SceneFlexLayout({

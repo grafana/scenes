@@ -17,7 +17,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     const from = state.from ?? 'now-6h';
     const to = state.to ?? 'now';
     const timeZone = state.timeZone;
-    const value = evaluateTimeRange(from, to, timeZone || getTimeZone(), state.fiscalYearStartMonth, state.delayNow);
+    const value = evaluateTimeRange(from, to, timeZone || getTimeZone(), state.fiscalYearStartMonth, state.nowDelay);
     super({ from, to, timeZone, value, ...state });
 
     this.addActivationHandler(this._onActivate.bind(this));
@@ -37,7 +37,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
                   this.state.to,
                   timeZoneSource.getTimeZone(),
                   this.state.fiscalYearStartMonth,
-                  this.state.delayNow
+                  this.state.nowDelay
                 ),
               });
             }
@@ -123,7 +123,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       updateToEval.to,
       this.getTimeZone(),
       this.state.fiscalYearStartMonth,
-      this.state.delayNow
+      this.state.nowDelay
     );
 
     // Only update if time range actually changed
@@ -143,7 +143,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
         this.state.to,
         this.getTimeZone(),
         this.state.fiscalYearStartMonth,
-        this.state.delayNow
+        this.state.nowDelay
       ),
     });
   };
@@ -175,7 +175,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.to ?? this.state.to,
       this.getTimeZone(),
       this.state.fiscalYearStartMonth,
-      this.state.delayNow
+      this.state.nowDelay
     );
     this.setState(update);
   }
