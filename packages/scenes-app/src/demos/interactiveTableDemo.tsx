@@ -32,10 +32,11 @@ export function getInteractiveTableDemo(defaults: SceneAppPageState): SceneAppPa
         body: new SceneFlexLayout({
           children: [
             new SceneFlexItem({
-              $data: getPromQueryInstant({
-                expr: 'sort_desc(avg without(job, instance) (rate(grafana_http_request_duration_seconds_sum[$__rate_interval]) * 1e3))',
+              body: new TableViz({
+                $data: getPromQueryInstant({
+                  expr: 'sort_desc(avg without(job, instance) (rate(grafana_http_request_duration_seconds_sum[$__rate_interval]) * 1e3))',
+                }),
               }),
-              body: new TableViz({}),
             }),
           ],
         }),
