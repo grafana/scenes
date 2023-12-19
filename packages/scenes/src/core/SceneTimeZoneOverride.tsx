@@ -27,7 +27,13 @@ export class SceneTimeZoneOverride
     this.setState({
       ...timeRange,
       timeZone: this.state.timeZone,
-      value: evaluateTimeRange(timeRange.from, timeRange.to, this.state.timeZone, timeRange.fiscalYearStartMonth),
+      value: evaluateTimeRange(
+        timeRange.from,
+        timeRange.to,
+        this.state.timeZone,
+        timeRange.fiscalYearStartMonth,
+        timeRange.delayNow
+      ),
     });
   }
 
@@ -42,7 +48,8 @@ export class SceneTimeZoneOverride
         this.state.from,
         this.state.to,
         this.state.timeZone,
-        this.getAncestorTimeRange().state.fiscalYearStartMonth
+        this.getAncestorTimeRange().state.fiscalYearStartMonth,
+        this.state.delayNow
       ),
     });
   }
