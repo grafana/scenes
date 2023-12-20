@@ -23,7 +23,7 @@ const autoRowOptions = ['150px', '250px', 'auto'];
 export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A CSS Grid Layout demo',
+    subTitle: 'A CSS Grid Layout demo, isLazy is enabled to showcase lazy rendering of panels',
     getScene: () => {
       const layout = new SceneCSSGridLayout({
         children: getLayoutChildren(10),
@@ -31,6 +31,7 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
         templateRows: rowTemplateOptions[0],
         autoRows: autoRowOptions[0],
         rowGap: 2,
+        isLazy: true,
       });
 
       const inputControl = new SceneToolbarInput({
