@@ -1,3 +1,16 @@
+# v1.28.5 (Wed Dec 20 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - CSSGridLayout: Remove semi colon [#511](https://github.com/grafana/scenes/pull/511) ([@adrapereira](https://github.com/adrapereira))
+
+#### Authors: 1
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+
+---
+
 # v1.28.4 (Wed Dec 20 2023)
 
 #### 🐛 Bug Fix
