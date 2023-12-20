@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { clamp, throttle } from 'lodash';
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import { useUniqueId } from '../grid/LazyLoader';
+import { useUniqueId } from '../LazyLoader';
 
 interface Props {
   handleSize?: number;
