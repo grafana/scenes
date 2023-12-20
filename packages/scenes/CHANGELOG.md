@@ -1,3 +1,16 @@
+# v1.28.4 (Wed Dec 20 2023)
+
+#### 🐛 Bug Fix
+
+- CSSGridLayout: Lazy loading [#510](https://github.com/grafana/scenes/pull/510) ([@adrapereira](https://github.com/adrapereira) [@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.28.3 (Tue Dec 19 2023)
 
 #### 🐛 Bug Fix
