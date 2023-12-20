@@ -271,6 +271,15 @@ export function Splitter({
     }`;
   }, [maxDimProp, measurementProp, minDimProp]);
 
+  const onBlur = useCallback(() => {
+    // If focus is lost while keys are held, stop changing panel sizes
+    if (pressedKeys.current.size > 0) {
+      pressedKeys.current.clear();
+      dragStart.current = null;
+      onDragFinished?.(parseFloat(firstPaneRef.current!.style.flexGrow));
+    }
+  }, [onDragFinished]);
+
   const styles = useStyles2(getStyles);
   const id = useUniqueId();
 
@@ -305,6 +314,7 @@ export function Splitter({
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
         onDoubleClick={onDoubleClick}
+        onBlur={onBlur}
         role="separator"
         aria-valuemin={0}
         aria-valuemax={100}
