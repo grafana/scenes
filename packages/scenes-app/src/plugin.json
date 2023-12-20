@@ -32,6 +32,13 @@
       "path": "/a/%PLUGIN_ID%/demos",
       "role": "Admin",
       "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Grafana monitoring",
+      "path": "/a/%PLUGIN_ID%/grafana-monitoring",
+      "role": "Admin",
+      "addToNav": true
     }
   ],
   "dependencies": {
