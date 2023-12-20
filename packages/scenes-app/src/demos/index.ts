@@ -29,6 +29,7 @@ import { getNestedScenesAndVariablesDemo } from './nestedVariables';
 import { getCssGridLayoutDemo } from './cssGridLayoutDemo';
 import { getPanelHeaderActions } from './panelHeaderActions';
 import { getVerticalControlsLayoutDemo } from './verticalControlsLayoutDemo';
+import { getInteractiveTableDemo } from './interactiveTableDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -67,5 +68,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'CSS Grid Layout', getPage: getCssGridLayoutDemo },
     { title: 'Panel header actions', getPage: getPanelHeaderActions },
     { title: 'Vertical controls layout', getPage: getVerticalControlsLayoutDemo },
+    { title: 'Interactive table with expandable rows', getPage: getInteractiveTableDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
