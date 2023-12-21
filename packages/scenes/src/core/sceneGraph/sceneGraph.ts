@@ -8,6 +8,7 @@ import { SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } f
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneDataLayers } from '../../querying/SceneDataLayers';
+import { SceneQueryControllerLike, isQueryController } from '../../querying/SceneQueryController';
 
 /**
  * Get the closest node with variables
@@ -161,6 +162,23 @@ export function getAncestor<ParentType>(
   sceneObject: SceneObject,
   ancestorType: { new (...args: never[]): ParentType }
 ): ParentType {
+  const parent = tryGetAncestor(sceneObject, ancestorType);
+
+  if (!parent) {
+    throw new Error('Unable to find parent of type ' + ancestorType.name);
+  }
+
+  return parent;
+}
+
+/**
+ * A utility function to find the closest ancestor of a given type. This function expects
+ * to find it and will throw an error if it does noit.
+ */
+export function tryGetAncestor<ParentType>(
+  sceneObject: SceneObject,
+  ancestorType: { new (...args: never[]): ParentType }
+): ParentType | undefined {
   let parent: SceneObject | undefined = sceneObject;
 
   while (parent) {
@@ -170,5 +188,25 @@ export function getAncestor<ParentType>(
     parent = parent.parent;
   }
 
-  throw new Error('Unable to find parent of type ' + ancestorType.name);
+  return parent;
+}
+
+/**
+ * Returns the closest query controller undefined if none found
+ */
+export function getQueryController(sceneObject: SceneObject): SceneQueryControllerLike | undefined {
+  let parent: SceneObject | undefined = sceneObject;
+
+  while (parent) {
+    if (parent.state.$behaviors) {
+      for (const behavior of parent.state.$behaviors) {
+        if (isQueryController(behavior)) {
+          return behavior;
+        }
+      }
+    }
+    parent = parent.parent;
+  }
+
+  return parent;
 }

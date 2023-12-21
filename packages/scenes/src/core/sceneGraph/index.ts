@@ -9,6 +9,8 @@ import {
   hasVariableDependencyInLoadingState,
   interpolate,
   getAncestor,
+  tryGetAncestor,
+  getQueryController,
 } from './sceneGraph';
 
 export const sceneGraph = {
@@ -22,4 +24,6 @@ export const sceneGraph = {
   hasVariableDependencyInLoadingState,
   findObject,
   getAncestor,
+  tryGetAncestor,
+  getQueryController,
 };

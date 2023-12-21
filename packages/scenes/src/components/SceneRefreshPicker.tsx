@@ -16,12 +16,16 @@ export interface SceneRefreshPickerState extends SceneObjectState {
   // List of allowed refresh intervals, e.g. ['5s', '1m']
   intervals?: string[];
   isOnCanvas?: boolean;
+  primary?: boolean;
+  withText?: boolean;
+
+  /** internal state */
+  _isRunning?: boolean;
 }
 
 export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState> {
   public static Component = SceneRefreshPickerRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['refresh'] });
-
   private _intervalTimer: ReturnType<typeof setInterval> | undefined;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
@@ -34,6 +38,15 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     this.addActivationHandler(() => {
       this.setupIntervalTimer();
 
+      const queryController = sceneGraph.getQueryController(this);
+      if (queryController) {
+        this._subs.add(
+          queryController.subscribeToState((state) => {
+            this.setState({ _isRunning: state.isRunning });
+          })
+        );
+      }
+
       return () => {
         if (this._intervalTimer) {
           clearInterval(this._intervalTimer);
@@ -43,6 +56,14 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   }
 
   public onRefresh = () => {
+    if (this.state._isRunning) {
+      const queryController = sceneGraph.getQueryController(this);
+      if (queryController) {
+        queryController.cancelAll();
+      }
+      return;
+    }
+
     const timeRange = sceneGraph.getTimeRange(this);
 
     if (this._intervalTimer) {
@@ -100,14 +121,28 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 }
 
 export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneRefreshPicker>) {
-  const { refresh, intervals, isOnCanvas } = model.useState();
+  const { refresh, intervals, isOnCanvas, _isRunning, primary, withText } = model.useState();
+  let text = withText ? 'Refresh' : undefined;
+  let tooltip: string | undefined;
+
+  if (_isRunning) {
+    tooltip = 'Cancel all queries';
+
+    if (withText) {
+      text = 'Cancel';
+    }
+  }
 
   return (
     <RefreshPicker
       value={refresh}
       intervals={intervals}
+      tooltip={tooltip}
+      text={text}
       onRefresh={model.onRefresh}
+      primary={primary}
       onIntervalChanged={model.onIntervalChanged}
+      isLoading={_isRunning}
       isOnCanvas={isOnCanvas ?? true}
     />
   );

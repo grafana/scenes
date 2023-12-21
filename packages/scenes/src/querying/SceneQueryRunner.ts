@@ -39,6 +39,7 @@ import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
+import { SceneQueryControllerLike } from './SceneQueryController';
 
 let counter = 100;
 
@@ -67,11 +68,13 @@ export interface DataQueryExtended extends DataQuery {
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
+  private _signalQueryCompleted?: () => void;
   private _dataLayersSub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>();
   private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
+  private _queryController?: SceneQueryControllerLike;
 
   // Closest filter set if found)
   private _adhocFilterSet?: AdHocFilterSet;
@@ -96,6 +99,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = this.getTimeCompare();
+
+    this._queryController = sceneGraph.getQueryController(this);
 
     if (comparer) {
       this._subs.add(
@@ -328,6 +333,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
+    if (this._signalQueryCompleted) {
+      this._signalQueryCompleted();
+      this._signalQueryCompleted = undefined;
+    }
+
     this.setState({
       data: { ...this.state.data!, state: LoadingState.Done },
     });
@@ -335,12 +345,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // If data layers subscription doesn't exist, create one
-    //
     if (!this._dataLayersSub) {
       this._handleDataLayers();
     }
 
     const runRequest = getRunRequest();
+
     // Cancel any running queries
     this._querySub?.unsubscribe();
 
@@ -384,18 +394,23 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       } else {
         this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
       }
+
+      if (this._queryController) {
+        this._signalQueryCompleted = this._queryController.queryStarted({
+          type: 'data',
+          query: request,
+          source: this,
+          cancel: () => this.cancelQuery(),
+        });
+      }
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 
-      const result = {
+      this.onDataReceived({
         ...emptyPanelData,
         ...this.state.data,
         state: LoadingState.Error,
         errors: [toDataQueryError(err)],
-      };
-
-      this.setState({
-        data: result,
       });
     }
   }
@@ -478,6 +493,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private onDataReceived = (data: PanelData) => {
     this._results.next({ origin: this, data });
+
+    if (data.state !== LoadingState.Loading) {
+      if (this._signalQueryCompleted) {
+        this._signalQueryCompleted();
+      }
+    }
 
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);

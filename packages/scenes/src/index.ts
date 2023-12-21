@@ -29,6 +29,7 @@ export { SceneDataLayers } from './querying/SceneDataLayers';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
+export { SceneQueryController as SceneQueryStateController } from './querying/SceneQueryController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
 
 export * from './variables/types';
