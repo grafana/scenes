@@ -59,6 +59,8 @@ export interface QueryRunnerState extends SceneObjectState {
   // Private runtime state
   _isWaitingForVariables?: boolean;
   _hasFetchedData?: boolean;
+  _layerAnnotations?: DataFrame[];
+  _resultAnnotations?: DataFrame[];
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -197,9 +199,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const baseStateUpdate = this.state.data ? this.state.data : { ...emptyPanelData, timeRange: timeRange.state.value };
 
     this.setState({
+      _layerAnnotations: annotations,
       data: {
         ...baseStateUpdate,
-        annotations,
+        annotations: [...(this.state._resultAnnotations ?? []), ...annotations],
         alertState: alertState ?? this.state.data?.alertState,
       },
     });
@@ -491,12 +494,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       hasFetchedData = true;
     }
 
-    this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
+    this.setState({
+      data: dataWithLayersApplied,
+      _hasFetchedData: hasFetchedData,
+      _resultAnnotations: data.annotations,
+    });
   };
 
   private _combineDataLayers(data: PanelData) {
     if (this.state.data && this.state.data.annotations) {
-      data.annotations = (data.annotations || []).concat(this.state.data.annotations);
+      data.annotations = (data.annotations || []).concat(this.state._layerAnnotations ?? []);
     }
 
     if (this.state.data && this.state.data.alertState) {
