@@ -37,12 +37,16 @@ export function getQueryControllerDemo(defaults: SceneAppPageState) {
                 autoRows: '320px',
                 children: [
                   PanelBuilders.timeseries()
-                    .setTitle('Panel 1')
+                    .setTitle('2s query')
+                    .setData(getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '2s' }))
+                    .build(),
+                  PanelBuilders.timeseries()
+                    .setTitle('3s query')
                     .setData(getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '3s' }))
                     .build(),
                   PanelBuilders.timeseries()
-                    .setTitle('Panel 2')
-                    .setData(getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '3s' }))
+                    .setTitle('5s query')
+                    .setData(getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '5s' }))
                     .build(),
                 ],
               }),
@@ -64,12 +68,16 @@ export function getInnerScene(title: string) {
     body: new SceneCSSGridLayout({
       children: [
         PanelBuilders.timeseries()
-          .setTitle('Panel 3')
+          .setTitle('2s query')
+          .setData(getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '2s' }))
+          .build(),
+        PanelBuilders.timeseries()
+          .setTitle('3s query')
           .setData(getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '3s' }))
           .build(),
         PanelBuilders.timeseries()
-          .setTitle('Panel 4')
-          .setData(getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '3s' }))
+          .setTitle('5s query')
+          .setData(getQueryRunnerWithRandomWalkQuery({ scenarioId: 'slow_query', stringInput: '5s' }))
           .build(),
       ],
     }),

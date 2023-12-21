@@ -162,23 +162,6 @@ export function getAncestor<ParentType>(
   sceneObject: SceneObject,
   ancestorType: { new (...args: never[]): ParentType }
 ): ParentType {
-  const parent = tryGetAncestor(sceneObject, ancestorType);
-
-  if (!parent) {
-    throw new Error('Unable to find parent of type ' + ancestorType.name);
-  }
-
-  return parent;
-}
-
-/**
- * A utility function to find the closest ancestor of a given type. This function expects
- * to find it and will throw an error if it does noit.
- */
-export function tryGetAncestor<ParentType>(
-  sceneObject: SceneObject,
-  ancestorType: { new (...args: never[]): ParentType }
-): ParentType | undefined {
   let parent: SceneObject | undefined = sceneObject;
 
   while (parent) {
@@ -186,6 +169,10 @@ export function tryGetAncestor<ParentType>(
       return parent;
     }
     parent = parent.parent;
+  }
+
+  if (!parent) {
+    throw new Error('Unable to find parent of type ' + ancestorType.name);
   }
 
   return parent;
