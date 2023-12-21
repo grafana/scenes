@@ -398,7 +398,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       if (this._queryController) {
         this._signalQueryCompleted = this._queryController.queryStarted({
           type: 'data',
-          query: request,
+          request: request,
           source: this,
           cancel: () => this.cancelQuery(),
         });

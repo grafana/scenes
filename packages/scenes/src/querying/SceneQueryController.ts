@@ -20,7 +20,7 @@ export function isQueryController(s: SceneObject | SceneStatelessBehavior): s is
 export type SceneQueryType = 'data' | 'annotations' | 'panel' | 'variable' | 'alerts';
 
 export interface SceneQueryControllerEntry {
-  query?: DataQueryRequest;
+  request?: DataQueryRequest;
   type: SceneQueryType;
   source?: SceneObject;
   cancel: () => void;
