@@ -1,7 +1,7 @@
 import React from 'react';
 import { AdHocVariableFilter } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent } from '../types';
+import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { AdHocFilterSet, AdHocFilterSetState } from './AdHocFiltersSet';
 import { SceneComponentProps } from '../../core/types';
 import { VariableHide } from '@grafana/schema';
@@ -42,13 +42,12 @@ export class AdHocFiltersVariable
   }
 
   public constructor(state: AdHocFiltersVariableState) {
-    super({
-      ...state,
-      filterExpression: state.filterExpression ?? renderFilters(state.set.state.filters),
-    });
+    super({ ...state });
 
     // Subscribe to filter changes and up the variable value (filterExpression)
     this.addActivationHandler(() => {
+      this.setState({ filterExpression: state.filterExpression ?? this.renderFilters(state.set.state.filters) });
+
       this._subs.add(
         this.state.set.subscribeToState((newState, prevState) => {
           if (newState.filters !== prevState.filters) {
@@ -65,8 +64,21 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
+  public renderFilters(filters: AdHocVariableFilter[]) {
+    let expr = '';
+    for (const filter of filters) {
+      expr += `${renderFilter(filter)},`;
+    }
+
+    if (expr.length > 0) {
+      expr = expr.slice(0, -1);
+    }
+
+    return expr;
+  }
+
   private _updateFilterExpression(filters: AdHocVariableFilter[], publishEvent: boolean) {
-    let expr = renderFilters(filters);
+    let expr = this.renderFilters(filters);
 
     if (expr === this.state.filterExpression) {
       return;
@@ -83,19 +95,6 @@ export class AdHocFiltersVariable
   public static Component = ({ model }: SceneComponentProps<AdHocFiltersVariable>) => {
     return <AdHocFilterSet.Component model={model.state.set} />;
   };
-}
-
-function renderFilters(filters: AdHocVariableFilter[]) {
-  let expr = '';
-  for (const filter of filters) {
-    expr += `${renderFilter(filter)},`;
-  }
-
-  if (expr.length > 0) {
-    expr = expr.slice(0, -1);
-  }
-
-  return expr;
 }
 
 function renderFilter(filter: AdHocVariableFilter) {
