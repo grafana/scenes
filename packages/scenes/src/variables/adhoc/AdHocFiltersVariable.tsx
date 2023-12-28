@@ -61,7 +61,7 @@ export class AdHocFiltersVariable
     });
   }
 
-  public getValue() {
+  public getValue(): VariableValue | undefined {
     return this.state.filterExpression;
   }
 
