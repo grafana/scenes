@@ -210,6 +210,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * the query execution on activate was stopped due to VariableSet still not having processed all variables.
    */
   private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
+    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
+    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
+      return;
+    }
+
     if (this.state._isWaitingForVariables) {
       this.runQueries();
       return;
