@@ -429,6 +429,40 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
+    it('Should not execute query when variable updates, but maxDataPointsFromWidth is true and width not received yet', async () => {
+      const variable = new TestVariable({ name: 'A', value: '', query: 'A.*' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+        maxDataPointsFromWidth: true,
+      });
+
+      const timeRange = new SceneTimeRange();
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: timeRange,
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+      // not execute on variable update because width not received yet
+      variable.signalUpdateCompleted();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(queryRunner.state.data?.state).toBe(undefined);
+
+      variable.changeValueTo('AB');
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls.length).toBe(0);
+      expect(queryRunner.state.data?.state).toBe(undefined);
+
+      // should execute when width has finally been set
+      queryRunner.setContainerWidth(1000);
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls.length).toBe(1);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+
     it('Should execute query when variable updates and data layer response was received before', async () => {
       const variable = new TestVariable({ name: 'A', value: 'AA', text: 'AA', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({
