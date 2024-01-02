@@ -73,6 +73,8 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
 
     if (options.length === 0) {
       this.setState({ error: 'No data sources found' });
+    } else if (this.state.error) {
+      this.setState({ error: null });
     }
 
     return of(options);

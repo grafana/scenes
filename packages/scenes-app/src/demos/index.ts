@@ -6,7 +6,6 @@ import { getFlexLayoutTest } from './flexLayout';
 import { getGridLayoutTest } from './grid';
 import { getGridWithRowLayoutTest } from './gridWithRow';
 import { getLazyLoadDemo } from './lazyLoad';
-import { getNestedScene } from './nestedScene';
 import { getPanelContextDemoScene } from './panelContext';
 import { getPanelMenuTest } from './panelMenu';
 import { getPanelRepeaterTest } from './panelRepeater';
@@ -26,9 +25,11 @@ import { getAdhocFiltersDemo } from './adhocFiltersDemo';
 import { getTransformationsTest } from './transformations';
 import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
 import { getDataFilteringTest } from './filteringData';
+import { getNestedScenesAndVariablesDemo } from './nestedVariables';
 import { getCssGridLayoutDemo } from './cssGridLayoutDemo';
 import { getPanelHeaderActions } from './panelHeaderActions';
 import { getVerticalControlsLayoutDemo } from './verticalControlsLayoutDemo';
+import { getInteractiveTableDemo } from './interactiveTableDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -47,7 +48,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Lazy load', getPage: getLazyLoadDemo },
     { title: 'Variables', getPage: getVariablesDemo },
     { title: 'Adhoc filters', getPage: getAdhocFiltersDemo },
-    { title: 'Nested scene', getPage: getNestedScene },
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
     { title: 'Query editor', getPage: getQueryEditorDemo },
     { title: 'Dynamic page', getPage: getDynamicPageDemo },
@@ -64,8 +64,10 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Dynamic panel options and field config', getPage: getDynamicVizOptionsTest },
     { title: 'Data filtering', getPage: getDataFilteringTest },
     { title: 'Docs examples', getPage: getDocsExamples },
+    { title: 'Nested scenes and variables', getPage: getNestedScenesAndVariablesDemo },
     { title: 'CSS Grid Layout', getPage: getCssGridLayoutDemo },
     { title: 'Panel header actions', getPage: getPanelHeaderActions },
     { title: 'Vertical controls layout', getPage: getVerticalControlsLayoutDemo },
+    { title: 'Interactive table with expandable rows', getPage: getInteractiveTableDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

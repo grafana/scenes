@@ -28,6 +28,10 @@ export function getPanelContextDemoScene(defaults: SceneAppPageState): SceneAppP
                 .setDisplayName('${__field.labels.cluster}')
                 .build(),
             }),
+            new SceneFlexItem({
+              height: 400,
+              body: PanelBuilders.text().setOption('content', 'from: ${__from:date:iso} to: ${__to:date:iso}').build(),
+            }),
           ],
         }),
       });

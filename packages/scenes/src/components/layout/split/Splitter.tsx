@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { clamp, throttle } from 'lodash';
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import { useUniqueId } from '../grid/LazyLoader';
+import { useUniqueId } from '../LazyLoader';
 
 interface Props {
   handleSize?: number;
@@ -271,6 +271,15 @@ export function Splitter({
     }`;
   }, [maxDimProp, measurementProp, minDimProp]);
 
+  const onBlur = useCallback(() => {
+    // If focus is lost while keys are held, stop changing panel sizes
+    if (pressedKeys.current.size > 0) {
+      pressedKeys.current.clear();
+      dragStart.current = null;
+      onDragFinished?.(parseFloat(firstPaneRef.current!.style.flexGrow));
+    }
+  }, [onDragFinished]);
+
   const styles = useStyles2(getStyles);
   const id = useUniqueId();
 
@@ -305,6 +314,7 @@ export function Splitter({
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
         onDoubleClick={onDoubleClick}
+        onBlur={onBlur}
         role="separator"
         aria-valuemin={0}
         aria-valuemax={100}
@@ -400,7 +410,7 @@ function getStyles(theme: GrafanaTheme2) {
       flexGrow: 1,
       overflow: 'hidden',
     }),
-    panel: css({ display: 'flex', overflow: 'hidden', position: 'relative', flexBasis: 0 }),
+    panel: css({ display: 'flex', position: 'relative', flexBasis: 0 }),
   };
 }
 

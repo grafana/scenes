@@ -2,6 +2,16 @@ import { getUrlWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
 import { cloneSceneObjectState } from './core/sceneGraph/utils';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
+import { registerVariableMacro } from './variables/macros';
+import {
+  isAdHocVariable,
+  isQueryVariable,
+  isTextBoxVariable,
+  isCustomVariable,
+  isDataSourceVariable,
+  isConstantVariable,
+  isIntervalVariable,
+} from './variables/variants/guards';
 
 export * from './core/types';
 export * from './core/events';
@@ -37,6 +47,7 @@ export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFilterSet } from './variables/adhoc/AdHocFiltersSet';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
+export { type MacroVariableConstructor } from './variables/macros/types';
 
 export { type UrlSyncManagerLike as UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
@@ -84,5 +95,15 @@ export const sceneUtils = {
   getUrlWithAppState,
   registerRuntimePanelPlugin,
   registerRuntimeDataSource,
+  registerVariableMacro,
   cloneSceneObjectState,
+
+  // Variable guards
+  isAdHocVariable,
+  isConstantVariable,
+  isCustomVariable,
+  isDataSourceVariable,
+  isIntervalVariable,
+  isQueryVariable,
+  isTextBoxVariable,
 };

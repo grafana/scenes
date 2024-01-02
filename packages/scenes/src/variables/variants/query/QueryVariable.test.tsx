@@ -179,18 +179,25 @@ describe('QueryVariable', () => {
     });
 
     describe('when refresh on dashboard load set', () => {
-      it('Should issue variable query with default time range', async () => {
+      it('Should issue variable query with current time range', async () => {
         const variable = new QueryVariable({
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
         });
 
+        const scene = new EmbeddedScene({
+          $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+          $variables: new SceneVariableSet({ variables: [variable] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+        scene.activate();
+
         await lastValueFrom(variable.validateAndUpdate());
 
-        expect(runRequestMock).toBeCalledTimes(1);
         const call = runRequestMock.mock.calls[0];
-        expect(call[1].range).toEqual(getDefaultTimeRange());
+        expect(call[1].range.raw.from).toEqual('now-5m');
+        expect(call[1].range.raw.to).toEqual('now');
       });
 
       it('Should not issue variable query when the closest time range changes if refresh on dahboard load is set', async () => {
@@ -213,7 +220,7 @@ describe('QueryVariable', () => {
 
         // Uses default time range
         expect(call1[1].range.raw).toEqual({
-          from: 'now-6h',
+          from: 'now-1h',
           to: 'now',
         });
 
@@ -266,6 +273,63 @@ describe('QueryVariable', () => {
 
       expect(variable.state.options).toEqual([
         { label: 'val1', value: 'val1' },
+        { label: 'val11', value: 'val11' },
+      ]);
+    });
+  });
+
+  describe('When sort is provided', () => {
+    beforeEach(() => {
+      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+    });
+
+    it('should return options order by natural sort Desc', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: 8,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val11', value: 'val11' },
+      ]);
+    });
+
+    it('should return options order by natural sort Asc', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: 7,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val11', value: 'val11' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val1', value: 'val1' },
+      ]);
+    });
+
+    it('should return options order by alphabeticalAsc', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: 1,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
         { label: 'val11', value: 'val11' },
       ]);
     });

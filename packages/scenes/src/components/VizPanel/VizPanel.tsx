@@ -14,6 +14,8 @@ import {
   compareDataFrameStructures,
   applyFieldOverrides,
   PluginType,
+  renderMarkdown,
+  PanelPluginDataSupport,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -30,7 +32,8 @@ import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
-import { cloneDeep, merge } from 'lodash';
+import { cloneDeep, isArray, merge, mergeWith } from 'lodash';
+import { UserActionEvent } from '../../core/events';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -104,6 +107,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this.addActivationHandler(() => {
       this._onActivate();
     });
+
+    if (state.menu) {
+      state.menu.addActivationHandler(() => {
+        this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-menu-shown' }), true);
+      });
+    }
   }
 
   private _onActivate() {
@@ -170,6 +179,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
     });
+
+    // Non data panels needs to be re-rendered when time range change
+    if (plugin.meta.skipDataQuery) {
+      const sceneTimeRange = sceneGraph.getTimeRange(this);
+      this._subs.add(sceneTimeRange.subscribeToState(() => this.forceRender()));
+    }
   }
 
   private _getPluginVersion(plugin: PanelPlugin): string {
@@ -216,7 +231,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     const { fieldConfig, options } = this.state;
 
     // When replace is true, we want to replace the entire options object. Default will be applied.
-    const nextOptions = replace ? optionsUpdate : merge(cloneDeep(options), optionsUpdate);
+    const nextOptions = replace
+      ? optionsUpdate
+      : mergeWith(cloneDeep(options), optionsUpdate, (_, srcValue) => {
+          if (isArray(srcValue)) {
+            return srcValue;
+          }
+          return;
+        });
 
     const withDefaults = getPanelOptionsWithDefaults({
       plugin: this._plugin!,
@@ -252,16 +274,29 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return sceneGraph.interpolate(this, value, scoped, format);
   }) as InterpolateFunction;
 
+  public getDescription = () => {
+    this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-description-shown' }), true);
+
+    const { description } = this.state;
+    if (description) {
+      const markdown = this.interpolate(description);
+      return renderMarkdown(markdown);
+    }
+    return '';
+  };
+
   /**
    * Called from the react render path to apply the field config to the data provided by the data provider
    */
   public applyFieldConfig(rawData?: PanelData): PanelData {
-    const plugin = this._plugin!;
+    const plugin = this._plugin;
 
     if (!plugin || plugin.meta.skipDataQuery || !rawData) {
       // TODO setup time range subscription instead
       return emptyPanelData;
     }
+
+    const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
 
     const fieldConfigRegistry = plugin.fieldConfigRegistry;
     const prevFrames = this._prevData?.series;
@@ -289,12 +324,25 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       }),
     };
 
+    if (!pluginDataSupport.alertStates) {
+      this._dataWithFieldConfig.alertState = undefined;
+    }
+
+    if (!pluginDataSupport.annotations) {
+      this._dataWithFieldConfig.annotations = undefined;
+    }
+
     return this._dataWithFieldConfig;
   }
 
   public onCancelQuery = () => {
+    this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-cancel-query-clicked' }), true);
     const data = sceneGraph.getData(this);
     data.cancelQuery?.();
+  };
+
+  public onStatusMessageClick = () => {
+    this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-status-message-clicked' }), true);
   };
 
   /**

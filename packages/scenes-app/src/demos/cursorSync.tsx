@@ -14,7 +14,7 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 
 export function global() {
   return new SceneAppPage({
-    title: 'Cursor sync test',
+    title: 'Global sync scope',
     url: demoUrl('cursor-sync'),
     getScene: () => {
       return new EmbeddedScene({
@@ -29,7 +29,7 @@ export function global() {
               children: [
                 new SceneFlexItem({
                   body: new VizPanel({
-                    title: 'Panel 1 - syncs tooltip with Panel 2',
+                    title: 'Panel 1',
                     pluginId: 'timeseries',
                     $data: getQueryRunnerWithRandomWalkQuery({
                       scenarioId: 'csv_metric_values',
@@ -58,34 +58,10 @@ export function global() {
               children: [
                 new SceneFlexItem({
                   body: new VizPanel({
-                    title: 'Panel 3 - syncs crosshair with Panel 4',
+                    title: 'Panel 3',
                     pluginId: 'timeseries',
                     $data: getQueryRunnerWithRandomWalkQuery({}),
                   }),
-                }),
-                new SceneFlexItem({
-                  body: PanelBuilders.timeseries()
-                    .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }))
-                    .setTitle('Panel 4')
-                    .build(),
-                }),
-              ],
-            }),
-            new SceneFlexLayout({
-              direction: 'row',
-              children: [
-                new SceneFlexItem({
-                  body: new VizPanel({
-                    title: 'No sync',
-                    pluginId: 'timeseries',
-                    $data: getQueryRunnerWithRandomWalkQuery({}),
-                  }),
-                }),
-                new SceneFlexItem({
-                  body: PanelBuilders.timeseries()
-                    .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }))
-                    .setTitle('No sync')
-                    .build(),
                 }),
               ],
             }),

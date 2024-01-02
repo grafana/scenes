@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   CoreApp,
   DataQueryRequest,
-  getDefaultTimeRange,
   LoadingState,
   PanelData,
   ScopedVars,
@@ -36,6 +35,8 @@ export interface QueryVariableState extends MultiValueVariableState {
   regex: string;
   refresh: VariableRefresh;
   sort: VariableSort;
+  /** @internal Only for use inside core dashboards */
+  definition?: string;
 }
 
 export class QueryVariable extends MultiValueVariable<QueryVariableState> {
@@ -64,7 +65,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       return of([]);
     }
 
-    this.setState({ loading: true });
+    this.setState({ loading: true, error: null });
 
     return from(
       getDataSource(this.state.datasource, {
@@ -113,10 +114,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       scopedVars.__searchFilter = { value: searchFilter, text: searchFilter };
     }
 
-    const range =
-      this.state.refresh === VariableRefresh.onTimeRangeChanged
-        ? sceneGraph.getTimeRange(this).state.value
-        : getDefaultTimeRange();
+    const range = sceneGraph.getTimeRange(this).state.value;
 
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,

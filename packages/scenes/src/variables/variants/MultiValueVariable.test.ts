@@ -61,6 +61,25 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toBe('A');
     });
 
+    it('When saved value is same as text representation', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [
+          { label: 'label-A', value: 'value-A' },
+          { label: 'label-B', value: 'value-B' },
+        ],
+        value: 'label-B',
+        text: 'label-B',
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe('value-B');
+      expect(variable.state.text).toBe('label-B');
+    });
+
     it('Should update text representation if current matched option has different text value', async () => {
       const variable = new TestVariable({
         name: 'test',
@@ -95,6 +114,27 @@ describe('MultiValueVariable', () => {
 
       expect(variable.state.value).toEqual(['A', 'C']);
       expect(variable.state.text).toEqual(['A', 'C']);
+    });
+
+    it('Should update text representation if current matched text array values are not valid', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        // since we only sync value to URL after URL sync both value and text will have the "value" representation
+        value: ['1', '2'],
+        text: ['1', '2'],
+        delayMs: 0,
+        isMulti: true,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual(['1', '2']);
+      expect(variable.state.text).toEqual(['A', 'B']);
     });
 
     it('Should pick first option if none of the current values are valid', async () => {

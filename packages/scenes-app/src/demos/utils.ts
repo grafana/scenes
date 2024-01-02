@@ -10,6 +10,7 @@ import {
   VariableValueSelectors,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
+import { DataQueryExtended } from '@grafana/scenes/src/querying/SceneQueryRunner';
 
 export function getQueryRunnerWithRandomWalkQuery(
   overrides?: Partial<any>,
@@ -47,5 +48,35 @@ export function getRowWithText(text: string) {
       text,
       fontSize: 12,
     }),
+  });
+}
+
+export function getPromQueryInstant(query: Partial<DataQueryExtended>): SceneQueryRunner {
+  return new SceneQueryRunner({
+    datasource: { uid: 'gdev-prometheus' },
+    queries: [
+      {
+        refId: 'A',
+        instant: true,
+        format: 'table',
+        maxDataPoints: 500,
+        ...query,
+      },
+    ],
+  });
+}
+
+export function getPromQueryTimeSeries(query: Partial<DataQueryExtended>): SceneQueryRunner {
+  return new SceneQueryRunner({
+    datasource: { uid: 'gdev-prometheus' },
+    queries: [
+      {
+        refId: 'A',
+        range: true,
+        format: 'time_series',
+        maxDataPoints: 500,
+        ...query,
+      },
+    ],
   });
 }

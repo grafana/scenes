@@ -4,6 +4,7 @@ import React, { ComponentType, CSSProperties, useMemo } from 'react';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../../core/types';
 import { config } from '@grafana/runtime';
+import { LazyLoader } from '../LazyLoader';
 
 export interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridLayoutOptions {
   children: Array<SceneCSSGridItem | SceneObject>;
@@ -16,6 +17,8 @@ export interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridL
    * For media query for sceens smaller than md breakpoint
    */
   md?: SceneCSSGridLayoutOptions;
+  /** True when the items should be lazy loaded */
+  isLazy?: boolean;
 }
 
 export interface SceneCSSGridLayoutOptions {
@@ -62,7 +65,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
 }
 
 function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<SceneCSSGridLayout>) {
-  const { children, isHidden } = model.useState();
+  const { children, isHidden, isLazy } = model.useState();
   const style = useLayoutStyle(model.state);
 
   if (isHidden) {
@@ -73,6 +76,13 @@ function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<Scene
     <div className={style}>
       {children.map((item) => {
         const Component = item.Component as ComponentType<SceneCSSGridItemRenderProps<SceneObject>>;
+        if (isLazy) {
+          return (
+            <LazyLoader key={item.state.key!} className={style}>
+              <Component key={item.state.key} model={item} parentState={model.state} />
+            </LazyLoader>
+          );
+        }
         return <Component key={item.state.key} model={item} parentState={model.state} />;
       })}
     </div>

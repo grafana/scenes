@@ -23,9 +23,10 @@ import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneCanvasText } from '../components/SceneCanvasText';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayers } from './SceneDataLayers';
-import { TestAnnotationsDataLayer } from './layers/TestDataLayer';
+import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
+import { emptyPanelData } from '../core/SceneDataNode';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -223,6 +224,7 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data).toBeUndefined();
 
       queryRunner.activate();
+      filterSet.activate();
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -278,7 +280,7 @@ describe('SceneQueryRunner', () => {
   });
 
   describe('when activated and maxDataPointsFromWidth set to true', () => {
-    it('should run queries', async () => {
+    it('should run queries when container width is received', async () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
@@ -300,6 +302,31 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+
+    it('should not run queries when container width is received and data has already been fetched', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        maxDataPointsFromWidth: true,
+      });
+
+      queryRunner.activate();
+      queryRunner.setContainerWidth(1000);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      const clonedQueryRunner = queryRunner.clone();
+      clonedQueryRunner.activate();
+      clonedQueryRunner.setContainerWidth(1000);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // should not issue new query
+      expect(runRequestMock.mock.calls.length).toBe(1);
     });
   });
 
@@ -400,6 +427,40 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toBe(2);
+    });
+
+    it('Should execute query when variable updates and data layer response was received before', async () => {
+      const variable = new TestVariable({ name: 'A', value: 'AA', text: 'AA', query: 'A.*' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+        maxDataPointsFromWidth: true,
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      queryRunner.setContainerWidth(1000);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Verify no query executed
+      expect(runRequestMock.mock.calls.length).toBe(0);
+
+      // Simulate data layer received
+      queryRunner.setState({ data: emptyPanelData });
+
+      // Now variable completes
+      variable.signalUpdateCompleted();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(1);
     });
 
     it('Should execute query again after variable changed while inactive', async () => {
@@ -539,7 +600,9 @@ describe('SceneQueryRunner', () => {
 
   describe('when time range changed while in-active', () => {
     it('It should re-issue new query', async () => {
-      const timeRange = new SceneTimeRange();
+      const from = '2000-01-01';
+      const to = '2000-01-02';
+      const timeRange = new SceneTimeRange({ from, to });
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: timeRange,
@@ -556,6 +619,8 @@ describe('SceneQueryRunner', () => {
 
       deactivateQueryRunner();
 
+      const differentTo = '2000-01-03';
+      timeRange.setState({ from, to: differentTo });
       timeRange.onRefresh();
 
       queryRunner.activate();
@@ -564,6 +629,40 @@ describe('SceneQueryRunner', () => {
 
       // Should run new query
       expect(runRequestMock.mock.calls.length).toEqual(2);
+    });
+  });
+
+  describe('when time range changed to identical range while in-active', () => {
+    it('It should not re-issue new query', async () => {
+      const from = '2000-01-01';
+      const to = '2000-01-02';
+      const timeRange = new SceneTimeRange({ from, to });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: timeRange,
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      const deactivateQueryRunner = queryRunner.activate();
+
+      // When consumer viz is rendered with width 1000
+      await new Promise((r) => setTimeout(r, 1));
+      // Should query
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+
+      deactivateQueryRunner();
+
+      // Setting the state to an equivalent time range
+      timeRange.setState({ from, to });
+      timeRange.onRefresh();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should not any new query
+      expect(runRequestMock.mock.calls.length).toEqual(1);
     });
   });
 
@@ -1491,6 +1590,36 @@ describe('SceneQueryRunner', () => {
               ],
             },
           ]
+        `);
+      });
+
+      it('filters alert states for a given panel', async () => {
+        const layer1 = new TestAnnotationsDataLayer({ name: 'Layer 1' });
+        const layer2 = new TestAlertStatesDataLayer({ name: 'Layer 2' });
+
+        const queryRunner = new SceneQueryRunner({
+          dataLayerFilter: {
+            panelId: 123,
+          },
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          $data: new SceneDataLayers({ layers: [layer1, layer2] }),
+        });
+
+        expect(queryRunner.state.data).toBeUndefined();
+
+        queryRunner.activate();
+        layer1.completeRun();
+        layer2.completeRun();
+
+        await new Promise((r) => setTimeout(r, 1));
+        expect(queryRunner.state.data?.alertState).toMatchInlineSnapshot(`
+          {
+            "dashboardId": 1,
+            "id": 1,
+            "panelId": 123,
+            "state": "alerting",
+          }
         `);
       });
     });

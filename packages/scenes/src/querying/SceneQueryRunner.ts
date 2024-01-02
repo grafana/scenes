@@ -4,16 +4,17 @@ import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribab
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
+  AlertStateInfo,
   DataFrame,
+  DataFrameView,
   DataQueryRequest,
   DataSourceApi,
   DataTopic,
   PanelData,
   preProcessPanelData,
   rangeUtil,
-  transformDataFrame,
 } from '@grafana/data';
-import { getDataSourceSrv, getRunRequest, toDataQueryError } from '@grafana/runtime';
+import { getRunRequest, toDataQueryError } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -34,9 +35,10 @@ import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
-import { filterAnnotationsOperator } from './layers/annotations/filterAnnotationsOperator';
+import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
+import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
 
 let counter = 100;
 
@@ -150,32 +152,57 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onLayersReceived(results: Map<string, PanelData>) {
+    const timeRange = sceneGraph.getTimeRange(this);
+    const dataLayers = sceneGraph.getDataLayers(this);
     const { dataLayerFilter } = this.state;
     let annotations: DataFrame[] = [];
+    let alertStates: DataFrame[] = [];
+    let alertState: AlertStateInfo | undefined;
+    const layerKeys = Array.from(results.keys());
 
-    Array.from(results.values()).forEach((result) => {
-      if (result[DataTopic.Annotations]) {
-        annotations = annotations.concat(result[DataTopic.Annotations]);
+    Array.from(results.values()).forEach((result, i) => {
+      const layerKey = layerKeys[i];
+      const layer = dataLayers.find((l) => l.state.key === layerKey);
+      if (layer) {
+        if (layer.topic === DataTopic.Annotations && result[DataTopic.Annotations]) {
+          annotations = annotations.concat(result[DataTopic.Annotations]);
+        }
+
+        // @ts-expect-error TODO: use DataTopic.AlertStates when exposed from core grafana
+        if (layer.topic === 'alertStates') {
+          alertStates = alertStates.concat(result.series);
+        }
       }
     });
 
     if (dataLayerFilter?.panelId) {
-      transformDataFrame([filterAnnotationsOperator(dataLayerFilter)], annotations).subscribe((result) => {
-        this.setState({
-          data: {
-            ...this.state.data!,
-            annotations: result,
-          },
-        });
-      });
-    } else {
-      this.setState({
-        data: {
-          ...this.state.data!,
-          annotations,
-        },
-      });
+      if (annotations.length > 0) {
+        annotations = filterAnnotations(annotations, dataLayerFilter);
+      }
+
+      if (alertStates.length > 0) {
+        for (const frame of alertStates) {
+          const frameView = new DataFrameView<AlertStateInfo>(frame);
+
+          for (const row of frameView) {
+            if (row.panelId === dataLayerFilter.panelId) {
+              alertState = row;
+              break;
+            }
+          }
+        }
+      }
     }
+
+    const baseStateUpdate = this.state.data ? this.state.data : { ...emptyPanelData, timeRange: timeRange.state.value };
+
+    this.setState({
+      data: {
+        ...baseStateUpdate,
+        annotations,
+        alertState: alertState ?? this.state.data?.alertState,
+      },
+    });
   }
 
   /**
@@ -183,7 +210,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * the query execution on activate was stopped due to VariableSet still not having processed all variables.
    */
   private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
-    if (this.state._isWaitingForVariables && this.shouldRunQueriesOnActivate()) {
+    if (this.state._isWaitingForVariables) {
       this.runQueries();
       return;
     }
@@ -223,10 +250,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _isDataTimeRangeStale(data: PanelData) {
     const timeRange = sceneGraph.getTimeRange(this);
 
-    if (data.timeRange === timeRange.state.value) {
+    const stateTimeRange = timeRange.state.value;
+    const dataTimeRange = data.timeRange;
+
+    if (
+      stateTimeRange.from.unix() === dataTimeRange.from.unix() &&
+      stateTimeRange.to.unix() === dataTimeRange.to.unix()
+    ) {
       return false;
     }
-
     writeSceneLog('SceneQueryRunner', 'Data time range is stale');
     return true;
   }
@@ -258,7 +290,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       if (this.state.maxDataPointsFromWidth && !this.state.maxDataPoints) {
         // As this is called from render path we need to wait for next tick before running queries
         setTimeout(() => {
-          if (this.isActive && !this._querySub) {
+          if (this.isActive && !this.state._hasFetchedData) {
             this.runQueries();
           }
         }, 0);
@@ -337,7 +369,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const ds = await getDataSource(datasource, this._scopedVars);
 
       if (!this._adhocFilterSet) {
-        this.findAndSubscribeToAdhocFilters(ds.uid);
+        this.findAndSubscribeToAdhocFilters(datasource?.uid);
       }
 
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
@@ -450,7 +482,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
-    // Will combine annotations & --- from data layer providers
+    // Will combine annotations & alert state from data layer providers
     const dataWithLayersApplied = this._combineDataLayers(preProcessedData);
 
     let hasFetchedData = this.state._hasFetchedData;
@@ -465,6 +497,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _combineDataLayers(data: PanelData) {
     if (this.state.data && this.state.data.annotations) {
       data.annotations = (data.annotations || []).concat(this.state.data.annotations);
+    }
+
+    if (this.state.data && this.state.data.alertState) {
+      data.alertState = this.state.data.alertState;
     }
 
     return data;
@@ -502,27 +538,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private findAndSubscribeToAdhocFilters(ourDataSourceUid: string) {
-    const set = getClosest(this, (s) => {
-      let found = null;
-      if (s instanceof AdHocFilterSet && s.state.datasource?.uid === this.state.datasource?.uid) {
-        return s;
-      }
-      s.forEachChild((child) => {
-        if (child instanceof AdHocFilterSet && child.state.datasource?.uid === this.state.datasource?.uid) {
-          found = child;
-        }
-      });
-      return found;
-    });
+  private findAndSubscribeToAdhocFilters(uid: string | undefined) {
+    const set = findActiveAdHocFilterSetByUid(uid);
 
     if (!set || set.state.applyMode !== 'same-datasource') {
-      return;
-    }
-
-    const setDataSource = getDataSourceSrv().getInstanceSettings(set?.state.datasource, this._scopedVars);
-
-    if (setDataSource?.uid !== ourDataSourceUid) {
       return;
     }
 

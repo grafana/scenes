@@ -1,20 +1,19 @@
 import React, { RefCallback } from 'react';
 import { useMeasure } from 'react-use';
 
-import { PanelData, PluginContextProvider } from '@grafana/data';
+import { AlertState, GrafanaTheme2, PanelData, PanelPlugin, PluginContextProvider } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
-import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider } from '@grafana/ui';
+import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
+import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject, SceneTimeRangeLike } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
     title,
-    description,
     options,
     fieldConfig,
     _pluginLoadError,
@@ -24,6 +23,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     menu,
     headerActions,
     titleItems,
+    description,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const plugin = model.getPlugin();
@@ -32,12 +32,14 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataObject = sceneGraph.getData(model);
   const rawData = dataObject.useState();
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
+  const sceneTimeRange = sceneGraph.getTimeRange(model);
+  const timeZone = sceneTimeRange.getTimeZone();
+  const timeRange = getPanelTimeRange(sceneTimeRange, plugin, dataWithFieldConfig);
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
 
-  // Not sure we need to subscribe to this state
-  const timeZone = sceneGraph.getTimeRange(model).getTimeZone();
+  const alertStateStyles = useStyles2(getAlertStateStyles);
 
   if (!plugin) {
     return <div>Loading plugin panel...</div>;
@@ -51,7 +53,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // If we have a query runner on our level inform it of the container width (used to set auto max data points)
   if ($data && $data.setContainerWidth) {
-    $data.setContainerWidth(width);
+    $data.setContainerWidth(Math.round(width));
   }
 
   let titleItemsElement: React.ReactNode[] = [];
@@ -73,6 +75,26 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // If we have local time range show that in panel header
   if (model.state.$timeRange) {
     titleItemsElement.push(<model.state.$timeRange.Component model={model.state.$timeRange} key={model.state.key} />);
+  }
+
+  if (dataWithFieldConfig.alertState) {
+    titleItemsElement.push(
+      <Tooltip content={dataWithFieldConfig.alertState.state ?? 'unknown'} key={`alert-states-icon-${model.state.key}`}>
+        <PanelChrome.TitleItem
+          className={cx({
+            [alertStateStyles.ok]: dataWithFieldConfig.alertState.state === AlertState.OK,
+            [alertStateStyles.pending]: dataWithFieldConfig.alertState.state === AlertState.Pending,
+            [alertStateStyles.alerting]: dataWithFieldConfig.alertState.state === AlertState.Alerting,
+          })}
+        >
+          <Icon
+            name={dataWithFieldConfig.alertState.state === 'alerting' ? 'heart-break' : 'heart'}
+            className="panel-alert-icon"
+            size="md"
+          />
+        </PanelChrome.TitleItem>
+      </Tooltip>
+    );
   }
 
   let panelMenu;
@@ -100,7 +122,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   // Data is always returned. For non-data panels, empty PanelData is returned.
   const data = dataWithFieldConfig!;
+
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
+
+  const context = model.getPanelContext();
+  const panelId = context.instanceState?.legacyPanelId ?? 1;
 
   return (
     <div className={relativeWrapper}>
@@ -108,9 +134,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         {width > 0 && height > 0 && (
           <PanelChrome
             title={titleInterpolated}
-            description={description ? () => model.interpolate(description) : ''}
+            description={description?.trim() ? model.getDescription : undefined}
             loadingState={data.state}
             statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
+            statusMessageOnClick={model.onStatusMessageClick}
             width={width}
             height={height}
             displayMode={displayMode}
@@ -127,13 +154,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
               <>
                 <ErrorBoundaryAlert dependencies={[plugin, data]}>
                   <PluginContextProvider meta={plugin.meta}>
-                    <PanelContextProvider value={model.getPanelContext()}>
+                    <PanelContextProvider value={context}>
                       {isReadyToRender && (
                         <PanelComponent
-                          id={1}
+                          id={panelId}
                           data={data}
                           title={title}
-                          timeRange={data.timeRange}
+                          timeRange={timeRange}
                           timeZone={timeZone}
                           options={options}
                           fieldConfig={fieldConfig}
@@ -219,3 +246,29 @@ const absoluteWrapper = css({
   width: '100%',
   height: '100%',
 });
+
+const getAlertStateStyles = (theme: GrafanaTheme2) => {
+  return {
+    ok: css({
+      color: theme.colors.success.text,
+    }),
+    pending: css({
+      color: theme.colors.warning.text,
+    }),
+    alerting: css({
+      color: theme.colors.error.text,
+    }),
+  };
+};
+
+function getPanelTimeRange(sceneTimeRange: SceneTimeRangeLike, plugin: PanelPlugin | undefined, data?: PanelData) {
+  if (!plugin || plugin.meta.skipDataQuery) {
+    return sceneTimeRange.state.value;
+  }
+
+  if (data && data.request?.range) {
+    return data.request.range;
+  }
+
+  return sceneTimeRange.state.value;
+}

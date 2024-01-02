@@ -30,6 +30,11 @@ export interface MultiValueVariableState extends SceneVariableState {
   defaultToAll?: boolean;
   allValue?: string;
   placeholder?: string;
+  /**
+   * For multi value variables, this option controls how many values to show before they are collapsed into +N.
+   * Defaults to 5
+   */
+  maxVisibleValues?: number;
 }
 
 export interface VariableGetOptionsArgs {
@@ -69,11 +74,14 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * Check if current value is valid given new options. If not update the value.
    */
   private updateValueGivenNewOptions(options: VariableValueOption[]) {
+    // Remember current value and text
+    const { value: currentValue, text: currentText } = this.state;
+
     const stateUpdate: Partial<MultiValueVariableState> = {
       options,
       loading: false,
-      value: this.state.value,
-      text: this.state.text,
+      value: currentValue,
+      text: currentText,
     };
 
     if (options.length === 0) {
@@ -85,8 +93,9 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       // If value is set to All then we keep it set to All but just store the options
     } else if (this.state.isMulti) {
       // If we are a multi valued variable validate the current values are among the options
-      const currentValues = Array.isArray(this.state.value) ? this.state.value : [this.state.value];
+      const currentValues = Array.isArray(currentValue) ? currentValue : [currentValue];
       const validValues = currentValues.filter((v) => options.find((o) => o.value === v));
+      const validTexts = validValues.map((v) => options.find((o) => o.value === v)!.label);
 
       // If no valid values pick the first option
       if (validValues.length === 0) {
@@ -95,20 +104,19 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         stateUpdate.text = defaultState.text;
       }
       // We have valid values, if it's different from current valid values update current values
-      else if (!isEqual(validValues, this.state.value)) {
-        const validTexts = validValues.map((v) => options.find((o) => o.value === v)!.label);
+      else if (!isEqual(validValues, currentValue) || !isEqual(validTexts, currentText)) {
         stateUpdate.value = validValues;
         stateUpdate.text = validTexts;
       }
     } else {
-      // Single valued variable
-      const foundCurrent = options.find((x) => x.value === this.state.value);
-      if (foundCurrent) {
+      // Try find by value then text
+      let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options);
+      if (matchingOption) {
         // When updating the initial state from URL the text property is set the same as value
         // Here we can correct the text value state
-        if (foundCurrent.label !== this.state.text) {
-          stateUpdate.text = foundCurrent.label;
-        }
+
+        stateUpdate.text = matchingOption.label;
+        stateUpdate.value = matchingOption.value;
       } else {
         // Current value is found in options
         if (this.state.defaultToAll) {
@@ -122,14 +130,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       }
     }
 
-    // Remember current value and text
-    const { value: prevValue, text: prevText } = this.state;
-
     // Perform state change
     this.setStateHelper(stateUpdate);
 
     // Publish value changed event only if value changed
-    if (stateUpdate.value !== prevValue || stateUpdate.text !== prevText || this.hasAllValue()) {
+    if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -256,6 +261,30 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * Can be used by subclasses to do custom handling of option search based on search input
    */
   public onSearchChange?(searchFilter: string): void;
+}
+
+/**
+ * Looks for matching option, first by value but as a fallback by text (label).
+ */
+function findOptionMatchingCurrent(
+  currentValue: VariableValue,
+  currentText: VariableValue,
+  options: VariableValueOption[]
+) {
+  let textMatch: VariableValueOption | undefined;
+
+  for (const item of options) {
+    if (item.value === currentValue) {
+      return item;
+    }
+
+    // No early return here as want to continue to look a value match
+    if (item.label === currentText) {
+      textMatch = item;
+    }
+  }
+
+  return textMatch;
 }
 
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>

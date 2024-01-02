@@ -1,3 +1,328 @@
+# v1.28.5 (Wed Dec 20 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - CSSGridLayout: Remove semi colon [#511](https://github.com/grafana/scenes/pull/511) ([@adrapereira](https://github.com/adrapereira))
+
+#### Authors: 1
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+
+---
+
+# v1.28.4 (Wed Dec 20 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - CSSGridLayout: Lazy loading [#510](https://github.com/grafana/scenes/pull/510) ([@adrapereira](https://github.com/adrapereira) [@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.28.3 (Tue Dec 19 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - IntervalVariable: Makes it return the original variable expression when data or request is not present [#508](https://github.com/grafana/scenes/pull/508) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.28.2 (Tue Dec 19 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Improve the way to find adhoc filter set [#506](https://github.com/grafana/scenes/pull/506) ([@torkelo](https://github.com/torkelo))
+  - CustomVariable: Interpolate query [#502](https://github.com/grafana/scenes/pull/502) ([@torkelo](https://github.com/torkelo))
+  - VizPanel Re-render skipDataQuery panels when time range change [#492](https://github.com/grafana/scenes/pull/492) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.28.1 (Wed Dec 13 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Fixes issue with chained variable and cascading updates [#501](https://github.com/grafana/scenes/pull/501) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.28.0 (Thu Dec 07 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SplitLayout: Allow setting initial size [#496](https://github.com/grafana/scenes/pull/496) ([@cedricziel](https://github.com/cedricziel) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Cedric Ziel ([@cedricziel](https://github.com/cedricziel))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.27.0 (Tue Dec 05 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Expose events for interactions [#491](https://github.com/grafana/scenes/pull/491) ([@dprokop](https://github.com/dprokop))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - QueryVariable: Run query with scene time range on when configured to run on load [#490](https://github.com/grafana/scenes/pull/490) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.26.0 (Mon Dec 04 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables:  Query - Add optional `definition` prop to state [#489](https://github.com/grafana/scenes/pull/489) ([@axelavargas](https://github.com/axelavargas))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Simplify interval macro [#488](https://github.com/grafana/scenes/pull/488) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.25.0 (Fri Dec 01 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Macros: Support $_interval[_ms] variable [#487](https://github.com/grafana/scenes/pull/487) ([@dprokop](https://github.com/dprokop))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanelMenu: Fix auto focus / keyboard navigation issue [#483](https://github.com/grafana/scenes/pull/483) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.24.6 (Mon Nov 27 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Fixes issue with cloned scene query runner would issue new query [#482](https://github.com/grafana/scenes/pull/482) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.24.5 (Fri Nov 24 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Fixes issue with waiting for variables [#481](https://github.com/grafana/scenes/pull/481) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.24.4 (Fri Nov 24 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanelRenderer: Round visualization width pushed to data provider [#478](https://github.com/grafana/scenes/pull/478) ([@dprokop](https://github.com/dprokop))
+
+#### ⚠️ Pushed to `main`
+
+- `@grafana/scenes`
+  - Revert "VizPanelRenderer: Round viz width pushed to data provider" ([@dprokop](https://github.com/dprokop))
+  - VizPanelRenderer: Round viz width pushed to data provider ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.24.3 (Thu Nov 23 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Only pass data layers to panel when plugin supports them [#477](https://github.com/grafana/scenes/pull/477) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.24.2 (Wed Nov 22 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Clear error state [#476](https://github.com/grafana/scenes/pull/476) ([@torkelo](https://github.com/torkelo))
+  - Variables: Fixes validation issue where the current saved value only matches text representation [#475](https://github.com/grafana/scenes/pull/475) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.24.1 (Tue Nov 21 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix non-null assertion in SceneQueryRunner [#474](https://github.com/grafana/scenes/pull/474) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v1.24.0 (Tue Nov 21 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Add type guards for variables [#472](https://github.com/grafana/scenes/pull/472) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 1
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
+# v1.23.1 (Fri Nov 17 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - fix: compare time ranges using actual unix time vs objects [#468](https://github.com/grafana/scenes/pull/468) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 1
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+---
+
+# v1.23.0 (Fri Nov 17 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Add natural sort from core grafana to query variables [#459](https://github.com/grafana/scenes/pull/459) ([@axelavargas](https://github.com/axelavargas))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Adhoc filters: Add tagKeyRegexFilter prop [#469](https://github.com/grafana/scenes/pull/469) ([@anaivanov](https://github.com/anaivanov))
+  - VizPanel: Don't show popup when description is empty [#465](https://github.com/grafana/scenes/pull/465) ([@dprokop](https://github.com/dprokop))
+  - VIzPanel: Support markdown in panel description [#464](https://github.com/grafana/scenes/pull/464) ([@dprokop](https://github.com/dprokop))
+  - Variables: No wrapping selects [#461](https://github.com/grafana/scenes/pull/461) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 4
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+- Ana Ivanov ([@anaivanov](https://github.com/anaivanov))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.22.1 (Tue Nov 14 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Fixes url sync issue for key/value multi value variables [#455](https://github.com/grafana/scenes/pull/455) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.22.0 (Mon Nov 13 2023)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Handle alert states data layer [#454](https://github.com/grafana/scenes/pull/454) ([@dprokop](https://github.com/dprokop) [@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Urls: Make sure urls include sub path [#434](https://github.com/grafana/scenes/pull/434) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.21.1 (Thu Nov 09 2023)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Register variable macro [#452](https://github.com/grafana/scenes/pull/452) ([@torkelo](https://github.com/torkelo))
+  - Variables: Support for variables on lower levels to depend on variables on higher levels [#443](https://github.com/grafana/scenes/pull/443) ([@torkelo](https://github.com/torkelo))
+  - VizPanel: Handle empty arrays when merging new panel options [#447](https://github.com/grafana/scenes/pull/447) ([@javiruiz01](https://github.com/javiruiz01))
+  - PanelContext: Eventbus should not filter out local events [#445](https://github.com/grafana/scenes/pull/445) ([@torkelo](https://github.com/torkelo))
+  - Variables: Support __org and __user variable macros [#449](https://github.com/grafana/scenes/pull/449) ([@torkelo](https://github.com/torkelo))
+  - SceneQueryRunner: Fixes adhoc filters when using a variable data source [#422](https://github.com/grafana/scenes/pull/422) ([@torkelo](https://github.com/torkelo))
+  - VizPanel: Support passing legacyPanelId to PanelProps [#446](https://github.com/grafana/scenes/pull/446) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.21.0 (Mon Nov 06 2023)
 
 #### 🚀 Enhancement

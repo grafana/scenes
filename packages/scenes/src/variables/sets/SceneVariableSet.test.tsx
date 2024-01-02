@@ -98,6 +98,36 @@ describe('SceneVariableList', () => {
       expect(B.state.value).toBe('ABA');
       expect(C.state.loading).toBe(true);
     });
+
+    it('Should start update process of chained dependency', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+      // Important here that variable C only depends on B
+      const C = new TestVariable({ name: 'C', query: 'value=$B', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [C, B, A] }),
+      });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+      C.signalUpdateCompleted();
+
+      // When changing A should start B but not C (yet)
+      A.changeValueTo('AB');
+
+      expect(B.state.loading).toBe(true);
+      expect(C.state.loading).toBe(false);
+
+      B.signalUpdateCompleted();
+      expect(B.state.value).toBe('ABA');
+      expect(C.state.loading).toBe(true);
+
+      C.signalUpdateCompleted();
+      expect(C.state.value).toBe('value=ABA');
+    });
   });
 
   describe('When deactivated', () => {
@@ -484,7 +514,9 @@ describe('SceneVariableList', () => {
       const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
 
       const set = new SceneVariableSet({ variables: [A, B] });
-      set.activate();
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
 
       // Should start variables with no dependencies
       expect(A.state.loading).toBe(true);
@@ -549,6 +581,57 @@ describe('SceneVariableList', () => {
       scene.activate();
 
       expect(A.state.error).toBe('Danger!');
+    });
+  });
+
+  describe('When nesting SceneVariableSet', () => {
+    it('Should update variables in dependency order', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+
+        nested: new TestScene({
+          $variables: new SceneVariableSet({ variables: [B] }),
+        }),
+      });
+
+      scene.activate();
+      scene.state.nested!.activate();
+
+      // Nested variable on a lower level should wait for it's dependency
+      expect(A.state.loading).toBe(true);
+      expect(B.state.loading).toBe(undefined);
+
+      // When A on a higher level completes start B on the lower level
+      A.signalUpdateCompleted();
+      expect(B.state.loading).toBe(true);
+    });
+
+    it('Should update lower-level variable when parent changes', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+
+        nested: new TestScene({
+          $variables: new SceneVariableSet({ variables: [B] }),
+        }),
+      });
+
+      scene.activate();
+      scene.state.nested!.activate();
+
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+
+      expect(B.state.value).toBe('AAA');
+
+      // Now change variable A
+      A.changeValueTo('AB');
+      expect(B.state.loading).toBe(true);
     });
   });
 });

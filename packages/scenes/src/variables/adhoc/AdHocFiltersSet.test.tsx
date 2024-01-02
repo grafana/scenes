@@ -73,7 +73,7 @@ describe('AdHocFilter', () => {
     await waitFor(() => select(selects[2], 'val4', { container: document.body }));
 
     // should run new query when filter changed
-    expect(runRequest.mock.calls.length).toBe(1);
+    expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersSet.state.filters[0].value).toBe('val4');
   });
 
@@ -145,6 +145,15 @@ describe('AdHocFilter', () => {
       { label: 'val4', value: 'val4' },
       { label: 'v', value: '2' },
     ]);
+  });
+
+  it('Can filter by regex', async () => {
+    const { filtersSet } = setup({
+      tagKeyRegexFilter: new RegExp('x.*'),
+    });
+
+    const keys = await filtersSet._getKeys(null);
+    expect(keys).toEqual([]);
   });
 });
 

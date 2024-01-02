@@ -5,7 +5,13 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObject } from '../../core/types';
 import { writeSceneLog } from '../../utils/writeSceneLog';
-import { SceneVariable, SceneVariables, SceneVariableSetState, SceneVariableValueChangedEvent } from '../types';
+import {
+  SceneVariable,
+  SceneVariableDependencyConfigLike,
+  SceneVariables,
+  SceneVariableSetState,
+  SceneVariableValueChangedEvent,
+} from '../types';
 import { VariableValueRecorder } from '../VariableValueRecorder';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
@@ -19,6 +25,13 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   private _updating = new Map<SceneVariable, VariableUpdateInProgress>();
 
   private _variableValueRecorder = new VariableValueRecorder();
+
+  /**
+   * This makes sure SceneVariableSet's higher up in the chain notify us when parent level variables complete update batches.
+   **/
+  protected _variableDependency = new SceneVariableSetVariableDependencyHandler(
+    this._handleParentVariableUpdatesCompleted.bind(this)
+  );
 
   public getByName(name: string): SceneVariable | undefined {
     // TODO: Replace with index
@@ -183,7 +196,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       }
 
       // Wait for variables that has dependencies that also needs updates
-      if (this._hasDependendencyInUpdateQueue(variable)) {
+      if (sceneGraph.hasVariableDependencyInLoadingState(variable)) {
         continue;
       }
 
@@ -238,33 +251,30 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     writeVariableTraceLog(variable, 'updateAndValidate error', err);
   }
 
-  /**
-   * Checks if the variable has any dependencies that is currently in variablesToUpdate
-   */
-  private _hasDependendencyInUpdateQueue(variable: SceneVariable) {
-    if (!variable.variableDependency) {
-      return false;
-    }
-
-    for (const otherVariable of this._variablesToUpdate.values()) {
-      if (variable.variableDependency?.hasDependencyOn(otherVariable.state.name)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   private _handleVariableValueChanged(variableThatChanged: SceneVariable) {
     this._variablesThatHaveChanged.add(variableThatChanged);
+    this._addDependentVariablesToUpdateQueue(variableThatChanged);
 
     // Ignore this change if it is currently updating
-    if (this._updating.has(variableThatChanged)) {
-      return;
+    if (!this._updating.has(variableThatChanged)) {
+      this._updateNextBatch();
+    }
+  }
+
+  /**
+   * This is called by any parent level variable set to notify scene that an update batch is completed.
+   * This is the main mechanism lower level variable set's react to changes on higher levels.
+   */
+  private _handleParentVariableUpdatesCompleted(changedVariables: Set<SceneVariable>) {
+    // First loop through changed variables and add any of our variables that depend on the higher level variable to the update queue
+    for (const changedVar of changedVariables) {
+      this._addDependentVariablesToUpdateQueue(changedVar);
     }
 
-    this._addDependentVariablesToUpdateQueue(variableThatChanged);
-    this._updateNextBatch();
+    // If we have variables to update but none are currently updating kick of a new update batch
+    if (this._variablesToUpdate.size > 0 && this._updating.size === 0) {
+      this._updateNextBatch();
+    }
   }
 
   private _addDependentVariablesToUpdateQueue(variableThatChanged: SceneVariable) {
@@ -330,4 +340,22 @@ export interface VariableUpdateInProgress {
 
 function writeVariableTraceLog(variable: SceneVariable, message: string, err?: Error) {
   writeSceneLog('SceneVariableSet', `Variable[${variable.state.name}]: ${message}`, err);
+}
+
+class SceneVariableSetVariableDependencyHandler implements SceneVariableDependencyConfigLike {
+  public constructor(private _variableUpdatesCompleted: (changedVariables: Set<SceneVariable>) => void) {}
+
+  private _emptySet = new Set<string>();
+
+  public getNames(): Set<string> {
+    return this._emptySet;
+  }
+
+  public hasDependencyOn(name: string): boolean {
+    return false;
+  }
+
+  public variableUpdatesCompleted(changedVariables: Set<SceneVariable>): void {
+    this._variableUpdatesCompleted(changedVariables);
+  }
 }

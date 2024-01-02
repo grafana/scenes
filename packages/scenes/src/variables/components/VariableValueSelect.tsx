@@ -36,7 +36,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
 }
 
 export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key } = model.useState();
+  const { value, key, maxVisibleValues } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
 
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
@@ -61,6 +61,10 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       placeholder="Select value"
       width="auto"
       value={uncommittedValue}
+      // TODO remove after grafana/ui upgrade to 10.3
+      // @ts-expect-error
+      noMultiValueWrap={true}
+      maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
       allowCustomValue
       options={model.getOptionsForSelect()}
