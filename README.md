@@ -16,6 +16,10 @@
 
 ## Development
 
+### Using @grafana/scenes library in your plugin
+
+Please refer to our [developer docs]([url](https://grafana.com/developers/scenes/)).
+
 ### Running the demo app
 
 Please refer to [demo app README](./packages/scenes-app/README.md) for more info.
