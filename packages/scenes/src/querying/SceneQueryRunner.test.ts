@@ -31,8 +31,45 @@ import { emptyPanelData } from '../core/SceneDataNode';
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
   getRef: () => ({ uid: 'test-uid' }),
-  query: () =>
-    of({
+  query: (request: DataQueryRequest) => {
+    if (request.targets.find((t) => t.refId === 'withAnnotations')) {
+      return of({
+        data: [
+          toDataFrame({
+            refId: 'withAnnotations',
+            datapoints: [
+              [100, 1],
+              [400, 2],
+              [500, 3],
+            ],
+          }),
+          toDataFrame({
+            name: 'exemplar',
+            refId: 'withAnnotations',
+            meta: {
+              typeVersion: [0, 0],
+              custom: {
+                resultType: 'exemplar',
+              },
+              dataTopic: 'annotations',
+            },
+            fields: [
+              {
+                name: 'foo',
+                type: 'string',
+                values: ['foo1', 'foo2', 'foo3'],
+              },
+              {
+                name: 'bar',
+                type: 'string',
+                values: ['bar1', 'bar2', 'bar3'],
+              },
+            ],
+          }),
+        ],
+      });
+    }
+    return of({
       data: [
         toDataFrame({
           refId: 'A',
@@ -43,21 +80,23 @@ const getDataSourceMock = jest.fn().mockReturnValue({
           ],
         }),
       ],
-    }),
+    });
+  },
 });
 
 const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
   const result: PanelData = {
     state: LoadingState.Loading,
     series: [],
+    annotations: [],
     timeRange: request.range,
   };
 
   return (ds.query(request) as Observable<DataQueryResponse>).pipe(
     map((packet) => {
       result.state = LoadingState.Done;
-      result.series = packet.data;
-
+      result.series = packet.data.filter((d) => d.meta?.dataTopic !== 'annotations');
+      result.annotations = packet.data.filter((d) => d.meta?.dataTopic === 'annotations');
       return result;
     })
   );
@@ -149,6 +188,33 @@ describe('SceneQueryRunner', () => {
           "timezone": "browser",
         }
       `);
+    });
+  });
+
+  describe('when result has annotations', () => {
+    it('should not duplicate annotations when queried repeatedly', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'withAnnotations' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      expect(queryRunner.state.data?.annotations).toHaveLength(1);
+
+      queryRunner.runQueries();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      expect(queryRunner.state.data?.annotations).toHaveLength(1);
     });
   });
 
@@ -866,6 +932,105 @@ describe('SceneQueryRunner', () => {
         ]
       `);
     });
+
+    it('should merge but not duplicate annotations coming from query result and from layers', async () => {
+      const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'withAnnotations' }],
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayers({ layers: [layer] }),
+      });
+
+      const expectedSnapshot = `
+      [
+        {
+          "fields": [
+            {
+              "config": {},
+              "labels": undefined,
+              "name": "foo",
+              "type": "string",
+              "values": [
+                "foo1",
+                "foo2",
+                "foo3",
+              ],
+            },
+            {
+              "config": {},
+              "labels": undefined,
+              "name": "bar",
+              "type": "string",
+              "values": [
+                "bar1",
+                "bar2",
+                "bar3",
+              ],
+            },
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "exemplar",
+            },
+            "dataTopic": "annotations",
+            "typeVersion": [
+              0,
+              0,
+            ],
+          },
+          "name": "exemplar",
+          "refId": "withAnnotations",
+        },
+        {
+          "fields": [
+            {
+              "config": {},
+              "name": "time",
+              "type": "time",
+              "values": [
+                100,
+              ],
+            },
+            {
+              "config": {},
+              "name": "text",
+              "type": "string",
+              "values": [
+                "Layer 1: Test annotation",
+              ],
+            },
+            {
+              "config": {},
+              "name": "tags",
+              "type": "other",
+              "values": [
+                [
+                  "tag1",
+                ],
+              ],
+            },
+          ],
+          "length": 1,
+        },
+      ]
+    `;
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+      layer.completeRun();
+
+      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(expectedSnapshot);
+
+      queryRunner.runQueries();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(expectedSnapshot);
+    });
+
     it('should not block queries when layer provides data slower', async () => {
       const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
       const queryRunner = new SceneQueryRunner({
