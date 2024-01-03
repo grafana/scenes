@@ -59,8 +59,6 @@ export interface QueryRunnerState extends SceneObjectState {
   // Private runtime state
   _isWaitingForVariables?: boolean;
   _hasFetchedData?: boolean;
-  _layerAnnotations?: DataFrame[];
-  _resultAnnotations?: DataFrame[];
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -74,6 +72,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>();
   private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
+  private _layerAnnotations?: DataFrame[];
+  private _resultAnnotations?: DataFrame[];
 
   // Closest filter set if found)
   private _adhocFilterSet?: AdHocFilterSet;
@@ -198,11 +198,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     const baseStateUpdate = this.state.data ? this.state.data : { ...emptyPanelData, timeRange: timeRange.state.value };
 
+    this._layerAnnotations = annotations;
     this.setState({
-      _layerAnnotations: annotations,
       data: {
         ...baseStateUpdate,
-        annotations: [...(this.state._resultAnnotations ?? []), ...annotations],
+        annotations: [...(this._resultAnnotations ?? []), ...annotations],
         alertState: alertState ?? this.state.data?.alertState,
       },
     });
@@ -494,16 +494,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       hasFetchedData = true;
     }
 
+    this._resultAnnotations = data.annotations;
     this.setState({
       data: dataWithLayersApplied,
       _hasFetchedData: hasFetchedData,
-      _resultAnnotations: data.annotations,
     });
   };
 
   private _combineDataLayers(data: PanelData) {
     if (this.state.data && this.state.data.annotations) {
-      data.annotations = (data.annotations || []).concat(this.state._layerAnnotations ?? []);
+      data.annotations = (data.annotations || []).concat(this._layerAnnotations ?? []);
     }
 
     if (this.state.data && this.state.data.alertState) {
