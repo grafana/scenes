@@ -32,7 +32,7 @@ export class SceneTimeZoneOverride
         timeRange.to,
         this.state.timeZone,
         timeRange.fiscalYearStartMonth,
-        timeRange.nowDelay
+        timeRange.UNSAFE_nowDelay
       ),
     });
   }
@@ -49,7 +49,7 @@ export class SceneTimeZoneOverride
         this.state.to,
         this.state.timeZone,
         this.getAncestorTimeRange().state.fiscalYearStartMonth,
-        this.state.nowDelay
+        this.state.UNSAFE_nowDelay
       ),
     });
   }
