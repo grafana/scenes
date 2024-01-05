@@ -24,8 +24,10 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   onReferencedVariableValueChanged?: (variable: SceneVariable) => void;
 
   /**
-   * Only called when dependency changed value or after variable update is completed and we are waiting for a variables. There could
-   * still be other dependencies in loading state so a call to hasDependencyInLoadingState is still needed to ensure all dependencies are ready.
+   * Two scenarios trigger this callback to be called.
+   * 1. When any direct dependency changed value
+   * 2. In case hasDependencyInLoadingState was called and returned true we really care about any variable update. So in this scenario this callback is called
+   *    after any variable update completes. This is to cover scenarios where an object is waiting for indirect dependencies to complete.
    */
   onVariableUpdateCompleted?: () => void;
 }
