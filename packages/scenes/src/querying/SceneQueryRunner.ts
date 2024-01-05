@@ -57,7 +57,6 @@ export interface QueryRunnerState extends SceneObjectState {
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
-  _isWaitingForVariables?: boolean;
   _hasFetchedData?: boolean;
 }
 
