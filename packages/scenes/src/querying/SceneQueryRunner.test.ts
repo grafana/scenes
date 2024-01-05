@@ -648,7 +648,7 @@ describe('SceneQueryRunner', () => {
 
     it('Should not issue query when setContainerWidth is called and we are waiting for variables', async () => {
       const varA = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
-      const varB = new TestVariable({ name: 'A', value: 'AA', query: 'A.$A.*' });
+      const varB = new TestVariable({ name: 'B', value: 'AA', query: 'A.$A.*' });
 
       // Query only depends on A
       const queryRunner = new SceneQueryRunner({
