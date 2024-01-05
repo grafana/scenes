@@ -24,7 +24,7 @@ class TestObj extends SceneObjectBase<TestState> {
   }
 }
 
-describe('VariableDependencySet', () => {
+describe('VariableDependencyConfig', () => {
   it('Should be able to extract dependencies from all state', () => {
     const sceneObj = new TestObj();
     const deps = new VariableDependencyConfig(sceneObj, {});
@@ -77,10 +77,10 @@ describe('VariableDependencySet', () => {
     const fn = jest.fn();
     const deps = new VariableDependencyConfig(sceneObj, { onReferencedVariableValueChanged: fn });
 
-    deps.variableUpdatesCompleted(new Set([new ConstantVariable({ name: 'not-dep', value: '1' })]));
+    deps.variableUpdateCompleted(new ConstantVariable({ name: 'not-dep', value: '1' }), true);
     expect(fn.mock.calls.length).toBe(0);
 
-    deps.variableUpdatesCompleted(new Set([new ConstantVariable({ name: 'queryVarA', value: '1' })]));
+    deps.variableUpdateCompleted(new ConstantVariable({ name: 'queryVarA', value: '1' }), true);
     expect(fn.mock.calls.length).toBe(1);
   });
 });
