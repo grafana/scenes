@@ -351,11 +351,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    // If we were waiting for variables, clear that flag
-    // if (this.state._isWaitingForVariables) {
-    //   this.setState({ _isWaitingForVariables: false });
-    // }
-
     const { queries } = this.state;
 
     // Simple path when no queries exist
