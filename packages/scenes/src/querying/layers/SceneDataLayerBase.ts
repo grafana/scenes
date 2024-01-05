@@ -56,8 +56,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   private _variableValueRecorder = new VariableValueRecorder();
 
   protected _variableDependency: VariableDependencyConfig<T> = new VariableDependencyConfig(this, {
-    onVariableUpdatesCompleted: (variables, dependencyChanged) =>
-      this.onVariableUpdatesCompleted(variables, dependencyChanged),
+    onVariableUpdateCompleted: this.onVariableUpdateCompleted.bind(this),
   });
 
   /**
@@ -124,14 +123,10 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
-  protected onVariableUpdatesCompleted(variables: Set<SceneVariable>, dependencyChanged: boolean): void {
-    writeSceneLog('SceneDataLayerBase', 'onVariableUpdatesCompleted');
-    if (this.state._isWaitingForVariables && this.shouldRunLayerOnActivate()) {
-      this.runLayer();
-      return;
-    }
+  protected onVariableUpdateCompleted(variable: SceneVariable, dependencyChanged: boolean): void {
+    writeSceneLog('SceneDataLayerBase', 'onVariableUpdateCompleted');
 
-    if (dependencyChanged) {
+    if (this.state._isWaitingForVariables || dependencyChanged) {
       this.runLayer();
     }
   }

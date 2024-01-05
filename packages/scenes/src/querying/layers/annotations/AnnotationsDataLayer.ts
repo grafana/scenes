@@ -63,6 +63,10 @@ export class AnnotationsDataLayer
       return;
     }
 
+    if (this.state._isWaitingForVariables) {
+      this.setState({ _isWaitingForVariables: false });
+    }
+
     try {
       const ds = await this.resolveDataSource(query);
 

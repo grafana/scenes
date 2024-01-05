@@ -18,12 +18,12 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    * Optional way to customize how to handle when a dependent variable changes
    * If not specified the default behavior is to trigger a re-render
    */
-  onReferencedVariableValueChanged?: () => void;
+  onReferencedVariableValueChanged?: (variable: SceneVariable) => void;
 
   /**
    * Optional way to customize how to handle when the variable system has completed an update
    */
-  onVariableUpdatesCompleted?: (changedVariables: Set<SceneVariable>, dependencyChanged: boolean) => void;
+  onVariableUpdateCompleted?: (variable: SceneVariable, dependencyChanged: boolean) => void;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
@@ -50,26 +50,23 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   /**
    * This is called whenever any set of variables have new values. It up to this implementation to check if it's relevant given the current dependencies.
    */
-  public variableUpdatesCompleted(changedVariables: Set<SceneVariable>) {
+  public variableUpdateCompleted(variable: SceneVariable, hasChanged?: boolean) {
     const deps = this.getNames();
     let dependencyChanged = false;
 
-    for (const variable of changedVariables) {
-      if (deps.has(variable.state.name)) {
-        dependencyChanged = true;
-        break;
-      }
+    if (deps.has(variable.state.name) && hasChanged) {
+      dependencyChanged = true;
     }
 
     // If custom handler is always called to let the scene object know that SceneVariableSet has completed processing variables
-    if (this._options.onVariableUpdatesCompleted) {
-      this._options.onVariableUpdatesCompleted(changedVariables, dependencyChanged);
+    if (this._options.onVariableUpdateCompleted) {
+      this._options.onVariableUpdateCompleted(variable, dependencyChanged);
       return;
     }
 
     if (dependencyChanged) {
       if (this._options.onReferencedVariableValueChanged) {
-        this._options.onReferencedVariableValueChanged();
+        this._options.onReferencedVariableValueChanged(variable);
       } else {
         this.defaultHandlerReferencedVariableValueChanged();
       }

@@ -85,8 +85,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
-    onVariableUpdatesCompleted: (variables, dependencyChanged) =>
-      this.onVariableUpdatesCompleted(variables, dependencyChanged),
+    onVariableUpdateCompleted: this.onVariableUpdatesCompleted.bind(this),
   });
 
   public constructor(initialState: QueryRunnerState) {
@@ -209,31 +208,25 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Handles some tricky cases where we need to run queries even when they have not changed in case
-   * the query execution on activate was stopped due to VariableSet still not having processed all variables.
+   * This tries to start a new query whenever a variable completes or is changed.
+   *
+   * We care about variable update completions even when the variable has not changed and even when it is not a direct dependency.
+   * Example: Variables A and B (B depends on A). A update depends on time range. So when time change query runner will
+   * find that variable A is loading which is a dependency on of variable B so will set _isWaitingForVariables to true and
+   * not issue any query.
+   *
+   * When A completes it's loading (with no value change, so B never updates) it will cause a call of this function letting
+   * the query runner know that A has completed, and in case _isWaitingForVariables we try to run the query. The query will
+   * only run if all variables are in a non loading state so in other scenarios where a query depends on many variables this will
+   * be called many times until all dependencies are in a non loading state.   *
    */
-  private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
-    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
-    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
-      return;
-    }
-
-    if (this.state._isWaitingForVariables) {
-      this.runQueries();
-      return;
-    }
-
-    if (dependencyChanged) {
+  private onVariableUpdatesCompleted(variable: SceneVariable, dependencyChanged: boolean) {
+    if (this.state._isWaitingForVariables || dependencyChanged) {
       this.runQueries();
     }
   }
 
   private shouldRunQueriesOnActivate() {
-    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
-    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
-      return false;
-    }
-
     if (this._variableValueRecorder.hasDependenciesChanged(this)) {
       writeSceneLog(
         'SceneQueryRunner',
@@ -342,13 +335,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
+    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
+    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
+      return;
+    }
+
     // If data layers subscription doesn't exist, create one
-    //
     if (!this._dataLayersSub) {
       this._handleDataLayers();
     }
 
-    const runRequest = getRunRequest();
     // Cancel any running queries
     this._querySub?.unsubscribe();
 
@@ -380,6 +376,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         this.findAndSubscribeToAdhocFilters(datasource?.uid);
       }
 
+      const runRequest = getRunRequest();
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);

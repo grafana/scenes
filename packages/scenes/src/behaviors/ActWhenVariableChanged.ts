@@ -26,24 +26,20 @@ export class ActWhenVariableChanged extends SceneObjectBase<ActWhenVariableChang
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     variableNames: [this.state.variableName],
-    onVariableUpdatesCompleted: this._onVariableChanged.bind(this),
+    onReferencedVariableValueChanged: this._onVariableChanged.bind(this),
   });
 
-  private _onVariableChanged(changedVariables: Set<SceneVariable>): void {
+  private _onVariableChanged(variable: SceneVariable): void {
     const effect = this.state.onChange;
 
-    for (const variable of changedVariables) {
-      if (this.state.variableName === variable.state.name) {
-        if (this._runningEffect) {
-          this._runningEffect();
-          this._runningEffect = null;
-        }
+    if (this._runningEffect) {
+      this._runningEffect();
+      this._runningEffect = null;
+    }
 
-        const cancellation = effect(variable, this);
-        if (cancellation) {
-          this._runningEffect = cancellation;
-        }
-      }
+    const cancellation = effect(variable, this);
+    if (cancellation) {
+      this._runningEffect = cancellation;
     }
   }
 }
