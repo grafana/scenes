@@ -334,11 +334,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
-    // If data layers subscription doesn't exist, create one
-    if (!this._dataLayersSub) {
-      this._handleDataLayers();
-    }
-
     // Cancel any running queries
     this._querySub?.unsubscribe();
 
@@ -365,6 +360,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (!queries?.length) {
       this._setNoDataState();
       return;
+    }
+
+    // If data layers subscription doesn't exist, create one
+    if (!this._dataLayersSub) {
+      this._handleDataLayers();
     }
 
     try {
