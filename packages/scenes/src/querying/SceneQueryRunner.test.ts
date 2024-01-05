@@ -666,7 +666,6 @@ describe('SceneQueryRunner', () => {
 
       scene.activate();
 
-      // should execute query when variable completes update
       varA.signalUpdateCompleted();
       varB.signalUpdateCompleted();
 
