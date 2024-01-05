@@ -220,10 +220,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * only run if all variables are in a non loading state so in other scenarios where a query depends on many variables this will
    * be called many times until all dependencies are in a non loading state.   *
    */
-  private onVariableUpdatesCompleted(variable: SceneVariable, dependencyChanged: boolean) {
-    if (this.state._isWaitingForVariables || dependencyChanged) {
-      this.runQueries();
-    }
+  private onVariableUpdatesCompleted() {
+    this.runQueries();
   }
 
   private shouldRunQueriesOnActivate() {
@@ -349,16 +347,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._querySub?.unsubscribe();
 
     // Skip executing queries if variable dependency is in loading state
-    if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
+    if (this._variableDependency.hasDependencyInLoadingState()) {
       writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
-      this.setState({ _isWaitingForVariables: true });
       return;
     }
 
     // If we were waiting for variables, clear that flag
-    if (this.state._isWaitingForVariables) {
-      this.setState({ _isWaitingForVariables: false });
-    }
+    // if (this.state._isWaitingForVariables) {
+    //   this.setState({ _isWaitingForVariables: false });
+    // }
 
     const { queries } = this.state;
 

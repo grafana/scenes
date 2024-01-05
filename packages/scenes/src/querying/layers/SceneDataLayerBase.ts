@@ -123,12 +123,8 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
-  protected onVariableUpdateCompleted(variable: SceneVariable, dependencyChanged: boolean): void {
-    writeSceneLog('SceneDataLayerBase', 'onVariableUpdateCompleted');
-
-    if (this.state._isWaitingForVariables || dependencyChanged) {
-      this.runLayer();
-    }
+  protected onVariableUpdateCompleted(): void {
+    this.runLayer();
   }
 
   public cancelQuery() {
