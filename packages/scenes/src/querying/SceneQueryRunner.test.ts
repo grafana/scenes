@@ -693,7 +693,7 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
-    it('Should issue query when all dependencies are in a non loading state', async () => {
+    it('Should not issue query when unrealted variable completes and _isWaitingForVariables is false', async () => {
       const varA = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
       const varB = new TestVariable({ name: 'B', value: 'AA', query: 'A.$A.*' });
 
