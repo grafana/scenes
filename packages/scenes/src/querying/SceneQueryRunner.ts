@@ -213,10 +213,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * the query execution on activate was stopped due to VariableSet still not having processed all variables.
    */
   private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
-    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
-    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
-      return;
-    }
+    console.log('completed', _variablesThatHaveChanged);
 
     if (this.state._isWaitingForVariables) {
       this.runQueries();
@@ -229,11 +226,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private shouldRunQueriesOnActivate() {
-    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
-    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
-      return false;
-    }
-
     if (this._variableValueRecorder.hasDependenciesChanged(this)) {
       writeSceneLog(
         'SceneQueryRunner',
@@ -298,7 +290,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       if (this.state.maxDataPointsFromWidth && !this.state.maxDataPoints) {
         // As this is called from render path we need to wait for next tick before running queries
         setTimeout(() => {
-          if (this.isActive && !this.state._hasFetchedData) {
+          if (this.isActive && !this.state._hasFetchedData && !this.state._isWaitingForVariables) {
             this.runQueries();
           }
         }, 0);
@@ -343,12 +335,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // If data layers subscription doesn't exist, create one
-    //
     if (!this._dataLayersSub) {
       this._handleDataLayers();
     }
 
-    const runRequest = getRunRequest();
     // Cancel any running queries
     this._querySub?.unsubscribe();
 
@@ -362,6 +352,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // If we were waiting for variables, clear that flag
     if (this.state._isWaitingForVariables) {
       this.setState({ _isWaitingForVariables: false });
+    }
+
+    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
+    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
+      return;
     }
 
     const { queries } = this.state;
@@ -380,6 +375,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         this.findAndSubscribeToAdhocFilters(datasource?.uid);
       }
 
+      const runRequest = getRunRequest();
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);

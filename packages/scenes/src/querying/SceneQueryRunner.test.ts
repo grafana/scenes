@@ -8,6 +8,7 @@ import {
   LoadingState,
   PanelData,
   toDataFrame,
+  VariableRefresh,
 } from '@grafana/data';
 
 import { SceneTimeRange } from '../core/SceneTimeRange';
@@ -643,6 +644,44 @@ describe('SceneQueryRunner', () => {
 
       // Should execute query a second time
       expect(runRequestMock.mock.calls.length).toBe(2);
+    });
+
+    it('Should not issue query when setContainerWidth is called and we are waiting for variables', async () => {
+      const varA = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
+      const varB = new TestVariable({ name: 'A', value: 'AA', query: 'A.$A.*' });
+
+      // Query only depends on A
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+        maxDataPointsFromWidth: true,
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [varA, varB] }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+      });
+
+      scene.activate();
+
+      // should execute query when variable completes update
+      varA.signalUpdateCompleted();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(0);
+
+      queryRunner.setContainerWidth(1000);
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(runRequestMock.mock.calls.length).toBe(0);
+
+      // now that all variables are complete the query should issue
+      varB.signalUpdateCompleted();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(1);
     });
 
     it('Should set data and loadingState to Done when there are no queries', async () => {
