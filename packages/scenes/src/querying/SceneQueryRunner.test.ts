@@ -671,7 +671,7 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      // Should run query once all variables complete
+      // Should run query
       expect(runRequestMock.mock.calls.length).toBe(1);
 
       // Now change time range
@@ -688,10 +688,6 @@ describe('SceneQueryRunner', () => {
 
       // Since varA did not change here varB should not be loading
       expect(varB.state.loading).toBe(false);
-
-      varB.signalUpdateCompleted();
-
-      await new Promise((r) => setTimeout(r, 1));
 
       // should execute new query
       expect(runRequestMock.mock.calls.length).toBe(2);
