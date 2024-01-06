@@ -1,3 +1,20 @@
+# v1.28.6 (Sat Jan 06 2024)
+
+#### 🐛 Bug Fix
+
+- SceneTimeRange: Support delay now to avoid data drops in charts [#509](https://github.com/grafana/scenes/pull/509) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Fix issue with duplicate annotations [#515](https://github.com/grafana/scenes/pull/515) ([@domasx2](https://github.com/domasx2))
+- SceneQueryRunner: Fix redundant execution on variable change [#519](https://github.com/grafana/scenes/pull/519) ([@domasx2](https://github.com/domasx2))
+- Splitter: Fixes small issue with keyboard control [#498](https://github.com/grafana/scenes/pull/498) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 3
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v1.28.5 (Wed Dec 20 2023)
 
 #### 🐛 Bug Fix
