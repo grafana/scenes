@@ -530,6 +530,38 @@ describe('SceneVariableList', () => {
       expect(set.isVariableLoadingOrWaitingToUpdate(B)).toBe(true);
     });
 
+    it('Should return true if a dependency is loading', async () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        // this refresh option is important for this test
+        refresh: VariableRefresh.onTimeRangeChanged,
+      });
+
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+      const set = new SceneVariableSet({ variables: [A, B] });
+      const timeRange = new SceneTimeRange();
+      const scene = new TestScene({ $variables: set, $timeRange: timeRange });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+
+      // Now change time range
+      timeRange.onRefresh();
+
+      // Now verify that only A is loading
+      expect(A.state.loading).toBe(true);
+      expect(B.state.loading).toBe(false);
+
+      // B should still return true here as it's dependency is loading
+      expect(set.isVariableLoadingOrWaitingToUpdate(B)).toBe(true);
+    });
+
     it('Should check ancestor set for LocalValueVariable', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const scopedA = new LocalValueVariable({ name: 'A', value: 'AA' });

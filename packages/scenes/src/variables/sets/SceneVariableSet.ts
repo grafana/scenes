@@ -322,14 +322,22 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   /**
-   * Return true if variable is waiting to update or currently updating
+   * Return true if variable is waiting to update or currently updating.
+   * It also returns true if a dependency of the variable is loading.
+   *
+   * For example if C depends on variable B which depends on variable A and A is loading this returns true for variable C and B.
    */
   public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable) {
     if (variable.isAncestorLoading && variable.isAncestorLoading()) {
       return true;
     }
 
-    return this._variablesToUpdate.has(variable) || this._updating.has(variable);
+    if (this._variablesToUpdate.has(variable) || this._updating.has(variable)) {
+      return true;
+    }
+
+    // Last scenario is to check the variable's own dependencies as well
+    return sceneGraph.hasVariableDependencyInLoadingState(variable);
   }
 }
 

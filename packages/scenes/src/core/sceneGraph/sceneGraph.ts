@@ -56,7 +56,10 @@ export function interpolate(
 }
 
 /**
- * Checks if the variable is currently loading or waiting to update
+ * Checks if the variable is currently loading or waiting to update.
+ * It also returns true if a dependency of the variable is loading.
+ *
+ * For example if C depends on variable B which depends on variable A and A is loading this returns true for variable C and B.
  */
 export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   if (!sceneObject.variableDependency) {
