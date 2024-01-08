@@ -57,7 +57,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   /**
    * This is called whenever any set of variables have new values. It up to this implementation to check if it's relevant given the current dependencies.
    */
-  public variableUpdateCompleted(variable: SceneVariable, hasChanged?: boolean) {
+  public variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean) {
     const deps = this.getNames();
     let dependencyChanged = false;
 
