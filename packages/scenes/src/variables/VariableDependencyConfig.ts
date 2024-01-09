@@ -76,14 +76,16 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     // If custom handler called when dependency is changed or when we are waiting for variables
     if (this._options.onVariableUpdateCompleted && (this._isWaitingForVariables || dependencyChanged)) {
       this._options.onVariableUpdateCompleted();
-      return;
     }
 
     if (dependencyChanged) {
       if (this._options.onReferencedVariableValueChanged) {
         this._options.onReferencedVariableValueChanged(variable);
-      } else {
-        this.defaultHandlerReferencedVariableValueChanged();
+      }
+
+      // if no callbacks are specified then just do a forceRender
+      if (!this._options.onReferencedVariableValueChanged && !this._options.onVariableUpdateCompleted) {
+        this._sceneObject.forceRender();
       }
     }
   }
@@ -97,13 +99,6 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     this._isWaitingForVariables = false;
     return false;
   }
-
-  /**
-   * Only way to force a re-render is to update state right now
-   */
-  private defaultHandlerReferencedVariableValueChanged = () => {
-    this._sceneObject.forceRender();
-  };
 
   public getNames(): Set<string> {
     const prevState = this._state;

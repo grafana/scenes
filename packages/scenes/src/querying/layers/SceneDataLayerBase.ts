@@ -10,7 +10,6 @@ import {
 } from '../../core/types';
 import { setBaseClassState } from '../../utils/utils';
 import { writeSceneLog } from '../../utils/writeSceneLog';
-import { SceneVariable } from '../../variables/types';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { VariableValueRecorder } from '../../variables/VariableValueRecorder';
 
