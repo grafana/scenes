@@ -15,7 +15,6 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { LocalValueVariable } from '../variants/LocalValueVariable';
 import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
-import { CustomVariable } from '../variants/CustomVariable';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
