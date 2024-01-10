@@ -15,13 +15,19 @@ interface TestObjectState extends SceneObjectState {
   optional?: string;
   array?: string[];
   other?: string;
+  nested?: TestObj;
 }
 
 class TestObj extends SceneObjectBase<TestObjectState> {
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['name', 'array', 'optional'] });
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['name', 'array', 'optional', 'nested'] });
 
   public getUrlState() {
-    return { name: this.state.name, array: this.state.array, optional: this.state.optional };
+    return {
+      name: this.state.name,
+      array: this.state.array,
+      optional: this.state.optional,
+      nested: this.state.nested ? 'nested' : undefined,
+    };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
@@ -36,6 +42,12 @@ class TestObj extends SceneObjectBase<TestObjectState> {
     if (values.hasOwnProperty('optional')) {
       this.setState({ optional: typeof values.optional === 'string' ? values.optional : undefined });
     }
+
+    if (values.hasOwnProperty('nested')) {
+      this.setState({ nested: new TestObj({ name: 'default name' }) });
+    } else if (this.state.nested) {
+      this.setState({ nested: undefined });
+    }
   }
 }
 
@@ -43,7 +55,7 @@ describe('UrlSyncManager', () => {
   let urlManager: UrlSyncManager;
   let locationUpdates: Location[] = [];
   let listenUnregister: () => void;
-  let scene: SceneObject;
+  let scene: SceneFlexLayout;
   let deactivate = () => {};
 
   beforeEach(() => {
@@ -57,6 +69,7 @@ describe('UrlSyncManager', () => {
     deactivate();
     locationService.push('/');
     listenUnregister();
+    urlManager.cleanUp(scene);
   });
 
   describe('getUrlState', () => {
@@ -100,6 +113,42 @@ describe('UrlSyncManager', () => {
 
       // Should not update url
       expect(locationUpdates.length).toBe(1);
+    });
+  });
+
+  describe('Initiating state from url', () => {
+    it('Should sync nested objects created during sync', () => {
+      const obj = new TestObj({ name: 'test' });
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
+      });
+
+      locationService.partial({ name: 'name-from-url', nested: 'nested', 'name-2': 'nested name from initial url' });
+
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
+
+      deactivate = scene.activate();
+
+      expect(obj.state.nested?.state.name).toEqual('nested name from initial url');
+    });
+
+    it('Should initial url state with objects created after initial sync', () => {
+      const obj = new TestObj({ name: 'test' });
+      scene = new SceneFlexLayout({
+        children: [],
+      });
+
+      locationService.partial({ name: 'name-from-url' });
+
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
+
+      deactivate = scene.activate();
+
+      scene.setState({ children: [new SceneFlexItem({ body: obj })] });
+
+      expect(obj.state.name).toEqual('name-from-url');
     });
   });
 
