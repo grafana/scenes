@@ -46,8 +46,6 @@ export class AdHocFiltersVariable
 
     // Subscribe to filter changes and up the variable value (filterExpression)
     this.addActivationHandler(() => {
-      this.setState({ filterExpression: state.filterExpression ?? this.renderFilters(state.set.state.filters) });
-
       this._subs.add(
         this.state.set.subscribeToState((newState, prevState) => {
           if (newState.filters !== prevState.filters) {
