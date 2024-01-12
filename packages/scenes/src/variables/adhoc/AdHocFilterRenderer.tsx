@@ -32,16 +32,16 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueValue = filter.value !== '' ? toOption(filter.value) : null;
 
   useEffect(() => {
-    async function getKeys() {
+    async function updateKeys() {
       setState({ ...state, isKeysLoading: true });
       const keys = await model._getKeys(filter.key);
       setState({ ...state, isKeysLoading: false, keys });
     }
 
-    if (state.keys === undefined) {
-      getKeys();
+    if (keyValue && state.keys === undefined && !state.isKeysLoading) {
+      updateKeys();
     }
-  }, [filter.key, model, state]);
+  }, [filter, keyValue, model, state]);
 
   const valueSelect = (
     <Select
