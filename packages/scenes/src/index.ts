@@ -2,6 +2,7 @@ import { getUrlWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
 import { cloneSceneObjectState } from './core/sceneGraph/utils';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
+import { getUrlState, syncStateFromSearchParams } from './services/utils';
 import { registerVariableMacro } from './variables/macros';
 import {
   isAdHocVariable,
@@ -97,6 +98,8 @@ export const sceneUtils = {
   registerRuntimeDataSource,
   registerVariableMacro,
   cloneSceneObjectState,
+  syncStateFromSearchParams,
+  getUrlState,
 
   // Variable guards
   isAdHocVariable,
