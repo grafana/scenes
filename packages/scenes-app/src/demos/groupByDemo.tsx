@@ -9,6 +9,7 @@ import {
   PanelBuilders,
   SceneQueryRunner,
   AdHocFiltersVariable,
+  GroupByVariable,
   SceneCanvasText,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
@@ -26,6 +27,10 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
               datasource: { uid: 'gdev-prometheus' },
               filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
             }),
+            GroupByVariable.create({
+              datasource: { uid: 'gdev-prometheus' },
+              filters: [],
+            })
           ],
         }),
         body: new SceneFlexLayout({
