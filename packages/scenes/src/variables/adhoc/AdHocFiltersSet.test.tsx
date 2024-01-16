@@ -21,7 +21,7 @@ const templateSrv = {
 
 describe('AdHocFilter', () => {
   it('renders filters', async () => {
-    await setup();
+    setup();
     expect(screen.getByText('key1')).toBeInTheDocument();
     expect(screen.getByText('val1')).toBeInTheDocument();
     expect(screen.getByText('key2')).toBeInTheDocument();
@@ -29,7 +29,7 @@ describe('AdHocFilter', () => {
   });
 
   it('templateSrv.getAdhocFilters patch calls original when scene object is not active', async () => {
-    const { unmount } = await setup();
+    const { unmount } = setup();
     unmount();
 
     const result = templateSrv.getAdhocFilters('name');
@@ -37,7 +37,7 @@ describe('AdHocFilter', () => {
   });
 
   it('adds filter', async () => {
-    const { filtersSet } = await setup();
+    const { filtersSet } = setup();
 
     // Select key
     await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -52,7 +52,7 @@ describe('AdHocFilter', () => {
   });
 
   it('removes filter', async () => {
-    const { filtersSet } = await setup();
+    const { filtersSet } = setup();
 
     await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
 
@@ -60,7 +60,7 @@ describe('AdHocFilter', () => {
   });
 
   it('changes filter', async () => {
-    const { filtersSet, runRequest } = await setup();
+    const { filtersSet, runRequest } = setup();
 
     await new Promise((r) => setTimeout(r, 1));
 
@@ -78,7 +78,7 @@ describe('AdHocFilter', () => {
   });
 
   it('url sync works', async () => {
-    const { filtersSet } = await setup();
+    const { filtersSet } = setup();
 
     act(() => {
       filtersSet._updateFilter(filtersSet.state.filters[0], 'value', 'newValue');
@@ -97,15 +97,17 @@ describe('AdHocFilter', () => {
   });
 
   it('url sync from empty filters array works', async () => {
-    const { filtersSet } = await setup({ filters: [] });
+    const { filtersSet } = setup({ filters: [] });
 
-    await waitFor(() => locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal'));
+    act(() => {
+      locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
+    });
 
     expect(filtersSet.state.filters.length).toEqual(2);
   });
 
   it('Can override and replace getTagKeys and getTagValues', async () => {
-    const { filtersSet } = await setup({
+    const { filtersSet } = setup({
       getTagKeysProvider: () => {
         return Promise.resolve({ replace: true, values: [{ text: 'hello', value: '1' }] });
       },
@@ -122,7 +124,7 @@ describe('AdHocFilter', () => {
   });
 
   it('Can override and add keys and values', async () => {
-    const { filtersSet } = await setup({
+    const { filtersSet } = setup({
       getTagKeysProvider: () => {
         return Promise.resolve({ values: [{ text: 'hello', value: '1' }] });
       },
@@ -146,7 +148,7 @@ describe('AdHocFilter', () => {
   });
 
   it('Can filter by regex', async () => {
-    const { filtersSet } = await setup({
+    const { filtersSet } = setup({
       tagKeyRegexFilter: new RegExp('x.*'),
     });
 
@@ -161,7 +163,7 @@ const runRequestMock = {
 
 let runRequestSet = false;
 
-async function setup(overrides?: Partial<AdHocFilterSetState>) {
+function setup(overrides?: Partial<AdHocFilterSetState>) {
   setDataSourceSrv({
     get() {
       return {
@@ -240,7 +242,7 @@ async function setup(overrides?: Partial<AdHocFilterSetState>) {
 
   scene.initUrlSync();
 
-  const { unmount } = await waitFor(() => render(<scene.Component model={scene} />));
+  const { unmount } = render(<scene.Component model={scene} />);
 
   return { scene, filtersSet, unmount, runRequest: runRequestMock.fn };
 }

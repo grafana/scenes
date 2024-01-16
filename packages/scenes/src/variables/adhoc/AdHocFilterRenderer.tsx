@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
@@ -27,21 +27,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     isValuesOpen?: boolean;
   }>({});
 
-  const keyValue =
-    filter.key !== '' ? state?.keys?.find((key) => key.value === filter.key) ?? toOption(filter.key) : null;
+  const keyValue = filter.key !== '' ? toOption(filter.key) : null;
   const valueValue = filter.value !== '' ? toOption(filter.value) : null;
-
-  useEffect(() => {
-    async function updateKeys() {
-      setState({ ...state, isKeysLoading: true });
-      const keys = await model._getKeys(filter.key);
-      setState({ ...state, isKeysLoading: false, keys });
-    }
-
-    if (keyValue && state.keys === undefined && !state.isKeysLoading) {
-      updateKeys();
-    }
-  }, [filter, keyValue, model, state]);
 
   const valueSelect = (
     <Select
