@@ -3,6 +3,7 @@ import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntim
 import { cloneSceneObjectState } from './core/sceneGraph/utils';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { registerVariableMacro } from './variables/macros';
+import { renderPrometheusLabelFilters } from './variables/utils';
 import {
   isAdHocVariable,
   isQueryVariable,
@@ -97,6 +98,7 @@ export const sceneUtils = {
   registerRuntimeDataSource,
   registerVariableMacro,
   cloneSceneObjectState,
+  renderPrometheusLabelFilters,
 
   // Variable guards
   isAdHocVariable,
