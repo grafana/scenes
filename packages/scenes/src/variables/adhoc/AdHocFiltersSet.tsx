@@ -142,6 +142,7 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       return [];
     }
 
+    // TODO need to pass the queries here as well as other filters to narrow the getTagKeys call
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters!);
     let keys = await ds.getTagKeys({ filters: otherFilters });
 
