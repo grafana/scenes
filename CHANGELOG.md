@@ -1,3 +1,24 @@
+# v1.29.0 (Tue Jan 16 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SplitLayout: Allow pane style overrides to be passed through [#531](https://github.com/grafana/scenes/pull/531) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### 🐛 Bug Fix
+
+- Correct developer docs link in README [#522](https://github.com/grafana/scenes/pull/522) ([@annanay25](https://github.com/annanay25))
+- `@grafana/scenes`
+  - Variables: Checking if a dependency is loading should also check that dependency dependencies [#523](https://github.com/grafana/scenes/pull/523) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- Annanay Agarwal ([@annanay25](https://github.com/annanay25))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.28.6 (Sat Jan 06 2024)
 
 #### 🐛 Bug Fix
