@@ -21,6 +21,7 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
         body: new SceneGridLayout({
           isLazy: true,
           isDraggable: true,
+          isResizable: true,
           children: [
             new SceneGridItem({
               x: 0,

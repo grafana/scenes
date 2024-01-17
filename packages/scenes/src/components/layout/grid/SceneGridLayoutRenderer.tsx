@@ -80,7 +80,7 @@ interface GridItemWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((props, ref) => {
-  const { grid, layoutItem, index, totalCount, isLazy, style } = props;
+  const { grid, layoutItem, index, totalCount, isLazy, style, onLoad, onChange, ...divProps } = props;
   const sceneChild = grid.getSceneLayoutChild(layoutItem.i)!;
   const className = sceneChild.getClassName?.();
   const theme = useTheme2();
@@ -107,15 +107,19 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
     innerContent
   );
 
-  style!.zIndex = boostedCount.current === 0 ? descIndex : theme.zIndex.dropdown;
+  const newStyle = {
+    ...style,
+    zIndex: boostedCount.current === 0 ? descIndex : theme.zIndex.dropdown,
+  };
 
   if (isLazy) {
     return (
       <LazyLoader
+        {...divProps}
         key={sceneChild.state.key!}
         data-griditem-key={sceneChild.state.key}
         className={cx(className, props.className)}
-        style={style}
+        style={newStyle}
         ref={ref}
       >
         {innerContentWithContext}
@@ -125,11 +129,12 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
 
   return (
     <div
+      {...divProps}
       ref={ref}
       key={sceneChild.state.key}
       data-griditem-key={sceneChild.state.key}
       className={cx(className, props.className)}
-      style={style}
+      style={newStyle}
     >
       {innerContentWithContext}
     </div>
