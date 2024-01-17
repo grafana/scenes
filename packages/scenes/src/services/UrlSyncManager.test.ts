@@ -9,7 +9,6 @@ import { SceneObjectState, SceneObjectUrlValues } from '../core/types';
 
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
 import { UrlSyncManager } from './UrlSyncManager';
-import { isUrlValueEqual } from './utils';
 
 interface TestObjectState extends SceneObjectState {
   name: string;
