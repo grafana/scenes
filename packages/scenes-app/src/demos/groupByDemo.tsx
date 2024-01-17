@@ -29,7 +29,7 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
             }),
             GroupByVariable.create({
               datasource: { uid: 'gdev-prometheus' },
-              filters: [],
+              groupBy: [],
             })
           ],
         }),
