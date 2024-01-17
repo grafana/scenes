@@ -19,6 +19,7 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
         ...getEmbeddedSceneDefaults(),
         $data: getQueryRunnerWithRandomWalkQuery(),
         body: new SceneGridLayout({
+          isLazy: true,
           isDraggable: true,
           children: [
             new SceneGridItem({

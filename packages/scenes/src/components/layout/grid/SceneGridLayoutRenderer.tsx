@@ -8,6 +8,7 @@ import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 // @ts-expect-error TODO remove when @grafana/ui is upgraded to 10.4
 import { LayoutItemContext, useTheme2 } from '@grafana/ui';
+import { cx } from '@emotion/css';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
@@ -113,7 +114,7 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
       <LazyLoader
         key={sceneChild.state.key!}
         data-griditem-key={sceneChild.state.key}
-        className={className}
+        className={cx(className, props.className)}
         style={style}
         ref={ref}
       >
@@ -127,7 +128,7 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
       ref={ref}
       key={sceneChild.state.key}
       data-griditem-key={sceneChild.state.key}
-      className={className}
+      className={cx(className, props.className)}
       style={style}
     >
       {innerContentWithContext}
