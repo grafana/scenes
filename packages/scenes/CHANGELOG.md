@@ -1,3 +1,22 @@
+# v1.30.0 (Thu Jan 18 2024)
+
+#### 🚀 Enhancement
+
+- SceneGridLayout: Support new visualization tooltips [#530](https://github.com/grafana/scenes/pull/530) ([@torkelo](https://github.com/torkelo))
+- Adhoc filters variable improvements [#518](https://github.com/grafana/scenes/pull/518) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### 🐛 Bug Fix
+
+- Revert "Chore: Update peer dependencies" [#533](https://github.com/grafana/scenes/pull/533) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 3
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.29.0 (Tue Jan 16 2024)
 
 #### 🚀 Enhancement
