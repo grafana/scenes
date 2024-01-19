@@ -11,6 +11,7 @@ import { ControlsLabel } from '../../utils/ControlsLabel';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { css } from '@emotion/css';
+import { sceneGraph } from '../../core/sceneGraph';
 
 export interface AdHocFilterSetState extends SceneObjectState {
   /** Defaults to Filters */
@@ -175,7 +176,9 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
 
     // Filter out the current filter key from the list of all filters
     const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters!);
-    let values = await ds.getTagValues({ key: filter.key, filters: otherFilters });
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    let values = await ds.getTagValues({ key: filter.key, filters: otherFilters, timeRange });
 
     if (override) {
       values = values.concat(override.values);

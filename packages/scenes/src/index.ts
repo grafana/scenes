@@ -4,6 +4,7 @@ import { cloneSceneObjectState } from './core/sceneGraph/utils';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
 import { registerVariableMacro } from './variables/macros';
+import { renderPrometheusLabelFilters } from './variables/utils';
 import {
   isAdHocVariable,
   isQueryVariable,
@@ -100,6 +101,7 @@ export const sceneUtils = {
   cloneSceneObjectState,
   syncStateFromSearchParams,
   getUrlState,
+  renderPrometheusLabelFilters,
 
   // Variable guards
   isAdHocVariable,
