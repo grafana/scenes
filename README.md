@@ -18,7 +18,7 @@
 
 ### Using @grafana/scenes library in your plugin
 
-Please refer to our [developer docs]([url](https://grafana.com/developers/scenes/)).
+Please refer to our [developer docs](https://grafana.com/developers/scenes/).
 
 ### Running the demo app
 
