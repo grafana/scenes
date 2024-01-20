@@ -147,7 +147,7 @@
 
 #### 🚀 Enhancement
 
-- Variables:  Query - Add optional `definition` prop to state [#489](https://github.com/grafana/scenes/pull/489) ([@axelavargas](https://github.com/axelavargas))
+- Variables: Query - Add optional `definition` prop to state [#489](https://github.com/grafana/scenes/pull/489) ([@axelavargas](https://github.com/axelavargas))
 
 #### 🐛 Bug Fix
 
@@ -164,7 +164,7 @@
 
 #### 🚀 Enhancement
 
-- Macros: Support $_interval[_ms] variable [#487](https://github.com/grafana/scenes/pull/487) ([@dprokop](https://github.com/dprokop))
+- Macros: Support $\_interval[_ms] variable [#487](https://github.com/grafana/scenes/pull/487) ([@dprokop](https://github.com/dprokop))
 
 #### 🐛 Bug Fix
 
@@ -338,7 +338,7 @@
 - Variables: Support for variables on lower levels to depend on variables on higher levels [#443](https://github.com/grafana/scenes/pull/443) ([@torkelo](https://github.com/torkelo))
 - VizPanel: Handle empty arrays when merging new panel options [#447](https://github.com/grafana/scenes/pull/447) ([@javiruiz01](https://github.com/javiruiz01))
 - PanelContext: Eventbus should not filter out local events [#445](https://github.com/grafana/scenes/pull/445) ([@torkelo](https://github.com/torkelo))
-- Variables: Support __org and __user variable macros [#449](https://github.com/grafana/scenes/pull/449) ([@torkelo](https://github.com/torkelo))
+- Variables: Support **org and **user variable macros [#449](https://github.com/grafana/scenes/pull/449) ([@torkelo](https://github.com/torkelo))
 - SceneQueryRunner: Fixes adhoc filters when using a variable data source [#422](https://github.com/grafana/scenes/pull/422) ([@torkelo](https://github.com/torkelo))
 - VizPanel: Support passing legacyPanelId to PanelProps [#446](https://github.com/grafana/scenes/pull/446) ([@torkelo](https://github.com/torkelo))
 
