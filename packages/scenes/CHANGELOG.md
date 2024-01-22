@@ -1,3 +1,41 @@
+# v2.0.0 (Mon Jan 22 2024)
+
+### Release Notes
+
+#### Variables: Notify scene after each variable completion or value change ([#525](https://github.com/grafana/scenes/pull/525))
+
+`VariableDependencyConfigLike` interface has changed so that scene objects now get notified after each variable update is completed (or changed value). Before, the `SceneVariableSet` waited for all variables to complete before notifying scene objects. 
+
+The function `variableUpdatesCompleted` has changed name and signature: 
+
+```ts
+variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean): void;
+```
+
+`VariableDependencyConfig` has also some breaking changes. The function named `onVariableUpdatesCompleted` has changed name and signature to: 
+
+```ts
+ onVariableUpdateCompleted?: () => void;
+```
+
+`VariableDependencyConfig` now handles the state logic for "waitingForVariables". If you call `VariableDependencyConfig.hasDependencyInLoadingState` and it returns true it will remember this waiting state and call `onVariableUpdateCompleted` as soon as the next variable update is completed, no matter if that variable is a dependency or if it changed or not.
+
+---
+
+#### 💥 Breaking Change
+
+- Variables: Notify scene after each variable completion or value change [#525](https://github.com/grafana/scenes/pull/525) ([@torkelo](https://github.com/torkelo))
+
+#### 🚀 Enhancement
+
+- UrlSync: Export new util functions [#529](https://github.com/grafana/scenes/pull/529) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.30.0 (Thu Jan 18 2024)
 
 #### 🚀 Enhancement
