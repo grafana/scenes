@@ -109,19 +109,23 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     if (typeof timeRange.raw.from === 'string') {
       update.from = timeRange.raw.from;
       updateToEval.from = timeRange.raw.from;
-    } else {
+    } else if (timeRange.raw.from.isValid()) {
       update.from = timeRange.raw.from.toISOString();
       // @ts-expect-error Need an update in core API
       updateToEval.from = timeRange.raw.from.toISOString(true);
+    } else {
+      return;
     }
 
     if (typeof timeRange.raw.to === 'string') {
       update.to = timeRange.raw.to;
       updateToEval.to = timeRange.raw.to;
-    } else {
+    } else if (timeRange.raw.to.isValid()) {
       update.to = timeRange.raw.to.toISOString();
       // @ts-expect-error Need an update in core API
       updateToEval.to = timeRange.raw.to.toISOString(true);
+    } else {
+      return;
     }
 
     update.value = evaluateTimeRange(
