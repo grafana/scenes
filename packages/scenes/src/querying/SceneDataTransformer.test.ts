@@ -8,6 +8,7 @@ import {
   PanelData,
   DataQueryRequest,
   DataSourceApi,
+  arrayToDataFrame,
 } from '@grafana/data';
 
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
@@ -485,6 +486,32 @@ describe('SceneDataTransformer', () => {
         await new Promise((r) => setTimeout(r, 1));
 
         expect(queryRunner.state.data?.series[0].name).toBe('new name');
+      });
+    });
+
+    describe('Can subscribe to data via getResultStream', () => {
+      it('Should get update even when there are not transforms', async () => {
+        const transformer = new SceneDataTransformer({
+          $data: new SceneDataNode({
+            data: {
+              state: LoadingState.Loading,
+              timeRange: getDefaultTimeRange(),
+              series: [arrayToDataFrame([1, 2, 3])],
+            },
+          }),
+          transformations: [],
+        });
+
+        let panelData: PanelData | undefined;
+        transformer.getResultsStream().subscribe((result) => {
+          panelData = result.data;
+        });
+
+        transformer.activate();
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(panelData?.series[0].fields[0].values.toArray()).toEqual([1, 2, 3]);
       });
     });
   });

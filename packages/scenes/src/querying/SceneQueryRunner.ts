@@ -68,7 +68,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _dataLayersSub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
-  private _results = new ReplaySubject<SceneDataProviderResult>();
+  private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
@@ -472,8 +472,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 
   private onDataReceived = (data: PanelData) => {
-    this._results.next({ origin: this, data });
-
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
@@ -487,10 +485,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     this._resultAnnotations = data.annotations;
-    this.setState({
-      data: dataWithLayersApplied,
-      _hasFetchedData: hasFetchedData,
-    });
+
+    this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
+
+    this._results.next({ origin: this, data: dataWithLayersApplied });
   };
 
   private _combineDataLayers(data: PanelData) {
