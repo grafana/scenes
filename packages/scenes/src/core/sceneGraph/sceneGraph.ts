@@ -123,6 +123,23 @@ export function findObject(scene: SceneObject, check: (obj: SceneObject) => bool
 }
 
 /**
+ * This will search down the full scene graph, looking for objects that match the provided predicate.
+ */
+export function findAllObjects(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject[] {
+  const found: SceneObject[] = [];
+
+  scene.forEachChild((child) => {
+    if (check(child)) {
+      found.push(child);
+    }
+
+    found.push(...findAllObjects(child, check));
+  });
+
+  return found;
+}
+
+/**
  * Will walk up the scene object graph up until the root and collect all SceneDataLayerProvider objects.
  * When localOnly set to true, it will only collect the closest layers.
  */

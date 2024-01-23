@@ -12,6 +12,7 @@ import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { css } from '@emotion/css';
 import { sceneGraph } from '../../core/sceneGraph';
+import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
 
 export interface AdHocFilterSetState extends SceneObjectState {
   /** Defaults to Filters */
@@ -144,7 +145,8 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
     }
 
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters!);
-    let keys = await ds.getTagKeys({ filters: otherFilters });
+    const queries = this._getSceneQueries();
+    let keys = await ds.getTagKeys({ filters: otherFilters, queries });
 
     if (override) {
       keys = keys.concat(override.values);
@@ -196,6 +198,29 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       label: value,
       value,
     }));
+  }
+
+  /**
+   * Get all queries in the scene that have the same datasource as this AdHocFilterSet
+   */
+  private _getSceneQueries(): DataQueryExtended[] {
+    const runners = sceneGraph.findAllObjects(
+      this.getRoot(),
+      (o) => o instanceof SceneQueryRunner
+    ) as SceneQueryRunner[];
+
+    const applicableRunners = runners.filter((r) => r.state.datasource?.uid === this.state.datasource?.uid);
+
+    if (applicableRunners.length === 0) {
+      return [];
+    }
+
+    const result: DataQueryExtended[] = [];
+    applicableRunners.forEach((r) => {
+      result.push(...r.state.queries);
+    });
+
+    return result;
   }
 }
 
