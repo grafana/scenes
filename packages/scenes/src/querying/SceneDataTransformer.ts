@@ -24,7 +24,7 @@ export interface SceneDataTransformerState extends SceneDataState {
  */
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> implements SceneDataProvider {
   private _transformSub?: Unsubscribable;
-  private _results = new ReplaySubject<SceneDataProviderResult>();
+  private _results = new ReplaySubject<SceneDataProviderResult>(1);
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
    */
@@ -105,6 +105,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     if (transformations.length === 0 || !data) {
       this.setState({ data });
+
+      if (data) {
+        this._results.next({ origin: this, data });
+      }
       return;
     }
 
@@ -134,12 +138,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
             // Combine transformation error with upstream errors
             errors: [...sourceErr, transformationError],
           };
+
           return of(result);
         })
       )
       .subscribe((data) => {
-        this._results.next({ origin: this, data });
         this.setState({ data });
+        this._results.next({ origin: this, data });
       });
   }
 }
