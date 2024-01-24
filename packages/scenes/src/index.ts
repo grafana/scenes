@@ -47,7 +47,7 @@ export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFilterSet } from './variables/adhoc/AdHocFiltersSet';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
-export { GroupBySet } from './variables/groupby/GroupBySet';
+export { AggregationsSet } from './variables/groupby/GroupBySet';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
 export { type UrlSyncManagerLike as UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';

@@ -6,7 +6,8 @@ import {
   SceneAppPageState,
   PanelBuilders,
   SceneQueryRunner,
-  GroupBySet,
+  AggregationsSet,
+  SceneCanvasText,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 
@@ -18,8 +19,8 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
         controls: [
-          new GroupBySet({
-            name: 'Group by',
+          new AggregationsSet({
+            name: 'Group',
             datasource: { uid: 'gdev-prometheus' },
             defaultOptions: [{
               text: 'foo',
@@ -32,8 +33,15 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
           ...getEmbeddedSceneDefaults().controls,
         ],
         body: new SceneFlexLayout({
-          direction: 'row',
+          direction: 'column',
           children: [
+            new SceneFlexItem({
+              ySizing: 'content',
+              body: new SceneCanvasText({
+                text: `The query below is interpolated to ALERTS{$Group}`,
+                fontSize: 14,
+              }),
+            }),
             new SceneFlexItem({
               body: PanelBuilders.table()
                 .setTitle('ALERTS')

@@ -9,12 +9,12 @@ import React, { useEffect, useState } from 'react';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 
-export interface GroupBySetState extends SceneObjectState {
-  /** Defaults to "Group by" */
+export interface AggregationsSetState extends SceneObjectState {
+  /** Defaults to "Group" */
   name?: string;
   /** The visible keys to group on */
   // TODO review this type
-  groupBy: string[];
+  aggregations: string[];
   // TODO review this type and name (naming is hard)
   defaultOptions?: MetricFindValue[];
   /** Base filters to always apply when looking up keys */
@@ -47,12 +47,12 @@ export interface GroupBySetState extends SceneObjectState {
 }
 
 export type getTagKeysProvider = (
-  set: GroupBySet,
+  set: AggregationsSet,
   currentKey: string | null
 ) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
 
-export class GroupBySet extends SceneObjectBase<GroupBySetState> {
-  static Component = GroupBySetRenderer;
+export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
+  static Component = AggregationsSetRenderer;
 
   // TODO we need to reimplement this
   // protected _urlSync: SceneObjectUrlSyncHandler = new AdHocFiltersVariableUrlSyncHandler(this);
@@ -60,10 +60,10 @@ export class GroupBySet extends SceneObjectBase<GroupBySetState> {
   private _scopedVars = { __sceneObject: { value: this } };
   private _dataSourceSrv = getDataSourceSrv();
 
-  public constructor(initialState: Partial<GroupBySetState>) {
+  public constructor(initialState: Partial<AggregationsSetState>) {
     super({
-      name: 'Group by',
-      groupBy: [],
+      name: 'Group',
+      aggregations: [],
       baseFilters: [],
       datasource: null,
       applyMode: 'same-datasource',
@@ -78,13 +78,12 @@ export class GroupBySet extends SceneObjectBase<GroupBySetState> {
   }
 
   public _update = (newState: Array<SelectableValue<string>>) => {
-    // TODO what do we do here?
-    // this.state.groupBy = newState.map((x) => x.value!);
-    console.log('updated!')
+    // TODO review this to see if we can remove !
+    this.setState({ aggregations: newState.map((x) => x.value!) });
   }
 
   public getSelectableValue = () => {
-    return this.state.groupBy.map((x) => ({ value: x, label: x }));
+    return this.state.aggregations.map((x) => ({ value: x, label: x }));
   }
 
   /**
@@ -123,7 +122,7 @@ export class GroupBySet extends SceneObjectBase<GroupBySetState> {
   }
 }
 
-export function GroupBySetRenderer({ model }: SceneComponentProps<GroupBySet>) {
+export function AggregationsSetRenderer({ model }: SceneComponentProps<AggregationsSet>) {
   const { layout, name, key } = model.useState();
   const styles = useStyles2(getStyles);
 
@@ -137,7 +136,7 @@ export function GroupBySetRenderer({ model }: SceneComponentProps<GroupBySet>) {
 
   return (
     <div className={styles.wrapper}>
-      {layout !== 'vertical' && <ControlsLabel label={name ?? 'Group by'} icon="filter" />}
+      {layout !== 'vertical' && <ControlsLabel label={name ?? 'Group'} icon="filter" />}
       <AsyncMultiSelect<string>
         id={key}
         placeholder="Select value"

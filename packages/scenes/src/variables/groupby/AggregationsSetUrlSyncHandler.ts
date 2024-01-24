@@ -1,9 +1,10 @@
 import { AdHocVariableFilter } from '@grafana/data';
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } from '../../core/types';
-import { GroupBySet } from './GroupBySet';
+import { AggregationsSet } from './AggregationsSet';
 
-export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
-  public constructor(private _variable: GroupBySet) {}
+// TODO reimplement this
+export class AggregationsSetUrlSyncHandler implements SceneObjectUrlSyncHandler {
+  public constructor(private _variable: AggregationsSet) {}
 
   private getKey(): string {
     return `var-${this._variable.state.name}`;
