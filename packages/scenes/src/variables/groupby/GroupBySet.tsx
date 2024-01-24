@@ -5,7 +5,7 @@ import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { SceneComponentProps, SceneObjectState, ControlsLayout } from '../../core/types';
 import { AsyncMultiSelect, useStyles2 } from '@grafana/ui';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 
@@ -77,22 +77,20 @@ export class GroupBySet extends SceneObjectBase<GroupBySetState> {
     });
   }
 
-  public _update() {
+  public _update = (newState: Array<SelectableValue<string>>) => {
+    // TODO what do we do here?
+    // this.state.groupBy = newState.map((x) => x.value!);
     console.log('updated!')
   }
 
-  public _remove() {
-    console.log('removed!')
-  }
-
-  public getSelectableValue() {
+  public getSelectableValue = () => {
     return this.state.groupBy.map((x) => ({ value: x, label: x }));
   }
 
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
-  public async _getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+  public _getKeys = async (currentKey: string | null): Promise<Array<SelectableValue<string>>> => {
     if (this.state.defaultOptions) {
       return this.state.defaultOptions.map(toSelectableValue);
     }
@@ -129,6 +127,14 @@ export function GroupBySetRenderer({ model }: SceneComponentProps<GroupBySet>) {
   const { layout, name, key } = model.useState();
   const styles = useStyles2(getStyles);
 
+  // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
+  const [uncommittedValue, setUncommittedValue] = useState<Array<SelectableValue<string>>>(model.getSelectableValue());
+
+  // Detect value changes outside
+  useEffect(() => {
+    setUncommittedValue(model.getSelectableValue());
+  }, [model]);
+
   return (
     <div className={styles.wrapper}>
       {layout !== 'vertical' && <ControlsLabel label={name ?? 'Group by'} icon="filter" />}
@@ -136,22 +142,22 @@ export function GroupBySetRenderer({ model }: SceneComponentProps<GroupBySet>) {
         id={key}
         placeholder="Select value"
         width="auto"
-        value={model.getSelectableValue()}
+        value={uncommittedValue}
         // TODO remove after grafana/ui upgrade to 10.3
         // @ts-expect-error
-        noMultiValueWrap={true}
+        noMultiValueWrap
         maxVisibleValues={5}
         tabSelectsValue={false}
-        loadOptions={model._getKeys.bind(model)}
+        loadOptions={model._getKeys}
         closeMenuOnSelect={false}
-        isClearable={true}
+        isClearable
         // onInputChange={onInputChange}
         onBlur={() => {
-          model._update();
+          model._update(uncommittedValue);
         }}
-        // onChange={(newValue) => {
-        //   setUncommittedValue(newValue.map((x) => x.value!));
-        // }}
+        // TODO refactor to remove defaultOptions
+        defaultOptions
+        onChange={setUncommittedValue}
       />
     </div>
   );
