@@ -1,16 +1,12 @@
 import {
   SceneFlexLayout,
-  SceneTimeRange,
-  SceneVariableSet,
   EmbeddedScene,
   SceneFlexItem,
   SceneAppPage,
   SceneAppPageState,
   PanelBuilders,
   SceneQueryRunner,
-  AdHocFiltersVariable,
-  GroupByVariable,
-  SceneCanvasText,
+  GroupBySet,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 
@@ -21,28 +17,23 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
-        $variables: new SceneVariableSet({
-          variables: [
-            AdHocFiltersVariable.create({
-              datasource: { uid: 'gdev-prometheus' },
-              filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
-            }),
-            GroupByVariable.create({
-              datasource: { uid: 'gdev-prometheus' },
-              groupBy: [],
-            })
-          ],
-        }),
+        controls: [
+          new GroupBySet({
+            name: 'Group by',
+            datasource: { uid: 'gdev-prometheus' },
+            defaultOptions: [{
+              text: 'foo',
+            }, {
+              text: 'bar',
+            }, {
+              text: 'baz'
+            }]
+          }),
+          ...getEmbeddedSceneDefaults().controls,
+        ],
         body: new SceneFlexLayout({
-          direction: 'column',
+          direction: 'row',
           children: [
-            new SceneFlexItem({
-              ySizing: 'content',
-              body: new SceneCanvasText({
-                text: `Using AdHocFilterSet in manual mode and inside an AdHocFiltersVariable. The query below is interpolated to ALERTS{$Filters}`,
-                fontSize: 14,
-              }),
-            }),
             new SceneFlexItem({
               body: PanelBuilders.table()
                 .setTitle('ALERTS')
@@ -52,7 +43,7 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
                     queries: [
                       {
                         refId: 'A',
-                        expr: 'ALERTS{$Filters}',
+                        expr: 'ALERTS',
                         format: 'table',
                         instant: true,
                       },
@@ -63,7 +54,6 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
             }),
           ],
         }),
-        $timeRange: new SceneTimeRange(),
       });
     },
   });

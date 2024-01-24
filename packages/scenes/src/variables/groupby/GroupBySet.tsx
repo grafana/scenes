@@ -1,21 +1,22 @@
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
-import { patchGetAdhocFilters } from './patchGetAdhocFilters';
+import { allActiveAggregationSets } from './findActiveAggregationsSetByUid';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
-import { SceneComponentProps, SceneObjectState, SceneObjectUrlSyncHandler, ControlsLayout } from '../../core/types';
-import { AdHocFiltersVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
-import { useStyles2 } from '@grafana/ui';
+import { SceneComponentProps, SceneObjectState, ControlsLayout } from '../../core/types';
+import { AsyncMultiSelect, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
-import { VariableValueSelectMulti } from '../components/VariableValueSelect';
 
 export interface GroupBySetState extends SceneObjectState {
   /** Defaults to "Group by" */
   name?: string;
   /** The visible keys to group on */
+  // TODO review this type
   groupBy: string[];
+  // TODO review this type and name (naming is hard)
+  defaultOptions?: MetricFindValue[];
   /** Base filters to always apply when looking up keys */
   baseFilters?: AdHocVariableFilter[];
   /** Datasource to use for getTagKeys and also controls which scene queries the group by should apply to */
@@ -53,7 +54,8 @@ export type getTagKeysProvider = (
 export class GroupBySet extends SceneObjectBase<GroupBySetState> {
   static Component = GroupBySetRenderer;
 
-  protected _urlSync: SceneObjectUrlSyncHandler = new AdHocFiltersVariableUrlSyncHandler(this);
+  // TODO we need to reimplement this
+  // protected _urlSync: SceneObjectUrlSyncHandler = new AdHocFiltersVariableUrlSyncHandler(this);
 
   private _scopedVars = { __sceneObject: { value: this } };
   private _dataSourceSrv = getDataSourceSrv();
@@ -69,15 +71,32 @@ export class GroupBySet extends SceneObjectBase<GroupBySetState> {
       ...initialState,
     });
 
-    if (this.state.applyMode === 'same-datasource') {
-      patchGetAdhocFilters(this);
-    }
+    this.addActivationHandler(() => {
+      allActiveAggregationSets.add(this);
+      return () => allActiveAggregationSets.delete(this);
+    });
+  }
+
+  public _update() {
+    console.log('updated!')
+  }
+
+  public _remove() {
+    console.log('removed!')
+  }
+
+  public getSelectableValue() {
+    return this.state.groupBy.map((x) => ({ value: x, label: x }));
   }
 
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public async _getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    if (this.state.defaultOptions) {
+      return this.state.defaultOptions.map(toSelectableValue);
+    }
+
     const override = await this.state.getTagKeysProvider?.(this, currentKey);
 
     if (override && override.replace) {
@@ -107,13 +126,33 @@ export class GroupBySet extends SceneObjectBase<GroupBySetState> {
 }
 
 export function GroupBySetRenderer({ model }: SceneComponentProps<GroupBySet>) {
-  const { layout, name } = model.useState();
+  const { layout, name, key } = model.useState();
   const styles = useStyles2(getStyles);
 
   return (
     <div className={styles.wrapper}>
       {layout !== 'vertical' && <ControlsLabel label={name ?? 'Group by'} icon="filter" />}
-      <VariableValueSelectMulti model={model} />
+      <AsyncMultiSelect<string>
+        id={key}
+        placeholder="Select value"
+        width="auto"
+        value={model.getSelectableValue()}
+        // TODO remove after grafana/ui upgrade to 10.3
+        // @ts-expect-error
+        noMultiValueWrap={true}
+        maxVisibleValues={5}
+        tabSelectsValue={false}
+        loadOptions={model._getKeys.bind(model)}
+        closeMenuOnSelect={false}
+        isClearable={true}
+        // onInputChange={onInputChange}
+        onBlur={() => {
+          model._update();
+        }}
+        // onChange={(newValue) => {
+        //   setUncommittedValue(newValue.map((x) => x.value!));
+        // }}
+      />
     </div>
   );
 }
