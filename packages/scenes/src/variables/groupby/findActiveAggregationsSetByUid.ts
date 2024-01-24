@@ -1,4 +1,4 @@
-import { AggregationsSet } from './GroupBySet';
+import { AggregationsSet } from './AggregationsSet';
 
 export let allActiveAggregationSets = new Set<AggregationsSet>();
 
