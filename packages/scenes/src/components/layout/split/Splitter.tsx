@@ -283,6 +283,10 @@ export function Splitter({
   const styles = useStyles2(getStyles);
   const id = useUniqueId();
 
+  const secondAvailable = kids.length === 2;
+  const visibilitySecond = secondAvailable ? 'visible' : 'hidden';
+  const visibleHandleSize = secondAvailable ? handleSize : 0;
+
   return (
     <div
       ref={containerRef}
@@ -306,7 +310,7 @@ export function Splitter({
 
       <div
         ref={splitterRef}
-        style={{ [measurementProp]: `${handleSize}px` }}
+        style={{ [measurementProp]: `${visibleHandleSize}px`, visibility: `${visibilitySecond}` }}
         className={cx(styles.handle, { [styles.handleHorizontal]: direction === 'column' })}
         onPointerUp={onPointerUp}
         onPointerDown={onPointerDown}
@@ -330,6 +334,7 @@ export function Splitter({
         style={{
           flexGrow: initialSize === 'auto' ? 0.5 : clamp(1 - initialSize, 0, 1),
           [minDimProp]: 'min-content',
+          visibility: `${visibilitySecond}`,
           ...secondaryPaneStyles,
         }}
         id={`end-panel-${id}`}
