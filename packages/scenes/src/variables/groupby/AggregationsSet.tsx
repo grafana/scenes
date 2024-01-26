@@ -154,6 +154,9 @@ export function AggregationsSetRenderer({ model }: SceneComponentProps<Aggregati
         onBlur={() => {
           model._update(uncommittedValue);
         }}
+        // this retrieves the options on mount of the component
+        // ideally we would retrieve these options on open of the dropdown
+        // need to investigate why it doesn't work without setting defaultOptions
         // TODO refactor to remove defaultOptions
         defaultOptions
         onChange={setUncommittedValue}
