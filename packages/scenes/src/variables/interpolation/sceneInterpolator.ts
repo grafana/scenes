@@ -9,7 +9,6 @@ import { formatRegistry, FormatVariable } from './formatRegistry';
 import { VARIABLE_REGEX } from '../constants';
 import { lookupVariable } from '../lookupVariable';
 import { macrosIndex } from '../macros';
-import { LocalValueVariable } from '../variants/LocalValueVariable';
 
 /**
  * This function will try to parse and replace any variable expression found in the target string. The sceneObject will be used as the source of variables. It will
@@ -91,8 +90,8 @@ function formatValue(
     return formatNameOrFn(value, {
       name: variable.state.name,
       type: variable.state.type as VariableType,
-      multi: variable instanceof LocalValueVariable ? variable.state.UNSAFE_isMulti : variable.state.isMulti,
-      includeAll: variable instanceof LocalValueVariable ? variable.state.UNSAFE_includeAll : variable.state.includeAll,
+      multi: variable.state.isMulti,
+      includeAll: variable.state.includeAll,
     });
   }
 

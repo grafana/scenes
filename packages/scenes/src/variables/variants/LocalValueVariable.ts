@@ -8,9 +8,8 @@ export interface LocalValueVariableState extends SceneVariableState {
 
   // Indicate whether or not this variable is sourced from a multi-value variable.
   // Introduces for a backwards compatibility with the old variable system, to properly support interpolation in SQL data sources.
-  // Should not be used in new code.
-  UNSAFE_isMulti?: boolean;
-  UNSAFE_includeAll?: boolean;
+  isMulti?: boolean;
+  includeAll?: boolean;
 }
 
 /**
@@ -21,13 +20,14 @@ export class LocalValueVariable
   extends SceneObjectBase<LocalValueVariableState>
   implements SceneVariable<LocalValueVariableState>
 {
-  public constructor(initialState: Omit<Partial<LocalValueVariableState>, 'UNSAFE_isMulti'>) {
+  public constructor(initialState: Omit<Partial<LocalValueVariableState>, 'isMulti' | 'includeAll'>) {
     super({
       type: 'system',
       value: '',
       text: '',
       name: '',
-      UNSAFE_isMulti: true,
+      isMulti: true,
+      includeAll: true,
       ...initialState,
       skipUrlSync: true,
     });
