@@ -1,3 +1,22 @@
+# v2.1.0 (Fri Jan 26 2024)
+
+#### 🚀 Enhancement
+
+- Fixes issue with exemplar link [#540](https://github.com/grafana/scenes/pull/540) ([@cbos](https://github.com/cbos))
+- SceneDataTransformer: Fixes issue with getResultStream not emitting values when there are no transformations [#543](https://github.com/grafana/scenes/pull/543) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- LocalValueVariable: Provide backwards compatibility for SQL-ish data source [#549](https://github.com/grafana/scenes/pull/549) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 3
+
+- Cees Bos ([@cbos](https://github.com/cbos))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v2.0.0 (Mon Jan 22 2024)
 
 ### Release Notes
