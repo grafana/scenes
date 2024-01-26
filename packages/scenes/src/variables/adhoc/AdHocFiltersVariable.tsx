@@ -30,6 +30,7 @@ export type AdHocFiltersVariableCreateHelperArgs = Pick<
   | 'getTagValuesProvider'
   | 'name'
   | 'layout'
+  | 'applyMode'
 >;
 
 export class AdHocFiltersVariable
@@ -43,9 +44,9 @@ export class AdHocFiltersVariable
       hide: VariableHide.hideLabel,
       name: state.name ?? 'Filters',
       set: new AdHocFilterSet({
-        ...state,
-        // Main reason for this helper factory functyion
+        // The applyMode defaults to 'manual' when used through the variable as it is the most frecuent use case
         applyMode: 'manual',
+        ...state,
       }),
     });
   }
