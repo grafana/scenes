@@ -90,6 +90,6 @@ export class AdHocFiltersVariable
 
   // Same UI as the standalone AdHocFilterSet
   public static Component = ({ model }: SceneComponentProps<AdHocFiltersVariable>) => {
-    return <AdHocFilterSet.Component model={model.state.set} />;
+    return <model.state.set.Component model={model.state.set} />;
   };
 }
