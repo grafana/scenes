@@ -119,6 +119,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.runQueries();
     }
 
+    if (!this._dataLayersSub) {
+      this._handleDataLayers();
+    }
+
     return () => this._onDeactivate();
   }
 
