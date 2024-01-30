@@ -8,6 +8,7 @@ import { SceneCanvasText } from '../../components/SceneCanvasText';
 import { SceneTimePicker } from '../../components/SceneTimePicker';
 import { SceneDataNode } from '../SceneDataNode';
 import { sceneGraph } from '.';
+import { SceneObject } from '../types';
 
 describe('sceneGraph', () => {
   it('Can find object', () => {
@@ -31,6 +32,24 @@ describe('sceneGraph', () => {
     expect(sceneGraph.findObject(data, (s) => s.state.key === 'A')).toBe(item1);
     // from item deep in graph finding control
     expect(sceneGraph.findObject(item2, (s) => s.state.key === 'time-picker')).toBe(timePicker);
+  });
+
+  it('Can find all objects given a predicate', () => {
+    const data = new SceneDataNode();
+    const item1 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A' }), $data: data });
+    const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
+    const timePicker = new SceneTimePicker({ key: 'time-picker' });
+
+    const scene = new EmbeddedScene({
+      controls: [timePicker],
+      body: new SceneFlexLayout({
+        children: [item1, item2],
+      }),
+    });
+
+    const predicate = (o: SceneObject) => o instanceof SceneFlexItem;
+
+    expect(sceneGraph.findAllObjects(scene, predicate)).toEqual([item1, item2]);
   });
 
   describe('getDataLayers', () => {
