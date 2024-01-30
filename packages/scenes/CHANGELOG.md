@@ -1,3 +1,15 @@
+# v2.2.0 (Tue Jan 30 2024)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersSet: Pass scene queries to getTagKeys calls [#544](https://github.com/grafana/scenes/pull/544) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v2.1.0 (Fri Jan 26 2024)
 
 #### 🚀 Enhancement
