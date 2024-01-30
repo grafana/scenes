@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import { isArray, isEqual } from 'lodash';
 
 import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/types';
 import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
@@ -50,29 +50,32 @@ export function syncStateFromUrl(
   if (sceneObject.urlSync) {
     const urlState: SceneObjectUrlValues = {};
     const currentState = sceneObject.urlSync.getUrlState();
+    let changeDetected = false;
 
     for (const key of sceneObject.urlSync.getKeys()) {
       const uniqueKey = urlKeyMapper.getUniqueKey(key, sceneObject);
-      const newValue = urlParams.getAll(uniqueKey);
       const currentValue = currentState[key];
-
-      if (isUrlValueEqual(newValue, currentValue)) {
-        continue;
-      }
+      let newValue: string | string[] | null = urlParams.getAll(uniqueKey);
 
       if (newValue.length > 0) {
-        if (Array.isArray(currentValue)) {
-          urlState[key] = newValue;
-        } else {
-          urlState[key] = newValue[0];
+        if (!Array.isArray(currentValue)) {
+          newValue = newValue[0];
         }
       } else {
         // mark this key as having no url state
-        urlState[key] = null;
+        newValue = null;
+      }
+
+      urlState[key] = newValue;
+
+      //      console.log('new value', uniqueKey, newValue, currentValue);
+      if (!changeDetected && !isUrlValueEqual(currentValue, newValue)) {
+        console.log('change detected', uniqueKey, newValue, currentValue);
+        changeDetected = true;
       }
     }
 
-    if (Object.keys(urlState).length > 0) {
+    if (changeDetected) {
       sceneObject.urlSync.updateFromUrl(urlState);
     }
   }
@@ -80,19 +83,15 @@ export function syncStateFromUrl(
   sceneObject.forEachChild((child) => syncStateFromUrl(child, urlParams, urlKeyMapper));
 }
 
-export function isUrlValueEqual(currentUrlValue: string[], newUrlValue: SceneObjectUrlValue): boolean {
-  if (currentUrlValue.length === 0 && newUrlValue == null) {
+export function isUrlValueEqual(a: SceneObjectUrlValue, b: SceneObjectUrlValue): boolean {
+  if (a == null && b == null) {
     return true;
   }
 
-  if (!Array.isArray(newUrlValue) && currentUrlValue?.length === 1) {
-    return newUrlValue === currentUrlValue[0];
-  }
-
-  if (newUrlValue?.length === 0 && currentUrlValue === null) {
-    return true;
+  if (typeof a === 'string' && typeof b === 'string') {
+    return a === b;
   }
 
   // We have two arrays, lets compare them
-  return isEqual(currentUrlValue, newUrlValue);
+  return isEqual(a, b);
 }
