@@ -14,7 +14,7 @@ export interface AggregationsSetState extends SceneObjectState {
   name?: string;
   /** The visible keys to group on */
   // TODO review this type
-  aggregations: string[];
+  dimensions: string[];
   // TODO review this type and name (naming is hard)
   defaultOptions?: MetricFindValue[];
   /** Base filters to always apply when looking up keys */
@@ -63,7 +63,7 @@ export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
   public constructor(initialState: Partial<AggregationsSetState>) {
     super({
       name: 'Group',
-      aggregations: [],
+      dimensions: [],
       baseFilters: [],
       datasource: null,
       applyMode: 'same-datasource',
@@ -78,12 +78,12 @@ export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
   }
 
   public _update = (newState: Array<SelectableValue<string>>) => {
-    // TODO review this to see if we can remove !
-    this.setState({ aggregations: newState.map((x) => x.value!) });
+    // TODO review this to see if we can remove the !
+    this.setState({ dimensions: newState.map((x) => x.value!) });
   }
 
   public getSelectableValue = () => {
-    return this.state.aggregations.map((x) => ({ value: x, label: x }));
+    return this.state.dimensions.map((x) => ({ value: x, label: x }));
   }
 
   /**
