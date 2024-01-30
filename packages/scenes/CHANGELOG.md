@@ -1,3 +1,108 @@
+# v2.2.0 (Tue Jan 30 2024)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersSet: Pass scene queries to getTagKeys calls [#544](https://github.com/grafana/scenes/pull/544) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.1.0 (Fri Jan 26 2024)
+
+#### 🚀 Enhancement
+
+- Fixes issue with exemplar link [#540](https://github.com/grafana/scenes/pull/540) ([@cbos](https://github.com/cbos))
+- SceneDataTransformer: Fixes issue with getResultStream not emitting values when there are no transformations [#543](https://github.com/grafana/scenes/pull/543) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- LocalValueVariable: Provide backwards compatibility for SQL-ish data source [#549](https://github.com/grafana/scenes/pull/549) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 3
+
+- Cees Bos ([@cbos](https://github.com/cbos))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.0.0 (Mon Jan 22 2024)
+
+### Release Notes
+
+#### Variables: Notify scene after each variable completion or value change ([#525](https://github.com/grafana/scenes/pull/525))
+
+`VariableDependencyConfigLike` interface has changed so that scene objects now get notified after each variable update is completed (or changed value). Before, the `SceneVariableSet` waited for all variables to complete before notifying scene objects. 
+
+The function `variableUpdatesCompleted` has changed name and signature: 
+
+```ts
+variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean): void;
+```
+
+`VariableDependencyConfig` has also some breaking changes. The function named `onVariableUpdatesCompleted` has changed name and signature to: 
+
+```ts
+ onVariableUpdateCompleted?: () => void;
+```
+
+`VariableDependencyConfig` now handles the state logic for "waitingForVariables". If you call `VariableDependencyConfig.hasDependencyInLoadingState` and it returns true it will remember this waiting state and call `onVariableUpdateCompleted` as soon as the next variable update is completed, no matter if that variable is a dependency or if it changed or not.
+
+---
+
+#### 💥 Breaking Change
+
+- Variables: Notify scene after each variable completion or value change [#525](https://github.com/grafana/scenes/pull/525) ([@torkelo](https://github.com/torkelo))
+
+#### 🚀 Enhancement
+
+- UrlSync: Export new util functions [#529](https://github.com/grafana/scenes/pull/529) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.30.0 (Thu Jan 18 2024)
+
+#### 🚀 Enhancement
+
+- SceneGridLayout: Support new visualization tooltips [#530](https://github.com/grafana/scenes/pull/530) ([@torkelo](https://github.com/torkelo))
+- Adhoc filters variable improvements [#518](https://github.com/grafana/scenes/pull/518) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### 🐛 Bug Fix
+
+- Revert "Chore: Update peer dependencies" [#533](https://github.com/grafana/scenes/pull/533) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 3
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.29.0 (Tue Jan 16 2024)
+
+#### 🚀 Enhancement
+
+- SplitLayout: Allow pane style overrides to be passed through [#531](https://github.com/grafana/scenes/pull/531) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### 🐛 Bug Fix
+
+- Variables: Checking if a dependency is loading should also check that dependency dependencies [#523](https://github.com/grafana/scenes/pull/523) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.28.6 (Sat Jan 06 2024)
 
 #### 🐛 Bug Fix
@@ -111,7 +216,7 @@
 
 #### 🚀 Enhancement
 
-- Variables:  Query - Add optional `definition` prop to state [#489](https://github.com/grafana/scenes/pull/489) ([@axelavargas](https://github.com/axelavargas))
+- Variables: Query - Add optional `definition` prop to state [#489](https://github.com/grafana/scenes/pull/489) ([@axelavargas](https://github.com/axelavargas))
 
 #### 🐛 Bug Fix
 
@@ -128,7 +233,7 @@
 
 #### 🚀 Enhancement
 
-- Macros: Support $_interval[_ms] variable [#487](https://github.com/grafana/scenes/pull/487) ([@dprokop](https://github.com/dprokop))
+- Macros: Support $\_interval[_ms] variable [#487](https://github.com/grafana/scenes/pull/487) ([@dprokop](https://github.com/dprokop))
 
 #### 🐛 Bug Fix
 
@@ -302,7 +407,7 @@
 - Variables: Support for variables on lower levels to depend on variables on higher levels [#443](https://github.com/grafana/scenes/pull/443) ([@torkelo](https://github.com/torkelo))
 - VizPanel: Handle empty arrays when merging new panel options [#447](https://github.com/grafana/scenes/pull/447) ([@javiruiz01](https://github.com/javiruiz01))
 - PanelContext: Eventbus should not filter out local events [#445](https://github.com/grafana/scenes/pull/445) ([@torkelo](https://github.com/torkelo))
-- Variables: Support __org and __user variable macros [#449](https://github.com/grafana/scenes/pull/449) ([@torkelo](https://github.com/torkelo))
+- Variables: Support **org and **user variable macros [#449](https://github.com/grafana/scenes/pull/449) ([@torkelo](https://github.com/torkelo))
 - SceneQueryRunner: Fixes adhoc filters when using a variable data source [#422](https://github.com/grafana/scenes/pull/422) ([@torkelo](https://github.com/torkelo))
 - VizPanel: Support passing legacyPanelId to PanelProps [#446](https://github.com/grafana/scenes/pull/446) ([@torkelo](https://github.com/torkelo))
 

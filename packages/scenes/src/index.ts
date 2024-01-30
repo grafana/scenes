@@ -2,7 +2,9 @@ import { getUrlWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
 import { cloneSceneObjectState } from './core/sceneGraph/utils';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
+import { getUrlState, syncStateFromSearchParams } from './services/utils';
 import { registerVariableMacro } from './variables/macros';
+import { renderPrometheusLabelFilters } from './variables/utils';
 import {
   isAdHocVariable,
   isQueryVariable,
@@ -50,7 +52,7 @@ export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export { AggregationsSet } from './variables/groupby/AggregationsSet';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
-export { type UrlSyncManagerLike as UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
+export { type UrlSyncManagerLike, UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
@@ -98,6 +100,9 @@ export const sceneUtils = {
   registerRuntimeDataSource,
   registerVariableMacro,
   cloneSceneObjectState,
+  syncStateFromSearchParams,
+  getUrlState,
+  renderPrometheusLabelFilters,
 
   // Variable guards
   isAdHocVariable,

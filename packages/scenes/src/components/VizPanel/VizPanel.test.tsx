@@ -453,7 +453,7 @@ describe('VizPanel', () => {
       const testData = getTestData();
       const dataToRender = panel.applyFieldConfig(testData);
       expect(dataToRender.alertState).toBe(undefined);
-      expect(dataToRender.annotations).toBe(testData.annotations);
+      expect(dataToRender.annotations).toBeDefined();
     });
 
     it('should provide alert states and annotations if plugin supports these topics', async () => {
@@ -465,7 +465,7 @@ describe('VizPanel', () => {
       const testData = getTestData();
       const dataToRender = panel.applyFieldConfig(testData);
       expect(dataToRender.alertState).toBe(testData.alertState);
-      expect(dataToRender.annotations).toBe(testData.annotations);
+      expect(dataToRender.annotations).toBeDefined()
     });
   });
 

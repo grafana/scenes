@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, useReducer, useRef } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { SceneComponentProps } from '../../../core/types';
@@ -6,6 +6,9 @@ import { GRID_CELL_VMARGIN, GRID_COLUMN_COUNT, GRID_CELL_HEIGHT } from './consta
 import { LazyLoader } from '../LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
+// @ts-expect-error TODO remove when @grafana/ui is upgraded to 10.4
+import { LayoutItemContext, useTheme2 } from '@grafana/ui';
+import { cx } from '@emotion/css';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
@@ -26,7 +29,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
            * in an element that has the calculated size given by the AutoSizer. The AutoSizer
            * has a width of 0 and will let its content overflow its div.
            */
-          <div style={{ width: `${width}px`, height: '100%' }}>
+          <div style={{ width: `${width}px`, height: '100%', position: 'relative', zIndex: 1 }}>
             <ReactGridLayout
               width={width}
               /**
@@ -50,24 +53,16 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               onLayoutChange={model.onLayoutChange}
               isBounded={false}
             >
-              {layout.map((gridItem) => {
-                const sceneChild = model.getSceneLayoutChild(gridItem.i)!;
-                const className = sceneChild.getClassName?.();
-
-                return isLazy ? (
-                  <LazyLoader
-                    key={sceneChild.state.key!}
-                    data-griditem-key={sceneChild.state.key}
-                    className={className}
-                  >
-                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
-                  </LazyLoader>
-                ) : (
-                  <div key={sceneChild.state.key} data-griditem-key={sceneChild.state.key} className={className}>
-                    <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />
-                  </div>
-                );
-              })}
+              {layout.map((gridItem, index) => (
+                <GridItemWrapper
+                  key={gridItem.i}
+                  grid={model}
+                  layoutItem={gridItem}
+                  index={index}
+                  isLazy={isLazy}
+                  totalCount={layout.length}
+                />
+              ))}
             </ReactGridLayout>
           </div>
         );
@@ -75,6 +70,78 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
     </AutoSizer>
   );
 }
+
+interface GridItemWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
+  grid: SceneGridLayout;
+  layoutItem: ReactGridLayout.Layout;
+  index: number;
+  totalCount: number;
+  isLazy?: boolean;
+}
+
+const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((props, ref) => {
+  const { grid, layoutItem, index, totalCount, isLazy, style, onLoad, onChange, ...divProps } = props;
+  const sceneChild = grid.getSceneLayoutChild(layoutItem.i)!;
+  const className = sceneChild.getClassName?.();
+  const theme = useTheme2();
+
+  const boostedCount = useRef(0);
+  const [_, forceUpdate] = useReducer((x) => x + 1, 0);
+
+  const boostZIndex = useCallback(() => {
+    boostedCount.current += 1;
+    forceUpdate();
+
+    return () => {
+      boostedCount.current -= 1;
+      forceUpdate();
+    };
+  }, [forceUpdate]);
+
+  const ctxValue = useMemo(() => ({ boostZIndex }), [boostZIndex]);
+  const descIndex = totalCount - index;
+  const innerContent = <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />;
+  const innerContentWithContext = LayoutItemContext ? (
+    <LayoutItemContext.Provider value={ctxValue}>{innerContent}</LayoutItemContext.Provider>
+  ) : (
+    innerContent
+  );
+
+  const newStyle = {
+    ...style,
+    zIndex: boostedCount.current === 0 ? descIndex : theme.zIndex.dropdown,
+  };
+
+  if (isLazy) {
+    return (
+      <LazyLoader
+        {...divProps}
+        key={sceneChild.state.key!}
+        data-griditem-key={sceneChild.state.key}
+        className={cx(className, props.className)}
+        style={newStyle}
+        ref={ref}
+      >
+        {innerContentWithContext}
+      </LazyLoader>
+    );
+  }
+
+  return (
+    <div
+      {...divProps}
+      ref={ref}
+      key={sceneChild.state.key}
+      data-griditem-key={sceneChild.state.key}
+      className={cx(className, props.className)}
+      style={newStyle}
+    >
+      {innerContentWithContext}
+    </div>
+  );
+});
+
+GridItemWrapper.displayName = 'GridItemWrapper';
 
 function validateChildrenSize(children: SceneGridItemLike[]) {
   if (

@@ -1,3 +1,4 @@
+import { CSSProperties } from 'react';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneObjectState } from '../../../core/types';
 import { SceneFlexItemPlacement, SceneFlexItemLike } from '../SceneFlexLayout';
@@ -8,6 +9,8 @@ interface SplitLayoutState extends SceneObjectState, SceneFlexItemPlacement {
   secondary: SceneFlexItemLike;
   direction: 'row' | 'column';
   initialSize?: number;
+  primaryPaneStyles?: CSSProperties;
+  secondaryPaneStyles?: CSSProperties;
 }
 
 export class SplitLayout extends SceneObjectBase<SplitLayoutState> {

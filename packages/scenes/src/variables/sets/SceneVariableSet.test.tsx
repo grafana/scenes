@@ -337,7 +337,7 @@ describe('SceneVariableList', () => {
       scene.activate();
       nestedObj.activate();
 
-      // Should not start loadaing A again, it has options already
+      // Should not start loading A again, it has options already
       expect(A.state.loading).toBe(false);
       expect(nestedObj.state.variableValueChanged).toBe(1);
       expect(inActiveSceneObject.state.variableValueChanged).toBe(0);
