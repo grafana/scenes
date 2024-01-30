@@ -1,6 +1,6 @@
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
-import { allActiveAggregationSets } from './findActiveAggregationsSetByUid';
+import { allActiveAggregationsSets } from './findActiveAggregationsSetByUid';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { SceneComponentProps, SceneObjectState, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
@@ -72,8 +72,8 @@ export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
     });
 
     this.addActivationHandler(() => {
-      allActiveAggregationSets.add(this);
-      return () => allActiveAggregationSets.delete(this);
+      allActiveAggregationsSets.add(this);
+      return () => allActiveAggregationsSets.delete(this);
     });
   }
 

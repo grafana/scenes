@@ -1,11 +1,11 @@
 import { AggregationsSet } from './AggregationsSet';
 
-export let allActiveAggregationSets = new Set<AggregationsSet>();
+export const allActiveAggregationsSets = new Set<AggregationsSet>();
 
 export function findActiveAggregationsSetByUid(dsUid: string | undefined): AggregationsSet | undefined {
-  for (const filter of allActiveAggregationSets.values()) {
-    if (filter.state.datasource?.uid === dsUid) {
-      return filter;
+  for (const aggregationsSet of allActiveAggregationsSets.values()) {
+    if (aggregationsSet.state.datasource?.uid === dsUid) {
+      return aggregationsSet;
     }
   }
 
