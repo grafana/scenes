@@ -3,11 +3,12 @@ import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } 
 import { allActiveAggregationSets } from './findActiveAggregationsSetByUid';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
-import { SceneComponentProps, SceneObjectState, ControlsLayout } from '../../core/types';
+import { SceneComponentProps, SceneObjectState, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
 import { AsyncMultiSelect, useStyles2 } from '@grafana/ui';
 import React, { useEffect, useState } from 'react';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
+import { AggregationsSetUrlSyncHandler } from './AggregationsSetUrlSyncHandler';
 
 export interface AggregationsSetState extends SceneObjectState {
   /** Defaults to "Group" */
@@ -54,8 +55,7 @@ export type getTagKeysProvider = (
 export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
   static Component = AggregationsSetRenderer;
 
-  // TODO we need to reimplement this
-  // protected _urlSync: SceneObjectUrlSyncHandler = new AdHocFiltersVariableUrlSyncHandler(this);
+  protected _urlSync: SceneObjectUrlSyncHandler = new AggregationsSetUrlSyncHandler(this);
 
   private _scopedVars = { __sceneObject: { value: this } };
   private _dataSourceSrv = getDataSourceSrv();
