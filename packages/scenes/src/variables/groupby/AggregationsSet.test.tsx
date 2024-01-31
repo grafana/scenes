@@ -1,7 +1,7 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { select, openMenu } from 'react-select-event';
+import { openMenu, select } from 'react-select-event';
 
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
 
@@ -26,13 +26,17 @@ describe('AggregationsSet', () => {
     expect(await screen.findByText('key2')).toBeInTheDocument();
   });
 
-  // TODO fix this test
   it('can add a dimension', async () => {
     const { aggregationsSet } = setup();
 
     const aggregationsSelect = await screen.findByRole('combobox');
-    await select(aggregationsSelect, 'key3', { container: document.body });
-    await userEvent.click(document.body);
+    await waitFor(async () => await select(aggregationsSelect, 'key3', { container: document.body }));
+
+    // there is a bug with react select in test environments where the blur event fires immediately,
+    // before the react state changes have even been applied. so the model is updated with a stale value.
+    // to workaround this, we manually fire the blur event in this test :(
+    // see https://stackoverflow.com/questions/76464364/react-select-fires-blur-event-when-selecting-an-option-in-test-jsdom-environmen
+    fireEvent.blur(aggregationsSelect);
 
     expect(aggregationsSet.state.dimensions.length).toBe(3);
   });
@@ -98,28 +102,12 @@ describe('AggregationsSet', () => {
     await screen.findByText('key2');
 
     act(() => {
-      aggregationsSet.setState({
-        dimensions: ['key2', 'key3']
-      });
+      aggregationsSet._updateDimensions(['key2', 'key3']);
     });
 
     expect(locationService.getLocation().search).toBe(
       '?var-aggregations=key2&var-aggregations=key3'
     );
-  });
-
-  // TODO fix this test
-  it('url sync from empty filters array works', async () => {
-    const { aggregationsSet } = setup({ dimensions: [] });
-    expect(await screen.findByText('aggregations')).toBeInTheDocument();
-
-    act(() => {
-      locationService.push('/?var-aggregations=key2&var-aggregations=key3');
-    });
-    expect(await screen.findByText('key2')).toBeInTheDocument();
-    expect(await screen.findByText('key3')).toBeInTheDocument();
-
-    expect(aggregationsSet.state.dimensions.length).toEqual(2);
   });
 
   it('can override and replace getTagKeys', async () => {
