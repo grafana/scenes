@@ -4,13 +4,14 @@ import { allActiveAggregationsSets } from './findActiveAggregationsSetByUid';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { SceneComponentProps, SceneObjectState, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
-import { AsyncMultiSelect, useStyles2 } from '@grafana/ui';
+import { MultiSelect, useStyles2 } from '@grafana/ui';
 import React, { useEffect, useState } from 'react';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 import { AggregationsSetUrlSyncHandler } from './AggregationsSetUrlSyncHandler';
 import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { sceneGraph } from '../../core/sceneGraph';
+import { useAsync } from 'react-use';
 
 export interface AggregationsSetState extends SceneObjectState {
   /** Defaults to "Group" */
@@ -75,6 +76,7 @@ export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
 
     this.addActivationHandler(() => {
       allActiveAggregationsSets.add(this);
+
       return () => allActiveAggregationsSets.delete(this);
     });
   }
@@ -82,11 +84,11 @@ export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
   public _update = (newState: Array<SelectableValue<string>>) => {
     // TODO review this to see if we can remove the !
     this.setState({ dimensions: newState.map((x) => x.value!) });
-  }
+  };
 
   public getSelectableValue = () => {
     return this.state.dimensions.map((x) => ({ value: x, label: x }));
-  }
+  };
 
   /**
    * Get possible keys given current filters. Do not call from plugins directly
@@ -121,35 +123,48 @@ export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
     }
 
     return keys.map(toSelectableValue);
-  }
+  };
 
   /**
    * Get all queries in the scene that have the same datasource as this AggregationsSet
    */
-    private _getSceneQueries(): DataQueryExtended[] {
-      const runners = sceneGraph.findAllObjects(
-        this.getRoot(),
-        (o) => o instanceof SceneQueryRunner
-      ) as SceneQueryRunner[];
-  
-      const applicableRunners = runners.filter((r) => r.state.datasource?.uid === this.state.datasource?.uid);
-  
-      if (applicableRunners.length === 0) {
-        return [];
-      }
-  
-      const result: DataQueryExtended[] = [];
-      applicableRunners.forEach((r) => {
-        result.push(...r.state.queries);
-      });
-  
-      return result;
+  private _getSceneQueries(): DataQueryExtended[] {
+    const runners = sceneGraph.findAllObjects(
+      this.getRoot(),
+      (o) => o instanceof SceneQueryRunner
+    ) as SceneQueryRunner[];
+
+    const applicableRunners = runners.filter((r) => r.state.datasource?.uid === this.state.datasource?.uid);
+
+    if (applicableRunners.length === 0) {
+      return [];
     }
+
+    const result: DataQueryExtended[] = [];
+    applicableRunners.forEach((r) => {
+      result.push(...r.state.queries);
+    });
+
+    return result;
+  }
 }
 
 export function AggregationsSetRenderer({ model }: SceneComponentProps<AggregationsSet>) {
-  const { layout, name, key } = model.useState();
+  const { layout, name, dimensions } = model.useState();
   const styles = useStyles2(getStyles);
+  const [state, setState] = useState<{
+    keys?: SelectableValue[];
+    isKeysLoading?: boolean;
+    isKeysOpen?: boolean;
+  }>({});
+
+  // Load keys on mount if there were dimensions set i.e. from URL sync, otherwise Multiselect does not respect preselected dimensions
+  useAsync(async () => {
+    if (dimensions.length > 0) {
+      const keys = await model._getKeys(null);
+      setState({ ...state, isKeysLoading: false, isKeysOpen: false, keys });
+    }
+  });
 
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState<Array<SelectableValue<string>>>(model.getSelectableValue());
@@ -159,33 +174,44 @@ export function AggregationsSetRenderer({ model }: SceneComponentProps<Aggregati
     setUncommittedValue(model.getSelectableValue());
   }, [model]);
 
+  const keySelect = (
+    <MultiSelect
+      isClearable={true}
+      disabled={model.state.readOnly}
+      className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
+      width="auto"
+      value={uncommittedValue}
+      placeholder={'Select dimensions'}
+      options={state.keys}
+      onChange={(items, meta) => {
+        if (meta.action === 'clear') {
+          model._update([]);
+        }
+
+        setUncommittedValue(items);
+      }}
+      isOpen={state.isKeysOpen}
+      isLoading={state.isKeysLoading}
+      onOpenMenu={async () => {
+        setState({ ...state, isKeysLoading: true });
+        const keys = await model._getKeys(null);
+        setState({ ...state, isKeysLoading: false, isKeysOpen: true, keys });
+      }}
+      onCloseMenu={() => {
+        setState({ ...state, isKeysOpen: false });
+      }}
+      onBlur={() => {
+        model._update(uncommittedValue);
+      }}
+      closeMenuOnSelect={false}
+      tabSelectsValue={false}
+    />
+  );
+
   return (
     <div className={styles.wrapper}>
       {layout !== 'vertical' && <ControlsLabel label={name ?? 'Group'} icon="filter" />}
-      <AsyncMultiSelect<string>
-        id={key}
-        placeholder="Select value"
-        width="auto"
-        value={uncommittedValue}
-        // TODO remove after grafana/ui upgrade to 10.3
-        // @ts-expect-error
-        noMultiValueWrap
-        maxVisibleValues={5}
-        tabSelectsValue={false}
-        loadOptions={model._getKeys}
-        closeMenuOnSelect={false}
-        isClearable
-        // onInputChange={onInputChange}
-        onBlur={() => {
-          model._update(uncommittedValue);
-        }}
-        // this retrieves the options on mount of the component
-        // ideally we would retrieve these options on open of the dropdown
-        // need to investigate why it doesn't work without setting defaultOptions
-        // TODO refactor to remove defaultOptions
-        defaultOptions
-        onChange={setUncommittedValue}
-      />
+      {keySelect}
     </div>
   );
 }
@@ -199,6 +225,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
   filterIcon: css({
     color: theme.colors.text.secondary,
     paddingRight: theme.spacing(0.5),
+  }),
+  widthWhenOpen: css({
+    minWidth: theme.spacing(16),
   }),
 });
 

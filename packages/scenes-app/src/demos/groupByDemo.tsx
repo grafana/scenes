@@ -21,14 +21,22 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
         controls: [
           new AggregationsSet({
             name: 'Group',
+            defaultOptions: [
+              {
+                text: 'foo',
+              },
+              {
+                text: 'bar',
+              },
+              {
+                text: 'baz',
+              },
+            ],
+          }),
+          new AggregationsSet({
+            name: 'Group By (async)',
+            // Only want keys for this series
             datasource: { uid: 'gdev-prometheus' },
-            defaultOptions: [{
-              text: 'foo',
-            }, {
-              text: 'bar',
-            }, {
-              text: 'baz'
-            }]
           }),
           ...getEmbeddedSceneDefaults().controls,
         ],
