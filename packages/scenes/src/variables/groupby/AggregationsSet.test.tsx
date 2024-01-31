@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { select, openMenu } from 'react-select-event';
@@ -37,7 +37,6 @@ describe('AggregationsSet', () => {
     expect(aggregationsSet.state.dimensions.length).toBe(3);
   });
 
-  // TODO fix this test
   it('can remove a dimension', async () => {
     const { aggregationsSet } = setup();
 
@@ -48,7 +47,26 @@ describe('AggregationsSet', () => {
 
     expect(screen.queryByText('key1')).not.toBeInTheDocument();
     expect(await screen.findByText('key2')).toBeInTheDocument();
+
+    // model hasn't updated yet as we haven't blurred the input
+    expect(aggregationsSet.state.dimensions.length).toBe(2);
+
+    // now we blur the input
+    await userEvent.click(document.body);
     expect(aggregationsSet.state.dimensions.length).toBe(1);
+  });
+
+  it('can remove all dimensions', async () => {
+    const { aggregationsSet } = setup();
+
+    expect(await screen.findByText('key1')).toBeInTheDocument();
+    expect(await screen.findByText('key2')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'select-clear-value' }));
+
+    expect(screen.queryByText('key1')).not.toBeInTheDocument();
+    expect(screen.queryByText('key2')).not.toBeInTheDocument();
+    expect(aggregationsSet.state.dimensions.length).toBe(0);
   });
 
   it('should collect and pass respective data source queries to getTagKeys call', async () => {
@@ -58,15 +76,17 @@ describe('AggregationsSet', () => {
     const aggregationsSelect = await screen.findByRole('combobox');
     openMenu(aggregationsSelect);
 
-    expect(getTagKeysSpy).toBeCalledTimes(1);
-    expect(getTagKeysSpy).toBeCalledWith({
-      filters: [],
-      queries: [
-        {
-          expr: 'my_metric{$aggregations}',
-          refId: 'A',
-        },
-      ],
+    await waitFor(() => {
+      expect(getTagKeysSpy).toBeCalledTimes(1);
+      expect(getTagKeysSpy).toBeCalledWith({
+        filters: [],
+        queries: [
+          {
+            expr: 'my_metric{$aggregations}',
+            refId: 'A',
+          },
+        ],
+      });
     });
   });
 
@@ -124,6 +144,8 @@ describe('AggregationsSet', () => {
 
     const keys = await aggregationsSet._getKeys(null);
     expect(keys).toEqual([
+      { label: 'key1', value: 'key1' },
+      { label: 'key2', value: 'key2' },
       { label: 'key3', value: 'key3' },
       { label: 'hello', value: '1' },
     ]);
@@ -153,7 +175,11 @@ function setup(overrides?: Partial<AggregationsSetState>) {
       return {
         getTagKeys(options: any) {
           getTagKeysSpy(options);
-          return [{ text: 'key3' }];
+          return [
+            { text: 'key1' },
+            { text: 'key2' },
+            { text: 'key3' }
+          ];
         },
         getRef() {
           return { uid: 'my-ds-uid' };
