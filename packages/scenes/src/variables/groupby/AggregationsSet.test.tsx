@@ -51,8 +51,7 @@ describe('AggregationsSet', () => {
     expect(aggregationsSet.state.dimensions.length).toBe(1);
   });
 
-  // TODO fix this test
-  it('Should collect and pass respective data source queries to getTagKeys call', async () => {
+  it('should collect and pass respective data source queries to getTagKeys call', async () => {
     const { getTagKeysSpy } = setup({ dimensions: [] });
 
     // Select key
@@ -61,10 +60,10 @@ describe('AggregationsSet', () => {
 
     expect(getTagKeysSpy).toBeCalledTimes(1);
     expect(getTagKeysSpy).toBeCalledWith({
-      dimensions: [],
+      filters: [],
       queries: [
         {
-          expr: 'my_metric{$filters}',
+          expr: 'my_metric{$aggregations}',
           refId: 'A',
         },
       ],

@@ -9,6 +9,8 @@ import React, { useEffect, useState } from 'react';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 import { AggregationsSetUrlSyncHandler } from './AggregationsSetUrlSyncHandler';
+import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { sceneGraph } from '../../core/sceneGraph';
 
 export interface AggregationsSetState extends SceneObjectState {
   /** Defaults to "Group" */
@@ -105,9 +107,9 @@ export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
       return [];
     }
 
-    // TODO need to pass the queries here as well as other filters to narrow the getTagKeys call
+    const queries = this._getSceneQueries();
     const otherFilters = this.state.baseFilters;
-    let keys = await ds.getTagKeys({ filters: otherFilters });
+    let keys = await ds.getTagKeys({ filters: otherFilters, queries });
 
     if (override) {
       keys = keys.concat(override.values);
@@ -120,6 +122,29 @@ export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
 
     return keys.map(toSelectableValue);
   }
+
+  /**
+   * Get all queries in the scene that have the same datasource as this AggregationsSet
+   */
+    private _getSceneQueries(): DataQueryExtended[] {
+      const runners = sceneGraph.findAllObjects(
+        this.getRoot(),
+        (o) => o instanceof SceneQueryRunner
+      ) as SceneQueryRunner[];
+  
+      const applicableRunners = runners.filter((r) => r.state.datasource?.uid === this.state.datasource?.uid);
+  
+      if (applicableRunners.length === 0) {
+        return [];
+      }
+  
+      const result: DataQueryExtended[] = [];
+      applicableRunners.forEach((r) => {
+        result.push(...r.state.queries);
+      });
+  
+      return result;
+    }
 }
 
 export function AggregationsSetRenderer({ model }: SceneComponentProps<AggregationsSet>) {
