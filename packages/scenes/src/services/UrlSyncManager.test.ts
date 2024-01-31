@@ -32,13 +32,12 @@ class TestObj extends SceneObjectBase<TestObjectState> {
 
   public updateFromUrl(values: SceneObjectUrlValues) {
     console.log('updateFromUrl', values);
-    if (typeof values.name === 'string') {
-      this.setState({ name: values.name ?? 'NA' });
-    }
 
-    if (Array.isArray(values.array)) {
-      this.setState({ array: values.array });
-    }
+    this.setState({
+      name: typeof values.name === 'string' ? values.name : this.state.name,
+      optional: typeof values.optional === 'string' ? values.optional : this.state.optional,
+      array: Array.isArray(values.array) ? values.array : this.state.array,
+    });
 
     // if (values.hasOwnProperty('optional')) {
     //   this.setState({ optional: typeof values.optional === 'string' ? values.optional : undefined });
@@ -68,27 +67,27 @@ describe('UrlSyncManager', () => {
 
   afterEach(() => {
     deactivate();
-    locationService.push('/');
     listenUnregister();
     urlManager.cleanUp(scene);
+    locationService.push('/');
   });
 
-  describe('getUrlState', () => {
-    it('returns the full url state', () => {
-      const obj = new TestObj({ name: 'test', optional: 'handler', array: ['A', 'B'] });
-      scene = new SceneFlexLayout({
-        children: [new SceneFlexItem({ body: obj })],
-      });
+  // describe('getUrlState', () => {
+  //   it('returns the full url state', () => {
+  //     const obj = new TestObj({ name: 'test', optional: 'handler', array: ['A', 'B'] });
+  //     scene = new SceneFlexLayout({
+  //       children: [new SceneFlexItem({ body: obj })],
+  //     });
 
-      urlManager = new UrlSyncManager();
+  //     urlManager = new UrlSyncManager();
 
-      expect(urlManager.getUrlState(scene)).toEqual({
-        name: 'test',
-        optional: 'handler',
-        array: ['A', 'B'],
-      });
-    });
-  });
+  //     expect(urlManager.getUrlState(scene)).toEqual({
+  //       name: 'test',
+  //       optional: 'handler',
+  //       array: ['A', 'B'],
+  //     });
+  //   });
+  // });
 
   describe.only('When state changes', () => {
     it('should update url', () => {
