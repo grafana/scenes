@@ -1,3 +1,16 @@
+# v2.2.3 (Wed Jan 31 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix dataLayer subscriptions refresh on reactivation [#554](https://github.com/grafana/scenes/pull/554) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v2.2.2 (Wed Jan 31 2024)
 
 #### 🐛 Bug Fix
