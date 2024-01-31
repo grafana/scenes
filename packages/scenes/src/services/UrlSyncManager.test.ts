@@ -9,6 +9,7 @@ import { SceneObjectState, SceneObjectUrlValues } from '../core/types';
 
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
 import { UrlSyncManager } from './UrlSyncManager';
+import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 
 interface TestObjectState extends SceneObjectState {
   name: string;
@@ -67,9 +68,9 @@ describe('UrlSyncManager', () => {
 
   afterEach(() => {
     deactivate();
-    locationService.push('/');
     listenUnregister();
     urlManager.cleanUp(scene);
+    locationService.push('/');
   });
 
   describe('getUrlState', () => {
@@ -418,6 +419,33 @@ describe('UrlSyncManager', () => {
 
       // Should not update state
       expect(obj1.state.name).toBe('B');
+    });
+  });
+
+  describe('When a state update triggers another state update with url sync', () => {
+    it('Should update url correctly', async () => {
+      const obj1 = new TestObj({ name: 'test1' });
+      const obj2 = new TestObj({ name: 'test2' });
+
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj1 }), new SceneFlexItem({ body: obj2 })],
+      });
+
+      urlManager = new UrlSyncManager();
+
+      // subscribe to obj1 state and set obj2 state name
+      obj1.subscribeToState((state) => {
+        obj2.setState({ name: state.name });
+      });
+
+      locationService.push(`/?name=test1&name-2=test2`);
+      urlManager.initSync(scene);
+
+      deactivate = activateFullSceneTree(scene);
+
+      obj1.setState({ name: 'A' });
+
+      expect(locationService.getLocation().search).toEqual('?name=A&name-2=A');
     });
   });
 });
