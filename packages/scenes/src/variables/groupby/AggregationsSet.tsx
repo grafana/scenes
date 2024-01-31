@@ -83,8 +83,12 @@ export class AggregationsSet extends SceneObjectBase<AggregationsSetState> {
 
   public _update = (newState: Array<SelectableValue<string>>) => {
     // TODO review this to see if we can remove the !
-    this.setState({ dimensions: newState.map((x) => x.value!) });
+    this._updateDimensions(newState.map((x) => x.value!));
   };
+
+  public _updateDimensions(dimensions: string[]) {
+    this.setState({ dimensions });
+  }
 
   public getSelectableValue = () => {
     return this.state.dimensions.map((x) => ({ value: x, label: x }));
