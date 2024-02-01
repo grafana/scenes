@@ -6,11 +6,10 @@ import {
   SceneAppPageState,
   PanelBuilders,
   SceneQueryRunner,
-  // AggregationsSet,
   SceneCanvasText,
   SceneVariableSet,
   VariableValueSelectors,
-  AggregationsSetVariable,
+  GroupByVariable,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 
@@ -23,7 +22,7 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
         ...getEmbeddedSceneDefaults(),
         $variables: new SceneVariableSet({
           variables: [
-            // new AggregationsSetVariable({
+            // new GroupByVariable({
             //   name: 'groupByStatic',
             //   label: 'Group By (static list)',
             //   datasource: { uid: 'gdev-prometheus' },
@@ -42,7 +41,7 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
             //     },
             //   ],
             // }),
-            new AggregationsSetVariable({
+            new GroupByVariable({
               name: 'groupBy',
               label: 'Group By (from data source)',
               datasource: { uid: 'gdev-prometheus' },

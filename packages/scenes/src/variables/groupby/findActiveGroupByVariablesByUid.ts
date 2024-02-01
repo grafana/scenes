@@ -1,5 +1,5 @@
 import { AggregationsSet } from './AggregationsSet';
-import { AggregationsSetVariable } from './AggregationsSetVariable';
+import { GroupByVariable } from './GroupByVariable';
 
 export const allActiveAggregationsSets = new Set<AggregationsSet>();
 
@@ -12,14 +12,13 @@ export function findActiveAggregationsSetByUid(dsUid: string | undefined): Aggre
 
   return undefined;
 }
-export const allActiveAggregationsSetVariables = new Set<AggregationsSetVariable>();
 
-export function findActiveAggregationsSetVariablesByUid(
-  dsUid: string | undefined
-): AggregationsSetVariable | undefined {
-  for (const aggregationsSet of allActiveAggregationsSetVariables.values()) {
-    if (aggregationsSet.state.datasource?.uid === dsUid) {
-      return aggregationsSet;
+export const allActiveGroupByVariables = new Set<GroupByVariable>();
+
+export function findActiveGroupByVariablesByUid(dsUid: string | undefined): GroupByVariable | undefined {
+  for (const groupByVariable of allActiveGroupByVariables.values()) {
+    if (groupByVariable.state.datasource?.uid === dsUid) {
+      return groupByVariable;
     }
   }
 

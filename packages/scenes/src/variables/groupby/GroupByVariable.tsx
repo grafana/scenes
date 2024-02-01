@@ -1,5 +1,5 @@
 import { AdHocVariableFilter, DataSourceApi, MetricFindValue } from '@grafana/data';
-import { allActiveAggregationsSetVariables } from './findActiveAggregationsSetByUid';
+import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
 import { SceneComponentProps, ControlsLayout } from '../../core/types';
 import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
@@ -10,7 +10,7 @@ import { from, map, mergeMap, Observable, of, take } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
 import { renderSelectForVariable } from '../components/VariableValueSelect';
 
-export interface AggregationsSetVariableState extends MultiValueVariableState {
+export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
   name: string;
   /** The visible keys to group on */
@@ -48,12 +48,12 @@ export interface AggregationsSetVariableState extends MultiValueVariableState {
 }
 
 export type getTagKeysProvider = (
-  set: AggregationsSetVariable,
+  set: GroupByVariable,
   currentKey: string | null
 ) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
 
-export class AggregationsSetVariable extends MultiValueVariable<AggregationsSetVariableState> {
-  static Component = AggregationsSetVariableRenderer;
+export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
+  static Component = GroupByVariableRenderer;
 
   // protected _urlSync: SceneObjectUrlSyncHandler = new AggregationsSetUrlSyncHandler(this);
 
@@ -114,7 +114,7 @@ export class AggregationsSetVariable extends MultiValueVariable<AggregationsSetV
     );
   }
 
-  public constructor(initialState: Partial<AggregationsSetVariableState>) {
+  public constructor(initialState: Partial<GroupByVariableState>) {
     super({
       isMulti: true,
       name: '',
@@ -131,9 +131,9 @@ export class AggregationsSetVariable extends MultiValueVariable<AggregationsSetV
     });
 
     this.addActivationHandler(() => {
-      allActiveAggregationsSetVariables.add(this);
+      allActiveGroupByVariables.add(this);
 
-      return () => allActiveAggregationsSetVariables.delete(this);
+      return () => allActiveGroupByVariables.delete(this);
     });
   }
 
@@ -203,6 +203,6 @@ export class AggregationsSetVariable extends MultiValueVariable<AggregationsSetV
   }
 }
 
-export function AggregationsSetVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
+export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
   return renderSelectForVariable(model);
 }
