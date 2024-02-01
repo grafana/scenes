@@ -80,6 +80,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     if (this._lastPath !== location.pathname) {
       return;
     }
+    console.log('_onLocationUpdate', location.search);
 
     const urlParams = new URLSearchParams(location.search);
     // Rebuild key mapper index before starting sync
@@ -94,6 +95,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
     if (changedObject.urlSync) {
       const newUrlState = changedObject.urlSync.getUrlState();
+      console.log('UrlSyncManager.onStateChanged newUrlState', newUrlState);
 
       const searchParams = locationService.getSearch();
       const mappedUpdated: SceneObjectUrlValues = {};
@@ -102,9 +104,14 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
       for (const [key, newUrlValue] of Object.entries(newUrlState)) {
         const uniqueKey = this._urlKeyMapper.getUniqueKey(key, changedObject);
-        const currentUrlValue = searchParams.getAll(uniqueKey);
+        let currentUrlValue: string | string[] = searchParams.getAll(uniqueKey);
+
+        if (!Array.isArray(newUrlValue)) {
+          currentUrlValue = currentUrlValue[0];
+        }
 
         if (!isUrlValueEqual(currentUrlValue, newUrlValue)) {
+          console.log(`UrlSyncManager.onStateChanged url state diff ${uniqueKey} ${currentUrlValue} => ${newUrlValue}`);
           mappedUpdated[uniqueKey] = newUrlValue;
         }
       }
