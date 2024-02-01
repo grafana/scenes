@@ -67,7 +67,7 @@ export class AdHocFiltersVariable
         })
       );
 
-      this._updateFilterExpression(this.state.set.state.filters, true);
+      this._updateFilterExpression(this.state.set.state.filters, false);
     });
   }
 
