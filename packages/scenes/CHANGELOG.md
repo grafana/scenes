@@ -1,3 +1,15 @@
+# v2.4.0 (Thu Feb 01 2024)
+
+#### 🚀 Enhancement
+
+- UrlSync: Fixes overwrite issue where later state change overwrites earlier change [#555](https://github.com/grafana/scenes/pull/555) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v2.3.0 (Thu Feb 01 2024)
 
 #### 🚀 Enhancement
