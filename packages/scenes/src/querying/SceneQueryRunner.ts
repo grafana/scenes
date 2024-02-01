@@ -39,7 +39,7 @@ import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
 import { AggregationsSet } from '../variables/groupby/AggregationsSet';
-import { findActiveAggregationsSetByUid } from '../variables/groupby/findActiveAggregationsSetByUid';
+import { findActiveAggregationsSetVariablesByUid } from '../variables/groupby/findActiveAggregationsSetByUid';
 
 let counter = 100;
 
@@ -442,7 +442,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (this._adhocAggregationsSet) {
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.aggregations = this._adhocAggregationsSet.state.dimensions;
+      request.aggregations = this._adhocAggregationsSet.state.value;
     }
 
     request.targets = request.targets.map((query) => {
@@ -552,7 +552,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    */
   private findAndSubscribeToAdhocSets(uid: string | undefined) {
     const filters = findActiveAdHocFilterSetByUid(uid);
-    const aggregations = findActiveAggregationsSetByUid(uid);
+
+    const aggregations = findActiveAggregationsSetVariablesByUid(uid);
 
     if (filters && filters.state.applyMode === 'same-datasource') {
       if (!this._adhocFilterSet) {
