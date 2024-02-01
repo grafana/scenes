@@ -104,7 +104,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
             const a: VariableValueOption[] = data.map((i) => {
               return {
                 label: i.text,
-                value: String(i.value),
+                value: i.value ? String(i.value) : i.text,
               };
             });
             return of(a);
@@ -141,15 +141,15 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public _getKeys = async (ds: DataSourceApi) => {
-    if (this.state.defaultOptions) {
-      return this.state.defaultOptions;
-    }
-
-    // TODO:  provide current diensions?
+    // TODO:  provide current dimensions?
     const override = await this.state.getTagKeysProvider?.(this, null);
 
     if (override && override.replace) {
       return override.values;
+    }
+
+    if (this.state.defaultOptions) {
+      return this.state.defaultOptions.concat(override?.values ?? []);
     }
 
     if (!ds.getTagKeys) {
