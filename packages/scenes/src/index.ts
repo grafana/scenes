@@ -50,6 +50,7 @@ export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFilterSet } from './variables/adhoc/AdHocFiltersSet';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export { AggregationsSet } from './variables/groupby/AggregationsSet';
+export { AggregationsSetVariable } from './variables/groupby/AggregationsSetVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
 export { type UrlSyncManagerLike, UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';

@@ -6,8 +6,11 @@ import {
   SceneAppPageState,
   PanelBuilders,
   SceneQueryRunner,
-  AggregationsSet,
+  // AggregationsSet,
   SceneCanvasText,
+  SceneVariableSet,
+  VariableValueSelectors,
+  AggregationsSetVariable,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 
@@ -18,36 +21,43 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
-        controls: [
-          new AggregationsSet({
-            name: 'Group',
-            datasource: { uid: 'gdev-prometheus' },
-            defaultOptions: [
-              {
-                text: 'foo',
-              },
-              {
-                text: 'bar',
-              },
-              {
-                text: 'baz',
-              },
-            ],
-          }),
-          // new AggregationsSet({
-          //   name: 'Group By (async)',
-          //   // Only want keys for this series
-          //   datasource: { uid: 'gdev-prometheus' },
-          // }),
-          ...getEmbeddedSceneDefaults().controls,
-        ],
+        $variables: new SceneVariableSet({
+          variables: [
+            // new AggregationsSetVariable({
+            //   name: 'groupByStatic',
+            //   label: 'Group By (static list)',
+            //   datasource: { uid: 'gdev-prometheus' },
+            //   defaultOptions: [
+            //     {
+            //       text: 'foo',
+            //       value: 'foo',
+            //     },
+            //     {
+            //       text: 'bar',
+            //       value: 'bar',
+            //     },
+            //     {
+            //       text: 'baz',
+            //       value: 'baz',
+            //     },
+            //   ],
+            // }),
+            new AggregationsSetVariable({
+              name: 'groupBy',
+              label: 'Group By (from data source)',
+              datasource: { uid: 'gdev-prometheus' },
+            }),
+          ],
+        }),
+        controls: [new VariableValueSelectors({})],
+        ...getEmbeddedSceneDefaults().controls,
         body: new SceneFlexLayout({
           direction: 'column',
           children: [
             new SceneFlexItem({
               ySizing: 'content',
               body: new SceneCanvasText({
-                text: `The query below is interpolated to ALERTS{$Group}`,
+                text: `Interpolated value (static): {$groupByStatic},  interpolated value(dynamic): {$groupBy})`,
                 fontSize: 14,
               }),
             }),
