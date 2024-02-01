@@ -113,6 +113,26 @@ describe('AdHocFilter', () => {
     expect(filtersSet.state.filters[1]).toEqual({ key: 'keyUrl', operator: '=~', value: 'urlVal', condition: '' });
   });
 
+  it('overrides state when url has empty key', () => {
+    const { filtersSet } = setup();
+
+    act(() => {
+      locationService.push('/?var-filters=');
+    });
+
+    expect(filtersSet.state.filters.length).toBe(0);
+  });
+
+  it('reflects emtpy state in url', async () => {
+    const { filtersSet } = setup();
+
+    await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
+    await userEvent.click(screen.getByTestId('AdHocFilter-remove-key2'));
+
+    expect(filtersSet.state.filters.length).toBe(0);
+    expect(locationService.getLocation().search).toBe('?var-filters=');
+  });
+
   it('url sync from empty filters array works', async () => {
     const { filtersSet } = setup({ filters: [] });
 
