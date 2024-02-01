@@ -23,6 +23,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     const urlValue = values[this.getKey()];
 
     if (urlValue == null) {
+      this._variable.setState({ filters: [], _wip: undefined });
       return;
     }
 
