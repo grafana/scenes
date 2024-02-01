@@ -1,3 +1,20 @@
+# v2.3.0 (Thu Feb 01 2024)
+
+#### 🚀 Enhancement
+
+- SceneVariableSet: Cancel query when dependency changes [#557](https://github.com/grafana/scenes/pull/557) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Fix empty state adhoc filters [#560](https://github.com/grafana/scenes/pull/560) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 2
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v2.2.3 (Wed Jan 31 2024)
 
 #### 🐛 Bug Fix
