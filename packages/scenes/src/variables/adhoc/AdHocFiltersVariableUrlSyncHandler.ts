@@ -14,7 +14,12 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
   }
 
   public getUrlState(): SceneObjectUrlValues {
-    let filters = this._variable.state.filters;
+    const filters = this._variable.state.filters;
+
+    if (filters.length === 0) {
+      return { [this.getKey()]: [''] };
+    }
+
     const value = filters.map((filter) => toArray(filter).map(escapeDelimiter).join('|'));
     return { [this.getKey()]: value };
   }
@@ -23,7 +28,6 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     const urlValue = values[this.getKey()];
 
     if (urlValue == null) {
-      this._variable.setState({ filters: [], _wip: undefined });
       return;
     }
 
