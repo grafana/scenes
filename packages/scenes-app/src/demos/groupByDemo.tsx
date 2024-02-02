@@ -22,25 +22,25 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
         ...getEmbeddedSceneDefaults(),
         $variables: new SceneVariableSet({
           variables: [
-            // new GroupByVariable({
-            //   name: 'groupByStatic',
-            //   label: 'Group By (static list)',
-            //   datasource: { uid: 'gdev-prometheus' },
-            //   defaultOptions: [
-            //     {
-            //       text: 'foo',
-            //       value: 'foo',
-            //     },
-            //     {
-            //       text: 'bar',
-            //       value: 'bar',
-            //     },
-            //     {
-            //       text: 'baz',
-            //       value: 'baz',
-            //     },
-            //   ],
-            // }),
+            new GroupByVariable({
+              name: 'groupByStatic',
+              label: 'Group By (static list)',
+              datasource: { uid: 'gdev-prometheus' },
+              defaultOptions: [
+                {
+                  text: 'foo',
+                  value: 'foo',
+                },
+                {
+                  text: 'bar',
+                  value: 'bar',
+                },
+                {
+                  text: 'baz',
+                  value: 'baz',
+                },
+              ],
+            }),
             new GroupByVariable({
               name: 'groupBy',
               label: 'Group By (from data source)',

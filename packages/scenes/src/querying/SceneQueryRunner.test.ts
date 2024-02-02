@@ -339,7 +339,7 @@ describe('SceneQueryRunner', () => {
 
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].groupByDimensions).toEqual(['A', 'B']);
+      expect(runRequestCall[1].groupByKeys).toEqual(['A', 'B']);
 
       // Verify updating filter re-triggers query
       groupByVariable.changeValueTo(['C', 'D']);
@@ -349,7 +349,7 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toEqual(2);
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
-      expect(runRequestCall2[1].groupByDimensions).toEqual(['C', 'D']);
+      expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
     });
   });
 

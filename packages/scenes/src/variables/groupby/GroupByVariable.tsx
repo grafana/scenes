@@ -14,8 +14,6 @@ export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
   name: string;
   /** The visible keys to group on */
-  // TODO review this type
-  // dimensions: string[];
   // TODO review this type and name (naming is hard)
   defaultOptions?: MetricFindValue[];
   /** Base filters to always apply when looking up keys */
@@ -54,8 +52,6 @@ export type getTagKeysProvider = (
 
 export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
-
-  // protected _urlSync: SceneObjectUrlSyncHandler = new AggregationsSetUrlSyncHandler(this);
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(

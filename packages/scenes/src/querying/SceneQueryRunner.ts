@@ -442,7 +442,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (this._groupBySource) {
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.groupByDimensions = this._groupBySource.state.value;
+      request.groupByKeys = this._groupBySource.state.value;
     }
 
     request.targets = request.targets.map((query) => {
