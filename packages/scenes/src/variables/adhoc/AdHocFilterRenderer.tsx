@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
-import { Button, Field, Select, VirtualizedSelect, useStyles2 } from '@grafana/ui';
+import { Button, Field, VirtualizedSelect, useStyles2 } from '@grafana/ui';
 import { css } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 

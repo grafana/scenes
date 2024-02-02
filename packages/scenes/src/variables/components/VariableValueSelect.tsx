@@ -1,7 +1,7 @@
 import { isArray } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { InputActionMeta, MultiSelect, Select, VirtualizedSelect } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, VirtualizedSelect } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
