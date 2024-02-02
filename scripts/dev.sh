@@ -13,7 +13,7 @@ echo $scenespath
 yarn install
 
 cd $GRAFANA_PATH
-yarn add '@grafana/scenes'@link:$scenespath  # TODO: this command is wrong somehow i think
+yarn add '@grafana/scenes'@link:$scenespath
 clear
 cd $scenespath
 echo "@grafana/scenes: linked to Grafana repo. Start Grafana now."
