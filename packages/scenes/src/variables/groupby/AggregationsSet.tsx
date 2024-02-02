@@ -1,6 +1,6 @@
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
-import { allActiveAggregationsSets } from './findActiveAggregationsSetByUid';
+import { allActiveAggregationsSets } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { SceneComponentProps, SceneObjectState, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';

@@ -35,6 +35,7 @@ export interface MultiValueVariableState extends SceneVariableState {
    * Defaults to 5
    */
   maxVisibleValues?: number;
+  noValueOnClear?: boolean;
 }
 
 export interface VariableGetOptionsArgs {
@@ -168,7 +169,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value[0] === ALL_VARIABLE_VALUE);
   }
 
-  private getDefaultMultiState(options: VariableValueOption[]) {
+  public getDefaultMultiState(options: VariableValueOption[]) {
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
     } else {

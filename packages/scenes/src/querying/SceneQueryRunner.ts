@@ -38,8 +38,8 @@ import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
-import { AggregationsSet } from '../variables/groupby/AggregationsSet';
-import { findActiveAggregationsSetByUid } from '../variables/groupby/findActiveAggregationsSetByUid';
+import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 
 let counter = 100;
 
@@ -79,9 +79,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _adhocFilterSet?: AdHocFilterSet;
   private _adhocFilterSub?: Unsubscribable;
 
-  // Closest aggregations set if found
-  private _adhocAggregationsSet?: AggregationsSet;
-  private _adhocAggregationsSub?: Unsubscribable;
+  // Closest group by variable if found
+  private _groupBySource?: GroupByVariable;
+  private _groupBySourceSub?: Unsubscribable;
 
   public getResultsStream() {
     return this._results;
@@ -281,8 +281,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._adhocFilterSub.unsubscribe();
     }
 
-    if (this._adhocAggregationsSub) {
-      this._adhocAggregationsSub.unsubscribe();
+    if (this._groupBySourceSub) {
+      this._groupBySourceSub.unsubscribe();
     }
 
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
@@ -372,7 +372,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      if (!this._adhocFilterSet || !this._adhocAggregationsSet) {
+      if (!this._adhocFilterSet || !this._groupBySource) {
         this.findAndSubscribeToAdhocSets(datasource?.uid);
       }
 
@@ -440,9 +440,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       request.filters = this._adhocFilterSet.state.filters;
     }
 
-    if (this._adhocAggregationsSet) {
+    if (this._groupBySource) {
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.aggregations = this._adhocAggregationsSet.state.dimensions;
+      request.groupByDimensions = this._groupBySource.state.value;
     }
 
     request.targets = request.targets.map((query) => {
@@ -552,7 +552,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    */
   private findAndSubscribeToAdhocSets(uid: string | undefined) {
     const filters = findActiveAdHocFilterSetByUid(uid);
-    const aggregations = findActiveAggregationsSetByUid(uid);
+
+    const groupByVariable = findActiveGroupByVariablesByUid(uid);
 
     if (filters && filters.state.applyMode === 'same-datasource') {
       if (!this._adhocFilterSet) {
@@ -562,11 +563,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
     }
 
-    if (aggregations && aggregations.state.applyMode === 'same-datasource') {
-      if (!this._adhocAggregationsSet) {
+    if (groupByVariable && groupByVariable.state.applyMode === 'same-datasource') {
+      if (!this._groupBySource) {
         // Subscribe to aggregations set state changes so that queries are re-issued when it changes
-        this._adhocAggregationsSet = aggregations;
-        this._adhocAggregationsSub = this._adhocAggregationsSet?.subscribeToState(() => this.runQueries());
+        this._groupBySource = groupByVariable;
+        this._groupBySourceSub = this._groupBySource?.subscribeToState(() => this.runQueries());
       }
     }
   }

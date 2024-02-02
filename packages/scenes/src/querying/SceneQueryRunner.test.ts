@@ -28,7 +28,7 @@ import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/Tes
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { emptyPanelData } from '../core/SceneDataNode';
-import { AggregationsSet } from '../variables/groupby/AggregationsSet';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -311,44 +311,45 @@ describe('SceneQueryRunner', () => {
       expect(runRequestCall2[1].filters).toEqual(filterSet.state.filters);
     });
 
-    it('should pass adhoc aggregations via request object', async () => {
+    it('should pass group by dimensions via request object', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
         queries: [{ refId: 'A' }],
       });
 
-      const aggregationsSet = new AggregationsSet({
+      const groupByVariable = new GroupByVariable({
         datasource: { uid: 'test-uid' },
-        dimensions: ['a', 'b', 'c'],
+        defaultOptions: [{ text: 'A' }, { text: 'B' }],
+        value: ['A', 'B'],
       });
+      const variables = new SceneVariableSet({ variables: [groupByVariable] });
 
       new EmbeddedScene({
         $data: queryRunner,
-        controls: [aggregationsSet],
+        $variables: variables,
         body: new SceneCanvasText({ text: 'hello' }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
 
+      groupByVariable.activate();
       queryRunner.activate();
-      aggregationsSet.activate();
 
       await new Promise((r) => setTimeout(r, 1));
 
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].aggregations).toEqual(aggregationsSet.state.dimensions);
+      expect(runRequestCall[1].groupByDimensions).toEqual(['A', 'B']);
 
       // Verify updating filter re-triggers query
-      aggregationsSet._updateDimensions(['e', 'f']);
+      groupByVariable.changeValueTo(['C', 'D']);
 
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
-      expect(aggregationsSet.state.dimensions).toEqual(['e', 'f']);
-      expect(runRequestCall2[1].aggregations).toEqual(aggregationsSet.state.dimensions);
+      expect(runRequestCall2[1].groupByDimensions).toEqual(['C', 'D']);
     });
   });
 
