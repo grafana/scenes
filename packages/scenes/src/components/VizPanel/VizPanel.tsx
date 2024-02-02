@@ -47,6 +47,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
+  // Options for repeat panels
+  repeat?: string;
+  repeatDirection?: 'h' | 'v';
+  maxPerRow?: number;
   /**
    * Only shows header on hover, absolutly positioned above the panel.
    */
