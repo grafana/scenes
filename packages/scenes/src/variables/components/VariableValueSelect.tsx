@@ -1,7 +1,7 @@
 import { isArray } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, Select, VirtualizedSelect } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
@@ -19,7 +19,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
     : undefined;
 
   return (
-    <Select<VariableValue>
+    <VirtualizedSelect<VariableValue>
       id={key}
       placeholder="Select value"
       width="auto"

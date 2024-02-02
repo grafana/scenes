@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
-import { Button, Field, Select, useStyles2 } from '@grafana/ui';
+import { Button, Field, Select, VirtualizedSelect, useStyles2 } from '@grafana/ui';
 import { css } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 
@@ -31,7 +31,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueValue = filter.value !== '' ? toOption(filter.value) : null;
 
   const valueSelect = (
-    <Select
+    <VirtualizedSelect
       disabled={model.state.readOnly}
       className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
       width="auto"
@@ -53,7 +53,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   );
 
   const keySelect = (
-    <Select
+    <VirtualizedSelect
       disabled={model.state.readOnly}
       className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
       width="auto"
@@ -99,7 +99,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   return (
     <div className={styles.wrapper} data-testid={`AdHocFilter-${filter.key}`}>
       {keySelect}
-      <Select
+      <VirtualizedSelect
         value={filter.operator}
         disabled={model.state.readOnly}
         options={model._getOperators()}
