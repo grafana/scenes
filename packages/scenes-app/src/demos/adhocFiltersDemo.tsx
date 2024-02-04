@@ -72,55 +72,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
               variables: [
                 AdHocFiltersVariable.create({
                   datasource: { uid: 'gdev-prometheus' },
-                  filters: [],
-                }),
-              ],
-            }),
-            body: new SceneFlexLayout({
-              direction: 'column',
-              children: [
-                new SceneFlexItem({
-                  ySizing: 'content',
-                  body: new SceneCanvasText({
-                    text: `Using AdHocFilterSet in manual mode and inside an AdHocFiltersVariable. The query below is interpolated to ALERTS{$Filters}`,
-                    fontSize: 14,
-                  }),
-                }),
-                new SceneFlexItem({
-                  body: PanelBuilders.table()
-                    .setTitle('ALERTS')
-                    .setData(
-                      new SceneQueryRunner({
-                        datasource: { uid: 'gdev-prometheus' },
-                        queries: [
-                          {
-                            refId: 'A',
-                            expr: 'ALERTS{$Filters}',
-                            format: 'table',
-                            instant: true,
-                          },
-                        ],
-                      })
-                    )
-                    .build(),
-                }),
-              ],
-            }),
-            $timeRange: new SceneTimeRange(),
-          });
-        },
-      }),
-      new SceneAppPage({
-        title: 'As variable2',
-        url: `${defaults.url}/manual2`,
-        getScene: () => {
-          return new EmbeddedScene({
-            ...getEmbeddedSceneDefaults(),
-            $variables: new SceneVariableSet({
-              variables: [
-                AdHocFiltersVariable.create({
-                  datasource: { uid: 'gdev-prometheus' },
-                  filters: [],
+                  filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
                 }),
               ],
             }),
