@@ -1,8 +1,6 @@
 import {
   SceneGridLayout,
   SceneGridItem,
-  SceneFlexLayout,
-  SceneFlexItem,
   SceneAppPage,
   EmbeddedScene,
   SceneAppPageState,
@@ -40,26 +38,6 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
               isResizable: false,
               isDraggable: false,
               body: PanelBuilders.timeseries().setTitle('No drag and no resize').build(),
-            }),
-
-            new SceneGridItem({
-              x: 6,
-              y: 11,
-              width: 12,
-              height: 10,
-              isDraggable: false,
-              isResizable: true,
-              body: new SceneFlexLayout({
-                direction: 'column',
-                children: [
-                  new SceneFlexItem({
-                    body: PanelBuilders.timeseries().setTitle('Child of flex layout').build(),
-                  }),
-                  new SceneFlexItem({
-                    body: PanelBuilders.timeseries().setTitle('Child of flex layout').build(),
-                  }),
-                ],
-              }),
             }),
           ],
         }),

@@ -29,7 +29,10 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
            * in an element that has the calculated size given by the AutoSizer. The AutoSizer
            * has a width of 0 and will let its content overflow its div.
            */
-          <div style={{ width: `${width}px`, height: '100%', position: 'relative', zIndex: 1 }}>
+          <div
+            style={{ width: `${width}px`, height: '100%', position: 'relative', zIndex: 1 }}
+            className="scene-grid-layout"
+          >
             <ReactGridLayout
               width={width}
               /**
@@ -80,7 +83,7 @@ interface GridItemWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((props, ref) => {
-  const { grid, layoutItem, index, totalCount, isLazy, style, onLoad, onChange, ...divProps } = props;
+  const { grid, layoutItem, index, totalCount, isLazy, style, onLoad, onChange, children, ...divProps } = props;
   const sceneChild = grid.getSceneLayoutChild(layoutItem.i)!;
   const className = sceneChild.getClassName?.();
   const theme = useTheme2();
@@ -123,6 +126,7 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
         ref={ref}
       >
         {innerContentWithContext}
+        {children}
       </LazyLoader>
     );
   }
@@ -136,6 +140,7 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
       className={cx(className, props.className)}
       style={newStyle}
     >
+      {children}
       {innerContentWithContext}
     </div>
   );
