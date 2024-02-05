@@ -283,6 +283,9 @@ export function Splitter({
   const styles = useStyles2(getStyles);
   const id = useUniqueId();
 
+  const secondAvailable = kids.length === 2;
+  const visibilitySecond = secondAvailable ? 'visible' : 'hidden';
+
   return (
     <div
       ref={containerRef}
@@ -304,38 +307,43 @@ export function Splitter({
         {kids[0]}
       </div>
 
-      <div
-        ref={splitterRef}
-        style={{ [measurementProp]: `${handleSize}px` }}
-        className={cx(styles.handle, { [styles.handleHorizontal]: direction === 'column' })}
-        onPointerUp={onPointerUp}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onKeyDown={onKeyDown}
-        onKeyUp={onKeyUp}
-        onDoubleClick={onDoubleClick}
-        onBlur={onBlur}
-        role="separator"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={50}
-        aria-controls={`start-panel-${id}`}
-        aria-label="Pane resize widget"
-        tabIndex={0}
-      ></div>
+      {kids[1] && (
+        <>
+          <div
+            ref={splitterRef}
+            style={{ [measurementProp]: `${handleSize}px` }}
+            className={cx(styles.handle, { [styles.handleHorizontal]: direction === 'column' })}
+            onPointerUp={onPointerUp}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onKeyDown={onKeyDown}
+            onKeyUp={onKeyUp}
+            onDoubleClick={onDoubleClick}
+            onBlur={onBlur}
+            role="separator"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={50}
+            aria-controls={`start-panel-${id}`}
+            aria-label="Pane resize widget"
+            tabIndex={0}
+          ></div>
 
-      <div
-        ref={secondPaneRef}
-        className={styles.panel}
-        style={{
-          flexGrow: initialSize === 'auto' ? 0.5 : clamp(1 - initialSize, 0, 1),
-          [minDimProp]: 'min-content',
-          ...secondaryPaneStyles,
-        }}
-        id={`end-panel-${id}`}
-      >
-        {kids[1]}
-      </div>
+          <div
+            ref={secondPaneRef}
+            className={styles.panel}
+            style={{
+              flexGrow: initialSize === 'auto' ? 0.5 : clamp(1 - initialSize, 0, 1),
+              [minDimProp]: 'min-content',
+              visibility: `${visibilitySecond}`,
+              ...secondaryPaneStyles,
+            }}
+            id={`end-panel-${id}`}
+          >
+            {kids[1]}
+          </div>
+        </>
+      )}
     </div>
   );
 }
