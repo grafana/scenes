@@ -1,3 +1,16 @@
+# v2.5.1 (Mon Feb 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridLayout: Fixes missing resize handles [#566](https://github.com/grafana/scenes/pull/566) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v2.5.0 (Mon Feb 05 2024)
 
 #### 🚀 Enhancement
