@@ -77,6 +77,23 @@ describe('AdHocFilter', () => {
     expect(filtersSet.state.filters[0].value).toBe('val4');
   });
 
+  it('Should collect and pass respective data source queries to getTagKeys call', async () => {
+    const { getTagKeysSpy } = setup({ filters: [] });
+
+    // Select key
+    await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+    expect(getTagKeysSpy).toBeCalledTimes(1);
+    expect(getTagKeysSpy).toBeCalledWith({
+      filters: [],
+      queries: [
+        {
+          expr: 'my_metric{$filters}',
+          refId: 'A',
+        },
+      ],
+    });
+  });
+
   it('url sync works', async () => {
     const { filtersSet } = setup();
 
@@ -94,6 +111,26 @@ describe('AdHocFilter', () => {
 
     expect(filtersSet.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl', condition: '' });
     expect(filtersSet.state.filters[1]).toEqual({ key: 'keyUrl', operator: '=~', value: 'urlVal', condition: '' });
+  });
+
+  it('overrides state when url has empty key', () => {
+    const { filtersSet } = setup();
+
+    act(() => {
+      locationService.push('/?var-filters=');
+    });
+
+    expect(filtersSet.state.filters.length).toBe(0);
+  });
+
+  it('reflects emtpy state in url', async () => {
+    const { filtersSet } = setup();
+
+    await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
+    await userEvent.click(screen.getByTestId('AdHocFilter-remove-key2'));
+
+    expect(filtersSet.state.filters.length).toBe(0);
+    expect(locationService.getLocation().search).toBe('?var-filters=');
   });
 
   it('url sync from empty filters array works', async () => {
@@ -164,10 +201,12 @@ const runRequestMock = {
 let runRequestSet = false;
 
 function setup(overrides?: Partial<AdHocFilterSetState>) {
+  const getTagKeysSpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
-        getTagKeys() {
+        getTagKeys(options: any) {
+          getTagKeysSpy(options);
           return [{ text: 'key3' }];
         },
         getTagValues() {
@@ -197,6 +236,7 @@ function setup(overrides?: Partial<AdHocFilterSetState>) {
   setTemplateSrv(templateSrv);
 
   const filtersSet = new AdHocFilterSet({
+    datasource: { uid: 'my-ds-uid' },
     name: 'filters',
     filters: [
       {
@@ -225,6 +265,7 @@ function setup(overrides?: Partial<AdHocFilterSetState>) {
       children: [
         new SceneFlexItem({
           $data: new SceneQueryRunner({
+            datasource: { uid: 'my-ds-uid' },
             queries: [
               {
                 refId: 'A',
@@ -244,5 +285,5 @@ function setup(overrides?: Partial<AdHocFilterSetState>) {
 
   const { unmount } = render(<scene.Component model={scene} />);
 
-  return { scene, filtersSet, unmount, runRequest: runRequestMock.fn };
+  return { scene, filtersSet, unmount, runRequest: runRequestMock.fn, getTagKeysSpy };
 }

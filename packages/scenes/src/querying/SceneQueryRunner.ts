@@ -38,6 +38,8 @@ import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
+import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 
 let counter = 100;
 
@@ -73,9 +75,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
 
-  // Closest filter set if found)
+  // Closest filter set if found
   private _adhocFilterSet?: AdHocFilterSet;
   private _adhocFilterSub?: Unsubscribable;
+
+  // Closest group by variable if found
+  private _groupBySource?: GroupByVariable;
+  private _groupBySourceSub?: Unsubscribable;
 
   public getResultsStream() {
     return this._results;
@@ -114,6 +120,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
+    }
+
+    if (!this._dataLayersSub) {
+      this._handleDataLayers();
     }
 
     return () => this._onDeactivate();
@@ -275,6 +285,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._adhocFilterSub.unsubscribe();
     }
 
+    if (this._groupBySourceSub) {
+      this._groupBySourceSub.unsubscribe();
+    }
+
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
@@ -362,8 +376,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      if (!this._adhocFilterSet) {
-        this.findAndSubscribeToAdhocFilters(datasource?.uid);
+      if (!this._adhocFilterSet || !this._groupBySource) {
+        this.findAndSubscribeToAdhocSets(datasource?.uid);
       }
 
       const runRequest = getRunRequest();
@@ -428,6 +442,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (this._adhocFilterSet) {
       // @ts-ignore (Temporary ignore until we update @grafana/data)
       request.filters = this._adhocFilterSet.state.filters;
+    }
+
+    if (this._groupBySource) {
+      // @ts-ignore (Temporary ignore until we update @grafana/data)
+      request.groupByKeys = this._groupBySource.state.value;
     }
 
     request.targets = request.targets.map((query) => {
@@ -535,16 +554,26 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private findAndSubscribeToAdhocFilters(uid: string | undefined) {
-    const set = findActiveAdHocFilterSetByUid(uid);
+  private findAndSubscribeToAdhocSets(uid: string | undefined) {
+    const filters = findActiveAdHocFilterSetByUid(uid);
 
-    if (!set || set.state.applyMode !== 'same-datasource') {
-      return;
+    const groupByVariable = findActiveGroupByVariablesByUid(uid);
+
+    if (filters && filters.state.applyMode === 'same-datasource') {
+      if (!this._adhocFilterSet) {
+        // Subscribe to filter set state changes so that queries are re-issued when it changes
+        this._adhocFilterSet = filters;
+        this._adhocFilterSub = this._adhocFilterSet?.subscribeToState(() => this.runQueries());
+      }
     }
 
-    // Subscribe to filter set state changes so that queries are re-issued when it changes
-    this._adhocFilterSet = set;
-    this._adhocFilterSub = this._adhocFilterSet?.subscribeToState(() => this.runQueries());
+    if (groupByVariable && groupByVariable.state.applyMode === 'same-datasource') {
+      if (!this._groupBySource) {
+        // Subscribe to aggregations set state changes so that queries are re-issued when it changes
+        this._groupBySource = groupByVariable;
+        this._groupBySourceSub = this._groupBySource?.subscribeToState(() => this.runQueries());
+      }
+    }
   }
 }
 

@@ -58,9 +58,13 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
         throw new Error(this.state.throwError);
       }
 
+      const interpolatedQuery = sceneGraph.interpolate(this, this.state.query);
+      const options = this.getOptions(interpolatedQuery);
+
       const sub = this.completeUpdate.subscribe({
         next: () => {
-          observer.next(this.issueQuery());
+          this.setState({ issuedQuery: interpolatedQuery, options, loading: false });
+          observer.next(options);
           observer.complete();
         },
       });
@@ -77,8 +81,11 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       return () => {
         sub.unsubscribe();
         window.clearTimeout(timeout);
-        this.setState({ loading: false });
         this.isGettingValues = false;
+
+        if (!this.state.loading) {
+          this.setState({ loading: false });
+        }
       };
     });
   }
@@ -86,18 +93,6 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
   public cancel() {
     const sceneVarSet = getClosest(this, (s) => (s instanceof SceneVariableSet ? s : undefined));
     sceneVarSet?.cancel(this);
-  }
-
-  private issueQuery() {
-    const interpolatedQuery = sceneGraph.interpolate(this, this.state.query);
-    const options = this.getOptions(interpolatedQuery);
-
-    this.setState({
-      issuedQuery: interpolatedQuery,
-      options,
-    });
-
-    return options;
   }
 
   private getOptions(interpolatedQuery: string) {

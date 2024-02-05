@@ -1,3 +1,135 @@
+# v2.5.1 (Mon Feb 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridLayout: Fixes missing resize handles [#566](https://github.com/grafana/scenes/pull/566) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.5.0 (Mon Feb 05 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Introduce GroupBy variable to allow passing group by dimensions to data sources [#548](https://github.com/grafana/scenes/pull/548) ([@ashharrison90](https://github.com/ashharrison90) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.4.0 (Thu Feb 01 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - UrlSync: Fixes overwrite issue where later state change overwrites earlier change [#555](https://github.com/grafana/scenes/pull/555) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.3.0 (Thu Feb 01 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneVariableSet: Cancel query when dependency changes [#557](https://github.com/grafana/scenes/pull/557) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix empty state adhoc filters [#560](https://github.com/grafana/scenes/pull/560) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 2
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.2.3 (Wed Jan 31 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix dataLayer subscriptions refresh on reactivation [#554](https://github.com/grafana/scenes/pull/554) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v2.2.2 (Wed Jan 31 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: The `create()` factory supports `applyMode` as parameter [#553](https://github.com/grafana/scenes/pull/553) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v2.2.1 (Tue Jan 30 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: AdHocFilterSet is not activated when the parent variable is mounted [#550](https://github.com/grafana/scenes/pull/550) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v2.2.0 (Tue Jan 30 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersSet: Pass scene queries to getTagKeys calls [#544](https://github.com/grafana/scenes/pull/544) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.1.0 (Fri Jan 26 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Fixes issue with exemplar link [#540](https://github.com/grafana/scenes/pull/540) ([@cbos](https://github.com/cbos))
+  - SceneDataTransformer: Fixes issue with getResultStream not emitting values when there are no transformations [#543](https://github.com/grafana/scenes/pull/543) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - LocalValueVariable: Provide backwards compatibility for SQL-ish data source [#549](https://github.com/grafana/scenes/pull/549) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 3
+
+- Cees Bos ([@cbos](https://github.com/cbos))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v2.0.0 (Mon Jan 22 2024)
 
 ### Release Notes

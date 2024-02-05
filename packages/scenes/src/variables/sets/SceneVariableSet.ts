@@ -278,6 +278,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       if (otherVariable.variableDependency) {
         if (otherVariable.variableDependency.hasDependencyOn(variableThatChanged.state.name)) {
           writeVariableTraceLog(otherVariable, 'Added to update queue, dependant variable value changed');
+
+          if (this._updating.has(otherVariable) && otherVariable.onCancel) {
+            otherVariable.onCancel();
+          }
+
           this._variablesToUpdate.add(otherVariable);
         }
       }
