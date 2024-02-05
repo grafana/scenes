@@ -1,3 +1,16 @@
+# v2.6.0 (Mon Feb 05 2024)
+
+#### 🚀 Enhancement
+
+- SplitLayout: Make secondary pane optional [#546](https://github.com/grafana/scenes/pull/546) ([@cbos](https://github.com/cbos) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Cees Bos ([@cbos](https://github.com/cbos))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v2.5.1 (Mon Feb 05 2024)
 
 #### 🐛 Bug Fix
