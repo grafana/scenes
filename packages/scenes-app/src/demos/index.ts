@@ -22,7 +22,8 @@ import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
 import { getAdhocFiltersDemo } from './adhocFiltersDemo';
-import { getGroupByDemo } from './groupByDemo';
+import { getGroupByStatic } from './groupByStatic';
+import { getGroupByDatasource } from './groupByDatasource';
 import { getTransformationsTest } from './transformations';
 import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
 import { getDataFilteringTest } from './filteringData';
@@ -49,7 +50,8 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Lazy load', getPage: getLazyLoadDemo },
     { title: 'Variables', getPage: getVariablesDemo },
     { title: 'Adhoc filters', getPage: getAdhocFiltersDemo },
-    { title: 'Group by', getPage: getGroupByDemo },
+    { title: 'Group by (static)', getPage: getGroupByStatic },
+    { title: 'Group by (datasource)', getPage: getGroupByDatasource },
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
     { title: 'Query editor', getPage: getQueryEditorDemo },
     { title: 'Dynamic page', getPage: getDynamicPageDemo },

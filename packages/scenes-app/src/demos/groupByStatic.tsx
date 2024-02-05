@@ -13,7 +13,7 @@ import {
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 
-export function getGroupByDemo(defaults: SceneAppPageState) {
+export function getGroupByStatic(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
     subTitle: 'TODO description',
@@ -23,7 +23,7 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
         $variables: new SceneVariableSet({
           variables: [
             new GroupByVariable({
-              name: 'groupByStatic',
+              name: 'groupBy',
               label: 'Group By (static list)',
               datasource: { uid: 'gdev-prometheus' },
               defaultOptions: [
@@ -41,11 +41,6 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
                 },
               ],
             }),
-            new GroupByVariable({
-              name: 'groupBy',
-              label: 'Group By (from data source)',
-              datasource: { uid: 'gdev-prometheus' },
-            }),
           ],
         }),
         controls: [new VariableValueSelectors({})],
@@ -56,7 +51,7 @@ export function getGroupByDemo(defaults: SceneAppPageState) {
             new SceneFlexItem({
               ySizing: 'content',
               body: new SceneCanvasText({
-                text: `Interpolated value (static): {$groupByStatic},  interpolated value(dynamic): {$groupBy})`,
+                text: `Interpolated value (static): {$groupBy}`,
                 fontSize: 14,
               }),
             }),
