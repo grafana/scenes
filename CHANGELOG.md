@@ -1,3 +1,17 @@
+# v2.5.0 (Mon Feb 05 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Introduce GroupBy variable to allow passing group by dimensions to data sources [#548](https://github.com/grafana/scenes/pull/548) ([@ashharrison90](https://github.com/ashharrison90) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v2.4.0 (Thu Feb 01 2024)
 
 #### 🚀 Enhancement
