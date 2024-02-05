@@ -17,15 +17,28 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   public static Component = SceneAppPageRenderer;
   private _sceneCache = new Map<string, EmbeddedScene>();
   private _drilldownCache = new Map<string, SceneAppPageLike>();
+  private _lastTabIndex = 0
 
   public constructor(state: SceneAppPageState) {
     super(state);
-
+    if (this.state.preserveTab)
     this.addActivationHandler(() => {
+      this.subscribeToState(() => {
+        if(this.state.tabs)
+          for(const [index, tab] of this.state.tabs.entries()){
+            if (tab.isActive){
+              this._lastTabIndex = index
+            }
+        }
+
+      })
       return () => getUrlSyncManager().cleanUp(this);
     });
   }
 
+  public get lastTabIndex(){
+    return this._lastTabIndex;
+  }
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });
     getUrlSyncManager().initSync(this);
@@ -92,7 +105,7 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
       const tab = tabs[tabIndex];
 
       // Add first tab as a default route, this makes it possible for the first tab to render with the url of the parent page
-      if (tabIndex === 0) {
+      if (tabIndex === model.lastTabIndex) {
         routes.push(
           <Route
             exact={true}
@@ -139,13 +152,11 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
       );
     }
   }
-
   if (!tabs && isCurrentPageRouteMatch(model, routeProps.match)) {
     return <SceneAppPageView page={model} routeProps={routeProps} />;
   }
 
   routes.push(getFallbackRoute(model, routeProps));
-
   return <Switch>{routes}</Switch>;
 }
 
@@ -174,7 +185,8 @@ function isCurrentPageRouteMatch(page: SceneAppPage, match: SceneRouteMatch) {
   // check if we are a tab and the first tab, then we should also render on the parent url
   if (
     page.parent instanceof SceneAppPage &&
-    page.parent.state.tabs![0] === page &&
+    page.parent.lastTabIndex !== undefined &&
+    page.parent.state.tabs![page.parent.lastTabIndex] === page &&
     page.parent.state.url === match.url
   ) {
     return true;
