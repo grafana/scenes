@@ -14,16 +14,16 @@ export function SplitLayoutRenderer({ model }: SceneFlexItemRenderProps<SplitLay
   }
 
   const Prim = primary.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
-  const Sec = secondary.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>;
+  const Sec = secondary ? (secondary.Component as ComponentType<SceneFlexItemRenderProps<SceneObject>>) : null;
   return (
     <Splitter
       direction={direction}
-      initialSize={initialSize ?? 0.5}
+      initialSize={Sec ? initialSize ?? 0.5 : 1}
       primaryPaneStyles={primaryPaneStyles}
       secondaryPaneStyles={secondaryPaneStyles}
     >
       <Prim key={primary.state.key} model={primary} parentState={model.state} />
-      <Sec key={secondary.state.key} model={secondary} parentState={model.state} />
+      {Sec === null ? null : <Sec key={secondary!.state.key} model={secondary!} parentState={model.state} />}
     </Splitter>
   );
 }

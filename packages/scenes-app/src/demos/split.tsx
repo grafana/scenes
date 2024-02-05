@@ -75,14 +75,6 @@ const roomsTemperatureQuery = {
 };
 
 const getDynamicSplitScene = () => {
-  const defaultSecondary = new SceneFlexItem({
-    minWidth: 500,
-    body: new SceneCanvasText({
-      text: 'Select room to see details',
-      fontSize: 20,
-      align: 'center',
-    }),
-  });
   const runner = new SceneQueryRunner({
     datasource: DATASOURCE_REF,
     queries: [roomsTemperatureQuery],
@@ -149,7 +141,7 @@ const getDynamicSplitScene = () => {
                     .setHeaderActions(
                       <IconButton
                         name="x"
-                        onClick={() => splitter.setState({ secondary: defaultSecondary })}
+                        onClick={() => splitter.setState({ secondary: undefined })}
                         aria-label="remove"
                       />
                     )
@@ -169,7 +161,6 @@ const getDynamicSplitScene = () => {
       body: table,
       minWidth: 300,
     }),
-    secondary: defaultSecondary,
   });
 
   return new EmbeddedScene({
