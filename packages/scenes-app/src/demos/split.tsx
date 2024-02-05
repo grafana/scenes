@@ -149,13 +149,13 @@ const getDynamicSplitScene = () => {
                     .setHeaderActions(
                       <label>
                         <IconButton
-                          name='trash-alt'
+                          name="trash-alt"
                           type="button"
                           onClick={() => splitter.setState({ secondary: undefined })}
                           aria-label="remove right part"
                         />
                         <IconButton
-                          name='times'
+                          name="times"
                           type="button"
                           onClick={() => splitter.setState({ secondary: defaultSecondary })}
                           aria-label="clear right part"
