@@ -54,6 +54,7 @@ export function getVariableRepeaterDemo(defaults: SceneAppPageState) {
 
 function getGraphAndTextPanel(option: VariableValueOption) {
   return new SceneFlexLayout({
+    minHeight: 200,
     children: [
       new SceneFlexItem({
         body: PanelBuilders.timeseries()
