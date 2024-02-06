@@ -31,6 +31,8 @@ export function getVariableRepeaterDemo(defaults: SceneAppPageState) {
               text: '',
               description: 'Server name',
               delayMs: 1000,
+              includeAll: true,
+              defaultToAll: true,
               isMulti: true,
               options: [],
               //              refresh: VariableRefresh.onTimeRangeChanged,
