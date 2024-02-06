@@ -35,7 +35,6 @@ export function getVariableRepeaterDemo(defaults: SceneAppPageState) {
               defaultToAll: true,
               isMulti: true,
               options: [],
-              //              refresh: VariableRefresh.onTimeRangeChanged,
             }),
           ],
         }),
