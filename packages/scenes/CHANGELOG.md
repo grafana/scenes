@@ -1,3 +1,15 @@
+# v2.6.3 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- TextBoxVariable: Fixes url sync key when name changes [#574](https://github.com/grafana/scenes/pull/574) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v2.6.2 (Tue Feb 06 2024)
 
 #### 🐛 Bug Fix
