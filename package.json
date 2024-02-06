@@ -53,5 +53,8 @@
     "auto": "^10.43.0",
     "lerna": "^6.5.1",
     "lint-staged": "^13.2.0"
+  },
+  "dependencies": {
+    "@leeoniya/ufuzzy": "^1.0.14"
   }
 }

@@ -4270,6 +4270,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@leeoniya/ufuzzy@npm:^1.0.14":
+  version: 1.0.14
+  resolution: "@leeoniya/ufuzzy@npm:1.0.14"
+  checksum: a9912a01bf9575dfcacb39adef03a2c46c8bc85add6ae74609b61aee9633ab02c88cca5ebda9035be9d2e0c6831f40ecfc00795e8eb78400c5d6aeeab1862502
+  languageName: node
+  linkType: hard
+
 "@leichtgewicht/ip-codec@npm:^2.0.1":
   version: 2.0.4
   resolution: "@leichtgewicht/ip-codec@npm:2.0.4"
@@ -15213,6 +15220,7 @@ __metadata:
   dependencies:
     "@auto-it/omit-commits": ^10.43.0
     "@auto-it/released": ^10.43.0
+    "@leeoniya/ufuzzy": ^1.0.14
     "@testing-library/react": ^14.1.2
     auto: ^10.43.0
     lerna: ^6.5.1

@@ -20,6 +20,8 @@ import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
+import { SelectableValue } from '@grafana/data';
+import uFuzzy from '@leeoniya/ufuzzy';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -255,8 +257,39 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       }
     }
 
+    this._optionsForSelectCache = options;
     return options;
   }
+
+  private _lastSearchFilter = '';
+  private _ufuzzy = new uFuzzy({
+    intraMode: 1,
+    intraIns: 1,
+    intraSub: 1,
+    intraTrn: 1,
+    intraDel: 1,
+  });
+  private _uFuzzyIdx: uFuzzy.HaystackIdxs | null = [];
+  private _optionsForSelectCache: VariableValueOption[] = [];
+
+  public onFilterOption = (option: VariableValueOption, searchFilter: string): boolean => {
+    if (searchFilter !== this._lastSearchFilter) {
+      this._lastSearchFilter = searchFilter;
+      for (const option of this._optionsForSelectCache) {
+        option.found = false;
+      }
+
+      const stringOptions = this._optionsForSelectCache.map((x) => x.label);
+      this._uFuzzyIdx = this._ufuzzy.filter(stringOptions, searchFilter);
+
+      for (const idx of this._uFuzzyIdx) {
+        this._optionsForSelectCache[idx].found = true;
+      }
+      console.log('index', this._optionsForSelectCache.indexOf(option));
+    }
+
+    return option.found;
+  };
 
   /**
    * Can be used by subclasses to do custom handling of option search based on search input

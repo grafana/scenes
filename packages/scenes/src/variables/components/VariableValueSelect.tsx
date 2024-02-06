@@ -29,6 +29,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       tabSelectsValue={false}
       onInputChange={onInputChange}
       options={model.getOptionsForSelect()}
+      filterOption={model.onFilterOption}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
       }}
