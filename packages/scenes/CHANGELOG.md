@@ -1,3 +1,15 @@
+# v2.6.2 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- GroupBy variable: Fix variable type [#571](https://github.com/grafana/scenes/pull/571) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v2.6.1 (Tue Feb 06 2024)
 
 #### 🐛 Bug Fix
