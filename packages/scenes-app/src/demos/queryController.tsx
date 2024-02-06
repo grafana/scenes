@@ -11,19 +11,47 @@ import {
   SceneRefreshPicker,
   SceneCSSGridLayout,
   SceneControlsSpacer,
+  dataLayers,
+  SceneDataLayerControls,
+  SceneDataLayers,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 import { SceneQueryController } from '@grafana/scenes/src/querying/SceneQueryController';
 
 export function getQueryControllerDemo(defaults: SceneAppPageState) {
+  const globalAnnotations = new dataLayers.AnnotationsDataLayer({
+    name: 'Global annotations',
+    query: {
+      datasource: {
+        type: 'testdata',
+        uid: 'gdev-testdata',
+      },
+      enable: true,
+      iconColor: 'yellow',
+      name: 'New annotation',
+      target: {
+        // @ts-ignore
+        lines: 10,
+        refId: 'Anno',
+        scenarioId: 'slow_query',
+        stringInput: '10s',
+      },
+    },
+  });
+
   return new SceneAppPage({
     ...defaults,
     subTitle: 'Shows how to see query state of a sub scene and cancel all sub scene queries',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
+        $data: new SceneDataLayers({
+          layers: [globalAnnotations],
+        }),
         $behaviors: [new SceneQueryController({})],
+
         controls: [
+          new SceneDataLayerControls(),
           new SceneControlsSpacer(),
           new SceneTimePicker({}),
           new SceneRefreshPicker({ withText: true, primary: true }),
@@ -62,6 +90,26 @@ export function getQueryControllerDemo(defaults: SceneAppPageState) {
 }
 
 export function getInnerScene(title: string) {
+  const nestedAnnotationsDataLayer = new dataLayers.AnnotationsDataLayer({
+    name: 'Nested annotations',
+    query: {
+      datasource: {
+        type: 'testdata',
+        uid: 'gdev-testdata',
+      },
+      enable: true,
+      iconColor: 'red',
+      name: 'New annotation',
+      target: {
+        // @ts-ignore
+        lines: 10,
+        refId: 'Anno',
+        scenarioId: 'slow_query',
+        stringInput: '10s',
+      },
+    },
+  });
+
   const scene = new NestedScene({
     title: title,
     canCollapse: true,
@@ -82,9 +130,16 @@ export function getInnerScene(title: string) {
       ],
     }),
     $timeRange: new SceneTimeRange(),
-    $data: getQueryRunnerWithRandomWalkQuery(),
+    $data: new SceneDataLayers({
+      layers: [nestedAnnotationsDataLayer],
+    }),
     $behaviors: [new SceneQueryController({})],
-    controls: [new SceneControlsSpacer(), new SceneTimePicker({}), new SceneRefreshPicker({ withText: true })],
+    controls: [
+      new SceneDataLayerControls(),
+      new SceneControlsSpacer(),
+      new SceneTimePicker({}),
+      new SceneRefreshPicker({ withText: true }),
+    ],
   });
 
   return scene;

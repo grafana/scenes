@@ -72,6 +72,8 @@ export class AnnotationsDataLayer
         })
       );
 
+      this.signalQueryStarted();
+
       this.querySub = queryExecution.subscribe((stateUpdate) => {
         this.publishResults(stateUpdate, DataTopic.Annotations);
       });
