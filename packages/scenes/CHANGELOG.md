@@ -1,3 +1,15 @@
+# v2.6.1 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- Variable: Fixes performance issues with variables with many select options [#569](https://github.com/grafana/scenes/pull/569) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v2.6.0 (Mon Feb 05 2024)
 
 #### 🚀 Enhancement
