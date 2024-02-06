@@ -32,6 +32,7 @@ import { getCssGridLayoutDemo } from './cssGridLayoutDemo';
 import { getPanelHeaderActions } from './panelHeaderActions';
 import { getVerticalControlsLayoutDemo } from './verticalControlsLayoutDemo';
 import { getInteractiveTableDemo } from './interactiveTableDemo';
+import { getVariableRepeaterDemo } from './variableRepeater';
 
 export interface DemoDescriptor {
   title: string;
@@ -45,6 +46,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Panel menu', getPage: getPanelMenuTest },
     { title: 'Panel context', getPage: getPanelContextDemoScene },
     { title: 'Repeat layout by series', getPage: getPanelRepeaterTest },
+    { title: 'Repeat layout by variable', getPage: getVariableRepeaterDemo },
     { title: 'Grid layout', getPage: getGridLayoutTest },
     { title: 'Grid with rows', getPage: getGridWithRowLayoutTest },
     { title: 'Lazy load', getPage: getLazyLoadDemo },

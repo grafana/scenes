@@ -66,6 +66,7 @@ export { SceneRefreshPicker } from './components/SceneRefreshPicker';
 export { SceneTimeRangeTransformerBase } from './core/SceneTimeRangeTransformerBase';
 export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
+export { SceneByVariableRepeater } from './components/SceneByVariableRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export {
   SceneFlexLayout,
