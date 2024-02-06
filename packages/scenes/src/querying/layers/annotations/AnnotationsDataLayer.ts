@@ -57,9 +57,8 @@ export class AnnotationsDataLayer
       this.querySub.unsubscribe();
     }
 
-    if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
+    if (this._variableDependency.hasDependencyInLoadingState()) {
       writeSceneLog('AnnotationsDataLayer', 'Variable dependency is in loading state, skipping query execution');
-      this.setState({ _isWaitingForVariables: true });
       return;
     }
 

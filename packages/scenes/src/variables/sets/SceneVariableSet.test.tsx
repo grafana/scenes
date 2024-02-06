@@ -337,7 +337,7 @@ describe('SceneVariableList', () => {
       scene.activate();
       nestedObj.activate();
 
-      // Should not start loadaing A again, it has options already
+      // Should not start loading A again, it has options already
       expect(A.state.loading).toBe(false);
       expect(nestedObj.state.variableValueChanged).toBe(1);
       expect(inActiveSceneObject.state.variableValueChanged).toBe(0);
@@ -530,6 +530,38 @@ describe('SceneVariableList', () => {
       expect(set.isVariableLoadingOrWaitingToUpdate(B)).toBe(true);
     });
 
+    it('Should return true if a dependency is loading', async () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        // this refresh option is important for this test
+        refresh: VariableRefresh.onTimeRangeChanged,
+      });
+
+      const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
+      const set = new SceneVariableSet({ variables: [A, B] });
+      const timeRange = new SceneTimeRange();
+      const scene = new TestScene({ $variables: set, $timeRange: timeRange });
+
+      scene.activate();
+
+      A.signalUpdateCompleted();
+      B.signalUpdateCompleted();
+
+      // Now change time range
+      timeRange.onRefresh();
+
+      // Now verify that only A is loading
+      expect(A.state.loading).toBe(true);
+      expect(B.state.loading).toBe(false);
+
+      // B should still return true here as it's dependency is loading
+      expect(set.isVariableLoadingOrWaitingToUpdate(B)).toBe(true);
+    });
+
     it('Should check ancestor set for LocalValueVariable', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const scopedA = new LocalValueVariable({ name: 'A', value: 'AA' });
@@ -571,6 +603,10 @@ describe('SceneVariableList', () => {
   });
 
   describe('When variable throws error', () => {
+    const origError = console.error;
+    beforeEach(() => (console.error = jest.fn()));
+    afterEach(() => (console.error = origError));
+
     it('Should start update process', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], throwError: 'Danger!' });
 
@@ -632,6 +668,44 @@ describe('SceneVariableList', () => {
       // Now change variable A
       A.changeValueTo('AB');
       expect(B.state.loading).toBe(true);
+    });
+  });
+
+  describe('When changing a dependency while variable is loading', () => {
+    it('Should cancel variable and re-start it', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+      const C = new TestVariable({ name: 'C', query: 'A.$A.$B.*', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A, B] }),
+        nested: new TestScene({
+          $variables: new SceneVariableSet({ variables: [C] }),
+        }),
+      });
+
+      scene.activate();
+      scene.state.nested!.activate();
+
+      A.signalUpdateCompleted();
+      expect(B.state.loading).toBe(true);
+
+      // Change A while B is loading
+      A.changeValueTo('AB');
+
+      B.signalUpdateCompleted();
+
+      // This verifies that B was cancelled and a new query issued with the new value of A
+      expect(B.state.value).toBe('ABA');
+
+      // C should be loading
+      expect(C.state.loading).toBe(true);
+
+      B.changeValueTo('ABB');
+      C.signalUpdateCompleted();
+
+      // Change B while C is loading (They are on different levels but should behave the same as with A & B)
+      expect(C.state.value).toBe('ABBA');
     });
   });
 });

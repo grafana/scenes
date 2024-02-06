@@ -5,6 +5,11 @@ import { SceneVariable, SceneVariableState, VariableValue } from '../types';
 export interface LocalValueVariableState extends SceneVariableState {
   value: VariableValue;
   text: VariableValue;
+
+  // Indicate whether or not this variable is sourced from a multi-value variable.
+  // Introduces for a backwards compatibility with the old variable system, to properly support interpolation in SQL data sources.
+  isMulti?: boolean;
+  includeAll?: boolean;
 }
 
 /**
@@ -15,12 +20,14 @@ export class LocalValueVariable
   extends SceneObjectBase<LocalValueVariableState>
   implements SceneVariable<LocalValueVariableState>
 {
-  public constructor(initialState: Partial<LocalValueVariableState>) {
+  public constructor(initialState: Omit<Partial<LocalValueVariableState>, 'isMulti' | 'includeAll'>) {
     super({
       type: 'system',
       value: '',
       text: '',
       name: '',
+      isMulti: true,
+      includeAll: true,
       ...initialState,
       skipUrlSync: true,
     });

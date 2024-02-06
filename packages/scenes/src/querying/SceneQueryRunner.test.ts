@@ -8,6 +8,7 @@ import {
   LoadingState,
   PanelData,
   toDataFrame,
+  VariableRefresh,
 } from '@grafana/data';
 
 import { SceneTimeRange } from '../core/SceneTimeRange';
@@ -27,12 +28,50 @@ import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/Tes
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { emptyPanelData } from '../core/SceneDataNode';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
   getRef: () => ({ uid: 'test-uid' }),
-  query: () =>
-    of({
+  query: (request: DataQueryRequest) => {
+    if (request.targets.find((t) => t.refId === 'withAnnotations')) {
+      return of({
+        data: [
+          toDataFrame({
+            refId: 'withAnnotations',
+            datapoints: [
+              [100, 1],
+              [400, 2],
+              [500, 3],
+            ],
+          }),
+          toDataFrame({
+            name: 'exemplar',
+            refId: 'withAnnotations',
+            meta: {
+              typeVersion: [0, 0],
+              custom: {
+                resultType: 'exemplar',
+              },
+              dataTopic: 'annotations',
+            },
+            fields: [
+              {
+                name: 'foo',
+                type: 'string',
+                values: ['foo1', 'foo2', 'foo3'],
+              },
+              {
+                name: 'bar',
+                type: 'string',
+                values: ['bar1', 'bar2', 'bar3'],
+              },
+            ],
+          }),
+        ],
+      });
+    }
+    return of({
       data: [
         toDataFrame({
           refId: 'A',
@@ -43,21 +82,23 @@ const getDataSourceMock = jest.fn().mockReturnValue({
           ],
         }),
       ],
-    }),
+    });
+  },
 });
 
 const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
   const result: PanelData = {
     state: LoadingState.Loading,
     series: [],
+    annotations: [],
     timeRange: request.range,
   };
 
   return (ds.query(request) as Observable<DataQueryResponse>).pipe(
     map((packet) => {
       result.state = LoadingState.Done;
-      result.series = packet.data;
-
+      result.series = packet.data.filter((d) => d.meta?.dataTopic !== 'annotations');
+      result.annotations = packet.data.filter((d) => d.meta?.dataTopic === 'annotations');
       return result;
     })
   );
@@ -152,6 +193,33 @@ describe('SceneQueryRunner', () => {
     });
   });
 
+  describe('when result has annotations', () => {
+    it('should not duplicate annotations when queried repeatedly', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'withAnnotations' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      expect(queryRunner.state.data?.annotations).toHaveLength(1);
+
+      queryRunner.runQueries();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      expect(queryRunner.state.data?.annotations).toHaveLength(1);
+    });
+  });
+
   describe('when activated and got no data', () => {
     it('should run queries', async () => {
       const queryRunner = new SceneQueryRunner({
@@ -241,6 +309,47 @@ describe('SceneQueryRunner', () => {
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].filters).toEqual(filterSet.state.filters);
+    });
+
+    it('should pass group by dimensions via request object', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const groupByVariable = new GroupByVariable({
+        datasource: { uid: 'test-uid' },
+        defaultOptions: [{ text: 'A' }, { text: 'B' }],
+        value: ['A', 'B'],
+      });
+      const variables = new SceneVariableSet({ variables: [groupByVariable] });
+
+      new EmbeddedScene({
+        $data: queryRunner,
+        $variables: variables,
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      groupByVariable.activate();
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].groupByKeys).toEqual(['A', 'B']);
+
+      // Verify updating filter re-triggers query
+      groupByVariable.changeValueTo(['C', 'D']);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+
+      const runRequestCall2 = runRequestMock.mock.calls[1];
+      expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
     });
   });
 
@@ -429,6 +538,40 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
+    it('Should not execute query when variable updates, but maxDataPointsFromWidth is true and width not received yet', async () => {
+      const variable = new TestVariable({ name: 'A', value: '', query: 'A.*' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+        maxDataPointsFromWidth: true,
+      });
+
+      const timeRange = new SceneTimeRange();
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: timeRange,
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+      // not execute on variable update because width not received yet
+      variable.signalUpdateCompleted();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(queryRunner.state.data?.state).toBe(undefined);
+
+      variable.changeValueTo('AB');
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls.length).toBe(0);
+      expect(queryRunner.state.data?.state).toBe(undefined);
+
+      // should execute when width has finally been set
+      queryRunner.setContainerWidth(1000);
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls.length).toBe(1);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+
     it('Should execute query when variable updates and data layer response was received before', async () => {
       const variable = new TestVariable({ name: 'A', value: 'AA', text: 'AA', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({
@@ -543,6 +686,94 @@ describe('SceneQueryRunner', () => {
 
       // Should execute query a second time
       expect(runRequestMock.mock.calls.length).toBe(2);
+    });
+
+    it('When depending on a variable that depends on a variable that depends on time range', async () => {
+      const varA = new TestVariable({
+        name: 'A',
+        value: 'AA',
+        query: 'A.*',
+        refresh: VariableRefresh.onTimeRangeChanged,
+      });
+
+      const varB = new TestVariable({ name: 'B', value: 'AA', query: 'A.$A.*' });
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A', query: '$B' }] });
+      const timeRange = new SceneTimeRange();
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [varA, varB] }),
+        $timeRange: timeRange,
+        $data: queryRunner,
+      });
+
+      scene.activate();
+
+      varA.signalUpdateCompleted();
+      varB.signalUpdateCompleted();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should run query
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      // Now change time range
+      timeRange.onRefresh();
+
+      // Allow rxjs logic time run
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(varA.state.loading).toBe(true);
+
+      varA.signalUpdateCompleted();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Since varA did not change here varB should not be loading
+      expect(varB.state.loading).toBe(false);
+
+      // should execute new query
+      expect(runRequestMock.mock.calls.length).toBe(2);
+    });
+
+    it('Should not issue query when unrealted variable completes and _isWaitingForVariables is false', async () => {
+      const varA = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
+      const varB = new TestVariable({ name: 'B', value: 'AA', query: 'A.$A.*' });
+
+      // Query only depends on A
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+        maxDataPointsFromWidth: true,
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [varA, varB] }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+      });
+
+      scene.activate();
+
+      // should execute query when variable completes update
+      varA.signalUpdateCompleted();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // still waiting for containerWidth
+      expect(runRequestMock.mock.calls.length).toBe(0);
+
+      queryRunner.setContainerWidth(1000);
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      // Variable that is not a dependency completes
+      varB.signalUpdateCompleted();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // should not result in a new query
+      expect(runRequestMock.mock.calls.length).toBe(1);
     });
 
     it('Should set data and loadingState to Done when there are no queries', async () => {
@@ -832,6 +1063,105 @@ describe('SceneQueryRunner', () => {
         ]
       `);
     });
+
+    it('should merge but not duplicate annotations coming from query result and from layers', async () => {
+      const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'withAnnotations' }],
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayers({ layers: [layer] }),
+      });
+
+      const expectedSnapshot = `
+      [
+        {
+          "fields": [
+            {
+              "config": {},
+              "labels": undefined,
+              "name": "foo",
+              "type": "string",
+              "values": [
+                "foo1",
+                "foo2",
+                "foo3",
+              ],
+            },
+            {
+              "config": {},
+              "labels": undefined,
+              "name": "bar",
+              "type": "string",
+              "values": [
+                "bar1",
+                "bar2",
+                "bar3",
+              ],
+            },
+          ],
+          "meta": {
+            "custom": {
+              "resultType": "exemplar",
+            },
+            "dataTopic": "annotations",
+            "typeVersion": [
+              0,
+              0,
+            ],
+          },
+          "name": "exemplar",
+          "refId": "withAnnotations",
+        },
+        {
+          "fields": [
+            {
+              "config": {},
+              "name": "time",
+              "type": "time",
+              "values": [
+                100,
+              ],
+            },
+            {
+              "config": {},
+              "name": "text",
+              "type": "string",
+              "values": [
+                "Layer 1: Test annotation",
+              ],
+            },
+            {
+              "config": {},
+              "name": "tags",
+              "type": "other",
+              "values": [
+                [
+                  "tag1",
+                ],
+              ],
+            },
+          ],
+          "length": 1,
+        },
+      ]
+    `;
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+      layer.completeRun();
+
+      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(expectedSnapshot);
+
+      queryRunner.runQueries();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(expectedSnapshot);
+    });
+
     it('should not block queries when layer provides data slower', async () => {
       const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
       const queryRunner = new SceneQueryRunner({

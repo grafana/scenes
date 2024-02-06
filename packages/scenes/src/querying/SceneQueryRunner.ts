@@ -28,7 +28,6 @@ import {
 } from '../core/types';
 import { getDataSource } from '../utils/getDataSource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
-import { SceneVariable } from '../variables/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
@@ -40,6 +39,8 @@ import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
 import { SceneQueryControllerLike } from './SceneQueryController';
+import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 
 let counter = 100;
 
@@ -58,7 +59,6 @@ export interface QueryRunnerState extends SceneObjectState {
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
-  _isWaitingForVariables?: boolean;
   _hasFetchedData?: boolean;
 }
 
@@ -72,13 +72,19 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _dataLayersSub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
-  private _results = new ReplaySubject<SceneDataProviderResult>();
+  private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
   private _queryController?: SceneQueryControllerLike;
+  private _layerAnnotations?: DataFrame[];
+  private _resultAnnotations?: DataFrame[];
 
-  // Closest filter set if found)
+  // Closest filter set if found
   private _adhocFilterSet?: AdHocFilterSet;
   private _adhocFilterSub?: Unsubscribable;
+
+  // Closest group by variable if found
+  private _groupBySource?: GroupByVariable;
+  private _groupBySourceSub?: Unsubscribable;
 
   public getResultsStream() {
     return this._results;
@@ -86,8 +92,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
-    onVariableUpdatesCompleted: (variables, dependencyChanged) =>
-      this.onVariableUpdatesCompleted(variables, dependencyChanged),
+    onVariableUpdateCompleted: this.onVariableUpdatesCompleted.bind(this),
   });
 
   public constructor(initialState: QueryRunnerState) {
@@ -120,6 +125,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
+    }
+
+    if (!this._dataLayersSub) {
+      this._handleDataLayers();
     }
 
     return () => this._onDeactivate();
@@ -201,36 +210,34 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     const baseStateUpdate = this.state.data ? this.state.data : { ...emptyPanelData, timeRange: timeRange.state.value };
 
+    this._layerAnnotations = annotations;
     this.setState({
       data: {
         ...baseStateUpdate,
-        annotations,
+        annotations: [...(this._resultAnnotations ?? []), ...annotations],
         alertState: alertState ?? this.state.data?.alertState,
       },
     });
   }
 
   /**
-   * Handles some tricky cases where we need to run queries even when they have not changed in case
-   * the query execution on activate was stopped due to VariableSet still not having processed all variables.
+   * This tries to start a new query whenever a variable completes or is changed.
+   *
+   * We care about variable update completions even when the variable has not changed and even when it is not a direct dependency.
+   * Example: Variables A and B (B depends on A). A update depends on time range. So when time change query runner will
+   * find that variable A is loading which is a dependency on of variable B so will set _isWaitingForVariables to true and
+   * not issue any query.
+   *
+   * When A completes it's loading (with no value change, so B never updates) it will cause a call of this function letting
+   * the query runner know that A has completed, and in case _isWaitingForVariables we try to run the query. The query will
+   * only run if all variables are in a non loading state so in other scenarios where a query depends on many variables this will
+   * be called many times until all dependencies are in a non loading state.   *
    */
-  private onVariableUpdatesCompleted(_variablesThatHaveChanged: Set<SceneVariable>, dependencyChanged: boolean) {
-    if (this.state._isWaitingForVariables) {
-      this.runQueries();
-      return;
-    }
-
-    if (dependencyChanged) {
-      this.runQueries();
-    }
+  private onVariableUpdatesCompleted() {
+    this.runQueries();
   }
 
   private shouldRunQueriesOnActivate() {
-    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
-    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
-      return false;
-    }
-
     if (this._variableValueRecorder.hasDependenciesChanged(this)) {
       writeSceneLog(
         'SceneQueryRunner',
@@ -281,6 +288,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (this._adhocFilterSub) {
       this._adhocFilterSub.unsubscribe();
+    }
+
+    if (this._groupBySourceSub) {
+      this._groupBySourceSub.unsubscribe();
     }
 
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
@@ -344,26 +355,23 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
+    // If no maxDataPoints specified we might need to wait for container width to be set from the outside
+    if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
+      return;
+    }
+
     // If data layers subscription doesn't exist, create one
     if (!this._dataLayersSub) {
       this._handleDataLayers();
     }
 
-    const runRequest = getRunRequest();
-
     // Cancel any running queries
     this._querySub?.unsubscribe();
 
     // Skip executing queries if variable dependency is in loading state
-    if (sceneGraph.hasVariableDependencyInLoadingState(this)) {
+    if (this._variableDependency.hasDependencyInLoadingState()) {
       writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
-      this.setState({ _isWaitingForVariables: true });
       return;
-    }
-
-    // If we were waiting for variables, clear that flag
-    if (this.state._isWaitingForVariables) {
-      this.setState({ _isWaitingForVariables: false });
     }
 
     const { queries } = this.state;
@@ -378,10 +386,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      if (!this._adhocFilterSet) {
-        this.findAndSubscribeToAdhocFilters(datasource?.uid);
+      if (!this._adhocFilterSet || !this._groupBySource) {
+        this.findAndSubscribeToAdhocSets(datasource?.uid);
       }
 
+      const runRequest = getRunRequest();
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
@@ -450,6 +459,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       request.filters = this._adhocFilterSet.state.filters;
     }
 
+    if (this._groupBySource) {
+      // @ts-ignore (Temporary ignore until we update @grafana/data)
+      request.groupByKeys = this._groupBySource.state.value;
+    }
+
     request.targets = request.targets.map((query) => {
       if (!query.datasource) {
         query.datasource = ds.getRef();
@@ -492,8 +506,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 
   private onDataReceived = (data: PanelData) => {
-    this._results.next({ origin: this, data });
-
     if (data.state !== LoadingState.Loading) {
       if (this._signalQueryCompleted) {
         this._signalQueryCompleted();
@@ -512,12 +524,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       hasFetchedData = true;
     }
 
+    this._resultAnnotations = data.annotations;
+
     this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
+
+    this._results.next({ origin: this, data: dataWithLayersApplied });
   };
 
   private _combineDataLayers(data: PanelData) {
     if (this.state.data && this.state.data.annotations) {
-      data.annotations = (data.annotations || []).concat(this.state.data.annotations);
+      data.annotations = (data.annotations || []).concat(this._layerAnnotations ?? []);
     }
 
     if (this.state.data && this.state.data.alertState) {
@@ -559,16 +575,26 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private findAndSubscribeToAdhocFilters(uid: string | undefined) {
-    const set = findActiveAdHocFilterSetByUid(uid);
+  private findAndSubscribeToAdhocSets(uid: string | undefined) {
+    const filters = findActiveAdHocFilterSetByUid(uid);
 
-    if (!set || set.state.applyMode !== 'same-datasource') {
-      return;
+    const groupByVariable = findActiveGroupByVariablesByUid(uid);
+
+    if (filters && filters.state.applyMode === 'same-datasource') {
+      if (!this._adhocFilterSet) {
+        // Subscribe to filter set state changes so that queries are re-issued when it changes
+        this._adhocFilterSet = filters;
+        this._adhocFilterSub = this._adhocFilterSet?.subscribeToState(() => this.runQueries());
+      }
     }
 
-    // Subscribe to filter set state changes so that queries are re-issued when it changes
-    this._adhocFilterSet = set;
-    this._adhocFilterSub = this._adhocFilterSet?.subscribeToState(() => this.runQueries());
+    if (groupByVariable && groupByVariable.state.applyMode === 'same-datasource') {
+      if (!this._groupBySource) {
+        // Subscribe to aggregations set state changes so that queries are re-issued when it changes
+        this._groupBySource = groupByVariable;
+        this._groupBySourceSub = this._groupBySource?.subscribeToState(() => this.runQueries());
+      }
+    }
   }
 }
 

@@ -1,3 +1,295 @@
+# v2.6.3 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - TextBoxVariable: Fixes url sync key when name changes [#574](https://github.com/grafana/scenes/pull/574) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.6.2 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy variable: Fix variable type [#571](https://github.com/grafana/scenes/pull/571) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.6.1 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- Fix dev script for node_modules [#564](https://github.com/grafana/scenes/pull/564) ([@joshhunt](https://github.com/joshhunt))
+- `@grafana/scenes`
+  - Variable: Fixes performance issues with variables with many select options [#569](https://github.com/grafana/scenes/pull/569) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.6.0 (Mon Feb 05 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SplitLayout: Make secondary pane optional [#546](https://github.com/grafana/scenes/pull/546) ([@cbos](https://github.com/cbos) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Cees Bos ([@cbos](https://github.com/cbos))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.5.1 (Mon Feb 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridLayout: Fixes missing resize handles [#566](https://github.com/grafana/scenes/pull/566) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.5.0 (Mon Feb 05 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Introduce GroupBy variable to allow passing group by dimensions to data sources [#548](https://github.com/grafana/scenes/pull/548) ([@ashharrison90](https://github.com/ashharrison90) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.4.0 (Thu Feb 01 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - UrlSync: Fixes overwrite issue where later state change overwrites earlier change [#555](https://github.com/grafana/scenes/pull/555) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.3.0 (Thu Feb 01 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneVariableSet: Cancel query when dependency changes [#557](https://github.com/grafana/scenes/pull/557) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix empty state adhoc filters [#560](https://github.com/grafana/scenes/pull/560) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 2
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.2.3 (Wed Jan 31 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix dataLayer subscriptions refresh on reactivation [#554](https://github.com/grafana/scenes/pull/554) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v2.2.2 (Wed Jan 31 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: The `create()` factory supports `applyMode` as parameter [#553](https://github.com/grafana/scenes/pull/553) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v2.2.1 (Tue Jan 30 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: AdHocFilterSet is not activated when the parent variable is mounted [#550](https://github.com/grafana/scenes/pull/550) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v2.2.0 (Tue Jan 30 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersSet: Pass scene queries to getTagKeys calls [#544](https://github.com/grafana/scenes/pull/544) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.1.0 (Fri Jan 26 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Fixes issue with exemplar link [#540](https://github.com/grafana/scenes/pull/540) ([@cbos](https://github.com/cbos))
+  - SceneDataTransformer: Fixes issue with getResultStream not emitting values when there are no transformations [#543](https://github.com/grafana/scenes/pull/543) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - LocalValueVariable: Provide backwards compatibility for SQL-ish data source [#549](https://github.com/grafana/scenes/pull/549) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 3
+
+- Cees Bos ([@cbos](https://github.com/cbos))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.0.0 (Mon Jan 22 2024)
+
+### Release Notes
+
+#### Variables: Notify scene after each variable completion or value change ([#525](https://github.com/grafana/scenes/pull/525))
+
+`VariableDependencyConfigLike` interface has changed so that scene objects now get notified after each variable update is completed (or changed value). Before, the `SceneVariableSet` waited for all variables to complete before notifying scene objects. 
+
+The function `variableUpdatesCompleted` has changed name and signature: 
+
+```ts
+variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean): void;
+```
+
+`VariableDependencyConfig` has also some breaking changes. The function named `onVariableUpdatesCompleted` has changed name and signature to: 
+
+```ts
+ onVariableUpdateCompleted?: () => void;
+```
+
+`VariableDependencyConfig` now handles the state logic for "waitingForVariables". If you call `VariableDependencyConfig.hasDependencyInLoadingState` and it returns true it will remember this waiting state and call `onVariableUpdateCompleted` as soon as the next variable update is completed, no matter if that variable is a dependency or if it changed or not.
+
+---
+
+#### 💥 Breaking Change
+
+- `@grafana/scenes`
+  - Variables: Notify scene after each variable completion or value change [#525](https://github.com/grafana/scenes/pull/525) ([@torkelo](https://github.com/torkelo))
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - UrlSync: Export new util functions [#529](https://github.com/grafana/scenes/pull/529) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.30.0 (Thu Jan 18 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneGridLayout: Support new visualization tooltips [#530](https://github.com/grafana/scenes/pull/530) ([@torkelo](https://github.com/torkelo))
+  - Adhoc filters variable improvements [#518](https://github.com/grafana/scenes/pull/518) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Revert "Chore: Update peer dependencies" [#533](https://github.com/grafana/scenes/pull/533) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 3
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.29.0 (Tue Jan 16 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SplitLayout: Allow pane style overrides to be passed through [#531](https://github.com/grafana/scenes/pull/531) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### 🐛 Bug Fix
+
+- Correct developer docs link in README [#522](https://github.com/grafana/scenes/pull/522) ([@annanay25](https://github.com/annanay25))
+- `@grafana/scenes`
+  - Variables: Checking if a dependency is loading should also check that dependency dependencies [#523](https://github.com/grafana/scenes/pull/523) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- Annanay Agarwal ([@annanay25](https://github.com/annanay25))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v1.28.6 (Sat Jan 06 2024)
+
+#### 🐛 Bug Fix
+
+- Update README with developer docs [#520](https://github.com/grafana/scenes/pull/520) ([@annanay25](https://github.com/annanay25))
+- Moving the grafana monitoring demo app to scenes-app [#512](https://github.com/grafana/scenes/pull/512) ([@torkelo](https://github.com/torkelo))
+- Demos: Adds an example with InteractiveTable with exandable rows that shows sub scenes [#505](https://github.com/grafana/scenes/pull/505) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - SceneTimeRange: Support delay now to avoid data drops in charts [#509](https://github.com/grafana/scenes/pull/509) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+  - Fix issue with duplicate annotations [#515](https://github.com/grafana/scenes/pull/515) ([@domasx2](https://github.com/domasx2))
+  - SceneQueryRunner: Fix redundant execution on variable change [#519](https://github.com/grafana/scenes/pull/519) ([@domasx2](https://github.com/domasx2))
+  - Splitter: Fixes small issue with keyboard control [#498](https://github.com/grafana/scenes/pull/498) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 5
+
+- Annanay Agarwal ([@annanay25](https://github.com/annanay25))
+- Domas ([@domasx2](https://github.com/domasx2))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v1.28.5 (Wed Dec 20 2023)
 
 #### 🐛 Bug Fix

@@ -1,4 +1,6 @@
+import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectState } from '../core/types';
+import { writeSceneLog } from '../utils/writeSceneLog';
 import { VARIABLE_REGEX } from './constants';
 
 import { SceneVariable, SceneVariableDependencyConfigLike } from './types';
@@ -14,22 +16,27 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    * Explicit list of variable names to depend on. Leave empty to scan state for dependencies.
    */
   variableNames?: string[];
+
   /**
    * Optional way to customize how to handle when a dependent variable changes
    * If not specified the default behavior is to trigger a re-render
    */
-  onReferencedVariableValueChanged?: () => void;
+  onReferencedVariableValueChanged?: (variable: SceneVariable) => void;
 
   /**
-   * Optional way to customize how to handle when the variable system has completed an update
+   * Two scenarios trigger this callback to be called.
+   * 1. When any direct dependency changed value
+   * 2. In case hasDependencyInLoadingState was called and returned true we really care about any variable update. So in this scenario this callback is called
+   *    after any variable update completes. This is to cover scenarios where an object is waiting for indirect dependencies to complete.
    */
-  onVariableUpdatesCompleted?: (changedVariables: Set<SceneVariable>, dependencyChanged: boolean) => void;
+  onVariableUpdateCompleted?: () => void;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
   private _state: TState | undefined;
   private _dependencies = new Set<string>();
   private _statePaths?: Array<keyof TState>;
+  private _isWaitingForVariables = false;
 
   public scanCount = 0;
 
@@ -50,38 +57,48 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   /**
    * This is called whenever any set of variables have new values. It up to this implementation to check if it's relevant given the current dependencies.
    */
-  public variableUpdatesCompleted(changedVariables: Set<SceneVariable>) {
+  public variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean) {
     const deps = this.getNames();
     let dependencyChanged = false;
 
-    for (const variable of changedVariables) {
-      if (deps.has(variable.state.name)) {
-        dependencyChanged = true;
-        break;
-      }
+    if (deps.has(variable.state.name) && hasChanged) {
+      dependencyChanged = true;
     }
 
-    // If custom handler is always called to let the scene object know that SceneVariableSet has completed processing variables
-    if (this._options.onVariableUpdatesCompleted) {
-      this._options.onVariableUpdatesCompleted(changedVariables, dependencyChanged);
-      return;
+    writeSceneLog(
+      'VariableDependencyConfig',
+      'variableUpdateCompleted',
+      variable.state.name,
+      dependencyChanged,
+      this._isWaitingForVariables
+    );
+
+    // If custom handler called when dependency is changed or when we are waiting for variables
+    if (this._options.onVariableUpdateCompleted && (this._isWaitingForVariables || dependencyChanged)) {
+      this._options.onVariableUpdateCompleted();
     }
 
     if (dependencyChanged) {
       if (this._options.onReferencedVariableValueChanged) {
-        this._options.onReferencedVariableValueChanged();
-      } else {
-        this.defaultHandlerReferencedVariableValueChanged();
+        this._options.onReferencedVariableValueChanged(variable);
+      }
+
+      // if no callbacks are specified then just do a forceRender
+      if (!this._options.onReferencedVariableValueChanged && !this._options.onVariableUpdateCompleted) {
+        this._sceneObject.forceRender();
       }
     }
   }
 
-  /**
-   * Only way to force a re-render is to update state right now
-   */
-  private defaultHandlerReferencedVariableValueChanged = () => {
-    this._sceneObject.forceRender();
-  };
+  public hasDependencyInLoadingState() {
+    if (sceneGraph.hasVariableDependencyInLoadingState(this._sceneObject)) {
+      this._isWaitingForVariables = true;
+      return true;
+    }
+
+    this._isWaitingForVariables = false;
+    return false;
+  }
 
   public getNames(): Set<string> {
     const prevState = this._state;

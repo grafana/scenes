@@ -25,6 +25,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       width="auto"
       value={value}
       allowCustomValue
+      virtualized
       tabSelectsValue={false}
       onInputChange={onInputChange}
       options={model.getOptionsForSelect()}
@@ -36,7 +37,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
 }
 
 export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key, maxVisibleValues } = model.useState();
+  const { value, key, maxVisibleValues, noValueOnClear } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
 
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
@@ -66,6 +67,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
+      virtualized
       allowCustomValue
       options={model.getOptionsForSelect()}
       closeMenuOnSelect={false}
@@ -74,7 +76,10 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       onBlur={() => {
         model.changeValueTo(uncommittedValue);
       }}
-      onChange={(newValue) => {
+      onChange={(newValue, action) => {
+        if (action.action === 'clear' && noValueOnClear) {
+          model.changeValueTo([]);
+        }
         setUncommittedValue(newValue.map((x) => x.value!));
       }}
     />

@@ -144,6 +144,12 @@ export interface SceneTimeRangeState extends SceneObjectState {
   timeZone?: TimeZone;
   /** weekStart will change the global date locale so having multiple different weekStart values is not supported  */
   weekStart?: string;
+  /**
+   * @internal
+   * To enable feature parity with the old time range picker, not sure if it will be kept.
+   * Override the now time by entering a time delay. Use this option to accommodate known delays in data aggregation to avoid null values.
+   * */
+  UNSAFE_nowDelay?: string;
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
@@ -210,9 +216,6 @@ export interface SceneDataLayerProviderState extends SceneObjectState {
   data?: PanelData;
   isEnabled?: boolean;
   isHidden?: boolean;
-
-  // Private runtime state
-  _isWaitingForVariables?: boolean;
 }
 
 export interface SceneDataLayerProvider extends SceneObject<SceneDataLayerProviderState> {

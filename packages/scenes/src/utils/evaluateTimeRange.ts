@@ -1,15 +1,18 @@
-import { dateMath, TimeRange } from '@grafana/data';
+import { dateMath, DateTime, TimeRange } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 export function evaluateTimeRange(
-  from: string,
-  to: string,
+  from: string | DateTime,
+  to: string | DateTime,
   timeZone: TimeZone,
-  fiscalYearStartMonth?: number
+  fiscalYearStartMonth?: number,
+  delay?: string
 ): TimeRange {
+  const hasDelay = delay && to === 'now';
+
   return {
     from: dateMath.parse(from, false, timeZone, fiscalYearStartMonth)!,
-    to: dateMath.parse(to, true, timeZone, fiscalYearStartMonth)!,
+    to: dateMath.parse(hasDelay ? 'now-' + delay : to, true, timeZone, fiscalYearStartMonth)!,
     raw: {
       from: from,
       to: to,

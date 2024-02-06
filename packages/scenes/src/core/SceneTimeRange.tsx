@@ -17,7 +17,13 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     const from = state.from ?? 'now-6h';
     const to = state.to ?? 'now';
     const timeZone = state.timeZone;
-    const value = evaluateTimeRange(from, to, timeZone || getTimeZone(), state.fiscalYearStartMonth);
+    const value = evaluateTimeRange(
+      from,
+      to,
+      timeZone || getTimeZone(),
+      state.fiscalYearStartMonth,
+      state.UNSAFE_nowDelay
+    );
     super({ from, to, timeZone, value, ...state });
 
     this.addActivationHandler(this._onActivate.bind(this));
@@ -36,7 +42,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
                   this.state.from,
                   this.state.to,
                   timeZoneSource.getTimeZone(),
-                  this.state.fiscalYearStartMonth
+                  this.state.fiscalYearStartMonth,
+                  this.state.UNSAFE_nowDelay
                 ),
               });
             }
@@ -121,7 +128,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       updateToEval.from,
       updateToEval.to,
       this.getTimeZone(),
-      this.state.fiscalYearStartMonth
+      this.state.fiscalYearStartMonth,
+      this.state.UNSAFE_nowDelay
     );
 
     // Only update if time range actually changed
@@ -136,7 +144,13 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onRefresh = () => {
     this.setState({
-      value: evaluateTimeRange(this.state.from, this.state.to, this.getTimeZone(), this.state.fiscalYearStartMonth),
+      value: evaluateTimeRange(
+        this.state.from,
+        this.state.to,
+        this.getTimeZone(),
+        this.state.fiscalYearStartMonth,
+        this.state.UNSAFE_nowDelay
+      ),
     });
   };
 
@@ -166,7 +180,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.from ?? this.state.from,
       update.to ?? this.state.to,
       this.getTimeZone(),
-      this.state.fiscalYearStartMonth
+      this.state.fiscalYearStartMonth,
+      this.state.UNSAFE_nowDelay
     );
     this.setState(update);
   }

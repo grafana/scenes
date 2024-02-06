@@ -1,10 +1,11 @@
 import React from 'react';
 import { AdHocVariableFilter } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent } from '../types';
+import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { AdHocFilterSet, AdHocFilterSetState } from './AdHocFiltersSet';
 import { SceneComponentProps } from '../../core/types';
 import { VariableHide } from '@grafana/schema';
+import { renderPrometheusLabelFilters } from '../utils';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
@@ -20,7 +21,16 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
 
 export type AdHocFiltersVariableCreateHelperArgs = Pick<
   AdHocFilterSetState,
-  'name' | 'filters' | 'baseFilters' | 'datasource' | 'tagKeyRegexFilter' | 'getTagKeysProvider' | 'getTagValuesProvider' | 'name' | 'layout'
+  | 'name'
+  | 'filters'
+  | 'baseFilters'
+  | 'datasource'
+  | 'tagKeyRegexFilter'
+  | 'getTagKeysProvider'
+  | 'getTagValuesProvider'
+  | 'name'
+  | 'layout'
+  | 'applyMode'
 >;
 
 export class AdHocFiltersVariable
@@ -34,9 +44,9 @@ export class AdHocFiltersVariable
       hide: VariableHide.hideLabel,
       name: state.name ?? 'Filters',
       set: new AdHocFilterSet({
-        ...state,
-        // Main reason for this helper factory functyion
+        // The applyMode defaults to 'manual' when used through the variable as it is the most frecuent use case
         applyMode: 'manual',
+        ...state,
       }),
     });
   }
@@ -44,7 +54,7 @@ export class AdHocFiltersVariable
   public constructor(state: AdHocFiltersVariableState) {
     super({
       ...state,
-      filterExpression: state.filterExpression ?? renderFilters(state.set.state.filters),
+      filterExpression: state.filterExpression ?? renderPrometheusLabelFilters(state.set.state.filters),
     });
 
     // Subscribe to filter changes and up the variable value (filterExpression)
@@ -61,12 +71,12 @@ export class AdHocFiltersVariable
     });
   }
 
-  public getValue() {
+  public getValue(): VariableValue | undefined {
     return this.state.filterExpression;
   }
 
   private _updateFilterExpression(filters: AdHocVariableFilter[], publishEvent: boolean) {
-    let expr = renderFilters(filters);
+    let expr = renderPrometheusLabelFilters(filters);
 
     if (expr === this.state.filterExpression) {
       return;
@@ -81,59 +91,6 @@ export class AdHocFiltersVariable
 
   // Same UI as the standalone AdHocFilterSet
   public static Component = ({ model }: SceneComponentProps<AdHocFiltersVariable>) => {
-    return <AdHocFilterSet.Component model={model.state.set} />;
+    return <model.state.set.Component model={model.state.set} />;
   };
-}
-
-function renderFilters(filters: AdHocVariableFilter[]) {
-  let expr = '';
-  for (const filter of filters) {
-    expr += `${renderFilter(filter)},`;
-  }
-
-  if (expr.length > 0) {
-    expr = expr.slice(0, -1);
-  }
-
-  return expr;
-}
-
-function renderFilter(filter: AdHocVariableFilter) {
-  let value = '';
-
-  if (filter.operator === '=~' || filter.operator === '!~¨') {
-    value = escapeLabelValueInRegexSelector(filter.value);
-  } else {
-    value = escapeLabelValueInExactSelector(filter.value);
-  }
-
-  return `${filter.key}${filter.operator}"${value}"`;
-}
-
-// based on the openmetrics-documentation, the 3 symbols we have to handle are:
-// - \n ... the newline character
-// - \  ... the backslash character
-// - "  ... the double-quote character
-export function escapeLabelValueInExactSelector(labelValue: string): string {
-  return labelValue.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/"/g, '\\"');
-}
-
-export function escapeLabelValueInRegexSelector(labelValue: string): string {
-  return escapeLabelValueInExactSelector(escapeLokiRegexp(labelValue));
-}
-
-export function isRegexSelector(selector?: string) {
-  if (selector && (selector.includes('=~') || selector.includes('!~'))) {
-    return true;
-  }
-  return false;
-}
-
-// Loki regular-expressions use the RE2 syntax (https://github.com/google/re2/wiki/Syntax),
-// so every character that matches something in that list has to be escaped.
-// the list of meta characters is: *+?()|\.[]{}^$
-// we make a javascript regular expression that matches those characters:
-const RE2_METACHARACTERS = /[*+?()|\\.\[\]{}^$]/g;
-function escapeLokiRegexp(value: string): string {
-  return value.replace(RE2_METACHARACTERS, '\\$&');
 }

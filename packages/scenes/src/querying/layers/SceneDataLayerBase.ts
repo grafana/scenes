@@ -10,7 +10,6 @@ import {
 } from '../../core/types';
 import { setBaseClassState } from '../../utils/utils';
 import { writeSceneLog } from '../../utils/writeSceneLog';
-import { SceneVariable } from '../../variables/types';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { VariableValueRecorder } from '../../variables/VariableValueRecorder';
 
@@ -56,8 +55,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   private _variableValueRecorder = new VariableValueRecorder();
 
   protected _variableDependency: VariableDependencyConfig<T> = new VariableDependencyConfig(this, {
-    onVariableUpdatesCompleted: (variables, dependencyChanged) =>
-      this.onVariableUpdatesCompleted(variables, dependencyChanged),
+    onVariableUpdateCompleted: this.onVariableUpdateCompleted.bind(this),
   });
 
   /**
@@ -124,16 +122,8 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
-  protected onVariableUpdatesCompleted(variables: Set<SceneVariable>, dependencyChanged: boolean): void {
-    writeSceneLog('SceneDataLayerBase', 'onVariableUpdatesCompleted');
-    if (this.state._isWaitingForVariables && this.shouldRunLayerOnActivate()) {
-      this.runLayer();
-      return;
-    }
-
-    if (dependencyChanged) {
-      this.runLayer();
-    }
+  protected onVariableUpdateCompleted(): void {
+    this.runLayer();
   }
 
   public cancelQuery() {
@@ -169,6 +159,10 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
         'SceneDataLayerBase',
         'Variable dependency changed while inactive, shouldRunLayerOnActivate returns true'
       );
+      return true;
+    }
+
+    if (!this.querySub) {
       return true;
     }
 

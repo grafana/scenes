@@ -57,7 +57,10 @@ export function interpolate(
 }
 
 /**
- * Checks if the variable is currently loading or waiting to update
+ * Checks if the variable is currently loading or waiting to update.
+ * It also returns true if a dependency of the variable is loading.
+ *
+ * For example if C depends on variable B which depends on variable A and A is loading this returns true for variable C and B.
  */
 export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   if (!sceneObject.variableDependency) {
@@ -118,6 +121,23 @@ function findObjectInternal(
  */
 export function findObject(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject | null {
   return findObjectInternal(scene, check, undefined, true);
+}
+
+/**
+ * This will search down the full scene graph, looking for objects that match the provided predicate.
+ */
+export function findAllObjects(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject[] {
+  const found: SceneObject[] = [];
+
+  scene.forEachChild((child) => {
+    if (check(child)) {
+      found.push(child);
+    }
+
+    found.push(...findAllObjects(child, check));
+  });
+
+  return found;
 }
 
 /**
