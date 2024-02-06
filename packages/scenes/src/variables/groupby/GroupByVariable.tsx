@@ -121,7 +121,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       baseFilters: [],
       applyMode: 'same-datasource',
       layout: 'horizontal',
-      type: 'adhoc-aggregation-' as VariableType,
+      type: 'groupby' as VariableType,
       ...initialState,
       noValueOnClear: true,
     });
