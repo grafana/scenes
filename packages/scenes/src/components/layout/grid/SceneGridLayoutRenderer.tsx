@@ -8,7 +8,8 @@ import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 // @ts-expect-error TODO remove when @grafana/ui is upgraded to 10.4
 import { LayoutItemContext, useTheme2 } from '@grafana/ui';
-import { cx } from '@emotion/css';
+import { css, cx } from '@emotion/css';
+import { hover } from '@testing-library/user-event/dist/types/convenience';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
@@ -112,6 +113,18 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
     zIndex: boostedCount.current === 0 ? descIndex : theme.zIndex.dropdown,
   };
 
+  const styleTest = css({
+    position: 'absolute',
+    bottom: -7,
+    right: -1,
+    zIndex: 999,
+    color: theme.colors.border.strong,
+    cursor: 'se-resize',
+    '&:hover': {
+      color: theme.colors.text.link,
+    },
+  });
+
   if (isLazy) {
     return (
       <LazyLoader
@@ -123,6 +136,22 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
         ref={ref}
       >
         {innerContentWithContext}
+<<<<<<< Updated upstream
+||||||| constructed merge base
+        {children}
+=======
+        <div className={styleTest}>
+          <svg width="16px" height="16x" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M21 15L15 21M21 8L8 21"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+>>>>>>> Stashed changes
       </LazyLoader>
     );
   }
