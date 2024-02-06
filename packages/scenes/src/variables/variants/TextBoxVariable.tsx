@@ -1,6 +1,6 @@
 import React from 'react';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
+import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
 import { VariableValueInput } from '../components/VariableValueInput';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
@@ -13,8 +13,6 @@ export class TextBoxVariable
   extends SceneObjectBase<TextBoxVariableState>
   implements SceneVariable<TextBoxVariableState>
 {
-  protected _urlSync: SceneObjectUrlSyncHandler;
-
   public constructor(initialState: Partial<TextBoxVariableState>) {
     super({
       type: 'textbox',
@@ -23,7 +21,7 @@ export class TextBoxVariable
       ...initialState,
     });
 
-    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: [this.getKey()] });
+    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: () => [this.getKey()] });
   }
 
   public getValue(): VariableValue {

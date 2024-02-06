@@ -26,4 +26,14 @@ describe('TextBoxVariable', () => {
     expect(screen.getByText('search')).toBeInTheDocument();
     expect(nestedObj.state.variableValueChanged).toBe(0);
   });
+
+  it('Should change url sync key when name changes', async () => {
+    const variable = new TextBoxVariable({ name: 'search' });
+
+    expect(variable.urlSync?.getKeys()).toEqual(['var-search']);
+
+    variable.setState({ name: 'newName' });
+
+    expect(variable.urlSync?.getKeys()).toEqual(['var-newName']);
+  });
 });
