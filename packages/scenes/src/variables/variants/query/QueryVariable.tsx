@@ -152,5 +152,5 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
 function containsSearchFilter(query: string | DataQuery) {
   const str = safeStringifyValue(query);
-  return str.indexOf(SEARCH_FILTER_VARIABLE);
+  return str.indexOf(SEARCH_FILTER_VARIABLE) > -1;
 }
