@@ -25,6 +25,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       width="auto"
       value={value}
       allowCustomValue
+      virtualized
       tabSelectsValue={false}
       onInputChange={onInputChange}
       options={model.getOptionsForSelect()}

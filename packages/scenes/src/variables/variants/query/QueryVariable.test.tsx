@@ -366,5 +366,30 @@ describe('QueryVariable', () => {
       expect(runRequestMock).toBeCalledTimes(2);
       expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
     });
+
+    it('Should not trigger new query whern __searchFilter is not present', async () => {
+      const variable = new QueryVariable({
+        name: 'server',
+        datasource: null,
+        query: 'A.*',
+      });
+
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        controls: [new VariableValueSelectors({})],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      render(<scene.Component model={scene} />);
+
+      const select = await screen.findByRole('combobox');
+      await userEvent.click(select);
+      await userEvent.type(select, 'muu!');
+
+      // wait for debounce
+      await new Promise((r) => setTimeout(r, 500));
+
+      expect(runRequestMock).toBeCalledTimes(1);
+    });
   });
 });
