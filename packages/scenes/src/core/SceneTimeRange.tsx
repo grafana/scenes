@@ -155,7 +155,12 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   public getUrlState() {
-    return { from: this.state.from, to: this.state.to, timezone: this.state.timeZone };
+    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to };
+    if (this.state.timeZone) {
+      urlValues.timezone = this.state.timeZone;
+    }
+
+    return urlValues;
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
