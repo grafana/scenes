@@ -67,6 +67,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
+      virtualized
       allowCustomValue
       options={model.getOptionsForSelect()}
       closeMenuOnSelect={false}
