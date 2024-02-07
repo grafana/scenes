@@ -74,7 +74,7 @@ export class AnnotationsDataLayer
 
       if (this._queryController) {
         stream = this._queryController.registerQuery({
-          runStream: stream,
+          queryStream: stream,
           type: 'annotations',
           sceneObject: this,
           cancel: () => this.cancelQuery(),

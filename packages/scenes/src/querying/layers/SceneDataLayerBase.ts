@@ -1,7 +1,6 @@
 import { DataTopic, PanelData } from '@grafana/data';
 import { ReplaySubject, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../core/SceneDataNode';
-import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import {
   CancelActivationHandler,
@@ -13,7 +12,6 @@ import { setBaseClassState } from '../../utils/utils';
 import { writeSceneLog } from '../../utils/writeSceneLog';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { VariableValueRecorder } from '../../variables/VariableValueRecorder';
-import { SceneQueryControllerLike } from '../SceneQueryController';
 
 /**
  * Base class for data layer. Handles common implementation including enabling/disabling layer and publishing results.
@@ -60,8 +58,6 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
     onVariableUpdateCompleted: this.onVariableUpdateCompleted.bind(this),
   });
 
-  protected _queryController?: SceneQueryControllerLike;
-
   /**
    * For variables support in data layer provide variableDependencyStatePaths with keys of the state to be scanned for variables.
    */
@@ -79,8 +75,6 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
     if (this.state.isEnabled) {
       this.onEnable();
     }
-
-    this._queryController = sceneGraph.getQueryController(this);
 
     if (this.shouldRunLayerOnActivate()) {
       this.runLayer();

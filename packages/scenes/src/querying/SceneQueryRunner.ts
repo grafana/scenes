@@ -38,7 +38,7 @@ import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
-import { SceneQueryControllerLike } from './SceneQueryController';
+import { registerQueryWithController } from './SceneQueryController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 
@@ -73,7 +73,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
-  private _queryController?: SceneQueryControllerLike;
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
 
@@ -103,8 +102,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = this.getTimeCompare();
-
-    this._queryController = sceneGraph.getQueryController(this);
 
     if (comparer) {
       this._subs.add(
@@ -396,15 +393,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         stream = forkJoin([stream, runRequest(ds, secondaryRequest)]).pipe(timeShiftQueryResponseOperator);
       }
 
-      if (this._queryController) {
-        stream = this._queryController.registerQuery({
+      stream = stream.pipe(
+        registerQueryWithController({
           type: 'data',
           request,
           sceneObject: this,
-          runStream: stream,
           cancel: () => this.cancelQuery(),
-        });
-      }
+        })
+      );
 
       this._querySub = stream.subscribe(this.onDataReceived);
     } catch (err) {

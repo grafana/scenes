@@ -1,12 +1,18 @@
 import { LoadingState } from '@grafana/schema';
 import { Observable } from 'rxjs';
-import { QueryResultWithState, SceneQueryController } from './SceneQueryController';
+import { SceneObject } from '../core/types';
+import { TestScene } from '../variables/TestScene';
+import { QueryResultWithState, registerQueryWithController, SceneQueryController } from './SceneQueryController';
 
 describe('SceneQueryController', () => {
   let controller: SceneQueryController;
+  let scene: SceneObject;
 
   beforeEach(() => {
     controller = new SceneQueryController({});
+    scene = new TestScene({
+      $behaviors: [controller],
+    });
   });
 
   it('Wraps query observable', async () => {
@@ -60,7 +66,7 @@ describe('SceneQueryController', () => {
   });
 });
 
-function registerQuery(controller: SceneQueryController) {
+function registerQuery(scene: SceneObject) {
   let streamFuncs = {
     next: (data: QueryResultWithState) => {},
     complete: () => {},
@@ -76,7 +82,7 @@ function registerQuery(controller: SceneQueryController) {
     return streamFuncs.cleanup;
   });
 
-  const query = controller.registerQuery({ type: 'data', runStream });
+  const query = runStream.pipe(registerQueryWithController({ type: 'data', sceneObject: scene }));
 
-  return { controller, query, streamFuncs };
+  return { query, streamFuncs };
 }

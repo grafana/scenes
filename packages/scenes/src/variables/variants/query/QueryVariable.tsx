@@ -27,6 +27,7 @@ import { DataQuery, DataSourceRef } from '@grafana/schema';
 import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { DataQueryExtended } from '../../../querying/SceneQueryRunner';
 import { debounce } from 'lodash';
+import { registerQueryWithController } from '../../../querying/SceneQueryController';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -65,8 +66,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       return of([]);
     }
 
-    const queryController = sceneGraph.getQueryController(this);
-
     this.setState({ loading: true, error: null });
 
     return from(
@@ -79,19 +78,12 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
         const target = runner.getTarget(this);
         const request = this.getRequest(target, args.searchFilter);
 
-        let runStream = runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request);
-
-        if (queryController) {
-          runStream = queryController.registerQuery({
-            sceneObject: this,
+        return runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request).pipe(
+          registerQueryWithController({
             type: 'variable',
-            request,
-            runStream,
-            cancel: () => this.onCancel?.(),
-          });
-        }
-
-        return runStream.pipe(
+            request: request,
+            sceneObject: this,
+          }),
           filter((data) => data.state === LoadingState.Done || data.state === LoadingState.Error), // we only care about done or error for now
           take(1), // take the first result, using first caused a bug where it in some situations throw an uncaught error because of no results had been received yet
           mergeMap((data: PanelData) => {

@@ -3,6 +3,7 @@ import { SceneObject, SceneObjectState, SceneStatelessBehavior } from '../core/t
 import { DataQueryRequest } from '@grafana/data';
 import { Observable } from 'rxjs';
 import { LoadingState } from '@grafana/schema';
+import { sceneGraph } from '../core/sceneGraph';
 
 export interface SceneQueryStateControllerState extends SceneObjectState {
   isRunning: boolean;
@@ -12,11 +13,8 @@ export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateCon
   isQueryController: true;
   cancelAll(): void;
 
-  /**
-   * This wraps the query observable to be able to spy on the running state of the query
-   * and be able to cancel it
-   */
-  registerQuery<T extends QueryResultWithState>(entry: SceneQueryControllerEntry<T>): Observable<T>;
+  queryStarted(entry: SceneQueryControllerEntry): void;
+  queryCompleted(entry: SceneQueryControllerEntry): void;
 }
 
 export function isQueryController(s: SceneObject | SceneStatelessBehavior): s is SceneQueryControllerLike {
@@ -29,11 +27,10 @@ export interface QueryResultWithState {
   state: LoadingState;
 }
 
-export interface SceneQueryControllerEntry<T extends QueryResultWithState = QueryResultWithState> {
+export interface SceneQueryControllerEntry {
   request?: DataQueryRequest;
   type: SceneQueryType;
-  sceneObject?: SceneObject;
-  runStream: Observable<T>;
+  sceneObject: SceneObject;
   cancel?: () => void;
 }
 
@@ -55,52 +52,9 @@ export class SceneQueryController
     if (!this.state.isRunning) {
       this.setState({ isRunning: true });
     }
-
-    return () => {
-      this.#running.delete(entry);
-
-      if (this.#running.size === 0) {
-        this.setState({ isRunning: false });
-      }
-    };
   }
 
-  public registerQuery<T extends QueryResultWithState>(entry: SceneQueryControllerEntry<T>): Observable<T> {
-    const obs = new Observable<T>((observer) => {
-      if (!entry.cancel) {
-        entry.cancel = () => observer.complete();
-      }
-
-      this.#running.add(entry);
-
-      if (!this.state.isRunning) {
-        this.setState({ isRunning: true });
-      }
-
-      const sub = entry.runStream.subscribe({
-        next: (v) => {
-          if (v.state !== LoadingState.Loading) {
-            this.queryCompleted(entry);
-          }
-
-          observer.next(v);
-        },
-        error: (e) => observer.error(e),
-        complete: () => {
-          observer.complete();
-        },
-      });
-
-      return () => {
-        sub.unsubscribe();
-        this.queryCompleted(entry);
-      };
-    });
-
-    return obs;
-  }
-
-  private queryCompleted(entry: SceneQueryControllerEntry) {
+  public queryCompleted(entry: SceneQueryControllerEntry) {
     this.#running.delete(entry);
 
     if (this.#running.size === 0) {
@@ -113,4 +67,40 @@ export class SceneQueryController
       entry.cancel?.();
     }
   }
+}
+
+export function registerQueryWithController<T extends QueryResultWithState>(entry: SceneQueryControllerEntry) {
+  return (queryStream: Observable<T>) => {
+    const queryControler = sceneGraph.getQueryController(entry.sceneObject);
+    if (!queryControler) {
+      return queryStream;
+    }
+
+    return new Observable<T>((observer) => {
+      if (!entry.cancel) {
+        entry.cancel = () => observer.complete();
+      }
+
+      queryControler.queryStarted(entry);
+
+      const sub = queryStream.subscribe({
+        next: (v) => {
+          if (v.state !== LoadingState.Loading) {
+            queryControler.queryCompleted(entry);
+          }
+
+          observer.next(v);
+        },
+        error: (e) => observer.error(e),
+        complete: () => {
+          observer.complete();
+        },
+      });
+
+      return () => {
+        sub.unsubscribe();
+        queryControler.queryCompleted(entry);
+      };
+    });
+  };
 }
