@@ -26,7 +26,7 @@ import { EmbeddedScene } from '../../../components/EmbeddedScene';
 import { SceneVariableSet } from '../../sets/SceneVariableSet';
 import { VariableValueSelectors } from '../../components/VariableValueSelectors';
 import { SceneCanvasText } from '../../../components/SceneCanvasText';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setRunRequest } from '@grafana/runtime';
 
@@ -331,7 +331,6 @@ describe('QueryVariable', () => {
         { label: 'val1', value: 'val1' },
         { label: 'val11', value: 'val11' },
         { label: 'val2', value: 'val2' },
-        
       ]);
     });
   });
@@ -357,12 +356,15 @@ describe('QueryVariable', () => {
 
       render(<scene.Component model={scene} />);
 
+      await act(() => new Promise((r) => setTimeout(r, 10)));
+
       const select = await screen.findByRole('combobox');
+
       await userEvent.click(select);
       await userEvent.type(select, 'muu!');
 
       // wait for debounce
-      await new Promise((r) => setTimeout(r, 500));
+      await act(() => new Promise((r) => setTimeout(r, 500)));
 
       expect(runRequestMock).toBeCalledTimes(2);
       expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
@@ -382,6 +384,8 @@ describe('QueryVariable', () => {
       });
 
       render(<scene.Component model={scene} />);
+
+      await act(() => new Promise((r) => setTimeout(r, 10)));
 
       const select = await screen.findByRole('combobox');
       await userEvent.click(select);
