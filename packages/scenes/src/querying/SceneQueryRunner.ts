@@ -402,10 +402,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
           request,
           sceneObject: this,
           runStream: stream,
+          cancel: () => this.cancelQuery(),
         });
       }
 
-      stream.subscribe(this.onDataReceived);
+      this._querySub = stream.subscribe(this.onDataReceived);
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 

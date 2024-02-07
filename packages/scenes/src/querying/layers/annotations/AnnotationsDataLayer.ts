@@ -77,6 +77,7 @@ export class AnnotationsDataLayer
           runStream: stream,
           type: 'annotations',
           sceneObject: this,
+          cancel: () => this.cancelQuery(),
         });
       }
 
