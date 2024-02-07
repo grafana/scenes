@@ -19,18 +19,18 @@ export function isQueryController(s: SceneObject | SceneStatelessBehavior): s is
   return 'isQueryController' in s;
 }
 
-export type SceneQueryType = 'data' | 'annotations' | 'variable' | 'alerts';
-
 export interface QueryResultWithState {
   state: LoadingState;
 }
 
 export interface SceneQueryControllerEntry {
   request?: DataQueryRequest;
-  type: SceneQueryType;
+  type: SceneQueryControllerEntryType;
   origin: SceneObject;
   cancel?: () => void;
 }
+
+export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts';
 
 export class SceneQueryController
   extends SceneObjectBase<SceneQueryStateControllerState>

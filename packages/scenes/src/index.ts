@@ -33,6 +33,11 @@ export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
 export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
+export type {
+  SceneQueryControllerLike,
+  SceneQueryControllerEntryType,
+  SceneQueryControllerEntry,
+} from './behaviors/SceneQueryController';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
