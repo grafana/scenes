@@ -57,7 +57,7 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
     return new Observable<VariableValueOption[]>((observer) => {
       const queryEntry: SceneQueryControllerEntry = {
         type: 'variable',
-        sceneObject: this,
+        origin: this,
         cancel: () => observer.complete(),
       };
 

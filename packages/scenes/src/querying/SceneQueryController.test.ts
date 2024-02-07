@@ -83,7 +83,7 @@ function registerQuery(scene: SceneObject) {
     return streamFuncs.cleanup;
   });
 
-  const query = runStream.pipe(registerQueryWithController({ type: 'data', sceneObject: scene }));
+  const query = runStream.pipe(registerQueryWithController({ type: 'data', origin: scene }));
 
   return { query, streamFuncs };
 }

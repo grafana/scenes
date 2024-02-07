@@ -28,7 +28,7 @@ export interface QueryResultWithState {
 export interface SceneQueryControllerEntry {
   request?: DataQueryRequest;
   type: SceneQueryType;
-  sceneObject: SceneObject;
+  origin: SceneObject;
   cancel?: () => void;
 }
 

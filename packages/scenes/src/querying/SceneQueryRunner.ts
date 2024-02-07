@@ -397,7 +397,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         registerQueryWithController({
           type: 'data',
           request,
-          sceneObject: this,
+          origin: this,
           cancel: () => this.cancelQuery(),
         })
       );
