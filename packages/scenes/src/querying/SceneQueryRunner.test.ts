@@ -72,6 +72,7 @@ const getDataSourceMock = jest.fn().mockReturnValue({
         ],
       });
     }
+
     return of({
       data: [
         toDataFrame({

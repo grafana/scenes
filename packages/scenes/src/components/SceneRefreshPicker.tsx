@@ -5,7 +5,7 @@ import { RefreshPicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
+import { SceneComponentProps, SceneObject, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
 export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'];
@@ -18,9 +18,6 @@ export interface SceneRefreshPickerState extends SceneObjectState {
   isOnCanvas?: boolean;
   primary?: boolean;
   withText?: boolean;
-
-  /** internal state */
-  _isRunning?: boolean;
 }
 
 export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState> {
@@ -38,15 +35,6 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     this.addActivationHandler(() => {
       this.setupIntervalTimer();
 
-      const queryController = sceneGraph.getQueryController(this);
-      if (queryController) {
-        this._subs.add(
-          queryController.subscribeToState((state) => {
-            this.setState({ _isRunning: state.isRunning });
-          })
-        );
-      }
-
       return () => {
         if (this._intervalTimer) {
           clearInterval(this._intervalTimer);
@@ -56,11 +44,9 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   }
 
   public onRefresh = () => {
-    if (this.state._isRunning) {
-      const queryController = sceneGraph.getQueryController(this);
-      if (queryController) {
-        queryController.cancelAll();
-      }
+    const queryController = sceneGraph.getQueryController(this);
+    if (queryController?.state.isRunning) {
+      queryController.cancelAll();
       return;
     }
 
@@ -121,11 +107,13 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 }
 
 export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneRefreshPicker>) {
-  const { refresh, intervals, isOnCanvas, _isRunning, primary, withText } = model.useState();
+  const { refresh, intervals, isOnCanvas, primary, withText } = model.useState();
+  const isRunning = useQueryControllerState(model);
+
   let text = withText ? 'Refresh' : undefined;
   let tooltip: string | undefined;
 
-  if (_isRunning) {
+  if (isRunning) {
     tooltip = 'Cancel all queries';
 
     if (withText) {
@@ -142,8 +130,17 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       onRefresh={model.onRefresh}
       primary={primary}
       onIntervalChanged={model.onIntervalChanged}
-      isLoading={_isRunning}
+      isLoading={isRunning}
       isOnCanvas={isOnCanvas ?? true}
     />
   );
+}
+
+function useQueryControllerState(model: SceneObject): boolean {
+  const queryController = sceneGraph.getQueryController(model);
+  if (!queryController) {
+    return false;
+  }
+
+  return queryController.useState().isRunning;
 }

@@ -1,6 +1,7 @@
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneObjectState, SceneStatelessBehavior } from '../core/types';
 import { DataQueryRequest } from '@grafana/data';
+import { LoadingState } from '@grafana/schema';
 
 export interface SceneQueryStateControllerState extends SceneObjectState {
   isRunning: boolean;
@@ -8,9 +9,10 @@ export interface SceneQueryStateControllerState extends SceneObjectState {
 
 export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateControllerState> {
   isQueryController: true;
-
   cancelAll(): void;
-  queryStarted(entry: SceneQueryControllerEntry): () => void;
+
+  queryStarted(entry: SceneQueryControllerEntry): void;
+  queryCompleted(entry: SceneQueryControllerEntry): void;
 }
 
 export function isQueryController(s: SceneObject | SceneStatelessBehavior): s is SceneQueryControllerLike {
@@ -19,11 +21,15 @@ export function isQueryController(s: SceneObject | SceneStatelessBehavior): s is
 
 export type SceneQueryType = 'data' | 'annotations' | 'panel' | 'variable' | 'alerts';
 
+export interface QueryResultWithState {
+  state: LoadingState;
+}
+
 export interface SceneQueryControllerEntry {
   request?: DataQueryRequest;
   type: SceneQueryType;
-  origin?: SceneObject;
-  cancel: () => void;
+  sceneObject: SceneObject;
+  cancel?: () => void;
 }
 
 export class SceneQueryController
@@ -44,19 +50,19 @@ export class SceneQueryController
     if (!this.state.isRunning) {
       this.setState({ isRunning: true });
     }
+  }
 
-    return () => {
-      this.#running.delete(entry);
+  public queryCompleted(entry: SceneQueryControllerEntry) {
+    this.#running.delete(entry);
 
-      if (this.#running.size === 0) {
-        this.setState({ isRunning: false });
-      }
-    };
+    if (this.#running.size === 0) {
+      this.setState({ isRunning: false });
+    }
   }
 
   public cancelAll() {
-    for (const query of this.#running.values()) {
-      query.cancel();
+    for (const entry of this.#running.values()) {
+      entry.cancel?.();
     }
   }
 }

@@ -38,7 +38,7 @@ import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
-import { SceneQueryControllerLike } from './SceneQueryController';
+import { registerQueryWithController } from './registerQueryWithController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 
@@ -68,13 +68,11 @@ export interface DataQueryExtended extends DataQuery {
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
-  private _signalQueryCompleted?: () => void;
   private _dataLayersSub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
-  private _queryController?: SceneQueryControllerLike;
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
 
@@ -104,8 +102,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = this.getTimeCompare();
-
-    this._queryController = sceneGraph.getQueryController(this);
 
     if (comparer) {
       this._subs.add(
@@ -344,11 +340,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
-    if (this._signalQueryCompleted) {
-      this._signalQueryCompleted();
-      this._signalQueryCompleted = undefined;
-    }
-
     this.setState({
       data: { ...this.state.data!, state: LoadingState.Done },
     });
@@ -402,16 +393,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         stream = forkJoin([stream, runRequest(ds, secondaryRequest)]).pipe(timeShiftQueryResponseOperator);
       }
 
-      if (this._queryController) {
-        this._signalQueryCompleted = this._queryController.queryStarted({
+      stream = stream.pipe(
+        registerQueryWithController({
           type: 'data',
-          request: request,
-          source: this,
+          request,
+          sceneObject: this,
           cancel: () => this.cancelQuery(),
-        });
-      }
+        })
+      );
 
-      stream.subscribe(this.onDataReceived);
+      this._querySub = stream.subscribe(this.onDataReceived);
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 
@@ -506,12 +497,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 
   private onDataReceived = (data: PanelData) => {
-    if (data.state !== LoadingState.Loading) {
-      if (this._signalQueryCompleted) {
-        this._signalQueryCompleted();
-      }
-    }
-
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
