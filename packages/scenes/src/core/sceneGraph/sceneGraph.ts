@@ -8,6 +8,7 @@ import { SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } f
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneDataLayers } from '../../querying/SceneDataLayers';
+import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 
 /**
  * Get the closest node with variables
@@ -190,5 +191,29 @@ export function getAncestor<ParentType>(
     parent = parent.parent;
   }
 
-  throw new Error('Unable to find parent of type ' + ancestorType.name);
+  if (!parent) {
+    throw new Error('Unable to find parent of type ' + ancestorType.name);
+  }
+
+  return parent;
+}
+
+/**
+ * Returns the closest query controller undefined if none found
+ */
+export function getQueryController(sceneObject: SceneObject): SceneQueryControllerLike | undefined {
+  let parent: SceneObject | undefined = sceneObject;
+
+  while (parent) {
+    if (parent.state.$behaviors) {
+      for (const behavior of parent.state.$behaviors) {
+        if (isQueryController(behavior)) {
+          return behavior;
+        }
+      }
+    }
+    parent = parent.parent;
+  }
+
+  return parent;
 }

@@ -174,15 +174,15 @@
 
 #### Variables: Notify scene after each variable completion or value change ([#525](https://github.com/grafana/scenes/pull/525))
 
-`VariableDependencyConfigLike` interface has changed so that scene objects now get notified after each variable update is completed (or changed value). Before, the `SceneVariableSet` waited for all variables to complete before notifying scene objects. 
+`VariableDependencyConfigLike` interface has changed so that scene objects now get notified after each variable update is completed (or changed value). Before, the `SceneVariableSet` waited for all variables to complete before notifying scene objects.
 
-The function `variableUpdatesCompleted` has changed name and signature: 
+The function `variableUpdatesCompleted` has changed name and signature:
 
 ```ts
 variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean): void;
 ```
 
-`VariableDependencyConfig` has also some breaking changes. The function named `onVariableUpdatesCompleted` has changed name and signature to: 
+`VariableDependencyConfig` has also some breaking changes. The function named `onVariableUpdatesCompleted` has changed name and signature to:
 
 ```ts
  onVariableUpdateCompleted?: () => void;

@@ -32,6 +32,7 @@ import { getCssGridLayoutDemo } from './cssGridLayoutDemo';
 import { getPanelHeaderActions } from './panelHeaderActions';
 import { getVerticalControlsLayoutDemo } from './verticalControlsLayoutDemo';
 import { getInteractiveTableDemo } from './interactiveTableDemo';
+import { getQueryControllerDemo } from './queryController';
 
 export interface DemoDescriptor {
   title: string;
@@ -73,5 +74,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Panel header actions', getPage: getPanelHeaderActions },
     { title: 'Vertical controls layout', getPage: getVerticalControlsLayoutDemo },
     { title: 'Interactive table with expandable rows', getPage: getInteractiveTableDemo },
+    { title: 'Query controller demo', getPage: getQueryControllerDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

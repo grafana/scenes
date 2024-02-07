@@ -38,6 +38,7 @@ import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
+import { registerQueryWithController } from './registerQueryWithController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 
@@ -385,26 +386,31 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
+      let stream = runRequest(ds, request);
+
       if (secondaryRequest) {
         // change subscribe callback below to pipe operator
-        this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)])
-          .pipe(timeShiftQueryResponseOperator)
-          .subscribe(this.onDataReceived);
-      } else {
-        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+        stream = forkJoin([stream, runRequest(ds, secondaryRequest)]).pipe(timeShiftQueryResponseOperator);
       }
+
+      stream = stream.pipe(
+        registerQueryWithController({
+          type: 'data',
+          request,
+          origin: this,
+          cancel: () => this.cancelQuery(),
+        })
+      );
+
+      this._querySub = stream.subscribe(this.onDataReceived);
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 
-      const result = {
+      this.onDataReceived({
         ...emptyPanelData,
         ...this.state.data,
         state: LoadingState.Error,
         errors: [toDataQueryError(err)],
-      };
-
-      this.setState({
-        data: result,
       });
     }
   }

@@ -25,9 +25,7 @@ export function SplitLayoutRenderer({ model }: SceneFlexItemRenderProps<SplitLay
       secondaryPaneStyles={secondaryPaneStyles}
     >
       <Prim key={primary.state.key} model={primary} parentState={model.state} />
-      { Sec && secondary &&
-      <Sec key={secondary.state.key} model={secondary} parentState={model.state} />
-      }
+      {Sec && secondary && <Sec key={secondary.state.key} model={secondary} parentState={model.state} />}
     </Splitter>
   );
 }

@@ -6,7 +6,7 @@ import {
   SceneAppPage,
   PanelBuilders,
 } from '@grafana/scenes';
-import { getQueryRunnerWithRandomWalkQuery } from './utils';
+import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getLazyLoadDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -17,6 +17,7 @@ export function getLazyLoadDemo(defaults: SceneAppPageState) {
       const height = 6;
 
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
         body: new SceneGridLayout({
           isLazy: true,
           children: panelIds.map(
