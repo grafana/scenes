@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, RouteComponentProps, Switch } from 'react-router-dom';
+import { Redirect, Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObject, isDataRequestEnricher } from '../../core/types';
 import { getUrlSyncManager } from '../../services/UrlSyncManager';
@@ -17,27 +17,35 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   public static Component = SceneAppPageRenderer;
   private _sceneCache = new Map<string, EmbeddedScene>();
   private _drilldownCache = new Map<string, SceneAppPageLike>();
-  private _lastTabIndex = 0
+  private _lastTabUrl;
 
   public constructor(state: SceneAppPageState) {
     super(state);
-    if (this.state.preserveTab)
-    this.addActivationHandler(() => {
-      this.subscribeToState(() => {
-        if(this.state.tabs)
-          for(const [index, tab] of this.state.tabs.entries()){
-            if (tab.isActive){
-              this._lastTabIndex = index
+    this._lastTabUrl = state.preserveTab && 
+                       state.tabs && 
+                       state.tabs.length > 0 ? 
+                       state.tabs[0].state.url : 
+                       undefined
+    
+    if (this.state.preserveTab){
+      this.addActivationHandler(() => {
+        this.subscribeToState(() => {
+          if(this.state.tabs){
+            for(const tab of this.state.tabs){
+              if (tab.isActive){
+                this._lastTabUrl = tab.state.url;
+              }
             }
-        }
-
-      })
-      return () => getUrlSyncManager().cleanUp(this);
-    });
+          }
+        })
+        return () => getUrlSyncManager().cleanUp(this);
+      });
+    }
+    
   }
 
-  public get lastTabIndex(){
-    return this._lastTabIndex;
+  public get lastTabUrl(){
+    return this._lastTabUrl;
   }
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });
@@ -99,22 +107,10 @@ export interface SceneAppPageRendererProps extends SceneComponentProps<SceneAppP
 function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) {
   const { tabs, drilldowns } = model.useState();
   const routes: React.ReactNode[] = [];
-
   if (tabs && tabs.length > 0) {
+    const firstTab = tabs[0];
     for (let tabIndex = 0; tabIndex < tabs.length; tabIndex++) {
       const tab = tabs[tabIndex];
-
-      // Add first tab as a default route, this makes it possible for the first tab to render with the url of the parent page
-      if (tabIndex === model.lastTabIndex) {
-        routes.push(
-          <Route
-            exact={true}
-            key={model.state.url}
-            path={model.state.routePath ?? model.state.url}
-            render={(props) => renderSceneComponentWithRouteProps(tab, props)}
-          ></Route>
-        );
-      }
 
       routes.push(
         <Route
@@ -137,6 +133,19 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
           );
         }
       }
+    }
+    if (model.state.preserveTab && model.lastTabUrl){
+      routes.push(<Redirect from={model.state.url} to={model.lastTabUrl}></Redirect>)
+    }
+    else{ 
+      routes.push(
+        <Route
+          exact={true}
+          key={model.state.url}
+          path={model.state.routePath ?? model.state.url}
+          render={(props) => renderSceneComponentWithRouteProps(firstTab, props)}
+        ></Route>
+      );
     }
   }
 
@@ -185,8 +194,7 @@ function isCurrentPageRouteMatch(page: SceneAppPage, match: SceneRouteMatch) {
   // check if we are a tab and the first tab, then we should also render on the parent url
   if (
     page.parent instanceof SceneAppPage &&
-    page.parent.lastTabIndex !== undefined &&
-    page.parent.state.tabs![page.parent.lastTabIndex] === page &&
+    page.parent.state.tabs![0] === page &&
     page.parent.state.url === match.url
   ) {
     return true;
