@@ -14,9 +14,13 @@ import {
   dataLayers,
   SceneDataLayerControls,
   SceneDataLayers,
+  SceneVariableSet,
+  TestVariable,
+  VariableValueSelectors,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 import { SceneQueryController } from '@grafana/scenes/src/querying/SceneQueryController';
+import { VariableRefresh } from '@grafana/schema';
 
 export function getQueryControllerDemo(defaults: SceneAppPageState) {
   const globalAnnotations = new dataLayers.AnnotationsDataLayer({
@@ -49,8 +53,28 @@ export function getQueryControllerDemo(defaults: SceneAppPageState) {
           layers: [globalAnnotations],
         }),
         $behaviors: [new SceneQueryController({})],
-
+        $variables: new SceneVariableSet({
+          variables: [
+            new TestVariable({
+              name: 'server',
+              query: 'A.*',
+              value: 'server',
+              delayMs: 1000,
+              options: [],
+              refresh: VariableRefresh.onTimeRangeChanged,
+            }),
+            new TestVariable({
+              name: 'pod',
+              query: 'A.$server.*',
+              value: 'pod',
+              delayMs: 3000,
+              options: [],
+              refresh: VariableRefresh.onDashboardLoad,
+            }),
+          ],
+        }),
         controls: [
+          new VariableValueSelectors({}),
           new SceneDataLayerControls(),
           new SceneControlsSpacer(),
           new SceneTimePicker({}),
