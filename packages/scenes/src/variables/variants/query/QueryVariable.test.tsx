@@ -329,8 +329,9 @@ describe('QueryVariable', () => {
 
       expect(variable.state.options).toEqual([
         { label: 'val1', value: 'val1' },
-        { label: 'val2', value: 'val2' },
         { label: 'val11', value: 'val11' },
+        { label: 'val2', value: 'val2' },
+        
       ]);
     });
   });
