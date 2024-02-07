@@ -356,7 +356,7 @@ describe('SceneQueryRunner', () => {
   });
 
   describe('Query controller', () => {
-    it.only('should register itself', async () => {
+    it('should register itself', async () => {
       const queryController = new SceneQueryController({});
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
