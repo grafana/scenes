@@ -110,10 +110,10 @@ export const sortVariableValues = (options: any[], sortOrder: VariableSort) => {
 
   switch (sortOrder) {
     case VariableSort.alphabeticalAsc:
-      options = sortBy(options, 'value');
+      options = sortBy(options, 'label');
       break;
     case VariableSort.alphabeticalDesc:
-      options = sortBy(options, 'value').reverse();
+      options = sortBy(options, 'label').reverse();
       break;
     case VariableSort.numericalAsc:
       options = sortBy(options, sortByNumeric);
@@ -124,12 +124,12 @@ export const sortVariableValues = (options: any[], sortOrder: VariableSort) => {
       break;
     case VariableSort.alphabeticalCaseInsensitiveAsc:
       options = sortBy(options, (opt) => {
-        return toLower(opt.value);
+        return toLower(opt.label);
       });
       break;
     case VariableSort.alphabeticalCaseInsensitiveDesc:
       options = sortBy(options, (opt) => {
-        return toLower(opt.value);
+        return toLower(opt.label);
       });
       options = options.reverse();
       break;
