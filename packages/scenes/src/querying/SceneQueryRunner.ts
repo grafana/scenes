@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef, LoadingState, Panel } from '@grafana/schema';
 
 import {
   AlertStateInfo,
@@ -345,6 +345,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     if (this._signalQueryCompleted) {
+      console.log('cancelQuery', this._signalQueryCompleted);
       this._signalQueryCompleted();
       this._signalQueryCompleted = undefined;
     }
@@ -395,23 +396,37 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
+      let stream = runRequest(ds, request);
+
       if (secondaryRequest) {
         // change subscribe callback below to pipe operator
-        this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)])
-          .pipe(timeShiftQueryResponseOperator)
-          .subscribe(this.onDataReceived);
-      } else {
-        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+        stream = forkJoin([stream, runRequest(ds, secondaryRequest)]).pipe(timeShiftQueryResponseOperator);
       }
 
       if (this._queryController) {
-        this._signalQueryCompleted = this._queryController.queryStarted({
+        stream = this._queryController.registerQuery({
           type: 'data',
-          request: request,
-          source: this,
-          cancel: () => this.cancelQuery(),
+          request,
+          sceneObject: this,
+          runStream: stream,
         });
       }
+
+      stream.subscribe({
+        next: this.onDataReceived,
+        complete: () => {
+          console.log('query completed');
+        },
+      });
+
+      // if (this._queryController) {
+      //   this._signalQueryCompleted = this._queryController.queryStarted({
+      //     type: 'data',
+      //     request: request,
+      //     source: this,
+      //     cancel: () => this.cancelQuery(),
+      //   });
+      // }
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 
@@ -506,6 +521,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 
   private onDataReceived = (data: PanelData) => {
+    console.log('onDataReceived', data.state, this._signalQueryCompleted);
     if (data.state !== LoadingState.Loading) {
       if (this._signalQueryCompleted) {
         this._signalQueryCompleted();
