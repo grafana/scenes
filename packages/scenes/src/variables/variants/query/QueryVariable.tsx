@@ -27,7 +27,7 @@ import { DataQuery, DataSourceRef } from '@grafana/schema';
 import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { DataQueryExtended } from '../../../querying/SceneQueryRunner';
 import { debounce } from 'lodash';
-import { registerQueryWithController } from '../../../querying/SceneQueryController';
+import { registerQueryWithController } from '../../../querying/registerQueryWithController';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
