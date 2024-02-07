@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, LoadingState, Panel } from '@grafana/schema';
+import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
   AlertStateInfo,
@@ -68,7 +68,6 @@ export interface DataQueryExtended extends DataQuery {
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
-  private _signalQueryCompleted?: () => void;
   private _dataLayersSub?: Unsubscribable;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
@@ -344,12 +343,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
-    if (this._signalQueryCompleted) {
-      console.log('cancelQuery', this._signalQueryCompleted);
-      this._signalQueryCompleted();
-      this._signalQueryCompleted = undefined;
-    }
-
     this.setState({
       data: { ...this.state.data!, state: LoadingState.Done },
     });
@@ -412,21 +405,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         });
       }
 
-      stream.subscribe({
-        next: this.onDataReceived,
-        complete: () => {
-          console.log('query completed');
-        },
-      });
-
-      // if (this._queryController) {
-      //   this._signalQueryCompleted = this._queryController.queryStarted({
-      //     type: 'data',
-      //     request: request,
-      //     source: this,
-      //     cancel: () => this.cancelQuery(),
-      //   });
-      // }
+      stream.subscribe(this.onDataReceived);
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 
@@ -521,13 +500,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 
   private onDataReceived = (data: PanelData) => {
-    console.log('onDataReceived', data.state, this._signalQueryCompleted);
-    if (data.state !== LoadingState.Loading) {
-      if (this._signalQueryCompleted) {
-        this._signalQueryCompleted();
-      }
-    }
-
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 

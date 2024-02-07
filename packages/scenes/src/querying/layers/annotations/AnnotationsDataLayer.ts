@@ -65,16 +65,22 @@ export class AnnotationsDataLayer
     try {
       const ds = await this.resolveDataSource(query);
 
-      const queryExecution = executeAnnotationQuery(ds, timeRange, query, this).pipe(
+      let stream = executeAnnotationQuery(ds, timeRange, query, this).pipe(
         map((events) => {
           const stateUpdate = this.processEvents(query, events);
           return stateUpdate;
         })
       );
 
-      this.signalQueryStarted();
+      if (this._queryController) {
+        stream = this._queryController.registerQuery({
+          runStream: stream,
+          type: 'annotations',
+          sceneObject: this,
+        });
+      }
 
-      this.querySub = queryExecution.subscribe((stateUpdate) => {
+      this.querySub = stream.subscribe((stateUpdate) => {
         this.publishResults(stateUpdate, DataTopic.Annotations);
       });
     } catch (e) {

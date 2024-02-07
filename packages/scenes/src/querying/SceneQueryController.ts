@@ -78,7 +78,13 @@ export class SceneQueryController
       }
 
       const sub = entry.runStream.subscribe({
-        next: (v) => observer.next(v),
+        next: (v) => {
+          if (v.state !== LoadingState.Loading) {
+            this.queryCompleted(entry);
+          }
+
+          observer.next(v);
+        },
         error: (e) => observer.error(e),
         complete: () => {
           observer.complete();
