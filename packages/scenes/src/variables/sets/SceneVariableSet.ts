@@ -203,6 +203,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
       variableToUpdate.subscription = variable.validateAndUpdate().subscribe({
         next: () => this._validateAndUpdateCompleted(variable),
+        complete: () => this._validateAndUpdateCompleted(variable),
         error: (err) => this._handleVariableError(variable, err),
       });
     }
@@ -212,6 +213,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * A variable has completed its update process. This could mean that variables that depend on it can now be updated in turn.
    */
   private _validateAndUpdateCompleted(variable: SceneVariable) {
+    if (!this._updating.has(variable)) {
+      return;
+    }
+
     const update = this._updating.get(variable);
     update?.subscription?.unsubscribe();
 

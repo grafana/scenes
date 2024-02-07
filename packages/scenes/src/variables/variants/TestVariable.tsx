@@ -11,6 +11,7 @@ import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } f
 import { VariableRefresh } from '@grafana/data';
 import { getClosest } from '../../core/sceneGraph/utils';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { SceneQueryControllerEntry } from '../../behaviors/SceneQueryController';
 
 export interface TestVariableState extends MultiValueVariableState {
   query: string;
@@ -51,7 +52,19 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
 
     this.getValueOptionsCount += 1;
 
+    const queryController = sceneGraph.getQueryController(this);
+
     return new Observable<VariableValueOption[]>((observer) => {
+      const queryEntry: SceneQueryControllerEntry = {
+        type: 'variable',
+        origin: this,
+        cancel: () => observer.complete(),
+      };
+
+      if (queryController) {
+        queryController.queryStarted(queryEntry);
+      }
+
       this.setState({ loading: true });
 
       if (this.state.throwError) {
@@ -83,8 +96,12 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
         window.clearTimeout(timeout);
         this.isGettingValues = false;
 
-        if (!this.state.loading) {
+        if (this.state.loading) {
           this.setState({ loading: false });
+        }
+
+        if (queryController) {
+          queryController.queryCompleted(queryEntry);
         }
       };
     });

@@ -1,3 +1,46 @@
+# v2.6.4 (Wed Feb 07 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Scene query state & cancel all queries [#513](https://github.com/grafana/scenes/pull/513) ([@torkelo](https://github.com/torkelo) [@dprokop](https://github.com/dprokop))
+  - QueryVariable: Sorting based on label property [#577](https://github.com/grafana/scenes/pull/577) ([@xforman2](https://github.com/xforman2))
+  - SceneTimeRange: Support timezone url sync [#572](https://github.com/grafana/scenes/pull/572) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- [@xforman2](https://github.com/xforman2)
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.6.3 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - TextBoxVariable: Fixes url sync key when name changes [#574](https://github.com/grafana/scenes/pull/574) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.6.2 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy variable: Fix variable type [#571](https://github.com/grafana/scenes/pull/571) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v2.6.1 (Tue Feb 06 2024)
 
 #### 🐛 Bug Fix
