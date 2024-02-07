@@ -17,7 +17,7 @@ describe('SceneQueryController', () => {
   });
 
   it('Wraps query observable', async () => {
-    const { query, streamFuncs } = registerQuery(controller);
+    const { query, streamFuncs } = registerQuery(scene);
     let next = jest.fn();
     let complete = jest.fn();
 
@@ -35,13 +35,13 @@ describe('SceneQueryController', () => {
   });
 
   it('Last unsubscribe should set running to false', async () => {
-    const { query: query1 } = registerQuery(controller);
+    const { query: query1 } = registerQuery(scene);
 
     const sub1 = query1.subscribe(() => {});
 
     expect(controller.state.isRunning).toBe(true);
 
-    const { query: query2 } = registerQuery(controller);
+    const { query: query2 } = registerQuery(scene);
     const sub2 = query2.subscribe(() => {});
 
     sub1.unsubscribe();
@@ -51,10 +51,10 @@ describe('SceneQueryController', () => {
   });
 
   it('can cancel all', async () => {
-    const { query: query1, streamFuncs: streamFuncs1 } = registerQuery(controller);
+    const { query: query1, streamFuncs: streamFuncs1 } = registerQuery(scene);
     const sub1 = query1.subscribe(() => {});
 
-    const { query: query2, streamFuncs: streamFuncs2 } = registerQuery(controller);
+    const { query: query2, streamFuncs: streamFuncs2 } = registerQuery(scene);
     const sub2 = query2.subscribe(() => {});
 
     controller.cancelAll();
@@ -83,7 +83,7 @@ function registerQuery(scene: SceneObject) {
     return streamFuncs.cleanup;
   });
 
-  const query = runStream.pipe(registerQueryWithController({ type: 'data', sceneObject: scene }));
+  const query = runStream.pipe(registerQueryWithController({ type: 'data', origin: scene }));
 
   return { query, streamFuncs };
 }

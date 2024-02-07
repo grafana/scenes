@@ -82,7 +82,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
           registerQueryWithController({
             type: 'variable',
             request: request,
-            sceneObject: this,
+            origin: this,
           }),
           filter((data) => data.state === LoadingState.Done || data.state === LoadingState.Error), // we only care about done or error for now
           take(1), // take the first result, using first caused a bug where it in some situations throw an uncaught error because of no results had been received yet
