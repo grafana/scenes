@@ -29,6 +29,7 @@ import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequest
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
+import { SceneQueryController, SceneQueryStateControllerState } from './SceneQueryController';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -350,6 +351,31 @@ describe('SceneQueryRunner', () => {
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
+    });
+  });
+
+  describe('Query controller', () => {
+    it('should register itself', async () => {
+      const queryController = new SceneQueryController({});
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $behaviors: [queryController],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      const queryControllerStates: SceneQueryStateControllerState[] = [];
+      queryController.subscribeToState((s) => {
+        queryControllerStates.push(s);
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 200));
+
+      expect(queryControllerStates[0].isRunning).toEqual(true);
+      expect(queryControllerStates[1].isRunning).toEqual(false);
     });
   });
 

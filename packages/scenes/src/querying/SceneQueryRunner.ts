@@ -395,13 +395,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
+      let stream = runRequest(ds, request);
+
       if (secondaryRequest) {
         // change subscribe callback below to pipe operator
-        this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)])
-          .pipe(timeShiftQueryResponseOperator)
-          .subscribe(this.onDataReceived);
-      } else {
-        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+        stream = forkJoin([stream, runRequest(ds, secondaryRequest)]).pipe(timeShiftQueryResponseOperator);
       }
 
       if (this._queryController) {
@@ -412,6 +410,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
           cancel: () => this.cancelQuery(),
         });
       }
+
+      stream.subscribe(this.onDataReceived);
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 

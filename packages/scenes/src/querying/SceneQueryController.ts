@@ -22,7 +22,7 @@ export type SceneQueryType = 'data' | 'annotations' | 'panel' | 'variable' | 'al
 export interface SceneQueryControllerEntry {
   request?: DataQueryRequest;
   type: SceneQueryType;
-  source?: SceneObject;
+  origin?: SceneObject;
   cancel: () => void;
 }
 

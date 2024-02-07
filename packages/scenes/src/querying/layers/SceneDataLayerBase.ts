@@ -157,6 +157,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
       if (data.state !== LoadingState.Loading) {
         if (this._signalQueryCompleted) {
           this._signalQueryCompleted();
+          this._signalQueryCompleted = undefined;
         }
       }
     }
@@ -166,7 +167,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
     if (this._queryController) {
       this._signalQueryCompleted = this._queryController.queryStarted({
         type: this.topic,
-        source: this,
+        origin: this,
         cancel: () => {
           this.cancelQuery();
         },
