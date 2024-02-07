@@ -3,14 +3,14 @@ import { Observable } from 'rxjs';
 import { SceneObject } from '../core/types';
 import { TestScene } from '../variables/TestScene';
 import { QueryResultWithState, SceneQueryController } from './SceneQueryController';
-import { registerQueryWithController } from './registerQueryWithController';
+import { registerQueryWithController } from '../querying/registerQueryWithController';
 
 describe('SceneQueryController', () => {
   let controller: SceneQueryController;
   let scene: SceneObject;
 
   beforeEach(() => {
-    controller = new SceneQueryController({});
+    controller = new SceneQueryController();
     scene = new TestScene({
       $behaviors: [controller],
     });

@@ -19,7 +19,7 @@ export function isQueryController(s: SceneObject | SceneStatelessBehavior): s is
   return 'isQueryController' in s;
 }
 
-export type SceneQueryType = 'data' | 'annotations' | 'panel' | 'variable' | 'alerts';
+export type SceneQueryType = 'data' | 'annotations' | 'variable' | 'alerts';
 
 export interface QueryResultWithState {
   state: LoadingState;
@@ -40,8 +40,13 @@ export class SceneQueryController
 
   #running = new Set<SceneQueryControllerEntry>();
 
-  public constructor(state: Partial<SceneQueryStateControllerState>) {
-    super({ isRunning: state.isRunning ?? false });
+  public constructor() {
+    super({ isRunning: false });
+
+    // Clear running state on deactivate
+    this.addActivationHandler(() => {
+      return () => this.#running.clear();
+    });
   }
 
   public queryStarted(entry: SceneQueryControllerEntry) {

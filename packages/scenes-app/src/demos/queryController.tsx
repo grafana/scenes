@@ -17,9 +17,9 @@ import {
   SceneVariableSet,
   TestVariable,
   VariableValueSelectors,
+  behaviors,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
-import { SceneQueryController } from '@grafana/scenes/src/querying/SceneQueryController';
 import { VariableRefresh } from '@grafana/schema';
 
 export function getQueryControllerDemo(defaults: SceneAppPageState) {
@@ -52,7 +52,7 @@ export function getQueryControllerDemo(defaults: SceneAppPageState) {
         $data: new SceneDataLayers({
           layers: [globalAnnotations],
         }),
-        $behaviors: [new SceneQueryController({})],
+        $behaviors: [new behaviors.SceneQueryController()],
         $variables: new SceneVariableSet({
           variables: [
             new TestVariable({
@@ -157,7 +157,7 @@ export function getInnerScene(title: string) {
     $data: new SceneDataLayers({
       layers: [nestedAnnotationsDataLayer],
     }),
-    $behaviors: [new SceneQueryController({})],
+    $behaviors: [new behaviors.SceneQueryController()],
     controls: [
       new SceneDataLayerControls(),
       new SceneControlsSpacer(),

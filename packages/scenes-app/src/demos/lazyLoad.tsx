@@ -5,7 +5,6 @@ import {
   SceneAppPageState,
   SceneAppPage,
   PanelBuilders,
-  SceneQueryStateController,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -19,7 +18,6 @@ export function getLazyLoadDemo(defaults: SceneAppPageState) {
 
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
-        $behaviors: [new SceneQueryStateController({})],
         body: new SceneGridLayout({
           isLazy: true,
           children: panelIds.map(

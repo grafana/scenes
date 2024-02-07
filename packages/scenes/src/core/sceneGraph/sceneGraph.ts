@@ -8,7 +8,7 @@ import { SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } f
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneDataLayers } from '../../querying/SceneDataLayers';
-import { SceneQueryControllerLike, isQueryController } from '../../querying/SceneQueryController';
+import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 
 /**
  * Get the closest node with variables

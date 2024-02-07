@@ -29,7 +29,7 @@ import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequest
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { SceneQueryController, SceneQueryStateControllerState } from './SceneQueryController';
+import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -357,7 +357,7 @@ describe('SceneQueryRunner', () => {
 
   describe('Query controller', () => {
     it('should register itself', async () => {
-      const queryController = new SceneQueryController({});
+      const queryController = new SceneQueryController();
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $behaviors: [queryController],
