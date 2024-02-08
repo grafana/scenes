@@ -7,11 +7,13 @@ import { LazyLoader } from '../LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 // @ts-expect-error TODO remove when @grafana/ui is upgraded to 10.4
-import { LayoutItemContext, useTheme2 } from '@grafana/ui';
-import { cx } from '@emotion/css';
+import { LayoutItemContext, useStyles2, useTheme2 } from '@grafana/ui';
+import { css, cx } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
+
   validateChildrenSize(children);
 
   return (
@@ -55,6 +57,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               onResizeStop={model.onResizeStop}
               onLayoutChange={model.onLayoutChange}
               isBounded={false}
+              resizeHandle={<ResizeHandle />}
             >
               {layout.map((gridItem, index) => (
                 <GridItemWrapper
@@ -140,8 +143,8 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
       className={cx(className, props.className)}
       style={newStyle}
     >
-      {children}
       {innerContentWithContext}
+      {children}
     </div>
   );
 });
@@ -160,4 +163,49 @@ function validateChildrenSize(children: SceneGridItemLike[]) {
   ) {
     throw new Error('All children must have a size specified');
   }
+}
+
+interface ResizeHandleProps extends React.HTMLAttributes<HTMLDivElement> {
+  handleAxis?: string;
+}
+
+const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeHandleProps>(({ handleAxis, ...divProps }, ref) => {
+  const customCssClass = useStyles2(getResizeHandleStyles);
+
+  return (
+    <div ref={ref} {...divProps} className={`${customCssClass} scene-resize-handle`}>
+      <svg width="16px" height="16x" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M21 15L15 21M21 8L8 21"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+});
+
+ResizeHandle.displayName = 'ResizeHandle';
+
+function getResizeHandleStyles(theme: GrafanaTheme2) {
+  return css({
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    zIndex: 999,
+    padding: theme.spacing(1.5, 0, 0, 1.5),
+    color: theme.colors.border.strong,
+    cursor: 'se-resize',
+    '&:hover': {
+      color: theme.colors.text.link,
+    },
+    svg: {
+      display: 'block',
+    },
+    '.react-resizable-hide &': {
+      display: 'none',
+    },
+  });
 }
