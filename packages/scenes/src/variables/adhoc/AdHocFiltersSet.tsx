@@ -13,6 +13,7 @@ import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { css } from '@emotion/css';
 import { sceneGraph } from '../../core/sceneGraph';
 import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 
 export interface AdHocFilterSetState extends SceneObjectState {
   /** Defaults to Filters */
@@ -227,10 +228,11 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
 export function AdHocFiltersSetRenderer({ model }: SceneComponentProps<AdHocFilterSet>) {
   const { filters, readOnly, layout, name } = model.useState();
   const styles = useStyles2(getStyles);
+  let skipLabel = model.parent instanceof AdHocFiltersVariable;
 
   return (
     <div className={styles.wrapper}>
-      {layout !== 'vertical' && <ControlsLabel label={name ?? 'Filters'} icon="filter" />}
+      {layout !== 'vertical' && !skipLabel && <ControlsLabel label={name ?? 'Filters'} icon="filter" />}
 
       {filters.map((filter, index) => (
         <React.Fragment key={index}>
