@@ -31,7 +31,13 @@ export { SceneDataLayers } from './querying/SceneDataLayers';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
+export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
+export type {
+  SceneQueryControllerLike,
+  SceneQueryControllerEntryType,
+  SceneQueryControllerEntry,
+} from './behaviors/SceneQueryController';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
@@ -49,6 +55,7 @@ export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFilterSet } from './variables/adhoc/AdHocFiltersSet';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
+export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
 export { type UrlSyncManagerLike, UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
@@ -65,6 +72,7 @@ export { SceneRefreshPicker } from './components/SceneRefreshPicker';
 export { SceneTimeRangeTransformerBase } from './core/SceneTimeRangeTransformerBase';
 export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
+export { SceneByVariableRepeater } from './components/SceneByVariableRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export {
   SceneFlexLayout,

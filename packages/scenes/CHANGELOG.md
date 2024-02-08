@@ -1,3 +1,93 @@
+# v2.6.4 (Wed Feb 07 2024)
+
+#### 🐛 Bug Fix
+
+- Scene query state & cancel all queries [#513](https://github.com/grafana/scenes/pull/513) ([@torkelo](https://github.com/torkelo) [@dprokop](https://github.com/dprokop))
+- QueryVariable: Sorting based on label property [#577](https://github.com/grafana/scenes/pull/577) ([@xforman2](https://github.com/xforman2))
+- SceneTimeRange: Support timezone url sync [#572](https://github.com/grafana/scenes/pull/572) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- [@xforman2](https://github.com/xforman2)
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.6.3 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- TextBoxVariable: Fixes url sync key when name changes [#574](https://github.com/grafana/scenes/pull/574) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.6.2 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- GroupBy variable: Fix variable type [#571](https://github.com/grafana/scenes/pull/571) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.6.1 (Tue Feb 06 2024)
+
+#### 🐛 Bug Fix
+
+- Variable: Fixes performance issues with variables with many select options [#569](https://github.com/grafana/scenes/pull/569) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.6.0 (Mon Feb 05 2024)
+
+#### 🚀 Enhancement
+
+- SplitLayout: Make secondary pane optional [#546](https://github.com/grafana/scenes/pull/546) ([@cbos](https://github.com/cbos) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Cees Bos ([@cbos](https://github.com/cbos))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.5.1 (Mon Feb 05 2024)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayout: Fixes missing resize handles [#566](https://github.com/grafana/scenes/pull/566) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.5.0 (Mon Feb 05 2024)
+
+#### 🚀 Enhancement
+
+- Introduce GroupBy variable to allow passing group by dimensions to data sources [#548](https://github.com/grafana/scenes/pull/548) ([@ashharrison90](https://github.com/ashharrison90) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v2.4.0 (Thu Feb 01 2024)
 
 #### 🚀 Enhancement
@@ -100,15 +190,15 @@
 
 #### Variables: Notify scene after each variable completion or value change ([#525](https://github.com/grafana/scenes/pull/525))
 
-`VariableDependencyConfigLike` interface has changed so that scene objects now get notified after each variable update is completed (or changed value). Before, the `SceneVariableSet` waited for all variables to complete before notifying scene objects. 
+`VariableDependencyConfigLike` interface has changed so that scene objects now get notified after each variable update is completed (or changed value). Before, the `SceneVariableSet` waited for all variables to complete before notifying scene objects.
 
-The function `variableUpdatesCompleted` has changed name and signature: 
+The function `variableUpdatesCompleted` has changed name and signature:
 
 ```ts
 variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean): void;
 ```
 
-`VariableDependencyConfig` has also some breaking changes. The function named `onVariableUpdatesCompleted` has changed name and signature to: 
+`VariableDependencyConfig` has also some breaking changes. The function named `onVariableUpdatesCompleted` has changed name and signature to:
 
 ```ts
  onVariableUpdateCompleted?: () => void;

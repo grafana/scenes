@@ -7,6 +7,7 @@ import { SceneDataLayerProvider, SceneTimeRangeLike, SceneDataLayerProviderState
 import { getDataSource } from '../../../utils/getDataSource';
 import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { writeSceneLog } from '../../../utils/writeSceneLog';
+import { registerQueryWithController } from '../../registerQueryWithController';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
@@ -65,14 +66,19 @@ export class AnnotationsDataLayer
     try {
       const ds = await this.resolveDataSource(query);
 
-      const queryExecution = executeAnnotationQuery(ds, timeRange, query, this).pipe(
+      let stream = executeAnnotationQuery(ds, timeRange, query, this).pipe(
+        registerQueryWithController({
+          type: 'annotations',
+          origin: this,
+          cancel: () => this.cancelQuery(),
+        }),
         map((events) => {
           const stateUpdate = this.processEvents(query, events);
           return stateUpdate;
         })
       );
 
-      this.querySub = queryExecution.subscribe((stateUpdate) => {
+      this.querySub = stream.subscribe((stateUpdate) => {
         this.publishResults(stateUpdate, DataTopic.Annotations);
       });
     } catch (e) {

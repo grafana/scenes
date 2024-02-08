@@ -28,6 +28,8 @@ import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/Tes
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
 import { emptyPanelData } from '../core/SceneDataNode';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
+import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -70,6 +72,7 @@ const getDataSourceMock = jest.fn().mockReturnValue({
         ],
       });
     }
+
     return of({
       data: [
         toDataFrame({
@@ -308,6 +311,72 @@ describe('SceneQueryRunner', () => {
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].filters).toEqual(filterSet.state.filters);
+    });
+
+    it('should pass group by dimensions via request object', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const groupByVariable = new GroupByVariable({
+        datasource: { uid: 'test-uid' },
+        defaultOptions: [{ text: 'A' }, { text: 'B' }],
+        value: ['A', 'B'],
+      });
+      const variables = new SceneVariableSet({ variables: [groupByVariable] });
+
+      new EmbeddedScene({
+        $data: queryRunner,
+        $variables: variables,
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      groupByVariable.activate();
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].groupByKeys).toEqual(['A', 'B']);
+
+      // Verify updating filter re-triggers query
+      groupByVariable.changeValueTo(['C', 'D']);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+
+      const runRequestCall2 = runRequestMock.mock.calls[1];
+      expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
+    });
+  });
+
+  describe('Query controller', () => {
+    it('should register itself', async () => {
+      const queryController = new SceneQueryController();
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $behaviors: [queryController],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      const queryControllerStates: SceneQueryStateControllerState[] = [];
+      queryController.subscribeToState((s) => {
+        queryControllerStates.push(s);
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 200));
+
+      expect(queryControllerStates[0].isRunning).toEqual(true);
+      expect(queryControllerStates[1].isRunning).toEqual(false);
     });
   });
 

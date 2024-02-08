@@ -8,6 +8,7 @@ import {
   SceneAppPageState,
   PanelBuilders,
 } from '@grafana/scenes';
+import { GRID_CELL_HEIGHT } from '@grafana/scenes/src/components/layout/grid/constants';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
 
 export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
@@ -47,16 +48,17 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
                 .setOption('legend', { showLegend: false })
                 .build(),
             }),
-
             new SceneGridItem({
-              x: 6,
+              x: 0,
               y: 11,
-              width: 12,
+              width: 24,
               height: 10,
               isDraggable: false,
               isResizable: true,
               body: new SceneFlexLayout({
                 direction: 'column',
+                // Auto 100% height for SceneFlexLayout inside grid is not working, need to make grid item display: flex
+                height: 10 * GRID_CELL_HEIGHT,
                 children: [
                   new SceneFlexItem({
                     body: PanelBuilders.timeseries().setTitle('Child of flex layout').build(),

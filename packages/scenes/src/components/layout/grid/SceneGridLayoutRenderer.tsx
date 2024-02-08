@@ -7,12 +7,13 @@ import { LazyLoader } from '../LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 // @ts-expect-error TODO remove when @grafana/ui is upgraded to 10.4
-import { LayoutItemContext, useTheme2 } from '@grafana/ui';
+import { LayoutItemContext, useStyles2, useTheme2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
-import { hover } from '@testing-library/user-event/dist/types/convenience';
+import { GrafanaTheme2 } from '@grafana/data';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
+
   validateChildrenSize(children);
 
   return (
@@ -30,7 +31,10 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
            * in an element that has the calculated size given by the AutoSizer. The AutoSizer
            * has a width of 0 and will let its content overflow its div.
            */
-          <div style={{ width: `${width}px`, height: '100%', position: 'relative', zIndex: 1 }}>
+          <div
+            style={{ width: `${width}px`, height: '100%', position: 'relative', zIndex: 1 }}
+            className="scene-grid-layout"
+          >
             <ReactGridLayout
               width={width}
               /**
@@ -53,6 +57,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               onResizeStop={model.onResizeStop}
               onLayoutChange={model.onLayoutChange}
               isBounded={false}
+              resizeHandle={<ResizeHandle />}
             >
               {layout.map((gridItem, index) => (
                 <GridItemWrapper
@@ -81,7 +86,7 @@ interface GridItemWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((props, ref) => {
-  const { grid, layoutItem, index, totalCount, isLazy, style, onLoad, onChange, ...divProps } = props;
+  const { grid, layoutItem, index, totalCount, isLazy, style, onLoad, onChange, children, ...divProps } = props;
   const sceneChild = grid.getSceneLayoutChild(layoutItem.i)!;
   const className = sceneChild.getClassName?.();
   const theme = useTheme2();
@@ -113,18 +118,6 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
     zIndex: boostedCount.current === 0 ? descIndex : theme.zIndex.dropdown,
   };
 
-  const styleTest = css({
-    position: 'absolute',
-    bottom: -7,
-    right: -1,
-    zIndex: 999,
-    color: theme.colors.border.strong,
-    cursor: 'se-resize',
-    '&:hover': {
-      color: theme.colors.text.link,
-    },
-  });
-
   if (isLazy) {
     return (
       <LazyLoader
@@ -136,22 +129,7 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
         ref={ref}
       >
         {innerContentWithContext}
-<<<<<<< Updated upstream
-||||||| constructed merge base
         {children}
-=======
-        <div className={styleTest}>
-          <svg width="16px" height="16x" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M21 15L15 21M21 8L8 21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
->>>>>>> Stashed changes
       </LazyLoader>
     );
   }
@@ -166,6 +144,7 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
       style={newStyle}
     >
       {innerContentWithContext}
+      {children}
     </div>
   );
 });
@@ -184,4 +163,42 @@ function validateChildrenSize(children: SceneGridItemLike[]) {
   ) {
     throw new Error('All children must have a size specified');
   }
+}
+
+interface ResizeHandleProps extends React.HTMLAttributes<HTMLDivElement> {
+  handleAxis?: string;
+}
+
+const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeHandleProps>(({ handleAxis, ...divProps }, ref) => {
+  const customCssClass = useStyles2(getResizeHandleStyles);
+
+  return (
+    <div ref={ref} {...divProps} className={`${customCssClass} scene-resize-handle`}>
+      <svg width="16px" height="16x" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M21 15L15 21M21 8L8 21"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+});
+
+ResizeHandle.displayName = 'ResizeHandle';
+
+function getResizeHandleStyles(theme: GrafanaTheme2) {
+  return css({
+    position: 'absolute',
+    bottom: -7,
+    right: -1,
+    zIndex: 999,
+    color: theme.colors.border.strong,
+    cursor: 'se-resize',
+    '&:hover': {
+      color: theme.colors.text.link,
+    },
+  });
 }

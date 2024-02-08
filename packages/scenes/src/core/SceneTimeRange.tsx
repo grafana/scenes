@@ -11,7 +11,7 @@ import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 import { config } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to'] });
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone'] });
 
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
     const from = state.from ?? 'now-6h';
@@ -155,7 +155,12 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   public getUrlState() {
-    return { from: this.state.from, to: this.state.to };
+    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to };
+    if (this.state.timeZone) {
+      urlValues.timezone = this.state.timeZone;
+    }
+
+    return urlValues;
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
@@ -176,13 +181,18 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.to = to;
     }
 
+    if (typeof values.timezone === 'string') {
+      update.timeZone = values.timezone !== '' ? values.timezone : undefined;
+    }
+
     update.value = evaluateTimeRange(
       update.from ?? this.state.from,
       update.to ?? this.state.to,
-      this.getTimeZone(),
+      update.timeZone ?? this.getTimeZone(),
       this.state.fiscalYearStartMonth,
       this.state.UNSAFE_nowDelay
     );
+
     this.setState(update);
   }
 }

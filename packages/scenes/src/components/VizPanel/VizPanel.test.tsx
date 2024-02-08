@@ -465,7 +465,7 @@ describe('VizPanel', () => {
       const testData = getTestData();
       const dataToRender = panel.applyFieldConfig(testData);
       expect(dataToRender.alertState).toBe(testData.alertState);
-      expect(dataToRender.annotations).toBeDefined()
+      expect(dataToRender.annotations).toBeDefined();
     });
   });
 

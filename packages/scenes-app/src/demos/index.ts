@@ -22,6 +22,8 @@ import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
 import { getAdhocFiltersDemo } from './adhocFiltersDemo';
+import { getGroupByStatic } from './groupByStatic';
+import { getGroupByDatasource } from './groupByDatasource';
 import { getTransformationsTest } from './transformations';
 import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
 import { getDataFilteringTest } from './filteringData';
@@ -30,6 +32,8 @@ import { getCssGridLayoutDemo } from './cssGridLayoutDemo';
 import { getPanelHeaderActions } from './panelHeaderActions';
 import { getVerticalControlsLayoutDemo } from './verticalControlsLayoutDemo';
 import { getInteractiveTableDemo } from './interactiveTableDemo';
+import { getVariableRepeaterDemo } from './variableRepeater';
+import { getQueryControllerDemo } from './queryController';
 
 export interface DemoDescriptor {
   title: string;
@@ -43,11 +47,14 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Panel menu', getPage: getPanelMenuTest },
     { title: 'Panel context', getPage: getPanelContextDemoScene },
     { title: 'Repeat layout by series', getPage: getPanelRepeaterTest },
+    { title: 'Repeat layout by variable', getPage: getVariableRepeaterDemo },
     { title: 'Grid layout', getPage: getGridLayoutTest },
     { title: 'Grid with rows', getPage: getGridWithRowLayoutTest },
     { title: 'Lazy load', getPage: getLazyLoadDemo },
     { title: 'Variables', getPage: getVariablesDemo },
     { title: 'Adhoc filters', getPage: getAdhocFiltersDemo },
+    { title: 'Group by (static)', getPage: getGroupByStatic },
+    { title: 'Group by (datasource)', getPage: getGroupByDatasource },
     { title: 'With drilldowns', getPage: getDrilldownsAppPageScene },
     { title: 'Query editor', getPage: getQueryEditorDemo },
     { title: 'Dynamic page', getPage: getDynamicPageDemo },
@@ -69,5 +76,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Panel header actions', getPage: getPanelHeaderActions },
     { title: 'Vertical controls layout', getPage: getVerticalControlsLayoutDemo },
     { title: 'Interactive table with expandable rows', getPage: getInteractiveTableDemo },
+    { title: 'Query controller demo', getPage: getQueryControllerDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
