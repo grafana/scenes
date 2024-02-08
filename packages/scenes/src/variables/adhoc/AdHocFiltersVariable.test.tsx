@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { SceneVariableValueChangedEvent } from '../types';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocVariableFilter } from '@grafana/data';
 
 describe('AdHocFiltersVariable', () => {
   describe('AdHocFiltersVariable.create', () => {
@@ -27,6 +28,34 @@ describe('AdHocFiltersVariable', () => {
       variable.activate();
 
       expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]"`);
+    });
+
+    it('Renders correct expression when passed an expression builder', () => {
+      const expressionBuilder = (filters: AdHocVariableFilter[]) => {
+        return filters.map((filter) => `${filter.key}${filter.operator}"${filter.value}"`).join(' && ');
+      };
+      const variable = AdHocFiltersVariable.create({
+        datasource: { uid: 'hello' },
+        expressionBuilder,
+        filters: [
+          {
+            key: 'key1',
+            operator: '=',
+            value: 'val1',
+            condition: '',
+          },
+          {
+            key: 'key2',
+            operator: '=~',
+            value: '[val2]',
+            condition: '',
+          },
+        ],
+      });
+
+      variable.activate();
+
+      expect(variable.getValue()).toBe(`key1="val1" && key2=~"[val2]"`);
     });
 
     it('Should not publish event on activation', () => {

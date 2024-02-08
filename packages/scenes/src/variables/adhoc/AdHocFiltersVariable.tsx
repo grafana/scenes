@@ -17,6 +17,8 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Prometheus / Loki compatible label fitler expression
    */
   filterExpression?: string;
+
+  expressionBuilder: (filters: AdHocVariableFilter[]) => string;
 }
 
 export type AdHocFiltersVariableCreateHelperArgs = Pick<
@@ -31,18 +33,20 @@ export type AdHocFiltersVariableCreateHelperArgs = Pick<
   | 'name'
   | 'layout'
   | 'applyMode'
->;
+> &
+  Partial<Pick<AdHocFiltersVariableState, 'expressionBuilder'>>;
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
   implements SceneVariable<AdHocFiltersVariableState>
 {
   /** Helper factory function that makes sure AdHocFilterSet is created correctly  */
-  public static create(state: AdHocFiltersVariableCreateHelperArgs): AdHocFiltersVariable {
+  public static create({ expressionBuilder, ...state }: AdHocFiltersVariableCreateHelperArgs): AdHocFiltersVariable {
     return new AdHocFiltersVariable({
       type: 'adhoc',
       hide: VariableHide.hideLabel,
       name: state.name ?? 'Filters',
+      expressionBuilder: expressionBuilder ?? renderPrometheusLabelFilters,
       set: new AdHocFilterSet({
         // The applyMode defaults to 'manual' when used through the variable as it is the most frecuent use case
         applyMode: 'manual',
@@ -54,7 +58,7 @@ export class AdHocFiltersVariable
   public constructor(state: AdHocFiltersVariableState) {
     super({
       ...state,
-      filterExpression: state.filterExpression ?? renderPrometheusLabelFilters(state.set.state.filters),
+      filterExpression: state.filterExpression ?? state.expressionBuilder(state.set.state.filters),
     });
 
     // Subscribe to filter changes and up the variable value (filterExpression)
@@ -76,7 +80,7 @@ export class AdHocFiltersVariable
   }
 
   private _updateFilterExpression(filters: AdHocVariableFilter[], publishEvent: boolean) {
-    let expr = renderPrometheusLabelFilters(filters);
+    let expr = this.state.expressionBuilder(filters);
 
     if (expr === this.state.filterExpression) {
       return;
