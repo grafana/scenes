@@ -192,13 +192,20 @@ ResizeHandle.displayName = 'ResizeHandle';
 function getResizeHandleStyles(theme: GrafanaTheme2) {
   return css({
     position: 'absolute',
-    bottom: -7,
-    right: -1,
+    bottom: 0,
+    right: 0,
     zIndex: 999,
+    padding: theme.spacing(1.5, 0, 0, 1.5),
     color: theme.colors.border.strong,
     cursor: 'se-resize',
     '&:hover': {
       color: theme.colors.text.link,
+    },
+    svg: {
+      display: 'block',
+    },
+    '.react-resizable-hide &': {
+      display: 'none',
     },
   });
 }
