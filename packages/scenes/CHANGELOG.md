@@ -1,3 +1,15 @@
+# v2.6.6 (Thu Feb 08 2024)
+
+#### 🐛 Bug Fix
+
+- GroupBy: Add variable type guard [#583](https://github.com/grafana/scenes/pull/583) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v2.6.5 (Thu Feb 08 2024)
 
 #### 🐛 Bug Fix
