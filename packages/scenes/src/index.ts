@@ -13,6 +13,7 @@ import {
   isDataSourceVariable,
   isConstantVariable,
   isIntervalVariable,
+  isGroupByVariable,
 } from './variables/variants/guards';
 
 export * from './core/types';
@@ -119,4 +120,5 @@ export const sceneUtils = {
   isIntervalVariable,
   isQueryVariable,
   isTextBoxVariable,
+  isGroupByVariable,
 };
