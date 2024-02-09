@@ -44,10 +44,10 @@
     "uuid": "^9.0.0"
   },
   "peerDependencies": {
-    "@grafana/data": "10.0.3",
-    "@grafana/runtime": "10.0.3",
-    "@grafana/schema": "10.0.3",
-    "@grafana/ui": "10.0.3"
+    "@grafana/data": ">=10.3.1",
+    "@grafana/runtime": ">=10.3.1",
+    "@grafana/schema": ">=10.3.1",
+    "@grafana/ui": ">=10.3.1"
   },
   "devDependencies": {
     "@emotion/css": "11.10.5",
