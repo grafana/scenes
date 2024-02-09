@@ -14,6 +14,7 @@ import {
   SceneControlsSpacer,
   AdHocFiltersVariable,
 } from '@grafana/scenes';
+import { VariableHide } from '@grafana/schema';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
@@ -61,9 +62,11 @@ export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
               options: [],
               refresh: VariableRefresh.onTimeRangeChanged,
             }),
-            AdHocFiltersVariable.create({
+            new AdHocFiltersVariable({
               name: 'filters',
+              hide: VariableHide.hideLabel,
               layout: 'vertical',
+              applyMode: 'manual',
               datasource: { uid: 'gdev-prometheus' },
               filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
             }),

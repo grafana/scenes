@@ -1,11 +1,11 @@
 import React from 'react';
 
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
-import { AdHocFilterSet } from './AdHocFiltersSet';
+import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { Button } from '@grafana/ui';
 
 interface Props {
-  model: AdHocFilterSet;
+  model: AdHocFiltersVariable;
 }
 
 export function AdHocFilterBuilder({ model }: Props) {

@@ -7,7 +7,6 @@ import {
   SceneAppPage,
   SceneAppPageState,
   PanelBuilders,
-  AdHocFilterSet,
   SceneQueryRunner,
   AdHocFiltersVariable,
   SceneCanvasText,
@@ -27,15 +26,16 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
         getScene: () => {
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),
-            controls: [
-              new AdHocFilterSet({
-                name: 'Filters',
-                // Only want keys for this series
-                baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS', condition: '' }],
-                datasource: { uid: 'gdev-prometheus' },
-              }),
-              ...getEmbeddedSceneDefaults().controls,
-            ],
+            $variables: new SceneVariableSet({
+              variables: [
+                new AdHocFiltersVariable({
+                  name: 'Filters',
+                  // Only want keys for this series
+                  baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS', condition: '' }],
+                  datasource: { uid: 'gdev-prometheus' },
+                }),
+              ],
+            }),
             body: new SceneFlexLayout({
               direction: 'row',
               children: [
@@ -70,7 +70,8 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
             ...getEmbeddedSceneDefaults(),
             $variables: new SceneVariableSet({
               variables: [
-                AdHocFiltersVariable.create({
+                new AdHocFiltersVariable({
+                  applyMode: 'manual',
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
                 }),

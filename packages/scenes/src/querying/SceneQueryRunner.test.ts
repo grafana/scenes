@@ -280,37 +280,38 @@ describe('SceneQueryRunner', () => {
         queries: [{ refId: 'A' }],
       });
 
-      const filterSet = new AdHocFilterSet({
+      const filtersVar = new AdHocFiltersVariable({
         datasource: { uid: 'test-uid' },
+        applyMode: 'automatic',
         filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
       });
 
       new EmbeddedScene({
         $data: queryRunner,
-        controls: [filterSet],
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
         body: new SceneCanvasText({ text: 'hello' }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
 
       queryRunner.activate();
-      filterSet.activate();
+      filtersVar.activate();
 
       await new Promise((r) => setTimeout(r, 1));
 
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].filters).toEqual(filterSet.state.filters);
+      expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
 
       // Verify updating filter re-triggers query
-      filterSet._updateFilter(filterSet.state.filters[0], 'value', 'newValue');
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', 'newValue');
 
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
-      expect(runRequestCall2[1].filters).toEqual(filterSet.state.filters);
+      expect(runRequestCall2[1].filters).toEqual(filtersVar.state.filters);
     });
 
     it('should pass group by dimensions via request object', async () => {

@@ -41,6 +41,7 @@ import { registerQueryWithController } from './registerQueryWithController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
+import { SceneVariableValueChangedEvent } from '../variables/types';
 
 let counter = 100;
 
@@ -568,10 +569,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       if (!this._adhocFiltersVar) {
         // Subscribe to filter set state changes so that queries are re-issued when it changes
         this._adhocFiltersVar = filtersVar;
-        this._adhocFilterSub = filtersVar.subscribeToState((n, p) => {
-          if (n.filters !== p.filters) {
-            this.runQueries();
-          }
+        this._adhocFilterSub = filtersVar.subscribeToEvent(SceneVariableValueChangedEvent, () => {
+          this.runQueries();
         });
       }
     }

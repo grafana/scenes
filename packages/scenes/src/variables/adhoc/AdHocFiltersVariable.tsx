@@ -3,13 +3,12 @@ import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
-import { DataSourceRef, VariableHide } from '@grafana/schema';
+import { DataSourceRef } from '@grafana/schema';
 import { renderPrometheusLabelFilters } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
-import { ControlsLabel } from '../../utils/ControlsLabel';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
@@ -266,13 +265,11 @@ export class AdHocFiltersVariable
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
-  const { filters, readOnly, layout, name } = model.useState();
+  const { filters, readOnly } = model.useState();
   const styles = useStyles2(getStyles);
 
   return (
     <div className={styles.wrapper}>
-      {layout !== 'vertical' && <ControlsLabel label={name ?? 'Filters'} icon="filter" />}
-
       {filters.map((filter, index) => (
         <React.Fragment key={index}>
           <AdHocFilterRenderer filter={filter} model={model} />
