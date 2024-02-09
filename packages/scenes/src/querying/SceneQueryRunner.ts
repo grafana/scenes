@@ -565,7 +565,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const filtersVar = findActiveAdHocFilterVariableByUid(uid);
     const groupByVariable = findActiveGroupByVariablesByUid(uid);
 
-    if (filtersVar && filtersVar.state.applyMode === 'automatic') {
+    if (filtersVar && filtersVar.state.applyMode === 'auto') {
       if (!this._adhocFiltersVar) {
         // Subscribe to filter set state changes so that queries are re-issued when it changes
         this._adhocFiltersVar = filtersVar;
@@ -575,7 +575,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
     }
 
-    if (groupByVariable && groupByVariable.state.applyMode === 'automatic') {
+    if (groupByVariable && groupByVariable.state.applyMode === 'auto') {
       if (!this._groupBySource) {
         // Subscribe to aggregations set state changes so that queries are re-issued when it changes
         this._groupBySource = groupByVariable;

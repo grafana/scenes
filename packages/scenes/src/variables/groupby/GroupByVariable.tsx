@@ -32,7 +32,7 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * Defaults to same-datasource which means group by will automatically be applied to all queries with the same data source as this GroupBySet.
    * In manual mode no queries are re-run on changes, and you have to manually apply the filter to whatever queries you want.
    */
-  applyMode?: 'automatic' | 'manual';
+  applyMode?: 'auto' | 'manual';
   /**
    * Filter out the keys that do not match the regex.
    */
@@ -119,7 +119,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       options: [],
       datasource: null,
       baseFilters: [],
-      applyMode: 'automatic',
+      applyMode: 'auto',
       layout: 'horizontal',
       type: 'groupby' as VariableType,
       ...initialState,

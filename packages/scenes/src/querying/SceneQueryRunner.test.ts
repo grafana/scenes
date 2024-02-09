@@ -282,7 +282,7 @@ describe('SceneQueryRunner', () => {
 
       const filtersVar = new AdHocFiltersVariable({
         datasource: { uid: 'test-uid' },
-        applyMode: 'automatic',
+        applyMode: 'auto',
         filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
       });
 

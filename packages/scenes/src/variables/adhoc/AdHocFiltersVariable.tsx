@@ -34,7 +34,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Defaults to automatic which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
    * In manual mode you either have to use the filters programmatically or as a variable inside query expressions.
    */
-  applyMode: 'automatic' | 'manual';
+  applyMode: 'auto' | 'manual';
   /**
    * Filter out the keys that do not match the regex.
    */
@@ -93,11 +93,11 @@ export class AdHocFiltersVariable
       name: state.name ?? 'Filters',
       filters: [],
       datasource: null,
-      applyMode: 'automatic',
+      applyMode: 'auto',
       ...state,
     });
 
-    if (this.state.applyMode === 'automatic') {
+    if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
     }
 
