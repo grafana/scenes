@@ -23,15 +23,15 @@ const filtersVar = new AdHocFiltersVariable({
   },
   // You don't need to set baseFilters, but they're useful if you want to limit label suggestions to only those you deem relevant for the scene.
   // These are not shown in the UI.
-  baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS' }],
+  baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS', condition: '' }],
   // If you want to have any default filters added by default, you can specify those here.
-  filters: [],
+  filters: []
 });
 ```
 
-Next, you add this `filtersVar` to variables array of your SceneVariableSet.
+Next, you add this `filtersVar` to variables array of your SceneVariableSet. 
 
-Example:
+Example: 
 
 ```ts
 const scene = new EmbeddedScene({
@@ -64,11 +64,11 @@ const filterSet = new AdHocFiltersVariable({
   },
   getTagKeysProvider: () => {
     return Promise.resolve({
-      replace: true,
-      values: [
-        { text: 'service_namespace', value: 'service_namespace' },
-        { text: 'technology', value: 'technology' },
-      ],
+        replace: true,
+        values: [
+          { text: 'service_namespace', value: 'service_namespace' },
+          { text: 'technology', value: 'technology' },
+        ]
     });
   },
   getTagValuesProvider: (set: AdHocFilterSet, filter: AdHocVariableFilter) => {
@@ -80,12 +80,12 @@ const filterSet = new AdHocFiltersVariable({
 
 With these two functions, you can completely customize the key and value look up. With the `replace` property on the return object, you can control if the result should either replace the default implementation (results) or augment the default result with, for example, keys/labels from another data source.
 
-## Manual mode
+## Manual mode 
 
 If you don't want filters to be applied to all queries of the same data source as that of the `AdHocFiltersVariable` and want more control over which queries it's applied to, you can set `applyMode` to `manual` and
 then use the filters however you want. You could, for example, subscribe to the `AdHocFiltersVariable` state and then use the filters to modify the scene in some interesting way.
 
-An alternative way to the filters as a normal variable inside query expressions.
+An alternative way to the filters as a normal variable inside query expressions. 
 
 Example:
 
@@ -93,10 +93,10 @@ Example:
 $variables: new SceneVariableSet({
   variables: [
     new AdHocFiltersVariable({
-      name: 'filters',
-      applyMode: 'manual',
+      name: 'filters', 
+      applyMode: 'manual', 
       datasource: { uid: 'gdev-prometheus' },
-      filters: [{ key: 'job', operator: '=', value: 'grafana' }],
+      filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
     }),
   ],
 }),
@@ -107,7 +107,7 @@ With this variable, you can now use the filters easily in specific queries by us
 Example:
 
 ```ts
-new SceneQueryRunner({
+ new SceneQueryRunner({
   datasource: { uid: 'gdev-prometheus' },
   queries: [
     {
@@ -117,7 +117,10 @@ new SceneQueryRunner({
       instant: true,
     },
   ],
-});
+})
 ```
 
 Such configured query contains the variable expression `$filters`. You can change the name of the variable. By default, the `AdHocFiltersVariable` will render the filters to valid Prometheus label filter expressions separated by a comma.
+
+
+

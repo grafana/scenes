@@ -22,7 +22,7 @@ export function adhocFiltersExamples() {
     },
     // You don't need to set baseFilters, but they're useful if you want to limit label suggestions to only those you deem relevant for the scene.
     // These are not shown in the UI.
-    baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS' }],
+    baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS', condition: '' }],
     // If you want to have any default filters added by default, you can specify those here.
     filters: [],
   });
@@ -52,9 +52,9 @@ export function adhocFiltersExamples() {
   const scene = new EmbeddedScene({
     $variables: new SceneVariableSet({
       variables: [
-        new AdHocFiltersVariable({
+        AdHocFiltersVariable.create({
           datasource: { uid: 'gdev-prometheus' },
-          filters: [{ key: 'job', operator: '=', value: 'grafana' }],
+          filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
         }),
       ],
     }),
