@@ -13,6 +13,7 @@ import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { select } from 'react-select-event';
+import { VariableValueSelectors } from '../components/VariableValueSelectors';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -86,7 +87,7 @@ describe('AdHocFiltersVariable', () => {
       filters: [],
       queries: [
         {
-          expr: 'my_metric{$filters}',
+          expr: 'my_metric{}',
           refId: 'A',
         },
       ],
@@ -192,7 +193,7 @@ describe('AdHocFiltersVariable', () => {
     expect(keys).toEqual([]);
   });
 
-  describe('AdHocFiltersVariable.create', () => {
+  describe('variable expression / value', () => {
     it('By default renders a prometheus / loki compatible label filter', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
@@ -278,7 +279,7 @@ describe('AdHocFiltersVariable', () => {
       defaultVariable.activate();
       manualDataSource.activate();
 
-      expect(defaultVariable.state.applyMode).toBe('automatic');
+      expect(defaultVariable.state.applyMode).toBe('auto');
       expect(manualDataSource.state.applyMode).toBe('manual');
     });
   });
@@ -368,9 +369,9 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
   const scene = new EmbeddedScene({
     $timeRange: new SceneTimeRange(),
     $variables: new SceneVariableSet({
-      variables: [],
+      variables: [filtersVar],
     }),
-    controls: [filtersVar],
+    controls: [new VariableValueSelectors({})],
     body: new SceneFlexLayout({
       children: [
         new SceneFlexItem({
@@ -379,7 +380,7 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
             queries: [
               {
                 refId: 'A',
-                expr: 'my_metric{$filters}',
+                expr: 'my_metric{}',
               },
             ],
           }),
