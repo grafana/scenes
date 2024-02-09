@@ -109,8 +109,8 @@ describe('AdHocFiltersVariable', () => {
       locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
     });
 
-    expect(filtersVar.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl', condition: '' });
-    expect(filtersVar.state.filters[1]).toEqual({ key: 'keyUrl', operator: '=~', value: 'urlVal', condition: '' });
+    expect(filtersVar.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl' });
+    expect(filtersVar.state.filters[1]).toEqual({ key: 'keyUrl', operator: '=~', value: 'urlVal' });
   });
 
   it('overrides state when url has empty key', () => {
@@ -203,13 +203,11 @@ describe('AdHocFiltersVariable', () => {
             key: 'key1',
             operator: '=',
             value: 'val1',
-            condition: '',
           },
           {
             key: 'key2',
             operator: '=~',
             value: '[val2]',
-            condition: '',
           },
         ],
       });
@@ -228,7 +226,6 @@ describe('AdHocFiltersVariable', () => {
             key: 'key1',
             operator: '=',
             value: 'val1',
-            condition: '',
           },
         ],
       });
@@ -249,7 +246,6 @@ describe('AdHocFiltersVariable', () => {
             key: 'key1',
             operator: '=',
             value: 'val1',
-            condition: '',
           },
         ],
       });
@@ -293,7 +289,6 @@ describe('AdHocFiltersVariable', () => {
             key: 'key1',
             operator: '=',
             value: 'val1',
-            condition: '',
           },
         ],
       });
@@ -354,13 +349,11 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
         key: 'key1',
         operator: '=',
         value: 'val1',
-        condition: '',
       },
       {
         key: 'key2',
         operator: '=',
         value: 'val2',
-        condition: '',
       },
     ],
     ...overrides,

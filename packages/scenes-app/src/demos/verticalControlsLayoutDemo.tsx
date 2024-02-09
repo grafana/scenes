@@ -68,7 +68,7 @@ export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
               layout: 'vertical',
               applyMode: 'manual',
               datasource: { uid: 'gdev-prometheus' },
-              filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
+              filters: [{ key: 'job', operator: '=', value: 'grafana' }],
             }),
           ],
         }),

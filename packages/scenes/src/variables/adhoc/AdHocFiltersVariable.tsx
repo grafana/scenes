@@ -230,7 +230,7 @@ export class AdHocFiltersVariable
   }
 
   public _addWip() {
-    this.setState({ _wip: { key: '', value: '', operator: '=', condition: '' } });
+    this.setState({ _wip: { key: '', value: '', operator: '=' } });
   }
 
   public _getOperators() {

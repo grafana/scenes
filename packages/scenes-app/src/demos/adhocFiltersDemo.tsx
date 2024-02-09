@@ -31,7 +31,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                 new AdHocFiltersVariable({
                   name: 'Filters',
                   // Only want keys for this series
-                  baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS', condition: '' }],
+                  baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS' }],
                   datasource: { uid: 'gdev-prometheus' },
                 }),
               ],
@@ -73,7 +73,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                 new AdHocFiltersVariable({
                   applyMode: 'manual',
                   datasource: { uid: 'gdev-prometheus' },
-                  filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
+                  filters: [{ key: 'job', operator: '=', value: 'grafana' }],
                 }),
               ],
             }),
