@@ -44,6 +44,7 @@ export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
 export { formatRegistry, type FormatVariable } from './variables/interpolation/formatRegistry';
 export { VariableValueSelectors } from './variables/components/VariableValueSelectors';
+export { VariableValueControl } from './variables/components/VariableValueControl';
 export { SceneVariableSet } from './variables/sets/SceneVariableSet';
 export { ConstantVariable } from './variables/variants/ConstantVariable';
 export { CustomVariable } from './variables/variants/CustomVariable';
