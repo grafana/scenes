@@ -93,6 +93,7 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
     state: LoadingState.Loading,
     series: [],
     annotations: [],
+    request,
     timeRange: request.range,
   };
 

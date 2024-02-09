@@ -31,9 +31,9 @@ import { VariableDependencyConfig } from '../variables/VariableDependencyConfig'
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
-import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
-import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
+import { isRequestAdder, SceneRequestAdder, TransformFunc } from './SceneRequestAdder';
+import { passthroughTransform, extraRequestProcessingOperator } from './extraRequestProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
@@ -100,19 +100,18 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onActivate() {
-    const timeRange = sceneGraph.getTimeRange(this);
-    const comparer = this.getTimeCompare();
-
-    if (comparer) {
+    const adders = this.getClosestRequestAdders();
+    for (const adder of adders) {
       this._subs.add(
-        comparer.subscribeToState((n, p) => {
-          if (n.compareWith !== p.compareWith) {
+        adder.subscribeToState((n, p) => {
+          if (adder.shouldRerun(p, n)) {
             this.runQueries();
           }
         })
-      );
+      )
     }
 
+    const timeRange = sceneGraph.getTimeRange(this);
     this._subs.add(
       timeRange.subscribeToState(() => {
         this.runWithTimeRange(timeRange);
@@ -382,21 +381,24 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
 
       const runRequest = getRunRequest();
-      const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
+      const { primary, secondaries, transformations } = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
-      let stream = runRequest(ds, request);
+      let stream = runRequest(ds, primary);
 
-      if (secondaryRequest) {
+      if (secondaries.length > 0) {
+        const [sReq, ...otherSReqs] = secondaries;
+        const secondaryStreams = otherSReqs.map((r) => runRequest(ds, r));
         // change subscribe callback below to pipe operator
-        stream = forkJoin([stream, runRequest(ds, secondaryRequest)]).pipe(timeShiftQueryResponseOperator);
+        const op = extraRequestProcessingOperator(transformations);
+        stream = forkJoin([stream, runRequest(ds, sReq), ...secondaryStreams]).pipe(op);
       }
 
       stream = stream.pipe(
         registerQueryWithController({
           type: 'data',
-          request,
+          request: primary,
           origin: this,
           cancel: () => this.cancelQuery(),
         })
@@ -418,11 +420,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private prepareRequests = (
     timeRange: SceneTimeRangeLike,
     ds: DataSourceApi
-  ): [DataQueryRequest, DataQueryRequest | undefined] => {
-    const comparer = this.getTimeCompare();
+  ): { primary: DataQueryRequest, secondaries: DataQueryRequest[], transformations: Map<string, TransformFunc> } => {
     const { minInterval, queries } = this.state;
-
-    let secondaryRequest: DataQueryRequest | undefined;
 
     let request: DataQueryRequest = {
       app: 'scenes',
@@ -477,23 +476,18 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.intervalMs = norm.intervalMs;
 
     const primaryTimeRange = timeRange.state.value;
-    if (comparer) {
-      const secondaryTimeRange = comparer.getCompareTimeRange(primaryTimeRange);
-      if (secondaryTimeRange) {
-        secondaryRequest = {
-          ...request,
-          range: secondaryTimeRange,
-          requestId: getNextRequestId(),
-        };
 
-        request = {
-          ...request,
-          range: primaryTimeRange,
-        };
+    let secondaryRequests: DataQueryRequest[] = [];
+    let secondaryTransformations = new Map();
+    for (const adder of this.getClosestRequestAdders() ?? []) {
+      for (const { req, transform } of adder.getExtraRequests(request)) {
+        const requestId = getNextRequestId();
+        secondaryRequests.push({ ...req, requestId })
+        secondaryTransformations.set(requestId, transform ?? passthroughTransform);
       }
     }
-
-    return [request, secondaryRequest];
+    request.range = primaryTimeRange;
+    return { primary: request, secondaries: secondaryRequests, transformations: secondaryTransformations };
   };
 
   private onDataReceived = (data: PanelData) => {
@@ -535,26 +529,27 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Will walk up the scene graph and find the closest time range compare object
-   * It performs buttom-up search, including shallow search across object children for supporting controls/header actions
+   * Walk up the scene graph and find any request adders.
+   *
+   * Will stop as soon as at least one adder has been found at any level
+   * of the graph. This might need to change in future.
    */
-  private getTimeCompare() {
+  private getClosestRequestAdders(): Array<SceneRequestAdder<any>> {
     if (!this.parent) {
-      return null;
+      return [];
     }
     return getClosest(this.parent, (s) => {
-      let found = null;
-      if (s instanceof SceneTimeRangeCompare) {
-        return s;
+      const found: Array<SceneRequestAdder<any>> = [];
+      if (isRequestAdder(s)) {
+        found.push(s);
       }
       s.forEachChild((child) => {
-        if (child instanceof SceneTimeRangeCompare) {
-          found = child;
+        if (isRequestAdder(child)) {
+          found.push(child);
         }
       });
-
-      return found;
-    });
+      return found.length > 0 ? found : null;
+    }) ?? [];
   }
 
   /**
