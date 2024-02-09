@@ -31,6 +31,7 @@ export type AdHocFiltersVariableCreateHelperArgs = Pick<
   | 'name'
   | 'layout'
   | 'applyMode'
+  | 'hide'
 >;
 
 export class AdHocFiltersVariable
@@ -41,11 +42,13 @@ export class AdHocFiltersVariable
   public static create(state: AdHocFiltersVariableCreateHelperArgs): AdHocFiltersVariable {
     return new AdHocFiltersVariable({
       type: 'adhoc',
-      hide: VariableHide.hideLabel,
+      hide: state.hide,
       name: state.name ?? 'Filters',
       set: new AdHocFilterSet({
         // The applyMode defaults to 'manual' when used through the variable as it is the most frecuent use case
         applyMode: 'manual',
+        // The label will be rendered by the AdHocFiltersVariable
+        hide: VariableHide.hideLabel,
         ...state,
       }),
     });

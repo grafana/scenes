@@ -1,7 +1,7 @@
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
-import { DataSourceRef } from '@grafana/schema';
+import { DataSourceRef, VariableHide } from '@grafana/schema';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlSyncHandler, ControlsLayout } from '../../core/types';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
@@ -17,6 +17,8 @@ import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRu
 export interface AdHocFilterSetState extends SceneObjectState {
   /** Defaults to Filters */
   name?: string;
+  /** The set visibility */
+  hide?: VariableHide;
   /** The visible filters */
   filters: AdHocVariableFilter[];
   /** Base filters to always apply when looking up keys*/
@@ -85,6 +87,7 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
       datasource: null,
       applyMode: 'same-datasource',
       layout: 'horizontal',
+      hide: VariableHide.dontHide,
       ...initialState,
     });
 
@@ -225,12 +228,18 @@ export class AdHocFilterSet extends SceneObjectBase<AdHocFilterSetState> {
 }
 
 export function AdHocFiltersSetRenderer({ model }: SceneComponentProps<AdHocFilterSet>) {
-  const { filters, readOnly, layout, name } = model.useState();
+  const { filters, readOnly, layout, name, hide } = model.useState();
   const styles = useStyles2(getStyles);
+
+  if (hide === VariableHide.hideVariable) {
+    <></>;
+  }
 
   return (
     <div className={styles.wrapper}>
-      {layout !== 'vertical' && <ControlsLabel label={name ?? 'Filters'} icon="filter" />}
+      {hide !== VariableHide.hideLabel && layout !== 'vertical' && (
+        <ControlsLabel label={name ?? 'Filters'} icon="filter" />
+      )}
 
       {filters.map((filter, index) => (
         <React.Fragment key={index}>
