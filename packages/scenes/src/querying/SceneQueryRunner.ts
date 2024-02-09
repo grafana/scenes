@@ -36,11 +36,11 @@ import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
-import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
-import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
+import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetAdhocFilters';
 import { registerQueryWithController } from './registerQueryWithController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
+import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 
 let counter = 100;
 
@@ -77,7 +77,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _resultAnnotations?: DataFrame[];
 
   // Closest filter set if found
-  private _adhocFilterSet?: AdHocFilterSet;
+  private _adhocFiltersVar?: AdHocFiltersVariable;
   private _adhocFilterSub?: Unsubscribable;
 
   // Closest group by variable if found
@@ -377,8 +377,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      if (!this._adhocFilterSet || !this._groupBySource) {
-        this.findAndSubscribeToAdhocSets(datasource?.uid);
+      if (!this._adhocFiltersVar || !this._groupBySource) {
+        this.findAndSubscribeToAdHocFilters(datasource?.uid);
       }
 
       const runRequest = getRunRequest();
@@ -445,9 +445,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       ...getEnrichedDataRequest(this),
     };
 
-    if (this._adhocFilterSet) {
+    if (this._adhocFiltersVar) {
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.filters = this._adhocFilterSet.state.filters;
+      request.filters = this._adhocFiltersVar.state.filters;
     }
 
     if (this._groupBySource) {
@@ -560,20 +560,23 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private findAndSubscribeToAdhocSets(uid: string | undefined) {
-    const filters = findActiveAdHocFilterSetByUid(uid);
-
+  private findAndSubscribeToAdHocFilters(uid: string | undefined) {
+    const filtersVar = findActiveAdHocFilterVariableByUid(uid);
     const groupByVariable = findActiveGroupByVariablesByUid(uid);
 
-    if (filters && filters.state.applyMode === 'same-datasource') {
-      if (!this._adhocFilterSet) {
+    if (filtersVar && filtersVar.state.applyMode === 'automatic') {
+      if (!this._adhocFiltersVar) {
         // Subscribe to filter set state changes so that queries are re-issued when it changes
-        this._adhocFilterSet = filters;
-        this._adhocFilterSub = this._adhocFilterSet?.subscribeToState(() => this.runQueries());
+        this._adhocFiltersVar = filtersVar;
+        this._adhocFilterSub = filtersVar.subscribeToState((n, p) => {
+          if (n.filters !== p.filters) {
+            this.runQueries();
+          }
+        });
       }
     }
 
-    if (groupByVariable && groupByVariable.state.applyMode === 'same-datasource') {
+    if (groupByVariable && groupByVariable.state.applyMode === 'automatic') {
       if (!this._groupBySource) {
         // Subscribe to aggregations set state changes so that queries are re-issued when it changes
         this._groupBySource = groupByVariable;
