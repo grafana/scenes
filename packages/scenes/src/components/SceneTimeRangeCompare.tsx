@@ -1,16 +1,16 @@
-import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
+import { DataQueryRequest, DateTime, dateTime, FieldType, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
+import { config } from '@grafana/runtime';
 import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
+import { DataQueryExtended } from '../querying/SceneQueryRunner';
+import { ExtraRequest, SceneRequestAdder, TransformFunc } from '../querying/SceneRequestAdder';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
+import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { css } from '@emotion/css';
-
-export interface TimeRangeCompareProvider {
-  getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
-}
 
 interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
@@ -38,8 +38,7 @@ export const DEFAULT_COMPARE_OPTIONS = [
 
 export class SceneTimeRangeCompare
   extends SceneObjectBase<SceneTimeRangeCompareState>
-  implements TimeRangeCompareProvider
-{
+  implements SceneRequestAdder<SceneTimeRangeCompareState> {
   static Component = SceneTimeRangeCompareRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
 
@@ -94,6 +93,33 @@ export class SceneTimeRangeCompare
     this.setState({ compareWith: undefined });
   };
 
+  // Get a time shifted request to compare with the primary request.
+  public getExtraRequests(request: DataQueryRequest): ExtraRequest[] {
+    const extraRequests: ExtraRequest[] = [];
+    const compareRange = this.getCompareTimeRange(request.range);
+    if (!compareRange) {
+      return extraRequests;
+    }
+
+    const targets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
+    if (targets.length) {
+      extraRequests.push({
+        req: {
+          ...request,
+          targets,
+          range: compareRange,
+        },
+        transform: timeShiftAlignmentTransform,
+      });
+    }
+    return extraRequests;
+  }
+
+  // The query runner should rerun the comparison query if the compareWith value has changed.
+  public shouldRerun(prev: SceneTimeRangeCompareState, next: SceneTimeRangeCompareState): boolean {
+    return prev.compareWith !== next.compareWith;
+  }
+
   public getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined {
     let compareFrom: DateTime;
     let compareTo: DateTime;
@@ -147,6 +173,43 @@ export class SceneTimeRangeCompare
       }
     }
   }
+}
+
+// Transformation function for use with time shifted comparison series.
+// This aligns the secondary series with the primary and adds custom
+// metadata and config to the secondary series' fields so that it is
+// rendered appropriately.
+const timeShiftAlignmentTransform: TransformFunc = (primary, secondary) => {
+  const diff = secondary.timeRange.from.diff(primary.timeRange.from);
+  secondary.series.forEach((series) => {
+    series.refId = getCompareSeriesRefId(series.refId || '');
+    series.meta = {
+      ...series.meta,
+      // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
+      timeCompare: {
+        diffMs: diff,
+        isTimeShiftQuery: true,
+      },
+    };
+    series.fields.forEach((field) => {
+      // Align compare series time stamps with reference series
+      if (field.type === FieldType.time) {
+        field.values = field.values.map((v) => {
+          return diff < 0 ? v - diff : v + diff;
+        });
+      }
+
+      field.config = {
+        ...field.config,
+        color: {
+          mode: 'fixed',
+          fixedColor: config.theme.palette.gray60,
+        },
+      };
+      return field;
+    });
+  });
+  return secondary;
 }
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
