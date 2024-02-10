@@ -174,7 +174,7 @@ const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeHandleProps>(({ hand
 
   return (
     <div ref={ref} {...divProps} className={`${customCssClass} scene-resize-handle`}>
-      <svg width="16px" height="16x" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="16px" height="16px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path
           d="M21 15L15 21M21 8L8 21"
           stroke="currentColor"
