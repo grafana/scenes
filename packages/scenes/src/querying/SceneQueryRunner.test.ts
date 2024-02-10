@@ -30,6 +30,7 @@ import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
+import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -286,7 +287,7 @@ describe('SceneQueryRunner', () => {
         filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
       });
 
-      new EmbeddedScene({
+      const scene = new EmbeddedScene({
         $data: queryRunner,
         $variables: new SceneVariableSet({ variables: [filtersVar] }),
         body: new SceneCanvasText({ text: 'hello' }),
@@ -294,8 +295,7 @@ describe('SceneQueryRunner', () => {
 
       expect(queryRunner.state.data).toBeUndefined();
 
-      queryRunner.activate();
-      filtersVar.activate();
+      activateFullSceneTree(scene);
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -325,18 +325,16 @@ describe('SceneQueryRunner', () => {
         defaultOptions: [{ text: 'A' }, { text: 'B' }],
         value: ['A', 'B'],
       });
-      const variables = new SceneVariableSet({ variables: [groupByVariable] });
 
-      new EmbeddedScene({
+      const scene = new EmbeddedScene({
         $data: queryRunner,
-        $variables: variables,
+        $variables: new SceneVariableSet({ variables: [groupByVariable] }),
         body: new SceneCanvasText({ text: 'hello' }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
 
-      groupByVariable.activate();
-      queryRunner.activate();
+      activateFullSceneTree(scene);
 
       await new Promise((r) => setTimeout(r, 1));
 
