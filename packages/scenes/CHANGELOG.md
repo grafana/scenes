@@ -1,3 +1,15 @@
+# v2.6.7 (Sat Feb 10 2024)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayoutRenderer: fix svg height unit [#588](https://github.com/grafana/scenes/pull/588) ([@erj826](https://github.com/erj826))
+
+#### Authors: 1
+
+- Eric Jacobson ([@erj826](https://github.com/erj826))
+
+---
+
 # v2.6.6 (Thu Feb 08 2024)
 
 #### 🐛 Bug Fix
