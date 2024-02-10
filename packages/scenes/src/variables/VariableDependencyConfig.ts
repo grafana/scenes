@@ -55,7 +55,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   }
 
   /**
-   * This is called whenever any set of variables have new values. It up to this implementation to check if it's relevant given the current dependencies.
+   * This is called whenever any set of variables have new values. It is up to this implementation to check if it's relevant given the current dependencies.
    */
   public variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean) {
     const deps = this.getNames();
@@ -127,6 +127,14 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     return this._dependencies;
   }
 
+  /**
+   * Update variableNames
+   */
+  public setVariableNames(varNames: string[]) {
+    this._options.variableNames = varNames;
+    this.scanStateForDependencies(this._state!);
+  }
+
   public setPaths(paths: Array<keyof TState>) {
     this._statePaths = paths;
   }
@@ -139,17 +147,17 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       for (const name of this._options.variableNames) {
         this._dependencies.add(name);
       }
-    } else {
-      if (this._statePaths) {
-        for (const path of this._statePaths) {
-          const value = state[path];
-          if (value) {
-            this.extractVariablesFrom(value);
-          }
+    }
+
+    if (this._statePaths) {
+      for (const path of this._statePaths) {
+        const value = state[path];
+        if (value) {
+          this.extractVariablesFrom(value);
         }
-      } else {
-        this.extractVariablesFrom(state);
       }
+    } else {
+      this.extractVariablesFrom(state);
     }
   }
 

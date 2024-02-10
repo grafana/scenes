@@ -41,7 +41,6 @@ import { registerQueryWithController } from './registerQueryWithController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
-import { SceneVariableValueChangedEvent } from '../variables/types';
 
 let counter = 100;
 
@@ -77,13 +76,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
 
-  // Closest filter set if found
   private _adhocFiltersVar?: AdHocFiltersVariable;
-  private _adhocFilterSub?: Unsubscribable;
-
-  // Closest group by variable if found
-  private _groupBySource?: GroupByVariable;
-  private _groupBySourceSub?: Unsubscribable;
+  private _groupByVar?: GroupByVariable;
 
   public getResultsStream() {
     return this._results;
@@ -283,14 +277,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
-    if (this._adhocFilterSub) {
-      this._adhocFilterSub.unsubscribe();
-    }
-
-    if (this._groupBySourceSub) {
-      this._groupBySourceSub.unsubscribe();
-    }
-
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
@@ -378,9 +364,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      if (!this._adhocFiltersVar || !this._groupBySource) {
-        this.findAndSubscribeToAdHocFilters(datasource?.uid);
-      }
+      this.findAndSubscribeToAdHocFilters(datasource?.uid);
 
       const runRequest = getRunRequest();
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
@@ -451,9 +435,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       request.filters = this._adhocFiltersVar.state.filters;
     }
 
-    if (this._groupBySource) {
+    if (this._groupByVar) {
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.groupByKeys = this._groupBySource.state.value;
+      request.groupByKeys = this._groupByVar.state.value;
     }
 
     request.targets = request.targets.map((query) => {
@@ -562,25 +546,33 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * Walk up scene graph and find the closest filterset with matching data source
    */
   private findAndSubscribeToAdHocFilters(uid: string | undefined) {
-    const filtersVar = findActiveAdHocFilterVariableByUid(uid);
-    const groupByVariable = findActiveGroupByVariablesByUid(uid);
+    const explicitDependencies: string[] = [];
+    let updateDependencies = false;
 
-    if (filtersVar && filtersVar.state.applyMode === 'auto') {
-      if (!this._adhocFiltersVar) {
-        // Subscribe to filter set state changes so that queries are re-issued when it changes
+    if (!this._adhocFiltersVar) {
+      const filtersVar = findActiveAdHocFilterVariableByUid(uid);
+      if (filtersVar) {
         this._adhocFiltersVar = filtersVar;
-        this._adhocFilterSub = filtersVar.subscribeToEvent(SceneVariableValueChangedEvent, () => {
-          this.runQueries();
-        });
+        updateDependencies = true;
       }
     }
 
-    if (groupByVariable && groupByVariable.state.applyMode === 'auto') {
-      if (!this._groupBySource) {
-        // Subscribe to aggregations set state changes so that queries are re-issued when it changes
-        this._groupBySource = groupByVariable;
-        this._groupBySourceSub = this._groupBySource?.subscribeToState(() => this.runQueries());
+    if (!this._groupByVar) {
+      const groupByVar = findActiveGroupByVariablesByUid(uid);
+      if (groupByVar) {
+        this._groupByVar = groupByVar;
+        updateDependencies = true;
       }
+    }
+
+    if (updateDependencies) {
+      if (this._adhocFiltersVar) {
+        explicitDependencies.push(this._adhocFiltersVar.state.name);
+      }
+      if (this._groupByVar) {
+        explicitDependencies.push(this._groupByVar.state.name);
+      }
+      this._variableDependency.setVariableNames(explicitDependencies);
     }
   }
 }
