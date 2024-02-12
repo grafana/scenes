@@ -13,6 +13,7 @@ import {
   isDataSourceVariable,
   isConstantVariable,
   isIntervalVariable,
+  isGroupByVariable,
 } from './variables/variants/guards';
 
 export * from './core/types';
@@ -43,6 +44,7 @@ export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
 export { formatRegistry, type FormatVariable } from './variables/interpolation/formatRegistry';
 export { VariableValueSelectors } from './variables/components/VariableValueSelectors';
+export { VariableValueControl } from './variables/components/VariableValueControl';
 export { SceneVariableSet } from './variables/sets/SceneVariableSet';
 export { ConstantVariable } from './variables/variants/ConstantVariable';
 export { CustomVariable } from './variables/variants/CustomVariable';
@@ -53,7 +55,6 @@ export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 export { MultiValueVariable } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
-export { AdHocFilterSet } from './variables/adhoc/AdHocFiltersSet';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
@@ -119,4 +120,5 @@ export const sceneUtils = {
   isIntervalVariable,
   isQueryVariable,
   isTextBoxVariable,
+  isGroupByVariable,
 };

@@ -3,10 +3,10 @@ import React from 'react';
 import { AdHocVariableFilter } from '@grafana/data';
 import { SegmentAsync } from '@grafana/ui';
 
-import { AdHocFilterSet } from './AdHocFiltersSet';
+import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 
 interface Props {
-  model: AdHocFilterSet;
+  model: AdHocFiltersVariable;
   filter: AdHocVariableFilter;
   placeHolder?: string;
 }

@@ -31,7 +31,10 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
               height: 10,
               isResizable: true,
               isDraggable: true,
-              body: PanelBuilders.timeseries().setTitle('Draggable and resizable').build(),
+              body: PanelBuilders.timeseries()
+                .setTitle('Draggable and resizable')
+                .setOption('legend', { showLegend: false })
+                .build(),
             }),
             new SceneGridItem({
               x: 12,
@@ -40,7 +43,10 @@ export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
               height: 10,
               isResizable: false,
               isDraggable: false,
-              body: PanelBuilders.timeseries().setTitle('No drag and no resize').build(),
+              body: PanelBuilders.timeseries()
+                .setTitle('No drag and no resize')
+                .setOption('legend', { showLegend: false })
+                .build(),
             }),
             new SceneGridItem({
               x: 0,

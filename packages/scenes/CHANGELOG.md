@@ -1,3 +1,79 @@
+# v3.1.0 (Mon Feb 12 2024)
+
+#### 🚀 Enhancement
+
+- QueryController: Update global window query counter [#593](https://github.com/grafana/scenes/pull/593) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.0.0 (Mon Feb 12 2024)
+
+### Release Notes
+
+#### AdHocFiltersSet/Variable: Unify both objects as a scene variable (breaking change) ([#586](https://github.com/grafana/scenes/pull/586))
+
+AdHocFilterSet is now removed from the library. AdHocFiltersVariable can now be used in both modes (auto and manual).
+
+To migrate replace AdHocFilterSet with AdHocFiltersVariable , the `applyMode` defaults to `auto` which is the new renamed value that was previously `same-datasource`. Instead of adding this directly to a controls array add it to the variables array of a SceneVariableSet. It will then be rendered along with other variables via the VariableValueSelectors controls component. If you want to render ad hoc filters separately you can set `hide: VariableHide.hideVariable` so that the filters are not rendered by VariableValueSelectors and use the new component VariableValueControl that can render a specific variable.
+
+`AdHocFiltersVariable.create` is also removed as this separate factory function is no longer needed. If you where using `AdHocFiltersVariable.create` then switch to the normal constructor but be sure to pass in `applyMode: 'manual'` when you create it to preserve the same behavior as before.
+
+---
+
+#### 💥 Breaking Change
+
+- AdHocFiltersSet/Variable: Unify both objects as a scene variable (breaking change) [#586](https://github.com/grafana/scenes/pull/586) ([@torkelo](https://github.com/torkelo) [@ivanortegaalba](https://github.com/ivanortegaalba) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 3
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v2.6.7 (Sat Feb 10 2024)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayoutRenderer: fix svg height unit [#588](https://github.com/grafana/scenes/pull/588) ([@erj826](https://github.com/erj826))
+
+#### Authors: 1
+
+- Eric Jacobson ([@erj826](https://github.com/erj826))
+
+---
+
+# v2.6.6 (Thu Feb 08 2024)
+
+#### 🐛 Bug Fix
+
+- GroupBy: Add variable type guard [#583](https://github.com/grafana/scenes/pull/583) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v2.6.5 (Thu Feb 08 2024)
+
+#### 🐛 Bug Fix
+
+- ResizeHandle: New style [#579](https://github.com/grafana/scenes/pull/579) ([@torkelo](https://github.com/torkelo))
+- ByVariableRepeater: Repeat layout for each variable value [#573](https://github.com/grafana/scenes/pull/573) ([@torkelo](https://github.com/torkelo))
+- QueryVariable: Fixes react testing act errors [#578](https://github.com/grafana/scenes/pull/578) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v2.6.4 (Wed Feb 07 2024)
 
 #### 🐛 Bug Fix

@@ -6,6 +6,7 @@ import { DataSourceVariable } from './DataSourceVariable';
 import { IntervalVariable } from './IntervalVariable';
 import { TextBoxVariable } from './TextBoxVariable';
 import { QueryVariable } from './query/QueryVariable';
+import { GroupByVariable } from '../groupby/GroupByVariable';
 
 export function isAdHocVariable(variable: SceneVariable): variable is AdHocFiltersVariable {
   return variable.state.type === 'adhoc';
@@ -33,4 +34,9 @@ export function isQueryVariable(variable: SceneVariable): variable is QueryVaria
 
 export function isTextBoxVariable(variable: SceneVariable): variable is TextBoxVariable {
   return variable.state.type === 'textbox';
+}
+
+export function isGroupByVariable(variable: SceneVariable): variable is GroupByVariable {
+  // @ts-expect-error until we update to grafana-data 10.4.x
+  return variable.state.type === 'groupby';
 }

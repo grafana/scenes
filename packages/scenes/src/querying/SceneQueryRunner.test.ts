@@ -26,10 +26,11 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayers } from './SceneDataLayers';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
-import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
+import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
+import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -280,37 +281,37 @@ describe('SceneQueryRunner', () => {
         queries: [{ refId: 'A' }],
       });
 
-      const filterSet = new AdHocFilterSet({
+      const filtersVar = new AdHocFiltersVariable({
         datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
         filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
       });
 
-      new EmbeddedScene({
+      const scene = new EmbeddedScene({
         $data: queryRunner,
-        controls: [filterSet],
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
         body: new SceneCanvasText({ text: 'hello' }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
 
-      queryRunner.activate();
-      filterSet.activate();
+      activateFullSceneTree(scene);
 
       await new Promise((r) => setTimeout(r, 1));
 
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].filters).toEqual(filterSet.state.filters);
+      expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
 
       // Verify updating filter re-triggers query
-      filterSet._updateFilter(filterSet.state.filters[0], 'value', 'newValue');
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', 'newValue');
 
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
-      expect(runRequestCall2[1].filters).toEqual(filterSet.state.filters);
+      expect(runRequestCall2[1].filters).toEqual(filtersVar.state.filters);
     });
 
     it('should pass group by dimensions via request object', async () => {
@@ -324,18 +325,16 @@ describe('SceneQueryRunner', () => {
         defaultOptions: [{ text: 'A' }, { text: 'B' }],
         value: ['A', 'B'],
       });
-      const variables = new SceneVariableSet({ variables: [groupByVariable] });
 
-      new EmbeddedScene({
+      const scene = new EmbeddedScene({
         $data: queryRunner,
-        $variables: variables,
+        $variables: new SceneVariableSet({ variables: [groupByVariable] }),
         body: new SceneCanvasText({ text: 'hello' }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
 
-      groupByVariable.activate();
-      queryRunner.activate();
+      activateFullSceneTree(scene);
 
       await new Promise((r) => setTimeout(r, 1));
 

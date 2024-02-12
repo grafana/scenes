@@ -52,6 +52,8 @@ export class SceneQueryController
   public queryStarted(entry: SceneQueryControllerEntry) {
     this.#running.add(entry);
 
+    this.changeRunningQueryCount(1);
+
     if (!this.state.isRunning) {
       this.setState({ isRunning: true });
     }
@@ -60,9 +62,18 @@ export class SceneQueryController
   public queryCompleted(entry: SceneQueryControllerEntry) {
     this.#running.delete(entry);
 
+    this.changeRunningQueryCount(-1);
+
     if (this.#running.size === 0) {
       this.setState({ isRunning: false });
     }
+  }
+
+  private changeRunningQueryCount(dir: 1 | -1) {
+    /**
+     * Used by grafana-image-renderer to know when all queries are completed.
+     */
+    (window as any).__grafanaRunningQueryCount = ((window as any).__grafanaRunningQueryCount ?? 0) + dir;
   }
 
   public cancelAll() {

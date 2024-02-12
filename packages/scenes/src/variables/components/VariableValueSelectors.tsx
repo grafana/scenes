@@ -32,12 +32,14 @@ function VariableValueSelectorsRenderer({ model }: SceneComponentProps<VariableV
 interface VariableSelectProps {
   layout?: ControlsLayout;
   variable: SceneVariable;
+  /** To override hide from VariableValueSelectByName  */
+  showAlways?: boolean;
 }
 
-function VariableValueSelectWrapper({ variable, layout }: VariableSelectProps) {
+export function VariableValueSelectWrapper({ variable, layout, showAlways }: VariableSelectProps) {
   const state = variable.useState();
 
-  if (state.hide === VariableHide.hideVariable) {
+  if (state.hide === VariableHide.hideVariable && !showAlways) {
     return null;
   }
 
