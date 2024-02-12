@@ -1,3 +1,15 @@
+# v3.1.1 (Mon Feb 12 2024)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersVariable: Allow setting expression builder function [#582](https://github.com/grafana/scenes/pull/582) ([@adrapereira](https://github.com/adrapereira))
+
+#### Authors: 1
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+
+---
+
 # v3.1.0 (Mon Feb 12 2024)
 
 #### 🚀 Enhancement
