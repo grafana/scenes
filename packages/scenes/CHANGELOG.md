@@ -1,3 +1,15 @@
+# v3.1.0 (Mon Feb 12 2024)
+
+#### 🚀 Enhancement
+
+- QueryController: Update global window query counter [#593](https://github.com/grafana/scenes/pull/593) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.0.0 (Mon Feb 12 2024)
 
 ### Release Notes
