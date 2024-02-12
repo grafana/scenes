@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { AdHocFilterSet } from './AdHocFiltersSet';
+import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
 import { Button, Field, Select, useStyles2 } from '@grafana/ui';
 import { css } from '@emotion/css';
@@ -8,7 +8,7 @@ import { ControlsLabel } from '../../utils/ControlsLabel';
 
 interface Props {
   filter: AdHocVariableFilter;
-  model: AdHocFilterSet;
+  model: AdHocFiltersVariable;
 }
 
 export function AdHocFilterRenderer({ filter, model }: Props) {

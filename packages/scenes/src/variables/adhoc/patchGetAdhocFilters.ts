@@ -1,14 +1,14 @@
 import { getDataSourceSrv, getTemplateSrv } from '@grafana/runtime';
-import { AdHocFilterSet } from './AdHocFiltersSet';
 import { AdHocVariableFilter } from '@grafana/data';
+import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 
 let originalGetAdhocFilters: any = undefined;
-let allActiveFilterSets = new Set<AdHocFilterSet>();
+let allActiveFilterSets = new Set<AdHocFiltersVariable>();
 
-export function patchGetAdhocFilters(filterSet: AdHocFilterSet) {
-  filterSet.addActivationHandler(() => {
-    allActiveFilterSets.add(filterSet);
-    return () => allActiveFilterSets.delete(filterSet);
+export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
+  filterVar.addActivationHandler(() => {
+    allActiveFilterSets.add(filterVar);
+    return () => allActiveFilterSets.delete(filterVar);
   });
 
   if (originalGetAdhocFilters) {
@@ -43,7 +43,7 @@ export function patchGetAdhocFilters(filterSet: AdHocFilterSet) {
   }.bind(templateSrv);
 }
 
-export function findActiveAdHocFilterSetByUid(dsUid: string | undefined): AdHocFilterSet | undefined {
+export function findActiveAdHocFilterVariableByUid(dsUid: string | undefined): AdHocFiltersVariable | undefined {
   for (const filter of allActiveFilterSets.values()) {
     if (filter.state.datasource?.uid === dsUid) {
       return filter;

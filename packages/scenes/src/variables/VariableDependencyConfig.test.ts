@@ -89,6 +89,20 @@ describe('VariableDependencyConfig', () => {
     expect(fn.mock.calls.length).toBe(1);
   });
 
+  it('Can update explicit depenendencies', () => {
+    const sceneObj = new TestObj();
+    const fn = jest.fn();
+    const deps = new VariableDependencyConfig(sceneObj, { onReferencedVariableValueChanged: fn });
+
+    deps.variableUpdateCompleted(new ConstantVariable({ name: 'not-dep', value: '1' }), true);
+    expect(fn.mock.calls.length).toBe(0);
+
+    deps.setVariableNames(['not-dep']);
+    deps.variableUpdateCompleted(new ConstantVariable({ name: 'not-dep', value: '1' }), true);
+
+    expect(fn.mock.calls.length).toBe(1);
+  });
+
   describe('Should remember when an object is waiting for variables', () => {
     it('Should notify as soon as next variable completes', async () => {
       const A = new TestVariable({
