@@ -185,7 +185,7 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters!);
+    const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const queries = this._getSceneQueries();
     let keys = await ds.getTagKeys({ filters: otherFilters, queries });
 
