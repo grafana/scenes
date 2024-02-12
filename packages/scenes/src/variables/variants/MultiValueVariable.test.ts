@@ -305,6 +305,19 @@ describe('MultiValueVariable', () => {
       expect(variable.getValueText()).toBe(ALL_VARIABLE_TEXT);
     });
 
+    it('GetValueText should return value if text is an empty string', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [],
+        value: 'MyValue',
+        text: '',
+        delayMs: 0,
+      });
+
+      expect(variable.getValueText()).toBe('MyValue');
+    });
+
     it('GetValue should return all options as an array when value is $__all', async () => {
       const variable = new TestVariable({
         name: 'test',
