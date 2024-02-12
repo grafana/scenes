@@ -100,8 +100,7 @@ export class AdHocFiltersVariable
       filters: [],
       datasource: null,
       applyMode: 'auto',
-      filterExpression:
-        state.filterExpression ?? (state.expressionBuilder ?? renderPrometheusLabelFilters)(state.filters ?? []),
+      filterExpression: state.filterExpression ?? renderExpression(state),
       ...state,
     });
 
@@ -114,12 +113,12 @@ export class AdHocFiltersVariable
       this._subs.add(
         this.subscribeToState((newState, prevState) => {
           if (newState.filters !== prevState.filters) {
-            this._updateFilterExpression(newState.filters, true);
+            this._updateFilterExpression(newState, true);
           }
         })
       );
 
-      this._updateFilterExpression(this.state.filters, false);
+      this._updateFilterExpression(this.state, false);
     });
   }
 
@@ -127,8 +126,8 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
-  private _updateFilterExpression(filters: AdHocVariableFilter[], publishEvent: boolean) {
-    let expr = (this.state.expressionBuilder ?? renderPrometheusLabelFilters)(filters);
+  private _updateFilterExpression(state: Partial<AdHocFiltersVariableState>, publishEvent: boolean) {
+    let expr = renderExpression(state);
 
     if (expr === this.state.filterExpression) {
       return;
@@ -270,6 +269,10 @@ export class AdHocFiltersVariable
 
     return result;
   }
+}
+
+function renderExpression(state: Partial<AdHocFiltersVariableState>) {
+  return (state.expressionBuilder ?? renderPrometheusLabelFilters)(state.filters ?? []);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
