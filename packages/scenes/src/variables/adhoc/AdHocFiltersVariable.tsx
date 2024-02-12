@@ -94,6 +94,7 @@ export class AdHocFiltersVariable
       filters: [],
       datasource: null,
       applyMode: 'auto',
+      filterExpression: state.filterExpression ?? renderPrometheusLabelFilters(state.filters ?? []),
       ...state,
     });
 
@@ -217,7 +218,7 @@ export class AdHocFiltersVariable
     }
 
     // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters!);
+    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters ?? []);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     let values = await ds.getTagValues({ key: filter.key, filters: otherFilters, timeRange });

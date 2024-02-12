@@ -219,6 +219,27 @@ describe('AdHocFiltersVariable', () => {
       expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]"`);
     });
 
+    it('Should not update filterExpression state on activation if not needed', () => {
+      const variable = new AdHocFiltersVariable({
+        applyMode: 'manual',
+        datasource: { uid: 'hello' },
+        filters: [
+          {
+            key: 'key1',
+            operator: '=',
+            value: 'val1',
+            condition: '',
+          },
+        ],
+      });
+
+      const evtHandler = jest.fn();
+      variable.subscribeToState(evtHandler);
+      variable.activate();
+
+      expect(evtHandler).not.toHaveBeenCalled();
+    });
+
     it('Should not publish event on activation', () => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',

@@ -16,12 +16,12 @@ import { getEmbeddedSceneDefaults } from './utils';
 export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: `Adhoc filters can be used as a standalone component (AdHocFilterSet) added to a controls array. By default datasources will apply the filters automatically to all queries of the same data source.
-     You can add filters via AdHocFiltersVariable added to a SceneVariableSet. Then it renders to a label filter expression you can use in specific queries.
+    subTitle: `Adhoc filters variable can be used in auto mode. By default datasources will apply the filters automatically to all queries of the same data source.
+     In manual mode you can use it as a normal variable in queries or use it programmtically.
     `,
     tabs: [
       new SceneAppPage({
-        title: 'Automatically applied',
+        title: 'Apply mode auto',
         url: `${defaults.url}/auto`,
         getScene: () => {
           return new EmbeddedScene({
@@ -63,7 +63,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
         },
       }),
       new SceneAppPage({
-        title: 'As variable',
+        title: 'Apply mode manual',
         url: `${defaults.url}/manual`,
         getScene: () => {
           return new EmbeddedScene({
@@ -83,7 +83,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                 new SceneFlexItem({
                   ySizing: 'content',
                   body: new SceneCanvasText({
-                    text: `Using AdHocFilterSet in manual mode and inside an AdHocFiltersVariable. The query below is interpolated to ALERTS{$Filters}`,
+                    text: `Using AdHocFilterSet in manual mode allows you to use it as a normal variable. The query below is interpolated to ALERTS{$Filters}`,
                     fontSize: 14,
                   }),
                 }),
