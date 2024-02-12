@@ -54,9 +54,15 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
 
   /**
    * This is the expression that the filters resulted in. Defaults to
-   * Prometheus / Loki compatible label fitler expression
+   * Prometheus / Loki compatible label filter expression
    */
   filterExpression?: string;
+
+  /**
+   * The default builder creates a Prometheus/Loki compatible filter expression,
+   * this can be overridden to create a different expression based on the current filters.
+   */
+  expressionBuilder?: (filters: AdHocVariableFilter[]) => string;
 
   /**
    * @internal state of the new filter being added
@@ -94,7 +100,7 @@ export class AdHocFiltersVariable
       filters: [],
       datasource: null,
       applyMode: 'auto',
-      filterExpression: state.filterExpression ?? renderPrometheusLabelFilters(state.filters ?? []),
+      filterExpression: state.filterExpression ?? renderExpression(state),
       ...state,
     });
 
@@ -107,12 +113,12 @@ export class AdHocFiltersVariable
       this._subs.add(
         this.subscribeToState((newState, prevState) => {
           if (newState.filters !== prevState.filters) {
-            this._updateFilterExpression(newState.filters, true);
+            this._updateFilterExpression(newState, true);
           }
         })
       );
 
-      this._updateFilterExpression(this.state.filters, false);
+      this._updateFilterExpression(this.state, false);
     });
   }
 
@@ -120,8 +126,8 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
-  private _updateFilterExpression(filters: AdHocVariableFilter[], publishEvent: boolean) {
-    let expr = renderPrometheusLabelFilters(filters);
+  private _updateFilterExpression(state: Partial<AdHocFiltersVariableState>, publishEvent: boolean) {
+    let expr = renderExpression(state);
 
     if (expr === this.state.filterExpression) {
       return;
@@ -263,6 +269,10 @@ export class AdHocFiltersVariable
 
     return result;
   }
+}
+
+function renderExpression(state: Partial<AdHocFiltersVariableState>) {
+  return (state.expressionBuilder ?? renderPrometheusLabelFilters)(state.filters ?? []);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {

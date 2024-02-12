@@ -3,7 +3,14 @@ import { act, getAllByRole, render, waitFor, screen } from '@testing-library/rea
 import { SceneVariableValueChangedEvent } from '../types';
 import { AdHocFiltersVariable, AdHocFiltersVariableState } from './AdHocFiltersVariable';
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
-import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  DataQueryRequest,
+  DataSourceApi,
+  getDefaultTimeRange,
+  LoadingState,
+  PanelData,
+} from '@grafana/data';
 import { Observable, of } from 'rxjs';
 import userEvent from '@testing-library/user-event';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
@@ -217,6 +224,36 @@ describe('AdHocFiltersVariable', () => {
       variable.activate();
 
       expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]"`);
+    });
+
+    it('Renders correct expression when passed an expression builder', () => {
+      const expressionBuilder = (filters: AdHocVariableFilter[]) => {
+        return filters.map((filter) => `${filter.key}${filter.operator}"${filter.value}"`).join(' && ');
+      };
+
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        expressionBuilder,
+        filters: [
+          {
+            key: 'key1',
+            operator: '=',
+            value: 'val1',
+            condition: '',
+          },
+          {
+            key: 'key2',
+            operator: '=~',
+            value: '[val2]',
+            condition: '',
+          },
+        ],
+      });
+
+      variable.activate();
+
+      expect(variable.getValue()).toBe(`key1="val1" && key2=~"[val2]"`);
     });
 
     it('Should not update filterExpression state on activation if not needed', () => {
