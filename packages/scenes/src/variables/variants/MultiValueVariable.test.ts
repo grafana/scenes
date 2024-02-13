@@ -77,7 +77,7 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toBe('');
     });
 
-    it('Should set to empty arrauy when no options are returned and variable isMulti', async () => {
+    it('Should set to empty array when no options are returned and variable isMulti', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
