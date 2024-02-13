@@ -1,3 +1,16 @@
+# v3.2.1 (Tue Feb 13 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VariableDependencyConfig: do not scan state if `variableNames` is defined [#598](https://github.com/grafana/scenes/pull/598) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v3.2.0 (Tue Feb 13 2024)
 
 #### 🚀 Enhancement
