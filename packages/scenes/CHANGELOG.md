@@ -1,3 +1,15 @@
+# v3.2.0 (Tue Feb 13 2024)
+
+#### 🚀 Enhancement
+
+- SceneQueryRunner: Improved way to detect changes to adhoc filters and group by variables [#596](https://github.com/grafana/scenes/pull/596) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.1.1 (Mon Feb 12 2024)
 
 #### 🐛 Bug Fix
