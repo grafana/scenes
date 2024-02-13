@@ -31,6 +31,7 @@ import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
+import { SceneDeactivationHandler } from '../core/types';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -133,9 +134,13 @@ jest.mock('@grafana/runtime', () => ({
 }));
 
 describe('SceneQueryRunner', () => {
+  let deactivationHandlers: SceneDeactivationHandler[] = [];
+
   afterEach(() => {
     runRequestMock.mockClear();
     getDataSourceMock.mockClear();
+    deactivationHandlers.forEach((h) => h());
+    deactivationHandlers = [];
   });
 
   describe('when running query', () => {
@@ -293,7 +298,8 @@ describe('SceneQueryRunner', () => {
         body: new SceneCanvasText({ text: 'hello' }),
       });
 
-      activateFullSceneTree(scene);
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -319,7 +325,9 @@ describe('SceneQueryRunner', () => {
       });
 
       const scene = new EmbeddedScene({ $data: queryRunner, body: new SceneCanvasText({ text: 'hello' }) });
-      activateFullSceneTree(scene);
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -330,7 +338,7 @@ describe('SceneQueryRunner', () => {
       });
 
       scene.setState({ $variables: new SceneVariableSet({ variables: [filtersVar] }) });
-      filtersVar.activate();
+      deactivationHandlers.push(filtersVar.activate());
 
       filtersVar.setState({ filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }] });
 

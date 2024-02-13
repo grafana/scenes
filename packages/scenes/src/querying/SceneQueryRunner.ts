@@ -231,26 +231,26 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Check if value changed is a adhoc filter o group by variable that we have not yet detected.
+   * Check if value changed is a adhoc filter o group by variable that did not exist when we issued the last query
    */
   private onAnyVariableChanged(variable: SceneVariable) {
-    if (variable instanceof AdHocFiltersVariable && this._adhocFiltersVar !== variable) {
-      const datasource = this.state.datasource ?? findFirstDatasource(this.state.queries);
-      if (datasource?.uid === variable.state.datasource?.uid) {
-        this._adhocFiltersVar = variable;
-        this._updateExplicitVariableDependencies();
-        this.runQueries();
-      }
+    // If this variable has already been detected this variable as a dependency onVariableUpdatesCompleted above will handle value changes
+    if (this._adhocFiltersVar === variable || this._groupByVar === variable) {
+      return;
     }
 
-    if (variable instanceof GroupByVariable && this._groupByVar !== variable) {
-      const datasource = this.state.datasource ?? findFirstDatasource(this.state.queries);
-      if (datasource?.uid === variable.state.datasource?.uid) {
-        this._groupByVar = variable;
-        this._updateExplicitVariableDependencies();
-        this.runQueries();
-      }
+    if (variable instanceof AdHocFiltersVariable && this._isRelevantAutoVariable(variable)) {
+      this.runQueries();
     }
+
+    if (variable instanceof GroupByVariable && this._isRelevantAutoVariable(variable)) {
+      this.runQueries();
+    }
+  }
+
+  private _isRelevantAutoVariable(variable: AdHocFiltersVariable | GroupByVariable) {
+    const datasource = this.state.datasource ?? findFirstDatasource(this.state.queries);
+    return variable.state.applyMode === 'auto' && datasource?.uid === variable.state.datasource?.uid;
   }
 
   private shouldRunQueriesOnActivate() {
@@ -302,6 +302,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
+    this._adhocFiltersVar = undefined;
+    this._groupByVar = undefined;
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
@@ -571,25 +573,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * Walk up scene graph and find the closest filterset with matching data source
    */
   private findAndSubscribeToAdHocFilters(uid: string | undefined) {
-    let updateDependencies = false;
+    const filtersVar = findActiveAdHocFilterVariableByUid(uid);
 
-    if (!this._adhocFiltersVar) {
-      const filtersVar = findActiveAdHocFilterVariableByUid(uid);
-      if (filtersVar) {
-        this._adhocFiltersVar = filtersVar;
-        updateDependencies = true;
-      }
+    if (this._adhocFiltersVar !== filtersVar) {
+      this._adhocFiltersVar = filtersVar;
+      this._updateExplicitVariableDependencies();
     }
 
-    if (!this._groupByVar) {
-      const groupByVar = findActiveGroupByVariablesByUid(uid);
-      if (groupByVar) {
-        this._groupByVar = groupByVar;
-        updateDependencies = true;
-      }
-    }
-
-    if (updateDependencies) {
+    const groupByVar = findActiveGroupByVariablesByUid(uid);
+    if (this._groupByVar !== groupByVar) {
+      this._groupByVar = groupByVar;
       this._updateExplicitVariableDependencies();
     }
   }
