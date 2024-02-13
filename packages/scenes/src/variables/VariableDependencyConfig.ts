@@ -123,7 +123,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     if (newState !== prevState) {
       if (this._statePaths) {
         for (const path of this._statePaths) {
-          if (newState[path] !== prevState[path]) {
+          if (path === '*' || newState[path] !== prevState[path]) {
             this.scanStateForDependencies(newState);
             break;
           }
@@ -144,7 +144,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     this.scanStateForDependencies(this._state!);
   }
 
-  public setPaths(paths: Array<keyof TState>) {
+  public setPaths(paths: Array<keyof TState | '*'>) {
     this._statePaths = paths;
   }
 
