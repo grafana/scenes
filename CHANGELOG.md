@@ -1,3 +1,24 @@
+# v3.3.0 (Tue Feb 13 2024)
+
+### Release Notes
+
+#### Variables: Clear current value when no options are returned ([#595](https://github.com/grafana/scenes/pull/595))
+
+All variables that extend from MultValueVariable (Query, DataSource, Custom) now clear the current value if no options / values are returned by query, clears to empty string or array depending on multi or not.
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Clear current value when no options are returned [#595](https://github.com/grafana/scenes/pull/595) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.2.1 (Tue Feb 13 2024)
 
 #### 🐛 Bug Fix
