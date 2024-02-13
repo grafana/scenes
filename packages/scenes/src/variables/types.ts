@@ -35,7 +35,7 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
   getValueText?(fieldPath?: string): string;
 
   /**
-   * A special function that locally scoped variables can implement
+   * For special edge case senarios. For example local function that locally scoped variables can implement.
    **/
   isAncestorLoading?(): boolean;
 
