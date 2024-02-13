@@ -61,6 +61,39 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toBe('A');
     });
 
+    it('Should set to empty when no options are returned', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [],
+        value: 'A',
+        text: 'A',
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe('');
+      expect(variable.state.text).toBe('');
+    });
+
+    it('Should set to empty array when no options are returned and variable isMulti', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [],
+        value: ['A'],
+        text: ['A'],
+        delayMs: 0,
+        isMulti: true,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual([]);
+      expect(variable.state.text).toEqual([]);
+    });
+
     it('When saved value is same as text representation', async () => {
       const variable = new TestVariable({
         name: 'test',

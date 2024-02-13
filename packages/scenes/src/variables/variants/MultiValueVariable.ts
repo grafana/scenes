@@ -89,6 +89,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       if (this.state.defaultToAll || this.state.includeAll) {
         stateUpdate.value = ALL_VARIABLE_VALUE;
         stateUpdate.text = ALL_VARIABLE_TEXT;
+      } else if (this.state.isMulti) {
+        stateUpdate.value = [];
+        stateUpdate.text = [];
+      } else {
+        stateUpdate.value = '';
+        stateUpdate.text = '';
       }
     } else if (this.hasAllValue()) {
       // If value is set to All then we keep it set to All but just store the options
@@ -115,7 +121,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       if (matchingOption) {
         // When updating the initial state from URL the text property is set the same as value
         // Here we can correct the text value state
-
         stateUpdate.text = matchingOption.label;
         stateUpdate.value = matchingOption.value;
       } else {
@@ -172,8 +177,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   public getDefaultMultiState(options: VariableValueOption[]) {
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
-    } else {
+    } else if (options.length > 0) {
       return { value: [options[0].value], text: [options[0].label] };
+    } else {
+      return { value: [], text: [] };
     }
   }
 
