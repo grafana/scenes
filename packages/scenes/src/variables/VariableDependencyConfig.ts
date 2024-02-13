@@ -10,7 +10,7 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   /**
    * State paths to scan / extract variable dependencies from. Leave empty to scan all paths.
    */
-  statePaths?: Array<keyof TState>;
+  statePaths?: Array<keyof TState | '*'>;
 
   /**
    * Explicit list of variable names to depend on. Leave empty to scan state for dependencies.
@@ -40,7 +40,7 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
   private _state: TState | undefined;
   private _dependencies = new Set<string>();
-  private _statePaths?: Array<keyof TState>;
+  private _statePaths?: Array<keyof TState | '*'>;
   private _isWaitingForVariables = false;
 
   public scanCount = 0;
@@ -159,13 +159,15 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     } else {
       if (this._statePaths) {
         for (const path of this._statePaths) {
-          const value = state[path];
-          if (value) {
-            this.extractVariablesFrom(value);
+          if (path === '*') {
+            this.extractVariablesFrom(state);
+          } else {
+            const value = state[path];
+            if (value) {
+              this.extractVariablesFrom(value);
+            }
           }
         }
-      } else {
-        this.extractVariablesFrom(state);
       }
     }
   }
