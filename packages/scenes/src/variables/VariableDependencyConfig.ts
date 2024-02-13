@@ -30,6 +30,11 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    *    after any variable update completes. This is to cover scenarios where an object is waiting for indirect dependencies to complete.
    */
   onVariableUpdateCompleted?: () => void;
+
+  /**
+   * Optional way to subscribe to all variable value changes, even to variables that are not dependencies.
+   */
+  onAnyVariableChanged?: (variable: SceneVariable) => void;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
@@ -72,6 +77,10 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       dependencyChanged,
       this._isWaitingForVariables
     );
+
+    if (this._options.onAnyVariableChanged) {
+      this._options.onAnyVariableChanged(variable);
+    }
 
     // If custom handler called when dependency is changed or when we are waiting for variables
     if (this._options.onVariableUpdateCompleted && (this._isWaitingForVariables || dependencyChanged)) {
