@@ -31,6 +31,7 @@ import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
+import { SceneDeactivationHandler } from '../core/types';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -133,9 +134,13 @@ jest.mock('@grafana/runtime', () => ({
 }));
 
 describe('SceneQueryRunner', () => {
+  let deactivationHandlers: SceneDeactivationHandler[] = [];
+
   afterEach(() => {
     runRequestMock.mockClear();
     getDataSourceMock.mockClear();
+    deactivationHandlers.forEach((h) => h());
+    deactivationHandlers = [];
   });
 
   describe('when running query', () => {
@@ -293,9 +298,8 @@ describe('SceneQueryRunner', () => {
         body: new SceneCanvasText({ text: 'hello' }),
       });
 
-      expect(queryRunner.state.data).toBeUndefined();
-
-      activateFullSceneTree(scene);
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -312,6 +316,36 @@ describe('SceneQueryRunner', () => {
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].filters).toEqual(filtersVar.state.filters);
+    });
+
+    it('Adhoc filter added after first query', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const scene = new EmbeddedScene({ $data: queryRunner, body: new SceneCanvasText({ text: 'hello' }) });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [],
+      });
+
+      scene.setState({ $variables: new SceneVariableSet({ variables: [filtersVar] }) });
+      deactivationHandlers.push(filtersVar.activate());
+
+      filtersVar.setState({ filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }] });
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[1];
+      expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
     });
 
     it('should pass group by dimensions via request object', async () => {
