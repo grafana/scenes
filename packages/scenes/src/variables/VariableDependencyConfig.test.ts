@@ -77,6 +77,16 @@ describe('VariableDependencyConfig', () => {
     expect(deps.scanCount).toBe(2);
   });
 
+  it('Should not scan the state if variable name defined', () => {
+    const sceneObj = new TestObj();
+    sceneObj.setState({ query: 'new query with ${newVar}' });
+    const deps = new VariableDependencyConfig(sceneObj, { variableNames: ['nonExistentVar'] });
+    deps.getNames();
+
+    expect(deps.getNames()).toEqual(new Set(['nonExistentVar']));
+    expect(deps.scanCount).toBe(1);
+  });
+
   it('variableValuesChanged should only call onReferencedVariableValueChanged if dependent variable has changed', () => {
     const sceneObj = new TestObj();
     const fn = jest.fn();
