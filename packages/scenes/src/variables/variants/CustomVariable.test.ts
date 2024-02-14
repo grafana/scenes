@@ -232,6 +232,19 @@ describe('CustomVariable', () => {
       expect(variable.state.value).toEqual(['A']);
       expect(variable.state.text).toEqual(['A']);
     });
+
+    it('Should maintain the value when no query nor options provided', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        value: 'A',
+        options: [],
+        query: '',
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual('A');
+    });
   });
 
   describe('When query contains other variables', () => {
