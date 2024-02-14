@@ -266,8 +266,8 @@ function getPanelTimeRange(sceneTimeRange: SceneTimeRangeLike, plugin: PanelPlug
     return sceneTimeRange.state.value;
   }
 
-  if (data && data.request?.range) {
-    return data.request.range;
+  if (data && data.timeRange) {
+    return data.timeRange;
   }
 
   return sceneTimeRange.state.value;

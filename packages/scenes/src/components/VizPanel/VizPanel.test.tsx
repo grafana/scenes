@@ -511,6 +511,7 @@ describe('VizPanel', () => {
         expect(panelRenderCount).toBe(2);
         expect(panelProps?.data.state).toBe(LoadingState.Loading);
         // Verify panel props time range comes from data time range
+        expect(panelProps?.timeRange.from.toISOString()).toEqual('2022-01-01T00:00:00.000Z');
         expect(panelProps?.data.timeRange.from.toISOString()).toEqual('2022-01-01T00:00:00.000Z');
       });
     });
