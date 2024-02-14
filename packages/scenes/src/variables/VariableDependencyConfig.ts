@@ -161,6 +161,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
         for (const path of this._statePaths) {
           if (path === '*') {
             this.extractVariablesFrom(state);
+            break;
           } else {
             const value = state[path];
             if (value) {
