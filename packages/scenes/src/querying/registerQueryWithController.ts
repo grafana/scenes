@@ -19,10 +19,12 @@ export function registerQueryWithController<T extends QueryResultWithState>(entr
       }
 
       queryControler.queryStarted(entry);
+      let markedAsCompleted = false;
 
       const sub = queryStream.subscribe({
         next: (v) => {
-          if (v.state !== LoadingState.Loading) {
+          if (!markedAsCompleted && v.state !== LoadingState.Loading) {
+            markedAsCompleted = true;
             queryControler.queryCompleted(entry);
           }
 
@@ -36,7 +38,10 @@ export function registerQueryWithController<T extends QueryResultWithState>(entr
 
       return () => {
         sub.unsubscribe();
-        queryControler.queryCompleted(entry);
+
+        if (!markedAsCompleted) {
+          queryControler.queryCompleted(entry);
+        }
       };
     });
   };
