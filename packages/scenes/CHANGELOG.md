@@ -1,3 +1,16 @@
+# v3.4.1 (Wed Feb 14 2024)
+
+#### 🐛 Bug Fix
+
+- SceneQueryController: Fixes double complete counting [#600](https://github.com/grafana/scenes/pull/600) ([@torkelo](https://github.com/torkelo))
+- VizPanel: Fixes streaming issue [#602](https://github.com/grafana/scenes/pull/602) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.4.0 (Wed Feb 14 2024)
 
 ### Release Notes
