@@ -1,3 +1,16 @@
+# v3.5.0 (Wed Feb 14 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Add query caching options [#603](https://github.com/grafana/scenes/pull/603) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v3.4.1 (Wed Feb 14 2024)
 
 #### 🐛 Bug Fix
