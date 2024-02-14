@@ -1,3 +1,62 @@
+# v3.4.0 (Wed Feb 14 2024)
+
+### Release Notes
+
+#### VariableDependencyConfig: Support `*` to extract dependencies from every state path ([#599](https://github.com/grafana/scenes/pull/599))
+
+**Possible breaking change: `VariableDependencyConfig` default behavior**
+
+- **Previously:** Using `VariableDependencyConfig` without options scanned the entire state.
+- **Now:** Default behavior requires an explicit wildcard (`*`) to scan the whole state. This prevents unintended dependency resolution.
+
+**Impact:** If you intentionally scanned the entire state, use `statePaths: ['*']`. Otherwise, specify desired `statePaths` or `variableNames`.
+
+**Example:**
+
+```diff
+class TestObj extends SceneObjectBase<TestState> {
+  public constructor() {
+    super({
+      query: 'query with ${queryVarA} ${queryVarB}',
+      otherProp: 'string with ${otherPropA}',
+      nested: {
+        query: 'nested object with ${nestedVarA}',
+      },
+    });
+  }
+}
+
+it('Should be able to extract dependencies from all state', () => {
+    const sceneObj = new TestObj();
+-    const deps = new VariableDependencyConfig(sceneObj, {});
++    const deps = new VariableDependencyConfig(sceneObj, { statePaths: ['*'] });
+
+    expect(deps.getNames()).toEqual(new Set(['queryVarA', 'queryVarB', 'nestedVarA', 'otherPropA']));
+  });
+```
+
+This mproves performance and avoids unexpected dependency resolution.
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VariableDependencyConfig: Support `*` to extract dependencies from every state path [#599](https://github.com/grafana/scenes/pull/599) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix typo in docstring [#601](https://github.com/grafana/scenes/pull/601) ([@oscarkilhed](https://github.com/oscarkilhed))
+  - VariableDependencyConfig can extract variables from circular structures [#597](https://github.com/grafana/scenes/pull/597) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 2
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v3.3.0 (Tue Feb 13 2024)
 
 ### Release Notes
