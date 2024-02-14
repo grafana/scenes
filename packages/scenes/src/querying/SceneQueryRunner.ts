@@ -57,6 +57,8 @@ export interface QueryRunnerState extends SceneObjectState {
   maxDataPoints?: number;
   liveStreaming?: boolean;
   maxDataPointsFromWidth?: boolean;
+  cacheTimeout?: DataQueryRequest['cacheTimeout'];
+  queryCachingTTL?: DataQueryRequest['queryCachingTTL'];
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
@@ -453,6 +455,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         from: timeRange.state.from,
         to: timeRange.state.to,
       },
+      cacheTimeout: this.state.cacheTimeout,
+      queryCachingTTL: this.state.queryCachingTTL,
       // This asks the scene root to provide context properties like app, panel and dashboardUID
       ...getEnrichedDataRequest(this),
     };

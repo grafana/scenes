@@ -149,6 +149,8 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
+        cacheTimeout: '30',
+        queryCachingTTL: 300000,
       });
 
       queryRunner.activate();
@@ -168,11 +170,13 @@ describe('SceneQueryRunner', () => {
       expect(request).toMatchInlineSnapshot(`
         {
           "app": "scenes",
+          "cacheTimeout": "30",
           "interval": "30s",
           "intervalMs": 30000,
           "liveStreaming": undefined,
           "maxDataPoints": 500,
           "panelId": 1,
+          "queryCachingTTL": 300000,
           "range": {
             "from": "2023-07-11T02:18:08.000Z",
             "raw": {
