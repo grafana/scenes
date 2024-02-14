@@ -60,6 +60,10 @@ export class SceneQueryController
   }
 
   public queryCompleted(entry: SceneQueryControllerEntry) {
+    if (!this.#running.has(entry)) {
+      return;
+    }
+
     this.#running.delete(entry);
 
     this.changeRunningQueryCount(-1);

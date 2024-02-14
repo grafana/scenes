@@ -21,17 +21,34 @@ describe('SceneQueryController', () => {
     let next = jest.fn();
     let complete = jest.fn();
 
-    const sub1 = query.subscribe({ next, complete });
+    query.subscribe({ next, complete });
 
-    next({ state: LoadingState.Loading });
-    complete();
+    streamFuncs.next({ state: LoadingState.Loading });
+    streamFuncs.complete();
 
     expect(next).toHaveBeenCalledTimes(1);
     expect(complete).toHaveBeenCalledTimes(1);
-    expect(streamFuncs.cleanup).toHaveBeenCalledTimes(0);
-
-    sub1.unsubscribe();
     expect(streamFuncs.cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it('should mark query as complete when packet sent with state != Loading', async () => {
+    const { query, streamFuncs } = registerQuery(scene);
+    let next = jest.fn();
+    let complete = jest.fn();
+
+    query.subscribe({ next, complete });
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(1);
+    expect(controller.state.isRunning).toBe(true);
+
+    streamFuncs.next({ state: LoadingState.Done });
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
+    expect(controller.state.isRunning).toBe(false);
+
+    streamFuncs.complete();
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
   });
 
   it('Last unsubscribe should set running to false', async () => {
