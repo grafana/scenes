@@ -176,7 +176,7 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
 
 /**
  * A utility function to find the closest ancestor of a given type. This function expects
- * to find it and will throw an error if it does noit.
+ * to find it and will throw an error if it does not.
  */
 export function getAncestor<ParentType>(
   sceneObject: SceneObject,
