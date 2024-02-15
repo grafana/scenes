@@ -133,14 +133,10 @@ export const sortVariableValues = (options: any[], sortOrder: VariableSort) => {
       });
       options = options.reverse();
       break;
-    // TODO remove harcoded value and ts-expect-error when schema package is updated
-    // @ts-expect-error
     case VariableSort.naturalAsc || 7:
       // Sort by natural sort
       options = sortByNaturalSort(options);
       break;
-    // TODO remove ts-expect-error when schema package is updated
-    // @ts-expect-error
     case VariableSort.naturalDesc || 8:
       options = sortByNaturalSort(options);
       options = options.reverse();

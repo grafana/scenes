@@ -193,6 +193,7 @@ export class AdHocFiltersVariable
 
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const queries = this._getSceneQueries();
+    // @ts-expect-error TODO: remove this once 10.4.0 is released
     let keys = await ds.getTagKeys({ filters: otherFilters, queries });
 
     if (override) {
