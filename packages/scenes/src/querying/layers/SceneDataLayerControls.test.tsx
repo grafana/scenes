@@ -1,6 +1,6 @@
 import React from 'react';
 import { selectors } from '@grafana/e2e-selectors';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { SceneDataLayerControl } from './SceneDataLayerControls';
 import { TestAnnotationsDataLayer } from './TestDataLayer';
 
