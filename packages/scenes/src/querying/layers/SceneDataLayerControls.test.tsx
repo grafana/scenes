@@ -58,7 +58,7 @@ describe('SceneDataLayerControl', () => {
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(1);
 
     act(() => {
-      fireEvent.mouseDown(screen.getByLabelText(selectors.components.LoadingIndicator.icon));
+      layer.cancelQuery();
     });
 
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(0);
