@@ -30,9 +30,12 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 exports[`VizPanelBuilder options and field config standard panels defaults provides bargauge defaults 1`] = `
 {
   "displayMode": "gradient",
-  "minVizHeight": 10,
-  "minVizWidth": 0,
+  "maxVizHeight": 300,
+  "minVizHeight": 16,
+  "minVizWidth": 8,
+  "namePlacement": "auto",
   "showUnfilled": true,
+  "sizing": "auto",
   "valueMode": "color",
 }
 `;
@@ -74,8 +77,11 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 
 exports[`VizPanelBuilder options and field config standard panels defaults provides gauge defaults 1`] = `
 {
+  "minVizHeight": 75,
+  "minVizWidth": 75,
   "showThresholdLabels": false,
   "showThresholdMarkers": true,
+  "sizing": "auto",
 }
 `;
 
@@ -126,7 +132,8 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
   },
   "showValue": "auto",
   "tooltip": {
-    "show": true,
+    "mode": "single",
+    "showColorScale": false,
     "yHistogram": false,
   },
 }
@@ -217,7 +224,9 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
   "colorMode": "value",
   "graphMode": "area",
   "justifyMode": "auto",
+  "showPercentChange": false,
   "textMode": "auto",
+  "wideLayout": true,
 }
 `;
 
@@ -355,10 +364,7 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 exports[`VizPanelBuilder options and field config standard panels defaults provides xychart defaults 2`] = `
 {
   "defaults": {
-    "custom": {
-      "label": "auto",
-      "show": "points",
-    },
+    "custom": undefined,
   },
   "overrides": [],
 }
