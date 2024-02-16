@@ -102,6 +102,7 @@ export { SceneObjectRef } from './core/SceneObjectRef';
 export { PanelBuilders, PanelOptionsBuilders, FieldConfigBuilders } from './core/PanelBuilders';
 export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
+export { SceneBaseliner } from './components/SceneBaseliner';
 
 export const sceneUtils = {
   getUrlWithAppState,
