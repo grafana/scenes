@@ -1,4 +1,4 @@
-import { screen, render } from '@testing-library/react';
+import { screen, render, waitFor, act } from '@testing-library/react';
 import React from 'react';
 
 import { NestedScene } from './NestedScene';
@@ -36,17 +36,33 @@ describe('NestedScene', () => {
 
   it('Can remove', async () => {
     setup();
-    screen.getByRole('button', { name: 'Remove scene' }).click();
-    expect(screen.queryByRole('heading', { name: 'Nested title' })).not.toBeInTheDocument();
+
+    act(() => {
+      screen.getByRole('button', { name: 'Remove scene' }).click();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Nested title' })).not.toBeInTheDocument();
+    });
   });
 
   it('Can collapse and expand', async () => {
     setup();
 
-    screen.getByRole('button', { name: 'Collapse scene' }).click();
-    expect(screen.queryByText('SceneCanvasText')).not.toBeInTheDocument();
+    act(() => {
+      screen.getByRole('button', { name: 'Collapse scene' }).click();
+    });
 
-    screen.getByRole('button', { name: 'Expand scene' }).click();
-    expect(screen.getByText('SceneCanvasText')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('SceneCanvasText')).not.toBeInTheDocument();
+    });
+
+    act(() => {
+      screen.getByRole('button', { name: 'Expand scene' }).click();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('SceneCanvasText')).toBeInTheDocument();
+    });
   });
 });

@@ -175,7 +175,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this._plugin = plugin;
 
     this.setState({
-      options: withDefaults.options,
+      options: withDefaults.options as DeepPartial<TOptions>,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
     });
@@ -248,7 +248,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     });
 
     this.setState({
-      options: withDefaults.options,
+      options: withDefaults.options as DeepPartial<TOptions>,
     });
   };
 

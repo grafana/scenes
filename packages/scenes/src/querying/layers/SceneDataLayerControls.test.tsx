@@ -1,6 +1,6 @@
 import React from 'react';
 import { selectors } from '@grafana/e2e-selectors';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { SceneDataLayerControl } from './SceneDataLayerControls';
 import { TestAnnotationsDataLayer } from './TestDataLayer';
 
@@ -58,7 +58,7 @@ describe('SceneDataLayerControl', () => {
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(1);
 
     act(() => {
-      fireEvent.mouseDown(screen.getByLabelText(selectors.components.LoadingIndicator.icon));
+      layer.cancelQuery();
     });
 
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(0);

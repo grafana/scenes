@@ -177,7 +177,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
           annotations = annotations.concat(result[DataTopic.Annotations]);
         }
 
-        // @ts-expect-error TODO: use DataTopic.AlertStates when exposed from core grafana
         if (layer.topic === 'alertStates') {
           alertStates = alertStates.concat(result.series);
         }

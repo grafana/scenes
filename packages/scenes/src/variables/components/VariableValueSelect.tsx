@@ -65,8 +65,6 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       placeholder={placeholder}
       width="auto"
       value={uncommittedValue}
-      // TODO remove after grafana/ui upgrade to 10.3
-      // @ts-expect-error
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}

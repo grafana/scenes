@@ -1142,8 +1142,8 @@ describe('SceneQueryRunner', () => {
           "fields": [
             {
               "config": {},
-              "labels": undefined,
               "name": "foo",
+              "state": null,
               "type": "string",
               "values": [
                 "foo1",
@@ -1153,8 +1153,8 @@ describe('SceneQueryRunner', () => {
             },
             {
               "config": {},
-              "labels": undefined,
               "name": "bar",
+              "state": null,
               "type": "string",
               "values": [
                 "bar1",
@@ -1163,6 +1163,7 @@ describe('SceneQueryRunner', () => {
               ],
             },
           ],
+          "length": 3,
           "meta": {
             "custom": {
               "resultType": "exemplar",

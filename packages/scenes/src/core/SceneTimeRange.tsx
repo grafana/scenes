@@ -111,7 +111,6 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       updateToEval.from = timeRange.raw.from;
     } else {
       update.from = timeRange.raw.from.toISOString();
-      // @ts-expect-error Need an update in core API
       updateToEval.from = timeRange.raw.from.toISOString(true);
     }
 
@@ -120,7 +119,6 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       updateToEval.to = timeRange.raw.to;
     } else {
       update.to = timeRange.raw.to.toISOString();
-      // @ts-expect-error Need an update in core API
       updateToEval.to = timeRange.raw.to.toISOString(true);
     }
 

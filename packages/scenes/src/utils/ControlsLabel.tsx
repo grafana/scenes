@@ -24,7 +24,10 @@ export function ControlsLabel(props: ControlsLabelProps) {
   const isVertical = props.layout === 'vertical';
 
   const loadingIndicator = Boolean(props.isLoading) ? (
-    <div style={{ marginLeft: theme.spacing(1), marginTop: '-1px' }}>
+    <div
+      style={{ marginLeft: theme.spacing(1), marginTop: '-1px' }}
+      aria-label={selectors.components.LoadingIndicator.icon}
+    >
       <LoadingIndicator
         onCancel={(e) => {
           e.preventDefault();
