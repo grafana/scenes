@@ -1,3 +1,16 @@
+# v3.6.0 (Mon Feb 19 2024)
+
+#### 🚀 Enhancement
+
+- Update grafana peer dependencies [#570](https://github.com/grafana/scenes/pull/570) ([@leventebalogh](https://github.com/leventebalogh) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
 # v3.5.0 (Wed Feb 14 2024)
 
 #### 🚀 Enhancement
