@@ -292,7 +292,7 @@ function createBaselinesForFrame(
   }
 
   // Create and fit the model.
-  const model = ets(seasonLengths);
+  const model = ets(seasonLengths, { impute: true });
   model.fit(y);
 
   // Get predictions for in-sample data (i.e. the same data we trained on).
