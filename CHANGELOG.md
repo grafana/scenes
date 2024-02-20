@@ -1,3 +1,16 @@
+# v3.6.1 (Tue Feb 20 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Fixes issue with non memoizable PanelData [#609](https://github.com/grafana/scenes/pull/609) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.6.0 (Mon Feb 19 2024)
 
 #### 🚀 Enhancement
