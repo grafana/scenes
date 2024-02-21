@@ -54,7 +54,6 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
 
   /**
    * Optionally provide an array of static keys that override getTagKeys
-   * TODO can we remove this?
    */
   staticKeys?: MetricFindValue[];
 
