@@ -45,7 +45,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     this._events = new EventBusSrv();
 
     this._state = Object.freeze(state);
-    this._setParent();
+    this._setParent(this._state);
   }
 
   /** Current state */
@@ -81,8 +81,8 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     return SceneComponentWrapper;
   }
 
-  private _setParent() {
-    this.forEachChild((child) => {
+  private _setParent(state: Partial<TState>) {
+    forEachChild(state, (child) => {
       // If we already have a parent and it's not this, then we likely have a bug
       if (child._parent && child._parent !== this) {
         console.warn(
@@ -121,7 +121,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     };
 
     this._state = Object.freeze(newState);
-    this._setParent();
+    this._setParent(update);
 
     // Handles cases when $data, $timeRange, or $variables are changed
     this._handleActivationOfChangedStateProps(prevState, newState);
@@ -310,19 +310,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
    */
   public forEachChild(callback: (child: SceneObjectBase) => void) {
-    for (const propValue of Object.values(this.state)) {
-      if (propValue instanceof SceneObjectBase) {
-        callback(propValue);
-      }
-
-      if (Array.isArray(propValue)) {
-        for (const child of propValue) {
-          if (child instanceof SceneObjectBase) {
-            callback(child);
-          }
-        }
-      }
-    }
+    forEachChild(this.state, callback);
   }
 
   /** Returns a SceneObjectRef that will resolve to this object */
@@ -356,4 +344,20 @@ function useSceneObjectState<TState extends SceneObjectState>(model: SceneObject
   }, [model]);
 
   return model.state;
+}
+
+function forEachChild<T extends object>(state: T, callback: (child: SceneObjectBase) => void) {
+  for (const propValue of Object.values(state)) {
+    if (propValue instanceof SceneObjectBase) {
+      callback(propValue);
+    }
+
+    if (Array.isArray(propValue)) {
+      for (const child of propValue) {
+        if (child instanceof SceneObjectBase) {
+          callback(child);
+        }
+      }
+    }
+  }
 }
