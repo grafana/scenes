@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
@@ -41,6 +41,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       onChange={(v) => model._updateFilter(filter, 'value', v.value)}
       isOpen={state.isValuesOpen}
       isLoading={state.isValuesLoading}
+      autoFocus={filter.key !== '' && filter.value === ''}
+      openMenuOnFocus={true}
       onOpenMenu={async () => {
         setState({ ...state, isValuesLoading: true });
         const values = await model._getValuesFor(filter);
@@ -71,6 +73,11 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       }}
       onCloseMenu={() => {
         setState({ ...state, isKeysOpen: false });
+      }}
+      onBlur={() => {
+        if (filter.key === '') {
+          model._removeFilter(filter);
+        }
       }}
       openMenuOnFocus={true}
     />

@@ -67,7 +67,7 @@ export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
               hide: VariableHide.hideLabel,
               layout: 'vertical',
               applyMode: 'manual',
-              datasource: { uid: 'gdev-prometheus' },
+              datasource: { uid: 'se-demo' },
               filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
             }),
           ],
