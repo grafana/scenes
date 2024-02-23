@@ -1,3 +1,4 @@
+import { VariableHide } from '@grafana/data';
 import {
   SceneFlexLayout,
   SceneTimeRange,
@@ -111,6 +112,80 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
           });
         },
       }),
+
+      new SceneAppPage({
+        title: 'Vertical Variants',
+        url: `${defaults.url}/vertical`,
+        getScene: () => {
+          return new EmbeddedScene({
+            ...getEmbeddedSceneDefaults(),
+            $variables: new SceneVariableSet({
+              variables: [
+                new AdHocFiltersVariable({
+                  name: 'no-button-text',
+                  layout: 'vertical',
+                  label: 'Without add filter button text',
+                  hide: VariableHide.hideLabel,
+                  datasource: { uid: 'gdev-prometheus' },
+                  filters: [{ key: 'job', operator: '=', value: 'has no text', condition: '' }],
+                }),
+                new AdHocFiltersVariable({
+                  name: 'button-text',
+                  layout: 'vertical',
+                  label: 'With add filter button text',
+                  hide: VariableHide.hideLabel,
+                  addFilterButtonText: "Add a filter",
+                  datasource: { uid: 'gdev-prometheus' },
+                  filters: [{ key: 'job', operator: '=', value: 'has text on add button', condition: '' }],
+                }),
+
+                new AdHocFiltersVariable({
+                  name: 'button-text',
+                  layout: 'vertical',
+                  label: 'With add filter button text',
+                  hide: VariableHide.hideLabel,
+                  addFilterButtonText: "Filter",
+                  datasource: { uid: 'gdev-prometheus' },
+                  filters: [{ key: 'job', operator: '=', value: 'also has text on add button', condition: '' }],
+                }),
+
+              ],
+            }),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new SceneCanvasText({
+                    text: `Using AdHocFilterSet in manual mode allows you to use it as a normal variable. The query below is interpolated to ALERTS{$Filters}`,
+                    fontSize: 14,
+                  }),
+                }),
+                new SceneFlexItem({
+                  body: PanelBuilders.table()
+                    .setTitle('ALERTS')
+                    .setData(
+                      new SceneQueryRunner({
+                        datasource: { uid: 'gdev-prometheus' },
+                        queries: [
+                          {
+                            refId: 'A',
+                            expr: 'ALERTS{$Filters}',
+                            format: 'table',
+                            instant: true,
+                          },
+                        ],
+                      })
+                    )
+                    .build(),
+                }),
+              ],
+            }),
+            $timeRange: new SceneTimeRange(),
+          });
+        },
+      }),
+
     ],
   });
 }
