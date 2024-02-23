@@ -1,3 +1,24 @@
+# v3.7.0 (Fri Feb 23 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Pass container width to data provider always [#611](https://github.com/grafana/scenes/pull/611) ([@torkelo](https://github.com/torkelo))
+  - SceneObjectBase: Minor optimization to setParent [#610](https://github.com/grafana/scenes/pull/610) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Auto: Updating auto [#617](https://github.com/grafana/scenes/pull/617) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - Legend sorting fix [#616](https://github.com/grafana/scenes/pull/616) ([@xforman2](https://github.com/xforman2))
+
+#### Authors: 2
+
+- [@xforman2](https://github.com/xforman2)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.6.1 (Tue Feb 20 2024)
 
 #### 🐛 Bug Fix
