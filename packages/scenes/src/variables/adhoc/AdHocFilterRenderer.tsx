@@ -36,7 +36,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
       width="auto"
       value={valueValue}
-      placeholder={'value'}
+      placeholder={'Select value'}
       options={state.values}
       onChange={(v) => model._updateFilter(filter, 'value', v.value)}
       isOpen={state.isValuesOpen}
