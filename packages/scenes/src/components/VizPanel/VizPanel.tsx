@@ -410,7 +410,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this.onOptionsChange({
       ...this.state.options,
       legend: { ...legendOptions, sortBy, sortDesc },
-    } as TOptions);
+    } as TOptions, true);
   };
 
   private buildPanelContext(): PanelContext {
