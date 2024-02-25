@@ -56,6 +56,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
   const keySelect = (
     <Select
+      key={`${state.isValuesLoading ? 'loading' : 'loaded'}`}
       disabled={model.state.readOnly}
       className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
       width="auto"
