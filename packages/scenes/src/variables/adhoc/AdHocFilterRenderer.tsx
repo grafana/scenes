@@ -41,6 +41,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       onChange={(v) => model._updateFilter(filter, 'value', v.value)}
       isOpen={state.isValuesOpen}
       isLoading={state.isValuesLoading}
+      autoFocus={filter.key !== '' && filter.value === ''}
+      openMenuOnFocus={true}
       onOpenMenu={async () => {
         setState({ ...state, isValuesLoading: true });
         const values = await model._getValuesFor(filter);
@@ -54,6 +56,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
   const keySelect = (
     <Select
+      // By changing the key, we reset the Select component,
+      // to ensure that the loaded values are shown after they are loaded
+      key={`${state.isValuesLoading ? 'loading' : 'loaded'}`}
       disabled={model.state.readOnly}
       className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
       width="auto"
@@ -71,6 +76,11 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       }}
       onCloseMenu={() => {
         setState({ ...state, isKeysOpen: false });
+      }}
+      onBlur={() => {
+        if (filter.key === '') {
+          model._removeFilter(filter);
+        }
       }}
       openMenuOnFocus={true}
     />
