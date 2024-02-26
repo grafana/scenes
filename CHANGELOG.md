@@ -1,3 +1,23 @@
+# v3.8.0 (Mon Feb 26 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilters: Auto focus value when key is selected [#614](https://github.com/grafana/scenes/pull/614) ([@torkelo](https://github.com/torkelo) [@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - feat: allow label for adhoc filter add button [#619](https://github.com/grafana/scenes/pull/619) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+  - fix: adhoc filter placeholder to "Select value" [#620](https://github.com/grafana/scenes/pull/620) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 2
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.7.0 (Fri Feb 23 2024)
 
 #### 🚀 Enhancement
