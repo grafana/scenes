@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
@@ -56,6 +56,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
   const keySelect = (
     <Select
+      // By changing the key, we reset the Select component,
+      // to ensure that the loaded values are shown after they are loaded
       key={`${state.isValuesLoading ? 'loading' : 'loaded'}`}
       disabled={model.state.readOnly}
       className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
