@@ -16,6 +16,8 @@ import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyn
 import { css } from '@emotion/css';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
+  /** Optional text to display on the 'add filter' button */
+  addFilterButtonText?: string;
   /** The visible filters */
   filters: AdHocVariableFilter[];
   /** Base filters to always apply when looking up keys*/
@@ -277,7 +279,7 @@ function renderExpression(state: Partial<AdHocFiltersVariableState>) {
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
-  const { filters, readOnly } = model.useState();
+  const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
   return (
@@ -288,7 +290,7 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
         </React.Fragment>
       ))}
 
-      {!readOnly && <AdHocFilterBuilder model={model} key="'builder" />}
+      {!readOnly && <AdHocFilterBuilder model={model} key="'builder" addFilterButtonText={addFilterButtonText}/>}
     </div>
   );
 }
