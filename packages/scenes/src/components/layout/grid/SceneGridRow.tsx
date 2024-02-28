@@ -75,17 +75,19 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
 
   return (
     <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
-      <button
-        onClick={model.onCollapseToggle}
-        className={styles.rowTitleButton}
-        aria-label={isCollapsed ? 'Expand row' : 'Collapse row'}
-      >
-        {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
-        <span className={styles.rowTitle} role="heading">
-          {sceneGraph.interpolate(model, title, undefined, 'text')}
-        </span>
-      </button>
-      {actions && <actions.Component model={actions} />}
+      <div className={styles.rowTitleAndActionsGroup}>
+        <button
+          onClick={model.onCollapseToggle}
+          className={styles.rowTitleButton}
+          aria-label={isCollapsed ? 'Expand row' : 'Collapse row'}
+        >
+          {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
+          <span className={styles.rowTitle} role="heading">
+            {sceneGraph.interpolate(model, title, undefined, 'text')}
+          </span>
+        </button>
+        {actions && <actions.Component model={actions} />}
+      </div>
       {isDraggable && isCollapsed && (
         <div className={cx(styles.dragHandle, layoutDragClass)}>
           <Icon name="draggabledots" />
@@ -125,6 +127,9 @@ export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       display: 'flex',
       alignItems: 'center',
       flexGrow: 1,
+    }),
+    rowTitleAndActionsGroup: css({
+      display: 'flex',
     }),
     dragHandle: css({
       display: 'flex',
