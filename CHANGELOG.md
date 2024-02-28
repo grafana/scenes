@@ -1,3 +1,57 @@
+# v3.8.0 (Mon Feb 26 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilters: Auto focus value when key is selected [#614](https://github.com/grafana/scenes/pull/614) ([@torkelo](https://github.com/torkelo) [@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - feat: allow label for adhoc filter add button [#619](https://github.com/grafana/scenes/pull/619) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+  - fix: adhoc filter placeholder to "Select value" [#620](https://github.com/grafana/scenes/pull/620) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 2
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.7.0 (Fri Feb 23 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Pass container width to data provider always [#611](https://github.com/grafana/scenes/pull/611) ([@torkelo](https://github.com/torkelo))
+  - SceneObjectBase: Minor optimization to setParent [#610](https://github.com/grafana/scenes/pull/610) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Auto: Updating auto [#617](https://github.com/grafana/scenes/pull/617) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - Legend sorting fix [#616](https://github.com/grafana/scenes/pull/616) ([@xforman2](https://github.com/xforman2))
+
+#### Authors: 2
+
+- [@xforman2](https://github.com/xforman2)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.6.1 (Tue Feb 20 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Fixes issue with non memoizable PanelData [#609](https://github.com/grafana/scenes/pull/609) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.6.0 (Mon Feb 19 2024)
 
 #### 🚀 Enhancement

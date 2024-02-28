@@ -1,4 +1,4 @@
-import { VariableRefresh } from '@grafana/data';
+import { AdHocVariableFilter, VariableRefresh } from '@grafana/data';
 import {
   SceneFlexLayout,
   SceneVariableSet,
@@ -67,8 +67,21 @@ export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
               hide: VariableHide.hideLabel,
               layout: 'vertical',
               applyMode: 'manual',
-              datasource: { uid: 'gdev-prometheus' },
               filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
+              getTagKeysProvider: async (variable: AdHocFiltersVariable, currentKey: string | null) => {
+                await new Promise((resolve)=>setTimeout(resolve, 200));
+                return {
+                  replace: true,
+                  values: [{text: 'job'}, {text: 'instance'}],
+                };
+              },
+              getTagValuesProvider: async (variable: AdHocFiltersVariable, filter: AdHocVariableFilter) => {
+                await new Promise((resolve)=>setTimeout(resolve, 400));
+                return {
+                  replace: true,
+                  values: ['A', 'B', 'C', 'D', 'E', 'F', 'grafana'].map((v)=>({text: v})),
+                };
+              },
             }),
           ],
         }),
