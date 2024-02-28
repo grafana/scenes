@@ -1,3 +1,15 @@
+# v3.8.1 (Wed Feb 28 2024)
+
+#### 🐛 Bug Fix
+
+- Group row title and actions together on the left side [#624](https://github.com/grafana/scenes/pull/624) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v3.8.0 (Mon Feb 26 2024)
 
 #### 🚀 Enhancement
