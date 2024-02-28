@@ -191,6 +191,28 @@ describe('AdHocFiltersVariable', () => {
     ]);
   });
 
+  it('Can override with static keys', async () => {
+    const { filtersVar } = setup({
+      staticKeys: [{
+        text: 'some',
+        value: '1',
+      }, {
+        text: 'static',
+        value: '2',
+      }, {
+        text: 'keys',
+        value: '3',
+      }],
+    });
+
+    const keys = await filtersVar._getKeys(null);
+    expect(keys).toEqual([
+      { label: 'some', value: '1' },
+      { label: 'static', value: '2' },
+      { label: 'keys', value: '3' },
+    ]);
+  });
+
   it('Can filter by regex', async () => {
     const { filtersVar } = setup({
       tagKeyRegexFilter: new RegExp('x.*'),
