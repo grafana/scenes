@@ -70,8 +70,10 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
-  const { isCollapsible, isCollapsed, title, isDraggable, actions } = model.useState();
-  const layoutDragClass = model.getGridLayout().getDragClass();
+  const { isCollapsible, isCollapsed, title, actions } = model.useState();
+  const layout = model.getGridLayout();
+  const layoutDragClass = layout.getDragClass();
+  const isDraggable = layout.isDraggable();
 
   return (
     <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
