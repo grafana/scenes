@@ -1,4 +1,11 @@
-import { DataQuery, DataQueryRequest, DataQueryResponse, FieldType, TestDataSourceResponse } from '@grafana/data';
+import {
+  DataQuery,
+  DataQueryRequest,
+  DataQueryResponse,
+  FieldType,
+  MetricFindValue,
+  TestDataSourceResponse,
+} from '@grafana/data';
 import {
   SceneFlexLayout,
   SceneFlexItem,
@@ -9,6 +16,8 @@ import {
   sceneUtils,
   SceneQueryRunner,
   RuntimeDataSource,
+  SceneVariableSet,
+  QueryVariable,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 import { Observable } from 'rxjs';
@@ -22,6 +31,16 @@ export function getRuntimeDataSourceDemo(defaults: SceneAppPageState): SceneAppP
     subTitle: 'Demo of a runtime registered panel plugin',
     getScene: () => {
       return new EmbeddedScene({
+        ...getEmbeddedSceneDefaults(),
+        $variables: new SceneVariableSet({
+          variables: [
+            new QueryVariable({
+              name: 'test',
+              query: { refId: 'A', query: 'A' },
+              datasource: { uid: 'my-custom-ds-uid', type: 'my-custom-ds' },
+            }),
+          ],
+        }),
         body: new SceneFlexLayout({
           ...getEmbeddedSceneDefaults(),
           direction: 'column',
@@ -54,6 +73,13 @@ class MyCustomDS extends RuntimeDataSource {
         },
       ],
     });
+  }
+
+  metricFindQuery(query: any, options?: any): Promise<MetricFindValue[]> {
+    return Promise.resolve([
+      { text: 'value1-from-runtime-ds', value: 'value1-from-runtime-ds' },
+      { text: 'value2-from-runtime-ds', value: 'value2-from-runtime-ds' },
+    ]);
   }
 
   testDatasource(): Promise<TestDataSourceResponse> {

@@ -70,10 +70,13 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
-  const { isCollapsible, isCollapsed, title, actions } = model.useState();
+  const { isCollapsible, isCollapsed, title, actions, children } = model.useState();
   const layout = model.getGridLayout();
   const layoutDragClass = layout.getDragClass();
   const isDraggable = layout.isDraggable();
+
+  const count = children ? children.length : 0;
+  const panels = count === 1 ? 'panel' : 'panels';
 
   return (
     <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
@@ -88,7 +91,14 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
             {sceneGraph.interpolate(model, title, undefined, 'text')}
           </span>
         </button>
-        {actions && <actions.Component model={actions} />}
+        <span className={cx(styles.panelCount, isCollapsed && styles.panelCountCollapsed)}>
+          ({count} {panels})
+        </span>
+        {actions && 
+          <div className={styles.rowActions}>
+            <actions.Component model={actions} />
+          </div>
+        }
       </div>
       {isDraggable && isCollapsed && (
         <div className={cx(styles.dragHandle, layoutDragClass)}>
@@ -132,6 +142,21 @@ export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
     }),
     rowTitleAndActionsGroup: css({
       display: 'flex',
+
+      '&:hover, &:focus-within': {
+        '& > div': {
+          opacity: 1,
+        }
+      },
+    }),
+    rowActions: css({
+      display: 'flex',
+      opacity: 0,
+      transition: '200ms opacity ease-in 200ms',
+
+      '&:hover, &:focus-within': {
+        opacity: 1,
+      },
     }),
     dragHandle: css({
       display: 'flex',
@@ -143,6 +168,18 @@ export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       '&:hover': {
         color: theme.colors.text.primary,
       },
+    }),
+    panelCount: css({
+      paddingLeft: theme.spacing(2),
+      color: theme.colors.text.secondary,
+      fontStyle: 'italic',
+      fontSize: theme.typography.size.sm,
+      fontWeight: 'normal',
+      display: 'none',
+      lineHeight: '30px',
+    }),
+    panelCountCollapsed: css({
+      display: 'inline-block',
     }),
   };
 };
