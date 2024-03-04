@@ -292,8 +292,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     this.setState({ children: sortChildrenByPosition(newChildren) });
     this._skipOnLayoutChange = true;
-
-    console.log(this.state);
   };
 
   private toGridCell(child: SceneGridItemLike): ReactGridLayout.Layout {
