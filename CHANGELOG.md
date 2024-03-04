@@ -1,3 +1,19 @@
+# v3.8.2 (Mon Mar 04 2024)
+
+#### 🐛 Bug Fix
+
+- RuntimeDataSource: Add QueryVariable to demo [#613](https://github.com/grafana/scenes/pull/613) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - Rows are draggable when scene layout is draggable [#626](https://github.com/grafana/scenes/pull/626) ([@mdvictor](https://github.com/mdvictor))
+  - Style rows to show actions on entire group hover [#625](https://github.com/grafana/scenes/pull/625) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v3.8.1 (Wed Feb 28 2024)
 
 #### 🐛 Bug Fix
