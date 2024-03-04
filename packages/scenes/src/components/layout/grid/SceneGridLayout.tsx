@@ -257,17 +257,43 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       }
     }
 
-    // Update the parent if the child if it has moved to a row or back to the grid
     const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
-    const newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
     let newChildren = this.state.children;
 
-    if (newParent !== sceneChild.parent) {
-      newChildren = this.moveChildTo(sceneChild, newParent);
+    // If the child is a row
+    if (sceneChild instanceof SceneGridRow) {
+      let indexOfSeparation = 0;
+
+      // and we are drag and dropping this row inside another row, we need to
+      for (let i = indexOfUpdatedItem - 1; i >= 0; i--) {
+        const gridItem = gridLayout[i];
+        const aboveRow = this.getSceneLayoutChild(gridItem.i);
+  
+        // find if there is another row above in tree and
+        // get all children that are below this row from the row above and append them to this row
+        if (aboveRow instanceof SceneGridRow && !aboveRow.state.isCollapsed) {
+          const children = aboveRow.state.children;
+          const toMoveChildren = children.splice(indexOfSeparation).map((c) => c.clone());
+
+          aboveRow.setState({ children: children });
+          sceneChild.setState({ children: [...sceneChild.state.children, ...toMoveChildren] });
+        }
+
+        indexOfSeparation ++;
+      }
+    } else {
+      // Update the parent if the child if it has moved to a row or back to the grid
+      const newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
+
+      if (newParent !== sceneChild.parent) {
+        newChildren = this.moveChildTo(sceneChild, newParent);
+      }
     }
 
     this.setState({ children: sortChildrenByPosition(newChildren) });
     this._skipOnLayoutChange = true;
+
+    console.log(this.state);
   };
 
   private toGridCell(child: SceneGridItemLike): ReactGridLayout.Layout {
