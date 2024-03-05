@@ -47,6 +47,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   implements SceneVariable<TState>
 {
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
+  private skipNextValidation?: boolean;
 
   /**
    * The source of value options.
@@ -136,6 +137,15 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       }
     }
 
+    /**
+     * Values set by initial URL sync needs to survive the next validation and update
+     */
+    if (this.skipNextValidation) {
+      stateUpdate.value = currentValue;
+      stateUpdate.text = currentText;
+      this.skipNextValidation = false;
+    }
+
     // Perform state change
     this.setStateHelper(stateUpdate);
 
@@ -186,8 +196,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
   /**
    * Change the value and publish SceneVariableValueChangedEvent event
+   * If skipValidation is true, the value will maintained even when the value is not in the list of possible options (values).
    */
-  public changeValueTo(value: VariableValue, text?: VariableValue) {
+  public changeValueTo(value: VariableValue, text?: VariableValue, skipNextValidation?: boolean) {
+    this.skipNextValidation = skipNextValidation;
+
     // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
@@ -341,7 +354,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
         urlValue = ALL_VARIABLE_VALUE;
       }
 
-      this._sceneObject.changeValueTo(urlValue);
+      this._sceneObject.changeValueTo(urlValue, undefined, true);
     }
   }
 }

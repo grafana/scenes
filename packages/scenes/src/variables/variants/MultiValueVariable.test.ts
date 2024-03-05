@@ -1,4 +1,4 @@
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, of } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { VariableFormatID } from '@grafana/schema';
@@ -498,6 +498,23 @@ describe('MultiValueVariable', () => {
     });
 
     it('updateFromUrl with old arch All value', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        delayMs: 0,
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: 'Custom value' });
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.getValue()).toEqual('Custom value');
+    });
+
+    it('updateFromUrl with custom value should survive validation', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [
