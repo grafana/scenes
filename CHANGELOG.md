@@ -1,3 +1,16 @@
+# v3.9.1 (Tue Mar 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VariableDependencyConfig: Fixes support for explicit dependencies and scanned dependencies [#630](https://github.com/grafana/scenes/pull/630) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.9.0 (Tue Mar 05 2024)
 
 ### Release Notes
