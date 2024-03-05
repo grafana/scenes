@@ -20,7 +20,6 @@ import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
-import { writeSceneLog } from '../../utils/writeSceneLog';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -48,7 +47,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   implements SceneVariable<TState>
 {
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
-  private skipNextValidation?: boolean;
+
+  /**
+   * Set to true to skip next value validation to maintain the current value even it it's not among the options (ie valid values)
+   */
+  public skipNextValidation?: boolean;
 
   /**
    * The source of value options.
@@ -196,21 +199,9 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   }
 
   /**
-   * Change the value and publish SceneVariableValueChangedEvent event
+   * Change the value and publish SceneVariableValueChangedEvent event.
    */
   public changeValueTo(value: VariableValue, text?: VariableValue) {
-    /**
-     * Only initial URL sync should trigger value changes while in-active.
-     * To maintain initial URL sync values after validation we set this skipNextValidation to true.
-     */
-    if (!this.isActive) {
-      this.skipNextValidation = true;
-      writeSceneLog(
-        'SceneVariableSet',
-        `Variable[${this.state.name}]: changeValueTo ${value} while in-active, setting skipNextValidation: true`
-      );
-    }
-
     // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
@@ -364,7 +355,15 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
         urlValue = ALL_VARIABLE_VALUE;
       }
 
-      this._sceneObject.changeValueTo(urlValue);
+      /**
+       * Initial URL Sync happens before scene objects are activated.
+       * We need to skip validation in this case to make sure values set via URL are maintained.
+       */
+      if (!this._sceneObject.isActive) {
+        this._sceneObject.skipNextValidation = true;
+      }
+
+      this._sceneObject.changeValueTo(urlValue, undefined);
     }
   }
 }

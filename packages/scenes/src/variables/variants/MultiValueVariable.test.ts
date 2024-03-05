@@ -1,4 +1,4 @@
-import { lastValueFrom, of } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { VariableFormatID } from '@grafana/schema';
