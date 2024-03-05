@@ -364,7 +364,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
         urlValue = ALL_VARIABLE_VALUE;
       }
 
-      this._sceneObject.changeValueTo(urlValue, undefined, true);
+      this._sceneObject.changeValueTo(urlValue);
     }
   }
 }
