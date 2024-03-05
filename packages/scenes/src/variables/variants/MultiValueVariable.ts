@@ -363,7 +363,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
         this._sceneObject.skipNextValidation = true;
       }
 
-      this._sceneObject.changeValueTo(urlValue, undefined);
+      this._sceneObject.changeValueTo(urlValue);
     }
   }
 }
