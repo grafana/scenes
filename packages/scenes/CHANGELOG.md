@@ -1,3 +1,35 @@
+# v3.9.1 (Tue Mar 05 2024)
+
+#### 🐛 Bug Fix
+
+- VariableDependencyConfig: Fixes support for explicit dependencies and scanned dependencies [#630](https://github.com/grafana/scenes/pull/630) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.9.0 (Tue Mar 05 2024)
+
+### Release Notes
+
+#### SceneObjectBase: Call self activation handlers before child data, time range and variable handlers ([#628](https://github.com/grafana/scenes/pull/628))
+
+Activation handlers are for a scene object is now called before any direct child activation handlers. Before this release the activation handlers of direction $data, $timeRange, $variables and $behaviors was called before the SceneObjects own activation handlers.
+
+---
+
+#### 🚀 Enhancement
+
+- SceneObjectBase: Call self activation handlers before child data, time range and variable handlers [#628](https://github.com/grafana/scenes/pull/628) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.8.2 (Mon Mar 04 2024)
 
 #### 🐛 Bug Fix

@@ -156,17 +156,17 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       for (const name of this._options.variableNames) {
         this._dependencies.add(name);
       }
-    } else {
-      if (this._statePaths) {
-        for (const path of this._statePaths) {
-          if (path === '*') {
-            this.extractVariablesFrom(state);
-            break;
-          } else {
-            const value = state[path];
-            if (value) {
-              this.extractVariablesFrom(value);
-            }
+    }
+
+    if (this._statePaths) {
+      for (const path of this._statePaths) {
+        if (path === '*') {
+          this.extractVariablesFrom(state);
+          break;
+        } else {
+          const value = state[path];
+          if (value) {
+            this.extractVariablesFrom(value);
           }
         }
       }
