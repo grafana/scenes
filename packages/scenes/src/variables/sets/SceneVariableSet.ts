@@ -353,7 +353,11 @@ export interface VariableUpdateInProgress {
 }
 
 function writeVariableTraceLog(variable: SceneVariable, message: string, err?: Error) {
-  writeSceneLog('SceneVariableSet', `Variable[${variable.state.name}]: ${message}`, err);
+  if (err) {
+    writeSceneLog('SceneVariableSet', `Variable[${variable.state.name}]: ${message}`, err);
+  } else {
+    writeSceneLog('SceneVariableSet', `Variable[${variable.state.name}]: ${message}`);
+  }
 }
 
 class SceneVariableSetVariableDependencyHandler implements SceneVariableDependencyConfigLike {

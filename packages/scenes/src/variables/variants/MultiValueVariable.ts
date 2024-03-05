@@ -20,6 +20,7 @@ import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
+import { writeSceneLog } from '../../utils/writeSceneLog';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -196,10 +197,19 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
   /**
    * Change the value and publish SceneVariableValueChangedEvent event
-   * If skipValidation is true, the value will maintained even when the value is not in the list of possible options (values).
    */
-  public changeValueTo(value: VariableValue, text?: VariableValue, skipNextValidation?: boolean) {
-    this.skipNextValidation = skipNextValidation;
+  public changeValueTo(value: VariableValue, text?: VariableValue) {
+    /**
+     * Only initial URL sync should trigger value changes while in-active.
+     * To maintain initial URL sync values after validation we set this skipNextValidation to true.
+     */
+    if (!this.isActive) {
+      this.skipNextValidation = true;
+      writeSceneLog(
+        'SceneVariableSet',
+        `Variable[${this.state.name}]: changeValueTo ${value} while in-active, setting skipNextValidation: true`
+      );
+    }
 
     // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
