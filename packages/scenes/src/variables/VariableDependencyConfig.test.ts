@@ -88,10 +88,23 @@ describe('VariableDependencyConfig', () => {
   it('Should not scan the state if variable name defined', () => {
     const sceneObj = new TestObj();
     sceneObj.setState({ query: 'new query with ${newVar}' });
-    const deps = new VariableDependencyConfig(sceneObj, { variableNames: ['nonExistentVar'] });
+    const deps = new VariableDependencyConfig(sceneObj, { statePaths: ['query'], variableNames: ['nonExistentVar'] });
     deps.getNames();
 
     expect(deps.getNames()).toEqual(new Set(['nonExistentVar']));
+    expect(deps.scanCount).toBe(1);
+  });
+
+  it('Should scan the state if extra variable name defined', () => {
+    const sceneObj = new TestObj();
+    sceneObj.setState({ query: 'new query with ${newVar}' });
+    const deps = new VariableDependencyConfig(sceneObj, {
+      statePaths: ['query'],
+      extraVariableNames: ['nonExistentVar'],
+    });
+    deps.getNames();
+
+    expect(deps.getNames()).toEqual(new Set(['nonExistentVar', 'newVar']));
     expect(deps.scanCount).toBe(1);
   });
 
@@ -116,6 +129,20 @@ describe('VariableDependencyConfig', () => {
     expect(fn.mock.calls.length).toBe(0);
 
     deps.setVariableNames(['not-dep']);
+    deps.variableUpdateCompleted(new ConstantVariable({ name: 'not-dep', value: '1' }), true);
+
+    expect(fn.mock.calls.length).toBe(1);
+  });
+
+  it('Can update extra explicit depenendencies', () => {
+    const sceneObj = new TestObj();
+    const fn = jest.fn();
+    const deps = new VariableDependencyConfig(sceneObj, { onReferencedVariableValueChanged: fn, statePaths: ['*'] });
+
+    deps.variableUpdateCompleted(new ConstantVariable({ name: 'not-dep', value: '1' }), true);
+    expect(fn.mock.calls.length).toBe(0);
+
+    deps.setExtraVariableNames(['not-dep']);
     deps.variableUpdateCompleted(new ConstantVariable({ name: 'not-dep', value: '1' }), true);
 
     expect(fn.mock.calls.length).toBe(1);

@@ -18,6 +18,11 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   variableNames?: string[];
 
   /**
+   * Additiona list of variable names to depend on, in addition to those extracted from state.
+   */
+  extraVariableNames?: string[];
+
+  /**
    * Optional way to customize how to handle when a dependent variable changes
    * If not specified the default behavior is to trigger a re-render
    */
@@ -144,6 +149,11 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     this.scanStateForDependencies(this._state!);
   }
 
+  public setExtraVariableNames(varNames: string[]) {
+    this._options.extraVariableNames = varNames;
+    this.scanStateForDependencies(this._state!);
+  }
+
   public setPaths(paths: Array<keyof TState | '*'>) {
     this._statePaths = paths;
   }
@@ -151,6 +161,12 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   private scanStateForDependencies(state: TState) {
     this._dependencies.clear();
     this.scanCount += 1;
+
+    if (this._options.extraVariableNames) {
+      for (const name of this._options.extraVariableNames) {
+        this._dependencies.add(name);
+      }
+    }
 
     if (this._options.variableNames) {
       for (const name of this._options.variableNames) {

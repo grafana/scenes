@@ -601,7 +601,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       explicitDependencies.push(this._groupByVar.state.name);
     }
 
-    this._variableDependency.setVariableNames(explicitDependencies);
+    this._variableDependency.setExtraVariableNames(explicitDependencies);
   }
 }
 
