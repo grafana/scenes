@@ -1,4 +1,4 @@
-import { arrayToDataFrame, DataTopic, AnnotationQuery } from '@grafana/data';
+import { arrayToDataFrame, DataTopic, AnnotationQuery, ScopedVars } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
 import { map, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../../core/SceneDataNode';
@@ -20,6 +20,7 @@ export class AnnotationsDataLayer
   extends SceneDataLayerBase<AnnotationsDataLayerState>
   implements SceneDataLayerProvider
 {
+  private _scopedVars: ScopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
   private _timeRangeSub: Unsubscribable | undefined;
   public topic = DataTopic.Annotations;
 
@@ -99,7 +100,7 @@ export class AnnotationsDataLayer
   }
 
   protected async resolveDataSource(query: AnnotationQuery) {
-    return await getDataSource(query.datasource || undefined, {});
+    return await getDataSource(query.datasource || undefined, this._scopedVars);
   }
 
   protected processEvents(query: AnnotationQuery, events: AnnotationQueryResults) {
