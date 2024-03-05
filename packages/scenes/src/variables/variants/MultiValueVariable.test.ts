@@ -461,7 +461,7 @@ describe('MultiValueVariable', () => {
       expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['A'] });
     });
 
-    it('fromUrlState should update value for single value', async () => {
+    it('updateFromUrl should update value for single value', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [
@@ -479,7 +479,7 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toEqual('B');
     });
 
-    it('fromUrlState should update value for array value', async () => {
+    it('updateFromUrl should update value for array value', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [
@@ -495,6 +495,24 @@ describe('MultiValueVariable', () => {
       variable.urlSync?.updateFromUrl({ ['var-test']: ['2', '1'] });
       expect(variable.state.value).toEqual(['2', '1']);
       expect(variable.state.text).toEqual(['B', 'A']);
+    });
+
+    it('updateFromUrl with old arch All value', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        optionsToReturn: [],
+        includeAll: true,
+        value: ALL_VARIABLE_VALUE,
+        text: ALL_VARIABLE_TEXT,
+        delayMs: 0,
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: ALL_VARIABLE_TEXT });
+      expect(variable.getValue()).toEqual(['1', '2']);
     });
 
     it('Can disable url sync', async () => {
