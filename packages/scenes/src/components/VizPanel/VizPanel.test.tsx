@@ -421,18 +421,6 @@ describe('VizPanel', () => {
   describe('Data support', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 
-    it('apply field config should return same data if called multiple times with same data', async () => {
-      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
-      pluginToLoad = getTestPlugin1();
-      panel.activate();
-      await Promise.resolve();
-
-      const data = getTestData();
-      const dataWithFieldConfig1 = panel.applyFieldConfig(data);
-      const dataWithFieldConfig2 = panel.applyFieldConfig(data);
-      expect(dataWithFieldConfig1).toBe(dataWithFieldConfig2);
-    });
-
     it('should not provide alert states and annotations by default', async () => {
       panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
       pluginToLoad = getTestPlugin1();

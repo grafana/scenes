@@ -296,11 +296,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       return emptyPanelData;
     }
 
-    // If the data is the same as last time, we can skip the field config apply step and just return same result as last time
-    if (this._prevData === rawData && this._dataWithFieldConfig) {
-      return this._dataWithFieldConfig;
-    }
-
     const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
 
     const fieldConfigRegistry = plugin.fieldConfigRegistry;
@@ -348,7 +343,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       this._dataWithFieldConfig.annotations = undefined;
     }
 
-    this._prevData = rawData;
     return this._dataWithFieldConfig;
   }
 
