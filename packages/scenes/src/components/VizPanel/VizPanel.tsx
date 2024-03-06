@@ -16,6 +16,7 @@ import {
   PluginType,
   renderMarkdown,
   PanelPluginDataSupport,
+  TimeRange,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -34,6 +35,8 @@ import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
 import { cloneDeep, isArray, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
+import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
+import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -108,11 +111,9 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       this._onActivate();
     });
 
-    if (state.menu) {
-      state.menu.addActivationHandler(() => {
-        this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-menu-shown' }), true);
-      });
-    }
+    state.menu?.addActivationHandler(() => {
+      this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-menu-shown' }), true);
+    });
   }
 
   private _onActivate() {
@@ -121,7 +122,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
   }
 
-  private _loadPlugin(pluginId: string) {
+  private async _loadPlugin(pluginId: string) {
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
@@ -130,12 +131,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        importPanelPlugin(pluginId).then((result) => {
-          return this._pluginLoaded(result);
-        });
+        const result = await importPanelPlugin(pluginId)
+        this._pluginLoaded(result);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
-        this.setState({ _pluginLoadError: (err as Error).message });
+
+        if (err instanceof Error) {
+          this.setState({ _pluginLoadError: err.message });
+        }
       }
     }
   }
@@ -154,15 +157,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     const currentVersion = this._getPluginVersion(plugin);
 
-    if (_UNSAFE_customMigrationHandler) {
-      _UNSAFE_customMigrationHandler(panel, plugin);
-    }
+    _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    if (plugin.onPanelMigration) {
-      if (currentVersion !== this.state.pluginVersion) {
-        // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
-        panel.options = await plugin.onPanelMigration(panel);
-      }
+    if (plugin.onPanelMigration && currentVersion !== this.state.pluginVersion) {
+      // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
+      panel.options = await plugin.onPanelMigration(panel);
     }
 
     const withDefaults = getPanelOptionsWithDefaults({
@@ -196,10 +195,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   public getPanelContext(): PanelContext {
-    if (!this._panelContext) {
-      this._panelContext = this.buildPanelContext();
-    }
-
+    this._panelContext ??= this.buildPanelContext();
     return this._panelContext!;
   }
 
@@ -214,6 +210,28 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       to: toUtc(timeRange.to),
     });
   };
+
+  public getTimeRange = (data?: PanelData) => {
+    const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
+    const sceneTimeRange = sceneGraph.getTimeRange(this);
+    let timeRangeValue = sceneTimeRange.state.value
+    if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
+      timeRangeValue = evaluateTimeRange(
+        sceneTimeRange.state.from,
+        sceneTimeRange.state.to,
+        sceneTimeRange.getTimeZone(),
+        sceneTimeRange.state.fiscalYearStartMonth,
+        sceneTimeRange.state.UNSAFE_nowDelay
+      );
+    }
+
+    const plugin = this.getPlugin();
+    if (plugin && !plugin.meta.skipDataQuery && data && data.timeRange) {
+      return data.timeRange;
+    }
+  
+    return timeRangeValue;
+  }
 
   public onTitleChange = (title: string) => {
     this.setState({ title });
@@ -442,7 +460,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 }
 
-function getPanelPluginNotFound(id: string, silent?: boolean): PanelPlugin {
+function getPanelPluginNotFound(id: string): PanelPlugin {
   const plugin = new PanelPlugin(() => null);
 
   plugin.meta = {
@@ -467,5 +485,6 @@ function getPanelPluginNotFound(id: string, silent?: boolean): PanelPlugin {
       version: '',
     },
   };
+
   return plugin;
 }

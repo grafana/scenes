@@ -1,12 +1,12 @@
 import React, { RefCallback } from 'react';
 import { useMeasure } from 'react-use';
 
-import { AlertState, GrafanaTheme2, PanelData, PanelPlugin, PluginContextProvider } from '@grafana/data';
+import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject, SceneTimeRangeLike } from '../../core/types';
+import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 import { css, cx } from '@emotion/css';
@@ -33,7 +33,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
   const timeZone = sceneTimeRange.getTimeZone();
-  const timeRange = getPanelTimeRange(sceneTimeRange, plugin, dataWithFieldConfig);
+  const timeRange = model.getTimeRange();
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
@@ -259,15 +259,3 @@ const getAlertStateStyles = (theme: GrafanaTheme2) => {
     }),
   };
 };
-
-function getPanelTimeRange(sceneTimeRange: SceneTimeRangeLike, plugin: PanelPlugin | undefined, data?: PanelData) {
-  if (!plugin || plugin.meta.skipDataQuery) {
-    return sceneTimeRange.state.value;
-  }
-
-  if (data && data.timeRange) {
-    return data.timeRange;
-  }
-
-  return sceneTimeRange.state.value;
-}
