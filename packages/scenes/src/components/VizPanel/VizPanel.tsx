@@ -225,15 +225,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       );
     }
 
-    return this.getPanelTimeRange(timeRangeValue, this.getPlugin(), data);
-  }
-
-  private getPanelTimeRange = (timeRange: TimeRange, plugin: PanelPlugin | undefined, data?: PanelData) => {
+    const plugin = this.getPlugin();
     if (plugin && !plugin.meta.skipDataQuery && data && data.timeRange) {
       return data.timeRange;
     }
   
-    return timeRange;
+    return timeRangeValue;
   }
 
   public onTitleChange = (title: string) => {
