@@ -1,3 +1,108 @@
+# v3.9.2 (Wed Mar 06 2024)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Fixes issue updating field config [#636](https://github.com/grafana/scenes/pull/636) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.9.1 (Tue Mar 05 2024)
+
+#### 🐛 Bug Fix
+
+- VariableDependencyConfig: Fixes support for explicit dependencies and scanned dependencies [#630](https://github.com/grafana/scenes/pull/630) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.9.0 (Tue Mar 05 2024)
+
+### Release Notes
+
+#### SceneObjectBase: Call self activation handlers before child data, time range and variable handlers ([#628](https://github.com/grafana/scenes/pull/628))
+
+Activation handlers are for a scene object is now called before any direct child activation handlers. Before this release the activation handlers of direction $data, $timeRange, $variables and $behaviors was called before the SceneObjects own activation handlers.
+
+---
+
+#### 🚀 Enhancement
+
+- SceneObjectBase: Call self activation handlers before child data, time range and variable handlers [#628](https://github.com/grafana/scenes/pull/628) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.8.2 (Mon Mar 04 2024)
+
+#### 🐛 Bug Fix
+
+- Rows are draggable when scene layout is draggable [#626](https://github.com/grafana/scenes/pull/626) ([@mdvictor](https://github.com/mdvictor))
+- Style rows to show actions on entire group hover [#625](https://github.com/grafana/scenes/pull/625) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v3.8.1 (Wed Feb 28 2024)
+
+#### 🐛 Bug Fix
+
+- Group row title and actions together on the left side [#624](https://github.com/grafana/scenes/pull/624) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v3.8.0 (Mon Feb 26 2024)
+
+#### 🚀 Enhancement
+
+- AdHocFilters: Auto focus value when key is selected [#614](https://github.com/grafana/scenes/pull/614) ([@torkelo](https://github.com/torkelo) [@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### 🐛 Bug Fix
+
+- feat: allow label for adhoc filter add button [#619](https://github.com/grafana/scenes/pull/619) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+- fix: adhoc filter placeholder to "Select value" [#620](https://github.com/grafana/scenes/pull/620) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 2
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.7.0 (Fri Feb 23 2024)
+
+#### 🚀 Enhancement
+
+- VizPanel: Pass container width to data provider always [#611](https://github.com/grafana/scenes/pull/611) ([@torkelo](https://github.com/torkelo))
+- SceneObjectBase: Minor optimization to setParent [#610](https://github.com/grafana/scenes/pull/610) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Legend sorting fix [#616](https://github.com/grafana/scenes/pull/616) ([@xforman2](https://github.com/xforman2))
+
+#### Authors: 2
+
+- [@xforman2](https://github.com/xforman2)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.6.1 (Tue Feb 20 2024)
 
 #### 🐛 Bug Fix

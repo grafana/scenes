@@ -211,18 +211,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@auto-it/bot-list@npm:10.46.0":
-  version: 10.46.0
-  resolution: "@auto-it/bot-list@npm:10.46.0"
-  checksum: 44a1766007c9f016e8cc7ae4369ab76629c198c0b8b5f64ae80d0737d26e104bb315725a5420f5b252b91dceb7f9c348c7f84c4c0cd13c48b4a00136d3075a48
+"@auto-it/bot-list@npm:11.0.7":
+  version: 11.0.7
+  resolution: "@auto-it/bot-list@npm:11.0.7"
+  checksum: c2f4ac6022dffa4e52f600f4854bb51811c4cbc594fed7465713cfcb0716758c37ac3e335c18da0dfa46ec60c52d8d4a334edbc9f5651b796150a70762b0458c
   languageName: node
   linkType: hard
 
-"@auto-it/core@npm:10.46.0":
-  version: 10.46.0
-  resolution: "@auto-it/core@npm:10.46.0"
+"@auto-it/core@npm:11.0.7":
+  version: 11.0.7
+  resolution: "@auto-it/core@npm:11.0.7"
   dependencies:
-    "@auto-it/bot-list": 10.46.0
+    "@auto-it/bot-list": 11.0.7
     "@endemolshinegroup/cosmiconfig-typescript-loader": ^3.0.2
     "@octokit/core": ^3.5.1
     "@octokit/plugin-enterprise-compatibility": 1.3.0
@@ -267,16 +267,16 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 717677f9ab4d62a96c47db71fc3f99976b8d4d6992bf96aec8f76044d5217022c3b18975ddc9263eb05cdc88b09e04b4faf7dfa6667ef45cbf7aec626ef4b432
+  checksum: bd9c5b784aabbb14bb9e5630520c1c1ebc38c8a1faa93a27fa8d4af8d5c18c7a8723bcf7df5c7cb951716602aa96aabc3cc32e863416a0afe0320611d43be2e4
   languageName: node
   linkType: hard
 
-"@auto-it/npm@npm:10.46.0":
-  version: 10.46.0
-  resolution: "@auto-it/npm@npm:10.46.0"
+"@auto-it/npm@npm:11.0.7":
+  version: 11.0.7
+  resolution: "@auto-it/npm@npm:11.0.7"
   dependencies:
-    "@auto-it/core": 10.46.0
-    "@auto-it/package-json-utils": 10.46.0
+    "@auto-it/core": 11.0.7
+    "@auto-it/package-json-utils": 11.0.7
     await-to-js: ^3.0.0
     endent: ^2.1.0
     env-ci: ^5.0.1
@@ -289,56 +289,56 @@ __metadata:
     typescript-memoize: ^1.0.0-alpha.3
     url-join: ^4.0.0
     user-home: ^2.0.0
-  checksum: ac554056910b9308bc4527c20dbc8c11249ae36621fff446d46659ce64cf7f07d4ef4c52eb9dbac172495a6c22cf4395bb18e6eaedc74cf665843c3a9758b017
+  checksum: 61cc9599b6372a713e858496cbb8b404f0f269dfe801fcb8048b893a9f81a05f05cb8a1ea2ef79f3aa2ffb467c63252770ee629d5e0a7558b7aa62dc169d4faa
   languageName: node
   linkType: hard
 
-"@auto-it/omit-commits@npm:^10.43.0":
-  version: 10.46.0
-  resolution: "@auto-it/omit-commits@npm:10.46.0"
+"@auto-it/omit-commits@npm:^11.0.7":
+  version: 11.0.7
+  resolution: "@auto-it/omit-commits@npm:11.0.7"
   dependencies:
-    "@auto-it/core": 10.46.0
+    "@auto-it/core": 11.0.7
     fp-ts: ^2.5.3
     io-ts: ^2.1.2
     tslib: 2.1.0
-  checksum: f7b5ffe1e871daa618c082ab9cd15922839b778e90983ade66804f5dab1f76dbab4ebe6908eb173267a7036f4aa2fadc75859901098cb278a93cb9171ff93b58
+  checksum: f6477827f9c480beffd7f4eee07f5ce553e8abcd86e6591f8f7a4dba14f8b593c6f8a048d46511acf195a8baf9b05eda6ecd3e518b2e227865f3d3b1c3d7c099
   languageName: node
   linkType: hard
 
-"@auto-it/package-json-utils@npm:10.46.0":
-  version: 10.46.0
-  resolution: "@auto-it/package-json-utils@npm:10.46.0"
+"@auto-it/package-json-utils@npm:11.0.7":
+  version: 11.0.7
+  resolution: "@auto-it/package-json-utils@npm:11.0.7"
   dependencies:
     parse-author: ^2.0.0
     parse-github-url: 1.0.2
-  checksum: a6cade0027a4e724056b7d9371ff46766cebab9b5a77fe0f44f6e7651bd2a1899986aac44e75f0d73a021840bb561ca877c9ccd7be9f544584c5984cd3873cba
+  checksum: c563fe98c77096eed48cf3127acb35bd6a0f383ee589f18678f738e24720f49f0c01fb24cd3795e8d7e7b7682ada802a095b43c65dff4ed1702ce9b4e6441d7d
   languageName: node
   linkType: hard
 
-"@auto-it/released@npm:10.46.0, @auto-it/released@npm:^10.43.0":
-  version: 10.46.0
-  resolution: "@auto-it/released@npm:10.46.0"
+"@auto-it/released@npm:11.0.7, @auto-it/released@npm:^11.0.7":
+  version: 11.0.7
+  resolution: "@auto-it/released@npm:11.0.7"
   dependencies:
-    "@auto-it/bot-list": 10.46.0
-    "@auto-it/core": 10.46.0
+    "@auto-it/bot-list": 11.0.7
+    "@auto-it/core": 11.0.7
     deepmerge: ^4.0.0
     fp-ts: ^2.5.3
     io-ts: ^2.1.2
     tslib: 2.1.0
-  checksum: 476423dbc5fdcebedd0681a8e1546e2e7e7ff135e8f09536dca62fee2e468796b7bc2159c03562a4fbbee125ae7f763a8e1972de6ef0b71acaff24a9398da45f
+  checksum: d1e3640eabf4e8c23e88e7f1b19edfd2704530f41f1905cfb919bc87caf14341c8c9dfb348100691e7a891dbfd2488d2c4a1e1b12c2d2aa18490c58007649b3c
   languageName: node
   linkType: hard
 
-"@auto-it/version-file@npm:10.46.0":
-  version: 10.46.0
-  resolution: "@auto-it/version-file@npm:10.46.0"
+"@auto-it/version-file@npm:11.0.7":
+  version: 11.0.7
+  resolution: "@auto-it/version-file@npm:11.0.7"
   dependencies:
-    "@auto-it/core": 10.46.0
+    "@auto-it/core": 11.0.7
     fp-ts: ^2.5.3
     io-ts: ^2.1.2
     semver: ^7.0.0
     tslib: 1.10.0
-  checksum: fc9b7d09eaeb525279a2a1dbd7a8f56bc4a1883e3319c5a0fa94d5091e2d235f4badd323113d9778642cf12a0ef1110c991f40bcc2ff79fd2b69636865bbdb03
+  checksum: 94e9b722044e0274812f0609d1fe6f78e3fdfd04370308cab58f1a2ed0169b296d46b9c75b9a77558abd9d8337523eacef33de32c1ef212b1269bb3de56faadc
   languageName: node
   linkType: hard
 
@@ -8579,14 +8579,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"auto@npm:^10.43.0":
-  version: 10.46.0
-  resolution: "auto@npm:10.46.0"
+"auto@npm:^11.0.7":
+  version: 11.0.7
+  resolution: "auto@npm:11.0.7"
   dependencies:
-    "@auto-it/core": 10.46.0
-    "@auto-it/npm": 10.46.0
-    "@auto-it/released": 10.46.0
-    "@auto-it/version-file": 10.46.0
+    "@auto-it/core": 11.0.7
+    "@auto-it/npm": 11.0.7
+    "@auto-it/released": 11.0.7
+    "@auto-it/version-file": 11.0.7
     await-to-js: ^3.0.0
     chalk: ^4.0.0
     command-line-application: ^0.10.1
@@ -8597,7 +8597,7 @@ __metadata:
     tslib: 2.1.0
   bin:
     auto: dist/bin/auto.js
-  checksum: e2dd27d80134bd054a33ed9ff036f6138dc49583626cc2872cc240bb0d48f82e987fcbe3fdab4935ca9bf602adbf25b9a901a931e6b86dc6d5d6c012a2d477f0
+  checksum: 94431dc4f53a0a4651f9dd9e5c290295c7e8109719efb1f53e2d9f2ad36f9d77645d1f56d77b2ffe65a358dadda44374be71db5d47ff625228db05fe20724d4d
   languageName: node
   linkType: hard
 
@@ -15131,10 +15131,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "grafana-scenes@workspace:."
   dependencies:
-    "@auto-it/omit-commits": ^10.43.0
-    "@auto-it/released": ^10.43.0
+    "@auto-it/omit-commits": ^11.0.7
+    "@auto-it/released": ^11.0.7
     "@testing-library/react": ^14.1.2
-    auto: ^10.43.0
+    auto: ^11.0.7
     lerna: ^6.5.1
     lint-staged: ^13.2.0
   languageName: unknown

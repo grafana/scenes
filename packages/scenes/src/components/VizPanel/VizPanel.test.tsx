@@ -356,8 +356,8 @@ describe('VizPanel', () => {
 
     test('Can toggle visibility on an off', () => {
       panel.applyFieldConfig(panel.state.$data?.state.data);
-
       panel.getPanelContext().onToggleSeriesVisibility!('B', SeriesVisibilityChangeMode.ToggleSelection);
+      panel.applyFieldConfig(panel.state.$data?.state.data);
       expect(panel.state.fieldConfig.overrides.length).toBe(1);
       panel.getPanelContext().onToggleSeriesVisibility!('B', SeriesVisibilityChangeMode.ToggleSelection);
       expect(panel.state.fieldConfig.overrides.length).toBe(0);
@@ -431,6 +431,20 @@ describe('VizPanel', () => {
       const dataWithFieldConfig1 = panel.applyFieldConfig(data);
       const dataWithFieldConfig2 = panel.applyFieldConfig(data);
       expect(dataWithFieldConfig1).toBe(dataWithFieldConfig2);
+    });
+
+    it('apply field config should return data with latest field config', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+      await Promise.resolve();
+
+      const data = getTestData();
+      const dataWithFieldConfig1 = panel.applyFieldConfig(data);
+      panel.onFieldConfigChange({ defaults: { unit: 'ms' }, overrides: [] });
+
+      const dataWithFieldConfig2 = panel.applyFieldConfig(data);
+      expect(dataWithFieldConfig1).not.toBe(dataWithFieldConfig2);
     });
 
     it('should not provide alert states and annotations by default', async () => {

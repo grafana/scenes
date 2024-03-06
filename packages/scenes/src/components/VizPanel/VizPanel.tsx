@@ -286,9 +286,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       isAfterPluginChange: false,
     });
 
-    this.setState({
-      fieldConfig: withDefaults.fieldConfig,
-    });
+    this._dataWithFieldConfig = undefined;
+    this.setState({ fieldConfig: withDefaults.fieldConfig });
   };
 
   public interpolate = ((value: string, scoped?: ScopedVars, format?: string | VariableCustomFormatterFn) => {
@@ -428,10 +427,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       sortBy = sortKey;
     }
 
-    this.onOptionsChange({
-      ...this.state.options,
-      legend: { ...legendOptions, sortBy, sortDesc },
-    } as TOptions);
+    this.onOptionsChange(
+      {
+        ...this.state.options,
+        legend: { ...legendOptions, sortBy, sortDesc },
+      } as TOptions,
+      true
+    );
   };
 
   private buildPanelContext(): PanelContext {

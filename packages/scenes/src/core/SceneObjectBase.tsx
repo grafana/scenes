@@ -194,6 +194,13 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     const { $data, $variables, $timeRange, $behaviors } = this.state;
 
+    this._activationHandlers.forEach((handler) => {
+      const result = handler();
+      if (result) {
+        this._deactivationHandlers.set(result, result);
+      }
+    });
+
     if ($timeRange && !$timeRange.isActive) {
       this._deactivationHandlers.set($timeRange, $timeRange.activate());
     }
@@ -218,13 +225,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
         }
       }
     }
-
-    this._activationHandlers.forEach((handler) => {
-      const result = handler();
-      if (result) {
-        this._deactivationHandlers.set(result, result);
-      }
-    });
   }
 
   /**
@@ -246,7 +246,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
       if (called) {
         const msg = `SceneObject cancelation handler returned by activate() called a second time`;
-        console.error(msg, this);
         throw new Error(msg);
       }
 

@@ -17,7 +17,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     options,
     fieldConfig,
     _pluginLoadError,
-    $data,
     displayMode,
     hoverHeader,
     menu,
@@ -52,8 +51,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const PanelComponent = plugin.panel;
 
   // If we have a query runner on our level inform it of the container width (used to set auto max data points)
-  if ($data && $data.setContainerWidth) {
-    $data.setContainerWidth(Math.round(width));
+  if (dataObject && dataObject.setContainerWidth) {
+    dataObject.setContainerWidth(Math.round(width));
   }
 
   let titleItemsElement: React.ReactNode[] = [];
