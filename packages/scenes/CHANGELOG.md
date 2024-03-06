@@ -1,3 +1,15 @@
+# v3.9.2 (Wed Mar 06 2024)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Fixes issue updating field config [#636](https://github.com/grafana/scenes/pull/636) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.9.1 (Tue Mar 05 2024)
 
 #### 🐛 Bug Fix
