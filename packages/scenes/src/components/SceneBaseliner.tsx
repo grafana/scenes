@@ -5,16 +5,11 @@ import { FieldColorModeId } from "@grafana/schema";
 import { ButtonGroup, Checkbox, Slider, ToolbarButton, useStyles2 } from "@grafana/ui";
 import React from 'react';
 
-import {
-  SceneObjectBase,
-  SceneComponentProps,
-  SceneObjectState,
-  SceneObjectUrlValues,
-  ExtraRequest,
-  SceneRequestAdder,
-  TransformFunc,
-  SceneObjectUrlSyncConfig,
-} from "@grafana/scenes";
+import { SceneObjectBase } from "../core/SceneObjectBase";
+import { sceneGraph } from "../core/sceneGraph";
+import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneTimeRangeLike } from "../core/types";
+import { ExtraRequest, SceneRequestAdder, TransformFunc } from "../querying/SceneRequestAdder";
+import { SceneObjectUrlSyncConfig } from "../services/SceneObjectUrlSyncConfig";
 
 interface SceneBaselinerState extends SceneObjectState {
   // The prediction interval to use. Must be between 0 and 1.
@@ -76,7 +71,7 @@ export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
             }
           }
         },
-        transform: baselineTransform(this.state),
+        transform: baselineTransform(this.state, sceneGraph.getTimeRange(this)),
       });
     }
     return extraRequests;
@@ -164,9 +159,9 @@ export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
 //
 // This function will take the secondary frame returned by the query runner and
 // produce a new frame with the baselines added.
-const baselineTransform: (params: SceneBaselinerState) => TransformFunc = ({ interval, discoverSeasonalities }) => (_, secondary) => {
+const baselineTransform: (params: SceneBaselinerState, timeRange: SceneTimeRangeLike) => TransformFunc = ({ interval, discoverSeasonalities }, timeRange) => (_, secondary) => {
   const baselines = secondary.series.map((series) => {
-    const baselineFrame = createBaselinesForFrame(series, interval, undefined, discoverSeasonalities);
+    const baselineFrame = createBaselinesForFrame(series, interval, undefined, discoverSeasonalities, timeRange.state.value);
     return {
       ...series,
       meta: {
@@ -262,6 +257,7 @@ function createBaselinesForFrame(
   interval?: number,
   extraSeasonalities?: Duration[],
   discoverSeasonalities = false,
+  timeRange?: TimeRange,
 ): DataFrame {
   const canAdd = canAddBaseline(frame);
   if (!canAdd) {
@@ -272,7 +268,7 @@ function createBaselinesForFrame(
   const timeField = frame.fields[canAdd.timeFieldIdx];
 
   // Figure out the range and frequency of the data.
-  const range = timeField.values.at(-1) - timeField.values.at(0);
+  const inSampleRange = timeField.values.at(-1) - timeField.values.at(0);
   const freq = timeField.values.at(1) - timeField.values.at(0);
 
   // Convert the data to a Float64Array so it can be sent to the model.
@@ -280,7 +276,7 @@ function createBaselinesForFrame(
 
   const extraSeasonLengths = discoverSeasonalities ? Array.from(seasonalities(y)) : [];
   const seasonLengths = new Uint32Array([
-    ...determineSeasonLengths(range, freq, extraSeasonalities),
+    ...determineSeasonLengths(inSampleRange, freq, extraSeasonalities),
     ...extraSeasonLengths,
   ]);
 
@@ -297,40 +293,52 @@ function createBaselinesForFrame(
 
   // Get predictions for in-sample data (i.e. the same data we trained on).
   const inSample = model.predict_in_sample(interval);
-  const values = Array.from(inSample.point);
-  const lower = inSample.intervals ? Array.from(inSample.intervals.lower) : undefined;
-  const upper = inSample.intervals ? Array.from(inSample.intervals.upper) : undefined;
+  let values = Array.from(inSample.point);
+  let lower = inSample.intervals ? Array.from(inSample.intervals.lower) : undefined;
+  let upper = inSample.intervals ? Array.from(inSample.intervals.upper) : undefined;
 
-  const totalSteps = range / freq;
-  const times = createTimes(totalSteps, freq, timeField.values.at(0));
+  // Create an output time field with the right number of entries.
+  let totalSteps = inSampleRange / freq + 1;
+  let times = createTimes(totalSteps, freq, timeField.values.at(0));
 
-  // The below code relates to out-of-sample forecasts. Skip these for now.
+  // If we've been given a time range, we can filter our in-sample
+  // predictions to only include data within that range. If the range
+  // extends beyond the end of the data, we can also add out-of-sample
+  // predictions.
+  if (timeRange !== undefined) {
+    const { from, to } = timeRange;
+    // Find the indexes of the first and last times in our times array that we should keep.
+    const fromIdx = times.findIndex((t) => t >= from.valueOf());
+    let toIdx = times.findIndex((t) => t >= to.valueOf());
+    if (toIdx === -1) {
+      toIdx = times.length;
+    }
+    const inSampleSteps = toIdx - fromIdx;
 
-  // Store the total number of data points we have, including the in-sample
-  // and out-of-sample predictions.
-  // let totalSteps = timeField.values.length;
-  // let times = timeField.values;
+    // The final number of steps will now be the difference between to and from, divided by the
+    // frequency of the data. Add one to account because the range is inclusive.
+    totalSteps = (to.valueOf() - from.valueOf()) / freq + 1;
+    const outOfSampleSteps = totalSteps - inSampleSteps;
 
-  // // If we've been given a time range, determine if it's of a wider range than the
-  // // data we have, and produce out-of-sample predictions if so.
-  // if (timeRange !== undefined) {
-  //   const { from, to } = timeRange;
-  //   // The number of steps will now be the difference between to and from, divided by the
-  //   // frequency of the data.
-  //   totalSteps = (to.valueOf() - from.valueOf()) / freq;
-  //   // We need a new time field too, so create that.
-  //   times = createTimes(totalSteps, freq, timeField.values.at(0));
-  //   const outOfSampleSteps = totalSteps - y.length;
-  //   // Add out-of-sample predictions.
-  //   if (outOfSampleSteps > 0) {
-  //     const outOfSample: AugursBaseline = model.predict(outOfSampleSteps, interval);
-  //     values = values.concat(Array.from(outOfSample.point));
-  //     if (lower && upper && outOfSample.intervals) {
-  //       lower = lower.concat(Array.from(outOfSample.intervals.lower));
-  //       upper = upper.concat(Array.from(outOfSample.intervals.upper));
-  //     }
-  //   }
-  // }
+    // Slice the in-sample data to only include the data we want.
+    times = times.slice(fromIdx, toIdx);
+    values = values.slice(fromIdx, toIdx);
+    lower = lower ? lower.slice(fromIdx, toIdx) : undefined;
+    upper = upper ? upper.slice(fromIdx, toIdx) : undefined;
+
+    // Add out-of-sample predictions.
+    if (outOfSampleSteps > 0) {
+      const outOfSample = model.predict(outOfSampleSteps, interval);
+      // Recreate the times array since we're going to have data for the
+      // full time range now.
+      times = createTimes(totalSteps, freq, times[0]);
+      values = values.concat(Array.from(outOfSample.point));
+      if (lower && upper && outOfSample.intervals) {
+        lower = lower.concat(Array.from(outOfSample.intervals.lower));
+        upper = upper.concat(Array.from(outOfSample.intervals.upper));
+      }
+    }
+  }
 
   const name = numField.config.displayNameFromDS ?? frame.name ?? numField.name;
   const fields = createFields(name, timeField, times, values, lower, upper);
