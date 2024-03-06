@@ -497,7 +497,7 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toEqual(['B', 'A']);
     });
 
-    it('updateFromUrl with old arch All value', async () => {
+    it('updateFromUrl with custom value should survive validation', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
@@ -514,7 +514,7 @@ describe('MultiValueVariable', () => {
       expect(variable.getValue()).toEqual('Custom value');
     });
 
-    it('updateFromUrl with custom value should survive validation', async () => {
+    it('updateFromUrl with old arch All value', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [
