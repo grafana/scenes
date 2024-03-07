@@ -1,3 +1,21 @@
+# v3.10.0 (Thu Mar 07 2024)
+
+#### 🚀 Enhancement
+
+- Variables: Maintain custom (invalid) variable values set via URL on initial load [#632](https://github.com/grafana/scenes/pull/632) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- LiveNow: Fix broken behavior [#637](https://github.com/grafana/scenes/pull/637) ([@kaydelaney](https://github.com/kaydelaney))
+- Scenes: Implement "Live now" feature [#618](https://github.com/grafana/scenes/pull/618) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.9.2 (Wed Mar 06 2024)
 
 #### 🐛 Bug Fix
