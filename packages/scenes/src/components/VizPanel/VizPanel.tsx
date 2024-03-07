@@ -16,7 +16,6 @@ import {
   PluginType,
   renderMarkdown,
   PanelPluginDataSupport,
-  TimeRange,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -214,7 +213,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public getTimeRange = (data?: PanelData) => {
     const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
     const sceneTimeRange = sceneGraph.getTimeRange(this);
-    let timeRangeValue = sceneTimeRange.state.value
+    let timeRangeValue = sceneTimeRange.state.value;
     if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
       timeRangeValue = evaluateTimeRange(
         sceneTimeRange.state.from,
