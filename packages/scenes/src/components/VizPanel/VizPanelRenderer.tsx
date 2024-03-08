@@ -125,7 +125,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
   const context = model.getPanelContext();
-  const panelId = context.instanceState?.legacyPanelId ?? 1;
+  const panelId = model.getLegacyPanelId();
 
   return (
     <div className={relativeWrapper}>

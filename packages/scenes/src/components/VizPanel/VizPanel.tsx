@@ -142,6 +142,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
   }
 
+  public getLegacyPanelId() {
+    return this.getPanelContext().instanceState?.legacyPanelId ?? 1;
+  }
+
   private async _pluginLoaded(plugin: PanelPlugin) {
     const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
@@ -149,7 +153,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       title,
       options,
       fieldConfig,
-      id: 1,
+      id: this.getLegacyPanelId(),
       type: plugin.meta.id,
       pluginVersion: pluginVersion,
     };
