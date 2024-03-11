@@ -1,3 +1,16 @@
+# v3.10.1 (Mon Mar 11 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Fixes issue with url sync and key value variables [#639](https://github.com/grafana/scenes/pull/639) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.10.0 (Thu Mar 07 2024)
 
 #### 🚀 Enhancement
