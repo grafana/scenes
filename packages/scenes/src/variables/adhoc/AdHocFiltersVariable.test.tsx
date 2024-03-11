@@ -191,9 +191,9 @@ describe('AdHocFiltersVariable', () => {
     ]);
   });
 
-  it('Can override with static keys', async () => {
+  it('Can override with default keys', async () => {
     const { filtersVar } = setup({
-      staticKeys: [{
+      defaultKeys: [{
         text: 'some',
         value: '1',
       }, {

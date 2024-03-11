@@ -57,7 +57,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * Optionally provide an array of static keys that override getTagKeys
    */
-  staticKeys?: MetricFindValue[];
+  defaultKeys?: MetricFindValue[];
 
   /**
    * This is the expression that the filters resulted in. Defaults to
@@ -193,8 +193,8 @@ export class AdHocFiltersVariable
       return override.values.map(toSelectableValue);
     }
 
-    if (this.state.staticKeys) {
-      return this.state.staticKeys.map(toSelectableValue);
+    if (this.state.defaultKeys) {
+      return this.state.defaultKeys.map(toSelectableValue);
     }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
