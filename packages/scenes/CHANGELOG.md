@@ -1,3 +1,15 @@
+# v3.12.0 (Mon Mar 11 2024)
+
+#### 🚀 Enhancement
+
+- PanelMigrations: Fixes incorrect panel.id in migration handler [#638](https://github.com/grafana/scenes/pull/638) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.11.0 (Mon Mar 11 2024)
 
 #### 🚀 Enhancement
