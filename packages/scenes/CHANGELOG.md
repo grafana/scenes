@@ -1,3 +1,15 @@
+# v3.11.0 (Mon Mar 11 2024)
+
+#### 🚀 Enhancement
+
+- Variables: Support static keys in AdHocFiltersVariable [#612](https://github.com/grafana/scenes/pull/612) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v3.10.1 (Mon Mar 11 2024)
 
 #### 🐛 Bug Fix
