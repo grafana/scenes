@@ -532,6 +532,26 @@ describe('MultiValueVariable', () => {
       expect(variable.getValue()).toEqual(['1', '2']);
     });
 
+    it('updateFromUrl with key value pair should lookup text representation ', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        isMulti: true,
+        value: ['1'],
+        text: ['A'],
+        delayMs: 0,
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: ['1', '2'] });
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.getValueText()).toEqual('A + B');
+    });
+
     it('Can disable url sync', async () => {
       const variable = new TestVariable({
         name: 'test',
