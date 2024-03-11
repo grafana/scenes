@@ -55,6 +55,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   getTagValuesProvider?: getTagValuesProvider;
 
   /**
+   * Optionally provide an array of static keys that override getTagKeys
+   */
+  defaultKeys?: MetricFindValue[];
+
+  /**
    * This is the expression that the filters resulted in. Defaults to
    * Prometheus / Loki compatible label filter expression
    */
@@ -186,6 +191,10 @@ export class AdHocFiltersVariable
 
     if (override && override.replace) {
       return override.values.map(toSelectableValue);
+    }
+
+    if (this.state.defaultKeys) {
+      return this.state.defaultKeys.map(toSelectableValue);
     }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
