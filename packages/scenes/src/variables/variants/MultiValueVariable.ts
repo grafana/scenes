@@ -116,9 +116,13 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         stateUpdate.text = defaultState.text;
       }
       // We have valid values, if it's different from current valid values update current values
-      else if (!isEqual(validValues, currentValue) || !isEqual(validTexts, currentText)) {
-        stateUpdate.value = validValues;
-        stateUpdate.text = validTexts;
+      else {
+        if (!isEqual(validValues, currentValue)) {
+          stateUpdate.value = validValues;
+        }
+        if (!isEqual(validTexts, currentText)) {
+          stateUpdate.text = validTexts;
+        }
       }
     } else {
       // Try find by value then text
@@ -144,7 +148,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     /**
      * Values set by initial URL sync needs to survive the next validation and update
      */
-    if (this.skipNextValidation) {
+    if (this.skipNextValidation && stateUpdate.value !== currentValue) {
       stateUpdate.value = currentValue;
       stateUpdate.text = currentText;
       this.skipNextValidation = false;
