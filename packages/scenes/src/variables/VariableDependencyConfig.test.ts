@@ -85,7 +85,7 @@ describe('VariableDependencyConfig', () => {
     expect(deps.scanCount).toBe(2);
   });
 
-  it('Should not scan the state if variable name defined', () => {
+  it('Should not scan the state if no statePaths defined', () => {
     const sceneObj = new TestObj();
     sceneObj.setState({ query: 'new query with ${newVar}' });
     const deps = new VariableDependencyConfig(sceneObj, { variableNames: ['nonExistentVar'] });
@@ -107,18 +107,14 @@ describe('VariableDependencyConfig', () => {
     expect(fn.mock.calls.length).toBe(1);
   });
 
-  it('Can update explicit depenendencies', () => {
+  it('Can update explicit depenendencies and scan for variables', () => {
     const sceneObj = new TestObj();
-    const fn = jest.fn();
-    const deps = new VariableDependencyConfig(sceneObj, { onReferencedVariableValueChanged: fn, statePaths: ['*'] });
+    const deps = new VariableDependencyConfig(sceneObj, { statePaths: ['*'] });
 
-    deps.variableUpdateCompleted(new ConstantVariable({ name: 'not-dep', value: '1' }), true);
-    expect(fn.mock.calls.length).toBe(0);
+    expect(deps.getNames()).toEqual(new Set(['queryVarA', 'queryVarB', 'otherPropA', 'nestedVarA']));
 
-    deps.setVariableNames(['not-dep']);
-    deps.variableUpdateCompleted(new ConstantVariable({ name: 'not-dep', value: '1' }), true);
-
-    expect(fn.mock.calls.length).toBe(1);
+    deps.setVariableNames(['explicitDep']);
+    expect(deps.getNames()).toEqual(new Set(['explicitDep', 'queryVarA', 'queryVarB', 'otherPropA', 'nestedVarA']));
   });
 
   describe('Should remember when an object is waiting for variables', () => {

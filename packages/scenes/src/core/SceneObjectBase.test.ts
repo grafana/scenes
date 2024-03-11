@@ -125,6 +125,25 @@ describe('SceneObject', () => {
     });
   });
 
+  describe('Should activate itself before child objects', () => {
+    const dataChild = new SceneDataNode({});
+    const scene = new TestScene({
+      $data: dataChild,
+    });
+
+    let parentActive = false;
+
+    scene.addActivationHandler(() => {
+      parentActive = true;
+    });
+
+    dataChild.addActivationHandler(() => {
+      expect(parentActive).toBe(true);
+    });
+
+    scene.activate();
+  });
+
   describe('When deactivated', () => {
     const scene = new TestScene({
       $data: new SceneDataNode({}),
@@ -260,13 +279,15 @@ describe('SceneObject', () => {
       expect(deactivatedCounter).toBe(1);
     });
 
-    it('Cannot call deactivation function twice', () => {
-      const scene = new TestScene({ name: 'nested' });
+    describe('When calling deactivation function twice', () => {
+      it('should throw error', () => {
+        const scene = new TestScene({ name: 'nested' });
 
-      const deactivateScene = scene.activate();
-      deactivateScene();
+        const deactivateScene = scene.activate();
+        deactivateScene();
 
-      expect(() => deactivateScene()).toThrow();
+        expect(() => deactivateScene()).toThrow();
+      });
     });
   });
 });

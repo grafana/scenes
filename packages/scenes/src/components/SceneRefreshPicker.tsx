@@ -93,7 +93,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
       return;
     }
 
-    //  When the provided interval is not allowed
+    // If the provided interval is not allowed
     if (intervals && !intervals.includes(refresh)) {
       return;
     }
