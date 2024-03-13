@@ -38,9 +38,6 @@ export class SceneDataLayers extends SceneObjectBase<SceneDataLayersState> imple
     this.addActivationHandler(() => this._onActivate());
   }
 
-  setContainerWidth?: ((width: number) => void) | undefined;
-  isDataReadyToDisplay?: (() => boolean) | undefined;
-
   private _onActivate() {
     this._subs.add(
       this.subscribeToState((newState, oldState) => {
@@ -115,16 +112,15 @@ export function mergeMultipleDataLayers(
 
   return merge(resultStreams).pipe(
     mergeAll(),
-    map(
-      (v) => {
-        // Is there a better, rxjs only way to combine multiple same-data-topic observables?
-        // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
-        resultsMap.set(v.origin.state.key!, v);
-        return resultsMap.values();
-      },
-      finalize(() => {
-        deactivationHandlers.forEach((handler) => handler());
-      })
-    )
+    map((v) => {
+      // Is there a better, rxjs only way to combine multiple same-data-topic observables?
+      // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
+      resultsMap.set(v.origin.state.key!, v);
+      return resultsMap.values();
+    }),
+    finalize(() => {
+      console.log('Finalizing mergeMultipleDataLayers');
+      deactivationHandlers.forEach((handler) => handler());
+    })
   );
 }

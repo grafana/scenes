@@ -1,4 +1,3 @@
-import { DataFrameView } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import {
   dataLayers,
