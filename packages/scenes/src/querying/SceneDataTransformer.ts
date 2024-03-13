@@ -5,7 +5,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformOperator, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
-import { SceneDataLayers } from './SceneDataLayers';
+import { SceneDataLayerSet } from './SceneDataLayerSet';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -60,8 +60,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   private getSourceData(): SceneDataProvider {
     if (this.state.$data) {
-      if (this.state.$data instanceof SceneDataLayers) {
-        throw new Error('SceneDataLayers can not be used as data provider for SceneDataTransformer.');
+      if (this.state.$data instanceof SceneDataLayerSet) {
+        throw new Error('SceneDataLayerSet can not be used as data provider for SceneDataTransformer.');
       }
       return this.state.$data;
     }

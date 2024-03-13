@@ -6,7 +6,7 @@ import { SceneTimeRange } from '../../../core/SceneTimeRange';
 import { SceneVariableSet } from '../../../variables/sets/SceneVariableSet';
 import { TestScene } from '../../../variables/TestScene';
 import { TestVariable } from '../../../variables/variants/TestVariable';
-import { SceneDataLayers } from '../../SceneDataLayers';
+import { SceneDataLayerSet } from '../../SceneDataLayerSet';
 import { AnnotationsDataLayer } from './AnnotationsDataLayer';
 import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithRequestEnricher';
 
@@ -134,7 +134,7 @@ describe('AnnotationsDataLayer', () => {
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [variable] }),
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [layer],
           }),
           children: [],
@@ -160,7 +160,7 @@ describe('AnnotationsDataLayer', () => {
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [variable] }),
           $timeRange: timeRange,
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [layer],
           }),
           children: [],
@@ -195,7 +195,7 @@ describe('AnnotationsDataLayer', () => {
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [variable] }),
           $timeRange: timeRange,
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [layer],
           }),
           children: [],
@@ -286,7 +286,7 @@ describe('AnnotationsDataLayer', () => {
         const scene = new TestScene({
           $variables: new SceneVariableSet({ variables: [variable] }),
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [layer],
           }),
         });
@@ -328,7 +328,7 @@ describe('AnnotationsDataLayer', () => {
       });
 
       const scene = new TestSceneWithRequestEnricher({
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [layer],
         }),
       });

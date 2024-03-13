@@ -7,7 +7,7 @@ import {
   SceneComponentProps,
   SceneControlsSpacer,
   SceneDataLayerControls,
-  SceneDataLayers,
+  SceneDataLayerSet,
   SceneFlexItem,
   SceneFlexLayout,
   sceneGraph,
@@ -36,7 +36,7 @@ export function getDynamicDataLayersDemo(defaults: SceneAppPageState) {
           new SceneRefreshPicker({}),
         ],
         key: 'Multiple annotations layers',
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [],
         }),
         body: new SceneFlexLayout({
@@ -66,7 +66,7 @@ interface CustomButtonsState extends SceneObjectState {}
 class CustomButtons extends SceneObjectBase<CustomButtonsState> {
   public onAdd = () => {
     const parent = sceneGraph.getAncestor(this, EmbeddedScene);
-    const layers = parent.state.$data as SceneDataLayers;
+    const layers = parent.state.$data as SceneDataLayerSet;
     const count = layers.state.layers.length + 1;
 
     const newAnnotationQuery = new dataLayers.AnnotationsDataLayer({
@@ -95,7 +95,7 @@ class CustomButtons extends SceneObjectBase<CustomButtonsState> {
 
   public onRemove = () => {
     const parent = sceneGraph.getAncestor(this, EmbeddedScene);
-    const dataLayers = parent.state.$data as SceneDataLayers;
+    const dataLayers = parent.state.$data as SceneDataLayerSet;
 
     dataLayers.setState({ layers: dataLayers.state.layers.slice(0, -1) });
   };

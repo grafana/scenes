@@ -37,7 +37,7 @@ interface SceneDataLayerControlProps {
   layer: SceneDataLayerProvider;
 }
 
-export function SceneDataLayerControl({ layer }: SceneDataLayerControlProps) {
+export function DataLayerControlSwitch({ layer }: SceneDataLayerControlProps) {
   const elementId = `data-layer-${layer.state.key}`;
   const { data, isEnabled } = layer.useState();
   const showLoading = Boolean(data && data.state === LoadingState.Loading);

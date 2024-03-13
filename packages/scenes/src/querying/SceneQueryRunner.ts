@@ -41,7 +41,7 @@ import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActive
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
-import { mergeMultipleDataLayers } from './SceneDataLayers';
+import { mergeMultipleDataLayers } from './mergeMultipleDataLayers';
 
 let counter = 100;
 

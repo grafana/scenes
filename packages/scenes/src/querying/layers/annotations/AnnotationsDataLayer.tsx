@@ -15,7 +15,7 @@ import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { writeSceneLog } from '../../../utils/writeSceneLog';
 import { registerQueryWithController } from '../../registerQueryWithController';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
-import { SceneDataLayerControl } from '../SceneDataLayerControls';
+import { DataLayerControlSwitch } from '../SceneDataLayerControls';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
 
@@ -133,5 +133,5 @@ function AnnotationsDataLayerRenderer({ model }: SceneComponentProps<Annotations
     return null;
   }
 
-  return <SceneDataLayerControl layer={model} />;
+  return <DataLayerControlSwitch layer={model} />;
 }

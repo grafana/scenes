@@ -23,7 +23,7 @@ import { DataQuery } from '@grafana/schema';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneCanvasText } from '../components/SceneCanvasText';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
-import { SceneDataLayers } from './SceneDataLayers';
+import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
@@ -1081,7 +1081,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
-        $data: new SceneDataLayers({ layers: [layer] }),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
@@ -1136,7 +1136,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'withAnnotations' }],
         $timeRange: new SceneTimeRange(),
-        $data: new SceneDataLayers({ layers: [layer] }),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
@@ -1162,7 +1162,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
-        $data: new SceneDataLayers({ layers: [layer] }),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
@@ -1186,11 +1186,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: new SceneDataLayers({ layers: [layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1216,11 +1216,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: new SceneDataLayers({ layers: [layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1324,7 +1324,7 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1, layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer1, layer2] }),
         });
 
         expect(queryRunner.state.data).toBeUndefined();
@@ -1415,11 +1415,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: new SceneDataLayers({ layers: [layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1514,11 +1514,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: new SceneDataLayers({ layers: [layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1689,7 +1689,7 @@ describe('SceneQueryRunner', () => {
           dataLayerFilter: {
             panelId: 123,
           },
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         queryRunner.activate();
@@ -1785,7 +1785,7 @@ describe('SceneQueryRunner', () => {
           dataLayerFilter: {
             panelId: 123,
           },
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         queryRunner.activate();
@@ -1874,7 +1874,7 @@ describe('SceneQueryRunner', () => {
           dataLayerFilter: {
             panelId: 123,
           },
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         queryRunner.activate();
@@ -1921,7 +1921,7 @@ describe('SceneQueryRunner', () => {
           },
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1, layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer1, layer2] }),
         });
 
         expect(queryRunner.state.data).toBeUndefined();

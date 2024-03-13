@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { TestAnnotationsDataLayer } from '../../querying/layers/TestDataLayer';
-import { SceneDataLayers } from '../../querying/SceneDataLayers';
+import { SceneDataLayerSet } from '../../querying/SceneDataLayerSet';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
@@ -58,7 +58,7 @@ describe('sceneGraph', () => {
       const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
       const scene = new EmbeddedScene({
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
         }),
         body: new SceneFlexLayout({
@@ -81,11 +81,11 @@ describe('sceneGraph', () => {
       const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
       const scene = new EmbeddedScene({
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
         }),
         body: new SceneFlexLayout({
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [new TestAnnotationsDataLayer({ name: 'Layer 2' })],
           }),
           children: [item1, item2],
@@ -107,12 +107,12 @@ describe('sceneGraph', () => {
       const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
       const scene = new EmbeddedScene({
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
         }),
         body: new SceneFlexLayout({
           $data: new SceneDataNode({
-            $data: new SceneDataLayers({
+            $data: new SceneDataLayerSet({
               layers: [new TestAnnotationsDataLayer({ name: 'Layer 2' })],
             }),
           }),
@@ -136,11 +136,11 @@ describe('sceneGraph', () => {
         const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
         const scene = new EmbeddedScene({
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
           }),
           body: new SceneFlexLayout({
-            $data: new SceneDataLayers({
+            $data: new SceneDataLayerSet({
               layers: [new TestAnnotationsDataLayer({ name: 'Layer 2' })],
             }),
             children: [item1, item2],
@@ -163,12 +163,12 @@ describe('sceneGraph', () => {
         const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
         const scene = new EmbeddedScene({
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
           }),
           body: new SceneFlexLayout({
             $data: new SceneDataNode({
-              $data: new SceneDataLayers({
+              $data: new SceneDataLayerSet({
                 layers: [new TestAnnotationsDataLayer({ name: 'Layer 2' })],
               }),
             }),
