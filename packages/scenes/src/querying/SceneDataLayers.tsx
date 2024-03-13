@@ -49,6 +49,10 @@ export class SceneDataLayers extends SceneObjectBase<SceneDataLayersState> imple
     );
 
     this.subscribeToAllLayers();
+
+    return () => {
+      this.querySub?.unsubscribe();
+    };
   }
 
   private subscribeToAllLayers() {
@@ -119,7 +123,6 @@ export function mergeMultipleDataLayers(
       return resultsMap.values();
     }),
     finalize(() => {
-      console.log('Finalizing mergeMultipleDataLayers');
       deactivationHandlers.forEach((handler) => handler());
     })
   );

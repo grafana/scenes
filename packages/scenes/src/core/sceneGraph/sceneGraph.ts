@@ -7,7 +7,6 @@ import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types
 import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
-import { SceneDataLayers } from '../../querying/SceneDataLayers';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 
 /**

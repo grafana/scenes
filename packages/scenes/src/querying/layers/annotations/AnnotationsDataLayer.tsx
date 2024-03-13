@@ -31,7 +31,6 @@ export class AnnotationsDataLayer
 
   private _scopedVars: ScopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
   private _timeRangeSub: Unsubscribable | undefined;
-  public isDataLayer: true = true;
 
   public constructor(initialState: AnnotationsDataLayerState) {
     super(
@@ -42,9 +41,6 @@ export class AnnotationsDataLayer
       ['query']
     );
   }
-
-  setContainerWidth?: ((width: number) => void) | undefined;
-  isDataReadyToDisplay?: (() => boolean) | undefined;
 
   public onEnable(): void {
     const timeRange = sceneGraph.getTimeRange(this);

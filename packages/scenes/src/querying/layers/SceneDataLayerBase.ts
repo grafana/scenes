@@ -71,9 +71,6 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
     this.addActivationHandler(() => this.onActivate());
   }
 
-  setContainerWidth?: ((width: number) => void) | undefined;
-  isDataReadyToDisplay?: (() => boolean) | undefined;
-
   protected onActivate(): CancelActivationHandler {
     if (this.state.isEnabled) {
       this.onEnable();
@@ -106,7 +103,6 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
 
     return () => {
       this.onDeactivate();
-      console.log('data layer deactivate');
     };
   }
 

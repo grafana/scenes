@@ -56,9 +56,12 @@ export class TestAnnotationsDataLayer
       }));
     }
 
+    const frame = arrayToDataFrame(ano);
+    frame.meta = { dataTopic: DataTopic.Annotations };
+
     return {
       ...emptyPanelData,
-      annotations: [arrayToDataFrame(ano)],
+      series: [frame],
     };
   }
 

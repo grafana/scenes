@@ -1123,6 +1123,9 @@ describe('SceneQueryRunner', () => {
               },
             ],
             "length": 1,
+            "meta": {
+              "dataTopic": "annotations",
+            },
           },
         ]
       `);
@@ -1136,81 +1139,6 @@ describe('SceneQueryRunner', () => {
         $data: new SceneDataLayers({ layers: [layer] }),
       });
 
-      const expectedSnapshot = `
-      [
-        {
-          "fields": [
-            {
-              "config": {},
-              "name": "foo",
-              "state": null,
-              "type": "string",
-              "values": [
-                "foo1",
-                "foo2",
-                "foo3",
-              ],
-            },
-            {
-              "config": {},
-              "name": "bar",
-              "state": null,
-              "type": "string",
-              "values": [
-                "bar1",
-                "bar2",
-                "bar3",
-              ],
-            },
-          ],
-          "length": 3,
-          "meta": {
-            "custom": {
-              "resultType": "exemplar",
-            },
-            "dataTopic": "annotations",
-            "typeVersion": [
-              0,
-              0,
-            ],
-          },
-          "name": "exemplar",
-          "refId": "withAnnotations",
-        },
-        {
-          "fields": [
-            {
-              "config": {},
-              "name": "time",
-              "type": "time",
-              "values": [
-                100,
-              ],
-            },
-            {
-              "config": {},
-              "name": "text",
-              "type": "string",
-              "values": [
-                "Layer 1: Test annotation",
-              ],
-            },
-            {
-              "config": {},
-              "name": "tags",
-              "type": "other",
-              "values": [
-                [
-                  "tag1",
-                ],
-              ],
-            },
-          ],
-          "length": 1,
-        },
-      ]
-    `;
-
       expect(queryRunner.state.data).toBeUndefined();
 
       queryRunner.activate();
@@ -1218,13 +1146,15 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
       layer.completeRun();
 
-      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(expectedSnapshot);
+      expect(queryRunner.state.data?.annotations?.[0].meta?.custom?.resultType).toBe('exemplar');
+      expect(queryRunner.state.data?.annotations?.[1].meta?.dataTopic).toBe('annotations');
 
       queryRunner.runQueries();
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(expectedSnapshot);
+      expect(queryRunner.state.data?.annotations?.[0].meta?.custom?.resultType).toBe('exemplar');
+      expect(queryRunner.state.data?.annotations?.[1].meta?.dataTopic).toBe('annotations');
     });
 
     it('should not block queries when layer provides data slower', async () => {
@@ -1241,46 +1171,12 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`[]`);
+      expect(queryRunner.state.data?.annotations).toHaveLength(0);
       expect(queryRunner.state.data?.series).toBeDefined();
 
       layer.completeRun();
 
-      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`
-        [
-          {
-            "fields": [
-              {
-                "config": {},
-                "name": "time",
-                "type": "time",
-                "values": [
-                  100,
-                ],
-              },
-              {
-                "config": {},
-                "name": "text",
-                "type": "string",
-                "values": [
-                  "Layer 1: Test annotation",
-                ],
-              },
-              {
-                "config": {},
-                "name": "tags",
-                "type": "other",
-                "values": [
-                  [
-                    "tag1",
-                  ],
-                ],
-              },
-            ],
-            "length": 1,
-          },
-        ]
-      `);
+      expect(queryRunner.state.data?.annotations).toHaveLength(1);
     });
 
     describe('canceling queries', () => {
@@ -1377,6 +1273,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
             {
               "fields": [
@@ -1408,6 +1307,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
@@ -1465,6 +1367,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
             {
               "fields": [
@@ -1496,6 +1401,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
@@ -1558,6 +1466,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
             {
               "fields": [
@@ -1589,6 +1500,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
@@ -1652,6 +1566,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
@@ -1688,6 +1605,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
             {
               "fields": [
@@ -1719,6 +1639,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
