@@ -127,5 +127,11 @@ export class AnnotationsDataLayer
 }
 
 function AnnotationsDataLayerRenderer({ model }: SceneComponentProps<AnnotationsDataLayer>) {
+  const { isHidden } = model.useState();
+
+  if (isHidden) {
+    return null;
+  }
+
   return <SceneDataLayerControl layer={model} />;
 }
