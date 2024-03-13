@@ -1,3 +1,21 @@
+# v3.13.0 (Wed Mar 13 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - LiveNow: Move enabled property to state [#642](https://github.com/grafana/scenes/pull/642) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - LiveNow: Fixes activation/deactivation issue and logic error with getTimeRange [#641](https://github.com/grafana/scenes/pull/641) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v3.12.0 (Mon Mar 11 2024)
 
 #### 🚀 Enhancement
