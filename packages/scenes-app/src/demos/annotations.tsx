@@ -105,12 +105,11 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                   }),
                 }),
                 new SceneFlexItem({
-                  $data: new SceneDataLayers({
-                    layers: [nestedAnnotationsDataLayer],
-                  }),
+                  $data: nestedAnnotationsDataLayer,
                   body: new VizPanel({
                     $data: getQueryRunnerWithRandomWalkQuery({}),
-                    title: 'Combined annotations, from SceneDataLayers only',
+                    title: 'Nested annotations',
+                    description: 'Uses a single data layer directly, not inside a SceneDataLayers',
                     pluginId: 'timeseries',
                     headerActions: [new SceneDataLayerControls()],
                   }),

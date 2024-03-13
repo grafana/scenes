@@ -7,7 +7,6 @@ import {
   BusEventType,
   DataFrame,
   DataQueryRequest,
-  DataTopic,
   DataTransformContext,
   PanelData,
   TimeRange,
@@ -193,35 +192,31 @@ export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
 
-export interface SceneDataProviderResultLike<O, T> {
-  origin: O;
-  data: T;
+export interface SceneDataProviderResult {
+  data: PanelData;
+  origin: SceneDataProvider;
 }
 
-export type SceneDataProviderResult = SceneDataProviderResultLike<SceneDataProvider, PanelData>;
-export type SceneDataLayerProviderResult = SceneDataProviderResultLike<SceneDataLayerProvider, PanelData> & {
-  topic: DataTopic;
-};
-
-export interface SceneDataProvider extends SceneObject<SceneDataState> {
+export interface SceneDataProvider<T extends SceneObjectState = SceneDataState> extends SceneObject<T> {
   setContainerWidth?: (width: number) => void;
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
-  getResultsStream?(): Observable<SceneDataProviderResult>;
+  getResultsStream(): Observable<SceneDataProviderResult>;
 }
 
-export interface SceneDataLayerProviderState extends SceneObjectState {
+export interface SceneDataLayerProviderState extends SceneDataState {
   name: string;
   description?: string;
-  data?: PanelData;
   isEnabled?: boolean;
   isHidden?: boolean;
 }
 
-export interface SceneDataLayerProvider extends SceneObject<SceneDataLayerProviderState> {
-  topic: DataTopic;
-  cancelQuery?: () => void;
-  getResultsStream(): Observable<SceneDataLayerProviderResult>;
+export interface SceneDataLayerProvider extends SceneDataProvider<SceneDataLayerProviderState> {
+  isDataLayer: true;
+}
+
+export function isDataLayer(obj: SceneObject): obj is SceneDataLayerProvider {
+  return 'isDataLayer' in obj;
 }
 
 export interface DataLayerFilter {
