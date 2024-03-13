@@ -217,9 +217,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public getTimeRange = (data?: PanelData) => {
     const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
     const sceneTimeRange = sceneGraph.getTimeRange(this);
-    let timeRangeValue = sceneTimeRange.state.value;
     if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
-      timeRangeValue = evaluateTimeRange(
+      return evaluateTimeRange(
         sceneTimeRange.state.from,
         sceneTimeRange.state.to,
         sceneTimeRange.getTimeZone(),
@@ -233,7 +232,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       return data.timeRange;
     }
   
-    return timeRangeValue;
+    return sceneTimeRange.state.value;
   }
 
   public onTitleChange = (title: string) => {
