@@ -30,10 +30,7 @@ export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
 export { SceneDataLayerSet, SceneDataLayerSetBase } from './querying/SceneDataLayerSet';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
-export {
-  SceneDataLayerControls,
-  DataLayerControlSwitch as SceneDataLayerControl,
-} from './querying/layers/SceneDataLayerControls';
+export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
 export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
