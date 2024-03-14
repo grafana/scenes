@@ -16,7 +16,6 @@ import {
   PluginType,
   renderMarkdown,
   PanelPluginDataSupport,
-  DataFrame,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
