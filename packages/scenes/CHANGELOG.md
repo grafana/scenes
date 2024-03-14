@@ -1,3 +1,15 @@
+# v3.13.1 (Thu Mar 14 2024)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Fixes incrementing structureRev [#643](https://github.com/grafana/scenes/pull/643) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.13.0 (Wed Mar 13 2024)
 
 #### 🚀 Enhancement
