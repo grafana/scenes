@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, toSelectableValue } from './AdHocFiltersVariable';
 import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
 import { Button, Field, Select, useStyles2 } from '@grafana/ui';
 import { css } from '@emotion/css';
@@ -27,7 +27,13 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     isValuesOpen?: boolean;
   }>({});
 
-  const keyValue = filter.key !== '' ? toOption(filter.key) : null;
+  let keyValue = filter.key !== '' ? toOption(filter.key) : null;
+  if (model.state.defaultKeys) {
+    const matchingDefaultKey = model.state.defaultKeys.find(option => option.value === filter.key);
+    if (matchingDefaultKey) {
+      keyValue = toSelectableValue(matchingDefaultKey);
+    }
+  }
   const valueValue = filter.value !== '' ? toOption(filter.value) : null;
 
   const valueSelect = (

@@ -316,7 +316,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
-function toSelectableValue({ text, value }: MetricFindValue): SelectableValue<string> {
+export function toSelectableValue({ text, value }: MetricFindValue): SelectableValue<string> {
   return {
     label: text,
     value: String(value ?? text),
