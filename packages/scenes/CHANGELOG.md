@@ -1,3 +1,15 @@
+# v3.13.2 (Fri Mar 15 2024)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayout: Fixes moving panels when opening dashboards [#644](https://github.com/grafana/scenes/pull/644) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.13.1 (Thu Mar 14 2024)
 
 #### 🐛 Bug Fix
