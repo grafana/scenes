@@ -1,3 +1,16 @@
+# v3.13.3 (Fri Mar 15 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilter: Correctly show the label for a matching default key [#645](https://github.com/grafana/scenes/pull/645) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v3.13.2 (Fri Mar 15 2024)
 
 #### 🐛 Bug Fix
