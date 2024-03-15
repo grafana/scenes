@@ -33,7 +33,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
            */
           <div
             style={{ width: `${width}px`, height: '100%', position: 'relative', zIndex: 1 }}
-            className="scene-grid-layout"
+            className={cx('react-grid-layout', isDraggable && 'react-grid-layout--enable-move-animations')}
           >
             <ReactGridLayout
               width={width}
@@ -45,7 +45,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               isDraggable={isDraggable && width > 768}
               isResizable={isResizable ?? false}
               containerPadding={[0, 0]}
-              useCSSTransforms={false}
+              useCSSTransforms={true}
               margin={[GRID_CELL_VMARGIN, GRID_CELL_VMARGIN]}
               cols={GRID_COLUMN_COUNT}
               rowHeight={GRID_CELL_HEIGHT}
