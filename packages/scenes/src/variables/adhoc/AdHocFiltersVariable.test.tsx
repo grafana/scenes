@@ -213,6 +213,26 @@ describe('AdHocFiltersVariable', () => {
     ]);
   });
 
+  it('Selecting a default key correctly shows the label', async () => {
+    const { filtersVar } = setup({
+      defaultKeys: [{
+        text: 'some',
+        value: '1',
+      }, {
+        text: 'static',
+        value: '2',
+      }, {
+        text: 'keys',
+        value: '3',
+      }],
+    });
+    const selects = screen.getAllByRole('combobox');
+    await waitFor(() => select(selects[0], 'some', { container: document.body }));
+
+    expect(screen.getByText('some')).toBeInTheDocument();
+    expect(filtersVar.state.filters[0].key).toBe('1');
+  })
+
   it('Can filter by regex', async () => {
     const { filtersVar } = setup({
       tagKeyRegexFilter: new RegExp('x.*'),
