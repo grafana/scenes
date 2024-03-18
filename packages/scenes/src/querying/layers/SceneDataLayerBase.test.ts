@@ -1,3 +1,4 @@
+import { getDefaultTimeRange } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
 import { SceneDataLayerProviderResult } from '../../core/types';
 import { TestAnnotationsDataLayer } from './TestDataLayer';
@@ -10,17 +11,38 @@ describe('SceneDataLayerBase', () => {
   beforeEach(() => {
     enableSpy.mockClear();
     disableSpy.mockClear();
+    runLayerSpy.mockClear();
   });
 
   describe('when activated', () => {
-    const layer = new TestAnnotationsDataLayer({
-      name: 'Layer 1',
-      isEnabled: true,
-      runLayerSpy: runLayerSpy,
-    });
-    layer.activate();
+    it('should run query when there is no data', () => {
+      const layer = new TestAnnotationsDataLayer({
+        name: 'Layer 1',
+        isEnabled: true,
+        runLayerSpy: runLayerSpy,
+      });
+      layer.activate();
 
-    expect(runLayerSpy).toBeCalledTimes(1);
+      expect(runLayerSpy).toBeCalledTimes(1);
+    });
+
+    it('should not run query there is data', () => {
+      const layer = new TestAnnotationsDataLayer({
+        name: 'Layer 1',
+        isEnabled: true,
+        runLayerSpy: runLayerSpy,
+        data: {
+          annotations: [],
+          series: [],
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+        },
+      });
+
+      layer.activate();
+
+      expect(runLayerSpy).toBeCalledTimes(0);
+    });
   });
 
   describe('when enabled', () => {
