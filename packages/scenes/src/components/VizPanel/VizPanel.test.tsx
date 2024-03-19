@@ -441,10 +441,13 @@ describe('VizPanel', () => {
 
       const data = getTestData();
       const dataWithFieldConfig1 = panel.applyFieldConfig(data);
+      expect(dataWithFieldConfig1.structureRev).toBe(1);
+
       panel.onFieldConfigChange({ defaults: { unit: 'ms' }, overrides: [] });
 
       const dataWithFieldConfig2 = panel.applyFieldConfig(data);
-      expect(dataWithFieldConfig1).not.toBe(dataWithFieldConfig2);
+      expect(dataWithFieldConfig2).not.toBe(dataWithFieldConfig1);
+      expect(dataWithFieldConfig2.structureRev).toBe(2);
     });
 
     it('should not provide alert states and annotations by default', async () => {

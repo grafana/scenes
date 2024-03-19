@@ -1,3 +1,60 @@
+# v3.13.3 (Fri Mar 15 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilter: Correctly show the label for a matching default key [#645](https://github.com/grafana/scenes/pull/645) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v3.13.2 (Fri Mar 15 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridLayout: Fixes moving panels when opening dashboards [#644](https://github.com/grafana/scenes/pull/644) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.13.1 (Thu Mar 14 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Fixes incrementing structureRev [#643](https://github.com/grafana/scenes/pull/643) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.13.0 (Wed Mar 13 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - LiveNow: Move enabled property to state [#642](https://github.com/grafana/scenes/pull/642) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - LiveNow: Fixes activation/deactivation issue and logic error with getTimeRange [#641](https://github.com/grafana/scenes/pull/641) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v3.12.0 (Mon Mar 11 2024)
 
 #### 🚀 Enhancement

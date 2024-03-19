@@ -3,21 +3,24 @@ import { SceneObjectBase } from "../core/SceneObjectBase";
 import { sceneGraph } from "../core/sceneGraph";
 import { SceneObjectState } from "../core/types";
 
-export class LiveNowTimer extends SceneObjectBase<SceneObjectState> {
+interface LiveNowTimerState extends SceneObjectState {
+  enabled: boolean;
+}
+
+export class LiveNowTimer extends SceneObjectBase<LiveNowTimerState> {
     private timerId: number | undefined = undefined;
     private static REFRESH_RATE = 100; // ms
-    private enabled = false;
-  
+
     public constructor(enabled = false) {
-      super({});
+      super({ enabled });
       this.addActivationHandler(this._activationHandler);
-  
-      if (enabled) {
-        this.enable();
-      }
     }
   
     private _activationHandler = () => {
+      if (this.state.enabled) {
+        this.enable();
+      }
+
       return () => {
         window.clearInterval(this.timerId);
         this.timerId = undefined;
@@ -25,24 +28,24 @@ export class LiveNowTimer extends SceneObjectBase<SceneObjectState> {
     }
   
     public enable() {
-      if (!this.enabled) {
-        this.enabled = true;
-        this.timerId = window.setInterval(() => {
-          const panels = sceneGraph.findAllObjects(this.getRoot(), (obj) => obj instanceof VizPanel) as VizPanel[];
-          for (const panel of panels) {
-            panel.forceRender();
-          }
-        }, LiveNowTimer.REFRESH_RATE);
-      }
+      window.clearInterval(this.timerId);
+      this.timerId = undefined;
+      this.timerId = window.setInterval(() => {
+        const panels = sceneGraph.findAllObjects(this.getRoot(), (obj) => obj instanceof VizPanel) as VizPanel[];
+        for (const panel of panels) {
+          panel.forceRender();
+        }
+      }, LiveNowTimer.REFRESH_RATE);
+      this.setState({ enabled: true })
     } 
   
     public disable() {
       window.clearInterval(this.timerId);
       this.timerId = undefined;
-      this.enabled = false;
+      this.setState({ enabled: false })
     }
 
     public get isEnabled() {
-        return this.enabled;
+        return this.state.enabled;
     }
 }

@@ -130,7 +130,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        const result = await importPanelPlugin(pluginId)
+        const result = await importPanelPlugin(pluginId);
         this._pluginLoaded(result);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
@@ -217,9 +217,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public getTimeRange = (data?: PanelData) => {
     const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
     const sceneTimeRange = sceneGraph.getTimeRange(this);
-    let timeRangeValue = sceneTimeRange.state.value;
     if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
-      timeRangeValue = evaluateTimeRange(
+      return evaluateTimeRange(
         sceneTimeRange.state.from,
         sceneTimeRange.state.to,
         sceneTimeRange.getTimeZone(),
@@ -232,9 +231,9 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     if (plugin && !plugin.meta.skipDataQuery && data && data.timeRange) {
       return data.timeRange;
     }
-  
-    return timeRangeValue;
-  }
+
+    return sceneTimeRange.state.value;
+  };
 
   public onTitleChange = (title: string) => {
     this.setState({ title });
@@ -324,29 +323,24 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
 
     const fieldConfigRegistry = plugin.fieldConfigRegistry;
-    const prevFrames = this._prevData?.series;
-    const newFrames = rawData?.series;
+    const prevFrames = this._dataWithFieldConfig?.series ?? [];
+    const newFrames = applyFieldOverrides({
+      data: rawData.series,
+      fieldConfig: this.state.fieldConfig,
+      fieldConfigRegistry,
+      replaceVariables: this.interpolate,
+      theme: config.theme2,
+      timeZone: rawData.request?.timezone,
+    });
 
-    if (
-      rawData.structureRev == null &&
-      newFrames &&
-      prevFrames &&
-      !compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)
-    ) {
+    if (!compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)) {
       this._structureRev++;
     }
 
     this._dataWithFieldConfig = {
       ...rawData,
       structureRev: this._structureRev,
-      series: applyFieldOverrides({
-        data: newFrames,
-        fieldConfig: this.state.fieldConfig,
-        fieldConfigRegistry,
-        replaceVariables: this.interpolate,
-        theme: config.theme2,
-        timeZone: rawData.request?.timezone,
-      }),
+      series: newFrames,
     };
 
     if (this._dataWithFieldConfig.annotations) {
