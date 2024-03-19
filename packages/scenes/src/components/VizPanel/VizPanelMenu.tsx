@@ -3,6 +3,7 @@ import { PanelMenuItem } from '@grafana/data';
 import { Menu } from '@grafana/ui';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
+import { selectors } from '@grafana/e2e-selectors';
 
 interface VizPanelMenuState extends SceneObjectState {
   items?: PanelMenuItem[];
@@ -49,6 +50,7 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
           url={item.href}
           onClick={item.onClick}
           shortcut={item.shortcut}
+          testId={selectors.components.Panels.Panel.menuItems(item.text)}
         />
       )
     );
