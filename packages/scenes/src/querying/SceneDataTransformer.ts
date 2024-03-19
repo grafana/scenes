@@ -1,8 +1,8 @@
 import { DataTopic, DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
 import { toDataQueryError } from '@grafana/runtime';
-import { ReplaySubject, Unsubscribable, catchError, map, merge, of } from 'rxjs';
-import { SceneObjectBase } from '../core/SceneObjectBase';
+import { catchError, map, merge, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
+import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayers } from './SceneDataLayers';
