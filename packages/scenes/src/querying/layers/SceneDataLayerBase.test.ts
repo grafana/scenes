@@ -137,7 +137,7 @@ describe('SceneDataLayerBase', () => {
       layer.completeRun();
 
       expect(result).toBeDefined();
-      expect(result!.data.annotations).toMatchInlineSnapshot(`
+      expect(result!.data.series).toMatchInlineSnapshot(`
         [
           {
             "fields": [
@@ -169,6 +169,9 @@ describe('SceneDataLayerBase', () => {
               },
             ],
             "length": 1,
+            "meta": {
+              "dataTopic": "annotations",
+            },
           },
         ]
       `);
