@@ -14,7 +14,7 @@ describe('SceneDataLayerControl', () => {
       name: 'Layer 1',
     });
 
-    render(<DataLayerControlSwitch layer={layer} isEnabled={true} onToggleLayer={() => {}} />);
+    render(<DataLayerControlSwitch layer={layer} />);
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(0);
 
     act(() => {
@@ -49,7 +49,7 @@ describe('SceneDataLayerControl', () => {
       name: 'Layer 1',
     });
 
-    render(<DataLayerControlSwitch layer={layer} isEnabled={true} onToggleLayer={() => {}} />);
+    render(<DataLayerControlSwitch layer={layer} />);
 
     act(() => {
       layer.activate();
