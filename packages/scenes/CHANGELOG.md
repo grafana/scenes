@@ -1,3 +1,17 @@
+# v3.14.0 (Wed Mar 20 2024)
+
+#### 🚀 Enhancement
+
+- Add transformations to annotations dataframes [#651](https://github.com/grafana/scenes/pull/651) ([@javiruiz01](https://github.com/javiruiz01))
+- Add ability to opt out specifc queries from time window comparison [#650](https://github.com/grafana/scenes/pull/650) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
 # v3.13.3 (Fri Mar 15 2024)
 
 #### 🐛 Bug Fix
