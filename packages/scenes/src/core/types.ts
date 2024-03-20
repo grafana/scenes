@@ -187,6 +187,9 @@ export type SceneObjectUrlValue = string | string[] | undefined | null;
 export type SceneObjectUrlValues = Record<string, SceneObjectUrlValue>;
 
 export type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
+export type CustomTransformerDefinition =
+  | { operator: CustomTransformOperator; topic: DataTopic }
+  | CustomTransformOperator;
 export type SceneStateChangedHandler<TState> = (newState: TState, prevState: TState) => void;
 
 export type DeepPartial<T> = {

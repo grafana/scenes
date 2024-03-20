@@ -1,9 +1,9 @@
-import { DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
+import { DataTopic, DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
 import { toDataQueryError } from '@grafana/runtime';
-import { catchError, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
+import { catchError, map, merge, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { CustomTransformOperator, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
+import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayers } from './SceneDataLayers';
 
@@ -11,7 +11,7 @@ export interface SceneDataTransformerState extends SceneDataState {
   /**
    * Array of standard transformation configs and custom transform operators
    */
-  transformations: Array<DataTransformerConfig | CustomTransformOperator>;
+  transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
 }
 
 /**
@@ -101,9 +101,27 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   private transform(data: PanelData | undefined) {
-    const transformations = this.state.transformations || [];
+    const seriesTransformations = this.state.transformations
+      .filter((transformation) => {
+        if ('options' in transformation || 'topic' in transformation) {
+          return transformation.topic == null || transformation.topic === DataTopic.Series;
+        }
 
-    if (transformations.length === 0 || !data) {
+        return true;
+      })
+      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
+
+    const annotationsTransformations = this.state.transformations
+      .filter((transformation) => {
+        if ('options' in transformation || 'topic' in transformation) {
+          return transformation.topic === DataTopic.Annotations;
+        }
+
+        return false;
+      })
+      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
+
+    if (this.state.transformations.length === 0 || !data) {
       this.setState({ data });
 
       if (data) {
@@ -122,9 +140,21 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       },
     };
 
-    this._transformSub = transformDataFrame(transformations, data.series, ctx)
+    const seriesStream = transformDataFrame(seriesTransformations, data.series, ctx);
+    const annotationsStream = transformDataFrame(annotationsTransformations, data.annotations ?? [], ctx);
+
+    let transformedData = { ...data };
+
+    this._transformSub = merge(annotationsStream, seriesStream)
       .pipe(
-        map((series) => ({ ...data, series })),
+        map((frames) => {
+          const isAnnotations = frames.some((f) => f.meta?.dataTopic === DataTopic.Annotations);
+          const transformed = isAnnotations ? { annotations: frames } : { series: frames };
+
+          transformedData = { ...transformedData, ...transformed };
+
+          return transformedData;
+        }),
         catchError((err) => {
           console.error('Error transforming data: ', err);
           const sourceErr = this.getSourceData().state.data?.errors || [];
