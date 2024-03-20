@@ -67,6 +67,9 @@ export interface QueryRunnerState extends SceneObjectState {
 
 export interface DataQueryExtended extends DataQuery {
   [key: string]: any;
+
+  // Opt this query out of time window comparison
+  timeRangeCompare?: boolean;
 }
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
@@ -437,7 +440,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     let secondaryRequest: DataQueryRequest | undefined;
 
-    let request: DataQueryRequest = {
+    let request: DataQueryRequest<DataQueryExtended> = {
       app: 'scenes',
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
@@ -495,11 +498,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (comparer) {
       const secondaryTimeRange = comparer.getCompareTimeRange(primaryTimeRange);
       if (secondaryTimeRange) {
-        secondaryRequest = {
-          ...request,
-          range: secondaryTimeRange,
-          requestId: getNextRequestId(),
-        };
+        const secondaryTargets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
+
+        if (secondaryTargets.length) {
+          secondaryRequest = {
+            ...request,
+            targets: secondaryTargets,
+            range: secondaryTimeRange,
+            requestId: getNextRequestId(),
+          };
+        }
 
         request = {
           ...request,
