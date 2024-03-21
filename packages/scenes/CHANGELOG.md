@@ -1,3 +1,15 @@
+# v4.0.1 (Thu Mar 21 2024)
+
+#### 🐛 Bug Fix
+
+- SceneQueryRunner: Meaningful cloning [#652](https://github.com/grafana/scenes/pull/652) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v4.0.0 (Thu Mar 21 2024)
 
 #### 💥 Breaking Change
