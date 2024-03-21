@@ -5,16 +5,16 @@
 #                                                                                      #
 # Usage in workflows steps:                                                            #
 #                                                                                      #
-#      - name: 📥 Monorepo install                                                     #
+#      - name: Yarn install                                                            #
 #        uses: ./.github/actions/yarn-nm-install                                       #
-#        with:                                                                         #           #
-#          cwd: ${{ github.workspace }}/apps/my-app # (default = '.')                  #          #
+#        with:                                                                         #
+#          cwd: ${{ github.workspace }}/apps/my-app # (default = '.')                  #
 #          cache-node-modules: false                # (default = 'false')              #
 #          cache-install-state: false               # (default = 'false')              #
 #                                                                                      #
 # Reference:                                                                           #
 #   - latest: https://gist.github.com/belgattitude/042f9caf10d029badbde6cf9d43e400a    #
-#                                                                                      #                            #
+#                                                                                      #
 ########################################################################################
 
 name: 'Yarn install'
