@@ -34,6 +34,7 @@ import { getVerticalControlsLayoutDemo } from './verticalControlsLayoutDemo';
 import { getInteractiveTableDemo } from './interactiveTableDemo';
 import { getVariableRepeaterDemo } from './variableRepeater';
 import { getQueryControllerDemo } from './queryController';
+import { getDynamicDataLayersDemo } from './dynamicDataLayers';
 
 export interface DemoDescriptor {
   title: string;
@@ -67,6 +68,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Cursor sync', getPage: getCursorSyncTest },
     { title: 'Time range comparison', getPage: getTimeRangeComparisonTest },
     { title: 'Data layers', getPage: getAnnotationsDemo },
+    { title: 'Dynamic data layers', getPage: getDynamicDataLayersDemo },
     { title: 'Transformations', getPage: getTransformationsTest },
     { title: 'Dynamic panel options and field config', getPage: getDynamicVizOptionsTest },
     { title: 'Data filtering', getPage: getDataFilteringTest },

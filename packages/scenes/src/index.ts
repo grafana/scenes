@@ -28,7 +28,7 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
-export { SceneDataLayers } from './querying/SceneDataLayers';
+export { SceneDataLayerSet, SceneDataLayerSetBase } from './querying/SceneDataLayerSet';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';

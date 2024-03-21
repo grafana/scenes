@@ -13,7 +13,7 @@ import {
   SceneControlsSpacer,
   dataLayers,
   SceneDataLayerControls,
-  SceneDataLayers,
+  SceneDataLayerSet,
   SceneVariableSet,
   TestVariable,
   VariableValueSelectors,
@@ -49,7 +49,7 @@ export function getQueryControllerDemo(defaults: SceneAppPageState) {
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [globalAnnotations],
         }),
         $behaviors: [new behaviors.SceneQueryController()],
@@ -154,7 +154,7 @@ export function getInnerScene(title: string) {
       ],
     }),
     $timeRange: new SceneTimeRange(),
-    $data: new SceneDataLayers({
+    $data: new SceneDataLayerSet({
       layers: [nestedAnnotationsDataLayer],
     }),
     $behaviors: [new behaviors.SceneQueryController()],

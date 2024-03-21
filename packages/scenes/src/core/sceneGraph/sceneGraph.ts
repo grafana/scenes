@@ -4,10 +4,9 @@ import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/d
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
 
-import { SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
+import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
-import { SceneDataLayers } from '../../querying/SceneDataLayers';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 
 /**
@@ -145,30 +144,30 @@ export function findAllObjects(scene: SceneObject, check: (obj: SceneObject) => 
  * When localOnly set to true, it will only collect the closest layers.
  */
 export function getDataLayers(sceneObject: SceneObject, localOnly = false): SceneDataLayerProvider[] {
-  let parent: SceneObject | undefined = sceneObject;
+  let currentLevel: SceneObject | undefined = sceneObject;
   let collected: SceneDataLayerProvider[] = [];
 
-  let source;
-  while (parent) {
-    // Handling case when SceneDataLayers is attached to SceneDataProvider different than SceneDataLayers
-    // i.e. SceneDataLayers is attached to a SceneQueryRunner
-    if (parent.state.$data && !(parent.state.$data instanceof SceneDataLayers)) {
-      if (parent.state.$data.state.$data instanceof SceneDataLayers) {
-        source = parent.state.$data.state.$data;
+  while (currentLevel) {
+    const dataProvider = currentLevel.state.$data;
+    if (!dataProvider) {
+      currentLevel = currentLevel.parent;
+      continue;
+    }
+
+    // Check if data layer exists nested inside another data provider
+    if (isDataLayer(dataProvider)) {
+      collected = collected.concat(dataProvider);
+    } else {
+      if (dataProvider.state.$data && isDataLayer(dataProvider.state.$data)) {
+        collected = collected.concat(dataProvider.state.$data);
       }
     }
 
-    if (parent.state.$data && parent.state.$data instanceof SceneDataLayers) {
-      source = parent.state.$data;
-    }
-    if (source) {
-      collected = collected.concat(source.state.layers);
-      if (localOnly) {
-        break;
-      }
+    if (localOnly && collected.length > 0) {
+      break;
     }
 
-    parent = parent.parent;
+    currentLevel = currentLevel.parent;
   }
 
   return collected;

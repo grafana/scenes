@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
+import { forkJoin, ReplaySubject, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -20,7 +20,6 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
   DataLayerFilter,
-  SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
   SceneObjectState,
@@ -42,6 +41,7 @@ import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActive
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
+import { mergeMultipleDataLayers } from './mergeMultipleDataLayers';
 
 let counter = 100;
 
@@ -136,55 +136,31 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _handleDataLayers() {
     const dataLayers = sceneGraph.getDataLayers(this);
 
-    const observables: Array<Observable<SceneDataLayerProviderResult>> = [];
-
-    // This keeps track of multiple SceneDataLayers. The key responsibility od this map is to make sure individual from independent SceneDataLayers do not overwrite each other.
-    const resultsMap: Map<string, PanelData> = new Map();
-
-    if (dataLayers.length > 0) {
-      dataLayers.forEach((layer) => {
-        observables.push(layer.getResultsStream());
-      });
-
-      // possibly we want to combine the results from all layers and only then update, but this is tricky ;(
-      this._dataLayersSub = merge(observables)
-        .pipe(
-          mergeAll(),
-          map((v) => {
-            // Is there a better, rxjs only way to combine multiple same-data-topic observables?
-            // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
-            resultsMap.set(v.origin.state.key!, v.data);
-            return resultsMap;
-          })
-        )
-        .subscribe((result) => {
-          this._onLayersReceived(result);
-        });
+    if (dataLayers.length === 0) {
+      return;
     }
+
+    this._dataLayersSub = mergeMultipleDataLayers(dataLayers).subscribe(this._onLayersReceived.bind(this));
   }
 
-  private _onLayersReceived(results: Map<string, PanelData>) {
+  private _onLayersReceived(results: Iterable<SceneDataProviderResult>) {
     const timeRange = sceneGraph.getTimeRange(this);
-    const dataLayers = sceneGraph.getDataLayers(this);
     const { dataLayerFilter } = this.state;
+
     let annotations: DataFrame[] = [];
     let alertStates: DataFrame[] = [];
     let alertState: AlertStateInfo | undefined;
-    const layerKeys = Array.from(results.keys());
 
-    Array.from(results.values()).forEach((result, i) => {
-      const layerKey = layerKeys[i];
-      const layer = dataLayers.find((l) => l.state.key === layerKey);
-      if (layer) {
-        if (layer.topic === DataTopic.Annotations && result[DataTopic.Annotations]) {
-          annotations = annotations.concat(result[DataTopic.Annotations]);
+    for (const result of results) {
+      for (let frame of result.data.series) {
+        if (frame.meta?.dataTopic === DataTopic.Annotations) {
+          annotations = annotations.concat(frame);
         }
-
-        if (layer.topic === 'alertStates') {
-          alertStates = alertStates.concat(result.series);
+        if (frame.meta?.dataTopic === DataTopic.AlertStates) {
+          alertStates = alertStates.concat(frame);
         }
       }
-    });
+    }
 
     if (dataLayerFilter?.panelId) {
       if (annotations.length > 0) {

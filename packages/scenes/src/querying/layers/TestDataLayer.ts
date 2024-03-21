@@ -23,8 +23,6 @@ export class TestAnnotationsDataLayer
   extends SceneDataLayerBase<TestAnnotationsDataLayerState>
   implements SceneDataLayerProvider
 {
-  public topic = DataTopic.Annotations;
-
   public constructor(state: TestAnnotationsDataLayerState) {
     super({
       ...state,
@@ -32,14 +30,14 @@ export class TestAnnotationsDataLayer
   }
 
   public startRun() {
-    this.publishResults({ ...emptyPanelData, state: LoadingState.Loading }, this.topic);
+    this.publishResults({ ...emptyPanelData, state: LoadingState.Loading });
   }
   public completeRun() {
-    this.publishResults(this.getResults(), this.topic);
+    this.publishResults(this.getResults());
   }
 
   public completeRunWithError() {
-    this.publishResults({ ...emptyPanelData, state: LoadingState.Error }, this.topic);
+    this.publishResults({ ...emptyPanelData, state: LoadingState.Error });
   }
 
   private getResults() {
@@ -58,9 +56,12 @@ export class TestAnnotationsDataLayer
       }));
     }
 
+    const frame = arrayToDataFrame(ano);
+    frame.meta = { dataTopic: DataTopic.Annotations };
+
     return {
       ...emptyPanelData,
-      annotations: [arrayToDataFrame(ano)],
+      series: [frame],
     };
   }
 
@@ -100,9 +101,6 @@ export class TestAlertStatesDataLayer
   extends SceneDataLayerBase<TestAlertStatesDataLayerState>
   implements SceneDataLayerProvider
 {
-  // Use DataTopic.AlertStates when exposed from core grafana
-  public topic = 'alertStates' as DataTopic;
-
   public constructor(state: TestAnnotationsDataLayerState) {
     super({
       ...state,
@@ -110,14 +108,14 @@ export class TestAlertStatesDataLayer
   }
 
   public startRun() {
-    this.publishResults({ ...emptyPanelData, state: LoadingState.Loading }, this.topic);
+    this.publishResults({ ...emptyPanelData, state: LoadingState.Loading });
   }
   public completeRun() {
-    this.publishResults(this.getResults(), this.topic);
+    this.publishResults(this.getResults());
   }
 
   public completeRunWithError() {
-    this.publishResults({ ...emptyPanelData, state: LoadingState.Error }, this.topic);
+    this.publishResults({ ...emptyPanelData, state: LoadingState.Error });
   }
 
   private getResults() {
@@ -140,9 +138,12 @@ export class TestAlertStatesDataLayer
       states = this.state.fakeAlertStates();
     }
 
+    const frame = toDataFrame(states);
+    frame.meta = { dataTopic: DataTopic.AlertStates };
+
     return {
       ...emptyPanelData,
-      series: [toDataFrame(states)],
+      series: [frame],
     };
   }
 
