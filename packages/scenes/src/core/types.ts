@@ -11,7 +11,7 @@ import {
   PanelData,
   TimeRange,
 } from '@grafana/data';
-import { TimeZone } from '@grafana/schema';
+import { DataTopic, TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
