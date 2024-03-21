@@ -407,6 +407,19 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
   }
 
+  public clone(withState?: Partial<QueryRunnerState>) {
+    const clone = super.clone(withState);
+
+    if (this._resultAnnotations) {
+      clone['_resultAnnotations'] = this._resultAnnotations.map((frame) => ({ ...frame }));
+    }
+
+    if (this._layerAnnotations) {
+      clone['_layerAnnotations'] = this._layerAnnotations.map((frame) => ({ ...frame }));
+    }
+
+    return clone;
+  }
   private prepareRequests = (
     timeRange: SceneTimeRangeLike,
     ds: DataSourceApi
