@@ -1,3 +1,16 @@
+# v4.0.0 (Thu Mar 21 2024)
+
+#### 💥 Breaking Change
+
+- `@grafana/scenes`
+  - DataLayers: Unifiy DataLayers (group of data layers) and a single data layer [#640](https://github.com/grafana/scenes/pull/640) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v3.14.0 (Wed Mar 20 2024)
 
 #### 🚀 Enhancement
