@@ -60,6 +60,8 @@ export interface SceneAppPageState extends SceneObjectState {
    * The current initialized scene, this is set by the framework after scene url initialization
    **/
   initializedScene?: SceneObject;
+  // Determines whether tabs should be preserved after deactivation of page
+  preserveTab?: boolean
 
   /**
    * Function that returns a fallback scene app page,
