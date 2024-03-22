@@ -1,3 +1,16 @@
+# v4.0.3 (Fri Mar 22 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - MultiValueVariable: Fixes issue with initial url sync when using old All url value [#656](https://github.com/grafana/scenes/pull/656) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.0.2 (Fri Mar 22 2024)
 
 #### 🐛 Bug Fix
