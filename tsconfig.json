@@ -1,5 +1,5 @@
 {
-  "extends": "@grafana/tsconfig",
+  "extends": "@grafana/tsconfig/base.json",
   "compilerOptions": {
     "declarationDir": "./compiled",
     "emitDeclarationOnly": true,
