@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useReducer, useRef } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { SceneComponentProps } from '../../../core/types';
-import { GRID_CELL_VMARGIN, GRID_COLUMN_COUNT, GRID_CELL_HEIGHT } from './constants';
+import { GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
 import { LazyLoader } from '../LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
@@ -17,13 +17,13 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
   validateChildrenSize(children);
 
   return (
-    <AutoSizer disableHeight>
-      {({ width }) => {
+    <AutoSizer className="this-is-auto">
+      {({ width, height }) => {
         if (width === 0) {
           return null;
         }
 
-        const layout = model.buildGridLayout(width);
+        const layout = model.buildGridLayout(width, height);
 
         return (
           /**

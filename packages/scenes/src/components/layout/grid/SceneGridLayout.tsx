@@ -1,13 +1,15 @@
 import ReactGridLayout from 'react-grid-layout';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import { SceneLayout, SceneObjectState } from '../../../core/types';
+import { SceneLayout, SceneObjectState, SceneObjectUrlValues } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
 import { isSceneGridRow } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement } from './types';
+import { SceneObjectUrlSyncConfig } from '../../../services/SceneObjectUrlSyncConfig';
+import { fitPanelsInHeight } from './utils';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -17,11 +19,13 @@ interface SceneGridLayoutState extends SceneObjectState {
   /** Enable or disable item resizing */
   isResizable?: boolean;
   isLazy?: boolean;
+  autoFit?: boolean;
   children: SceneGridItemLike[];
 }
 
 export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> implements SceneLayout {
   public static Component = SceneGridLayoutRenderer;
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['autofitpanels'] });
 
   private _skipOnLayoutChange = false;
 
@@ -30,6 +34,22 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       ...state,
       children: sortChildrenByPosition(state.children),
     });
+  }
+
+  public getUrlState() {
+    return {
+      autofitpanels: this.state.autoFit ? '' : undefined,
+    };
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues) {
+    const autoFit = values.autofitpanels;
+
+    if (typeof autoFit === 'string') {
+      this.setState({
+        autoFit: true,
+      });
+    }
   }
 
   /**
@@ -289,7 +309,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     return { i: child.state.key!, x, y, h, w, isResizable, isDraggable };
   }
 
-  public buildGridLayout(width: number): ReactGridLayout.Layout[] {
+  public buildGridLayout(width: number, height: number): ReactGridLayout.Layout[] {
     let cells: ReactGridLayout.Layout[] = [];
 
     for (const child of this.state.children) {
@@ -304,6 +324,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // Sort by position
     cells = sortGridLayout(cells);
+
+    if (this.state.autoFit) {
+      cells = fitPanelsInHeight(cells, height);
+    }
 
     if (width < 768) {
       // We should not persist the mobile layout
