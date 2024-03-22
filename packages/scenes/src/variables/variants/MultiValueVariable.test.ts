@@ -512,16 +512,20 @@ describe('MultiValueVariable', () => {
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.getValue()).toEqual('Custom value');
+
+      // but a second call to valdiate and update should set default value
+      await lastValueFrom(variable.validateAndUpdate());
+      expect(variable.getValue()).toEqual('1');
     });
 
     it('updateFromUrl with old arch All value', async () => {
       const variable = new TestVariable({
         name: 'test',
-        options: [
+        options: [],
+        optionsToReturn: [
           { label: 'A', value: '1' },
           { label: 'B', value: '2' },
         ],
-        optionsToReturn: [],
         includeAll: true,
         value: ALL_VARIABLE_VALUE,
         text: ALL_VARIABLE_TEXT,
@@ -529,6 +533,9 @@ describe('MultiValueVariable', () => {
       });
 
       variable.urlSync?.updateFromUrl({ ['var-test']: ALL_VARIABLE_TEXT });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
       expect(variable.getValue()).toEqual(['1', '2']);
     });
 
