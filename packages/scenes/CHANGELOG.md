@@ -1,3 +1,15 @@
+# v4.0.2 (Fri Mar 22 2024)
+
+#### 🐛 Bug Fix
+
+- ControlsLabel: style: use info icons for description [#654](https://github.com/grafana/scenes/pull/654) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 1
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+---
+
 # v4.0.1 (Thu Mar 21 2024)
 
 #### 🐛 Bug Fix
