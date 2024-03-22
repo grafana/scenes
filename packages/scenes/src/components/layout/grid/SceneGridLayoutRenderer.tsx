@@ -17,7 +17,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
   validateChildrenSize(children);
 
   return (
-    <AutoSizer className="this-is-auto">
+    <AutoSizer>
       {({ width, height }) => {
         if (width === 0) {
           return null;
