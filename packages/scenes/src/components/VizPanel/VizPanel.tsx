@@ -346,7 +346,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     if (this._dataWithFieldConfig.annotations) {
       this._dataWithFieldConfig.annotations = applyFieldOverrides({
         data: this._dataWithFieldConfig.annotations,
-        fieldConfig: this.state.fieldConfig,
+        fieldConfig: {
+          defaults: {},
+          overrides: [],
+        },
         fieldConfigRegistry,
         replaceVariables: this.interpolate,
         theme: config.theme2,
