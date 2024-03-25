@@ -496,6 +496,41 @@ describe('VizPanel', () => {
       expect(dataToRender.alertState).toBe(testData.alertState);
       expect(dataToRender.annotations).toBeDefined();
     });
+
+    it('should not add fieldConfig to annotations', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        fieldConfig: {
+          defaults: {
+            links: [
+              {
+                title: 'some link',
+                url: 'some-valid-url',
+              },
+            ],
+          },
+          overrides: [],
+        },
+      });
+      pluginToLoad = getTestPlugin1({ alertStates: true, annotations: true });
+      panel.activate();
+      await Promise.resolve();
+
+      const testData = getTestData();
+      const dataToRender = panel.applyFieldConfig(testData);
+      expect(
+        dataToRender.series.every((serie) =>
+          serie.fields.every(
+            (field) => field.config.links?.length === 1 && field.config.links.at(0)?.title === 'some link'
+          )
+        )
+      );
+      expect(
+        dataToRender.annotations?.every((annotation) =>
+          annotation.fields.every((field) => field.config.links === undefined)
+        )
+      ).toBe(true);
+    });
   });
 
   describe('VizPanel panel rendering ', () => {
