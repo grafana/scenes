@@ -19,7 +19,7 @@ interface SceneGridLayoutState extends SceneObjectState {
   isResizable?: boolean;
   isLazy?: boolean;
   /**
-   * fitPanels panels to height of the grid. This will scale down the panels vertically to fit available height.
+   * Fit panels to height of the grid. This will scale down the panels vertically to fit available height.
    * The row height is not changed, only the y position and height of the panels.
    */
   fitPanels?: boolean;
