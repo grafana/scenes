@@ -8,7 +8,6 @@ import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement } from './types';
-import { SceneObjectUrlSyncConfig } from '../../../services/SceneObjectUrlSyncConfig';
 import { fitPanelsInHeight } from './utils';
 
 interface SceneGridLayoutState extends SceneObjectState {
@@ -19,13 +18,16 @@ interface SceneGridLayoutState extends SceneObjectState {
   /** Enable or disable item resizing */
   isResizable?: boolean;
   isLazy?: boolean;
-  autoFit?: boolean;
+  /**
+   * fitPanels panels to height of the grid. This will scale down the panels vertically to fit available height.
+   * The row height is not changed, only the y position and height of the panels.
+   */
+  fitPanels?: boolean;
   children: SceneGridItemLike[];
 }
 
 export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> implements SceneLayout {
   public static Component = SceneGridLayoutRenderer;
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['autofitpanels'] });
 
   private _skipOnLayoutChange = false;
 
@@ -34,22 +36,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       ...state,
       children: sortChildrenByPosition(state.children),
     });
-  }
-
-  public getUrlState() {
-    return {
-      autofitpanels: this.state.autoFit ? '' : undefined,
-    };
-  }
-
-  public updateFromUrl(values: SceneObjectUrlValues) {
-    const autoFit = values.autofitpanels;
-
-    if (typeof autoFit === 'string') {
-      this.setState({
-        autoFit: true,
-      });
-    }
   }
 
   /**
@@ -325,7 +311,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // Sort by position
     cells = sortGridLayout(cells);
 
-    if (this.state.autoFit) {
+    if (this.state.fitPanels) {
       cells = fitPanelsInHeight(cells, height);
     }
 
