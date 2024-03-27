@@ -468,7 +468,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.targets = request.targets.map((query) => {
       if (
         !query.datasource ||
-        (query.datasource.uid !== ds.uid && !ds.meta?.mixed && !isExpressionReference(query.datasource))
+        (query.datasource.uid !== ds.uid && !ds.meta?.mixed && isExpressionReference /* TODO: Remove this check when isExpressionReference is properly exported from grafan runtime */ && !isExpressionReference(query.datasource))
       ) {
         query.datasource = ds.getRef();
       }
