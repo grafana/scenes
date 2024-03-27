@@ -1,3 +1,16 @@
+# v4.0.4 (Wed Mar 27 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Check if target datasource is matching the panel ds, if not set the target ds to panel ds. [#660](https://github.com/grafana/scenes/pull/660) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v4.0.3 (Fri Mar 22 2024)
 
 #### 🐛 Bug Fix
