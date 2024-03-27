@@ -1,7 +1,6 @@
 import { map, of } from 'rxjs';
 
 import {
-  ArrayVector,
   getDefaultTimeRange,
   LoadingState,
   toDataFrame,
@@ -59,7 +58,7 @@ export const getCustomTransformOperator = (spy: jest.Mock): CustomTransformOpera
             fields: frame.fields.map((field) => {
               return {
                 ...field,
-                values: new ArrayVector(field.values.toArray().map((v) => v / 100)),
+                values: field.values.map((v) => v / 100),
               };
             }),
           };
@@ -79,7 +78,7 @@ export const getCustomAnnotationTransformOperator = (spy: jest.Mock): CustomTran
             ...frame,
             fields: frame.fields.map((field) => ({
               ...field,
-              values: new ArrayVector(field.values.toArray().map((v) => v / 10)),
+              values: field.values.map((v) => v / 10),
             })),
           }));
         })
@@ -151,7 +150,7 @@ describe('SceneDataTransformer', () => {
                   fields: frame.fields.map((field) => {
                     return {
                       ...field,
-                      values: new ArrayVector(field.values.toArray().map((v) => v * 2)),
+                      values: field.values.map((v) => v * 2),
                     };
                   }),
                 };
@@ -173,7 +172,7 @@ describe('SceneDataTransformer', () => {
                   fields: frame.fields.map((field) => {
                     return {
                       ...field,
-                      values: new ArrayVector(field.values.toArray().map((v) => v * 3)),
+                      values: field.values.map((v) => v * 3),
                     };
                   }),
                 };
@@ -193,7 +192,7 @@ describe('SceneDataTransformer', () => {
                 fields: frame.fields.map((field) => {
                   return {
                     ...field,
-                    values: new ArrayVector(field.values.toArray().map((v) => v + 4)),
+                    values: field.values.map((v) => v + 4),
                   };
                 }),
               }));
