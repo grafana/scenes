@@ -194,7 +194,7 @@ export function getAncestor<ParentType>(
     throw new Error('Unable to find parent of type ' + ancestorType.name);
   }
 
-  return parent;
+  return parent as ParentType;
 }
 
 /**
@@ -214,5 +214,5 @@ export function getQueryController(sceneObject: SceneObject): SceneQueryControll
     parent = parent.parent;
   }
 
-  return parent;
+  return undefined;
 }

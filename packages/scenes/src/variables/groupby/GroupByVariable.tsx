@@ -4,7 +4,7 @@ import { DataSourceRef, VariableType } from '@grafana/schema';
 import { SceneComponentProps, ControlsLayout } from '../../core/types';
 import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { sceneGraph } from '../../core/sceneGraph';
-import { ValidateAndUpdateResult, VariableValueOption } from '../types';
+import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, map, mergeMap, Observable, of, take } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
@@ -172,7 +172,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   /**
    * Allows clearing the value of the variable to an empty value. Overrides default behavior of a MultiValueVariable
    */
-  public getDefaultMultiState(options: VariableValueOption[]) {
+  public getDefaultMultiState(options: VariableValueOption[]): { value: VariableValueSingle[]; text: string[] } {
     return { value: [], text: [] };
   }
 
