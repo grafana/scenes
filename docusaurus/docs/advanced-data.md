@@ -65,6 +65,30 @@ The subscription returned from `sourceData.subscribeToState` is added to `this._
 
 Similarly to data, you can use the closest time range in a custom scene object using `sceneGraph.getTimeRange(model)`. This method can be used both in the custom object class and the renderer, as described previously in the [Use data](#use-data) section.
 
+Sometimes you may need to update a time range dynamically. You can do this by using the `setTimeRange` method.
+
+```tsx
+import { SceneTimeRange } from '@grafana/scenes';
+import { toUtc } from '@grafana/data';
+...
+
+const localTimeRange = new SceneTimeRange(); // Timerange defaults to the last six hours
+
+...
+
+const from = toUtc(1696405657);
+const to = toUtc(1696405687);
+
+localTimeRange.setTimeRange({
+  raw: {
+    from,
+    to
+  }
+  from,
+  to
+});
+```
+
 ## Source code
 
 [View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/advanced-data.tsx)

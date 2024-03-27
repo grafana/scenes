@@ -41,12 +41,21 @@ export abstract class SceneTimeRangeTransformerBase<T extends SceneTimeRangeStat
     return this.getAncestorTimeRange().getTimeZone();
   }
 
+  /** @deprecated */
   public onTimeRangeChange(timeRange: TimeRange): void {
-    this.getAncestorTimeRange().onTimeRangeChange(timeRange);
+    this.setTimeRange(timeRange);
   }
 
+  /** @deprecated */
   public onTimeZoneChange(timeZone: string): void {
-    this.getAncestorTimeRange().onTimeZoneChange(timeZone);
+    this.setTimeZone(timeZone);
+  }
+
+  public setTimeZone(timeZone: string): void {
+    this.getAncestorTimeRange().setTimeZone(timeZone);
+  }
+  public setTimeRange(timeRange: TimeRange): void {
+    this.getAncestorTimeRange().setTimeRange(timeRange);
   }
 
   public onRefresh(): void {

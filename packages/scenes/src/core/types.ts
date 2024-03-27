@@ -152,8 +152,14 @@ export interface SceneTimeRangeState extends SceneObjectState {
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
+  /** @deprecated Use `setTimeZone` instead. */
   onTimeZoneChange(timeZone: TimeZone): void;
+  /** Set the time zone. Thing wrapper around `setState` */
+  setTimeZone(timeZone: TimeZone): void;
+  /** @deprecated Use `setTimeRange` instead. */
   onTimeRangeChange(timeRange: TimeRange): void;
+  /** Set the timerange. Implicitly handle things that are not done when using `setState` */
+  setTimeRange(timeRange: TimeRange): void;
   onRefresh(): void;
   getTimeZone(): TimeZone;
 }
