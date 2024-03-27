@@ -14,6 +14,9 @@ import {
   preProcessPanelData,
   rangeUtil,
 } from '@grafana/data';
+
+// TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
+// @ts-ignore
 import { getRunRequest, toDataQueryError, isExpressionReference} from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
