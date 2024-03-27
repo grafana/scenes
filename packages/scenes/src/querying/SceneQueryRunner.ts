@@ -14,7 +14,10 @@ import {
   preProcessPanelData,
   rangeUtil,
 } from '@grafana/data';
-import { getRunRequest, toDataQueryError } from '@grafana/runtime';
+
+// TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
+// @ts-ignore
+import { getRunRequest, toDataQueryError, isExpressionReference} from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -463,7 +466,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     request.targets = request.targets.map((query) => {
-      if (!query.datasource) {
+      if (
+        !query.datasource ||
+        (query.datasource.uid !== ds.uid && !ds.meta?.mixed && isExpressionReference /* TODO: Remove this check when isExpressionReference is properly exported from grafan runtime */ && !isExpressionReference(query.datasource))
+      ) {
         query.datasource = ds.getRef();
       }
       return query;
