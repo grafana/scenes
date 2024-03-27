@@ -193,6 +193,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       return this.state.text.join(' + ');
     }
 
+    if (this.state.text === '') {
+      return String(this.state.value);
+    }
+
     return String(this.state.text);
   }
 
