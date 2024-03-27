@@ -8,6 +8,7 @@ import { SceneGridItem } from './SceneGridItem';
 
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';
+import * as utils from './utils';
 
 // Mocking AutoSizer to allow testing of the SceneGridLayout component rendering
 jest.mock(
@@ -16,6 +17,11 @@ jest.mock(
     ({ children }: { children: (args: { width: number; height: number }) => React.ReactNode }) =>
       children({ height: 600, width: 600 })
 );
+
+jest.mock('./utils', () => ({
+  ...jest.requireActual('./utils'),
+  fitPanelsInHeight: jest.fn().mockImplementation((cells) => cells),
+}));
 
 class TestObject extends SceneObjectBase<SceneObjectState> {
   public static Component = (m: SceneComponentProps<TestObject>) => {
@@ -107,7 +113,7 @@ describe('SceneGridLayout', () => {
       expect(screen.queryAllByTestId('test-object')).toHaveLength(2);
     });
 
-    it('should  render children of an expanded row', async () => {
+    it('should render children of an expanded row', async () => {
       const scene = new EmbeddedScene({
         body: new SceneGridLayout({
           children: [
@@ -155,6 +161,39 @@ describe('SceneGridLayout', () => {
       render(<scene.Component model={scene} />);
 
       expect(screen.queryAllByTestId('test-object')).toHaveLength(3);
+    });
+
+    it('should process the layout when the autofit is enabled', async () => {
+      const scene = new EmbeddedScene({
+        body: new SceneGridLayout({
+          children: [
+            new SceneGridItem({
+              x: 0,
+              y: 0,
+              width: 12,
+              height: 5,
+              isResizable: false,
+              isDraggable: false,
+              body: new TestObject({ key: 'a' }),
+            }),
+            new SceneGridItem({
+              x: 0,
+              y: 5,
+              width: 12,
+              height: 5,
+              isResizable: false,
+              isDraggable: false,
+              body: new TestObject({ key: 'b' }),
+            }),
+          ],
+          isLazy: false,
+          UNSAFE_fitPanels: true,
+        }),
+      });
+
+      render(<scene.Component model={scene} />);
+
+      expect(utils.fitPanelsInHeight).toHaveBeenCalled();
     });
   });
 
