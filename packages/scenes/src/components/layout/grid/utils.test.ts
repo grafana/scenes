@@ -33,34 +33,70 @@ describe.only('fitPanelsInHeight', () => {
 
   it('should NOT scale down panels if they fit in the given height', () => {
     // ---------------
-    // | a | a | b |
-    // | a | a | b |
-    // | a | a |   |
-    // | a | a |   |
-    // | c | c | c |
-    // | c | c | c |
+    // | a | a |
+    // | a | a |
+    // | b | b |
+    // | b | b |
+    // | c | c |
+    // | c | c |
     // ---------------
     const cells = [
-      { x: 0, y: 0, w: 2, h: 4 },
-      { x: 2, y: 0, w: 1, h: 2 },
-      { x: 0, y: 4, w: 3, h: 2 },
+      { x: 0, y: 0, w: 2, h: 2 },
+      { x: 0, y: 2, w: 2, h: 2 },
+      { x: 0, y: 4, w: 2, h: 2 },
     ] as ReactGridLayout.Layout[];
-    const height = GRID_CELL_HEIGHT * 6 + GRID_CELL_VMARGIN * 4;
+    const height = GRID_CELL_HEIGHT * 6 + GRID_CELL_VMARGIN * 10;
 
     const result = fitPanelsInHeight(cells, height);
 
     // ---------------
-    // | a | a | b |
-    // | a | a | b |
-    // | a | a |   |
-    // | a | a |   |
-    // | c | c | c |
-    // | c | c | c |
+    // 0: | a | a |
+    // 1: | a | a |
+    // 2: | b | b |
+    // 3: | b | b |
+    // 4: | c | c |
+    // 5: | c | c |
     // ---------------
     expect(result).toEqual([
-      { x: 0, y: 0, w: 2, h: 4 },
-      { x: 2, y: 0, w: 1, h: 2 },
-      { x: 0, y: 4, w: 3, h: 2 },
+      { x: 0, y: 0, w: 2, h: 2 },
+      { x: 0, y: 2, w: 2, h: 2 },
+      { x: 0, y: 4, w: 2, h: 2 },
+    ]);
+  });
+
+  it('should scale up panels if they do not fit in the given height', () => {
+    // ---------------
+    // | a | a |
+    // | a | a |
+    // | b | b |
+    // | b | b |
+    // | c | c |
+    // | c | c |
+    // ---------------
+    const cells = [
+      { x: 0, y: 0, w: 2, h: 2 },
+      { x: 0, y: 2, w: 2, h: 2 },
+      { x: 0, y: 4, w: 2, h: 2 },
+    ] as ReactGridLayout.Layout[];
+    const height = GRID_CELL_HEIGHT * 9 + GRID_CELL_VMARGIN * 10;
+
+    const result = fitPanelsInHeight(cells, height);
+
+    // ---------------
+    // | a | a |
+    // | a | a |
+    // | a | a |
+    // | b | b |
+    // | b | b |
+    // | b | b |
+    // | c | c |
+    // | c | c |
+    // | c | c |
+    // ---------------
+    expect(result).toEqual([
+      { x: 0, y: 0, w: 2, h: 3 },
+      { x: 0, y: 3, w: 2, h: 3 },
+      { x: 0, y: 5, w: 2, h: 3 },
     ]);
   });
 });

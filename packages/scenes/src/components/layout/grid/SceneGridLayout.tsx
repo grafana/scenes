@@ -21,8 +21,9 @@ interface SceneGridLayoutState extends SceneObjectState {
   /**
    * Fit panels to height of the grid. This will scale down the panels vertically to fit available height.
    * The row height is not changed, only the y position and height of the panels.
+   * UNSAFE: This feature is experimental and it might change in the future.
    */
-  fitPanels?: boolean;
+  UNSAFE_fitPanels?: boolean;
   children: SceneGridItemLike[];
 }
 
@@ -311,7 +312,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // Sort by position
     cells = sortGridLayout(cells);
 
-    if (this.state.fitPanels) {
+    if (this.state.UNSAFE_fitPanels) {
       cells = fitPanelsInHeight(cells, height);
     }
 

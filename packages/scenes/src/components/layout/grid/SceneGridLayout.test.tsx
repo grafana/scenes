@@ -187,7 +187,7 @@ describe('SceneGridLayout', () => {
             }),
           ],
           isLazy: false,
-          fitPanels: true,
+          UNSAFE_fitPanels: true,
         }),
       });
 
