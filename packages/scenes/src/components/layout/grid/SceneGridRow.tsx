@@ -11,6 +11,7 @@ import { SceneGridLayout } from './SceneGridLayout';
 import { GRID_COLUMN_COUNT } from './constants';
 import { SceneGridItemLike, SceneGridItemStateLike } from './types';
 import { sceneGraph } from '../../../core/sceneGraph';
+import { selectors } from '@grafana/e2e-selectors';
 
 export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
@@ -85,6 +86,7 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
           onClick={model.onCollapseToggle}
           className={styles.rowTitleButton}
           aria-label={isCollapsed ? 'Expand row' : 'Collapse row'}
+          data-testid={selectors.components.DashboardRow.title(sceneGraph.interpolate(model, title, undefined, 'text'))}
         >
           {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
           <span className={styles.rowTitle} role="heading">
@@ -94,11 +96,11 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
         <span className={cx(styles.panelCount, isCollapsed && styles.panelCountCollapsed)}>
           ({count} {panels})
         </span>
-        {actions && 
+        {actions && (
           <div className={styles.rowActions}>
             <actions.Component model={actions} />
           </div>
-        }
+        )}
       </div>
       {isDraggable && isCollapsed && (
         <div className={cx(styles.dragHandle, layoutDragClass)}>
@@ -146,7 +148,7 @@ export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       '&:hover, &:focus-within': {
         '& > div': {
           opacity: 1,
-        }
+        },
       },
     }),
     rowActions: css({
