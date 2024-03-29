@@ -1,7 +1,6 @@
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { VizPanel } from '../components/VizPanel/VizPanel';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
-import { sceneGraph } from '../core/sceneGraph';
 import { LiveNowTimer } from './LiveNowTimer';
 
 jest.useFakeTimers();
