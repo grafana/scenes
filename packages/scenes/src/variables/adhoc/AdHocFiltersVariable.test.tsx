@@ -85,7 +85,7 @@ describe('AdHocFiltersVariable', () => {
   });
 
   it('Should collect and pass respective data source queries to getTagKeys call', async () => {
-    const { getTagKeysSpy } = setup({ filters: [] });
+    const { getTagKeysSpy, timeRange } = setup({ filters: [] });
 
     // Select key
     await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -98,6 +98,7 @@ describe('AdHocFiltersVariable', () => {
           refId: 'A',
         },
       ],
+      timeRange: timeRange.state.value,
     });
   });
 
