@@ -497,7 +497,7 @@ describe('VizPanel', () => {
       expect(dataToRender.annotations).toBeDefined();
     });
 
-    it('should not add fieldConfig to annotations', async () => {
+    it('should not add fieldConfig to annotations, and keep annotations config', async () => {
       panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
         pluginId: 'custom-plugin-id',
         fieldConfig: {
@@ -519,15 +519,10 @@ describe('VizPanel', () => {
       const testData = getTestData();
       const dataToRender = panel.applyFieldConfig(testData);
       expect(
-        dataToRender.series.every((serie) =>
-          serie.fields.every(
-            (field) => field.config.links?.length === 1 && field.config.links.at(0)?.title === 'some link'
-          )
-        )
-      );
-      expect(
         dataToRender.annotations?.every((annotation) =>
-          annotation.fields.every((field) => field.config.links === undefined)
+          annotation.fields.every(
+            (field) => field.config.links === undefined || field.config.links.at(0)?.title === 'some annotation link'
+          )
         )
       ).toBe(true);
     });
@@ -628,7 +623,18 @@ function getTestData(): PanelData {
         fields: [
           { name: 'time', values: [1, 2, 2, 5, 5] },
           { name: 'id', values: ['1', '2', '2', '5', '5'] },
-          { name: 'text', values: ['t1', 't2', 't3', 't4', 't5'] },
+          {
+            name: 'text',
+            values: ['t1', 't2', 't3', 't4', 't5'],
+            config: {
+              links: [
+                {
+                  title: 'some annotation link',
+                  url: 'some-valid-annotation-url',
+                },
+              ],
+            },
+          },
         ],
       }),
     ],
