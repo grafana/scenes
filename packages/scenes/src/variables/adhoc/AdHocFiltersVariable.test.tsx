@@ -101,6 +101,30 @@ describe('AdHocFiltersVariable', () => {
     });
   });
 
+  it('Should collect and pass respective data source queries to getTagValues call', async () => {
+    const { getTagValuesSpy, timeRange } = setup({ filters: [] });
+
+    // Select key
+    const key = 'key3';
+    await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+    const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
+    await waitFor(() => select(selects[0], key, { container: document.body }));
+    await userEvent.click(selects[2]);
+
+    expect(getTagValuesSpy).toBeCalledTimes(1);
+    expect(getTagValuesSpy).toBeCalledWith({
+      filters: [],
+      key,
+      queries: [
+        {
+          expr: 'my_metric{}',
+          refId: 'A',
+        },
+      ],
+      timeRange: timeRange.state.value,
+    });
+  });
+
   it('url sync works', async () => {
     const { filtersVar } = setup();
 
@@ -193,16 +217,20 @@ describe('AdHocFiltersVariable', () => {
 
   it('Can override with default keys', async () => {
     const { filtersVar } = setup({
-      defaultKeys: [{
-        text: 'some',
-        value: '1',
-      }, {
-        text: 'static',
-        value: '2',
-      }, {
-        text: 'keys',
-        value: '3',
-      }],
+      defaultKeys: [
+        {
+          text: 'some',
+          value: '1',
+        },
+        {
+          text: 'static',
+          value: '2',
+        },
+        {
+          text: 'keys',
+          value: '3',
+        },
+      ],
     });
 
     const keys = await filtersVar._getKeys(null);
@@ -215,23 +243,27 @@ describe('AdHocFiltersVariable', () => {
 
   it('Selecting a default key correctly shows the label', async () => {
     const { filtersVar } = setup({
-      defaultKeys: [{
-        text: 'some',
-        value: '1',
-      }, {
-        text: 'static',
-        value: '2',
-      }, {
-        text: 'keys',
-        value: '3',
-      }],
+      defaultKeys: [
+        {
+          text: 'some',
+          value: '1',
+        },
+        {
+          text: 'static',
+          value: '2',
+        },
+        {
+          text: 'keys',
+          value: '3',
+        },
+      ],
     });
     const selects = screen.getAllByRole('combobox');
     await waitFor(() => select(selects[0], 'some', { container: document.body }));
 
     expect(screen.getByText('some')).toBeInTheDocument();
     expect(filtersVar.state.filters[0].key).toBe('1');
-  })
+  });
 
   it('Can filter by regex', async () => {
     const { filtersVar } = setup({
@@ -413,6 +445,7 @@ let runRequestSet = false;
 
 function setup(overrides?: Partial<AdHocFiltersVariableState>) {
   const getTagKeysSpy = jest.fn();
+  const getTagValuesSpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
@@ -420,7 +453,8 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
           getTagKeysSpy(options);
           return [{ text: 'key3' }];
         },
-        getTagValues() {
+        getTagValues(options: any) {
+          getTagValuesSpy(options);
           return [{ text: 'val3' }, { text: 'val4' }];
         },
         getRef() {
@@ -466,8 +500,10 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
     ...overrides,
   });
 
+  const timeRange = new SceneTimeRange();
+
   const scene = new EmbeddedScene({
-    $timeRange: new SceneTimeRange(),
+    $timeRange: timeRange,
     $variables: new SceneVariableSet({
       variables: [filtersVar],
     }),
@@ -496,5 +532,5 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
 
   const { unmount } = render(<scene.Component model={scene} />);
 
-  return { scene, filtersVar, unmount, runRequest: runRequestMock.fn, getTagKeysSpy };
+  return { scene, filtersVar, unmount, runRequest: runRequestMock.fn, getTagKeysSpy, getTagValuesSpy, timeRange };
 }
