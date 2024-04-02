@@ -8,6 +8,7 @@ import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement } from './types';
+import { fitPanelsInHeight } from './utils';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -17,6 +18,12 @@ interface SceneGridLayoutState extends SceneObjectState {
   /** Enable or disable item resizing */
   isResizable?: boolean;
   isLazy?: boolean;
+  /**
+   * Fit panels to height of the grid. This will scale down the panels vertically to fit available height.
+   * The row height is not changed, only the y position and height of the panels.
+   * UNSAFE: This feature is experimental and it might change in the future.
+   */
+  UNSAFE_fitPanels?: boolean;
   children: SceneGridItemLike[];
 }
 
@@ -292,7 +299,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     return { i: child.state.key!, x, y, h, w, isResizable, isDraggable };
   }
 
-  public buildGridLayout(width: number): ReactGridLayout.Layout[] {
+  public buildGridLayout(width: number, height: number): ReactGridLayout.Layout[] {
     let cells: ReactGridLayout.Layout[] = [];
 
     for (const child of this.state.children) {
@@ -307,6 +314,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // Sort by position
     cells = sortGridLayout(cells);
+
+    if (this.state.UNSAFE_fitPanels) {
+      cells = fitPanelsInHeight(cells, height);
+    }
 
     if (width < 768) {
       // We should not persist the mobile layout
