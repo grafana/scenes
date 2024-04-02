@@ -110,7 +110,7 @@ describe('GroupByVariable', () => {
   });
 
   it('Should collect and pass respective data source queries to getTagKeys call', async () => {
-    const { variable, getTagKeysSpy } = setupTest();
+    const { variable, getTagKeysSpy, timeRange } = setupTest();
 
     await act(async () => {
       await lastValueFrom(variable.validateAndUpdate());
@@ -128,6 +128,7 @@ describe('GroupByVariable', () => {
           refId: 'A',
         },
       ],
+      timeRange: timeRange.state.value,
     });
   });
 });
@@ -176,8 +177,10 @@ export function setupTest(overrides?: Partial<GroupByVariableState>) {
     ...overrides,
   });
 
+  const timeRange = new SceneTimeRange();
+
   const scene = new EmbeddedScene({
-    $timeRange: new SceneTimeRange(),
+    $timeRange: timeRange,
     $variables: new SceneVariableSet({
       variables: [variable],
     }),
@@ -206,5 +209,5 @@ export function setupTest(overrides?: Partial<GroupByVariableState>) {
 
   render(<scene.Component model={scene} />);
 
-  return { scene, variable, getTagKeysSpy };
+  return { scene, variable, getTagKeysSpy, timeRange };
 }
