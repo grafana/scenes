@@ -36,6 +36,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
             className={cx('react-grid-layout', isDraggable && 'react-grid-layout--enable-move-animations')}
           >
             <ReactGridLayout
+              key={model.getLayoutKey()}
               width={width}
               /**
                 Disable draggable if mobile device, solving an issue with unintentionally

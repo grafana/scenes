@@ -11,7 +11,7 @@ import { SceneGridItemLike, SceneGridItemPlacement } from './types';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
-   * Turn on or off dragging for all items. Indiviadual items can still disabled via isDraggable property
+   * Turn on or off dragging for all items. Individual items can still disabled via isDraggable property
    **/
   isDraggable?: boolean;
   /** Enable or disable item resizing */
@@ -24,6 +24,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   public static Component = SceneGridLayoutRenderer;
 
   private _skipOnLayoutChange = false;
+  private _layoutKey = 0;
 
   public constructor(state: SceneGridLayoutState) {
     super({
@@ -243,6 +244,17 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // Need to resort the grid layout based on new position (needed to to find the new parent)
     gridLayout = sortGridLayout(gridLayout);
 
+    // Get the new parent if the child has moved to a row or back to the grid
+    const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
+    const newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
+
+    //if row within row, we return early and rerender using old layout
+    if (sceneChild instanceof SceneGridRow && newParent instanceof SceneGridRow) {
+      this._skipOnLayoutChange = true;
+      this.forceRenderLayout();
+      return;
+    }
+
     // Update children positions if they have changed
     for (let i = 0; i < gridLayout.length; i++) {
       const gridItem = gridLayout[i];
@@ -258,8 +270,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     }
 
     // Update the parent if the child if it has moved to a row or back to the grid
-    const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
-    const newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
     let newChildren = this.state.children;
 
     if (newParent !== sceneChild.parent) {
@@ -269,6 +279,15 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     this.setState({ children: sortChildrenByPosition(newChildren) });
     this._skipOnLayoutChange = true;
   };
+
+  private forceRenderLayout() {
+    this._layoutKey += 1;
+    this.forceRender();
+  }
+
+  public getLayoutKey() {
+    return this.state.key + "_react_grid_layout_" + this._layoutKey;
+  }
 
   private toGridCell(child: SceneGridItemLike): ReactGridLayout.Layout {
     const size = child.state;
