@@ -240,7 +240,7 @@ export class AdHocFiltersVariable
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this._getSceneQueries();
-    // @ts-expect-error TODO: remove this once 10.4.2 is released
+    // @ts-expect-error TODO: remove this once 11.1.x is released
     let values = await ds.getTagValues({ key: filter.key, filters: otherFilters, timeRange, queries });
 
     if (override) {

@@ -154,7 +154,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const queries = this._getSceneQueries();
     const otherFilters = this.state.baseFilters || [];
-    // @ts-expect-error TODO: remove this once 11.1.0 is released
+    // @ts-expect-error TODO: remove this once 10.4.0 is released
     let keys = await ds.getTagKeys({ filters: otherFilters, queries });
 
     if (override) {
