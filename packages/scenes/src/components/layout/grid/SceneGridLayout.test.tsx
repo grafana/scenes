@@ -283,7 +283,7 @@ describe('SceneGridLayout', () => {
               w: 12,
               h: 8,
               x: 0,
-              y: 3,
+              y: 2,
               i: 'a',
           },
           {
@@ -307,7 +307,7 @@ describe('SceneGridLayout', () => {
           w: 12,
           h: 8,
           x: 0,
-          y: 3,
+          y: 2,
           i: 'a',
         },
         {},
@@ -320,6 +320,17 @@ describe('SceneGridLayout', () => {
 
       expect(row.state.children[0].state.key).toEqual('a');
       expect(row.state.children[1].state.key).toEqual('b');
+
+      // layout children should be positioned correctly
+      expect(layout.state.children[0].state.key).toEqual('row-a');
+      expect(layout.state.children[0].state.x).toEqual(0);
+      expect(layout.state.children[0].state.y).toEqual(0);
+      expect((layout.state.children[0] as SceneGridRow).state.children[0].state.key).toEqual('a');
+      expect((layout.state.children[0] as SceneGridRow).state.children[0].state.x).toEqual(0);
+      expect((layout.state.children[0] as SceneGridRow).state.children[0].state.y).toEqual(2);
+      expect((layout.state.children[0] as SceneGridRow).state.children[1].state.key).toEqual('b');
+      expect((layout.state.children[0] as SceneGridRow).state.children[1].state.x).toEqual(0);
+      expect((layout.state.children[0] as SceneGridRow).state.children[1].state.y).toEqual(10);
     });
   });
 
