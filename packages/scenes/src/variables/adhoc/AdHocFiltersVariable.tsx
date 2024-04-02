@@ -239,7 +239,9 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters ?? []);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    let values = await ds.getTagValues({ key: filter.key, filters: otherFilters, timeRange });
+    const queries = this._getSceneQueries();
+    // @ts-expect-error TODO: remove this once 11.1.x is released
+    let values = await ds.getTagValues({ key: filter.key, filters: otherFilters, timeRange, queries });
 
     if (override) {
       values = values.concat(override.values);
@@ -299,7 +301,7 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
         </React.Fragment>
       ))}
 
-      {!readOnly && <AdHocFilterBuilder model={model} key="'builder" addFilterButtonText={addFilterButtonText}/>}
+      {!readOnly && <AdHocFilterBuilder model={model} key="'builder" addFilterButtonText={addFilterButtonText} />}
     </div>
   );
 }

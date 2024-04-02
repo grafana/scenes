@@ -167,7 +167,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     return keys;
-  };;
+  };
 
   /**
    * Allows clearing the value of the variable to an empty value. Overrides default behavior of a MultiValueVariable
