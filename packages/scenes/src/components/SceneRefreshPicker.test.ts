@@ -1,11 +1,30 @@
-import { dateTime } from '@grafana/data';
+import { dateTime, rangeUtil } from '@grafana/data';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
-import { SceneRefreshPicker } from './SceneRefreshPicker';
+import { AUTO_REFRESH_INTERVAL, SceneRefreshPicker } from './SceneRefreshPicker';
 
-function setupScene(refresh: string, intervals?: string[]) {
+jest.mock('@grafana/data', () => {
+  const originalModule = jest.requireActual('@grafana/data');
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    rangeUtil: {
+      ...originalModule.rangeUtil,
+      calculateInterval: jest.fn(),
+    },
+  };
+});
+
+function setupScene(refresh: string, intervals?: string[], autoEnabled?: boolean, autoInterval = 20000) {
+  // We need to mock this on every run otherwise we can't rely on the spy value
+  const calculateIntervalSpy = jest.fn(() => ({ interval: '', intervalMs: autoInterval }));
+
+  rangeUtil.calculateInterval = calculateIntervalSpy;
+
   const timeRange = new SceneTimeRange({});
   const refreshPicker = new SceneRefreshPicker({
+    autoEnabled,
     refresh,
     intervals,
   });
@@ -20,7 +39,7 @@ function setupScene(refresh: string, intervals?: string[]) {
   // activating picker automatically as we do not render scene in the test
   const deactivateRefreshPicker = refreshPicker.activate();
 
-  return { refreshPicker, timeRange, deactivateRefreshPicker };
+  return { refreshPicker, timeRange, deactivateRefreshPicker, calculateIntervalSpy };
 }
 
 describe('SceneRefreshPicker', () => {
@@ -144,5 +163,52 @@ describe('SceneRefreshPicker', () => {
 
     expect(dateTime(t4.from).diff(t3.from, 's')).toBe(12);
     expect(dateTime(t4.to).diff(t3.to, 's')).toBe(12);
+  });
+
+  describe('auto interval', () => {
+    it('includes auto interval in options by default', () => {
+      const { refreshPicker } = setupScene('5s');
+      expect(refreshPicker.state.intervals).toContain(AUTO_REFRESH_INTERVAL);
+    });
+
+    it('does not include auto interval in options when disabled', () => {
+      const { refreshPicker } = setupScene('5s', undefined, false);
+      expect(refreshPicker.state.intervals).not.toContain(AUTO_REFRESH_INTERVAL);
+    });
+
+    it('recalculates auto interval when time range changes and auto is selected', async () => {
+      const { timeRange, calculateIntervalSpy } = setupScene(AUTO_REFRESH_INTERVAL);
+
+      // The initial calculation
+      expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
+
+      // The time range changes
+      timeRange.setState({ from: 'now-30d', to: 'now-15d' });
+      timeRange.onRefresh();
+
+      // The interval is recalculated
+      expect(calculateIntervalSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not recalculate auto interval when time range changes and auto is not selected', async () => {
+      const { timeRange, calculateIntervalSpy } = setupScene('5s');
+      timeRange.setState({ from: 'now-30d', to: 'now-29d' });
+      timeRange.onRefresh();
+      expect(calculateIntervalSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not recalculate auto interval when a tick happens', async () => {
+      const autoInterval = 20000;
+      const { calculateIntervalSpy } = setupScene(AUTO_REFRESH_INTERVAL, undefined, true, autoInterval);
+
+      // The initial calculation
+      expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
+
+      // A refresh triggers
+      jest.advanceTimersByTime(autoInterval);
+
+      // There is no additional calculation
+      expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });
