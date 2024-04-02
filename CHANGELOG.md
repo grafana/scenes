@@ -1,3 +1,16 @@
+# v4.1.0 (Tue Apr 02 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: Pass scene queries to getTagValues calls [#664](https://github.com/grafana/scenes/pull/664) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v4.0.4 (Wed Mar 27 2024)
 
 #### 🐛 Bug Fix
