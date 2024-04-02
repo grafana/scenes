@@ -208,8 +208,9 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // Remove from current parent row
     if (currentParent instanceof SceneGridRow) {
-      const newRow = currentParent.clone({
-        children: currentParent.state.children.filter((c) => c.state.key !== child.state.key),
+      const newRow = currentParent.clone();
+      newRow.setState({
+        children: newRow.state.children.filter((c) => c.state.key !== child.state.key),
       });
 
       // new children with new row
@@ -217,7 +218,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
       // if target is also a row
       if (target instanceof SceneGridRow) {
-        const targetRow = target.clone({ children: [...target.state.children, newChild] });
+        const targetRow = target.clone();
+        targetRow.setState({ children: [...targetRow.state.children, newChild] });
         rootChildren = rootChildren.map((c) => (c === target ? targetRow : c));
       } else {
         // target is the main grid
@@ -228,7 +230,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
         // current parent is the main grid remove it from there
         rootChildren = rootChildren.filter((c) => c.state.key !== child.state.key);
         // Clone the target row and add the child
-        const targetRow = target.clone({ children: [...target.state.children, newChild] });
+        const targetRow = target.clone();
+        targetRow.setState({ children: [...targetRow.state.children, newChild] });
         // Replace row with new row
         rootChildren = rootChildren.map((c) => (c === target ? targetRow : c));
       }
@@ -240,7 +243,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   public onDragStop: ReactGridLayout.ItemCallback = (gridLayout, o, updatedItem) => {
     const sceneChild = this.getSceneLayoutChild(updatedItem.i)!;
 
-    // Need to resort the grid layout based on new position (needed to to find the new parent)
+    // Need to resort the grid layout based on new position (needed to find the new parent)
     gridLayout = sortGridLayout(gridLayout);
 
     // Update children positions if they have changed
@@ -322,6 +325,12 @@ function isItemSizeEqual(a: SceneGridItemPlacement, b: SceneGridItemPlacement) {
 }
 
 function sortChildrenByPosition(children: SceneGridItemLike[]) {
+  children.forEach((child) => {
+    if (child instanceof SceneGridRow) {
+      child.setState({ children: sortChildrenByPosition(child.state.children) });
+    }
+  });
+
   return [...children].sort((a, b) => {
     return a.state.y! - b.state.y! || a.state.x! - b.state.x!;
   });

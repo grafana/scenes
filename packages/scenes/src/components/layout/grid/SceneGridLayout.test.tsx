@@ -159,7 +159,7 @@ describe('SceneGridLayout', () => {
   });
 
   describe('when moving a panel', () => {
-    it('shoud update layout children placement and order ', () => {
+    it('should update layout children placement and order ', () => {
       const layout = new SceneGridLayout({
         children: [
           new SceneGridItem({
@@ -236,6 +236,101 @@ describe('SceneGridLayout', () => {
       expect(layout.state.children[2].state.y).toEqual(2);
       expect(layout.state.children[2].state.width).toEqual(1);
       expect(layout.state.children[2].state.height).toEqual(1);
+    });
+
+    it('should update row children placement and order as well', () => {
+      const layout = new SceneGridLayout({
+        children: [
+          new SceneGridItem({
+            key: 'a',
+            x: 0,
+            y: 0,
+            width: 1,
+            height: 1,
+            isResizable: false,
+            isDraggable: false,
+            body: new TestObject({}),
+          }),
+          new SceneGridRow({
+            title: 'Row A',
+            key: 'row-a',
+            isCollapsed: false,
+            y: 1,
+            children: [
+              new SceneGridItem({
+                key: 'b',
+                x: 0,
+                y: 2,
+                width: 1,
+                height: 1,
+                isResizable: false,
+                isDraggable: false,
+                body: new TestObject({}),
+              }),
+            ],
+          }),
+        ],
+        isLazy: false,
+      });
+
+      // move panel a to be the first child of the row:
+      // row
+      //  - a
+      //  - b
+      layout.onDragStop(
+        [
+          {
+              w: 12,
+              h: 8,
+              x: 0,
+              y: 2,
+              i: 'a',
+          },
+          {
+              w: 24,
+              h: 1,
+              x: 0,
+              y: 0,
+              i: 'row-a',
+          },
+          {
+              w: 12,
+              h: 8,
+              x: 0,
+              y: 10,
+              i: 'b',
+          }
+      ],
+        // @ts-expect-error
+        {},
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 2,
+          i: 'a',
+        },
+        {},
+        {},
+        {}
+      );
+
+      // after sorting by position, the row should have the children in the correct order [a,b]
+      const row = layout.state.children[0] as SceneGridRow;
+
+      expect(row.state.children[0].state.key).toEqual('a');
+      expect(row.state.children[1].state.key).toEqual('b');
+
+      // layout children should be positioned correctly
+      expect(layout.state.children[0].state.key).toEqual('row-a');
+      expect(layout.state.children[0].state.x).toEqual(0);
+      expect(layout.state.children[0].state.y).toEqual(0);
+      expect((layout.state.children[0] as SceneGridRow).state.children[0].state.key).toEqual('a');
+      expect((layout.state.children[0] as SceneGridRow).state.children[0].state.x).toEqual(0);
+      expect((layout.state.children[0] as SceneGridRow).state.children[0].state.y).toEqual(2);
+      expect((layout.state.children[0] as SceneGridRow).state.children[1].state.key).toEqual('b');
+      expect((layout.state.children[0] as SceneGridRow).state.children[1].state.x).toEqual(0);
+      expect((layout.state.children[0] as SceneGridRow).state.children[1].state.y).toEqual(10);
     });
   });
 
