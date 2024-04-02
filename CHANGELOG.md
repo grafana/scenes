@@ -1,3 +1,16 @@
+# v4.1.1 (Tue Apr 02 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix drag and drop panels in rows [#663](https://github.com/grafana/scenes/pull/663) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v4.1.0 (Tue Apr 02 2024)
 
 #### 🚀 Enhancement
