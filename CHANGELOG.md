@@ -1,3 +1,16 @@
+# v4.2.0 (Tue Apr 02 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Autofit: Fit widget in the screen depending on the height [#658](https://github.com/grafana/scenes/pull/658) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v4.1.2 (Tue Apr 02 2024)
 
 #### 🐛 Bug Fix
