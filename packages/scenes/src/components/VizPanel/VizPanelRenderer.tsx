@@ -141,6 +141,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             height={height}
             displayMode={displayMode}
             hoverHeader={hoverHeader}
+            hoverHeaderOffset={hoverHeader ? 0 : undefined}
             titleItems={titleItemsElement}
             dragClass={dragClass}
             actions={actionsElement}
