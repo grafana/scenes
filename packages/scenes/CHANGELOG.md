@@ -1,3 +1,15 @@
+# v4.2.1 (Wed Apr 03 2024)
+
+#### 🐛 Bug Fix
+
+- LiveNowTimer: The constructor doesn't receive a valid state [#662](https://github.com/grafana/scenes/pull/662) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v4.2.0 (Tue Apr 02 2024)
 
 #### 🚀 Enhancement
