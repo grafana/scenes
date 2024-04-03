@@ -51,3 +51,10 @@ export function useSceneApp(factory: () => SceneApp) {
 
   return newApp;
 }
+
+/**
+ * Deliberately remove a SceneApp from the cache to ensure that it is completely reinitialized, e.g., after a high-impact configuration change.
+ */
+export function clearSceneApp(factory: () => SceneApp) {
+  sceneAppCache.delete(factory);
+}
