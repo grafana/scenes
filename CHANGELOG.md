@@ -1,3 +1,16 @@
+# v4.3.0 (Wed Apr 03 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHoc Filters: Allow custom value [#670](https://github.com/grafana/scenes/pull/670) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v4.2.1 (Wed Apr 03 2024)
 
 #### 🐛 Bug Fix
