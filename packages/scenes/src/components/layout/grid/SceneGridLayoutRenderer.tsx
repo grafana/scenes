@@ -36,7 +36,6 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
             className={cx('react-grid-layout', isDraggable && 'react-grid-layout--enable-move-animations')}
           >
             <ReactGridLayout
-              key={model.getLayoutKey()}
               width={width}
               /**
                 Disable draggable if mobile device, solving an issue with unintentionally
@@ -54,6 +53,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               draggableCancel=".grid-drag-cancel"
               // @ts-ignore: ignoring for now until we make the size type numbers-only
               layout={layout}
+              onDragStart={model.onDragStart}
               onDragStop={model.onDragStop}
               onResizeStop={model.onResizeStop}
               onLayoutChange={model.onLayoutChange}
