@@ -1,7 +1,8 @@
 import { dateTime, rangeUtil } from '@grafana/data';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
-import { AUTO_REFRESH_INTERVAL, SceneRefreshPicker } from './SceneRefreshPicker';
+import { SceneRefreshPicker } from './SceneRefreshPicker';
+import { RefreshPicker } from '@grafana/ui';
 
 jest.mock('@grafana/data', () => {
   const originalModule = jest.requireActual('@grafana/data');
@@ -167,17 +168,17 @@ describe('SceneRefreshPicker', () => {
 
   describe('auto interval', () => {
     it('includes auto interval in options by default', () => {
-      const { refreshPicker } = setupScene('5s');
-      expect(refreshPicker.state.intervals).toContain(AUTO_REFRESH_INTERVAL);
+      const { refreshPicker } = setupScene('5s', undefined, undefined);
+      expect(refreshPicker.state.autoEnabled).toBe(true);
     });
 
     it('does not include auto interval in options when disabled', () => {
       const { refreshPicker } = setupScene('5s', undefined, false);
-      expect(refreshPicker.state.intervals).not.toContain(AUTO_REFRESH_INTERVAL);
+      expect(refreshPicker.state.autoEnabled).toBe(false);
     });
 
     it('recalculates auto interval when time range changes and auto is selected', async () => {
-      const { timeRange, calculateIntervalSpy } = setupScene(AUTO_REFRESH_INTERVAL);
+      const { timeRange, calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value);
 
       // The initial calculation
       expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
@@ -199,7 +200,7 @@ describe('SceneRefreshPicker', () => {
 
     it('does not recalculate auto interval when a tick happens', async () => {
       const autoInterval = 20000;
-      const { calculateIntervalSpy } = setupScene(AUTO_REFRESH_INTERVAL, undefined, true, autoInterval);
+      const { calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value, undefined, true, autoInterval);
 
       // The initial calculation
       expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);

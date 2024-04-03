@@ -9,7 +9,6 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObject, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
-export const AUTO_REFRESH_INTERVAL = 'auto';
 export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'];
 
 export interface SceneRefreshPickerState extends SceneObjectState {
@@ -31,16 +30,12 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   private _timeRangeListener: Unsubscribable | undefined;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
-    const autoEnabled = state.autoEnabled ?? true;
-    let intervals = state.intervals ?? DEFAULT_INTERVALS;
-    intervals = autoEnabled ? [AUTO_REFRESH_INTERVAL, ...intervals] : intervals;
-
     super({
       refresh: '',
       ...state,
-      autoEnabled,
+      autoEnabled: state.autoEnabled ?? true,
       autoMinInterval: state.autoMinInterval ?? config.minRefreshInterval,
-      intervals,
+      intervals: state.intervals ?? DEFAULT_INTERVALS,
     });
 
     this.addActivationHandler(() => {
@@ -129,13 +124,13 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     }
 
     // If the provided interval is not allowed
-    if (intervals && !intervals.includes(refresh)) {
+    if (refresh !== RefreshPicker.autoOption.value && intervals && !intervals.includes(refresh)) {
       return;
     }
 
     let intervalMs: number;
 
-    if (refresh === AUTO_REFRESH_INTERVAL) {
+    if (refresh === RefreshPicker.autoOption.value) {
       intervalMs = this.calculateAutoRefreshInterval();
       this._timeRangeListener = this.setupTimeRangeListener();
     } else {
@@ -151,7 +146,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 }
 
 export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneRefreshPicker>) {
-  const { refresh, intervals, isOnCanvas, primary, withText } = model.useState();
+  const { refresh, intervals, autoEnabled, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
   let text = withText ? 'Refresh' : undefined;
@@ -167,6 +162,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
 
   return (
     <RefreshPicker
+      showAutoInterval={autoEnabled}
       value={refresh}
       intervals={intervals}
       tooltip={tooltip}
