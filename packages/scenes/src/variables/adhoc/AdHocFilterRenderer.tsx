@@ -45,6 +45,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueSelect = (
     <Select
       allowCustomValue
+      formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
       disabled={model.state.readOnly}
       className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
       width="auto"
