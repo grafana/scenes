@@ -3,6 +3,7 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 import { SceneRefreshPicker } from './SceneRefreshPicker';
 import { RefreshPicker } from '@grafana/ui';
+import { fireEvent } from '@testing-library/dom';
 
 jest.mock('@grafana/data', () => {
   const originalModule = jest.requireActual('@grafana/data');
@@ -214,33 +215,37 @@ describe('SceneRefreshPicker', () => {
     });
 
     it('recalculates auto interval when window is resized', () => {
+      Object.assign(window, { innerWidth: 1024 });
+
       const { calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value, undefined, true);
 
       // The initial calculation
       expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
 
       // A resize triggers
-      window.dispatchEvent(new Event('resize'));
+      fireEvent(window, new Event('resize'));
 
-      jest.advanceTimersByTime(2000);
+      jest.advanceTimersByTime(500);
 
       // The interval is recalculated
       expect(calculateIntervalSpy).toHaveBeenCalledTimes(2);
     });
 
     it('debounces recalculation of auto interval when window is resized', async () => {
+      Object.assign(window, { innerWidth: 1024 });
+
       const { calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value, undefined, true);
 
       // The initial calculation
       expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
 
       // Multiple resize triggers
-      global.dispatchEvent(new Event('resize'));
-      global.dispatchEvent(new Event('resize'));
-      global.dispatchEvent(new Event('resize'));
-      global.dispatchEvent(new Event('resize'));
+      fireEvent(window, new Event('resize'));
+      fireEvent(window, new Event('resize'));
+      fireEvent(window, new Event('resize'));
+      fireEvent(window, new Event('resize'));
 
-      jest.advanceTimersByTime(2000);
+      jest.advanceTimersByTime(500);
 
       // The interval is recalculated
       expect(calculateIntervalSpy).toHaveBeenCalledTimes(2);
