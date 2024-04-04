@@ -1,3 +1,27 @@
+# v4.4.1 (Thu Apr 04 2024)
+
+#### 🐛 Bug Fix
+
+- Chore: Remove viz panel tooltip related code that is no longer needed [#675](https://github.com/grafana/scenes/pull/675) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v4.4.0 (Thu Apr 04 2024)
+
+#### 🚀 Enhancement
+
+- SceneRefreshPicker: Implement mechanism for auto interval [#667](https://github.com/grafana/scenes/pull/667) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v4.3.0 (Wed Apr 03 2024)
 
 #### 🚀 Enhancement

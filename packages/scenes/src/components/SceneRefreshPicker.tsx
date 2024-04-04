@@ -1,6 +1,7 @@
 import React from 'react';
-
+import { Unsubscribable } from 'rxjs';
 import { rangeUtil } from '@grafana/data';
+import { config } from '@grafana/runtime';
 import { RefreshPicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -13,6 +14,8 @@ export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', 
 export interface SceneRefreshPickerState extends SceneObjectState {
   // Refresh interval, e.g. 5s, 1m, 2h
   refresh: string;
+  autoEnabled?: boolean;
+  autoMinInterval?: string;
   // List of allowed refresh intervals, e.g. ['5s', '1m']
   intervals?: string[];
   isOnCanvas?: boolean;
@@ -24,11 +27,14 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   public static Component = SceneRefreshPickerRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['refresh'] });
   private _intervalTimer: ReturnType<typeof setInterval> | undefined;
+  private _autoTimeRangeListener: Unsubscribable | undefined;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
     super({
       refresh: '',
       ...state,
+      autoEnabled: state.autoEnabled ?? true,
+      autoMinInterval: state.autoMinInterval ?? config.minRefreshInterval,
       intervals: state.intervals ?? DEFAULT_INTERVALS,
     });
 
@@ -39,6 +45,8 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
         if (this._intervalTimer) {
           clearInterval(this._intervalTimer);
         }
+
+        this._autoTimeRangeListener?.unsubscribe();
       };
     });
   }
@@ -81,6 +89,22 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     }
   }
 
+  private setupAutoTimeRangeListener = () => {
+    // If the time range has changed, we need to recalculate the auto interval but prevent unnecessary processing
+    return sceneGraph.getTimeRange(this).subscribeToState((newState, prevState) => {
+      if (newState.from !== prevState.from || newState.to !== prevState.to) {
+        this.setupIntervalTimer();
+      }
+    });
+  };
+
+  private calculateAutoRefreshInterval = () => {
+    const timeRange = sceneGraph.getTimeRange(this);
+    const resolution = window?.innerWidth ?? 2000;
+    const { intervalMs } = rangeUtil.calculateInterval(timeRange.state.value, resolution, this.state.autoMinInterval);
+    return intervalMs;
+  };
+
   private setupIntervalTimer = () => {
     const timeRange = sceneGraph.getTimeRange(this);
     const { refresh, intervals } = this.state;
@@ -94,11 +118,20 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     }
 
     // If the provided interval is not allowed
-    if (intervals && !intervals.includes(refresh)) {
+    if (refresh !== RefreshPicker.autoOption.value && intervals && !intervals.includes(refresh)) {
       return;
     }
 
-    const intervalMs = rangeUtil.intervalToMs(refresh);
+    let intervalMs: number;
+
+    if (refresh === RefreshPicker.autoOption.value) {
+      intervalMs = this.calculateAutoRefreshInterval();
+      this._autoTimeRangeListener = this.setupAutoTimeRangeListener();
+    } else {
+      intervalMs = rangeUtil.intervalToMs(refresh);
+      this._autoTimeRangeListener?.unsubscribe();
+      this._autoTimeRangeListener = undefined;
+    }
 
     this._intervalTimer = setInterval(() => {
       timeRange.onRefresh();
@@ -107,7 +140,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 }
 
 export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneRefreshPicker>) {
-  const { refresh, intervals, isOnCanvas, primary, withText } = model.useState();
+  const { refresh, intervals, autoEnabled, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
   let text = withText ? 'Refresh' : undefined;
@@ -123,6 +156,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
 
   return (
     <RefreshPicker
+      showAutoInterval={autoEnabled}
       value={refresh}
       intervals={intervals}
       tooltip={tooltip}
