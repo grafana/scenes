@@ -1,3 +1,16 @@
+# v4.4.1 (Thu Apr 04 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Chore: Remove viz panel tooltip related code that is no longer needed [#675](https://github.com/grafana/scenes/pull/675) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v4.4.0 (Thu Apr 04 2024)
 
 #### 🚀 Enhancement
