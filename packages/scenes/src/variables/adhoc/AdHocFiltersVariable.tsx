@@ -121,7 +121,7 @@ export class AdHocFiltersVariable
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
 
-    if (update.filters !== this.state.filters && !update.filterExpression) {
+    if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {
       update.filterExpression = renderExpression(this.state.expressionBuilder, update.filters);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
     }
