@@ -1,3 +1,15 @@
+# v4.4.0 (Thu Apr 04 2024)
+
+#### 🚀 Enhancement
+
+- SceneRefreshPicker: Implement mechanism for auto interval [#667](https://github.com/grafana/scenes/pull/667) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v4.3.0 (Wed Apr 03 2024)
 
 #### 🚀 Enhancement
