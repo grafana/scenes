@@ -11,7 +11,13 @@ import {
   SceneQueryRunner,
   AdHocFiltersVariable,
   SceneCanvasText,
+  SceneComponentProps,
+  SceneObjectBase,
+  SceneObjectState,
+  SceneObjectRef,
 } from '@grafana/scenes';
+import { Button, Stack } from '@grafana/ui';
+import React from 'react';
 import { getEmbeddedSceneDefaults } from './utils';
 
 export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
@@ -67,16 +73,16 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
         title: 'Apply mode manual',
         url: `${defaults.url}/manual`,
         getScene: () => {
+          const filtersVar = new AdHocFiltersVariable({
+            applyMode: 'manual',
+            datasource: { uid: 'gdev-prometheus' },
+            filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
+          });
+
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),
             $variables: new SceneVariableSet({
-              variables: [
-                new AdHocFiltersVariable({
-                  applyMode: 'manual',
-                  datasource: { uid: 'gdev-prometheus' },
-                  filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
-                }),
-              ],
+              variables: [filtersVar],
             }),
             body: new SceneFlexLayout({
               direction: 'column',
@@ -87,6 +93,10 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                     text: `Using AdHocFilterSet in manual mode allows you to use it as a normal variable. The query below is interpolated to ALERTS{$Filters}`,
                     fontSize: 14,
                   }),
+                }),
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new Buttons({ filtersVar: filtersVar.getRef() }),
                 }),
                 new SceneFlexItem({
                   body: PanelBuilders.table()
@@ -134,7 +144,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                   layout: 'vertical',
                   label: 'With add filter button text',
                   hide: VariableHide.hideLabel,
-                  addFilterButtonText: "Add a filter",
+                  addFilterButtonText: 'Add a filter',
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'has text on add button', condition: '' }],
                 }),
@@ -144,11 +154,10 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                   layout: 'vertical',
                   label: 'With add filter button text',
                   hide: VariableHide.hideLabel,
-                  addFilterButtonText: "Filter",
+                  addFilterButtonText: 'Filter',
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'also has text on add button', condition: '' }],
                 }),
-
               ],
             }),
             body: new SceneFlexLayout({
@@ -185,7 +194,34 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
           });
         },
       }),
-
     ],
   });
+}
+
+interface ButtonsState extends SceneObjectState {
+  filtersVar: SceneObjectRef<AdHocFiltersVariable>;
+}
+
+class Buttons extends SceneObjectBase<ButtonsState> {
+  static Component = ({ model }: SceneComponentProps<Buttons>) => {
+    const filterVar = model.state.filtersVar.resolve();
+
+    const onClear = () => {
+      filterVar.setState({ filters: [], hide: VariableHide.hideVariable });
+    };
+
+    const onAddFilter = () => {
+      filterVar.setState({
+        filters: [{ key: 'job', operator: '=', value: 'has no text', condition: '' }],
+        hide: VariableHide.dontHide,
+      });
+    };
+
+    return (
+      <Stack>
+        <Button onClick={onClear}>Clear</Button>
+        <Button onClick={onAddFilter}>Add filter</Button>
+      </Stack>
+    );
+  };
 }
