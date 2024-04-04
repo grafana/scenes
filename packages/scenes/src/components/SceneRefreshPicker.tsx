@@ -27,7 +27,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   public static Component = SceneRefreshPickerRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['refresh'] });
   private _intervalTimer: ReturnType<typeof setInterval> | undefined;
-  private _timeRangeListener: Unsubscribable | undefined;
+  private _autoTimeRangeListener: Unsubscribable | undefined;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
     super({
@@ -46,7 +46,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
           clearInterval(this._intervalTimer);
         }
 
-        this._timeRangeListener?.unsubscribe();
+        this._autoTimeRangeListener?.unsubscribe();
       };
     });
   }
@@ -89,16 +89,10 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     }
   }
 
-  private setupTimeRangeListener = () => {
-    // If the time range has changed, we need to recalculate the auto interval
-    // But we need to prevent unnecessary recalculations
-    // So we just check if what actually matters to the algorithm is indeed changed
-    // Alternatively we could just check if from, to, timeZone, fiscal year start month and now delay are changed
+  private setupAutoTimeRangeListener = () => {
+    // If the time range has changed, we need to recalculate the auto interval but prevent unnecessary processing
     return sceneGraph.getTimeRange(this).subscribeToState((newState, prevState) => {
-      const newDiff = newState.value.to.valueOf() - newState.value.from.valueOf();
-      const prevDiff = prevState.value.to.valueOf() - prevState.value.from.valueOf();
-
-      if (newDiff !== prevDiff) {
+      if (newState.from !== prevState.from || newState.to !== prevState.to) {
         this.setupIntervalTimer();
       }
     });
@@ -132,11 +126,11 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 
     if (refresh === RefreshPicker.autoOption.value) {
       intervalMs = this.calculateAutoRefreshInterval();
-      this._timeRangeListener = this.setupTimeRangeListener();
+      this._autoTimeRangeListener = this.setupAutoTimeRangeListener();
     } else {
       intervalMs = rangeUtil.intervalToMs(refresh);
-      this._timeRangeListener?.unsubscribe();
-      this._timeRangeListener = undefined;
+      this._autoTimeRangeListener?.unsubscribe();
+      this._autoTimeRangeListener = undefined;
     }
 
     this._intervalTimer = setInterval(() => {
