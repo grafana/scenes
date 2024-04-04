@@ -1,5 +1,5 @@
 import React from 'react';
-import { Unsubscribable } from 'rxjs';
+import { debounceTime, fromEvent, Unsubscribable } from 'rxjs';
 import { rangeUtil } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { RefreshPicker } from '@grafana/ui';
@@ -16,6 +16,7 @@ export interface SceneRefreshPickerState extends SceneObjectState {
   refresh: string;
   autoEnabled?: boolean;
   autoMinInterval?: string;
+  autoValue?: string;
   // List of allowed refresh intervals, e.g. ['5s', '1m']
   intervals?: string[];
   isOnCanvas?: boolean;
@@ -28,11 +29,13 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['refresh'] });
   private _intervalTimer: ReturnType<typeof setInterval> | undefined;
   private _autoTimeRangeListener: Unsubscribable | undefined;
+  private _autoWindowResizeListener: Unsubscribable | undefined;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
     super({
       refresh: '',
       ...state,
+      autoValue: undefined,
       autoEnabled: state.autoEnabled ?? true,
       autoMinInterval: state.autoMinInterval ?? config.minRefreshInterval,
       intervals: state.intervals ?? DEFAULT_INTERVALS,
@@ -47,6 +50,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
         }
 
         this._autoTimeRangeListener?.unsubscribe();
+        this._autoWindowResizeListener?.unsubscribe();
       };
     });
   }
@@ -98,11 +102,18 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     });
   };
 
+  private setupAutoWindowResizeListener = () => {
+    return fromEvent(window, 'resize')
+      .pipe(debounceTime(500))
+      .subscribe(() => {
+        this.setupIntervalTimer();
+      });
+  };
+
   private calculateAutoRefreshInterval = () => {
     const timeRange = sceneGraph.getTimeRange(this);
     const resolution = window?.innerWidth ?? 2000;
-    const { intervalMs } = rangeUtil.calculateInterval(timeRange.state.value, resolution, this.state.autoMinInterval);
-    return intervalMs;
+    return rangeUtil.calculateInterval(timeRange.state.value, resolution, this.state.autoMinInterval);
   };
 
   private setupIntervalTimer = () => {
@@ -124,13 +135,23 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 
     let intervalMs: number;
 
+    // Unsubscribe from previous listeners no matter what
+    this._autoTimeRangeListener?.unsubscribe();
+    this._autoWindowResizeListener?.unsubscribe();
+
     if (refresh === RefreshPicker.autoOption.value) {
-      intervalMs = this.calculateAutoRefreshInterval();
+      const autoRefreshInterval = this.calculateAutoRefreshInterval();
+
+      intervalMs = autoRefreshInterval.intervalMs;
+
       this._autoTimeRangeListener = this.setupAutoTimeRangeListener();
+      this._autoWindowResizeListener = this.setupAutoWindowResizeListener();
+
+      if (autoRefreshInterval.interval !== this.state.autoValue) {
+        this.setState({ autoValue: autoRefreshInterval.interval });
+      }
     } else {
       intervalMs = rangeUtil.intervalToMs(refresh);
-      this._autoTimeRangeListener?.unsubscribe();
-      this._autoTimeRangeListener = undefined;
     }
 
     this._intervalTimer = setInterval(() => {
@@ -140,10 +161,10 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 }
 
 export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneRefreshPicker>) {
-  const { refresh, intervals, autoEnabled, isOnCanvas, primary, withText } = model.useState();
+  const { refresh, intervals, autoEnabled, autoValue, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
-  let text = withText ? 'Refresh' : undefined;
+  let text = autoEnabled ? autoValue : withText ? 'Refresh' : undefined;
   let tooltip: string | undefined;
 
   if (isRunning) {
