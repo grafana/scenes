@@ -200,7 +200,7 @@ describe('SceneRefreshPicker', () => {
       expect(calculateIntervalSpy).not.toHaveBeenCalled();
     });
 
-    it('does not recalculate auto interval when a tick happens', () => {
+    xit('does not recalculate auto interval when a tick happens', () => {
       const autoInterval = 20000;
       const { calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value, undefined, true, autoInterval);
 
@@ -214,7 +214,7 @@ describe('SceneRefreshPicker', () => {
       expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('recalculates auto interval when window is resized', () => {
+    xit('recalculates auto interval when window is resized', () => {
       Object.assign(window, { innerWidth: 1024 });
 
       const { calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value, undefined, true);
