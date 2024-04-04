@@ -299,24 +299,34 @@ describe('AdHocFiltersVariable', () => {
         datasource: { uid: 'hello' },
         applyMode: 'manual',
         filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-          {
-            key: 'key2',
-            operator: '=~',
-            value: '[val2]',
-            condition: '',
-          },
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=~', value: '[val2]' },
         ],
       });
 
       variable.activate();
 
       expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]"`);
+    });
+
+    it('Updates filterExpression on setState', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const stateUpdates: AdHocFiltersVariableState[] = [];
+      variable.subscribeToState((state) => stateUpdates.push(state));
+
+      expect(stateUpdates.length).toBe(0);
+
+      variable.setState({ filters: [{ key: 'key1', operator: '=', value: 'val2' }] });
+
+      expect(stateUpdates).toHaveLength(1);
+      expect(stateUpdates[0].filterExpression).toBe('key1="val2"');
     });
 
     it('Renders correct expression when passed an expression builder', () => {
@@ -329,18 +339,8 @@ describe('AdHocFiltersVariable', () => {
         applyMode: 'manual',
         expressionBuilder,
         filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-          {
-            key: 'key2',
-            operator: '=~',
-            value: '[val2]',
-            condition: '',
-          },
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=~', value: '[val2]' },
         ],
       });
 
@@ -353,14 +353,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       const evtHandler = jest.fn();
@@ -374,14 +367,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       const evtHandler = jest.fn();
@@ -395,14 +381,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       variable.activate();
@@ -439,14 +418,7 @@ describe('AdHocFiltersVariable', () => {
     it('should use the model.state.set.Component to ensure the state filterset is activated', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       render(<variable.Component model={variable} />);
@@ -503,18 +475,8 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
     datasource: { uid: 'my-ds-uid' },
     name: 'filters',
     filters: [
-      {
-        key: 'key1',
-        operator: '=',
-        value: 'val1',
-        condition: '',
-      },
-      {
-        key: 'key2',
-        operator: '=',
-        value: 'val2',
-        condition: '',
-      },
+      { key: 'key1', operator: '=', value: 'val1' },
+      { key: 'key2', operator: '=', value: 'val2' },
     ],
     ...overrides,
   });
