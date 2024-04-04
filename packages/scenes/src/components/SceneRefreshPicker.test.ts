@@ -28,6 +28,7 @@ function setupScene(refresh: string, intervals?: string[], autoEnabled?: boolean
     autoEnabled,
     refresh,
     intervals,
+    autoMinInterval: '20s',
   });
 
   const scene = new SceneFlexLayout({
