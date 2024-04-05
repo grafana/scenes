@@ -1,3 +1,109 @@
+# v4.5.0 (Fri Apr 05 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Do not apply the visualization's field config to annotation data frames [#659](https://github.com/grafana/scenes/pull/659) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 1
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
+# v4.4.1 (Thu Apr 04 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Chore: Remove viz panel tooltip related code that is no longer needed [#675](https://github.com/grafana/scenes/pull/675) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v4.4.0 (Thu Apr 04 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneRefreshPicker: Implement mechanism for auto interval [#667](https://github.com/grafana/scenes/pull/667) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v4.3.0 (Wed Apr 03 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHoc Filters: Allow custom value [#670](https://github.com/grafana/scenes/pull/670) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v4.2.1 (Wed Apr 03 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - LiveNowTimer: The constructor doesn't receive a valid state [#662](https://github.com/grafana/scenes/pull/662) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v4.2.0 (Tue Apr 02 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Autofit: Fit widget in the screen depending on the height [#658](https://github.com/grafana/scenes/pull/658) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v4.1.2 (Tue Apr 02 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix issue where curly braces are always added to IntervalMacro. [#666](https://github.com/grafana/scenes/pull/666) ([@oscarkilhed](https://github.com/oscarkilhed))
+  - AdHocFiltersVariable/GroupByVariable: Pass time range to getTagKeys calls [#665](https://github.com/grafana/scenes/pull/665) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 2
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v4.1.1 (Tue Apr 02 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix drag and drop panels in rows [#663](https://github.com/grafana/scenes/pull/663) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v4.1.0 (Tue Apr 02 2024)
 
 #### 🚀 Enhancement

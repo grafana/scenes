@@ -154,8 +154,9 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const queries = this._getSceneQueries();
     const otherFilters = this.state.baseFilters || [];
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
     // @ts-expect-error TODO: remove this once 10.4.0 is released
-    let keys = await ds.getTagKeys({ filters: otherFilters, queries });
+    let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange });
 
     if (override) {
       keys = keys.concat(override.values);

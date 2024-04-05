@@ -85,11 +85,11 @@ export class TimezoneMacro implements FormatVariable {
  * Handles $__interval and $__intervalMs expression.
  */
 export class IntervalMacro implements FormatVariable {
-  public state: { name: string; type: string };
+  public state: { name: string; type: string, match: string };
   private _sceneObject: SceneObject;
 
-  public constructor(name: string, sceneObject: SceneObject) {
-    this.state = { name: name, type: 'time_macro' };
+  public constructor(name: string, sceneObject: SceneObject, match: string) {
+    this.state = { name: name, type: 'time_macro', match: match };
     this._sceneObject = sceneObject;
   }
 
@@ -99,7 +99,7 @@ export class IntervalMacro implements FormatVariable {
     if (data) {
       const request = data.state.data?.request;
       if (!request) {
-        return `\${${this.state.name}}`;
+        return this.state.match;
       }
       if (this.state.name === '__interval_ms') {
         return request.intervalMs;
@@ -107,6 +107,6 @@ export class IntervalMacro implements FormatVariable {
       return request.interval;
     }
 
-    return `\${${this.state.name}}`;
+    return this.state.match;
   }
 }
