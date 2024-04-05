@@ -421,7 +421,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       clone['_layerAnnotations'] = this._layerAnnotations.map((frame) => ({ ...frame }));
     }
 
-    clone['_results'].next({ origin: this, data: this.state.data });
+    clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
 
     return clone;
   }
