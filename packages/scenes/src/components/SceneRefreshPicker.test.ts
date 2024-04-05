@@ -3,7 +3,6 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 import { SceneRefreshPicker } from './SceneRefreshPicker';
 import { RefreshPicker } from '@grafana/ui';
-import { fireEvent } from '@testing-library/dom';
 
 jest.mock('@grafana/data', () => {
   const originalModule = jest.requireActual('@grafana/data');
@@ -212,43 +211,6 @@ describe('SceneRefreshPicker', () => {
 
       // There is no additional calculation
       expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
-    });
-
-    xit('recalculates auto interval when window is resized', () => {
-      Object.assign(window, { innerWidth: 1024 });
-
-      const { calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value, undefined, true);
-
-      // The initial calculation
-      expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
-
-      // A resize triggers
-      fireEvent(window, new Event('resize'));
-
-      jest.advanceTimersByTime(500);
-
-      // The interval is recalculated
-      expect(calculateIntervalSpy).toHaveBeenCalledTimes(2);
-    });
-
-    xit('debounces recalculation of auto interval when window is resized', async () => {
-      Object.assign(window, { innerWidth: 1024 });
-
-      const { calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value, undefined, true);
-
-      // The initial calculation
-      expect(calculateIntervalSpy).toHaveBeenCalledTimes(1);
-
-      // Multiple resize triggers
-      fireEvent(window, new Event('resize'));
-      fireEvent(window, new Event('resize'));
-      fireEvent(window, new Event('resize'));
-      fireEvent(window, new Event('resize'));
-
-      jest.advanceTimersByTime(500);
-
-      // The interval is recalculated
-      expect(calculateIntervalSpy).toHaveBeenCalledTimes(2);
     });
   });
 });
