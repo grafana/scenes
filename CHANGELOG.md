@@ -1,3 +1,16 @@
+# v4.5.0 (Fri Apr 05 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Do not apply the visualization's field config to annotation data frames [#659](https://github.com/grafana/scenes/pull/659) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 1
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
 # v4.4.1 (Thu Apr 04 2024)
 
 #### 🐛 Bug Fix
