@@ -2009,6 +2009,32 @@ describe('SceneQueryRunner', () => {
       });
     });
   });
+
+  describe('when cloning', () => {
+    it('should clone query runner with necessary private members', async () => {
+      const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'withAnnotations' }],
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+      layer.completeRun();
+
+      const clone = queryRunner.clone();
+
+      expect(clone['_resultAnnotations']).not.toBeUndefined();
+      expect(clone['_resultAnnotations'].length).toBe(1);
+      expect(clone['_resultAnnotations']).toStrictEqual(queryRunner['_resultAnnotations']);
+      expect(clone['_layerAnnotations']).not.toBeUndefined();
+      expect(clone['_layerAnnotations'].length).toBe(1);
+      expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
+      expect(clone['_results']['_buffer']).not.toEqual([]);
+    });
+  })
 });
 
 class CustomDataSource extends RuntimeDataSource {
