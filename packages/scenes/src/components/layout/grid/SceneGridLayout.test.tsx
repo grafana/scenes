@@ -372,7 +372,7 @@ describe('SceneGridLayout', () => {
       expect((layout.state.children[0] as SceneGridRow).state.children[1].state.y).toEqual(10);
     });
 
-    it('should disallow dropping a row within another row', () => {
+    it('should disallow dropping a row within another row and revert to initial layout', () => {
       const layout = new SceneGridLayout({
         children: [
           new SceneGridRow({
@@ -403,6 +403,7 @@ describe('SceneGridLayout', () => {
         isLazy: false,
       });
 
+      // we save the initial layout here, if a state is invalid we will revert to this layout
       layout.onDragStart([
         {
             w: 12,
