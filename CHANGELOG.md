@@ -1,3 +1,18 @@
+# v4.5.1 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- GrafanaMonitoring: Fixes the drilldown urls in monitoring app demo [#581](https://github.com/grafana/scenes/pull/581) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - Chore: Bump typescript version [#657](https://github.com/grafana/scenes/pull/657) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.5.0 (Fri Apr 05 2024)
 
 #### 🚀 Enhancement
