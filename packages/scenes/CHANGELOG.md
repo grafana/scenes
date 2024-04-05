@@ -1,3 +1,15 @@
+# v4.5.2 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- Disallow drag and drop rows within uncollapsed rows [#671](https://github.com/grafana/scenes/pull/671) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v4.5.1 (Fri Apr 05 2024)
 
 #### 🐛 Bug Fix
