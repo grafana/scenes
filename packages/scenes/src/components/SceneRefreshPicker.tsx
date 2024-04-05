@@ -152,7 +152,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   const { refresh, intervals, autoEnabled, autoValue, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
-  let text = autoEnabled ? autoValue : withText ? 'Refresh' : undefined;
+  let text = refresh === RefreshPicker.autoOption.value ? autoValue : withText ? 'Refresh' : undefined;
   let tooltip: string | undefined;
 
   if (isRunning) {
