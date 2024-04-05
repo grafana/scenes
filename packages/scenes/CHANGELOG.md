@@ -1,3 +1,15 @@
+# v4.5.4 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- Clone SceneQueryRunner together with _results [#681](https://github.com/grafana/scenes/pull/681) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v4.5.3 (Fri Apr 05 2024)
 
 #### 🐛 Bug Fix
