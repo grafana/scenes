@@ -425,6 +425,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     return clone;
   }
+
   private prepareRequests = (
     timeRange: SceneTimeRangeLike,
     ds: DataSourceApi
