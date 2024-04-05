@@ -1,3 +1,16 @@
+# v4.5.3 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRefreshPicker: Show the auto calculated value when auto is selected [#680](https://github.com/grafana/scenes/pull/680) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v4.5.2 (Fri Apr 05 2024)
 
 #### 🐛 Bug Fix
