@@ -52,6 +52,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               draggableCancel=".grid-drag-cancel"
               // @ts-ignore: ignoring for now until we make the size type numbers-only
               layout={layout}
+              onDragStart={model.onDragStart}
               onDragStop={model.onDragStop}
               onResizeStop={model.onResizeStop}
               onLayoutChange={model.onLayoutChange}

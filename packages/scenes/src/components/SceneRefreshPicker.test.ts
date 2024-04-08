@@ -19,7 +19,7 @@ jest.mock('@grafana/data', () => {
 
 function setupScene(refresh: string, intervals?: string[], autoEnabled?: boolean, autoInterval = 20000) {
   // We need to mock this on every run otherwise we can't rely on the spy value
-  const calculateIntervalSpy = jest.fn(() => ({ interval: '', intervalMs: autoInterval }));
+  const calculateIntervalSpy = jest.fn(() => ({ interval: `${autoInterval / 1000}s`, intervalMs: autoInterval }));
 
   rangeUtil.calculateInterval = calculateIntervalSpy;
 
@@ -28,6 +28,7 @@ function setupScene(refresh: string, intervals?: string[], autoEnabled?: boolean
     autoEnabled,
     refresh,
     intervals,
+    autoMinInterval: '20s',
   });
 
   const scene = new SceneFlexLayout({
@@ -177,7 +178,7 @@ describe('SceneRefreshPicker', () => {
       expect(refreshPicker.state.autoEnabled).toBe(false);
     });
 
-    it('recalculates auto interval when time range changes and auto is selected', async () => {
+    it('recalculates auto interval when time range changes and auto is selected', () => {
       const { timeRange, calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value);
 
       // The initial calculation
@@ -191,14 +192,14 @@ describe('SceneRefreshPicker', () => {
       expect(calculateIntervalSpy).toHaveBeenCalledTimes(2);
     });
 
-    it('does not recalculate auto interval when time range changes and auto is not selected', async () => {
+    it('does not recalculate auto interval when time range changes and auto is not selected', () => {
       const { timeRange, calculateIntervalSpy } = setupScene('5s');
       timeRange.setState({ from: 'now-30d', to: 'now-29d' });
       timeRange.onRefresh();
       expect(calculateIntervalSpy).not.toHaveBeenCalled();
     });
 
-    it('does not recalculate auto interval when a tick happens', async () => {
+    it('does not recalculate auto interval when a tick happens', () => {
       const autoInterval = 20000;
       const { calculateIntervalSpy } = setupScene(RefreshPicker.autoOption.value, undefined, true, autoInterval);
 

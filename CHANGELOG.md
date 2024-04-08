@@ -1,3 +1,70 @@
+# v4.5.4 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Clone SceneQueryRunner together with _results [#681](https://github.com/grafana/scenes/pull/681) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v4.5.3 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRefreshPicker: Show the auto calculated value when auto is selected [#680](https://github.com/grafana/scenes/pull/680) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v4.5.2 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Disallow drag and drop rows within uncollapsed rows [#671](https://github.com/grafana/scenes/pull/671) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v4.5.1 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- GrafanaMonitoring: Fixes the drilldown urls in monitoring app demo [#581](https://github.com/grafana/scenes/pull/581) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - Chore: Bump typescript version [#657](https://github.com/grafana/scenes/pull/657) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.5.0 (Fri Apr 05 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Do not apply the visualization's field config to annotation data frames [#659](https://github.com/grafana/scenes/pull/659) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 1
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
 # v4.4.1 (Thu Apr 04 2024)
 
 #### 🐛 Bug Fix

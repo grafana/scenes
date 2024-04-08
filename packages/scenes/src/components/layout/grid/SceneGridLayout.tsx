@@ -12,7 +12,7 @@ import { fitPanelsInHeight } from './utils';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
-   * Turn on or off dragging for all items. Indiviadual items can still disabled via isDraggable property
+   * Turn on or off dragging for all items. Individual items can still disabled via isDraggable property
    **/
   isDraggable?: boolean;
   /** Enable or disable item resizing */
@@ -31,6 +31,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   public static Component = SceneGridLayoutRenderer;
 
   private _skipOnLayoutChange = false;
+  private _oldLayout: ReactGridLayout.Layout[] = [];
+  private _loadOldLayout = false;
 
   public constructor(state: SceneGridLayoutState) {
     super({
@@ -127,6 +129,12 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       return;
     }
 
+    // We replace with the old layout only if the current state is invalid
+    if (this._loadOldLayout) {
+      layout = [...this._oldLayout];
+      this._loadOldLayout = false;
+    }
+
     for (const item of layout) {
       const child = this.getSceneLayoutChild(item.i);
 
@@ -183,7 +191,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 
   /**
-   *  We assume the layout array is storted according to y pos, and walk upwards until we find a row.
+   *  We assume the layout array is sorted according to y pos, and walk upwards until we find a row.
    *  If it is collapsed there is no row to add it to. The default is then to return the SceneGridLayout itself
    */
   private findGridItemSceneParent(layout: ReactGridLayout.Layout[], startAt: number): SceneGridRow | SceneGridLayout {
@@ -205,7 +213,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 
   /**
-   * This likely needs a slighltly different approach. Where we clone or deactivate or and re-activate the moved child
+   * This likely needs a slightly different approach. Where we clone or deactivate or and re-activate the moved child
    */
   public moveChildTo(child: SceneGridItemLike, target: SceneGridLayout | SceneGridRow) {
     const currentParent = child.parent!;
@@ -247,6 +255,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     return rootChildren;
   }
 
+  public onDragStart: ReactGridLayout.ItemCallback = (gridLayout) => {
+    this._oldLayout = [...gridLayout];
+  }
+
   public onDragStop: ReactGridLayout.ItemCallback = (gridLayout, o, updatedItem) => {
     const sceneChild = this.getSceneLayoutChild(updatedItem.i)!;
 
@@ -269,8 +281,16 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // Update the parent if the child if it has moved to a row or back to the grid
     const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
-    const newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
+    let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
     let newChildren = this.state.children;
+
+    // if the child is a row and we are moving it under an uncollapsed row, keep the scene grid layout as parent
+    // and set the old layout flag. We allow setting the children in an invalid state, as the layout will be updated
+    // in onLayoutChange and avoid flickering
+    if (sceneChild instanceof SceneGridRow && newParent instanceof SceneGridRow) {
+      this._loadOldLayout = true;
+      newParent = this;
+    }
 
     if (newParent !== sceneChild.parent) {
       newChildren = this.moveChildTo(sceneChild, newParent);
