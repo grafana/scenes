@@ -50,7 +50,6 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               rowHeight={GRID_CELL_HEIGHT}
               draggableHandle={`.grid-drag-handle-${model.state.key}`}
               draggableCancel=".grid-drag-cancel"
-              // @ts-ignore: ignoring for now until we make the size type numbers-only
               layout={layout}
               onDragStart={model.onDragStart}
               onDragStop={model.onDragStop}

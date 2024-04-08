@@ -38,7 +38,7 @@
     "typecheck": "lerna run typecheck"
   },
   "resolutions": {
-    "@types/react": "17.0.42"
+    "@types/react": "18.2.74"
   },
   "packageManager": "yarn@4.1.1",
   "workspaces": [
