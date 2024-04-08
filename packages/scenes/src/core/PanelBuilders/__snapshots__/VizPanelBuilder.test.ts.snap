@@ -150,6 +150,7 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 
 exports[`VizPanelBuilder options and field config standard panels defaults provides histogram defaults 1`] = `
 {
+  "bucketCount": 30,
   "bucketOffset": 0,
 }
 `;
