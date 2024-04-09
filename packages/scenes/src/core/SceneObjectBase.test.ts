@@ -1,10 +1,11 @@
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 
 import { SceneDataNode } from './SceneDataNode';
-import { SceneObjectBase } from './SceneObjectBase';
+import { SceneObjectBase, useSceneObjectState } from './SceneObjectBase';
 import { SceneObjectStateChangedEvent } from './events';
 import { SceneObject, SceneObjectState } from './types';
 import { SceneTimeRange } from '../core/SceneTimeRange';
+import { act, renderHook } from '@testing-library/react';
 
 interface TestSceneState extends SceneObjectState {
   name?: string;
@@ -289,5 +290,45 @@ describe('SceneObject', () => {
         expect(() => deactivateScene()).toThrow();
       });
     });
+  });
+});
+
+describe('useSceneObjectState', () => {
+  it('Should activate scene object and subscribe to state', () => {
+    const scene = new TestScene({ name: 'nested' });
+
+    const { result, unmount } = renderHook(() => useSceneObjectState(scene));
+
+    expect(scene.isActive).toBe(true);
+    expect(result.current).toBe(scene.state);
+
+    act(() => scene.setState({ name: 'New name' }));
+
+    expect(result.current.name).toBe('New name');
+
+    // Verify multiple components can useState on same object
+    const { result: result2, unmount: unmount2 } = renderHook(() => useSceneObjectState(scene));
+
+    unmount();
+    expect(scene.isActive).toBe(true);
+
+    act(() => scene.setState({ name: 'Second update' }));
+    expect(result2.current.name).toBe('Second update');
+
+    // Last useState unmounts deactive scene object
+    unmount2();
+    expect(scene.isActive).toBe(false);
+  });
+
+  it('Should return latest state on rerender', () => {
+    const scene = new TestScene({ name: 'nested' });
+
+    const { result, rerender } = renderHook((scene) => useSceneObjectState(scene), { initialProps: scene });
+
+    const scene2 = new TestScene({ name: 'new scene name' });
+
+    rerender(scene2);
+
+    expect(result.current.name).toBe('new scene name');
   });
 });

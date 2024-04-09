@@ -69,13 +69,15 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * The default builder creates a Prometheus/Loki compatible filter expression,
    * this can be overridden to create a different expression based on the current filters.
    */
-  expressionBuilder?: (filters: AdHocVariableFilter[]) => string;
+  expressionBuilder?: AdHocVariableExpressionBuilderFn;
 
   /**
    * @internal state of the new filter being added
    */
   _wip?: AdHocVariableFilter;
 }
+
+export type AdHocVariableExpressionBuilderFn = (filters: AdHocVariableFilter[]) => string;
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
@@ -107,44 +109,32 @@ export class AdHocFiltersVariable
       filters: [],
       datasource: null,
       applyMode: 'auto',
-      filterExpression: state.filterExpression ?? renderExpression(state),
+      filterExpression: state.filterExpression ?? renderExpression(state.expressionBuilder, state.filters),
       ...state,
     });
 
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
     }
+  }
 
-    // Subscribe to filter changes and up the variable value (filterExpression)
-    this.addActivationHandler(() => {
-      this._subs.add(
-        this.subscribeToState((newState, prevState) => {
-          if (newState.filters !== prevState.filters) {
-            this._updateFilterExpression(newState, true);
-          }
-        })
-      );
+  public setState(update: Partial<AdHocFiltersVariableState>): void {
+    let filterExpressionChanged = false;
 
-      this._updateFilterExpression(this.state, false);
-    });
+    if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {
+      update.filterExpression = renderExpression(this.state.expressionBuilder, update.filters);
+      filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
+    }
+
+    super.setState(update);
+
+    if (filterExpressionChanged) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
   }
 
   public getValue(): VariableValue | undefined {
     return this.state.filterExpression;
-  }
-
-  private _updateFilterExpression(state: Partial<AdHocFiltersVariableState>, publishEvent: boolean) {
-    let expr = renderExpression(state);
-
-    if (expr === this.state.filterExpression) {
-      return;
-    }
-
-    this.setState({ filterExpression: expr });
-
-    if (publishEvent) {
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    }
   }
 
   public _updateFilter(filter: AdHocVariableFilter, prop: keyof AdHocVariableFilter, value: string | undefined | null) {
@@ -286,8 +276,11 @@ export class AdHocFiltersVariable
   }
 }
 
-function renderExpression(state: Partial<AdHocFiltersVariableState>) {
-  return (state.expressionBuilder ?? renderPrometheusLabelFilters)(state.filters ?? []);
+function renderExpression(
+  builder: AdHocVariableExpressionBuilderFn | undefined,
+  filters: AdHocVariableFilter[] | undefined
+) {
+  return (builder ?? renderPrometheusLabelFilters)(filters ?? []);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
