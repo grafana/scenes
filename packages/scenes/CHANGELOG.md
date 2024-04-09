@@ -1,3 +1,15 @@
+# v4.5.6 (Tue Apr 09 2024)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Allow configuring hover header offset [#674](https://github.com/grafana/scenes/pull/674) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v4.5.5 (Tue Apr 09 2024)
 
 #### 🐛 Bug Fix
