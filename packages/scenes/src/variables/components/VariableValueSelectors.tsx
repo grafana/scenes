@@ -2,10 +2,10 @@ import React from 'react';
 
 import { VariableHide } from '@grafana/data';
 
-import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { SceneObjectBase, useSceneObjectState } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
 import { ControlsLayout, SceneComponentProps, SceneObjectState } from '../../core/types';
-import { SceneVariable } from '../types';
+import { SceneVariable, SceneVariableState } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 
@@ -37,7 +37,7 @@ interface VariableSelectProps {
 }
 
 export function VariableValueSelectWrapper({ variable, layout, showAlways }: VariableSelectProps) {
-  const state = variable.useState({ shouldActivateOrKeepAlive: true });
+  const state = useSceneObjectState<SceneVariableState>(variable, { shouldActivateOrKeepAlive: true });
 
   if (state.hide === VariableHide.hideVariable && !showAlways) {
     return null;

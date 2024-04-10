@@ -280,9 +280,9 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /**
    * Utility hook to get and subscribe to state
    */
-  public useState(options?: UseStateHookOptions) {
+  public useState() {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    return useSceneObjectState(this, options);
+    return useSceneObjectState(this);
   }
 
   /** Force a re-render, should only be needed when variable values change */
@@ -328,7 +328,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
  * The reason for this is so that if the model instance change this function will always return the latest state.
  */
 export function useSceneObjectState<TState extends SceneObjectState>(
-  model: SceneObjectBase<TState>,
+  model: SceneObject<TState>,
   options?: UseStateHookOptions
 ): TState {
   const [_, setState] = useState<TState>(model.state);

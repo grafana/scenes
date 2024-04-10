@@ -78,7 +78,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   publishEvent(event: BusEvent, bubble?: boolean): void;
 
   /** Utility hook that wraps useObservable. Used by React components to subscribes to state changes */
-  useState(options?: UseStateHookOptions): TState;
+  useState(): TState;
 
   /** How to modify state */
   setState(state: Partial<TState>): void;
