@@ -3,7 +3,6 @@ import { AdHocVariableFilter, DataSourceApi, MetricFindValue } from '@grafana/da
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
 import { SceneComponentProps, ControlsLayout } from '../../core/types';
-import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { sceneGraph } from '../../core/sceneGraph';
 import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
@@ -11,6 +10,7 @@ import { from, lastValueFrom, map, mergeMap, Observable, of, take } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect } from '@grafana/ui';
 import { isArray } from 'lodash';
+import { getQueriesForVariables } from '../utils';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -154,7 +154,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       return [];
     }
 
-    const queries = this._getSceneQueries();
+    const queries = getQueriesForVariables(this);
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     // @ts-expect-error TODO: remove this once 10.4.0 is released
@@ -178,31 +178,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   public getDefaultMultiState(options: VariableValueOption[]): { value: VariableValueSingle[]; text: string[] } {
     return { value: [], text: [] };
   }
-
-  /**
-   * Get all queries in the scene that have the same datasource as this AggregationsSet
-   */
-  private _getSceneQueries(): DataQueryExtended[] {
-    const runners = sceneGraph.findAllObjects(
-      this.getRoot(),
-      (o) => o instanceof SceneQueryRunner
-    ) as SceneQueryRunner[];
-
-    const applicableRunners = runners.filter((r) => r.state.datasource?.uid === this.state.datasource?.uid);
-
-    if (applicableRunners.length === 0) {
-      return [];
-    }
-
-    const result: DataQueryExtended[] = [];
-    applicableRunners.forEach((r) => {
-      result.push(...r.state.queries);
-    });
-
-    return result;
-  }
 }
-
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key, maxVisibleValues, noValueOnClear } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);

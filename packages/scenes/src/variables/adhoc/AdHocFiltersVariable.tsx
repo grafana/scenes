@@ -4,11 +4,10 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
-import { renderPrometheusLabelFilters } from '../utils';
+import { getQueriesForVariables, renderPrometheusLabelFilters } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
@@ -194,7 +193,7 @@ export class AdHocFiltersVariable
 
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = this._getSceneQueries();
+    const queries = getQueriesForVariables(this);
     // @ts-expect-error TODO: remove this once 10.4.0 is released
     let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange });
 
@@ -230,7 +229,7 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters ?? []);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = this._getSceneQueries();
+    const queries = getQueriesForVariables(this);
     // @ts-expect-error TODO: remove this once 11.1.x is released
     let values = await ds.getTagValues({ key: filter.key, filters: otherFilters, timeRange, queries });
 
@@ -250,29 +249,6 @@ export class AdHocFiltersVariable
       label: value,
       value,
     }));
-  }
-
-  /**
-   * Get all queries in the scene that have the same datasource as this AdHocFilterSet
-   */
-  private _getSceneQueries(): DataQueryExtended[] {
-    const runners = sceneGraph.findAllObjects(
-      this.getRoot(),
-      (o) => o instanceof SceneQueryRunner
-    ) as SceneQueryRunner[];
-
-    const applicableRunners = runners.filter((r) => r.state.datasource?.uid === this.state.datasource?.uid);
-
-    if (applicableRunners.length === 0) {
-      return [];
-    }
-
-    const result: DataQueryExtended[] = [];
-    applicableRunners.forEach((r) => {
-      result.push(...r.state.queries);
-    });
-
-    return result;
   }
 }
 
