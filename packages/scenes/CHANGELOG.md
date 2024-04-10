@@ -1,3 +1,15 @@
+# v4.5.7 (Wed Apr 10 2024)
+
+#### 🐛 Bug Fix
+
+- Filters/GroupBy: Resolve queries only from active query runners [#685](https://github.com/grafana/scenes/pull/685) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v4.5.6 (Tue Apr 09 2024)
 
 #### 🐛 Bug Fix
