@@ -231,3 +231,16 @@ export interface SceneStatelessBehavior<T extends SceneObject = any> {
 }
 
 export type ControlsLayout = 'horizontal' | 'vertical';
+
+export interface UseStateHookOptions {
+  /**
+   * For some edge cases other scene objects want to subscribe to scene object state for objects
+   * that are not active, or whose main React Component can be un-mounted. Set this to true
+   * to keep the scene object active even if the React component is unmounted.
+   *
+   * Normally you would not need this but this can be useful in some edge cases.
+   *
+   * @experimental
+   */
+  shouldActivateOrKeepAlive?: boolean;
+}
