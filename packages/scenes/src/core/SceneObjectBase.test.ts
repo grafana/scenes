@@ -300,6 +300,7 @@ describe('useSceneObjectState', () => {
     const { result } = renderHook(() => useSceneObjectState(scene));
 
     expect(result.current).toBe(scene.state);
+    expect(scene.isActive).toBe(false);
 
     act(() => scene.setState({ name: 'New name' }));
 
