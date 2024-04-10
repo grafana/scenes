@@ -23,7 +23,7 @@ describe('getQueriesForVariables', () => {
     });
 
     const source = new TestObject({ datasource: { uid: 'test-uid' } });
-    const _ = new EmbeddedScene({
+    new EmbeddedScene({
       $data: runner1,
       body: new SceneFlexLayout({
         children: [
@@ -57,7 +57,8 @@ describe('getQueriesForVariables', () => {
     });
 
     const source = new TestObject({ datasource: { uid: 'test-uid' } });
-    const _ = new EmbeddedScene({
+
+    new EmbeddedScene({
       $data: runner1,
       body: new SceneFlexLayout({
         children: [
@@ -77,7 +78,7 @@ describe('getQueriesForVariables', () => {
 });
 
 interface TestObjectState extends SceneObjectState {
-  datasource?: DataSourceRef;
+  datasource: DataSourceRef | null;
 }
 
 class TestObject extends SceneObjectBase<TestObjectState> {}

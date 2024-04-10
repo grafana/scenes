@@ -85,7 +85,9 @@ function escapeLokiRegexp(value: string): string {
 /**
  * Get all queries in the scene that have the same datasource as provided source object
  */
-export function getQueriesForVariables(sourceObject: SceneObject<SceneObjectState & { datasource?: DataSourceRef }>) {
+export function getQueriesForVariables(
+  sourceObject: SceneObject<SceneObjectState & { datasource: DataSourceRef | null }>
+) {
   const runners = sceneGraph.findAllObjects(
     sourceObject.getRoot(),
     (o) => o instanceof SceneQueryRunner && o.isActive
