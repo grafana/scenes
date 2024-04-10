@@ -78,7 +78,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   publishEvent(event: BusEvent, bubble?: boolean): void;
 
   /** Utility hook that wraps useObservable. Used by React components to subscribes to state changes */
-  useState(): TState;
+  useState(options?: UseStateHookOptions): TState;
 
   /** How to modify state */
   setState(state: Partial<TState>): void;
@@ -231,3 +231,16 @@ export interface SceneStatelessBehavior<T extends SceneObject = any> {
 }
 
 export type ControlsLayout = 'horizontal' | 'vertical';
+
+export interface UseStateHookOptions {
+  /**
+   * For some edge cases other scene objects want to subscribe to scene object state for objects
+   * that are not active, or whose main React Component can be un-mounted. Set this to true
+   * to keep the scene object active even if the React component is unmounted.
+   *
+   * Normally you would not need this but this can be useful in some edge cases.
+   *
+   * @experimental
+   */
+  shouldActivateOrKeepAlive?: boolean;
+}

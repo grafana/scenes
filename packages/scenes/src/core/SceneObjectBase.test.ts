@@ -294,10 +294,22 @@ describe('SceneObject', () => {
 });
 
 describe('useSceneObjectState', () => {
-  it('Should activate scene object and subscribe to state', () => {
+  it('When called with no options', () => {
     const scene = new TestScene({ name: 'nested' });
 
-    const { result, unmount } = renderHook(() => useSceneObjectState(scene));
+    const { result } = renderHook(() => useSceneObjectState(scene));
+
+    expect(result.current).toBe(scene.state);
+
+    act(() => scene.setState({ name: 'New name' }));
+
+    expect(result.current.name).toBe('New name');
+  });
+
+  it('Should activate scene object when shouldActivateOrKeepAlive is true', () => {
+    const scene = new TestScene({ name: 'nested' });
+
+    const { result, unmount } = renderHook(() => useSceneObjectState(scene, { shouldActivateOrKeepAlive: true }));
 
     expect(scene.isActive).toBe(true);
     expect(result.current).toBe(scene.state);
@@ -307,7 +319,9 @@ describe('useSceneObjectState', () => {
     expect(result.current.name).toBe('New name');
 
     // Verify multiple components can useState on same object
-    const { result: result2, unmount: unmount2 } = renderHook(() => useSceneObjectState(scene));
+    const { result: result2, unmount: unmount2 } = renderHook(() =>
+      useSceneObjectState(scene, { shouldActivateOrKeepAlive: true })
+    );
 
     unmount();
     expect(scene.isActive).toBe(true);

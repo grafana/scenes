@@ -37,7 +37,7 @@ interface VariableSelectProps {
 }
 
 export function VariableValueSelectWrapper({ variable, layout, showAlways }: VariableSelectProps) {
-  const state = variable.useState();
+  const state = variable.useState({ shouldActivateOrKeepAlive: true });
 
   if (state.hide === VariableHide.hideVariable && !showAlways) {
     return null;
