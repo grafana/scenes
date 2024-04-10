@@ -1,6 +1,10 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
 import { AdHocVariableFilter } from '@grafana/data';
+import { sceneGraph } from '../core/sceneGraph';
+import { SceneObject, SceneObjectState } from '../core/types';
+import { DataQueryExtended, SceneQueryRunner } from '../querying/SceneQueryRunner';
+import { DataSourceRef } from '@grafana/schema';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -76,4 +80,27 @@ export function isRegexSelector(selector?: string) {
 const RE2_METACHARACTERS = /[*+?()|\\.\[\]{}^$]/g;
 function escapeLokiRegexp(value: string): string {
   return value.replace(RE2_METACHARACTERS, '\\$&');
+}
+
+/**
+ * Get all queries in the scene that have the same datasource as provided source object
+ */
+export function getQueriesForVariables(sourceObject: SceneObject<SceneObjectState & { datasource?: DataSourceRef }>) {
+  const runners = sceneGraph.findAllObjects(
+    sourceObject.getRoot(),
+    (o) => o instanceof SceneQueryRunner && o.isActive
+  ) as SceneQueryRunner[];
+
+  const applicableRunners = runners.filter((r) => r.state.datasource?.uid === sourceObject.state.datasource?.uid);
+
+  if (applicableRunners.length === 0) {
+    return [];
+  }
+
+  const result: DataQueryExtended[] = [];
+  applicableRunners.forEach((r) => {
+    result.push(...r.state.queries);
+  });
+
+  return result;
 }
