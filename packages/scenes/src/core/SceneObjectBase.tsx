@@ -12,6 +12,7 @@ import {
   SceneDeactivationHandler,
   CancelActivationHandler,
   SceneObjectState,
+  UseStateHookOptions,
 } from './types';
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
@@ -279,7 +280,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /**
    * Utility hook to get and subscribe to state
    */
-  public useState() {
+  public useState(): TState {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     return useSceneObjectState(this);
   }
@@ -326,21 +327,39 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
  * This hook is always returning model.state instead of a useState that remembers the last state emitted on the subject
  * The reason for this is so that if the model instance change this function will always return the latest state.
  */
-function useSceneObjectState<TState extends SceneObjectState>(model: SceneObjectBase<TState>): TState {
+export function useSceneObjectState<TState extends SceneObjectState>(
+  model: SceneObject<TState>,
+  options?: UseStateHookOptions
+): TState {
   const [_, setState] = useState<TState>(model.state);
   const stateAtFirstRender = model.state;
+  const shouldActivateOrKeepAlive = options?.shouldActivateOrKeepAlive ?? false;
 
   useEffect(() => {
-    const s = model.subscribeToState(setState);
+    let unactivate: CancelActivationHandler | undefined;
+
+    if (shouldActivateOrKeepAlive) {
+      unactivate = model.activate();
+    }
+
+    const s = model.subscribeToState((state) => {
+      setState(state);
+    });
 
     // Re-render component if the state changed between first render and useEffect (mount)
     if (model.state !== stateAtFirstRender) {
       setState(model.state);
     }
 
-    return () => s.unsubscribe();
+    return () => {
+      s.unsubscribe();
+
+      if (unactivate) {
+        unactivate();
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model]);
+  }, [model, shouldActivateOrKeepAlive]);
 
   return model.state;
 }

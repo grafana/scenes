@@ -54,6 +54,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   hoverHeader?: boolean;
   /**
+   * Offset hoverHeader position on the y axis
+   */
+  hoverHeaderOffset?: number;
+  /**
    * Defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
    * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
    */
@@ -346,7 +350,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     if (this._dataWithFieldConfig.annotations) {
       this._dataWithFieldConfig.annotations = applyFieldOverrides({
         data: this._dataWithFieldConfig.annotations,
-        fieldConfig: this.state.fieldConfig,
+        fieldConfig: {
+          defaults: {},
+          overrides: [],
+        },
         fieldConfigRegistry,
         replaceVariables: this.interpolate,
         theme: config.theme2,

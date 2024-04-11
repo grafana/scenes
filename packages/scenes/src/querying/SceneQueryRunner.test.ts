@@ -23,7 +23,7 @@ import { DataQuery } from '@grafana/schema';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneCanvasText } from '../components/SceneCanvasText';
 import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
-import { SceneDataLayers } from './SceneDataLayers';
+import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
@@ -1016,6 +1016,73 @@ describe('SceneQueryRunner', () => {
       `);
     });
 
+    test('should not include queries that opted out from time window comparison', async () => {
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', timeRangeCompare: false }, { refId: 'B' }],
+      });
+
+      const comparer = new SceneTimeRangeCompare({
+        compareWith: '7d',
+      });
+
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [comparer],
+        body: new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'A' }) })],
+        }),
+      });
+
+      scene.activate();
+      comparer.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      const comaprisonRunRequestCall = runRequestMock.mock.calls[1];
+      console.log([comaprisonRunRequestCall]);
+      expect(comaprisonRunRequestCall[1].targets.length).toEqual(1);
+      expect(comaprisonRunRequestCall[1].targets[0].refId).toEqual('B');
+    });
+
+    test('should not run time window comparison request if all queries have opted out', async () => {
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [
+          { refId: 'A', timeRangeCompare: false },
+          { refId: 'B', timeRangeCompare: false },
+        ],
+      });
+
+      const comparer = new SceneTimeRangeCompare({
+        compareWith: '7d',
+      });
+
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [comparer],
+        body: new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'A' }) })],
+        }),
+      });
+
+      scene.activate();
+      comparer.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+    });
+
     test('should perform shift query transformation', async () => {
       const timeRange = new SceneTimeRange({
         from: '2023-08-24T05:00:00.000Z',
@@ -1081,7 +1148,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
-        $data: new SceneDataLayers({ layers: [layer] }),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
@@ -1123,6 +1190,9 @@ describe('SceneQueryRunner', () => {
               },
             ],
             "length": 1,
+            "meta": {
+              "dataTopic": "annotations",
+            },
           },
         ]
       `);
@@ -1133,83 +1203,8 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'withAnnotations' }],
         $timeRange: new SceneTimeRange(),
-        $data: new SceneDataLayers({ layers: [layer] }),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
       });
-
-      const expectedSnapshot = `
-      [
-        {
-          "fields": [
-            {
-              "config": {},
-              "name": "foo",
-              "state": null,
-              "type": "string",
-              "values": [
-                "foo1",
-                "foo2",
-                "foo3",
-              ],
-            },
-            {
-              "config": {},
-              "name": "bar",
-              "state": null,
-              "type": "string",
-              "values": [
-                "bar1",
-                "bar2",
-                "bar3",
-              ],
-            },
-          ],
-          "length": 3,
-          "meta": {
-            "custom": {
-              "resultType": "exemplar",
-            },
-            "dataTopic": "annotations",
-            "typeVersion": [
-              0,
-              0,
-            ],
-          },
-          "name": "exemplar",
-          "refId": "withAnnotations",
-        },
-        {
-          "fields": [
-            {
-              "config": {},
-              "name": "time",
-              "type": "time",
-              "values": [
-                100,
-              ],
-            },
-            {
-              "config": {},
-              "name": "text",
-              "type": "string",
-              "values": [
-                "Layer 1: Test annotation",
-              ],
-            },
-            {
-              "config": {},
-              "name": "tags",
-              "type": "other",
-              "values": [
-                [
-                  "tag1",
-                ],
-              ],
-            },
-          ],
-          "length": 1,
-        },
-      ]
-    `;
 
       expect(queryRunner.state.data).toBeUndefined();
 
@@ -1218,13 +1213,15 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
       layer.completeRun();
 
-      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(expectedSnapshot);
+      expect(queryRunner.state.data?.annotations?.[0].meta?.custom?.resultType).toBe('exemplar');
+      expect(queryRunner.state.data?.annotations?.[1].meta?.dataTopic).toBe('annotations');
 
       queryRunner.runQueries();
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(expectedSnapshot);
+      expect(queryRunner.state.data?.annotations?.[0].meta?.custom?.resultType).toBe('exemplar');
+      expect(queryRunner.state.data?.annotations?.[1].meta?.dataTopic).toBe('annotations');
     });
 
     it('should not block queries when layer provides data slower', async () => {
@@ -1232,7 +1229,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
-        $data: new SceneDataLayers({ layers: [layer] }),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
       });
 
       expect(queryRunner.state.data).toBeUndefined();
@@ -1241,46 +1238,12 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`[]`);
+      expect(queryRunner.state.data?.annotations).toHaveLength(0);
       expect(queryRunner.state.data?.series).toBeDefined();
 
       layer.completeRun();
 
-      expect(queryRunner.state.data?.annotations).toMatchInlineSnapshot(`
-        [
-          {
-            "fields": [
-              {
-                "config": {},
-                "name": "time",
-                "type": "time",
-                "values": [
-                  100,
-                ],
-              },
-              {
-                "config": {},
-                "name": "text",
-                "type": "string",
-                "values": [
-                  "Layer 1: Test annotation",
-                ],
-              },
-              {
-                "config": {},
-                "name": "tags",
-                "type": "other",
-                "values": [
-                  [
-                    "tag1",
-                  ],
-                ],
-              },
-            ],
-            "length": 1,
-          },
-        ]
-      `);
+      expect(queryRunner.state.data?.annotations).toHaveLength(1);
     });
 
     describe('canceling queries', () => {
@@ -1290,11 +1253,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: new SceneDataLayers({ layers: [layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1320,11 +1283,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: new SceneDataLayers({ layers: [layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1377,6 +1340,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
             {
               "fields": [
@@ -1408,6 +1374,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
@@ -1422,7 +1391,7 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1, layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer1, layer2] }),
         });
 
         expect(queryRunner.state.data).toBeUndefined();
@@ -1465,6 +1434,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
             {
               "fields": [
@@ -1496,6 +1468,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
@@ -1507,11 +1482,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: new SceneDataLayers({ layers: [layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1558,6 +1533,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
             {
               "fields": [
@@ -1589,6 +1567,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
@@ -1600,11 +1581,11 @@ describe('SceneQueryRunner', () => {
         const queryRunner = new SceneQueryRunner({
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         const scene = new SceneFlexLayout({
-          $data: new SceneDataLayers({ layers: [layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer2] }),
           children: [
             new SceneFlexItem({
               $data: queryRunner,
@@ -1652,6 +1633,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
@@ -1688,6 +1672,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
             {
               "fields": [
@@ -1719,6 +1706,9 @@ describe('SceneQueryRunner', () => {
                 },
               ],
               "length": 1,
+              "meta": {
+                "dataTopic": "annotations",
+              },
             },
           ]
         `);
@@ -1766,7 +1756,7 @@ describe('SceneQueryRunner', () => {
           dataLayerFilter: {
             panelId: 123,
           },
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         queryRunner.activate();
@@ -1862,7 +1852,7 @@ describe('SceneQueryRunner', () => {
           dataLayerFilter: {
             panelId: 123,
           },
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         queryRunner.activate();
@@ -1951,7 +1941,7 @@ describe('SceneQueryRunner', () => {
           dataLayerFilter: {
             panelId: 123,
           },
-          $data: new SceneDataLayers({ layers: [layer1] }),
+          $data: new SceneDataLayerSet({ layers: [layer1] }),
         });
 
         queryRunner.activate();
@@ -1998,7 +1988,7 @@ describe('SceneQueryRunner', () => {
           },
           queries: [{ refId: 'A' }],
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({ layers: [layer1, layer2] }),
+          $data: new SceneDataLayerSet({ layers: [layer1, layer2] }),
         });
 
         expect(queryRunner.state.data).toBeUndefined();
@@ -2019,6 +2009,32 @@ describe('SceneQueryRunner', () => {
       });
     });
   });
+
+  describe('when cloning', () => {
+    it('should clone query runner with necessary private members', async () => {
+      const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'withAnnotations' }],
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+      layer.completeRun();
+
+      const clone = queryRunner.clone();
+
+      expect(clone['_resultAnnotations']).not.toBeUndefined();
+      expect(clone['_resultAnnotations'].length).toBe(1);
+      expect(clone['_resultAnnotations']).toStrictEqual(queryRunner['_resultAnnotations']);
+      expect(clone['_layerAnnotations']).not.toBeUndefined();
+      expect(clone['_layerAnnotations'].length).toBe(1);
+      expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
+      expect(clone['_results']['_buffer']).not.toEqual([]);
+    });
+  })
 });
 
 class CustomDataSource extends RuntimeDataSource {

@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
+import { forkJoin, ReplaySubject, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -14,13 +14,15 @@ import {
   preProcessPanelData,
   rangeUtil,
 } from '@grafana/data';
-import { getRunRequest, toDataQueryError } from '@grafana/runtime';
+
+// TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
+// @ts-ignore
+import { getRunRequest, toDataQueryError, isExpressionReference} from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
   DataLayerFilter,
-  SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
   SceneObjectState,
@@ -42,6 +44,7 @@ import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActive
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
+import { mergeMultipleDataLayers } from './mergeMultipleDataLayers';
 
 let counter = 100;
 
@@ -67,6 +70,9 @@ export interface QueryRunnerState extends SceneObjectState {
 
 export interface DataQueryExtended extends DataQuery {
   [key: string]: any;
+
+  // Opt this query out of time window comparison
+  timeRangeCompare?: boolean;
 }
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
@@ -133,55 +139,31 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _handleDataLayers() {
     const dataLayers = sceneGraph.getDataLayers(this);
 
-    const observables: Array<Observable<SceneDataLayerProviderResult>> = [];
-
-    // This keeps track of multiple SceneDataLayers. The key responsibility od this map is to make sure individual from independent SceneDataLayers do not overwrite each other.
-    const resultsMap: Map<string, PanelData> = new Map();
-
-    if (dataLayers.length > 0) {
-      dataLayers.forEach((layer) => {
-        observables.push(layer.getResultsStream());
-      });
-
-      // possibly we want to combine the results from all layers and only then update, but this is tricky ;(
-      this._dataLayersSub = merge(observables)
-        .pipe(
-          mergeAll(),
-          map((v) => {
-            // Is there a better, rxjs only way to combine multiple same-data-topic observables?
-            // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
-            resultsMap.set(v.origin.state.key!, v.data);
-            return resultsMap;
-          })
-        )
-        .subscribe((result) => {
-          this._onLayersReceived(result);
-        });
+    if (dataLayers.length === 0) {
+      return;
     }
+
+    this._dataLayersSub = mergeMultipleDataLayers(dataLayers).subscribe(this._onLayersReceived.bind(this));
   }
 
-  private _onLayersReceived(results: Map<string, PanelData>) {
+  private _onLayersReceived(results: Iterable<SceneDataProviderResult>) {
     const timeRange = sceneGraph.getTimeRange(this);
-    const dataLayers = sceneGraph.getDataLayers(this);
     const { dataLayerFilter } = this.state;
+
     let annotations: DataFrame[] = [];
     let alertStates: DataFrame[] = [];
     let alertState: AlertStateInfo | undefined;
-    const layerKeys = Array.from(results.keys());
 
-    Array.from(results.values()).forEach((result, i) => {
-      const layerKey = layerKeys[i];
-      const layer = dataLayers.find((l) => l.state.key === layerKey);
-      if (layer) {
-        if (layer.topic === DataTopic.Annotations && result[DataTopic.Annotations]) {
-          annotations = annotations.concat(result[DataTopic.Annotations]);
+    for (const result of results) {
+      for (let frame of result.data.series) {
+        if (frame.meta?.dataTopic === DataTopic.Annotations) {
+          annotations = annotations.concat(frame);
         }
-
-        if (layer.topic === 'alertStates') {
-          alertStates = alertStates.concat(result.series);
+        if (frame.meta?.dataTopic === DataTopic.AlertStates) {
+          alertStates = alertStates.concat(frame);
         }
       }
-    });
+    }
 
     if (dataLayerFilter?.panelId) {
       if (annotations.length > 0) {
@@ -428,6 +410,22 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
   }
 
+  public clone(withState?: Partial<QueryRunnerState>) {
+    const clone = super.clone(withState);
+
+    if (this._resultAnnotations) {
+      clone['_resultAnnotations'] = this._resultAnnotations.map((frame) => ({ ...frame }));
+    }
+
+    if (this._layerAnnotations) {
+      clone['_layerAnnotations'] = this._layerAnnotations.map((frame) => ({ ...frame }));
+    }
+
+    clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
+
+    return clone;
+  }
+
   private prepareRequests = (
     timeRange: SceneTimeRangeLike,
     ds: DataSourceApi
@@ -437,7 +435,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     let secondaryRequest: DataQueryRequest | undefined;
 
-    let request: DataQueryRequest = {
+    let request: DataQueryRequest<DataQueryExtended> = {
       app: 'scenes',
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
@@ -471,7 +469,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     request.targets = request.targets.map((query) => {
-      if (!query.datasource) {
+      if (
+        !query.datasource ||
+        (query.datasource.uid !== ds.uid && !ds.meta?.mixed && isExpressionReference /* TODO: Remove this check when isExpressionReference is properly exported from grafan runtime */ && !isExpressionReference(query.datasource))
+      ) {
         query.datasource = ds.getRef();
       }
       return query;
@@ -495,11 +496,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (comparer) {
       const secondaryTimeRange = comparer.getCompareTimeRange(primaryTimeRange);
       if (secondaryTimeRange) {
-        secondaryRequest = {
-          ...request,
-          range: secondaryTimeRange,
-          requestId: getNextRequestId(),
-        };
+        const secondaryTargets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
+
+        if (secondaryTargets.length) {
+          secondaryRequest = {
+            ...request,
+            targets: secondaryTargets,
+            range: secondaryTimeRange,
+            requestId: getNextRequestId(),
+          };
+        }
 
         request = {
           ...request,

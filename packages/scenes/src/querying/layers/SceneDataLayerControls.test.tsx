@@ -1,7 +1,7 @@
 import React from 'react';
 import { selectors } from '@grafana/e2e-selectors';
 import { act, render, screen } from '@testing-library/react';
-import { SceneDataLayerControl } from './SceneDataLayerControls';
+import { DataLayerControlSwitch } from './SceneDataLayerControls';
 import { TestAnnotationsDataLayer } from './TestDataLayer';
 
 describe('SceneDataLayerControl', () => {
@@ -14,7 +14,7 @@ describe('SceneDataLayerControl', () => {
       name: 'Layer 1',
     });
 
-    render(<SceneDataLayerControl layer={layer} isEnabled={true} onToggleLayer={() => {}} />);
+    render(<DataLayerControlSwitch layer={layer} />);
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(0);
 
     act(() => {
@@ -49,7 +49,7 @@ describe('SceneDataLayerControl', () => {
       name: 'Layer 1',
     });
 
-    render(<SceneDataLayerControl layer={layer} isEnabled={true} onToggleLayer={() => {}} />);
+    render(<DataLayerControlSwitch layer={layer} />);
 
     act(() => {
       layer.activate();

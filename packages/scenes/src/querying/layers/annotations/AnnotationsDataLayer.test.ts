@@ -6,7 +6,7 @@ import { SceneTimeRange } from '../../../core/SceneTimeRange';
 import { SceneVariableSet } from '../../../variables/sets/SceneVariableSet';
 import { TestScene } from '../../../variables/TestScene';
 import { TestVariable } from '../../../variables/variants/TestVariable';
-import { SceneDataLayers } from '../../SceneDataLayers';
+import { SceneDataLayerSet } from '../../SceneDataLayerSet';
 import { AnnotationsDataLayer } from './AnnotationsDataLayer';
 import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithRequestEnricher';
 
@@ -92,8 +92,8 @@ describe('AnnotationsDataLayer', () => {
       layer.activate();
 
       layer.getResultsStream().subscribe((res) => {
-        expect(res.data.annotations).toBeDefined();
-        expect(res.data.annotations?.[0].length).toBe(3);
+        expect(res.data.series).toBeDefined();
+        expect(res.data.series?.[0].length).toBe(3);
         done();
       });
     });
@@ -114,8 +114,8 @@ describe('AnnotationsDataLayer', () => {
       layer.activate();
 
       layer.getResultsStream().subscribe((res) => {
-        expect(res.data.annotations).toBeDefined();
-        expect(res.data.annotations?.[0].length).toBe(3);
+        expect(res.data.series).toBeDefined();
+        expect(res.data.series?.[0].length).toBe(3);
         done();
       });
     });
@@ -134,7 +134,7 @@ describe('AnnotationsDataLayer', () => {
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [variable] }),
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [layer],
           }),
           children: [],
@@ -160,7 +160,7 @@ describe('AnnotationsDataLayer', () => {
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [variable] }),
           $timeRange: timeRange,
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [layer],
           }),
           children: [],
@@ -195,7 +195,7 @@ describe('AnnotationsDataLayer', () => {
         const scene = new SceneFlexLayout({
           $variables: new SceneVariableSet({ variables: [variable] }),
           $timeRange: timeRange,
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [layer],
           }),
           children: [],
@@ -205,16 +205,17 @@ describe('AnnotationsDataLayer', () => {
         // should execute query when variable completes update
         variable.signalUpdateCompleted();
         await new Promise((r) => setTimeout(r, 1));
+
         expect(layer.state.data?.state).toBe(LoadingState.Done);
-        expect(layer.state.data?.annotations).toBeDefined();
-        expect(layer.state.data?.annotations?.[0].length).toBe(5);
+        expect(layer.state.data?.series).toBeDefined();
+        expect(layer.state.data?.series?.[0].length).toBe(5);
 
         variable.changeValueTo('AB');
 
         await new Promise((r) => setTimeout(r, 1));
 
-        expect(layer.state.data?.annotations).toBeDefined();
-        expect(layer.state.data?.annotations?.[0].length).toBe(5);
+        expect(layer.state.data?.series).toBeDefined();
+        expect(layer.state.data?.series?.[0].length).toBe(5);
 
         expect(runRequestMock).toBeCalledTimes(2);
         const { scopedVars } = sentRequest!;
@@ -285,7 +286,7 @@ describe('AnnotationsDataLayer', () => {
         const scene = new TestScene({
           $variables: new SceneVariableSet({ variables: [variable] }),
           $timeRange: new SceneTimeRange(),
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [layer],
           }),
         });
@@ -327,7 +328,7 @@ describe('AnnotationsDataLayer', () => {
       });
 
       const scene = new TestSceneWithRequestEnricher({
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [layer],
         }),
       });

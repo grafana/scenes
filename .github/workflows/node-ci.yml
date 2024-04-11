@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Test using Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
@@ -37,7 +37,7 @@ jobs:
     needs: test
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_BOT_ACCESS_TOKEN }}
 
@@ -45,9 +45,9 @@ jobs:
         run: git fetch --unshallow --tags
 
       - name: Test using Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install

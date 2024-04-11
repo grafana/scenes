@@ -145,14 +145,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       }
     }
 
-    /**
-     * Values set by initial URL sync needs to survive the next validation and update
-     */
-    if (this.skipNextValidation && stateUpdate.value !== currentValue) {
-      stateUpdate.value = currentValue;
-      stateUpdate.text = currentText;
-      this.skipNextValidation = false;
-    }
+    this.interceptStateUpdateAfterValidation(stateUpdate);
 
     // Perform state change
     this.setStateHelper(stateUpdate);
@@ -161,6 +154,22 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
+  }
+
+  /**
+   * Values set by initial URL sync needs to survive the next validation and update.
+   * This function can intercept and make sure those values are preserved.
+   */
+  protected interceptStateUpdateAfterValidation(stateUpdate: Partial<MultiValueVariableState>): void {
+    // If the validation wants to fix the all value (All ==> $__all) then we should let that pass
+    const isAllValueFix = stateUpdate.value === ALL_VARIABLE_VALUE && this.state.text === ALL_VARIABLE_TEXT;
+
+    if (this.skipNextValidation && stateUpdate.value !== this.state.value && !isAllValueFix) {
+      stateUpdate.value = this.state.value;
+      stateUpdate.text = this.state.text;
+    }
+
+    this.skipNextValidation = false;
   }
 
   public getValue(): VariableValue {

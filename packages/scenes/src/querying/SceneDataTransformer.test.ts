@@ -1,7 +1,6 @@
 import { map, of } from 'rxjs';
 
 import {
-  ArrayVector,
   getDefaultTimeRange,
   LoadingState,
   toDataFrame,
@@ -9,6 +8,8 @@ import {
   DataQueryRequest,
   DataSourceApi,
   arrayToDataFrame,
+  DataTopic,
+  DataFrame,
 } from '@grafana/data';
 
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
@@ -17,7 +18,7 @@ import { SceneDataNode } from '../core/SceneDataNode';
 import { SceneDataTransformer } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
-import { CustomTransformOperator, SceneObjectState } from '../core/types';
+import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
 import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneTimeRange } from '../core/SceneTimeRange';
@@ -38,6 +39,14 @@ const transformer2config = {
   },
 };
 
+const annotationTransformerConfig = {
+  id: 'annotationTransformer',
+  options: {
+    option: 'value3',
+  },
+  topic: DataTopic.Annotations,
+};
+
 export const getCustomTransformOperator = (spy: jest.Mock): CustomTransformOperator => {
   return () => (source) => {
     spy();
@@ -49,7 +58,7 @@ export const getCustomTransformOperator = (spy: jest.Mock): CustomTransformOpera
             fields: frame.fields.map((field) => {
               return {
                 ...field,
-                values: new ArrayVector(field.values.toArray().map((v) => v / 100)),
+                values: field.values.map((v) => v / 100),
               };
             }),
           };
@@ -59,9 +68,32 @@ export const getCustomTransformOperator = (spy: jest.Mock): CustomTransformOpera
   };
 };
 
+export const getCustomAnnotationTransformOperator = (spy: jest.Mock): CustomTransformerDefinition => {
+  return {
+    operator: () => (source) => {
+      spy();
+      return source.pipe(
+        map((data) => {
+          return data.map((frame) => ({
+            ...frame,
+            fields: frame.fields.map((field) => ({
+              ...field,
+              values: field.values.map((v) => v / 10),
+            })),
+          }));
+        })
+      );
+    },
+    topic: DataTopic.Annotations,
+  };
+};
+
 const getDataSourceMock = jest.fn().mockReturnValue({
   getRef: () => ({ uid: 'test' }),
 });
+
+const toAnnotationDataFrame = (frames: DataFrame[]) =>
+  frames.map((frame) => ({ ...frame, meta: { ...frame.meta, dataTopic: DataTopic.Annotations } }));
 
 const runRequestMock = jest.fn().mockReturnValue(
   of<PanelData>({
@@ -73,6 +105,13 @@ const runRequestMock = jest.fn().mockReturnValue(
         [300, 3],
       ]),
     ],
+    annotations: toAnnotationDataFrame([
+      toDataFrame([
+        [400, 1],
+        [500, 2],
+        [600, 3],
+      ]),
+    ]),
     timeRange: getDefaultTimeRange(),
   })
 );
@@ -93,6 +132,9 @@ describe('SceneDataTransformer', () => {
   let customTransformOperator: CustomTransformOperator;
   customTransformOperator = getCustomTransformOperator(customTransformerSpy);
 
+  let customAnnotationTransformOperator: CustomTransformerDefinition;
+  customAnnotationTransformOperator = getCustomAnnotationTransformOperator(customTransformerSpy);
+
   beforeAll(() => {
     mockTransformationsRegistry([
       {
@@ -108,7 +150,7 @@ describe('SceneDataTransformer', () => {
                   fields: frame.fields.map((field) => {
                     return {
                       ...field,
-                      values: new ArrayVector(field.values.toArray().map((v) => v * 2)),
+                      values: field.values.map((v) => v * 2),
                     };
                   }),
                 };
@@ -130,11 +172,30 @@ describe('SceneDataTransformer', () => {
                   fields: frame.fields.map((field) => {
                     return {
                       ...field,
-                      values: new ArrayVector(field.values.toArray().map((v) => v * 3)),
+                      values: field.values.map((v) => v * 3),
                     };
                   }),
                 };
               });
+            })
+          );
+        },
+      },
+      {
+        id: 'annotationTransformer',
+        name: 'Custom annotationTransformer',
+        operator: (options) => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => ({
+                ...frame,
+                fields: frame.fields.map((field) => {
+                  return {
+                    ...field,
+                    values: field.values.map((v) => v + 4),
+                  };
+                }),
+              }));
             })
           );
         },
@@ -154,6 +215,13 @@ describe('SceneDataTransformer', () => {
             [300, 3],
           ]),
         ],
+        annotations: toAnnotationDataFrame([
+          toDataFrame([
+            [400, 1],
+            [500, 2],
+            [600, 3],
+          ]),
+        ]),
       },
     });
 
@@ -166,7 +234,7 @@ describe('SceneDataTransformer', () => {
 
   it('applies transformations to closest data node', () => {
     const transformationNode = new SceneDataTransformer({
-      transformations: [transformer1config, transformer2config],
+      transformations: [transformer1config, transformer2config, annotationTransformerConfig],
     });
 
     const consumer = new TestSceneObject({
@@ -189,6 +257,8 @@ describe('SceneDataTransformer', () => {
     expect(data?.series[0].fields).toHaveLength(2);
     expect(data?.series[0].fields[0].values.toArray()).toEqual([600, 1200, 1800]);
     expect(data?.series[0].fields[1].values.toArray()).toEqual([6, 12, 18]);
+    expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([404, 504, 604]);
+    expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([5, 6, 7]);
 
     sourceDataNode.setState({
       data: {
@@ -201,6 +271,13 @@ describe('SceneDataTransformer', () => {
             [30, 30],
           ]),
         ],
+        annotations: toAnnotationDataFrame([
+          toDataFrame([
+            [40, 10],
+            [50, 20],
+            [60, 30],
+          ]),
+        ]),
       },
     });
 
@@ -209,12 +286,14 @@ describe('SceneDataTransformer', () => {
 
     expect(data?.series[0].fields[0].values.toArray()).toEqual([60, 120, 180]);
     expect(data?.series[0].fields[1].values.toArray()).toEqual([60, 120, 180]);
+    expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([44, 54, 64]);
+    expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([14, 24, 34]);
   });
 
   describe('when custom transform operator is used', () => {
     it('applies single custom transformer', () => {
       const transformationNode = new SceneDataTransformer({
-        transformations: [customTransformOperator],
+        transformations: [customTransformOperator, customAnnotationTransformOperator],
       });
 
       const consumer = new TestSceneObject({
@@ -232,12 +311,14 @@ describe('SceneDataTransformer', () => {
 
       // Transforms initial data
       let data = sceneGraph.getData(consumer).state.data;
-      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
       expect(data?.series[0].fields[0].values.toArray()).toEqual([1, 2, 3]);
       expect(data?.series[0].fields[1].values.toArray()).toEqual([0.01, 0.02, 0.03]);
+      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([40, 50, 60]);
+      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
 
       sourceDataNode.setState({
         data: {
@@ -250,15 +331,24 @@ describe('SceneDataTransformer', () => {
               [30, 30],
             ]),
           ],
+          annotations: toAnnotationDataFrame([
+            toDataFrame([
+              [100, 1],
+              [200, 2],
+              [300, 3],
+            ]),
+          ]),
         },
       });
 
       // Transforms updated data
       data = sceneGraph.getData(consumer).state.data;
-      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+      expect(customTransformerSpy).toHaveBeenCalledTimes(4);
 
       expect(data?.series[0].fields[0].values.toArray()).toEqual([0.1, 0.2, 0.3]);
       expect(data?.series[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
+      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([10, 20, 30]);
+      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
     });
 
     it('applies leading custom transformer', () => {
@@ -364,7 +454,14 @@ describe('SceneDataTransformer', () => {
     it('applies mixed transforms', () => {
       //  multiply by 2, divide values by 100, multiply by 2, divide values by 100
       const transformationNode = new SceneDataTransformer({
-        transformations: [transformer1config, customTransformOperator, transformer1config, customTransformOperator],
+        transformations: [
+          customAnnotationTransformOperator,
+          annotationTransformerConfig,
+          transformer1config,
+          customTransformOperator,
+          transformer1config,
+          customTransformOperator,
+        ],
       });
 
       const consumer = new TestSceneObject({
@@ -382,12 +479,14 @@ describe('SceneDataTransformer', () => {
 
       // Transforms initial data
       let data = sceneGraph.getData(consumer).state.data;
-      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+      expect(customTransformerSpy).toHaveBeenCalledTimes(3);
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
       expect(data?.series[0].fields[0].values.toArray()).toEqual([0.04, 0.08, 0.12]);
       expect(data?.series[0].fields[1].values.toArray()).toEqual([0.0004, 0.0008, 0.0012]);
+      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([44, 54, 64]);
+      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([4.1, 4.2, 4.3]);
 
       sourceDataNode.setState({
         data: {
@@ -400,15 +499,24 @@ describe('SceneDataTransformer', () => {
               [30, 30],
             ]),
           ],
+          annotations: toAnnotationDataFrame([
+            toDataFrame([
+              [100, 10],
+              [200, 20],
+              [300, 30],
+            ]),
+          ]),
         },
       });
 
       // Transforms updated data
       data = sceneGraph.getData(consumer).state.data;
-      expect(customTransformerSpy).toHaveBeenCalledTimes(4);
+      expect(customTransformerSpy).toHaveBeenCalledTimes(6);
 
       expect(data?.series[0].fields[0].values.toArray()).toEqual([0.004, 0.008, 0.012]);
       expect(data?.series[0].fields[1].values.toArray()).toEqual([0.004, 0.008, 0.012]);
+      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([14, 24, 34]);
+      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([5, 6, 7]);
     });
   });
 

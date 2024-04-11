@@ -1,3 +1,283 @@
+# v4.6.0 (Wed Apr 10 2024)
+
+#### 🚀 Enhancement
+
+- SceneObjectBase: useState add options that make the new activation behavior optional [#688](https://github.com/grafana/scenes/pull/688) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.5.7 (Wed Apr 10 2024)
+
+#### 🐛 Bug Fix
+
+- Filters/GroupBy: Resolve queries only from active query runners [#685](https://github.com/grafana/scenes/pull/685) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v4.5.6 (Tue Apr 09 2024)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Allow configuring hover header offset [#674](https://github.com/grafana/scenes/pull/674) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v4.5.5 (Tue Apr 09 2024)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersVariable: Fixes issue updating hide state causing variable to be deactivated and preventing it from being shown again [#679](https://github.com/grafana/scenes/pull/679) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.5.4 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- Clone SceneQueryRunner together with _results [#681](https://github.com/grafana/scenes/pull/681) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v4.5.3 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- SceneRefreshPicker: Show the auto calculated value when auto is selected [#680](https://github.com/grafana/scenes/pull/680) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v4.5.2 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- Disallow drag and drop rows within uncollapsed rows [#671](https://github.com/grafana/scenes/pull/671) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v4.5.1 (Fri Apr 05 2024)
+
+#### 🐛 Bug Fix
+
+- Chore: Bump typescript version [#657](https://github.com/grafana/scenes/pull/657) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v4.5.0 (Fri Apr 05 2024)
+
+#### 🚀 Enhancement
+
+- VizPanel: Do not apply the visualization's field config to annotation data frames [#659](https://github.com/grafana/scenes/pull/659) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 1
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
+# v4.4.1 (Thu Apr 04 2024)
+
+#### 🐛 Bug Fix
+
+- Chore: Remove viz panel tooltip related code that is no longer needed [#675](https://github.com/grafana/scenes/pull/675) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v4.4.0 (Thu Apr 04 2024)
+
+#### 🚀 Enhancement
+
+- SceneRefreshPicker: Implement mechanism for auto interval [#667](https://github.com/grafana/scenes/pull/667) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v4.3.0 (Wed Apr 03 2024)
+
+#### 🚀 Enhancement
+
+- AdHoc Filters: Allow custom value [#670](https://github.com/grafana/scenes/pull/670) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v4.2.1 (Wed Apr 03 2024)
+
+#### 🐛 Bug Fix
+
+- LiveNowTimer: The constructor doesn't receive a valid state [#662](https://github.com/grafana/scenes/pull/662) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v4.2.0 (Tue Apr 02 2024)
+
+#### 🚀 Enhancement
+
+- Autofit: Fit widget in the screen depending on the height [#658](https://github.com/grafana/scenes/pull/658) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v4.1.2 (Tue Apr 02 2024)
+
+#### 🐛 Bug Fix
+
+- Fix issue where curly braces are always added to IntervalMacro. [#666](https://github.com/grafana/scenes/pull/666) ([@oscarkilhed](https://github.com/oscarkilhed))
+- AdHocFiltersVariable/GroupByVariable: Pass time range to getTagKeys calls [#665](https://github.com/grafana/scenes/pull/665) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 2
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v4.1.1 (Tue Apr 02 2024)
+
+#### 🐛 Bug Fix
+
+- Fix drag and drop panels in rows [#663](https://github.com/grafana/scenes/pull/663) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v4.1.0 (Tue Apr 02 2024)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersVariable: Pass scene queries to getTagValues calls [#664](https://github.com/grafana/scenes/pull/664) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v4.0.4 (Wed Mar 27 2024)
+
+#### 🐛 Bug Fix
+
+- Check if target datasource is matching the panel ds, if not set the target ds to panel ds. [#660](https://github.com/grafana/scenes/pull/660) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v4.0.3 (Fri Mar 22 2024)
+
+#### 🐛 Bug Fix
+
+- MultiValueVariable: Fixes issue with initial url sync when using old All url value [#656](https://github.com/grafana/scenes/pull/656) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.0.2 (Fri Mar 22 2024)
+
+#### 🐛 Bug Fix
+
+- ControlsLabel: style: use info icons for description [#654](https://github.com/grafana/scenes/pull/654) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 1
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+---
+
+# v4.0.1 (Thu Mar 21 2024)
+
+#### 🐛 Bug Fix
+
+- SceneQueryRunner: Meaningful cloning [#652](https://github.com/grafana/scenes/pull/652) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v4.0.0 (Thu Mar 21 2024)
+
+#### 💥 Breaking Change
+
+- DataLayers: Unifiy DataLayers (group of data layers) and a single data layer [#640](https://github.com/grafana/scenes/pull/640) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v3.14.0 (Wed Mar 20 2024)
+
+#### 🚀 Enhancement
+
+- Add transformations to annotations dataframes [#651](https://github.com/grafana/scenes/pull/651) ([@javiruiz01](https://github.com/javiruiz01))
+- Add ability to opt out specifc queries from time window comparison [#650](https://github.com/grafana/scenes/pull/650) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
 # v3.13.3 (Fri Mar 15 2024)
 
 #### 🐛 Bug Fix
