@@ -52,7 +52,7 @@ describe('AdHocFiltersVariable', () => {
 
     const selects = getAllByRole(wrapper, 'combobox');
 
-    await waitFor(() => select(selects[0], 'key3', { container: document.body }));
+    await waitFor(() => select(selects[0], 'Key 3', { container: document.body }));
     await waitFor(() => select(selects[2], 'val3', { container: document.body }));
 
     expect(filtersVar.state.filters.length).toBe(3);
@@ -124,7 +124,7 @@ describe('AdHocFiltersVariable', () => {
     const { getTagValuesSpy, timeRange } = setup({ filters: [] });
 
     // Select key
-    const key = 'key3';
+    const key = 'Key 3';
     await userEvent.click(screen.getByTestId('AdHocFilter-add'));
     const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
     await waitFor(() => select(selects[0], key, { container: document.body }));
@@ -133,7 +133,7 @@ describe('AdHocFiltersVariable', () => {
     expect(getTagValuesSpy).toBeCalledTimes(1);
     expect(getTagValuesSpy).toBeCalledWith({
       filters: [],
-      key,
+      key: 'key3',
       queries: [
         {
           expr: 'my_metric{}',
@@ -222,7 +222,7 @@ describe('AdHocFiltersVariable', () => {
 
     const keys = await filtersVar._getKeys(null);
     expect(keys).toEqual([
-      { label: 'key3', value: 'key3' },
+      { label: 'Key 3', value: 'key3' },
       { label: 'hello', value: '1' },
     ]);
 
@@ -258,6 +258,30 @@ describe('AdHocFiltersVariable', () => {
       { label: 'static', value: '2' },
       { label: 'keys', value: '3' },
     ]);
+  });
+
+  it('Selecting a key correctly shows the label', async () => {
+    const { filtersVar } = setup({
+      defaultKeys: [
+        {
+          text: 'some',
+          value: '1',
+        },
+        {
+          text: 'static',
+          value: '2',
+        },
+        {
+          text: 'keys',
+          value: '3',
+        },
+      ],
+    });
+    const selects = screen.getAllByRole('combobox');
+    await waitFor(() => select(selects[0], 'some', { container: document.body }));
+
+    expect(screen.getByText('some')).toBeInTheDocument();
+    expect(filtersVar.state.filters[0].key).toBe('1');
   });
 
   it('Selecting a default key correctly shows the label', async () => {
@@ -442,7 +466,7 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
       return {
         getTagKeys(options: any) {
           getTagKeysSpy(options);
-          return [{ text: 'key3' }];
+          return [{ text: 'Key 3', value: 'key3' }];
         },
         getTagValues(options: any) {
           getTagValuesSpy(options);
