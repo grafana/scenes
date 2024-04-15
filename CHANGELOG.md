@@ -1,3 +1,16 @@
+# v4.8.0 (Mon Apr 15 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - LocalValueVariable: Do not throw when missing parent variable [#691](https://github.com/grafana/scenes/pull/691) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.7.0 (Mon Apr 15 2024)
 
 #### 🚀 Enhancement
