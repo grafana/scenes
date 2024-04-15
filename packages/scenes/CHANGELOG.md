@@ -1,3 +1,15 @@
+# v4.7.0 (Mon Apr 15 2024)
+
+#### 🚀 Enhancement
+
+- SceneComponentWrapper: More robust activation [#692](https://github.com/grafana/scenes/pull/692) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.6.0 (Wed Apr 10 2024)
 
 #### 🚀 Enhancement
