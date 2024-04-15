@@ -9,20 +9,22 @@ import { SceneGridItemLike } from './types';
 import { useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
+import { useMeasure } from 'react-use';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
+  const [ref, { height }] = useMeasure();
 
   validateChildrenSize(children);
 
   return (
-    <AutoSizer>
-      {({ width, height }) => {
+    <AutoSizer disableHeight>
+      {({ width }) => {
         if (width === 0) {
           return null;
         }
 
-        const layout = model.buildGridLayout(width, height);
+        const layout = model.buildGridLayout(width, Math.round(height));
 
         return (
           /**
@@ -33,6 +35,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
           <div
             style={{ width: `${width}px`, height: '100%', position: 'relative', zIndex: 1 }}
             className={cx('react-grid-layout', isDraggable && 'react-grid-layout--enable-move-animations')}
+            ref={ref}
           >
             <ReactGridLayout
               width={width}
