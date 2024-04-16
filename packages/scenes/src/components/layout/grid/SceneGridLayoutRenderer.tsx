@@ -1,13 +1,12 @@
-import React, { useCallback, useMemo, useReducer, useRef } from 'react';
+import React from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { SceneComponentProps } from '../../../core/types';
-import { GRID_CELL_VMARGIN, GRID_COLUMN_COUNT, GRID_CELL_HEIGHT } from './constants';
+import { GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
 import { LazyLoader } from '../LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
-// @ts-expect-error TODO remove when @grafana/ui is upgraded to 10.4
-import { LayoutItemContext, useStyles2, useTheme2 } from '@grafana/ui';
+import { useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 
@@ -17,13 +16,13 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
   validateChildrenSize(children);
 
   return (
-    <AutoSizer disableHeight>
-      {({ width }) => {
+    <AutoSizer>
+      {({ width, height }) => {
         if (width === 0) {
           return null;
         }
 
-        const layout = model.buildGridLayout(width);
+        const layout = model.buildGridLayout(width, height);
 
         return (
           /**
@@ -33,7 +32,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
            */
           <div
             style={{ width: `${width}px`, height: '100%', position: 'relative', zIndex: 1 }}
-            className="scene-grid-layout"
+            className={cx('react-grid-layout', isDraggable && 'react-grid-layout--enable-move-animations')}
           >
             <ReactGridLayout
               width={width}
@@ -45,7 +44,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               isDraggable={isDraggable && width > 768}
               isResizable={isResizable ?? false}
               containerPadding={[0, 0]}
-              useCSSTransforms={false}
+              useCSSTransforms={true}
               margin={[GRID_CELL_VMARGIN, GRID_CELL_VMARGIN]}
               cols={GRID_COLUMN_COUNT}
               rowHeight={GRID_CELL_HEIGHT}
@@ -53,6 +52,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               draggableCancel=".grid-drag-cancel"
               // @ts-ignore: ignoring for now until we make the size type numbers-only
               layout={layout}
+              onDragStart={model.onDragStart}
               onDragStop={model.onDragStop}
               onResizeStop={model.onResizeStop}
               onLayoutChange={model.onLayoutChange}
@@ -89,34 +89,8 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
   const { grid, layoutItem, index, totalCount, isLazy, style, onLoad, onChange, children, ...divProps } = props;
   const sceneChild = grid.getSceneLayoutChild(layoutItem.i)!;
   const className = sceneChild.getClassName?.();
-  const theme = useTheme2();
 
-  const boostedCount = useRef(0);
-  const [_, forceUpdate] = useReducer((x) => x + 1, 0);
-
-  const boostZIndex = useCallback(() => {
-    boostedCount.current += 1;
-    forceUpdate();
-
-    return () => {
-      boostedCount.current -= 1;
-      forceUpdate();
-    };
-  }, [forceUpdate]);
-
-  const ctxValue = useMemo(() => ({ boostZIndex }), [boostZIndex]);
-  const descIndex = totalCount - index;
   const innerContent = <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />;
-  const innerContentWithContext = LayoutItemContext ? (
-    <LayoutItemContext.Provider value={ctxValue}>{innerContent}</LayoutItemContext.Provider>
-  ) : (
-    innerContent
-  );
-
-  const newStyle = {
-    ...style,
-    zIndex: boostedCount.current === 0 ? descIndex : theme.zIndex.dropdown,
-  };
 
   if (isLazy) {
     return (
@@ -125,10 +99,10 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
         key={sceneChild.state.key!}
         data-griditem-key={sceneChild.state.key}
         className={cx(className, props.className)}
-        style={newStyle}
+        style={style}
         ref={ref}
       >
-        {innerContentWithContext}
+        {innerContent}
         {children}
       </LazyLoader>
     );
@@ -141,9 +115,9 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
       key={sceneChild.state.key}
       data-griditem-key={sceneChild.state.key}
       className={cx(className, props.className)}
-      style={newStyle}
+      style={style}
     >
-      {innerContentWithContext}
+      {innerContent}
       {children}
     </div>
   );

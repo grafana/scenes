@@ -49,6 +49,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
+   * Set to true to skip next value validation to maintain the current value even it it's not among the options (ie valid values)
+   */
+  public skipNextValidation?: boolean;
+
+  /**
    * The source of value options.
    */
   public abstract getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]>;
@@ -111,9 +116,13 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         stateUpdate.text = defaultState.text;
       }
       // We have valid values, if it's different from current valid values update current values
-      else if (!isEqual(validValues, currentValue) || !isEqual(validTexts, currentText)) {
-        stateUpdate.value = validValues;
-        stateUpdate.text = validTexts;
+      else {
+        if (!isEqual(validValues, currentValue)) {
+          stateUpdate.value = validValues;
+        }
+        if (!isEqual(validTexts, currentText)) {
+          stateUpdate.text = validTexts;
+        }
       }
     } else {
       // Try find by value then text
@@ -136,6 +145,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       }
     }
 
+    this.interceptStateUpdateAfterValidation(stateUpdate);
+
     // Perform state change
     this.setStateHelper(stateUpdate);
 
@@ -143,6 +154,22 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
+  }
+
+  /**
+   * Values set by initial URL sync needs to survive the next validation and update.
+   * This function can intercept and make sure those values are preserved.
+   */
+  protected interceptStateUpdateAfterValidation(stateUpdate: Partial<MultiValueVariableState>): void {
+    // If the validation wants to fix the all value (All ==> $__all) then we should let that pass
+    const isAllValueFix = stateUpdate.value === ALL_VARIABLE_VALUE && this.state.text === ALL_VARIABLE_TEXT;
+
+    if (this.skipNextValidation && stateUpdate.value !== this.state.value && !isAllValueFix) {
+      stateUpdate.value = this.state.value;
+      stateUpdate.text = this.state.text;
+    }
+
+    this.skipNextValidation = false;
   }
 
   public getValue(): VariableValue {
@@ -185,10 +212,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   }
 
   /**
-   * Change the value and publish SceneVariableValueChangedEvent event
+   * Change the value and publish SceneVariableValueChangedEvent event.
    */
   public changeValueTo(value: VariableValue, text?: VariableValue) {
-    // Igore if there is no change
+    // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
     }
@@ -333,9 +360,22 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
-    const urlValue = values[this.getKey()];
+    let urlValue = values[this.getKey()];
 
     if (urlValue != null) {
+      // This is to be backwards compatible with old url all value
+      if (this._sceneObject.state.includeAll && urlValue === ALL_VARIABLE_TEXT) {
+        urlValue = ALL_VARIABLE_VALUE;
+      }
+
+      /**
+       * Initial URL Sync happens before scene objects are activated.
+       * We need to skip validation in this case to make sure values set via URL are maintained.
+       */
+      if (!this._sceneObject.isActive) {
+        this._sceneObject.skipNextValidation = true;
+      }
+
       this._sceneObject.changeValueTo(urlValue);
     }
   }

@@ -1,11 +1,11 @@
-import { DataTopic, PanelData } from '@grafana/data';
+import { PanelData } from '@grafana/data';
 import { ReplaySubject, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../core/SceneDataNode';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import {
   CancelActivationHandler,
   SceneDataLayerProvider,
-  SceneDataLayerProviderResult,
+  SceneDataProviderResult,
   SceneDataLayerProviderState,
 } from '../../core/types';
 import { setBaseClassState } from '../../utils/utils';
@@ -28,7 +28,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   /**
    * Subject to emit results to.
    */
-  private _results = new ReplaySubject<SceneDataLayerProviderResult>();
+  private _results = new ReplaySubject<SceneDataProviderResult>();
 
   /**
    * Implement logic for enabling the layer. This is called when layer is enabled or when layer is enabled when activated.
@@ -48,9 +48,9 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   protected abstract runLayer(): void;
 
   /**
-   * Data topic that a given layer is responsible for.
+   * Mark data provider as data layer
    */
-  public abstract topic: DataTopic;
+  public isDataLayer: true = true;
 
   private _variableValueRecorder = new VariableValueRecorder();
 
@@ -89,15 +89,9 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
         this.onDisable();
 
         // Manually publishing the results to state and results stream as publishPublish results has a guard for the layer to be enabled.
-        this._results.next({
-          origin: this,
-          data: emptyPanelData,
-          topic: this.topic,
-        });
+        this._results.next({ origin: this, data: emptyPanelData });
 
-        this.setStateHelper({
-          data: emptyPanelData,
-        });
+        this.setStateHelper({ data: emptyPanelData });
       }
 
       if (n.isEnabled && !p.isEnabled) {
@@ -132,21 +126,14 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
       this.querySub.unsubscribe();
       this.querySub = undefined;
 
-      this.publishResults(emptyPanelData, this.topic);
+      this.publishResults(emptyPanelData);
     }
   }
 
-  protected publishResults(data: PanelData, topic: DataTopic) {
+  protected publishResults(data: PanelData) {
     if (this.state.isEnabled) {
-      this._results.next({
-        origin: this,
-        data,
-        topic,
-      });
-
-      this.setStateHelper({
-        data,
-      });
+      this._results.next({ origin: this, data });
+      this.setStateHelper({ data });
     }
   }
 

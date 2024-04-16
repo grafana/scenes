@@ -25,6 +25,7 @@ import { SceneSearchBox } from './SceneSearchBox';
 import { getTableFilterTransform, getTimeSeriesFilterTransform } from './transforms';
 import { getLinkUrlWithAppUrlState, getVariablesDefinitions } from './utils';
 import { getPromQueryInstant, getPromQueryTimeSeries } from '../demos/utils';
+import { prefixRoute } from '../utils/utils.routing';
 
 export function getHttpHandlerListScene(): EmbeddedScene {
   const searchBox = new SceneSearchBox({ value: '' });
@@ -70,7 +71,7 @@ export function getHttpHandlerListScene(): EmbeddedScene {
             onBuildUrl: () => {
               const params = locationService.getSearchObject();
               return getLinkUrlWithAppUrlState(
-                '/scenes/grafana-monitoring/handlers/${__value.text:percentencode}',
+                prefixRoute('grafana-monitoring/handlers/${__value.text:percentencode}'),
                 params
               );
             },
@@ -202,7 +203,7 @@ export function getHttpHandlerListScene(): EmbeddedScene {
 
 function getHandlerDrilldownUrl(handler: string) {
   const params = locationService.getSearchObject();
-  return getLinkUrlWithAppUrlState(`/scenes/grafana-monitoring/handlers/${encodeURIComponent(handler)}`, params);
+  return getLinkUrlWithAppUrlState(prefixRoute(`grafana-monitoring/handlers/${encodeURIComponent(handler)}`), params);
 }
 
 export function getHandlerDetailsScene(handler: string): EmbeddedScene {
@@ -282,7 +283,7 @@ export function getOverviewScene(): EmbeddedScene {
                 queries: [
                   {
                     refId: 'A',
-                    expr: `sum(process_resident_memory_bytes{job="grafana", instance=~"$instance"})`,
+                    expr: `sum(go_memory_classes_total_bytes{job="grafana", instance=~"$instance"})`,
                     range: true,
                     format: 'time_series',
                     maxDataPoints: 500,

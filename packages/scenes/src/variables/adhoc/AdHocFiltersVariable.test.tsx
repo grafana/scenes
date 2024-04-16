@@ -84,8 +84,26 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('val4');
   });
 
+  it('can set a custom value', async () => {
+    const { filtersVar, runRequest } = setup();
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+  });
+
   it('Should collect and pass respective data source queries to getTagKeys call', async () => {
-    const { getTagKeysSpy } = setup({ filters: [] });
+    const { getTagKeysSpy, timeRange } = setup({ filters: [] });
 
     // Select key
     await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -98,6 +116,31 @@ describe('AdHocFiltersVariable', () => {
           refId: 'A',
         },
       ],
+      timeRange: timeRange.state.value,
+    });
+  });
+
+  it('Should collect and pass respective data source queries to getTagValues call', async () => {
+    const { getTagValuesSpy, timeRange } = setup({ filters: [] });
+
+    // Select key
+    const key = 'key3';
+    await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+    const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
+    await waitFor(() => select(selects[0], key, { container: document.body }));
+    await userEvent.click(selects[2]);
+
+    expect(getTagValuesSpy).toBeCalledTimes(1);
+    expect(getTagValuesSpy).toBeCalledWith({
+      filters: [],
+      key,
+      queries: [
+        {
+          expr: 'my_metric{}',
+          refId: 'A',
+        },
+      ],
+      timeRange: timeRange.state.value,
     });
   });
 
@@ -191,6 +234,56 @@ describe('AdHocFiltersVariable', () => {
     ]);
   });
 
+  it('Can override with default keys', async () => {
+    const { filtersVar } = setup({
+      defaultKeys: [
+        {
+          text: 'some',
+          value: '1',
+        },
+        {
+          text: 'static',
+          value: '2',
+        },
+        {
+          text: 'keys',
+          value: '3',
+        },
+      ],
+    });
+
+    const keys = await filtersVar._getKeys(null);
+    expect(keys).toEqual([
+      { label: 'some', value: '1' },
+      { label: 'static', value: '2' },
+      { label: 'keys', value: '3' },
+    ]);
+  });
+
+  it('Selecting a default key correctly shows the label', async () => {
+    const { filtersVar } = setup({
+      defaultKeys: [
+        {
+          text: 'some',
+          value: '1',
+        },
+        {
+          text: 'static',
+          value: '2',
+        },
+        {
+          text: 'keys',
+          value: '3',
+        },
+      ],
+    });
+    const selects = screen.getAllByRole('combobox');
+    await waitFor(() => select(selects[0], 'some', { container: document.body }));
+
+    expect(screen.getByText('some')).toBeInTheDocument();
+    expect(filtersVar.state.filters[0].key).toBe('1');
+  });
+
   it('Can filter by regex', async () => {
     const { filtersVar } = setup({
       tagKeyRegexFilter: new RegExp('x.*'),
@@ -206,24 +299,34 @@ describe('AdHocFiltersVariable', () => {
         datasource: { uid: 'hello' },
         applyMode: 'manual',
         filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-          {
-            key: 'key2',
-            operator: '=~',
-            value: '[val2]',
-            condition: '',
-          },
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=~', value: '[val2]' },
         ],
       });
 
       variable.activate();
 
       expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]"`);
+    });
+
+    it('Updates filterExpression on setState', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const stateUpdates: AdHocFiltersVariableState[] = [];
+      variable.subscribeToState((state) => stateUpdates.push(state));
+
+      expect(stateUpdates.length).toBe(0);
+
+      variable.setState({ filters: [{ key: 'key1', operator: '=', value: 'val2' }] });
+
+      expect(stateUpdates).toHaveLength(1);
+      expect(stateUpdates[0].filterExpression).toBe('key1="val2"');
     });
 
     it('Renders correct expression when passed an expression builder', () => {
@@ -236,18 +339,8 @@ describe('AdHocFiltersVariable', () => {
         applyMode: 'manual',
         expressionBuilder,
         filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-          {
-            key: 'key2',
-            operator: '=~',
-            value: '[val2]',
-            condition: '',
-          },
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=~', value: '[val2]' },
         ],
       });
 
@@ -260,14 +353,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       const evtHandler = jest.fn();
@@ -281,14 +367,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       const evtHandler = jest.fn();
@@ -302,14 +381,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       variable.activate();
@@ -346,14 +418,7 @@ describe('AdHocFiltersVariable', () => {
     it('should use the model.state.set.Component to ensure the state filterset is activated', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       render(<variable.Component model={variable} />);
@@ -371,6 +436,7 @@ let runRequestSet = false;
 
 function setup(overrides?: Partial<AdHocFiltersVariableState>) {
   const getTagKeysSpy = jest.fn();
+  const getTagValuesSpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
@@ -378,7 +444,8 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
           getTagKeysSpy(options);
           return [{ text: 'key3' }];
         },
-        getTagValues() {
+        getTagValues(options: any) {
+          getTagValuesSpy(options);
           return [{ text: 'val3' }, { text: 'val4' }];
         },
         getRef() {
@@ -408,24 +475,16 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
     datasource: { uid: 'my-ds-uid' },
     name: 'filters',
     filters: [
-      {
-        key: 'key1',
-        operator: '=',
-        value: 'val1',
-        condition: '',
-      },
-      {
-        key: 'key2',
-        operator: '=',
-        value: 'val2',
-        condition: '',
-      },
+      { key: 'key1', operator: '=', value: 'val1' },
+      { key: 'key2', operator: '=', value: 'val2' },
     ],
     ...overrides,
   });
 
+  const timeRange = new SceneTimeRange();
+
   const scene = new EmbeddedScene({
-    $timeRange: new SceneTimeRange(),
+    $timeRange: timeRange,
     $variables: new SceneVariableSet({
       variables: [filtersVar],
     }),
@@ -454,5 +513,5 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
 
   const { unmount } = render(<scene.Component model={scene} />);
 
-  return { scene, filtersVar, unmount, runRequest: runRequestMock.fn, getTagKeysSpy };
+  return { scene, filtersVar, unmount, runRequest: runRequestMock.fn, getTagKeysSpy, getTagValuesSpy, timeRange };
 }

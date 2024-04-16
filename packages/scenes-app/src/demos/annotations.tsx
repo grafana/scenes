@@ -5,7 +5,7 @@ import {
   SceneAppPageState,
   SceneControlsSpacer,
   SceneDataLayerControls,
-  SceneDataLayers,
+  SceneDataLayerSet,
   SceneDataTransformer,
   SceneFlexItem,
   SceneFlexLayout,
@@ -88,7 +88,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
           new SceneRefreshPicker({}),
         ],
         key: 'Multiple annotations layers',
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [globalAnnotations],
         }),
         body: new SceneFlexLayout({
@@ -105,12 +105,11 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                   }),
                 }),
                 new SceneFlexItem({
-                  $data: new SceneDataLayers({
-                    layers: [nestedAnnotationsDataLayer],
-                  }),
+                  $data: nestedAnnotationsDataLayer,
                   body: new VizPanel({
                     $data: getQueryRunnerWithRandomWalkQuery({}),
-                    title: 'Combined annotations, from SceneDataLayers only',
+                    title: 'Nested annotations',
+                    description: 'Uses a single data layer directly, not inside a SceneDataLayers',
                     pluginId: 'timeseries',
                     headerActions: [new SceneDataLayerControls()],
                   }),
@@ -118,7 +117,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                 new SceneFlexItem({
                   body: new VizPanel({
                     $data: new SceneQueryRunner({
-                      $data: new SceneDataLayers({
+                      $data: new SceneDataLayerSet({
                         layers: [independentAnnotations],
                       }),
                       queries: [
@@ -169,7 +168,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                   }),
                 }),
                 new SceneFlexItem({
-                  $data: new SceneDataLayers({
+                  $data: new SceneDataLayerSet({
                     layers: [
                       new dataLayers.AnnotationsDataLayer({
                         name: 'Local annotations',

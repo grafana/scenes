@@ -203,4 +203,21 @@ describe('sceneInterpolator', () => {
 
     expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
   });
+
+  describe('Interval variables', () => {
+    it('Does not add curly braces to unbraced variables', () => {
+      const scene = new TestScene({
+        $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+      });
+
+      expect(sceneInterpolator(scene, '$__interval')).toBe('$__interval');
+    });
+    it('Does not remove curly braces from braced variables', () => {
+      const scene = new TestScene({
+        $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+      });
+
+      expect(sceneInterpolator(scene, '${__interval}')).toBe('${__interval}');
+    });
+  });
 });

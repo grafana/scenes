@@ -47,10 +47,10 @@ interface VizOptionsState extends SceneObjectState {
 }
 
 class VizOptions extends SceneObjectBase<VizOptionsState> {
-  private intervalId?: NodeJS.Timer;
+  private intervalId?: number;
 
   public onChange = (value: string) => {
-    clearInterval(this.intervalId);
+    window.clearInterval(this.intervalId);
     this.setState({ value });
     const viz = this.parent as VizPanel;
 
@@ -60,7 +60,7 @@ class VizOptions extends SceneObjectBase<VizOptionsState> {
         break;
       case 'random_title':
         viz.onTitleChange(getRandomSentence());
-        this.intervalId = setInterval(() => {
+        this.intervalId = window.setInterval(() => {
           viz.onTitleChange(getRandomSentence());
         }, 2000);
         break;
