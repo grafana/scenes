@@ -162,6 +162,7 @@ describe('SceneQueryRunner', () => {
 
       expect(Object.keys(scopedVars)).toMatchInlineSnapshot(`
         [
+          "__sceneObject",
           "__interval",
           "__interval_ms",
         ]
