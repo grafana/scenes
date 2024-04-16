@@ -162,7 +162,6 @@ describe('SceneQueryRunner', () => {
 
       expect(Object.keys(scopedVars)).toMatchInlineSnapshot(`
         [
-          "__sceneObject",
           "__interval",
           "__interval_ms",
         ]
@@ -278,9 +277,7 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
-      const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
       expect(getDataSourceCall[1].__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
     });
 
@@ -2034,7 +2031,7 @@ describe('SceneQueryRunner', () => {
       expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
       expect(clone['_results']['_buffer']).not.toEqual([]);
     });
-  })
+  });
 });
 
 class CustomDataSource extends RuntimeDataSource {

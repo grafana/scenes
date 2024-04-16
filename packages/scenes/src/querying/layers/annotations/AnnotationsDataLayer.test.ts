@@ -220,14 +220,11 @@ describe('AnnotationsDataLayer', () => {
         expect(runRequestMock).toBeCalledTimes(2);
         const { scopedVars } = sentRequest!;
 
-        expect(scopedVars['__sceneObject']).toBeDefined();
-        expect(scopedVars['__sceneObject']?.value).toBe(layer);
         expect(Object.keys(scopedVars)).toMatchInlineSnapshot(`
           [
             "__interval",
             "__interval_ms",
             "__annotation",
-            "__sceneObject",
           ]
         `);
       });

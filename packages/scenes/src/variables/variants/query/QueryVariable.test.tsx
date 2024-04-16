@@ -172,9 +172,7 @@ describe('QueryVariable', () => {
       await lastValueFrom(variable.validateAndUpdate());
 
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
-      const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: variable, text: '__sceneObject' });
       expect(getDataSourceCall[1].__sceneObject).toEqual({ value: variable, text: '__sceneObject' });
     });
 
