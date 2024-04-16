@@ -1,3 +1,15 @@
+# v4.9.0 (Tue Apr 16 2024)
+
+#### 🚀 Enhancement
+
+- Annotations: Don't always execute annotations on activate [#635](https://github.com/grafana/scenes/pull/635) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.8.0 (Mon Apr 15 2024)
 
 #### 🚀 Enhancement
