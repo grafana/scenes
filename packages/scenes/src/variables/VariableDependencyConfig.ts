@@ -1,3 +1,4 @@
+import { DataLinkBuiltInVars } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
