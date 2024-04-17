@@ -88,7 +88,7 @@ function toCommaDelimitedString(key: string, label?: string): string {
     return escapeCommaDelimiters(key);
   }
 
-  return [key, label].map(escapeCommaDelimiters).map(escapeCommaDelimiters).join(',');
+  return [key, label].map(escapeCommaDelimiters).join(',');
 }
 
 function toFilter(urlValue: string | number | boolean | undefined | null): AdHocFilterWithLabels | null {
