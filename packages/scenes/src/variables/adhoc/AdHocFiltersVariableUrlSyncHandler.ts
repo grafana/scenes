@@ -82,7 +82,7 @@ function toArray(filter: AdHocFilterWithLabels): string[] {
   ];
 }
 
-function toCommaDelimitedString(key: string, label: string): string {
+function toCommaDelimitedString(key: string, label?: string): string {
   // Omit for identical key/label or when label is not set at all
   if (!label || key === label) {
     return escapeCommaDelimiters(key);
