@@ -60,4 +60,19 @@ export class LocalValueVariable
 
     return false;
   }
+
+  public getAncestorVariable(): SceneVariable | null {
+    // Parent (SceneVariableSet) -> Parent (The object that has our parent set) -> Parent (scope we need to access our sets ancestor)
+    const ancestorScope = this.parent?.parent?.parent;
+    if (!ancestorScope) {
+      throw new Error('LocalValueVariable requires a parent SceneVariableSet that has an ancestor SceneVariableSet');
+    }
+
+    const parentVar = sceneGraph.lookupVariable(this.state.name, ancestorScope);
+    if (!parentVar) {
+      return null;
+    }
+
+    return parentVar;
+  }
 }
