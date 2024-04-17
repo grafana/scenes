@@ -1,3 +1,15 @@
+# v4.11.1 (Wed Apr 17 2024)
+
+#### 🐛 Bug Fix
+
+- Interval variable: Make interval variable properly update on name change [#701](https://github.com/grafana/scenes/pull/701) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v4.11.0 (Wed Apr 17 2024)
 
 #### 🚀 Enhancement
