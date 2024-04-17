@@ -14,6 +14,7 @@ export interface SceneVariableState extends SceneObjectState {
   loading?: boolean;
   error?: any | null;
   description?: string | null;
+  isLazy?: boolean;
 }
 
 export interface SceneVariable<TState extends SceneVariableState = SceneVariableState> extends SceneObject<TState> {

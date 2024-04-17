@@ -70,6 +70,18 @@ describe('SceneVariableList', () => {
       C.signalUpdateCompleted();
       expect(C.state.issuedQuery).toBe('A.AA.AAA.*');
     });
+
+    it('should not start lazy variable', () => {
+      const A = new TestVariable({ isLazy: true, name: 'A', query: 'A.*', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+      });
+
+      scene.activate();
+
+      expect(A.state.loading).toBe(undefined);
+    });
   });
 
   describe('When variable changes value', () => {

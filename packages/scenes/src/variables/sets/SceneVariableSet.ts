@@ -67,7 +67,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     // Add all variables that need updating to queue
     for (const variable of this.state.variables) {
-      if (this._variableNeedsUpdate(variable)) {
+      if (!variable.state.isLazy && this._variableNeedsUpdate(variable)) {
         this._variablesToUpdate.add(variable);
       }
     }
