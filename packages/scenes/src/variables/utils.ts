@@ -117,10 +117,12 @@ function filterOutInactiveRunnerDuplicates(runners: SceneQueryRunner[]) {
   const groupedItems: { [key: string]: SceneQueryRunner[] } = {};
 
   for (const item of runners) {
-    if (!(item.state.key in groupedItems)) {
-      groupedItems[item.state.key] = [];
+    if (item.state.key) {
+      if (!(item.state.key in groupedItems)) {
+        groupedItems[item.state.key] = [];
+      }
+      groupedItems[item.state.key].push(item);
     }
-    groupedItems[item.state.key].push(item);
   }
 
   // Filter out inactive items and concatenate active items
