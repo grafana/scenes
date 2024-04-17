@@ -42,7 +42,7 @@ export class IntervalVariable
       ...initialState,
     });
 
-    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: [this.getKey()] });
+    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: () => [this.getKey()] });
   }
 
   private getKey(): string {
