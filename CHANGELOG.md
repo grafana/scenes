@@ -1,3 +1,16 @@
+# v4.11.0 (Wed Apr 17 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Fix ${__all_variables} not updating their value in panels [#698](https://github.com/grafana/scenes/pull/698) ([@axelavargas](https://github.com/axelavargas))
+
+#### Authors: 1
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
 # v4.10.0 (Wed Apr 17 2024)
 
 #### 🚀 Enhancement
