@@ -125,6 +125,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       layout: 'horizontal',
       type: 'groupby' as VariableType,
       ...initialState,
+      isLazy: true,
       noValueOnClear: true,
     });
 
@@ -155,6 +156,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     const queries = getQueriesForVariables(this);
+
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     // @ts-expect-error TODO: remove this once 10.4.0 is released
@@ -182,7 +184,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key, maxVisibleValues, noValueOnClear } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
-  const options = model.getOptionsForSelect();
   const [isFetchingOptions, setIsFetchingOptions] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
@@ -202,9 +203,11 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       }
     : undefined;
 
-  const placeholder = options.length > 0 ? 'Select value' : '';
+  const placeholder = 'Select value';
+
   return (
     <MultiSelect<VariableValueSingle>
+      data-testid={`GroupBySelect-${key}`}
       id={key}
       placeholder={placeholder}
       width="auto"
