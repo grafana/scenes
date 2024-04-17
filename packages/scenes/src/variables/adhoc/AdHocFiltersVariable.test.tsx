@@ -148,7 +148,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', 'newValue');
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -159,8 +159,22 @@ describe('AdHocFiltersVariable', () => {
       locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
     });
 
-    expect(filtersVar.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl', condition: '' });
-    expect(filtersVar.state.filters[1]).toEqual({ key: 'keyUrl', operator: '=~', value: 'urlVal', condition: '' });
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'key1',
+      keyLabel: 'key1',
+      operator: '=',
+      value: 'valUrl',
+      valueLabel: 'valUrl',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'keyUrl',
+      keyLabel: 'keyUrl',
+      operator: '=~',
+      value: 'urlVal',
+      valueLabel: 'urlVal',
+      condition: '',
+    });
   });
 
   it('overrides state when url has empty key', () => {
@@ -191,6 +205,214 @@ describe('AdHocFiltersVariable', () => {
     });
 
     expect(filtersVar.state.filters.length).toEqual(2);
+  });
+
+  it('url sync with both key and value labels', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey,New%20Key%7C%3D%7CnewValue,New%20Value&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push(
+        '/?var-filters=newKey,New Key|=|newValue,New Value&var-filters=newKey2,New Key 2|=~|newValue2,New Value 2'
+      );
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'New Key',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'New Value',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'New Key 2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'New Value 2',
+      condition: '',
+    });
+  });
+
+  it('url sync with key label and no value label', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey,New%20Key%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push('/?var-filters=newKey,New Key|=|newValue&var-filters=newKey2,New Key 2|=~|newValue2');
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'New Key',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'newValue',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'New Key 2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'newValue2',
+      condition: '',
+    });
+  });
+
+  it('url sync with no key label and value label', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey%7C%3D%7CnewValue,New%20Value&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push('/?var-filters=newKey|=|newValue,New Value&var-filters=newKey2|=~|newValue2,New Value 2');
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'newKey',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'New Value',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'newKey2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'New Value 2',
+      condition: '',
+    });
+  });
+
+  it('url sync with no key and value labels', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push('/?var-filters=newKey|=|newValue&var-filters=newKey2|=~|newValue2');
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'newKey',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'newValue',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'newKey2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'newValue2',
+      condition: '',
+    });
+  });
+
+  it('url sync with both key and value labels with commas', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New,Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New,Value' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey,New__gfc__Key%7C%3D%7CnewValue,New__gfc__Value&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push(
+        '/?var-filters=newKey,New__gfc__Key|=|newValue,New__gfc__Value&var-filters=newKey2,New__gfc__Key__gfc__2|=~|newValue2,New__gfc__Value__gfc__2'
+      );
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'New,Key',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'New,Value',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'New,Key,2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'New,Value,2',
+      condition: '',
+    });
+  });
+
+  it('url sync with identical key and value labels', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push('/?var-filters=newKey|=|newValue&var-filters=newKey2,newKey2|=~|newValue2,newValue2');
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'newKey',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'newValue',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'newKey2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'newValue2',
+      condition: '',
+    });
   });
 
   it('Can override and replace getTagKeys and getTagValues', async () => {
