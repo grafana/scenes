@@ -1,3 +1,15 @@
+# v4.10.0 (Wed Apr 17 2024)
+
+#### 🚀 Enhancement
+
+- RefreshPicker: Fixed width when going betwen normal and loading state [#695](https://github.com/grafana/scenes/pull/695) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.9.0 (Tue Apr 16 2024)
 
 #### 🚀 Enhancement
