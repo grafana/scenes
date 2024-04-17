@@ -66,11 +66,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     const deps = this.getNames();
     let dependencyChanged = false;
 
-    // if the panel is dependant on __all_ variables, it means any variable update should force a re-render
-    // TODO: I noticed there is a variable macro called ALLVariablesMacro, is there a way to use that here?
-    const ALL_VARIABLES = '__all_variables';
-
-    if ((deps.has(variable.state.name) || deps.has(ALL_VARIABLES)) && hasChanged) {
+    if ((deps.has(variable.state.name) || deps.has(DataLinkBuiltInVars.includeVars)) && hasChanged) {
       dependencyChanged = true;
     }
 
