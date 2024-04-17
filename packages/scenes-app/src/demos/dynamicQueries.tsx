@@ -13,6 +13,7 @@ import {
   SceneVariable,
   SceneVariableSet,
   VariableDependencyConfig,
+  VariableValue,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
@@ -29,9 +30,8 @@ export function getDynamicQueries(defaults: SceneAppPageState) {
             new CustomVariable({
               name: 'Query',
               query: 'Query A, Query B, Query C',
-              value: 'Query A',
+              value: '',
               text: '',
-              description: 'Server name',
               options: [],
             }),
           ],
@@ -63,11 +63,31 @@ class DyanmicQueryBehavior extends SceneObjectBase<SceneObjectState> {
     onReferencedVariableValueChanged: this.onVariableValueChanged.bind(this),
   });
 
-  public onVariableValueChanged(variable: SceneVariable) {
-    // you can look up other variables here with sceneGraph.lookupVariable
+  private issuedQuery: VariableValue | null | undefined;
 
-    const value = variable.getValue();
+  constructor(state: SceneObjectState) {
+    super(state);
+
+    this.addActivationHandler(this.onActivate.bind(this));
+  }
+
+  public onActivate() {
+    if (!this._variableDependency.hasDependencyInLoadingState()) {
+      this.onUpdateQueries();
+    }
+  }
+
+  public onVariableValueChanged(variable: SceneVariable) {
+    this.onUpdateQueries();
+  }
+
+  public onUpdateQueries() {
+    const value = sceneGraph.lookupVariable('Query', this)!.getValue();
     const queryRunner = sceneGraph.getAncestor(this, SceneQueryRunner);
+
+    if (this.issuedQuery === value) {
+      return;
+    }
 
     switch (value) {
       case 'Query A':
