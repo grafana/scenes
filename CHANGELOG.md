@@ -1,3 +1,81 @@
+# v4.11.0 (Wed Apr 17 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Fix ${__all_variables} not updating their value in panels [#698](https://github.com/grafana/scenes/pull/698) ([@axelavargas](https://github.com/axelavargas))
+
+#### Authors: 1
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
+# v4.10.0 (Wed Apr 17 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - RefreshPicker: Fixed width when going betwen normal and loading state [#695](https://github.com/grafana/scenes/pull/695) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.9.0 (Tue Apr 16 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Annotations: Don't always execute annotations on activate [#635](https://github.com/grafana/scenes/pull/635) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.8.0 (Mon Apr 15 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - LocalValueVariable: Do not throw when missing parent variable [#691](https://github.com/grafana/scenes/pull/691) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.7.0 (Mon Apr 15 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneComponentWrapper: More robust activation [#692](https://github.com/grafana/scenes/pull/692) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.6.0 (Wed Apr 10 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneObjectBase: useState add options that make the new activation behavior optional [#688](https://github.com/grafana/scenes/pull/688) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.5.7 (Wed Apr 10 2024)
 
 #### 🐛 Bug Fix

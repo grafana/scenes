@@ -58,6 +58,6 @@ export class LocalValueVariable
       return set.isVariableLoadingOrWaitingToUpdate(parentVar);
     }
 
-    throw new Error('LocalValueVariable requires a parent SceneVariableSet that has an ancestor SceneVariableSet');
+    return false;
   }
 }
