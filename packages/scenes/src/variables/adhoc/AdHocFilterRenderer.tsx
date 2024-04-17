@@ -14,7 +14,7 @@ interface Props {
 function keyLabelToOption(key: string, label?: string): SelectableValue | null {
   return key !== ''
     ? {
-        key: key,
+        value: key,
         label: label || key,
       }
     : null;
