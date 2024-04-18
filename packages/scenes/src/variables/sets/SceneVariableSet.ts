@@ -67,7 +67,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     // Add all variables that need updating to queue
     for (const variable of this.state.variables) {
-      if (!variable.state.isLazy && this._variableNeedsUpdate(variable)) {
+      if (this._variableNeedsUpdate(variable)) {
         this._variablesToUpdate.add(variable);
       }
     }
@@ -161,6 +161,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   private _variableNeedsUpdate(variable: SceneVariable): boolean {
+    if (variable.isLazy) {
+      return false;
+    }
+
     if (!variable.validateAndUpdate) {
       return false;
     }

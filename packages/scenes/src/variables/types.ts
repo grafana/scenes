@@ -14,7 +14,6 @@ export interface SceneVariableState extends SceneObjectState {
   loading?: boolean;
   error?: any | null;
   description?: string | null;
-  isLazy?: boolean;
 }
 
 export interface SceneVariable<TState extends SceneVariableState = SceneVariableState> extends SceneObject<TState> {
@@ -44,6 +43,12 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
    * Allows cancelling variable execution.
    */
   onCancel?(): void;
+
+  /**
+   * @experimental
+   * Indicates that a variable loads values lazily when user interacts with the variable dropdown.
+   */
+  isLazy?: boolean;
 }
 
 export type VariableValue = VariableValueSingle | VariableValueSingle[];

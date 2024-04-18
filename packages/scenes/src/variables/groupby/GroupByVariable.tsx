@@ -54,6 +54,7 @@ export type getTagKeysProvider = (
 
 export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
+  isLazy = true;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -125,7 +126,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       layout: 'horizontal',
       type: 'groupby' as VariableType,
       ...initialState,
-      isLazy: true,
       noValueOnClear: true,
     });
 

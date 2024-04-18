@@ -72,7 +72,7 @@ describe('SceneVariableList', () => {
     });
 
     it('should not start lazy variable', () => {
-      const A = new TestVariable({ isLazy: true, name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] }, true);
 
       const scene = new TestScene({
         $variables: new SceneVariableSet({ variables: [A] }),
