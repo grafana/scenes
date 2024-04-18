@@ -349,33 +349,33 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New,Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New,Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'new,Key', label: 'New,Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'new,Value', label: 'New,Value' });
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=newKey,New__gfc__Key%7C%3D%7CnewValue,New__gfc__Value&var-filters=key2%7C%3D%7Cval2'
+      '?var-filters=new__gfc__Key,New__gfc__Key%7C%3D%7Cnew__gfc__Value,New__gfc__Value&var-filters=key2%7C%3D%7Cval2'
     );
 
     act(() => {
       locationService.push(
-        '/?var-filters=newKey,New__gfc__Key|=|newValue,New__gfc__Value&var-filters=newKey2,New__gfc__Key__gfc__2|=~|newValue2,New__gfc__Value__gfc__2'
+        '/?var-filters=new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value&var-filters=new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2'
       );
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
-      key: 'newKey',
+      key: 'new,Key',
       keyLabel: 'New,Key',
       operator: '=',
-      value: 'newValue',
+      value: 'new,Value',
       valueLabel: 'New,Value',
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
-      key: 'newKey2',
+      key: 'new,Key,2',
       keyLabel: 'New,Key,2',
       operator: '=~',
-      value: 'newValue2',
+      value: 'new,Value,2',
       valueLabel: 'New,Value,2',
       condition: '',
     });
