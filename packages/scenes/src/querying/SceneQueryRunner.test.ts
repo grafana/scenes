@@ -312,7 +312,7 @@ describe('SceneQueryRunner', () => {
       expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
 
       // Verify updating filter re-triggers query
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', 'newValue');
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
 
       await new Promise((r) => setTimeout(r, 1));
 
