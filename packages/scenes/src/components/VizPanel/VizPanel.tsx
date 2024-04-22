@@ -406,7 +406,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     if (this._panelContext) {
       this._panelContext = {
         ...this._panelContext,
-        instanceState: this.state._pluginInstanceState,
+        instanceState: {
+          ...this._panelContext.instanceState,
+          ...state,
+        },
       };
     }
 
