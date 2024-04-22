@@ -16,6 +16,10 @@ export class LiveNowTimer extends SceneObjectBase<LiveNowTimerState> {
     this.addActivationHandler(this._activationHandler);
   }
 
+  public shouldCheckForChanges(): boolean {
+    return true;
+  }
+
   private _activationHandler = () => {
     if (this.state.enabled) {
       this.enable();

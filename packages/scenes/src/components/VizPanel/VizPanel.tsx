@@ -462,6 +462,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     return context;
   }
+
+  public shouldCheckForChanges() {
+    return true;
+  }
 }
 
 function getPanelPluginNotFound(id: string): PanelPlugin {

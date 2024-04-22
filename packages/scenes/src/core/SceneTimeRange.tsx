@@ -29,6 +29,10 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     this.addActivationHandler(this._onActivate.bind(this));
   }
 
+  public shouldCheckForChanges(): boolean {
+    return true;  
+  }
+
   private _onActivate() {
     // When SceneTimeRange has no time zone provided, find closest source of time zone and subscribe to it
     if (!this.state.timeZone) {

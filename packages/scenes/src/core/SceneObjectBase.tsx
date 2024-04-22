@@ -321,6 +321,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     return this._ref;
   }
+
+  public shouldCheckForChanges(partialState: Partial<TState>) {
+    return false;
+  }
 }
 
 /**

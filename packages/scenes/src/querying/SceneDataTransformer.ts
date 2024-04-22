@@ -42,6 +42,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     this.addActivationHandler(() => this.activationHandler());
   }
 
+  public shouldCheckForChanges(partialState: Partial<SceneDataTransformerState>): boolean {
+    return !('data' in partialState);  
+  }
+
   private activationHandler() {
     const sourceData = this.getSourceData();
 

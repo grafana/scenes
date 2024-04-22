@@ -104,6 +104,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this.addActivationHandler(() => this._onActivate());
   }
 
+  public shouldCheckForChanges(partialState: Partial<QueryRunnerState>): boolean {
+    return !('data' in partialState);  
+  }
+
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = this.getTimeCompare();

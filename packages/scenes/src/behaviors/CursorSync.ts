@@ -21,6 +21,10 @@ export class CursorSync extends SceneObjectBase<CursorSyncState> {
     });
   }
 
+  public shouldCheckForChanges(): boolean {
+    return true;
+  }
+
   public getEventsBus = (panel: SceneObject) => {
     if (!this.parent) {
       throw new Error('EnableCursorSync cannot be used as a standalone scene object');

@@ -53,6 +53,10 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     });
   }
 
+  public shouldCheckForChanges(partialState: Partial<SceneRefreshPickerState>): boolean {
+    return 'intervals' in partialState || 'refresh' in partialState;  
+  }
+
   public onRefresh = () => {
     const queryController = sceneGraph.getQueryController(this);
     if (queryController?.state.isRunning) {

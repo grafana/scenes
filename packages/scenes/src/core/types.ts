@@ -115,6 +115,8 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
    */
   forEachChild(callback: (child: SceneObject) => void): void;
+
+  shouldCheckForChanges(partialState: Partial<TState>): boolean;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;

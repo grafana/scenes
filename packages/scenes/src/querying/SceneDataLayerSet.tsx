@@ -86,6 +86,10 @@ export class SceneDataLayerSet
     this.addActivationHandler(() => this._onActivate());
   }
 
+  public shouldCheckForChanges(): boolean {
+    return true;
+  }
+
   private _onActivate() {
     this._subs.add(
       this.subscribeToState((newState, oldState) => {

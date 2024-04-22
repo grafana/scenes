@@ -44,6 +44,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     this.addActivationHandler(this._onActivate);
   }
 
+  public shouldCheckForChanges(): boolean {
+    return true;  
+  }
+
   /**
    * Subscribes to child variable value changes, and starts the variable value validation process
    */

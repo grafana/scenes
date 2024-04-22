@@ -41,6 +41,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     });
   }
 
+  public shouldCheckForChanges(): boolean {
+    return true;  
+  }
+
   /**
    * SceneLayout interface. Used for example by VizPanelRenderer
    */
