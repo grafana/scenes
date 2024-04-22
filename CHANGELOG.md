@@ -1,3 +1,17 @@
+# v4.11.3 (Mon Apr 22 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdhocFilters: Show label for selected key [#690](https://github.com/grafana/scenes/pull/690) ([@ashharrison90](https://github.com/ashharrison90) [@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v4.11.2 (Mon Apr 22 2024)
 
 #### 🐛 Bug Fix
