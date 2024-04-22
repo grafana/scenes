@@ -203,6 +203,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public getPanelContext(): PanelContext {
     this._panelContext ??= this.buildPanelContext();
+
     return this._panelContext!;
   }
 
@@ -402,6 +403,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   private _onInstanceStateChange = (state: any) => {
+    if (this._panelContext) {
+      this._panelContext = {
+        ...this._panelContext,
+        instanceState: this.state._pluginInstanceState,
+      };
+    }
+
     this.setState({ _pluginInstanceState: state });
   };
 
