@@ -161,6 +161,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   private _variableNeedsUpdate(variable: SceneVariable): boolean {
+    if (variable.isLazy) {
+      return false;
+    }
+
     if (!variable.validateAndUpdate) {
       return false;
     }
