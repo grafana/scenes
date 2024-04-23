@@ -1,3 +1,15 @@
+# v4.12.0 (Tue Apr 23 2024)
+
+#### 🚀 Enhancement
+
+- VizPanel: Fixes issue updating instanceState [#702](https://github.com/grafana/scenes/pull/702) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.11.3 (Mon Apr 22 2024)
 
 #### 🐛 Bug Fix
