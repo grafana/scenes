@@ -1,3 +1,16 @@
+# v4.12.1 (Tue Apr 23 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix how the submenus appear for menus of type group [#704](https://github.com/grafana/scenes/pull/704) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v4.12.0 (Tue Apr 23 2024)
 
 #### 🚀 Enhancement
