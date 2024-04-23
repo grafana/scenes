@@ -1,7 +1,7 @@
 import { unzip, zip } from 'lodash';
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import { GroupByVariable } from './GroupByVariable';
-import { toUrlCommaDelimitedString } from '../utils';
+import { toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
 
 export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _sceneObject: GroupByVariable) {}
@@ -46,11 +46,11 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
       }
 
       urlValue = Array.isArray(urlValue) ? urlValue : [urlValue];
-      let [values, labels] = unzip(urlValue.map((value) => (value ? value.split(',') : [value])));
+      const valuesLabelsPairs = urlValue.map((value) => (value ? value.split(',') : [value]));
+      let [values, labels] = unzip(valuesLabelsPairs);
 
-      // Fail-safe as this cannot be type-checked properly
-      values = values ?? [];
-      labels = labels ?? [];
+      values = (values ?? []).map(unescapeUrlDelimiters);
+      labels = (labels ?? []).map(unescapeUrlDelimiters);
 
       this._sceneObject.setState({
         urlOptions: values.map((value, idx) => ({
