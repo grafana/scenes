@@ -38,19 +38,30 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
 
   const renderItems = (items: PanelMenuItem[]) => {
     return items.map((item) =>
-      item.type === 'divider' ? (
-        <Menu.Divider key={item.text} />
-      ) : (
-        <Menu.Item
-          key={item.text}
-          label={item.text}
-          icon={item.iconClassName}
-          childItems={item.subMenu ? renderItems(item.subMenu) : undefined}
-          url={item.href}
-          onClick={item.onClick}
-          shortcut={item.shortcut}
-        />
-      )
+      {
+        switch (item.type) {
+          case 'divider':
+            return <Menu.Divider key={item.text} />;
+          case 'group':
+            return (
+              <Menu.Group key={item.text} label={item.text}>
+                {item.subMenu ? renderItems(item.subMenu) : undefined}
+              </Menu.Group>
+            );
+          default:
+            return (
+              <Menu.Item
+                key={item.text}
+                label={item.text}
+                icon={item.iconClassName}
+                childItems={item.subMenu ? renderItems(item.subMenu) : undefined}
+                url={item.href}
+                onClick={item.onClick}
+                shortcut={item.shortcut}
+              />
+            );
+        }
+      }
     );
   };
 
