@@ -45,7 +45,7 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
           case 'group':
             return (
               <Menu.Group key={item.text} label={item.text}>
-                {renderItems(item.subMenu)}
+                {item.subMenu ? renderItems(item.subMenu) : undefined}
               </Menu.Group>
             );
           default:
