@@ -41,7 +41,7 @@ describe('getQueriesForVariables', () => {
     expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'B' }]);
   });
 
-  it('should ignore queries from inactive runners', () => {
+  it('should not ignore queries from inactive runners', () => {
     const runner1 = new SceneQueryRunner({
       datasource: {
         uid: 'test-uid',
@@ -73,7 +73,106 @@ describe('getQueriesForVariables', () => {
     runner1.activate();
     source.activate();
 
-    expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }]);
+    expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'B' }]);
+  });
+
+  it('should ignore inactive runner if an active one with the same key exist ', () => {
+    const runner1 = new SceneQueryRunner({
+      key: 'runner-one',
+      datasource: {
+        uid: 'test-uid',
+      },
+      queries: [{ refId: 'A' }],
+    });
+
+    const runner1inactive = new SceneQueryRunner({
+      key: 'runner-one',
+      datasource: {
+        uid: 'test-uid',
+      },
+      queries: [{ refId: 'A' }],
+    });
+
+    const runner2 = new SceneQueryRunner({
+      key: 'runner-two',
+      datasource: {
+        uid: 'test-uid',
+      },
+      queries: [{ refId: 'B' }],
+    });
+
+    const source = new TestObject({ datasource: { uid: 'test-uid' } });
+    new EmbeddedScene({
+      $data: runner1,
+      body: new SceneFlexLayout({
+        children: [
+          new SceneFlexItem({
+            $data: runner1inactive,
+            body: source,
+          }),
+          new SceneFlexItem({
+            $data: runner2,
+            body: source,
+          }),
+        ],
+      }),
+    });
+
+    runner1.activate();
+    runner2.activate();
+
+    source.activate();
+    expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'B' }]);
+  });
+
+  it('should not deduplicate queries from active runners with the same key', () => {
+    const runner1 = new SceneQueryRunner({
+      key: 'runner-one',
+      datasource: {
+        uid: 'test-uid',
+      },
+      queries: [{ refId: 'A' }],
+    });
+
+    const runner1copy = new SceneQueryRunner({
+      key: 'runner-one',
+      datasource: {
+        uid: 'test-uid',
+      },
+      queries: [{ refId: 'AA' }],
+    });
+
+    const runner2 = new SceneQueryRunner({
+      key: 'runner-two',
+      datasource: {
+        uid: 'test-uid',
+      },
+      queries: [{ refId: 'B' }],
+    });
+
+    const source = new TestObject({ datasource: { uid: 'test-uid' } });
+    new EmbeddedScene({
+      $data: runner1,
+      body: new SceneFlexLayout({
+        children: [
+          new SceneFlexItem({
+            $data: runner1copy,
+            body: source,
+          }),
+          new SceneFlexItem({
+            $data: runner2,
+            body: source,
+          }),
+        ],
+      }),
+    });
+
+    runner1.activate();
+    runner1copy.activate();
+    runner2.activate();
+    source.activate();
+
+    expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'AA' }, { refId: 'B' }]);
   });
 });
 

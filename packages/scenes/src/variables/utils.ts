@@ -90,10 +90,12 @@ export function getQueriesForVariables(
 ) {
   const runners = sceneGraph.findAllObjects(
     sourceObject.getRoot(),
-    (o) => o instanceof SceneQueryRunner && o.isActive
+    (o) => o instanceof SceneQueryRunner
   ) as SceneQueryRunner[];
 
-  const applicableRunners = runners.filter((r) => r.state.datasource?.uid === sourceObject.state.datasource?.uid);
+  const applicableRunners = filterOutInactiveRunnerDuplicates(runners).filter((r) => {
+    return r.state.datasource?.uid === sourceObject.state.datasource?.uid;
+  });
 
   if (applicableRunners.length === 0) {
     return [];
@@ -105,4 +107,31 @@ export function getQueriesForVariables(
   });
 
   return result;
+}
+
+// Filters out inactive runner duplicates, keeping only the ones that are currently active.
+// This is needed for scnearios whan a query runner is cloned and the original is not removed but de-activated.
+// Can happen i.e. when editing a panel in Grafana Core dashboards.
+function filterOutInactiveRunnerDuplicates(runners: SceneQueryRunner[]) {
+  // Group items by key
+  const groupedItems: { [key: string]: SceneQueryRunner[] } = {};
+
+  for (const item of runners) {
+    if (item.state.key) {
+      if (!(item.state.key in groupedItems)) {
+        groupedItems[item.state.key] = [];
+      }
+      groupedItems[item.state.key].push(item);
+    }
+  }
+
+  // Filter out inactive items and concatenate active items
+  return Object.values(groupedItems).flatMap((group) => {
+    const activeItems = group.filter((item) => item.isActive);
+    // Keep inactive items if there's only one item with the key
+    if (activeItems.length === 0 && group.length === 1) {
+      return group;
+    }
+    return activeItems;
+  });
 }

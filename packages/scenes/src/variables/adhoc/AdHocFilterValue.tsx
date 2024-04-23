@@ -21,7 +21,7 @@ export function AdHocFilterValue({ filter, placeHolder, model }: Props) {
         disabled={model.state.readOnly}
         placeholder={placeHolder}
         value={filter.value}
-        onChange={(v) => model._updateFilter(filter, 'value', v.value)}
+        onChange={(v) => model._updateFilter(filter, 'value', v)}
         loadOptions={loadValues}
       />
     </div>

@@ -1,3 +1,41 @@
+# v4.12.0 (Tue Apr 23 2024)
+
+#### 🚀 Enhancement
+
+- VizPanel: Fixes issue updating instanceState [#702](https://github.com/grafana/scenes/pull/702) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.11.3 (Mon Apr 22 2024)
+
+#### 🐛 Bug Fix
+
+- AdhocFilters: Show label for selected key [#690](https://github.com/grafana/scenes/pull/690) ([@ashharrison90](https://github.com/ashharrison90) [@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v4.11.2 (Mon Apr 22 2024)
+
+#### 🐛 Bug Fix
+
+- GroupBy: Fetch options when opening menu [#687](https://github.com/grafana/scenes/pull/687) ([@ashharrison90](https://github.com/ashharrison90) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v4.11.1 (Wed Apr 17 2024)
 
 #### 🐛 Bug Fix

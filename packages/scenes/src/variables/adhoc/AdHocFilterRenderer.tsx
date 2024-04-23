@@ -1,14 +1,23 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 
-import { AdHocFiltersVariable, toSelectableValue } from './AdHocFiltersVariable';
-import { AdHocVariableFilter, GrafanaTheme2, SelectableValue, toOption } from '@grafana/data';
+import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Field, Select, useStyles2 } from '@grafana/ui';
 import { css } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 
 interface Props {
-  filter: AdHocVariableFilter;
+  filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
+}
+
+function keyLabelToOption(key: string, label?: string): SelectableValue | null {
+  return key !== ''
+    ? {
+        value: key,
+        label: label || key,
+      }
+    : null;
 }
 
 export function AdHocFilterRenderer({ filter, model }: Props) {
@@ -27,20 +36,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     isValuesOpen?: boolean;
   }>({});
 
-  const keyValue = useMemo(() => {
-    if (filter.key !== '') {
-      if (model.state.defaultKeys) {
-        const matchingDefaultKey = model.state.defaultKeys.find(option => option.value === filter.key);
-        if (matchingDefaultKey) {
-          return toSelectableValue(matchingDefaultKey);
-        }
-      } else {
-        return toOption(filter.key);
-      }
-    }
-    return null;
-  }, [filter.key, model.state.defaultKeys])
-  const valueValue = filter.value !== '' ? toOption(filter.value) : null;
+  const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
+  const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
 
   const valueSelect = (
     <Select
@@ -52,7 +49,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       value={valueValue}
       placeholder={'Select value'}
       options={state.values}
-      onChange={(v) => model._updateFilter(filter, 'value', v.value)}
+      onChange={(v) => model._updateFilter(filter, 'value', v)}
       isOpen={state.isValuesOpen}
       isLoading={state.isValuesLoading}
       autoFocus={filter.key !== '' && filter.value === ''}
@@ -79,7 +76,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       value={keyValue}
       placeholder={'Select label'}
       options={state.keys}
-      onChange={(v) => model._updateFilter(filter, 'key', v.value)}
+      onChange={(v) => model._updateFilter(filter, 'key', v)}
       autoFocus={filter.key === ''}
       isOpen={state.isKeysOpen}
       isLoading={state.isKeysLoading}
@@ -128,7 +125,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         disabled={model.state.readOnly}
         options={model._getOperators()}
         width="auto"
-        onChange={(v) => model._updateFilter(filter, 'operator', v.value)}
+        onChange={(v) => model._updateFilter(filter, 'operator', v)}
       />
       {valueSelect}
       <Button

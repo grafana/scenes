@@ -312,7 +312,7 @@ describe('SceneQueryRunner', () => {
       expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
 
       // Verify updating filter re-triggers query
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', 'newValue');
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -1045,7 +1045,6 @@ describe('SceneQueryRunner', () => {
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
       const comaprisonRunRequestCall = runRequestMock.mock.calls[1];
-      console.log([comaprisonRunRequestCall]);
       expect(comaprisonRunRequestCall[1].targets.length).toEqual(1);
       expect(comaprisonRunRequestCall[1].targets[0].refId).toEqual('B');
     });
@@ -2034,7 +2033,7 @@ describe('SceneQueryRunner', () => {
       expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
       expect(clone['_results']['_buffer']).not.toEqual([]);
     });
-  })
+  });
 });
 
 class CustomDataSource extends RuntimeDataSource {
