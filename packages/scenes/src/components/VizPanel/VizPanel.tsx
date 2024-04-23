@@ -147,7 +147,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   public getLegacyPanelId() {
-    return this.getPanelContext().instanceState?.legacyPanelId ?? 1;
+    const panelId = parseInt(this.state.key!.replace('panel-', ''), 10);
+    if (isNaN(panelId)) {
+      return 0;
+    }
+
+    return panelId;
   }
 
   private async _pluginLoaded(plugin: PanelPlugin) {
@@ -203,6 +208,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public getPanelContext(): PanelContext {
     this._panelContext ??= this.buildPanelContext();
+
     return this._panelContext!;
   }
 
@@ -402,6 +408,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   private _onInstanceStateChange = (state: any) => {
+    if (this._panelContext) {
+      this._panelContext = {
+        ...this._panelContext,
+        instanceState: state,
+      };
+    }
+
     this.setState({ _pluginInstanceState: state });
   };
 
