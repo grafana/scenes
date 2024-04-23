@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AdHocVariableFilter, DataSourceApi, MetricFindValue } from '@grafana/data';
+import { AdHocVariableFilter, DataSourceApi, MetricFindValue, SelectableValue } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
-import { SceneComponentProps, ControlsLayout } from '../../core/types';
+import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
 import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect } from '@grafana/ui';
-import { isArray } from 'lodash';
+import { isArray, unionBy } from 'lodash';
 import { getQueriesForVariables } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
+import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -19,6 +20,8 @@ export interface GroupByVariableState extends MultiValueVariableState {
   /** The visible keys to group on */
   // TODO review this type and name (naming is hard)
   defaultOptions?: MetricFindValue[];
+  /** Options obtained through URL sync */
+  urlOptions?: MetricFindValue[];
   /** Base filters to always apply when looking up keys */
   baseFilters?: AdHocVariableFilter[];
   /** Datasource to use for getTagKeys and also controls which scene queries the group by should apply to */
@@ -57,6 +60,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
   isLazy = true;
 
+  protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
+
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
       map((options) => {
@@ -80,10 +85,12 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
+    const urlOptions = this.state.urlOptions ?? [];
+
     // When default dimensions are provided, return the static list
     if (this.state.defaultOptions) {
       return of(
-        this.state.defaultOptions.map((o) => ({
+        unionBy(this.state.defaultOptions, urlOptions, 'value').map((o) => ({
           label: o.text,
           value: String(o.value),
         }))
@@ -101,7 +108,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         return from(this._getKeys(ds)).pipe(
           take(1),
           mergeMap((data: MetricFindValue[]) => {
-            const a: VariableValueOption[] = data.map((i) => {
+            const a: VariableValueOption[] = unionBy(data, urlOptions, 'value').map((i) => {
               return {
                 label: i.text,
                 value: i.value ? String(i.value) : i.text,
@@ -182,19 +189,27 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 }
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key, maxVisibleValues, noValueOnClear } = model.useState();
-  const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
+  const { value, text, key, maxVisibleValues, noValueOnClear } = model.useState();
+  const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
+    const arrayValue = isArray(value) ? value : [value];
+    const arrayText = isArray(text) ? text : [text];
+
+    return arrayValue.map((value, idx) => ({
+      value,
+      label: String(arrayText[idx] ?? value),
+    }));
+  }, [value, text]);
   const [isFetchingOptions, setIsFetchingOptions] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
-  const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
+  const [uncommittedValue, setUncommittedValue] = useState(values);
 
   // Detect value changes outside
   useEffect(() => {
-    setUncommittedValue(arrayValue);
-  }, [arrayValue]);
+    setUncommittedValue(values);
+  }, [values]);
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
@@ -237,13 +252,13 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       components={{ Option: OptionWithCheckbox }}
       onInputChange={onInputChange}
       onBlur={() => {
-        model.changeValueTo(uncommittedValue);
+        model.changeValueTo(uncommittedValue.map((x) => x.value));
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([]);
         }
-        setUncommittedValue(newValue.map((x) => x.value!));
+        setUncommittedValue(newValue);
       }}
       onOpenMenu={async () => {
         setIsFetchingOptions(true);
