@@ -2,6 +2,7 @@ import { unzip, zip } from 'lodash';
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import { GroupByVariable } from './GroupByVariable';
 import { toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
+import { VariableValueSingle } from '../types';
 
 export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _sceneObject: GroupByVariable) {}
@@ -64,9 +65,11 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
   }
 }
 
-function toUrlValues([value, label]: [string, string]) {
+function toUrlValues([value, label]: [VariableValueSingle | undefined, VariableValueSingle | undefined]):
+  | string
+  | undefined {
   if (value === undefined || value === null) {
-    return value;
+    return undefined;
   }
 
   value = String(value);

@@ -252,7 +252,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       components={{ Option: OptionWithCheckbox }}
       onInputChange={onInputChange}
       onBlur={() => {
-        model.changeValueTo(uncommittedValue.map((x) => x.value));
+        model.changeValueTo(uncommittedValue.map((x) => x.value!));
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
