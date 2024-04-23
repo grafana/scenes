@@ -65,11 +65,9 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
   }
 }
 
-function toUrlValues([value, label]: [VariableValueSingle | undefined, VariableValueSingle | undefined]):
-  | string
-  | undefined {
+function toUrlValues([value, label]: [VariableValueSingle | undefined, VariableValueSingle | undefined]): string {
   if (value === undefined || value === null) {
-    return undefined;
+    return '';
   }
 
   value = String(value);
