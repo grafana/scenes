@@ -8,7 +8,7 @@ import React from 'react';
 import { SceneObjectBase } from "../core/SceneObjectBase";
 import { sceneGraph } from "../core/sceneGraph";
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneTimeRangeLike } from "../core/types";
-import { ExtraRequest, SceneRequestAdder, TransformFunc } from "../querying/SceneRequestAdder";
+import { ExtraRequest, ProcessorFunc, SceneRequestSupplementer } from "../querying/SceneRequestAdder";
 import { SceneObjectUrlSyncConfig } from "../services/SceneObjectUrlSyncConfig";
 
 interface SceneBaselinerState extends SceneObjectState {
@@ -43,7 +43,7 @@ export const DEFAULT_TRAINING_FACTOR_OPTION = {
 };
 
 export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
-  implements SceneRequestAdder<SceneBaselinerState> {
+  implements SceneRequestSupplementer<SceneBaselinerState> {
 
   public static Component = SceneBaselinerRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['discoverSeasonalities', 'interval', 'trainingLookbackFactor'] });
@@ -53,7 +53,7 @@ export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
   }
 
   // Add secondary requests, used to obtain and transform the training data.
-  public getExtraRequests(request: DataQueryRequest): ExtraRequest[] {
+  public getSupplementalRequests(request: DataQueryRequest): ExtraRequest[] {
     const extraRequests: ExtraRequest[] = [];
     if (this.state.interval) {
       const { to, from: origFrom } = request.range;
@@ -71,7 +71,7 @@ export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
             }
           }
         },
-        transform: baselineTransform(this.state, sceneGraph.getTimeRange(this)),
+        processor: baselineProcessor(this.state, sceneGraph.getTimeRange(this)),
       });
     }
     return extraRequests;
@@ -159,7 +159,7 @@ export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
 //
 // This function will take the secondary frame returned by the query runner and
 // produce a new frame with the baselines added.
-const baselineTransform: (params: SceneBaselinerState, timeRange: SceneTimeRangeLike) => TransformFunc = ({ interval, discoverSeasonalities }, timeRange) => (_, secondary) => {
+const baselineProcessor: (params: SceneBaselinerState, timeRange: SceneTimeRangeLike) => ProcessorFunc = ({ interval, discoverSeasonalities }, timeRange) => (_, secondary) => {
   const baselines = secondary.series.map((series) => {
     const baselineFrame = createBaselinesForFrame(series, interval, undefined, discoverSeasonalities, timeRange.state.value);
     return {
