@@ -110,7 +110,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const adders = this.getClosestRequestAdders();
-    for (const adder of adders) {
+    for (const adder of adders.values()) {
       this._subs.add(
         adder.subscribeToState((n, p) => {
           if (adder.shouldRerun(p, n)) {
@@ -531,7 +531,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const primaryTimeRange = timeRange.state.value;
     let secondaryRequests: DataQueryRequest[] = [];
     let secondaryTransformations = new Map();
-    for (const adder of this.getClosestRequestAdders() ?? []) {
+    for (const adder of this.getClosestRequestAdders().values() ?? []) {
       for (const { req, transform } of adder.getExtraRequests(request)) {
         const requestId = getNextRequestId();
         secondaryRequests.push({ ...req, requestId })
@@ -583,25 +583,27 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up the scene graph and find any request adders.
    *
-   * Will stop as soon as at least one adder has been found at any level
-   * of the graph. This might need to change in future.
+   * This will return a map from id to the closest adder for each id.
    */
-  private getClosestRequestAdders(): Array<SceneRequestAdder<any>> {
+  private getClosestRequestAdders(): Map<string, SceneRequestAdder<any>> {
+    const found = new Map();
     if (!this.parent) {
-      return [];
+      return new Map();
     }
-    return getClosest(this.parent, (s) => {
-      const found: Array<SceneRequestAdder<any>> = [];
-      if (isRequestAdder(s)) {
-        found.push(s);
+    getClosest(this.parent, (s) => {
+      if (isRequestAdder(s) && !found.has(s.constructor.name)) {
+        found.set(s.constructor.name, s);
       }
       s.forEachChild((child) => {
-        if (isRequestAdder(child)) {
-          found.push(child);
+        if (isRequestAdder(child) && !found.has(child.constructor.name)) {
+          found.set(child.constructor.name, child);
         }
       });
-      return found.length > 0 ? found : null;
-    }) ?? [];
+      // Always return null so that the search continues to the top of
+      // the scene graph.
+      return null;
+    });
+    return found;
   }
 
   /**
