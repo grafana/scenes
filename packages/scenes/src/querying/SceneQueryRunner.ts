@@ -17,7 +17,7 @@ import {
 
 // TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
 // @ts-ignore
-import { getRunRequest, toDataQueryError, isExpressionReference} from '@grafana/runtime';
+import { getRunRequest, toDataQueryError, isExpressionReference } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -78,6 +78,8 @@ export interface DataQueryExtended extends DataQuery {
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
   private _dataLayersSub?: Unsubscribable;
+  private _timeSub?: Unsubscribable;
+  private _timeSubRange?: SceneTimeRangeLike;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
@@ -118,11 +120,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       );
     }
 
-    this._subs.add(
-      timeRange.subscribeToState(() => {
-        this.runWithTimeRange(timeRange);
-      })
-    );
+    this.subscribeToTimeRangeChanges(timeRange);
 
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
@@ -285,6 +283,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
+    this._timeSub?.unsubscribe();
+    this._timeSub = undefined;
+    this._timeSubRange = undefined;
     this._adhocFiltersVar = undefined;
     this._groupByVar = undefined;
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
@@ -316,8 +317,25 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return Boolean(this.state._hasFetchedData);
   }
 
+  private subscribeToTimeRangeChanges(timeRange: SceneTimeRangeLike) {
+    if (this._timeSubRange === timeRange) {
+      // Nothing to do, already subscribed
+      return;
+    }
+
+    if (this._timeSub) {
+      this._timeSub.unsubscribe();
+    }
+
+    this._timeSubRange = timeRange;
+    this._timeSub = timeRange.subscribeToState(() => {
+      this.runWithTimeRange(timeRange);
+    });
+  }
+
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
+    this.subscribeToTimeRangeChanges(timeRange);
     this.runWithTimeRange(timeRange);
   }
 
@@ -471,7 +489,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.targets = request.targets.map((query) => {
       if (
         !query.datasource ||
-        (query.datasource.uid !== ds.uid && !ds.meta?.mixed && isExpressionReference /* TODO: Remove this check when isExpressionReference is properly exported from grafan runtime */ && !isExpressionReference(query.datasource))
+        (query.datasource.uid !== ds.uid &&
+          !ds.meta?.mixed &&
+          isExpressionReference /* TODO: Remove this check when isExpressionReference is properly exported from grafan runtime */ &&
+          !isExpressionReference(query.datasource))
       ) {
         query.datasource = ds.getRef();
       }
