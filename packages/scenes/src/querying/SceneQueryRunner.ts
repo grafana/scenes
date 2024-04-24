@@ -45,7 +45,6 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
 import { mergeMultipleDataLayers } from './mergeMultipleDataLayers';
-import { SceneTimeRange } from '../core/SceneTimeRange';
 
 let counter = 100;
 
