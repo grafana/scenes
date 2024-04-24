@@ -34,8 +34,8 @@ import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { getClosest } from '../core/sceneGraph/utils';
-import { isRequestAdder, SceneRequestAdder, TransformFunc } from './SceneRequestAdder';
-import { passthroughTransform, extraRequestProcessingOperator } from './extraRequestProcessingOperator';
+import { isRequestAdder, ProcessorFunc, SceneRequestSupplementer } from './SceneRequestAdder';
+import { passthroughProcessor, extraRequestProcessingOperator } from './extraRequestProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetAdhocFilters';
@@ -407,7 +407,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.findAndSubscribeToAdHocFilters(datasource?.uid);
 
       const runRequest = getRunRequest();
-      const { primary, secondaries, transformations } = this.prepareRequests(timeRange, ds);
+      const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
@@ -417,7 +417,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         const [sReq, ...otherSReqs] = secondaries;
         const secondaryStreams = otherSReqs.map((r) => runRequest(ds, r));
         // change subscribe callback below to pipe operator
-        const op = extraRequestProcessingOperator(transformations);
+        const op = extraRequestProcessingOperator(processors);
         stream = forkJoin([stream, runRequest(ds, sReq), ...secondaryStreams]).pipe(op);
       }
 
@@ -464,7 +464,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private prepareRequests = (
     timeRange: SceneTimeRangeLike,
     ds: DataSourceApi
-  ): { primary: DataQueryRequest, secondaries: DataQueryRequest[], transformations: Map<string, TransformFunc> } => {
+  ): { primary: DataQueryRequest, secondaries: DataQueryRequest[], processors: Map<string, ProcessorFunc> } => {
     const { minInterval, queries } = this.state;
 
     let request: DataQueryRequest<DataQueryExtended> = {
@@ -530,16 +530,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     const primaryTimeRange = timeRange.state.value;
     let secondaryRequests: DataQueryRequest[] = [];
-    let secondaryTransformations = new Map();
+    let secondaryProcessors = new Map();
     for (const adder of this.getClosestRequestAdders().values() ?? []) {
-      for (const { req, transform } of adder.getExtraRequests(request)) {
+      for (const { req, processor } of adder.getSupplementalRequests(request)) {
         const requestId = getNextRequestId();
         secondaryRequests.push({ ...req, requestId })
-        secondaryTransformations.set(requestId, transform ?? passthroughTransform);
+        secondaryProcessors.set(requestId, processor ?? passthroughProcessor);
       }
     }
     request.range = primaryTimeRange;
-    return { primary: request, secondaries: secondaryRequests, transformations: secondaryTransformations };
+    return { primary: request, secondaries: secondaryRequests, processors: secondaryProcessors };
   };
 
   private onDataReceived = (data: PanelData) => {
@@ -585,7 +585,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    *
    * This will return a map from id to the closest adder for each id.
    */
-  private getClosestRequestAdders(): Map<string, SceneRequestAdder<any>> {
+  private getClosestRequestAdders(): Map<string, SceneRequestSupplementer<any>> {
     const found = new Map();
     if (!this.parent) {
       return new Map();

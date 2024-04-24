@@ -1,28 +1,28 @@
 import { PanelData } from '@grafana/data';
 import { map, Observable } from 'rxjs';
-import { TransformFunc } from './SceneRequestAdder';
+import { ProcessorFunc } from './SceneRequestAdder';
 
-// Passthrough transformation for use with ExtraRequests.
-export const passthroughTransform: TransformFunc = (_, secondary) => secondary;
+// Passthrough processor for use with ExtraRequests.
+export const passthroughProcessor: ProcessorFunc = (_, secondary) => secondary;
 
-// Factory function which takes a map from request ID to transform functions and
+// Factory function which takes a map from request ID to processor functions and
 // returns an rxjs operator which operates on an array of panel data responses.
 // The responses must have length at least 2; the first is treated as the 'primary'
 // response and the rest as secondary responses.
 //
-// Each secondary response is transformed according to the transform function
-// identified by it's request ID. The transform function is passed the primary
+// Each secondary response is transformed according to the processor function
+// identified by it's request ID. The processor function is passed the primary
 // response and the secondary response to be processed.
 //
-// The output is a single frame with the primary series and all transformed
+// The output is a single frame with the primary series and all processed
 // secondary series combined.
-export const extraRequestProcessingOperator = (transforms: Map<string, TransformFunc>) =>
+export const extraRequestProcessingOperator = (processors: Map<string, ProcessorFunc>) =>
   (data: Observable<[PanelData, PanelData, ...PanelData[]]>) => {
     return data.pipe(
       map(([primary, ...secondaries]) => {
         const frames = secondaries.flatMap((s) => {
-          const transformed = transforms.get(s.request!.requestId)?.(primary, s) ?? s;
-          return transformed.series;
+          const processed = processors.get(s.request!.requestId)?.(primary, s) ?? s;
+          return processed.series;
         });
         return {
           ...primary,
