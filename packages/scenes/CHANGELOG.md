@@ -1,3 +1,16 @@
+# v4.12.3 (Wed Apr 24 2024)
+
+#### 🐛 Bug Fix
+
+- Dashboard Migration: Add missing e2e selectors to some components [#648](https://github.com/grafana/scenes/pull/648) ([@axelavargas](https://github.com/axelavargas) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
 # v4.12.2 (Wed Apr 24 2024)
 
 #### 🐛 Bug Fix
