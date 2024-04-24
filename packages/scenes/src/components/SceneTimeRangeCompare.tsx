@@ -6,7 +6,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { DataQueryExtended } from '../querying/SceneQueryRunner';
-import { ExtraRequest, SceneRequestAdder, TransformFunc } from '../querying/SceneRequestAdder';
+import { ExtraRequest, ProcessorFunc, SceneRequestSupplementer } from '../querying/SceneRequestAdder';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
@@ -38,7 +38,7 @@ export const DEFAULT_COMPARE_OPTIONS = [
 
 export class SceneTimeRangeCompare
   extends SceneObjectBase<SceneTimeRangeCompareState>
-  implements SceneRequestAdder<SceneTimeRangeCompareState> {
+  implements SceneRequestSupplementer<SceneTimeRangeCompareState> {
 
   static Component = SceneTimeRangeCompareRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
@@ -95,7 +95,7 @@ export class SceneTimeRangeCompare
   };
 
   // Get a time shifted request to compare with the primary request.
-  public getExtraRequests(request: DataQueryRequest): ExtraRequest[] {
+  public getSupplementalRequests(request: DataQueryRequest): ExtraRequest[] {
     const extraRequests: ExtraRequest[] = [];
     const compareRange = this.getCompareTimeRange(request.range);
     if (!compareRange) {
@@ -110,7 +110,7 @@ export class SceneTimeRangeCompare
           targets,
           range: compareRange,
         },
-        transform: timeShiftAlignmentTransform,
+        processor: timeShiftAlignmentProcessor,
       });
     }
     return extraRequests;
@@ -176,11 +176,11 @@ export class SceneTimeRangeCompare
   }
 }
 
-// Transformation function for use with time shifted comparison series.
+// Processor function for use with time shifted comparison series.
 // This aligns the secondary series with the primary and adds custom
 // metadata and config to the secondary series' fields so that it is
 // rendered appropriately.
-const timeShiftAlignmentTransform: TransformFunc = (primary, secondary) => {
+const timeShiftAlignmentProcessor: ProcessorFunc = (primary, secondary) => {
   const diff = secondary.timeRange.from.diff(primary.timeRange.from);
   secondary.series.forEach((series) => {
     series.refId = getCompareSeriesRefId(series.refId || '');
