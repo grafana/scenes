@@ -1,3 +1,27 @@
+# v4.12.2 (Wed Apr 24 2024)
+
+#### 🐛 Bug Fix
+
+- SceneQueryRunner: Support detecting new local time range [#707](https://github.com/grafana/scenes/pull/707) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.12.1 (Tue Apr 23 2024)
+
+#### 🐛 Bug Fix
+
+- Fix how the submenus appear for menus of type group [#704](https://github.com/grafana/scenes/pull/704) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v4.12.0 (Tue Apr 23 2024)
 
 #### 🚀 Enhancement
