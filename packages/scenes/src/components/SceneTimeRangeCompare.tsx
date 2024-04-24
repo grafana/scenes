@@ -39,6 +39,7 @@ export const DEFAULT_COMPARE_OPTIONS = [
 export class SceneTimeRangeCompare
   extends SceneObjectBase<SceneTimeRangeCompareState>
   implements SceneRequestAdder<SceneTimeRangeCompareState> {
+
   static Component = SceneTimeRangeCompareRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
 
