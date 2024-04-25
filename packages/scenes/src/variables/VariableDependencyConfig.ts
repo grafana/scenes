@@ -1,3 +1,4 @@
+import { DataLinkBuiltInVars } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
@@ -66,7 +67,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     const deps = this.getNames();
     let dependencyChanged = false;
 
-    if (deps.has(variable.state.name) && hasChanged) {
+    if ((deps.has(variable.state.name) || deps.has(DataLinkBuiltInVars.includeVars)) && hasChanged) {
       dependencyChanged = true;
     }
 

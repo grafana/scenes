@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest } from '@grafana/runtime';
-import { act, render } from '@testing-library/react';
+import { act, getAllByRole, render, screen } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import React from 'react';
 import { GroupByVariable, GroupByVariableState } from './GroupByVariable';
@@ -11,6 +11,7 @@ import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import userEvent from '@testing-library/user-event';
 
 describe('GroupByVariable', () => {
   it('should not resolve values from the data source if default options provided', async () => {
@@ -131,6 +132,20 @@ describe('GroupByVariable', () => {
       timeRange: timeRange.state.value,
     });
   });
+
+  describe('component', () => {
+    it('should fetch dimensions when Select is opened', async () => {
+      const { variable, getTagKeysSpy } = setupTest();
+
+      expect(variable.isActive).toBe(true);
+      expect(getTagKeysSpy).not.toHaveBeenCalled();
+
+      const selects = getAllByRole(screen.getByTestId('GroupBySelect-testGroupBy'), 'combobox');
+      await userEvent.click(selects[0]);
+
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    });
+  });
 });
 
 const runRequestMock = {
@@ -171,6 +186,7 @@ export function setupTest(overrides?: Partial<GroupByVariableState>) {
 
   const variable = new GroupByVariable({
     name: 'test',
+    key: 'testGroupBy',
     value: '',
     text: '',
     datasource: { uid: 'my-ds-uid' },

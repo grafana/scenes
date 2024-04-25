@@ -8,6 +8,7 @@ import { ControlsLayout, SceneComponentProps, SceneObjectState } from '../../cor
 import { SceneVariable, SceneVariableState } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
+import { selectors } from '@grafana/e2e-selectors';
 
 export interface VariableValueSelectorsState extends SceneObjectState {
   layout?: ControlsLayout;
@@ -45,7 +46,7 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways }: Var
 
   if (layout === 'vertical') {
     return (
-      <div className={verticalContainer}>
+      <div className={verticalContainer} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
         <VariableLabel variable={variable} layout={layout} />
         <variable.Component model={variable} />
       </div>
@@ -53,7 +54,7 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways }: Var
   }
 
   return (
-    <div className={containerStyle}>
+    <div className={containerStyle} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
       <VariableLabel variable={variable} />
       <variable.Component model={variable} />
     </div>

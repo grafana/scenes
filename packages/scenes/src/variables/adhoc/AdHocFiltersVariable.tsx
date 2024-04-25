@@ -14,13 +14,18 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 
+export interface AdHocFilterWithLabels extends AdHocVariableFilter {
+  keyLabel?: string;
+  valueLabel?: string;
+}
+
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
   addFilterButtonText?: string;
   /** The visible filters */
-  filters: AdHocVariableFilter[];
+  filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
-  baseFilters?: AdHocVariableFilter[];
+  baseFilters?: AdHocFilterWithLabels[];
   /** Datasource to use for getTagKeys and getTagValues and also controls which scene queries the filters should apply to */
   datasource: DataSourceRef | null;
   /** Controls if the filters can be changed */
@@ -73,10 +78,10 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * @internal state of the new filter being added
    */
-  _wip?: AdHocVariableFilter;
+  _wip?: AdHocFilterWithLabels;
 }
 
-export type AdHocVariableExpressionBuilderFn = (filters: AdHocVariableFilter[]) => string;
+export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
@@ -85,7 +90,7 @@ export type getTagKeysProvider = (
 
 export type getTagValuesProvider = (
   variable: AdHocFiltersVariable,
-  filter: AdHocVariableFilter
+  filter: AdHocFilterWithLabels
 ) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
 
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
@@ -136,26 +141,32 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
-  public _updateFilter(filter: AdHocVariableFilter, prop: keyof AdHocVariableFilter, value: string | undefined | null) {
+  public _updateFilter(
+    filter: AdHocFilterWithLabels,
+    prop: keyof AdHocFilterWithLabels,
+    { value, label }: SelectableValue<string | undefined | null>
+  ) {
     if (value == null) {
       return;
     }
 
     const { filters, _wip } = this.state;
 
+    const propLabelKey = `${prop}Label`;
+
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if (prop === 'value') {
-        this.setState({ filters: [...filters, { ..._wip, [prop]: value }], _wip: undefined });
+        this.setState({ filters: [...filters, { ..._wip, [prop]: value, [propLabelKey]: label }], _wip: undefined });
       } else {
-        this.setState({ _wip: { ...filter, [prop]: value } });
+        this.setState({ _wip: { ...filter, [prop]: value, [propLabelKey]: label } });
       }
       return;
     }
 
     const updatedFilters = this.state.filters.map((f) => {
       if (f === filter) {
-        return { ...f, [prop]: value };
+        return { ...f, [prop]: value, [propLabelKey]: label };
       }
       return f;
     });
@@ -163,7 +174,7 @@ export class AdHocFiltersVariable
     this.setState({ filters: updatedFilters });
   }
 
-  public _removeFilter(filter: AdHocVariableFilter) {
+  public _removeFilter(filter: AdHocFilterWithLabels) {
     if (filter === this.state._wip) {
       this.setState({ _wip: undefined });
       return;
@@ -212,7 +223,7 @@ export class AdHocFiltersVariable
   /**
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
-  public async _getValuesFor(filter: AdHocVariableFilter): Promise<Array<SelectableValue<string>>> {
+  public async _getValuesFor(filter: AdHocFilterWithLabels): Promise<Array<SelectableValue<string>>> {
     const override = await this.state.getTagValuesProvider?.(this, filter);
 
     if (override && override.replace) {
@@ -241,7 +252,9 @@ export class AdHocFiltersVariable
   }
 
   public _addWip() {
-    this.setState({ _wip: { key: '', value: '', operator: '=', condition: '' } });
+    this.setState({
+      _wip: { key: '', keyLabel: '', value: '', valueLabel: '', operator: '=', condition: '' },
+    });
   }
 
   public _getOperators() {
@@ -254,7 +267,7 @@ export class AdHocFiltersVariable
 
 function renderExpression(
   builder: AdHocVariableExpressionBuilderFn | undefined,
-  filters: AdHocVariableFilter[] | undefined
+  filters: AdHocFilterWithLabels[] | undefined
 ) {
   return (builder ?? renderPrometheusLabelFilters)(filters ?? []);
 }
