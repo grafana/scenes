@@ -1,3 +1,15 @@
+# v4.13.0 (Fri Apr 26 2024)
+
+#### 🚀 Enhancement
+
+- sceneGraph: handle interpolations argument in interpolate [#708](https://github.com/grafana/scenes/pull/708) ([@sd2k](https://github.com/sd2k))
+
+#### Authors: 1
+
+- Ben Sully ([@sd2k](https://github.com/sd2k))
+
+---
+
 # v4.12.3 (Wed Apr 24 2024)
 
 #### 🐛 Bug Fix
