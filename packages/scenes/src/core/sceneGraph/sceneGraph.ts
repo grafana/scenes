@@ -8,6 +8,7 @@ import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, Sc
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
+import { VariableInterpolation } from '@grafana/runtime';
 
 /**
  * Get the closest node with variables
@@ -41,18 +42,25 @@ export function getLayout(scene: SceneObject): SceneLayout | null {
 
 /**
  * Interpolates the given string using the current scene object as context.   *
+ *
+ * Note: the interpolations array will be mutated by adding information about variables that
+ * have been interpolated during replacement. Variables that were specified in the target but not found in
+ * the list of available variables are also added to the array. See {@link VariableInterpolation} for more details.
+ *
+ * @param {VariableInterpolation[]} interpolations an optional array that is updated with interpolated variables.
  */
 export function interpolate(
   sceneObject: SceneObject,
   value: string | undefined | null,
   scopedVars?: ScopedVars,
-  format?: string | VariableCustomFormatterFn
+  format?: string | VariableCustomFormatterFn,
+  interpolations?: VariableInterpolation[],
 ): string {
   if (value === '' || value == null) {
     return '';
   }
 
-  return sceneInterpolator(sceneObject, value, scopedVars, format);
+  return sceneInterpolator(sceneObject, value, scopedVars, format, interpolations);
 }
 
 /**
@@ -179,7 +187,7 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
  */
 export function getAncestor<ParentType>(
   sceneObject: SceneObject,
-  ancestorType: { new (...args: never[]): ParentType }
+  ancestorType: { new(...args: never[]): ParentType }
 ): ParentType {
   let parent: SceneObject | undefined = sceneObject;
 

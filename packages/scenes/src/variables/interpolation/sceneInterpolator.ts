@@ -1,4 +1,5 @@
 import { ScopedVars } from '@grafana/data';
+import { VariableInterpolation } from '@grafana/runtime';
 import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { SceneObject } from '../../core/types';
@@ -21,7 +22,8 @@ export function sceneInterpolator(
   sceneObject: SceneObject,
   target: string | undefined | null,
   scopedVars?: ScopedVars,
-  format?: InterpolationFormatParameter
+  format?: InterpolationFormatParameter,
+  interpolations?: VariableInterpolation[],
 ): string {
   if (!target) {
     return target ?? '';
@@ -35,10 +37,17 @@ export function sceneInterpolator(
     const variable = lookupFormatVariable(variableName, match, scopedVars, sceneObject);
 
     if (!variable) {
+      if (interpolations) {
+        // Set `value` equal to `match` as documented in the `VariableInterpolation` interface.
+        interpolations.push({ match, variableName, fieldPath, format: fmt, value: match, found: false });
+      }
       return match;
     }
-
-    return formatValue(variable, variable.getValue(fieldPath), fmt);
+    const value = formatValue(variable, variable.getValue(fieldPath), fmt);
+    if (interpolations) {
+      interpolations.push({ match, variableName, fieldPath, format: fmt, value, found: value !== match });
+    }
+    return value;
   });
 }
 
