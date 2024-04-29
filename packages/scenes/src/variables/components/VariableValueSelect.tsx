@@ -53,7 +53,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
     setUncommittedValue(arrayValue);
   }, [arrayValue]);
 
-  const onInputChange = (value: string, { action, prevInputValue }: InputActionMeta) => {
+  const onInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
       setInputValue(value);
       if (model.onSearchChange) {
@@ -64,9 +64,10 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
 
     if (action === 'input-blur') {
       setInputValue('');
+      return '';
     }
 
-    return prevInputValue;
+    return inputValue;
   };
 
   const placeholder = options.length > 0 ? 'Select value' : '';
