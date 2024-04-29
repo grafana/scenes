@@ -1,16 +1,18 @@
 import { isArray } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, Select, useStyles2 } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
+import { css } from '@emotion/css';
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key } = model.useState();
 
+  const styles = useStyles2(getStyles);
   const onInputChange = model.onSearchChange
     ? (value: string, meta: InputActionMeta) => {
         if (meta.action === 'input-change') {
@@ -34,6 +36,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
       }}
+      className={styles.overflow}
     />
   );
 }
@@ -61,6 +64,8 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
 
   const placeholder = options.length > 0 ? 'Select value' : '';
 
+  const styles = useStyles2(getStyles);
+
   return (
     <MultiSelect<VariableValueSingle>
       id={key}
@@ -86,6 +91,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
         }
         setUncommittedValue(newValue.map((x) => x.value!));
       }}
+      className={styles.overflow}
     />
   );
 }
@@ -97,3 +103,9 @@ export function renderSelectForVariable(model: MultiValueVariable) {
     return <VariableValueSelect model={model} />;
   }
 }
+
+const getStyles = (() => ({
+  overflow: css({
+    overflow: 'hidden',
+  })
+}));

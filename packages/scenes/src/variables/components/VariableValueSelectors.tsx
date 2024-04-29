@@ -7,7 +7,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { ControlsLayout, SceneComponentProps, SceneObjectState } from '../../core/types';
 import { SceneVariable, SceneVariableState } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { selectors } from '@grafana/e2e-selectors';
 
 export interface VariableValueSelectorsState extends SceneObjectState {
@@ -44,18 +44,9 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways }: Var
     return null;
   }
 
-  if (layout === 'vertical') {
-    return (
-      <div className={verticalContainer} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
-        <VariableLabel variable={variable} layout={layout} />
-        <variable.Component model={variable} />
-      </div>
-    );
-  }
-
   return (
-    <div className={containerStyle} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
-      <VariableLabel variable={variable} />
+    <div className={cx(containerStyle, { [verticalContainer]: layout === 'vertical' })} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
+      <VariableLabel variable={variable} layout={layout} />
       <variable.Component model={variable} />
     </div>
   );
@@ -75,7 +66,7 @@ function VariableLabel({ variable, layout }: VariableSelectProps) {
     <ControlsLabel
       htmlFor={elementId}
       isLoading={state.loading}
-      onCancel={() => variable.onCancel?.()}
+      onCancel={variable.onCancel}
       label={labelOrName}
       error={state.error}
       layout={layout}
@@ -84,5 +75,5 @@ function VariableLabel({ variable, layout }: VariableSelectProps) {
   );
 }
 
-const containerStyle = css({ display: 'flex' });
-const verticalContainer = css({ display: 'flex', flexDirection: 'column' });
+const containerStyle = css({ display: 'flex', overflow: 'hidden' });
+const verticalContainer = css({ flexDirection: 'column' });
