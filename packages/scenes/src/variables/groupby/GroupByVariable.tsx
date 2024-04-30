@@ -222,6 +222,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       id={key}
       placeholder={placeholder}
       width="auto"
+      inputValue={inputValue}
       value={uncommittedValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
