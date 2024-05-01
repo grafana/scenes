@@ -1,3 +1,16 @@
+# v4.13.2 (Wed May 01 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - MultiValueVariable: Fixes support for legacy All url value [#712](https://github.com/grafana/scenes/pull/712) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.13.1 (Wed May 01 2024)
 
 #### 🐛 Bug Fix
