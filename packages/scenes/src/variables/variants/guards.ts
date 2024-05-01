@@ -37,6 +37,5 @@ export function isTextBoxVariable(variable: SceneVariable): variable is TextBoxV
 }
 
 export function isGroupByVariable(variable: SceneVariable): variable is GroupByVariable {
-  // @ts-expect-error until we update to grafana-data 10.4.x
   return variable.state.type === 'groupby';
 }
