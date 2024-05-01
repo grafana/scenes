@@ -1,3 +1,16 @@
+# v4.13.1 (Wed May 01 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Chore: Bump various dependencies [#682](https://github.com/grafana/scenes/pull/682) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v4.13.0 (Fri Apr 26 2024)
 
 #### 🚀 Enhancement
