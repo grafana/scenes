@@ -381,7 +381,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   }
 }
 
-function handleLegacyUrlAllValue(value: SceneObjectUrlValue) {
+function handleLegacyUrlAllValue(value: string | string[]) {
   if (isArray(value) && value[0] === ALL_VARIABLE_TEXT) {
     return [ALL_VARIABLE_VALUE];
   } else if (value === ALL_VARIABLE_TEXT) {
