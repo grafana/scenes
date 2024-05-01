@@ -29,12 +29,13 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
   private completeUpdate = new Subject<number>();
   public isGettingValues = true;
   public getValueOptionsCount = 0;
+  isLazy = false;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['query'],
   });
 
-  public constructor(initialState: Partial<TestVariableState>) {
+  public constructor(initialState: Partial<TestVariableState>, isLazy = false) {
     super({
       type: 'custom',
       name: 'Test',
@@ -45,6 +46,7 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       refresh: VariableRefresh.onDashboardLoad,
       ...initialState,
     });
+    this.isLazy = isLazy;
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {

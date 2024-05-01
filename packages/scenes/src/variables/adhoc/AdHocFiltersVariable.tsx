@@ -4,24 +4,28 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
-import { renderPrometheusLabelFilters } from '../utils';
+import { getQueriesForVariables, renderPrometheusLabelFilters } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 
+export interface AdHocFilterWithLabels extends AdHocVariableFilter {
+  keyLabel?: string;
+  valueLabel?: string;
+}
+
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
   addFilterButtonText?: string;
   /** The visible filters */
-  filters: AdHocVariableFilter[];
+  filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
-  baseFilters?: AdHocVariableFilter[];
+  baseFilters?: AdHocFilterWithLabels[];
   /** Datasource to use for getTagKeys and getTagValues and also controls which scene queries the filters should apply to */
   datasource: DataSourceRef | null;
   /** Controls if the filters can be changed */
@@ -69,13 +73,15 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * The default builder creates a Prometheus/Loki compatible filter expression,
    * this can be overridden to create a different expression based on the current filters.
    */
-  expressionBuilder?: (filters: AdHocVariableFilter[]) => string;
+  expressionBuilder?: AdHocVariableExpressionBuilderFn;
 
   /**
    * @internal state of the new filter being added
    */
-  _wip?: AdHocVariableFilter;
+  _wip?: AdHocFilterWithLabels;
 }
+
+export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
@@ -84,7 +90,7 @@ export type getTagKeysProvider = (
 
 export type getTagValuesProvider = (
   variable: AdHocFiltersVariable,
-  filter: AdHocVariableFilter
+  filter: AdHocFilterWithLabels
 ) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
 
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
@@ -107,66 +113,60 @@ export class AdHocFiltersVariable
       filters: [],
       datasource: null,
       applyMode: 'auto',
-      filterExpression: state.filterExpression ?? renderExpression(state),
+      filterExpression: state.filterExpression ?? renderExpression(state.expressionBuilder, state.filters),
       ...state,
     });
 
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
     }
+  }
 
-    // Subscribe to filter changes and up the variable value (filterExpression)
-    this.addActivationHandler(() => {
-      this._subs.add(
-        this.subscribeToState((newState, prevState) => {
-          if (newState.filters !== prevState.filters) {
-            this._updateFilterExpression(newState, true);
-          }
-        })
-      );
+  public setState(update: Partial<AdHocFiltersVariableState>): void {
+    let filterExpressionChanged = false;
 
-      this._updateFilterExpression(this.state, false);
-    });
+    if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {
+      update.filterExpression = renderExpression(this.state.expressionBuilder, update.filters);
+      filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
+    }
+
+    super.setState(update);
+
+    if (filterExpressionChanged) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
   }
 
   public getValue(): VariableValue | undefined {
     return this.state.filterExpression;
   }
 
-  private _updateFilterExpression(state: Partial<AdHocFiltersVariableState>, publishEvent: boolean) {
-    let expr = renderExpression(state);
-
-    if (expr === this.state.filterExpression) {
-      return;
-    }
-
-    this.setState({ filterExpression: expr });
-
-    if (publishEvent) {
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    }
-  }
-
-  public _updateFilter(filter: AdHocVariableFilter, prop: keyof AdHocVariableFilter, value: string | undefined | null) {
+  public _updateFilter(
+    filter: AdHocFilterWithLabels,
+    prop: keyof AdHocFilterWithLabels,
+    { value, label }: SelectableValue<string | undefined | null>
+  ) {
     if (value == null) {
       return;
     }
 
     const { filters, _wip } = this.state;
 
+    const propLabelKey = `${prop}Label`;
+
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if (prop === 'value') {
-        this.setState({ filters: [...filters, { ..._wip, [prop]: value }], _wip: undefined });
+        this.setState({ filters: [...filters, { ..._wip, [prop]: value, [propLabelKey]: label }], _wip: undefined });
       } else {
-        this.setState({ _wip: { ...filter, [prop]: value } });
+        this.setState({ _wip: { ...filter, [prop]: value, [propLabelKey]: label } });
       }
       return;
     }
 
     const updatedFilters = this.state.filters.map((f) => {
       if (f === filter) {
-        return { ...f, [prop]: value };
+        return { ...f, [prop]: value, [propLabelKey]: label };
       }
       return f;
     });
@@ -174,7 +174,7 @@ export class AdHocFiltersVariable
     this.setState({ filters: updatedFilters });
   }
 
-  public _removeFilter(filter: AdHocVariableFilter) {
+  public _removeFilter(filter: AdHocFilterWithLabels) {
     if (filter === this.state._wip) {
       this.setState({ _wip: undefined });
       return;
@@ -204,7 +204,7 @@ export class AdHocFiltersVariable
 
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = this._getSceneQueries();
+    const queries = getQueriesForVariables(this);
     let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange });
 
     if (override) {
@@ -222,7 +222,7 @@ export class AdHocFiltersVariable
   /**
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
-  public async _getValuesFor(filter: AdHocVariableFilter): Promise<Array<SelectableValue<string>>> {
+  public async _getValuesFor(filter: AdHocFilterWithLabels): Promise<Array<SelectableValue<string>>> {
     const override = await this.state.getTagValuesProvider?.(this, filter);
 
     if (override && override.replace) {
@@ -239,7 +239,7 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters ?? []);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = this._getSceneQueries();
+    const queries = getQueriesForVariables(this);
     // @ts-expect-error TODO: remove this once 11.1.x is released
     let values = await ds.getTagValues({ key: filter.key, filters: otherFilters, timeRange, queries });
 
@@ -251,7 +251,9 @@ export class AdHocFiltersVariable
   }
 
   public _addWip() {
-    this.setState({ _wip: { key: '', value: '', operator: '=', condition: '' } });
+    this.setState({
+      _wip: { key: '', keyLabel: '', value: '', valueLabel: '', operator: '=', condition: '' },
+    });
   }
 
   public _getOperators() {
@@ -260,33 +262,13 @@ export class AdHocFiltersVariable
       value,
     }));
   }
-
-  /**
-   * Get all queries in the scene that have the same datasource as this AdHocFilterSet
-   */
-  private _getSceneQueries(): DataQueryExtended[] {
-    const runners = sceneGraph.findAllObjects(
-      this.getRoot(),
-      (o) => o instanceof SceneQueryRunner
-    ) as SceneQueryRunner[];
-
-    const applicableRunners = runners.filter((r) => r.state.datasource?.uid === this.state.datasource?.uid);
-
-    if (applicableRunners.length === 0) {
-      return [];
-    }
-
-    const result: DataQueryExtended[] = [];
-    applicableRunners.forEach((r) => {
-      result.push(...r.state.queries);
-    });
-
-    return result;
-  }
 }
 
-function renderExpression(state: Partial<AdHocFiltersVariableState>) {
-  return (state.expressionBuilder ?? renderPrometheusLabelFilters)(state.filters ?? []);
+function renderExpression(
+  builder: AdHocVariableExpressionBuilderFn | undefined,
+  filters: AdHocFilterWithLabels[] | undefined
+) {
+  return (builder ?? renderPrometheusLabelFilters)(filters ?? []);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {

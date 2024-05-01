@@ -6,6 +6,7 @@ import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
+import { selectors } from '@grafana/e2e-selectors';
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key } = model.useState();
@@ -29,6 +30,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       tabSelectsValue={false}
       onInputChange={onInputChange}
       options={model.getOptionsForSelect()}
+      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
       }}
@@ -77,6 +79,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       onBlur={() => {
         model.changeValueTo(uncommittedValue);
       }}
+      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([]);

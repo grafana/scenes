@@ -52,7 +52,7 @@ describe('AdHocFiltersVariable', () => {
 
     const selects = getAllByRole(wrapper, 'combobox');
 
-    await waitFor(() => select(selects[0], 'key3', { container: document.body }));
+    await waitFor(() => select(selects[0], 'Key 3', { container: document.body }));
     await waitFor(() => select(selects[2], 'val3', { container: document.body }));
 
     expect(filtersVar.state.filters.length).toBe(3);
@@ -124,7 +124,7 @@ describe('AdHocFiltersVariable', () => {
     const { getTagValuesSpy, timeRange } = setup({ filters: [] });
 
     // Select key
-    const key = 'key3';
+    const key = 'Key 3';
     await userEvent.click(screen.getByTestId('AdHocFilter-add'));
     const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
     await waitFor(() => select(selects[0], key, { container: document.body }));
@@ -133,7 +133,7 @@ describe('AdHocFiltersVariable', () => {
     expect(getTagValuesSpy).toBeCalledTimes(1);
     expect(getTagValuesSpy).toBeCalledWith({
       filters: [],
-      key,
+      key: 'key3',
       queries: [
         {
           expr: 'my_metric{}',
@@ -148,7 +148,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', 'newValue');
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -159,8 +159,22 @@ describe('AdHocFiltersVariable', () => {
       locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
     });
 
-    expect(filtersVar.state.filters[0]).toEqual({ key: 'key1', operator: '=', value: 'valUrl', condition: '' });
-    expect(filtersVar.state.filters[1]).toEqual({ key: 'keyUrl', operator: '=~', value: 'urlVal', condition: '' });
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'key1',
+      keyLabel: 'key1',
+      operator: '=',
+      value: 'valUrl',
+      valueLabel: 'valUrl',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'keyUrl',
+      keyLabel: 'keyUrl',
+      operator: '=~',
+      value: 'urlVal',
+      valueLabel: 'urlVal',
+      condition: '',
+    });
   });
 
   it('overrides state when url has empty key', () => {
@@ -193,6 +207,214 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters.length).toEqual(2);
   });
 
+  it('url sync with both key and value labels', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey,New%20Key%7C%3D%7CnewValue,New%20Value&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push(
+        '/?var-filters=newKey,New Key|=|newValue,New Value&var-filters=newKey2,New Key 2|=~|newValue2,New Value 2'
+      );
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'New Key',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'New Value',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'New Key 2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'New Value 2',
+      condition: '',
+    });
+  });
+
+  it('url sync with key label and no value label', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey,New%20Key%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push('/?var-filters=newKey,New Key|=|newValue&var-filters=newKey2,New Key 2|=~|newValue2');
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'New Key',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'newValue',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'New Key 2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'newValue2',
+      condition: '',
+    });
+  });
+
+  it('url sync with no key label and value label', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey%7C%3D%7CnewValue,New%20Value&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push('/?var-filters=newKey|=|newValue,New Value&var-filters=newKey2|=~|newValue2,New Value 2');
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'newKey',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'New Value',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'newKey2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'New Value 2',
+      condition: '',
+    });
+  });
+
+  it('url sync with no key and value labels', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push('/?var-filters=newKey|=|newValue&var-filters=newKey2|=~|newValue2');
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'newKey',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'newValue',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'newKey2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'newValue2',
+      condition: '',
+    });
+  });
+
+  it('url sync with both key and value labels with commas', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'new,Key', label: 'New,Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'new,Value', label: 'New,Value' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=new__gfc__Key,New__gfc__Key%7C%3D%7Cnew__gfc__Value,New__gfc__Value&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push(
+        '/?var-filters=new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value&var-filters=new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2'
+      );
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'new,Key',
+      keyLabel: 'New,Key',
+      operator: '=',
+      value: 'new,Value',
+      valueLabel: 'New,Value',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'new,Key,2',
+      keyLabel: 'New,Key,2',
+      operator: '=~',
+      value: 'new,Value,2',
+      valueLabel: 'New,Value,2',
+      condition: '',
+    });
+  });
+
+  it('url sync with identical key and value labels', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=newKey%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.push('/?var-filters=newKey|=|newValue&var-filters=newKey2,newKey2|=~|newValue2,newValue2');
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'newKey',
+      keyLabel: 'newKey',
+      operator: '=',
+      value: 'newValue',
+      valueLabel: 'newValue',
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'newKey2',
+      keyLabel: 'newKey2',
+      operator: '=~',
+      value: 'newValue2',
+      valueLabel: 'newValue2',
+      condition: '',
+    });
+  });
+
   it('Can override and replace getTagKeys and getTagValues', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
@@ -222,7 +444,7 @@ describe('AdHocFiltersVariable', () => {
 
     const keys = await filtersVar._getKeys(null);
     expect(keys).toEqual([
-      { label: 'key3', value: 'key3' },
+      { label: 'Key 3', value: 'key3' },
       { label: 'hello', value: '1' },
     ]);
 
@@ -258,6 +480,30 @@ describe('AdHocFiltersVariable', () => {
       { label: 'static', value: '2' },
       { label: 'keys', value: '3' },
     ]);
+  });
+
+  it('Selecting a key correctly shows the label', async () => {
+    const { filtersVar } = setup({
+      defaultKeys: [
+        {
+          text: 'some',
+          value: '1',
+        },
+        {
+          text: 'static',
+          value: '2',
+        },
+        {
+          text: 'keys',
+          value: '3',
+        },
+      ],
+    });
+    const selects = screen.getAllByRole('combobox');
+    await waitFor(() => select(selects[0], 'some', { container: document.body }));
+
+    expect(screen.getByText('some')).toBeInTheDocument();
+    expect(filtersVar.state.filters[0].key).toBe('1');
   });
 
   it('Selecting a default key correctly shows the label', async () => {
@@ -299,24 +545,34 @@ describe('AdHocFiltersVariable', () => {
         datasource: { uid: 'hello' },
         applyMode: 'manual',
         filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-          {
-            key: 'key2',
-            operator: '=~',
-            value: '[val2]',
-            condition: '',
-          },
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=~', value: '[val2]' },
         ],
       });
 
       variable.activate();
 
       expect(variable.getValue()).toBe(`key1="val1",key2=~"\\\\[val2\\\\]"`);
+    });
+
+    it('Updates filterExpression on setState', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const stateUpdates: AdHocFiltersVariableState[] = [];
+      variable.subscribeToState((state) => stateUpdates.push(state));
+
+      expect(stateUpdates.length).toBe(0);
+
+      variable.setState({ filters: [{ key: 'key1', operator: '=', value: 'val2' }] });
+
+      expect(stateUpdates).toHaveLength(1);
+      expect(stateUpdates[0].filterExpression).toBe('key1="val2"');
     });
 
     it('Renders correct expression when passed an expression builder', () => {
@@ -329,18 +585,8 @@ describe('AdHocFiltersVariable', () => {
         applyMode: 'manual',
         expressionBuilder,
         filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-          {
-            key: 'key2',
-            operator: '=~',
-            value: '[val2]',
-            condition: '',
-          },
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=~', value: '[val2]' },
         ],
       });
 
@@ -353,14 +599,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       const evtHandler = jest.fn();
@@ -374,14 +613,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       const evtHandler = jest.fn();
@@ -395,14 +627,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       variable.activate();
@@ -439,14 +664,7 @@ describe('AdHocFiltersVariable', () => {
     it('should use the model.state.set.Component to ensure the state filterset is activated', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [
-          {
-            key: 'key1',
-            operator: '=',
-            value: 'val1',
-            condition: '',
-          },
-        ],
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       });
 
       render(<variable.Component model={variable} />);
@@ -470,7 +688,7 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
       return {
         getTagKeys(options: any) {
           getTagKeysSpy(options);
-          return [{ text: 'key3' }];
+          return [{ text: 'Key 3', value: 'key3' }];
         },
         getTagValues(options: any) {
           getTagValuesSpy(options);
@@ -503,18 +721,8 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
     datasource: { uid: 'my-ds-uid' },
     name: 'filters',
     filters: [
-      {
-        key: 'key1',
-        operator: '=',
-        value: 'val1',
-        condition: '',
-      },
-      {
-        key: 'key2',
-        operator: '=',
-        value: 'val2',
-        condition: '',
-      },
+      { key: 'key1', operator: '=', value: 'val1' },
+      { key: 'key2', operator: '=', value: 'val2' },
     ],
     ...overrides,
   });

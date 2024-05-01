@@ -8,6 +8,7 @@ import {
   LoadingState,
   PanelData,
   toDataFrame,
+  toUtc,
   VariableRefresh,
 } from '@grafana/data';
 
@@ -232,6 +233,41 @@ describe('SceneQueryRunner', () => {
     });
   });
 
+  describe("When parent get's scoped time range", () => {
+    it('should subscribe to new local time', async () => {
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+
+      const scene = new TestScene({
+        $timeRange: new SceneTimeRange(),
+        nested: new TestScene({
+          $data: queryRunner,
+        }),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const localTimeRange = new SceneTimeRange({ from: 'now-10m', to: 'now' });
+      scene.state.nested?.setState({ $timeRange: localTimeRange });
+      queryRunner.runQueries();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest?.range).toEqual(localTimeRange.state.value);
+
+      localTimeRange.onTimeRangeChange({
+        from: toUtc('2020-01-01'),
+        to: toUtc('2020-01-02'),
+        raw: { from: 'now-5m', to: 'now' },
+      });
+
+      await new Promise((r) => setTimeout(r, 1));
+      expect(sentRequest?.range.raw).toEqual({ from: 'now-5m', to: 'now' });
+    });
+  });
+
   describe('when activated and got no data', () => {
     it('should run queries', async () => {
       const queryRunner = new SceneQueryRunner({
@@ -312,7 +348,7 @@ describe('SceneQueryRunner', () => {
       expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
 
       // Verify updating filter re-triggers query
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', 'newValue');
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -1045,7 +1081,6 @@ describe('SceneQueryRunner', () => {
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
       const comaprisonRunRequestCall = runRequestMock.mock.calls[1];
-      console.log([comaprisonRunRequestCall]);
       expect(comaprisonRunRequestCall[1].targets.length).toEqual(1);
       expect(comaprisonRunRequestCall[1].targets[0].refId).toEqual('B');
     });
@@ -2034,7 +2069,7 @@ describe('SceneQueryRunner', () => {
       expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
       expect(clone['_results']['_buffer']).not.toEqual([]);
     });
-  })
+  });
 });
 
 class CustomDataSource extends RuntimeDataSource {

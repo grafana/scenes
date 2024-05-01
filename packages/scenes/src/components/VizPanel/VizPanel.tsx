@@ -54,6 +54,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   hoverHeader?: boolean;
   /**
+   * Offset hoverHeader position on the y axis
+   */
+  hoverHeaderOffset?: number;
+  /**
    * Defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
    * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
    */
@@ -143,7 +147,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   public getLegacyPanelId() {
-    return this.getPanelContext().instanceState?.legacyPanelId ?? 1;
+    const panelId = parseInt(this.state.key!.replace('panel-', ''), 10);
+    if (isNaN(panelId)) {
+      return 0;
+    }
+
+    return panelId;
   }
 
   private async _pluginLoaded(plugin: PanelPlugin) {
@@ -199,6 +208,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public getPanelContext(): PanelContext {
     this._panelContext ??= this.buildPanelContext();
+
     return this._panelContext!;
   }
 
@@ -398,6 +408,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   private _onInstanceStateChange = (state: any) => {
+    if (this._panelContext) {
+      this._panelContext = {
+        ...this._panelContext,
+        instanceState: state,
+      };
+    }
+
     this.setState({ _pluginInstanceState: state });
   };
 

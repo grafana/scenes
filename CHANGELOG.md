@@ -1,3 +1,227 @@
+# v4.13.0 (Fri Apr 26 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - sceneGraph: handle interpolations argument in interpolate [#708](https://github.com/grafana/scenes/pull/708) ([@sd2k](https://github.com/sd2k))
+
+#### Authors: 1
+
+- Ben Sully ([@sd2k](https://github.com/sd2k))
+
+---
+
+# v4.12.3 (Wed Apr 24 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Dashboard Migration: Add missing e2e selectors to some components [#648](https://github.com/grafana/scenes/pull/648) ([@axelavargas](https://github.com/axelavargas) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
+# v4.12.2 (Wed Apr 24 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Support detecting new local time range [#707](https://github.com/grafana/scenes/pull/707) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.12.1 (Tue Apr 23 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix how the submenus appear for menus of type group [#704](https://github.com/grafana/scenes/pull/704) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v4.12.0 (Tue Apr 23 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Fixes issue updating instanceState [#702](https://github.com/grafana/scenes/pull/702) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.11.3 (Mon Apr 22 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdhocFilters: Show label for selected key [#690](https://github.com/grafana/scenes/pull/690) ([@ashharrison90](https://github.com/ashharrison90) [@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v4.11.2 (Mon Apr 22 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy: Fetch options when opening menu [#687](https://github.com/grafana/scenes/pull/687) ([@ashharrison90](https://github.com/ashharrison90) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v4.11.1 (Wed Apr 17 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Interval variable: Make interval variable properly update on name change [#701](https://github.com/grafana/scenes/pull/701) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v4.11.0 (Wed Apr 17 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Fix ${__all_variables} not updating their value in panels [#698](https://github.com/grafana/scenes/pull/698) ([@axelavargas](https://github.com/axelavargas))
+
+#### Authors: 1
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
+# v4.10.0 (Wed Apr 17 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - RefreshPicker: Fixed width when going betwen normal and loading state [#695](https://github.com/grafana/scenes/pull/695) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.9.0 (Tue Apr 16 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Annotations: Don't always execute annotations on activate [#635](https://github.com/grafana/scenes/pull/635) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.8.0 (Mon Apr 15 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - LocalValueVariable: Do not throw when missing parent variable [#691](https://github.com/grafana/scenes/pull/691) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.7.0 (Mon Apr 15 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneComponentWrapper: More robust activation [#692](https://github.com/grafana/scenes/pull/692) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.6.0 (Wed Apr 10 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneObjectBase: useState add options that make the new activation behavior optional [#688](https://github.com/grafana/scenes/pull/688) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.5.7 (Wed Apr 10 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters/GroupBy: Resolve queries only from active query runners [#685](https://github.com/grafana/scenes/pull/685) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v4.5.6 (Tue Apr 09 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Allow configuring hover header offset [#674](https://github.com/grafana/scenes/pull/674) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v4.5.5 (Tue Apr 09 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: Fixes issue updating hide state causing variable to be deactivated and preventing it from being shown again [#679](https://github.com/grafana/scenes/pull/679) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.5.4 (Fri Apr 05 2024)
 
 #### 🐛 Bug Fix

@@ -219,6 +219,16 @@ describe('VizPanel', () => {
     });
   });
 
+  describe('getLegacyPanelId', () => {
+    it('should return panel id', () => {
+      const panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        key: 'panel-12',
+      });
+
+      expect(panel.getLegacyPanelId()).toBe(12);
+    });
+  });
+
   describe('updating options', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 

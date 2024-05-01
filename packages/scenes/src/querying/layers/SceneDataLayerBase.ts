@@ -150,15 +150,11 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
       return true;
     }
 
-    if (!this.querySub) {
+    if (!this.state.data) {
       return true;
     }
 
-    if (this.state.data) {
-      return false;
-    }
-
-    return true;
+    return false;
   }
 
   /**

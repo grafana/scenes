@@ -1,6 +1,5 @@
-import { AdHocVariableFilter } from '@grafana/data';
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } from '../../core/types';
-import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
@@ -20,7 +19,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return { [this.getKey()]: [''] };
     }
 
-    const value = filters.map((filter) => toArray(filter).map(escapeDelimiter).join('|'));
+    const value = filters.map((filter) => toArray(filter).map(escapePipeDelimiters).join('|'));
     return { [this.getKey()]: value };
   }
 
@@ -36,7 +35,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
   }
 }
 
-function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocVariableFilter[] {
+function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLabels[] {
   if (Array.isArray(value)) {
     const values = value;
     return values.map(toFilter).filter(isFilter);
@@ -46,41 +45,78 @@ function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocVariableFilte
   return filter === null ? [] : [filter];
 }
 
-function escapeDelimiter(value: string | undefined): string {
+function escapePipeDelimiters(value: string | undefined): string {
   if (value === null || value === undefined) {
     return '';
   }
 
-  return /\|/g[Symbol.replace](value, '__gfp__');
+  // Replace the pipe due to using it as a filter separator
+  return (value = /\|/g[Symbol.replace](value, '__gfp__'));
 }
 
-function unescapeDelimiter(value: string | undefined): string {
+function escapeCommaDelimiters(value: string | undefined): string {
   if (value === null || value === undefined) {
     return '';
   }
 
-  return /__gfp__/g[Symbol.replace](value, '|');
+  // Replace the comma due to using it as a value/label separator
+  return /,/g[Symbol.replace](value, '__gfc__');
 }
 
-function toArray(filter: AdHocVariableFilter): string[] {
-  return [filter.key, filter.operator, filter.value];
+function unescapeDelimiters(value: string | undefined): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  value = /__gfp__/g[Symbol.replace](value, '|');
+  value = /__gfc__/g[Symbol.replace](value, ',');
+
+  return value;
 }
 
-function toFilter(value: string | number | boolean | undefined | null): AdHocVariableFilter | null {
-  if (typeof value !== 'string' || value.length === 0) {
+function toArray(filter: AdHocFilterWithLabels): string[] {
+  return [
+    toCommaDelimitedString(filter.key, filter.keyLabel),
+    filter.operator,
+    toCommaDelimitedString(filter.value, filter.valueLabel),
+  ];
+}
+
+function toCommaDelimitedString(key: string, label?: string): string {
+  // Omit for identical key/label or when label is not set at all
+  if (!label || key === label) {
+    return escapeCommaDelimiters(key);
+  }
+
+  return [key, label].map(escapeCommaDelimiters).join(',');
+}
+
+function toFilter(urlValue: string | number | boolean | undefined | null): AdHocFilterWithLabels | null {
+  if (typeof urlValue !== 'string' || urlValue.length === 0) {
     return null;
   }
 
-  const parts = value.split('|').map(unescapeDelimiter);
+  const [key, keyLabel, operator, _operatorLabel, value, valueLabel] = urlValue
+    .split('|')
+    .reduce<string[]>((acc, v) => {
+      const [key, label] = v.split(',');
+
+      acc.push(key, label ?? key);
+
+      return acc;
+    }, [])
+    .map(unescapeDelimiters);
 
   return {
-    key: parts[0],
-    operator: parts[1],
-    value: parts[2],
+    key,
+    keyLabel,
+    operator,
+    value,
+    valueLabel,
     condition: '',
   };
 }
 
-function isFilter(filter: AdHocVariableFilter | null): filter is AdHocVariableFilter {
+function isFilter(filter: AdHocFilterWithLabels | null): filter is AdHocFilterWithLabels {
   return filter !== null && typeof filter.key === 'string' && typeof filter.value === 'string';
 }

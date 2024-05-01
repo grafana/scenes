@@ -154,6 +154,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
 
   let text = refresh === RefreshPicker.autoOption.value ? autoValue : withText ? 'Refresh' : undefined;
   let tooltip: string | undefined;
+  let width: string | undefined;
 
   if (isRunning) {
     tooltip = 'Cancel all queries';
@@ -163,12 +164,17 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
     }
   }
 
+  if (withText) {
+    width = '96px';
+  }
+
   return (
     <RefreshPicker
       showAutoInterval={autoEnabled}
       value={refresh}
       intervals={intervals}
       tooltip={tooltip}
+      width={width}
       text={text}
       onRefresh={model.onRefresh}
       primary={primary}

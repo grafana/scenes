@@ -1,14 +1,16 @@
+import React, { useEffect, useMemo, useState } from 'react';
 import { AdHocVariableFilter, DataSourceApi, MetricFindValue } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
 import { SceneComponentProps, ControlsLayout } from '../../core/types';
-import { DataQueryExtended, SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { sceneGraph } from '../../core/sceneGraph';
 import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
-import { from, map, mergeMap, Observable, of, take } from 'rxjs';
+import { from, lastValueFrom, map, mergeMap, Observable, of, take } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
-import { renderSelectForVariable } from '../components/VariableValueSelect';
+import { InputActionMeta, MultiSelect } from '@grafana/ui';
+import { isArray } from 'lodash';
+import { getQueriesForVariables } from '../utils';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -52,6 +54,7 @@ export type getTagKeysProvider = (
 
 export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
+  isLazy = true;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -152,7 +155,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       return [];
     }
 
-    const queries = this._getSceneQueries();
+    const queries = getQueriesForVariables(this);
+
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange });
@@ -175,31 +179,67 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   public getDefaultMultiState(options: VariableValueOption[]): { value: VariableValueSingle[]; text: string[] } {
     return { value: [], text: [] };
   }
-
-  /**
-   * Get all queries in the scene that have the same datasource as this AggregationsSet
-   */
-  private _getSceneQueries(): DataQueryExtended[] {
-    const runners = sceneGraph.findAllObjects(
-      this.getRoot(),
-      (o) => o instanceof SceneQueryRunner
-    ) as SceneQueryRunner[];
-
-    const applicableRunners = runners.filter((r) => r.state.datasource?.uid === this.state.datasource?.uid);
-
-    if (applicableRunners.length === 0) {
-      return [];
-    }
-
-    const result: DataQueryExtended[] = [];
-    applicableRunners.forEach((r) => {
-      result.push(...r.state.queries);
-    });
-
-    return result;
-  }
 }
-
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
-  return renderSelectForVariable(model);
+  const { value, key, maxVisibleValues, noValueOnClear } = model.useState();
+  const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
+  const [isFetchingOptions, setIsFetchingOptions] = useState(false);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+
+  // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
+  const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
+
+  // Detect value changes outside
+  useEffect(() => {
+    setUncommittedValue(arrayValue);
+  }, [arrayValue]);
+
+  const onInputChange = model.onSearchChange
+    ? (value: string, meta: InputActionMeta) => {
+        if (meta.action === 'input-change') {
+          model.onSearchChange!(value);
+        }
+      }
+    : undefined;
+
+  const placeholder = 'Select value';
+
+  return (
+    <MultiSelect<VariableValueSingle>
+      data-testid={`GroupBySelect-${key}`}
+      id={key}
+      placeholder={placeholder}
+      width="auto"
+      value={uncommittedValue}
+      noMultiValueWrap={true}
+      maxVisibleValues={maxVisibleValues ?? 5}
+      tabSelectsValue={false}
+      virtualized
+      allowCustomValue
+      options={model.getOptionsForSelect()}
+      closeMenuOnSelect={false}
+      isOpen={isOptionsOpen}
+      isClearable={true}
+      isLoading={isFetchingOptions}
+      onInputChange={onInputChange}
+      onBlur={() => {
+        model.changeValueTo(uncommittedValue);
+      }}
+      onChange={(newValue, action) => {
+        if (action.action === 'clear' && noValueOnClear) {
+          model.changeValueTo([]);
+        }
+        setUncommittedValue(newValue.map((x) => x.value!));
+      }}
+      onOpenMenu={async () => {
+        setIsFetchingOptions(true);
+        await lastValueFrom(model.validateAndUpdate());
+        setIsFetchingOptions(false);
+        setIsOptionsOpen(true);
+      }}
+      onCloseMenu={() => {
+        setIsOptionsOpen(false);
+      }}
+    />
+  );
 }
