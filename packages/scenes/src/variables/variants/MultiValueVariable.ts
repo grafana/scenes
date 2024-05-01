@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import { isArray, isEqual } from 'lodash';
 import { map, Observable } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -364,8 +364,8 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
 
     if (urlValue != null) {
       // This is to be backwards compatible with old url all value
-      if (this._sceneObject.state.includeAll && urlValue === ALL_VARIABLE_TEXT) {
-        urlValue = ALL_VARIABLE_VALUE;
+      if (this._sceneObject.state.includeAll) {
+        urlValue = handleLegacyUrlAllValue(urlValue);
       }
 
       /**
@@ -379,6 +379,16 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
       this._sceneObject.changeValueTo(urlValue);
     }
   }
+}
+
+function handleLegacyUrlAllValue(value: string | string[]) {
+  if (isArray(value) && value[0] === ALL_VARIABLE_TEXT) {
+    return [ALL_VARIABLE_VALUE];
+  } else if (value === ALL_VARIABLE_TEXT) {
+    return ALL_VARIABLE_VALUE;
+  }
+
+  return value;
 }
 
 /**
