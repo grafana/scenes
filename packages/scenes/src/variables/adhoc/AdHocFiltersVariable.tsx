@@ -166,7 +166,14 @@ export class AdHocFiltersVariable
 
     const updatedFilters = this.state.filters.map((f) => {
       if (f === filter) {
-        return { ...f, [prop]: value, [propLabelKey]: label };
+        const updatedFilter = { ...f, [prop]: value, [propLabelKey]: label };
+
+        // clear value if key is changed
+        if (prop === 'key' && filter.key !== value) {
+          updatedFilter.value = '';
+          updatedFilter.valueLabel = '';
+        }
+        return updatedFilter;
       }
       return f;
     });

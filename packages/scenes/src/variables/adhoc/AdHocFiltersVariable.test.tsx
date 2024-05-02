@@ -84,6 +84,17 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('val4');
   });
 
+  it('clears the value of a filter if the key is changed', async () => {
+    const { filtersVar } = setup();
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await waitFor(() => select(selects[0], 'Key 3', { container: document.body }));
+
+    expect(filtersVar.state.filters[0].value).toBe('');
+  });
+
   it('can set a custom value', async () => {
     const { filtersVar, runRequest } = setup();
 
