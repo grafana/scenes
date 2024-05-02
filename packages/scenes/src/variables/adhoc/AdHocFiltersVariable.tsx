@@ -168,8 +168,8 @@ export class AdHocFiltersVariable
       if (f === filter) {
         const updatedFilter = { ...f, [prop]: value, [propLabelKey]: label };
 
-        // clear value if key is changed
-        if (prop === 'key' && filter.key !== value) {
+        // clear value if key has changed
+        if (prop === 'key' && filter[prop] !== value) {
           updatedFilter.value = '';
           updatedFilter.valueLabel = '';
         }
