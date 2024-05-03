@@ -1,3 +1,16 @@
+# v4.14.0 (Fri May 03 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: create an opt-in state variable for using queries to filter the options [#713](https://github.com/grafana/scenes/pull/713) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 1
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+---
+
 # v4.13.2 (Wed May 01 2024)
 
 #### 🐛 Bug Fix
