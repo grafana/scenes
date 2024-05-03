@@ -102,47 +102,87 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
-  it('Should collect and pass respective data source queries to getTagKeys call', async () => {
-    const { getTagKeysSpy, timeRange } = setup({ filters: [] });
+  describe('By default, Without altering `useQueriesAsFilterForOptions`', ()=>{
 
-    // Select key
-    await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-    expect(getTagKeysSpy).toBeCalledTimes(1);
-    expect(getTagKeysSpy).toBeCalledWith({
-      filters: [],
-      queries: [
-        {
-          expr: 'my_metric{}',
-          refId: 'A',
-        },
-      ],
-      timeRange: timeRange.state.value,
+    it('Should not collect and pass respective data source queries to getTagKeys call', async () => {
+      const { getTagKeysSpy, timeRange } = setup({ filters: [] });
+  
+      // Select key
+      await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      expect(getTagKeysSpy).toBeCalledTimes(1);
+      expect(getTagKeysSpy).toBeCalledWith({
+        filters: [],
+        queries: undefined,
+        timeRange: timeRange.state.value,
+      });
+    });
+  
+    it('Should not collect and pass respective data source queries to getTagValues call', async () => {
+      const { getTagValuesSpy, timeRange } = setup({ filters: [] });
+  
+      // Select key
+      const key = 'Key 3';
+      await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
+      await waitFor(() => select(selects[0], key, { container: document.body }));
+      await userEvent.click(selects[2]);
+  
+      expect(getTagValuesSpy).toBeCalledTimes(1);
+      expect(getTagValuesSpy).toBeCalledWith({
+        filters: [],
+        key: 'key3',
+        queries: undefined,
+        timeRange: timeRange.state.value,
+      });
     });
   });
 
-  it('Should collect and pass respective data source queries to getTagValues call', async () => {
-    const { getTagValuesSpy, timeRange } = setup({ filters: [] });
+  describe('When `useQueriesAsFilterForOptions` is set to `true`', ()=>{
 
-    // Select key
-    const key = 'Key 3';
-    await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-    const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
-    await waitFor(() => select(selects[0], key, { container: document.body }));
-    await userEvent.click(selects[2]);
-
-    expect(getTagValuesSpy).toBeCalledTimes(1);
-    expect(getTagValuesSpy).toBeCalledWith({
-      filters: [],
-      key: 'key3',
-      queries: [
-        {
-          expr: 'my_metric{}',
-          refId: 'A',
-        },
-      ],
-      timeRange: timeRange.state.value,
+    it('Should collect and pass respective data source queries to getTagKeys call', async () => {
+      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
+  
+      // Select key
+      await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      expect(getTagKeysSpy).toBeCalledTimes(1);
+      expect(getTagKeysSpy).toBeCalledWith({
+        filters: [],
+        queries: [
+          {
+            expr: 'my_metric{}',
+            refId: 'A',
+          },
+        ],
+        timeRange: timeRange.state.value,
+      });
     });
+  
+    it('Should collect and pass respective data source queries to getTagValues call', async () => {
+      const { getTagValuesSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
+  
+      // Select key
+      const key = 'Key 3';
+      await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
+      await waitFor(() => select(selects[0], key, { container: document.body }));
+      await userEvent.click(selects[2]);
+  
+      expect(getTagValuesSpy).toBeCalledTimes(1);
+      expect(getTagValuesSpy).toBeCalledWith({
+        filters: [],
+        key: 'key3',
+        queries: [
+          {
+            expr: 'my_metric{}',
+            refId: 'A',
+          },
+        ],
+        timeRange: timeRange.state.value,
+      });
+    });
+  
   });
+
 
   it('url sync works', async () => {
     const { filtersVar } = setup();
