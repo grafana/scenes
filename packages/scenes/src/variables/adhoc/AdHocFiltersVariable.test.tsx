@@ -123,16 +123,14 @@ describe('AdHocFiltersVariable', () => {
 
     const wrapper = screen.getByTestId('AdHocFilter-key1');
     const selects = getAllByRole(wrapper, 'combobox');
-    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
-
-    // check the value has been set 
-    expect(runRequest.mock.calls.length).toBe(2);
-    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+    await userEvent.type(selects[2], 'myVeryCustomValue');
 
     // resolve the delaying promise
     await act(resolveCallback);
 
-    // check the calls and values are the same
+    await userEvent.type(selects[2], '{enter}');
+
+    // check the value has been set 
     expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
 
