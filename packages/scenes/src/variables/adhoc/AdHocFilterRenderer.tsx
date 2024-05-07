@@ -23,18 +23,12 @@ function keyLabelToOption(key: string, label?: string): SelectableValue | null {
 export function AdHocFilterRenderer({ filter, model }: Props) {
   const styles = useStyles2(getStyles);
 
-  // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
-  // see https://github.com/grafana/grafana/issues/63558
-  // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
-
-  const [state, setState] = useState<{
-    keys?: SelectableValue[];
-    values?: SelectableValue[];
-    isKeysLoading?: boolean;
-    isValuesLoading?: boolean;
-    isKeysOpen?: boolean;
-    isValuesOpen?: boolean;
-  }>({});
+  const [keys, setKeys] = useState<SelectableValue[]>([]);
+  const [values, setValues] = useState<SelectableValue[]>([]);
+  const [isKeysLoading, setIsKeysLoading] = useState(false);
+  const [isValuesLoading, setIsValuesLoading] = useState(false);
+  const [isKeysOpen, setIsKeysOpen] = useState(false);
+  const [isValuesOpen, setIsValuesOpen] = useState(false);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
@@ -45,23 +39,28 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
       disabled={model.state.readOnly}
-      className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
+      className={isKeysOpen ? styles.widthWhenOpen : undefined}
       width="auto"
       value={valueValue}
       placeholder={'Select value'}
-      options={state.values}
+      options={values}
       onChange={(v) => model._updateFilter(filter, 'value', v)}
-      isOpen={state.isValuesOpen}
-      isLoading={state.isValuesLoading}
+      // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
+      // see https://github.com/grafana/grafana/issues/63558
+      // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
+      isOpen={isValuesOpen && !isValuesLoading}
+      isLoading={isValuesLoading}
       autoFocus={filter.key !== '' && filter.value === ''}
       openMenuOnFocus={true}
       onOpenMenu={async () => {
-        setState({ ...state, isValuesLoading: true, isValuesOpen: true });
+        setIsValuesLoading(true);
+        setIsValuesOpen(true);
         const values = await model._getValuesFor(filter);
-        setState({ ...state, isValuesLoading: false, values });
+        setIsValuesLoading(false);
+        setValues(values);
       }}
       onCloseMenu={() => {
-        setState({ ...state, isValuesOpen: false });
+        setIsValuesOpen(false);
       }}
     />
   );
@@ -70,24 +69,29 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     <Select
       // By changing the key, we reset the Select component,
       // to ensure that the loaded values are shown after they are loaded
-      key={`${state.isValuesLoading ? 'loading' : 'loaded'}`}
+      key={`${isValuesLoading ? 'loading' : 'loaded'}`}
       disabled={model.state.readOnly}
-      className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
+      className={isKeysOpen ? styles.widthWhenOpen : undefined}
       width="auto"
       value={keyValue}
       placeholder={'Select label'}
-      options={state.keys}
+      options={keys}
       onChange={(v) => model._updateFilter(filter, 'key', v)}
       autoFocus={filter.key === ''}
-      isOpen={state.isKeysOpen}
-      isLoading={state.isKeysLoading}
+      // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
+      // see https://github.com/grafana/grafana/issues/63558
+      // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
+      isOpen={isKeysOpen && !isKeysLoading}
+      isLoading={isKeysLoading}
       onOpenMenu={async () => {
-        setState({ ...state, isKeysLoading: true, isKeysOpen: true });
+        setIsKeysOpen(true);
+        setIsKeysLoading(true);
         const keys = await model._getKeys(filter.key);
-        setState({ ...state, isKeysLoading: false, keys });
+        setIsKeysLoading(false);
+        setKeys(keys);
       }}
       onCloseMenu={() => {
-        setState({ ...state, isKeysOpen: false });
+        setIsKeysOpen(false);
       }}
       onBlur={() => {
         if (filter.key === '') {
