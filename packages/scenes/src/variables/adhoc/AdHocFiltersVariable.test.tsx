@@ -102,6 +102,44 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
+  it('Can set a custom value before the list of values returns', async () => {
+    let resolveCallback;
+    const delayingPromise = new Promise((resolve) => resolveCallback = resolve);
+
+    const { filtersVar, runRequest } = setup({
+      getTagValuesProvider: async () => {
+        await delayingPromise;
+        return {
+          replace: true,
+          values: [{ text: 'Value 3', value: 'value3' }]
+        }
+      }
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
+
+    // check the value has been set 
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+
+    // resolve the delaying promise
+    await act(resolveCallback);
+
+    // check the calls and values are the same
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+
+    // check the menu hasn't been opened now that the values have resolved
+    expect(screen.queryByText('Value 3')).not.toBeInTheDocument();
+  });
+
   describe('By default, Without altering `useQueriesAsFilterForOptions`', ()=>{
 
     it('Should not collect and pass respective data source queries to getTagKeys call', async () => {

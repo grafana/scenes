@@ -42,6 +42,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueSelect = (
     <Select
       allowCustomValue
+      allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
       disabled={model.state.readOnly}
       className={state.isKeysOpen ? styles.widthWhenOpen : undefined}
@@ -55,9 +56,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       autoFocus={filter.key !== '' && filter.value === ''}
       openMenuOnFocus={true}
       onOpenMenu={async () => {
-        setState({ ...state, isValuesLoading: true });
+        setState({ ...state, isValuesLoading: true, isValuesOpen: true });
         const values = await model._getValuesFor(filter);
-        setState({ ...state, isValuesLoading: false, isValuesOpen: true, values });
+        setState({ ...state, isValuesLoading: false, values });
       }}
       onCloseMenu={() => {
         setState({ ...state, isValuesOpen: false });
