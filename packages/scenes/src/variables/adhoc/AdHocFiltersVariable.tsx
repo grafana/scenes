@@ -299,8 +299,10 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
 const getStyles = (theme: GrafanaTheme2) => ({
   wrapper: css({
     display: 'flex',
-    gap: theme.spacing(2),
+    flexWrap: 'wrap',
     alignItems: 'flex-end',
+    columnGap: theme.spacing(2),
+    rowGap: theme.spacing(1),
   }),
   filterIcon: css({
     color: theme.colors.text.secondary,
