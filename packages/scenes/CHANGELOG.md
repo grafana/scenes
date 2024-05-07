@@ -1,3 +1,15 @@
+# v4.14.1 (Tue May 07 2024)
+
+#### 🐛 Bug Fix
+
+- Allow filter selectors to wrap [#715](https://github.com/grafana/scenes/pull/715) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v4.14.0 (Fri May 03 2024)
 
 #### 🚀 Enhancement
