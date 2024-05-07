@@ -1,3 +1,15 @@
+# v4.14.2 (Tue May 07 2024)
+
+#### 🐛 Bug Fix
+
+- AdHoc filters: Allow adding custom value while loading [#721](https://github.com/grafana/scenes/pull/721) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v4.14.1 (Tue May 07 2024)
 
 #### 🐛 Bug Fix
