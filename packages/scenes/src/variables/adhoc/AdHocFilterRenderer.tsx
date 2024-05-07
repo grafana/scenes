@@ -82,9 +82,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       isOpen={state.isKeysOpen}
       isLoading={state.isKeysLoading}
       onOpenMenu={async () => {
-        setState({ ...state, isKeysLoading: true });
+        setState({ ...state, isKeysLoading: true, isKeysOpen: true });
         const keys = await model._getKeys(filter.key);
-        setState({ ...state, isKeysLoading: false, isKeysOpen: true, keys });
+        setState({ ...state, isKeysLoading: false, keys });
       }}
       onCloseMenu={() => {
         setState({ ...state, isKeysOpen: false });
