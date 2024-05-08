@@ -1,5 +1,5 @@
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } from '../../core/types';
-import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFilterWithLabels, isFilterComplete } from './AdHocFiltersVariable';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
@@ -19,7 +19,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return { [this.getKey()]: [''] };
     }
 
-    const value = filters.map((filter) => toArray(filter).map(escapePipeDelimiters).join('|'));
+    const value = filters.filter(isFilterComplete).map((filter) => toArray(filter).map(escapePipeDelimiters).join('|'));
     return { [this.getKey()]: value };
   }
 

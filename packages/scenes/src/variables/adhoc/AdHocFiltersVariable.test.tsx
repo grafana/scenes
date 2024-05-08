@@ -502,6 +502,19 @@ describe('AdHocFiltersVariable', () => {
     });
   });
 
+  it('only url sync fully completed filters', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: '', label: '' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=key2%7C%3D%7Cval2'
+    );
+  });
+
   it('Can override and replace getTagKeys and getTagValues', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {

@@ -323,3 +323,7 @@ export function toSelectableValue({ text, value }: MetricFindValue): SelectableV
     value: String(value ?? text),
   };
 }
+
+export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
+  return filter.key !== "" && filter.operator !== "" && filter.value !== "";
+}
