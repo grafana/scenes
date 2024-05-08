@@ -102,6 +102,34 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
+  it('can set the same custom value again', async () => {
+    const { filtersVar, runRequest } = setup();
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue');
+
+    expect(screen.getByText('Use custom value: myVeryCustomValue')).toBeInTheDocument();
+
+    await userEvent.type(selects[2], '{enter}');
+
+    // should not run a new query since the value is the same
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+  });
+
   it('Can set a custom value before the list of values returns', async () => {
     let resolveCallback;
     const delayingPromise = new Promise((resolve) => resolveCallback = resolve);
