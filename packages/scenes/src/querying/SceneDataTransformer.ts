@@ -1,6 +1,6 @@
 import { DataTopic, DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
 import { toDataQueryError } from '@grafana/runtime';
-import { catchError, map, merge, of, ReplaySubject, Unsubscribable } from 'rxjs';
+import { catchError, forkJoin, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
@@ -25,6 +25,7 @@ export interface SceneDataTransformerState extends SceneDataState {
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> implements SceneDataProvider {
   private _transformSub?: Unsubscribable;
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
+
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
    */
@@ -140,20 +141,23 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       },
     };
 
-    const seriesStream = transformDataFrame(seriesTransformations, data.series, ctx);
-    const annotationsStream = transformDataFrame(annotationsTransformations, data.annotations ?? [], ctx);
+    let streams = [transformDataFrame(seriesTransformations, data.series, ctx)];
 
-    let transformedData = { ...data };
+    if (data.annotations && data.annotations.length > 0 && annotationsTransformations.length > 0) {
+      streams.push(transformDataFrame(annotationsTransformations, data.annotations ?? []));
+    }
 
-    this._transformSub = merge(annotationsStream, seriesStream)
+    this._transformSub = forkJoin(streams)
       .pipe(
-        map((frames) => {
-          const isAnnotations = frames.some((f) => f.meta?.dataTopic === DataTopic.Annotations);
-          const transformed = isAnnotations ? { annotations: frames } : { series: frames };
+        map((values) => {
+          const transformedSeries = values[0];
+          const transformedAnnotations = values[1];
 
-          transformedData = { ...transformedData, ...transformed };
-
-          return transformedData;
+          return {
+            ...data,
+            series: transformedSeries,
+            annotations: transformedAnnotations ?? data.annotations,
+          };
         }),
         catchError((err) => {
           console.error('Error transforming data: ', err);

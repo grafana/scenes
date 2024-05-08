@@ -542,6 +542,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
+    // Save query annotations
+    this._resultAnnotations = data.annotations;
+
     // Will combine annotations & alert state from data layer providers
     const dataWithLayersApplied = this._combineDataLayers(preProcessedData);
 
@@ -551,16 +554,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       hasFetchedData = true;
     }
 
-    this._resultAnnotations = data.annotations;
-
     this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
 
     this._results.next({ origin: this, data: dataWithLayersApplied });
   };
 
   private _combineDataLayers(data: PanelData) {
-    if (this.state.data && this.state.data.annotations) {
-      data.annotations = (data.annotations || []).concat(this._layerAnnotations ?? []);
+    if (this._layerAnnotations && this._layerAnnotations.length > 0) {
+      data.annotations = (data.annotations || []).concat(this._layerAnnotations);
     }
 
     if (this.state.data && this.state.data.alertState) {
