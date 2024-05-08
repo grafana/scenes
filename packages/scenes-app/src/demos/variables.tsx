@@ -45,6 +45,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   text: '',
                   description: 'Server name',
                   delayMs: 1000,
+                  isMulti: true,
                   options: [],
                   refresh: VariableRefresh.onTimeRangeChanged,
                 }),

@@ -1,12 +1,14 @@
 import { isArray } from 'lodash';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { RefCallback, useEffect, useMemo, useState } from 'react';
 
-import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
+import { Checkbox, InputActionMeta, MultiSelect, Select, getSelectStyles, useStyles2, useTheme2 } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
+import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { css, cx } from '@emotion/css';
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key } = model.useState();
@@ -42,22 +44,31 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
   const { value, key, maxVisibleValues, noValueOnClear } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   const options = model.getOptionsForSelect();
-
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
+  const [inputValue, setInputValue] = useState('');
 
   // Detect value changes outside
   useEffect(() => {
     setUncommittedValue(arrayValue);
   }, [arrayValue]);
 
-  const onInputChange = model.onSearchChange
-    ? (value: string, meta: InputActionMeta) => {
-        if (meta.action === 'input-change') {
-          model.onSearchChange!(value);
-        }
+  const onInputChange = (value: string, { action }: InputActionMeta) => {
+    if (action === 'input-change') {
+      setInputValue(value);
+      if (model.onSearchChange) {
+        model.onSearchChange!(value);
       }
-    : undefined;
+      return value;
+    }
+
+    if (action === 'input-blur') {
+      setInputValue('');
+      return '';
+    }
+
+    return inputValue;
+  };
 
   const placeholder = options.length > 0 ? 'Select value' : '';
 
@@ -66,6 +77,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       id={key}
       placeholder={placeholder}
       width="auto"
+      inputValue={inputValue}
       value={uncommittedValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
@@ -74,7 +86,9 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       allowCustomValue
       options={model.getOptionsForSelect()}
       closeMenuOnSelect={false}
+      components={{ Option: OptionWithCheckbox }}
       isClearable={true}
+      hideSelectedOptions={false}
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(uncommittedValue);
@@ -89,6 +103,59 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
     />
   );
 }
+
+interface SelectMenuOptionProps<T> {
+  isDisabled: boolean;
+  isFocused: boolean;
+  isSelected: boolean;
+  innerProps: JSX.IntrinsicElements['div'];
+  innerRef: RefCallback<HTMLDivElement>;
+  renderOptionLabel?: (value: SelectableValue<T>) => JSX.Element;
+  data: SelectableValue<T>;
+}
+
+export const OptionWithCheckbox = ({
+  children,
+  data,
+  innerProps,
+  innerRef,
+  isFocused,
+  isSelected,
+  renderOptionLabel,
+}: React.PropsWithChildren<SelectMenuOptionProps<unknown>>) => {
+  // We are removing onMouseMove and onMouseOver from innerProps because they cause the whole
+  // list to re-render everytime the user hovers over an option. This is a performance issue.
+  // See https://github.com/JedWatson/react-select/issues/3128#issuecomment-451936743
+  const { onMouseMove, onMouseOver, ...rest } = innerProps;
+  const theme = useTheme2();
+  const selectStyles = getSelectStyles(theme);
+  const optionStyles = useStyles2(getOptionStyles);
+
+  return (
+    <div
+      ref={innerRef}
+      className={cx(selectStyles.option, isFocused && selectStyles.optionFocused)}
+      {...rest}
+      aria-label="Select option"
+      title={data.title}
+    >
+      <div className={optionStyles.checkbox}>
+        <Checkbox value={isSelected} />
+      </div>
+      <div className={selectStyles.optionBody}>
+        <span>{children}</span>
+      </div>
+    </div>
+  );
+};
+
+OptionWithCheckbox.displayName = 'SelectMenuOptions';
+
+const getOptionStyles = (theme: GrafanaTheme2) => ({
+  checkbox: css({
+    marginRight: theme.spacing(2),
+  }),
+});
 
 export function renderSelectForVariable(model: MultiValueVariable) {
   if (model.state.isMulti) {
