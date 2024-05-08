@@ -121,12 +121,16 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       return true;
     }
 
-    if (data.series === this._prevDataFromSource.series && data.annotations === this._prevDataFromSource.annotations) {
-      if (data.state !== this._prevDataFromSource.state) {
+    const { series, annotations } = this._prevDataFromSource;
+
+    if (data.series === series && data.annotations === annotations) {
+      if (this.state.data && data.state !== this.state.data.state) {
         this.setState({ data: { ...this.state.data, state: data.state } });
       }
       return true;
     }
+
+    return false;
   }
 
   private transform(data: PanelData | undefined, force = false) {
