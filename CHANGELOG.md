@@ -1,3 +1,16 @@
+# v4.16.0 (Wed May 08 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Types: Export `FieldConfigOverridesBuilder` [#719](https://github.com/grafana/scenes/pull/719) ([@svennergr](https://github.com/svennergr))
+
+#### Authors: 1
+
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+
+---
+
 # v4.15.0 (Wed May 08 2024)
 
 #### 🚀 Enhancement
