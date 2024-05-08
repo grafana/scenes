@@ -1,3 +1,15 @@
+# v4.15.0 (Wed May 08 2024)
+
+#### 🚀 Enhancement
+
+- SceneDataTransformer: Fixes transformer emitting untransformed series [#720](https://github.com/grafana/scenes/pull/720) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.14.2 (Tue May 07 2024)
 
 #### 🐛 Bug Fix
