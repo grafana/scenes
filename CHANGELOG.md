@@ -1,3 +1,16 @@
+# v4.17.0 (Wed May 08 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VariableSelect: Multi select design update and behavior improvements [#709](https://github.com/grafana/scenes/pull/709) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.16.0 (Wed May 08 2024)
 
 #### 🚀 Enhancement
