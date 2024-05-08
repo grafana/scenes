@@ -1,3 +1,15 @@
+# v4.17.1 (Wed May 08 2024)
+
+#### 🐛 Bug Fix
+
+- AdHoc filters: Apply `isKeysOpen` state changes synchronously [#722](https://github.com/grafana/scenes/pull/722) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v4.17.0 (Wed May 08 2024)
 
 #### 🚀 Enhancement
