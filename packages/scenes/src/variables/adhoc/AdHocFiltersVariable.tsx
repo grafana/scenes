@@ -76,6 +76,14 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   expressionBuilder?: AdHocVariableExpressionBuilderFn;
 
   /**
+   * When querying the datasource for label names and values to determine keys and values 
+   * for this ad hoc filter, consider the queries in the scene and use them as a filter.
+   * This queries filter can be used to ensure that only ad hoc filter options that would
+   * impact the current queries are presented to the user.
+   */
+  useQueriesAsFilterForOptions?: boolean
+
+  /**
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;
@@ -211,7 +219,7 @@ export class AdHocFiltersVariable
 
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = getQueriesForVariables(this);
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
     let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange });
 
     if (override) {
@@ -246,7 +254,7 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters ?? []);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = getQueriesForVariables(this);
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
     // @ts-expect-error TODO: remove this once 11.1.x is released
     let values = await ds.getTagValues({ key: filter.key, filters: otherFilters, timeRange, queries });
 
@@ -298,8 +306,10 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
 const getStyles = (theme: GrafanaTheme2) => ({
   wrapper: css({
     display: 'flex',
-    gap: theme.spacing(2),
+    flexWrap: 'wrap',
     alignItems: 'flex-end',
+    columnGap: theme.spacing(2),
+    rowGap: theme.spacing(1),
   }),
   filterIcon: css({
     color: theme.colors.text.secondary,

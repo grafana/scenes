@@ -11,6 +11,7 @@ import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect } from '@grafana/ui';
 import { isArray } from 'lodash';
 import { getQueriesForVariables } from '../utils';
+import { OptionWithCheckbox } from '../components/VariableValueSelect';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -185,6 +186,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   const [isFetchingOptions, setIsFetchingOptions] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
@@ -194,13 +196,22 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     setUncommittedValue(arrayValue);
   }, [arrayValue]);
 
-  const onInputChange = model.onSearchChange
-    ? (value: string, meta: InputActionMeta) => {
-        if (meta.action === 'input-change') {
-          model.onSearchChange!(value);
-        }
+  const onInputChange = (value: string, { action }: InputActionMeta) => {
+    if (action === 'input-change') {
+      setInputValue(value);
+      if (model.onSearchChange) {
+        model.onSearchChange!(value);
       }
-    : undefined;
+      return value;
+    }
+
+    if (action === 'input-blur') {
+      setInputValue('');
+      return '';
+    }
+
+    return inputValue;
+  };
 
   const placeholder = 'Select value';
 
@@ -210,6 +221,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       id={key}
       placeholder={placeholder}
       width="auto"
+      inputValue={inputValue}
       value={uncommittedValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
@@ -220,7 +232,9 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       closeMenuOnSelect={false}
       isOpen={isOptionsOpen}
       isClearable={true}
+      hideSelectedOptions={false}
       isLoading={isFetchingOptions}
+      components={{ Option: OptionWithCheckbox }}
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(uncommittedValue);

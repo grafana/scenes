@@ -15,7 +15,7 @@ import {
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
-import { SceneDataTransformer } from './SceneDataTransformer';
+import { SceneDataTransformer, SceneDataTransformerState } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
@@ -518,6 +518,34 @@ describe('SceneDataTransformer', () => {
       expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([14, 24, 34]);
       expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([5, 6, 7]);
     });
+  });
+
+  it('Never returns untransformed data', () => {
+    //  multiply by 2, divide values by 100, multiply by 2, divide values by 100
+    const transformationNode = new SceneDataTransformer({
+      transformations: [annotationTransformerConfig, transformer1config],
+      $data: sourceDataNode,
+    });
+
+    transformationNode.activate();
+
+    const stateUpdates: SceneDataTransformerState[] = [];
+    transformationNode.subscribeToState((state) => stateUpdates.push(state));
+
+    sourceDataNode.setState({
+      data: {
+        state: LoadingState.Done,
+        timeRange: getDefaultTimeRange(),
+        series: [toDataFrame([[10, 10]])],
+        annotations: toAnnotationDataFrame([toDataFrame([[100, 10]])]),
+      },
+    });
+
+    const data = stateUpdates[0].data;
+    // Verify series are transformed
+    expect(data.series[0].fields[0].values[0]).toBe(10 * 2);
+    // Verify annotations are transformed
+    expect(data.annotations[0].fields[0].values[0]).toBe(100 + 4);
   });
 
   describe('With inner query runner', () => {

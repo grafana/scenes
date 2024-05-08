@@ -1,3 +1,87 @@
+# v4.17.1 (Wed May 08 2024)
+
+#### 🐛 Bug Fix
+
+- AdHoc filters: Apply `isKeysOpen` state changes synchronously [#722](https://github.com/grafana/scenes/pull/722) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v4.17.0 (Wed May 08 2024)
+
+#### 🚀 Enhancement
+
+- VariableSelect: Multi select design update and behavior improvements [#709](https://github.com/grafana/scenes/pull/709) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.16.0 (Wed May 08 2024)
+
+#### 🚀 Enhancement
+
+- Types: Export `FieldConfigOverridesBuilder` [#719](https://github.com/grafana/scenes/pull/719) ([@svennergr](https://github.com/svennergr))
+
+#### Authors: 1
+
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+
+---
+
+# v4.15.0 (Wed May 08 2024)
+
+#### 🚀 Enhancement
+
+- SceneDataTransformer: Fixes transformer emitting untransformed series [#720](https://github.com/grafana/scenes/pull/720) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.14.2 (Tue May 07 2024)
+
+#### 🐛 Bug Fix
+
+- AdHoc filters: Allow adding custom value while loading [#721](https://github.com/grafana/scenes/pull/721) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v4.14.1 (Tue May 07 2024)
+
+#### 🐛 Bug Fix
+
+- Allow filter selectors to wrap [#715](https://github.com/grafana/scenes/pull/715) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v4.14.0 (Fri May 03 2024)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersVariable: create an opt-in state variable for using queries to filter the options [#713](https://github.com/grafana/scenes/pull/713) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 1
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+---
+
 # v4.13.2 (Wed May 01 2024)
 
 #### 🐛 Bug Fix
