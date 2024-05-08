@@ -2,11 +2,11 @@ import { filter, finalize, map, merge, mergeAll } from 'rxjs';
 import { CancelActivationHandler, SceneDataLayerProvider, SceneDataProviderResult } from '../core/types';
 
 export class DataLayersMerger {
-  private _resultsMap?: Map<string, SceneDataProviderResult>;
-  private _prevLayers?: SceneDataLayerProvider[];
+  private _resultsMap: Map<string, SceneDataProviderResult> = new Map();
+  private _prevLayers: SceneDataLayerProvider[] = [];
 
   public getMergedStream(layers: SceneDataLayerProvider[]) {
-    if (!this._resultsMap || areDifferentLayers(layers, this._prevLayers)) {
+    if (areDifferentLayers(layers, this._prevLayers)) {
       this._resultsMap = new Map();
       this._prevLayers = layers;
     }
