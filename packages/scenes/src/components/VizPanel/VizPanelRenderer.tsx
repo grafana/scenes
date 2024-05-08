@@ -36,8 +36,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const timeZone = sceneTimeRange.getTimeZone();
   const timeRange = model.getTimeRange(dataWithFieldConfig);
 
-  console.log('VizPanel render');
-
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
 

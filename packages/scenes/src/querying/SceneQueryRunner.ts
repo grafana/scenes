@@ -185,8 +185,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
     }
 
-    console.log('_onLayersReceived', annotations, alertStates);
-
     // Skip unnessary state updates
     if (
       alertState === this.state.data?.alertState &&
