@@ -651,6 +651,58 @@ describe('SceneDataTransformer', () => {
       });
     });
   });
+
+  describe('Only transform data when there is new data received', () => {
+    it('When data is the same on second activation', async () => {
+      const transformer = new SceneDataTransformer({
+        $data: new SceneDataNode({
+          data: {
+            state: LoadingState.Done,
+            timeRange: getDefaultTimeRange(),
+            series: [arrayToDataFrame([1, 2, 3])],
+          },
+        }),
+        transformations: [customTransformOperator],
+      });
+
+      const deactivate = transformer.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      deactivate();
+
+      transformer.activate();
+
+      const clone = transformer.clone();
+      clone.activate();
+
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('When series and annotations are the same but loading state is not', async () => {
+      const dataNode = new SceneDataNode({
+        data: {
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+          series: [arrayToDataFrame([1, 2, 3])],
+        },
+      });
+
+      const transformer = new SceneDataTransformer({
+        $data: dataNode,
+        transformations: [customTransformOperator],
+      });
+
+      transformer.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      dataNode.setState({ data: { ...dataNode.state.data, state: LoadingState.Loading } });
+
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+      expect(transformer.state.data.state).toBe(LoadingState.Loading);
+    });
+  });
 });
 
 export interface SceneObjectSearchBoxState extends SceneObjectState {
