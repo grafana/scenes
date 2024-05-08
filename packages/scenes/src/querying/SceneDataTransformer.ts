@@ -102,6 +102,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   private transform(data: PanelData | undefined) {
+    console.log('SceneDataTransformer.transform');
+
     const seriesTransformations = this.state.transformations
       .filter((transformation) => {
         if ('options' in transformation || 'topic' in transformation) {

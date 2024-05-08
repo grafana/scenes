@@ -32,8 +32,13 @@ export class TestAnnotationsDataLayer
   public startRun() {
     this.publishResults({ ...emptyPanelData, state: LoadingState.Loading });
   }
+
   public completeRun() {
     this.publishResults(this.getResults());
+  }
+
+  public completeEmpty() {
+    this.publishResults({ ...emptyPanelData });
   }
 
   public completeRunWithError() {

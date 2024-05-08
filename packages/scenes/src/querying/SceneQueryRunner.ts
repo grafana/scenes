@@ -44,7 +44,7 @@ import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActive
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
-import { mergeMultipleDataLayers } from './mergeMultipleDataLayers';
+import { DataLayersMerger } from './DataLayersMerger';
 
 let counter = 100;
 
@@ -78,6 +78,7 @@ export interface DataQueryExtended extends DataQuery {
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
   private _dataLayersSub?: Unsubscribable;
+  private _dataLayersMerger = new DataLayersMerger();
   private _timeSub?: Unsubscribable;
   private _timeSubRange?: SceneTimeRangeLike;
   private _containerWidth?: number;
@@ -141,7 +142,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    this._dataLayersSub = mergeMultipleDataLayers(dataLayers).subscribe(this._onLayersReceived.bind(this));
+    this._dataLayersSub = this._dataLayersMerger
+      .getMergedStream(dataLayers)
+      .subscribe(this._onLayersReceived.bind(this));
   }
 
   private _onLayersReceived(results: Iterable<SceneDataProviderResult>) {
@@ -182,9 +185,21 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
     }
 
-    const baseStateUpdate = this.state.data ? this.state.data : { ...emptyPanelData, timeRange: timeRange.state.value };
+    console.log('_onLayersReceived', annotations, alertStates);
+
+    // Skip unnessary state updates
+    if (
+      alertState === this.state.data?.alertState &&
+      allFramesEmpty(annotations) &&
+      allFramesEmpty(this._layerAnnotations)
+    ) {
+      return;
+    }
 
     this._layerAnnotations = annotations;
+
+    const baseStateUpdate = this.state.data ? this.state.data : { ...emptyPanelData, timeRange: timeRange.state.value };
+
     this.setState({
       data: {
         ...baseStateUpdate,
@@ -555,7 +570,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
-
     this._results.next({ origin: this, data: dataWithLayersApplied });
   };
 
@@ -635,4 +649,18 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {
   return targets.find((t) => t.datasource !== null)?.datasource ?? undefined;
+}
+
+function allFramesEmpty(frames?: DataFrame[]) {
+  if (!frames) {
+    return true;
+  }
+
+  for (let i = 0; i < frames.length; i++) {
+    if (frames[i].length > 0) {
+      return false;
+    }
+  }
+
+  return true;
 }

@@ -14,7 +14,7 @@ import {
 
 import { SceneTimeRange } from '../core/SceneTimeRange';
 
-import { SceneQueryRunner } from './SceneQueryRunner';
+import { QueryRunnerState, SceneQueryRunner } from './SceneQueryRunner';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
@@ -1279,6 +1279,31 @@ describe('SceneQueryRunner', () => {
       layer.completeRun();
 
       expect(queryRunner.state.data?.annotations).toHaveLength(1);
+    });
+
+    it('should not cause unnessaray state updates', async () => {
+      const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      const stateUpdates: QueryRunnerState[] = [];
+      queryRunner.subscribeToState((state) => stateUpdates.push(state));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.annotations).toHaveLength(0);
+      expect(queryRunner.state.data?.series).toBeDefined();
+
+      layer.completeEmpty();
+
+      expect(stateUpdates).toHaveLength(1);
     });
 
     describe('canceling queries', () => {
