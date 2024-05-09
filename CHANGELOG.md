@@ -1,3 +1,16 @@
+# v4.17.2 (Thu May 09 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: clear filter value when key is changed [#714](https://github.com/grafana/scenes/pull/714) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v4.17.1 (Wed May 08 2024)
 
 #### 🐛 Bug Fix
