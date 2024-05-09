@@ -543,9 +543,9 @@ describe('SceneDataTransformer', () => {
 
     const data = stateUpdates[0].data;
     // Verify series are transformed
-    expect(data.series[0].fields[0].values[0]).toBe(10 * 2);
+    expect(data?.series[0].fields[0].values[0]).toBe(10 * 2);
     // Verify annotations are transformed
-    expect(data.annotations[0].fields[0].values[0]).toBe(100 + 4);
+    expect(data?.annotations?.[0].fields[0].values[0]).toBe(100 + 4);
   });
 
   describe('With inner query runner', () => {

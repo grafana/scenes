@@ -103,17 +103,17 @@ describe('AdHocFiltersVariable', () => {
   });
 
   it('Can set a custom value before the list of values returns', async () => {
-    let resolveCallback;
-    const delayingPromise = new Promise((resolve) => resolveCallback = resolve);
+    let resolveCallback = (v: string) => {};
+    const delayingPromise = new Promise<string>((resolve) => (resolveCallback = resolve));
 
     const { filtersVar, runRequest } = setup({
       getTagValuesProvider: async () => {
         await delayingPromise;
         return {
           replace: true,
-          values: [{ text: 'Value 3', value: 'value3' }]
-        }
-      }
+          values: [{ text: 'Value 3', value: 'value3' }],
+        };
+      },
     });
 
     await new Promise((r) => setTimeout(r, 1));
@@ -126,11 +126,11 @@ describe('AdHocFiltersVariable', () => {
     await userEvent.type(selects[2], 'myVeryCustomValue');
 
     // resolve the delaying promise
-    await act(resolveCallback);
+    act(() => resolveCallback(''));
 
     await userEvent.type(selects[2], '{enter}');
 
-    // check the value has been set 
+    // check the value has been set
     expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
 
@@ -138,11 +138,10 @@ describe('AdHocFiltersVariable', () => {
     expect(screen.queryByText('Value 3')).not.toBeInTheDocument();
   });
 
-  describe('By default, Without altering `useQueriesAsFilterForOptions`', ()=>{
-
+  describe('By default, Without altering `useQueriesAsFilterForOptions`', () => {
     it('Should not collect and pass respective data source queries to getTagKeys call', async () => {
       const { getTagKeysSpy, timeRange } = setup({ filters: [] });
-  
+
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       expect(getTagKeysSpy).toBeCalledTimes(1);
@@ -152,17 +151,17 @@ describe('AdHocFiltersVariable', () => {
         timeRange: timeRange.state.value,
       });
     });
-  
+
     it('Should not collect and pass respective data source queries to getTagValues call', async () => {
       const { getTagValuesSpy, timeRange } = setup({ filters: [] });
-  
+
       // Select key
       const key = 'Key 3';
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
-  
+
       expect(getTagValuesSpy).toBeCalledTimes(1);
       expect(getTagValuesSpy).toBeCalledWith({
         filters: [],
@@ -173,11 +172,10 @@ describe('AdHocFiltersVariable', () => {
     });
   });
 
-  describe('When `useQueriesAsFilterForOptions` is set to `true`', ()=>{
-
+  describe('When `useQueriesAsFilterForOptions` is set to `true`', () => {
     it('Should collect and pass respective data source queries to getTagKeys call', async () => {
       const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
-  
+
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       expect(getTagKeysSpy).toBeCalledTimes(1);
@@ -192,17 +190,17 @@ describe('AdHocFiltersVariable', () => {
         timeRange: timeRange.state.value,
       });
     });
-  
+
     it('Should collect and pass respective data source queries to getTagValues call', async () => {
       const { getTagValuesSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
-  
+
       // Select key
       const key = 'Key 3';
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
-  
+
       expect(getTagValuesSpy).toBeCalledTimes(1);
       expect(getTagValuesSpy).toBeCalledWith({
         filters: [],
@@ -216,9 +214,7 @@ describe('AdHocFiltersVariable', () => {
         timeRange: timeRange.state.value,
       });
     });
-  
   });
-
 
   it('url sync works', async () => {
     const { filtersVar } = setup();

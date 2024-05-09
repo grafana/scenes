@@ -2062,10 +2062,10 @@ describe('SceneQueryRunner', () => {
       const clone = queryRunner.clone();
 
       expect(clone['_resultAnnotations']).not.toBeUndefined();
-      expect(clone['_resultAnnotations'].length).toBe(1);
+      expect(clone['_resultAnnotations']?.length).toBe(1);
       expect(clone['_resultAnnotations']).toStrictEqual(queryRunner['_resultAnnotations']);
       expect(clone['_layerAnnotations']).not.toBeUndefined();
-      expect(clone['_layerAnnotations'].length).toBe(1);
+      expect(clone['_layerAnnotations']?.length).toBe(1);
       expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
       expect(clone['_results']['_buffer']).not.toEqual([]);
     });
