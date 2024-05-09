@@ -84,6 +84,17 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('val4');
   });
 
+  it('clears the value of a filter if the key is changed', async () => {
+    const { filtersVar } = setup();
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await waitFor(() => select(selects[0], 'Key 3', { container: document.body }));
+
+    expect(filtersVar.state.filters[0].value).toBe('');
+  });
+
   it('can set a custom value', async () => {
     const { filtersVar, runRequest } = setup();
 
@@ -489,6 +500,19 @@ describe('AdHocFiltersVariable', () => {
       valueLabel: 'newValue2',
       condition: '',
     });
+  });
+
+  it('only url sync fully completed filters', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: '', label: '' });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=key2%7C%3D%7Cval2'
+    );
   });
 
   it('Can override and replace getTagKeys and getTagValues', async () => {
