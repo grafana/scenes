@@ -1,3 +1,15 @@
+# v4.17.3 (Thu May 09 2024)
+
+#### 🐛 Bug Fix
+
+- AdHoc filters: Allow typing the same custom value [#723](https://github.com/grafana/scenes/pull/723) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v4.17.2 (Thu May 09 2024)
 
 #### 🐛 Bug Fix
