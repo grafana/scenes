@@ -22,6 +22,7 @@ import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState 
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
 import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneTimeRange } from '../core/SceneTimeRange';
+import { subscribeToStateUpdates } from '../../utils/test/utils';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
 
@@ -529,8 +530,7 @@ describe('SceneDataTransformer', () => {
 
     transformationNode.activate();
 
-    const stateUpdates: SceneDataTransformerState[] = [];
-    transformationNode.subscribeToState((state) => stateUpdates.push(state));
+    const stateUpdates = subscribeToStateUpdates(transformationNode);
 
     sourceDataNode.setState({
       data: {
