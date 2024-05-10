@@ -1,14 +1,15 @@
 import React from 'react';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { PluginPage } from '@grafana/runtime';
-import { SceneContextProvider, useTimeRange, useVariableValues, useVariables } from './SceneContextProvider';
+import { SceneContextProvider, useTimeRange, useVariableValues } from './SceneContextProvider';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
-import { Stack, TimeRangePicker, useTheme2 } from '@grafana/ui';
+import { Stack, useTheme2 } from '@grafana/ui';
 import { CustomVariable } from '../variables/variants/CustomVariable';
 import { useSceneQuery } from './useSceneQuery';
 import { RVizPanel } from './RVizPanel';
-import { VariableValueSelectWrapper } from '../variables/components/VariableValueSelectors';
+import { RTimeRangePicker } from './RTimeRangePicker';
+import { RVariableSelect } from './RVariableSelect';
 
 export function ReactContextDemo() {
   return (
@@ -59,25 +60,12 @@ function PrintTime() {
 }
 
 function SceneControls() {
-  const [value, onChangeTimeRange] = useTimeRange();
-  const variables = useVariables();
-
   return (
     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
-      {variables.map((variable) => (
-        <VariableValueSelectWrapper key={variable.state.key} variable={variable} />
-      ))}
-      <TimeRangePicker
-        isOnCanvas={true}
-        value={value}
-        onChange={onChangeTimeRange}
-        timeZone={'utc'}
-        onMoveBackward={() => {}}
-        onMoveForward={() => {}}
-        onZoom={() => {}}
-        onChangeTimeZone={() => {}}
-        onChangeFiscalYearStartMonth={() => {}}
-      />
+      <RVariableSelect name="server" />
+      <RVariableSelect name="pod" />
+      <RVariableSelect name="panels" />
+      <RTimeRangePicker />
     </div>
   );
 }

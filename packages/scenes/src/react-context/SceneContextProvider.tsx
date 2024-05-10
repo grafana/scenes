@@ -1,13 +1,9 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneDataState, SceneObject, SceneObjectState } from '../core/types';
+import { SceneObject, SceneObjectState, SceneTimeRangeLike } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
-import { PanelData, TimeRange } from '@grafana/data';
-import { TimeRangePicker } from '@grafana/ui';
-import { SceneVariable, SceneVariables, VariableValue, VariableValueSingle } from '../variables/types';
-import { VariableValueSelectWrapper } from '../variables/components/VariableValueSelectors';
-import { RVizPanel } from './RVizPanel';
-import { useSceneQuery } from './useSceneQuery';
+import { TimeRange } from '@grafana/data';
+import { SceneVariable, SceneVariables, VariableValueSingle } from '../variables/types';
 
 export interface SceneContextValue {
   scene: ReactSceneContextObject;
@@ -24,16 +20,20 @@ export const SceneContext = createContext<SceneContextValue>({
   scene: new ReactSceneContextObject({ children: [] }),
 });
 
-export function useTimeRange(): [TimeRange, (timeRange: TimeRange) => void] {
-  const { scene } = useContext(SceneContext);
+export function useSceneContext() {
+  return useContext(SceneContext).scene;
+}
+
+export function useTimeRange(): [TimeRange, SceneTimeRangeLike] {
+  const scene = useSceneContext();
   const sceneTimeRange = sceneGraph.getTimeRange(scene);
   const { value } = sceneTimeRange.useState();
 
-  return [value, sceneTimeRange.onTimeRangeChange];
+  return [value, sceneTimeRange];
 }
 
 export function useVariables(): SceneVariable[] {
-  const { scene } = useContext(SceneContext);
+  const scene = useSceneContext();
   const variables = sceneGraph.getVariables(scene);
   return variables.useState().variables;
 }
@@ -47,15 +47,15 @@ export interface SceneContextProviderProps {
  * We could have TimeRangeContextProvider provider and VariableContextProvider as utility components, but the underlying context would be this context
  */
 export function SceneContextProvider(props: SceneContextProviderProps) {
-  const parentContext = useContext(SceneContext);
+  const parentContext = useSceneContext();
   const [isActive, setActive] = useState(false);
 
   const childScene = useMemo(() => {
     const child = new ReactSceneContextObject({ ...props.initialState, children: [] });
-    parentContext.scene.setState({ childContext: child });
+    parentContext.setState({ childContext: child });
     return child;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parentContext.scene]);
+  }, [parentContext]);
 
   useEffect(() => {
     const fn = childScene.activate();
@@ -72,7 +72,7 @@ export function SceneContextProvider(props: SceneContextProviderProps) {
 }
 
 export function useVariableValues(name: string): [VariableValueSingle[] | undefined, boolean] {
-  const { scene } = useContext(SceneContext);
+  const scene = useSceneContext();
   const variable = sceneGraph.lookupVariable(name, scene);
 
   if (!variable) {
