@@ -1,13 +1,14 @@
 import React from 'react';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { PluginPage } from '@grafana/runtime';
-import { PrintTime, SceneContextProvider, SceneControls } from './poc';
+import { SceneContextProvider, useTimeRange, useVariables } from './SceneContextProvider';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
-import { useTheme2 } from '@grafana/ui';
+import { TimeRangePicker, useTheme2 } from '@grafana/ui';
 import { CustomVariable } from '../variables/variants/CustomVariable';
 import { useSceneQuery } from './useSceneQuery';
 import { RVizPanel } from './RVizPanel';
+import { VariableValueSelectWrapper } from '../variables/components/VariableValueSelectors';
 
 export function ReactContextDemo() {
   return (
@@ -18,24 +19,21 @@ export function ReactContextDemo() {
           $variables: getOuterVariables(),
         }}
       >
-        <Box>
+        <SceneControls />
+        <PrintTime />
+        <DataViz title="10 points" maxDataPoints={10} />
+
+        <SceneContextProvider
+          initialState={{
+            $timeRange: new SceneTimeRange({ from: 'now-1h', to: 'now' }),
+            $variables: getInnerVariables(),
+          }}
+        >
+          <Line />
           <SceneControls />
           <PrintTime />
-          <DataViz title="10 points" maxDataPoints={10} />
-
-          <SceneContextProvider
-            initialState={{
-              $timeRange: new SceneTimeRange({ from: 'now-1h', to: 'now' }),
-              $variables: getInnerVariables(),
-            }}
-          >
-            <Box>
-              <SceneControls />
-              <PrintTime />
-              <DataViz title="50 points" maxDataPoints={50} />
-            </Box>
-          </SceneContextProvider>
-        </Box>
+          <DataViz title="50 points" maxDataPoints={50} />
+        </SceneContextProvider>
       </SceneContextProvider>
     </PluginPage>
   );
@@ -60,6 +58,35 @@ interface DataVizProps {
   title: string;
 }
 
+function PrintTime() {
+  const [time] = useTimeRange();
+  return <div style={{ padding: '16px 0' }}>time: {time.raw.from}</div>;
+}
+
+function SceneControls() {
+  const [value, onChangeTimeRange] = useTimeRange();
+  const variables = useVariables();
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px' }}>
+      {variables.map((variable) => (
+        <VariableValueSelectWrapper key={variable.state.key} variable={variable} />
+      ))}
+      <TimeRangePicker
+        isOnCanvas={true}
+        value={value}
+        onChange={onChangeTimeRange}
+        timeZone={'utc'}
+        onMoveBackward={() => {}}
+        onMoveForward={() => {}}
+        onZoom={() => {}}
+        onChangeTimeZone={() => {}}
+        onChangeFiscalYearStartMonth={() => {}}
+      />
+    </div>
+  );
+}
+
 function DataViz(props: DataVizProps) {
   const dataProvider = useSceneQuery({
     queries: [{ uid: 'gdev-testdata', refId: 'A', scenarioId: 'random_walk', alias: '$pod' }],
@@ -73,19 +100,17 @@ function DataViz(props: DataVizProps) {
   );
 }
 
-function Box({ children }: { children: React.ReactNode }) {
+function Line() {
   const theme = useTheme2();
   return (
     <div
       style={{
         border: `1px solid ${theme.colors.border.weak}`,
-        padding: '16px',
+        margin: '16px 0',
         display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
+        height: '1px',
+        width: '100%',
       }}
-    >
-      {children}
-    </div>
+    />
   );
 }

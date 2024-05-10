@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo } from 'react';
 import { SceneDataProvider } from '../core/types';
 import { DataQueryExtended, SceneQueryRunner } from '../querying/SceneQueryRunner';
-import { SceneContext } from './poc';
+import { SceneContext } from './SceneContextProvider';
 
 export interface UseQueryOptions {
   queries: DataQueryExtended[];
