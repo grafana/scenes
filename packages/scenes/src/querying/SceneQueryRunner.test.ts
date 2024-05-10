@@ -359,6 +359,54 @@ describe('SceneQueryRunner', () => {
       expect(runRequestCall2[1].filters).toEqual(filtersVar.state.filters);
     });
 
+    it('only passes fully completed adhoc filters', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{
+          key: 'A', operator: '=', value: 'B', condition: ''
+        }, {
+          key: 'C', operator: '=', value: '', condition: ''
+        }],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].filters).toEqual([{
+        key: 'A', operator: '=', value: 'B', condition: ''
+      }]);
+
+      // Verify updating filter re-triggers query
+      filtersVar._updateFilter(filtersVar.state.filters[1], 'value', { value: 'D' });
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+
+      const runRequestCall2 = runRequestMock.mock.calls[1];
+      expect(runRequestCall2[1].filters).toEqual([{
+        key: 'A', operator: '=', value: 'B', condition: ''
+      }, {
+        key: 'C', operator: '=', value: 'D', condition: ''
+      }]);
+    });
+
     it('Adhoc filter added after first query', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
