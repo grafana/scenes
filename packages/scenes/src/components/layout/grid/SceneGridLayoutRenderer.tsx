@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { SceneComponentProps } from '../../../core/types';
@@ -12,6 +12,14 @@ import { GrafanaTheme2 } from '@grafana/data';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  /**
+   * The class that enables drag animations needs to be added after mount otherwise panels move on mount to their set positions which is annoying
+   */
+  useEffect(() => {
+    updateAnimationClass(ref, !!isDraggable);
+  }, [isDraggable]);
 
   validateChildrenSize(children);
 
@@ -31,8 +39,9 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
            * has a width of 0 and will let its content overflow its div.
            */
           <div
+            ref={ref}
             style={{ width: `${width}px`, height: '100%', position: 'relative', zIndex: 1 }}
-            className={cx('react-grid-layout', isDraggable && 'react-grid-layout--enable-move-animations')}
+            className="react-grid-layout"
           >
             <ReactGridLayout
               width={width}
@@ -135,6 +144,22 @@ function validateChildrenSize(children: SceneGridItemLike[]) {
     )
   ) {
     throw new Error('All children must have a size specified');
+  }
+}
+
+function updateAnimationClass(
+  ref: React.MutableRefObject<HTMLDivElement | null>,
+  isDraggable: boolean,
+  retry?: boolean
+) {
+  if (ref.current) {
+    if (isDraggable) {
+      ref.current.classList.add('react-grid-layout--enable-move-animations');
+    } else {
+      ref.current.classList.remove('react-grid-layout--enable-move-animations');
+    }
+  } else if (!retry) {
+    setTimeout(() => updateAnimationClass(ref, isDraggable, true), 50);
   }
 }
 
