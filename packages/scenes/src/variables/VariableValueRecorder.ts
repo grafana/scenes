@@ -68,6 +68,10 @@ export class VariableValueRecorder {
 
     for (const variableName of sceneObject.variableDependency.getNames()) {
       const variable = sceneGraph.lookupVariable(variableName, sceneObject);
+      if (!variable) {
+        continue;
+      }
+
       const name = variable.state.name;
 
       if (variable && this._values.has(name)) {
