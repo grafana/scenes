@@ -1,10 +1,10 @@
 import React from 'react';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { PluginPage } from '@grafana/runtime';
-import { SceneContextProvider, useTimeRange, useVariables } from './SceneContextProvider';
+import { SceneContextProvider, useTimeRange, useVariableValues, useVariables } from './SceneContextProvider';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
-import { TimeRangePicker, useTheme2 } from '@grafana/ui';
+import { Stack, TimeRangePicker, useTheme2 } from '@grafana/ui';
 import { CustomVariable } from '../variables/variants/CustomVariable';
 import { useSceneQuery } from './useSceneQuery';
 import { RVizPanel } from './RVizPanel';
@@ -21,7 +21,7 @@ export function ReactContextDemo() {
       >
         <SceneControls />
         <PrintTime />
-        <DataViz title="10 points" maxDataPoints={10} />
+        <RepeatPanelByVariable />
 
         <SceneContextProvider
           initialState={{
@@ -44,18 +44,13 @@ function getOuterVariables() {
     variables: [
       new TestVariable({ name: 'server', query: 'A.*', value: '', delayMs: 1000 }),
       new TestVariable({ name: 'pod', query: 'A.$server.*', value: '', delayMs: 1000 }),
-      new CustomVariable({ name: 'count', query: '1,2,3,4,5', value: '1' }),
+      new CustomVariable({ name: 'panels', query: '10, 20, 30, 40, 50', value: ['10'], isMulti: true }),
     ],
   });
 }
 
 function getInnerVariables() {
   return new SceneVariableSet({ variables: [] });
-}
-
-interface DataVizProps {
-  maxDataPoints: number;
-  title: string;
 }
 
 function PrintTime() {
@@ -87,6 +82,11 @@ function SceneControls() {
   );
 }
 
+interface DataVizProps {
+  maxDataPoints: number;
+  title: string;
+}
+
 function DataViz(props: DataVizProps) {
   const dataProvider = useSceneQuery({
     queries: [{ uid: 'gdev-testdata', refId: 'A', scenarioId: 'random_walk', alias: '$pod' }],
@@ -94,7 +94,7 @@ function DataViz(props: DataVizProps) {
   });
 
   return (
-    <div style={{ width: '500px', height: '500px' }}>
+    <div style={{ height: '300px', minWidth: '300px', flexGrow: 1 }}>
       <RVizPanel title={props.title} dataProvider={dataProvider} />
     </div>
   );
@@ -112,5 +112,21 @@ function Line() {
         width: '100%',
       }}
     />
+  );
+}
+
+function RepeatPanelByVariable() {
+  const [values, loading] = useVariableValues('panels');
+
+  if (loading || !values) {
+    return <div>Waiting for variable</div>;
+  }
+
+  return (
+    <Stack direction="row" wrap={'wrap'} gap={2}>
+      {values.map((value: string) => (
+        <DataViz key={value} title={`${value} data points`} maxDataPoints={parseInt(value, 10)} />
+      ))}
+    </Stack>
   );
 }

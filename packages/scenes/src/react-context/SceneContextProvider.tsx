@@ -4,7 +4,7 @@ import { SceneDataState, SceneObject, SceneObjectState } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
 import { PanelData, TimeRange } from '@grafana/data';
 import { TimeRangePicker } from '@grafana/ui';
-import { SceneVariable } from '../variables/types';
+import { SceneVariable, SceneVariables, VariableValue, VariableValueSingle } from '../variables/types';
 import { VariableValueSelectWrapper } from '../variables/components/VariableValueSelectors';
 import { RVizPanel } from './RVizPanel';
 import { useSceneQuery } from './useSceneQuery';
@@ -69,4 +69,25 @@ export function SceneContextProvider(props: SceneContextProviderProps) {
   }
 
   return <SceneContext.Provider value={{ scene: childScene }}>{props.children}</SceneContext.Provider>;
+}
+
+export function useVariableValues(name: string): [VariableValueSingle[] | undefined, boolean] {
+  const { scene } = useContext(SceneContext);
+  const variable = sceneGraph.lookupVariable(name, scene);
+
+  if (!variable) {
+    return [undefined, false];
+  }
+
+  variable.useState();
+
+  const set = variable.parent as SceneVariables;
+  const isLoading = set.isVariableLoadingOrWaitingToUpdate(variable);
+  let value = variable.getValue();
+
+  if (!Array.isArray(value)) {
+    value = [value];
+  }
+
+  return [value, isLoading];
 }
