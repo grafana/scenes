@@ -33,6 +33,7 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler } from '../core/types';
+import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -833,6 +834,41 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       // Should execute query a second time
+      expect(runRequestMock.mock.calls.length).toBe(2);
+    });
+
+    it('Should execute query when variables changed after clone', async () => {
+      const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+      });
+
+      scene.activate();
+
+      // should execute query when variable completes update
+      variable.signalUpdateCompleted();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      const clone = new TestScene({
+        $variables: new SceneVariableSet({ variables: [new LocalValueVariable({ name: 'A', value: 'local' })] }),
+        $data: queryRunner.clone(),
+      });
+
+      scene.setState({ nested: clone });
+
+      clone.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 

@@ -439,6 +439,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       clone['_layerAnnotations'] = this._layerAnnotations.map((frame) => ({ ...frame }));
     }
 
+    clone['_variableValueRecorder'] = this._variableValueRecorder.cloneAndRecordCurrentValuesForSceneObject(this);
+    clone['_containerWidth'] = this._containerWidth;
     clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
 
     return clone;
