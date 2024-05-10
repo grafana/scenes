@@ -5,6 +5,7 @@ import { History } from 'history';
 import { render } from '@testing-library/react';
 import { SceneApp } from '../../src/components/SceneApp/SceneApp';
 import { Router } from 'react-router-dom';
+import { SceneObject, SceneObjectState } from '../../src';
 
 export const OBSERVABLE_TEST_TIMEOUT_IN_MS = 1000;
 
@@ -74,4 +75,10 @@ export function renderAppInsideRouterWithStartingUrl(history: History, app: Scen
       <app.Component model={app} />
     </Router>
   );
+}
+
+export function subscribeToStateUpdates<T extends SceneObjectState>(obj: SceneObject<T>): T[] {
+  const stateUpdates: T[] = [];
+  obj.subscribeToState((state) => stateUpdates.push(state));
+  return stateUpdates;
 }
