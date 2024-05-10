@@ -1,3 +1,17 @@
+# v4.18.0 (Fri May 10 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Detect new variable values when cloned [#727](https://github.com/grafana/scenes/pull/727) ([@torkelo](https://github.com/torkelo))
+  - SceneObject: Handle new or removed behaviors [#731](https://github.com/grafana/scenes/pull/731) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.17.3 (Thu May 09 2024)
 
 #### 🐛 Bug Fix
