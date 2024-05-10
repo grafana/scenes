@@ -15,13 +15,14 @@ import {
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
-import { SceneDataTransformer, SceneDataTransformerState } from './SceneDataTransformer';
+import { SceneDataTransformer } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
 import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneTimeRange } from '../core/SceneTimeRange';
+import { subscribeToStateUpdates } from '../../utils/test/utils';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
 
@@ -529,8 +530,7 @@ describe('SceneDataTransformer', () => {
 
     transformationNode.activate();
 
-    const stateUpdates: SceneDataTransformerState[] = [];
-    transformationNode.subscribeToState((state) => stateUpdates.push(state));
+    const stateUpdates = subscribeToStateUpdates(transformationNode);
 
     sourceDataNode.setState({
       data: {
@@ -649,6 +649,58 @@ describe('SceneDataTransformer', () => {
 
         expect(panelData?.series[0].fields[0].values.toArray()).toEqual([1, 2, 3]);
       });
+    });
+  });
+
+  describe('Only transform data when there is new data received', () => {
+    it('When data is the same on second activation', async () => {
+      const transformer = new SceneDataTransformer({
+        $data: new SceneDataNode({
+          data: {
+            state: LoadingState.Done,
+            timeRange: getDefaultTimeRange(),
+            series: [arrayToDataFrame([1, 2, 3])],
+          },
+        }),
+        transformations: [customTransformOperator],
+      });
+
+      const deactivate = transformer.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      deactivate();
+
+      transformer.activate();
+
+      const clone = transformer.clone();
+      clone.activate();
+
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('When series and annotations are the same but loading state is not', async () => {
+      const dataNode = new SceneDataNode({
+        data: {
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+          series: [arrayToDataFrame([1, 2, 3])],
+        },
+      });
+
+      const transformer = new SceneDataTransformer({
+        $data: dataNode,
+        transformations: [customTransformOperator],
+      });
+
+      transformer.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      dataNode.setState({ data: { ...dataNode.state.data, state: LoadingState.Loading } });
+
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+      expect(transformer.state.data.state).toBe(LoadingState.Loading);
     });
   });
 });

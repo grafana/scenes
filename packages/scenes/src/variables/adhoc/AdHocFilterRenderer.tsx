@@ -36,6 +36,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueSelect = (
     <Select
       allowCustomValue
+      isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
       disabled={model.state.readOnly}

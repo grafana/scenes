@@ -21,6 +21,7 @@ import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { select } from 'react-select-event';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
+import { subscribeToStateUpdates } from '../../../utils/test/utils';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -84,6 +85,17 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('val4');
   });
 
+  it('clears the value of a filter if the key is changed', async () => {
+    const { filtersVar } = setup();
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await waitFor(() => select(selects[0], 'Key 3', { container: document.body }));
+
+    expect(filtersVar.state.filters[0].value).toBe('');
+  });
+
   it('can set a custom value', async () => {
     const { filtersVar, runRequest } = setup();
 
@@ -98,6 +110,34 @@ describe('AdHocFiltersVariable', () => {
     await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
 
     // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+  });
+
+  it('can set the same custom value again', async () => {
+    const { filtersVar, runRequest } = setup();
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue');
+
+    expect(screen.getByText('Use custom value: myVeryCustomValue')).toBeInTheDocument();
+
+    await userEvent.type(selects[2], '{enter}');
+
+    // should not run a new query since the value is the same
     expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
@@ -487,6 +527,17 @@ describe('AdHocFiltersVariable', () => {
     });
   });
 
+  it('only url sync fully completed filters', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: '', label: '' });
+    });
+
+    expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
+  });
+
   it('Can override and replace getTagKeys and getTagValues', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
@@ -636,8 +687,7 @@ describe('AdHocFiltersVariable', () => {
 
       variable.activate();
 
-      const stateUpdates: AdHocFiltersVariableState[] = [];
-      variable.subscribeToState((state) => stateUpdates.push(state));
+      const stateUpdates = subscribeToStateUpdates(variable);
 
       expect(stateUpdates.length).toBe(0);
 

@@ -13,6 +13,7 @@ import {
   CancelActivationHandler,
   SceneObjectState,
   UseStateHookOptions,
+  SceneStatelessBehavior,
 } from './types';
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
@@ -148,6 +149,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       return;
     }
 
+    if (prevState.$behaviors !== newState.$behaviors) {
+      this._handleChangedBehaviors(prevState.$behaviors, newState.$behaviors);
+    }
+
     if (prevState.$data !== newState.$data) {
       this._handleChangedStateActivation(prevState.$data, newState.$data);
     }
@@ -172,6 +177,33 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     if (newValue) {
       this._deactivationHandlers.set(newValue, newValue.activate());
+    }
+  }
+
+  private _handleChangedBehaviors(
+    oldValue: Array<SceneObject | SceneStatelessBehavior> | undefined,
+    newValue: Array<SceneObject | SceneStatelessBehavior> | undefined
+  ) {
+    // Handle removed behaviors
+    if (oldValue) {
+      for (const oldBehavior of oldValue) {
+        if (!newValue || !newValue.includes(oldBehavior)) {
+          const deactivationHandler = this._deactivationHandlers.get(oldBehavior);
+          if (deactivationHandler) {
+            deactivationHandler();
+            this._deactivationHandlers.delete(oldBehavior);
+          }
+        }
+      }
+    }
+
+    // Handle new behaviors
+    if (newValue) {
+      for (const newBehavior of newValue) {
+        if (!oldValue || !oldValue.includes(newBehavior)) {
+          this._activateBehavior(newBehavior);
+        }
+      }
     }
   }
 
@@ -216,14 +248,18 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     if ($behaviors) {
       for (const behavior of $behaviors) {
-        if (behavior instanceof SceneObjectBase) {
-          this._deactivationHandlers.set(behavior, behavior.activate());
-        } else if (typeof behavior === 'function') {
-          const deactivationHandler = behavior(this);
-          if (deactivationHandler) {
-            this._deactivationHandlers.set(behavior, deactivationHandler);
-          }
-        }
+        this._activateBehavior(behavior);
+      }
+    }
+  }
+
+  private _activateBehavior(behavior: SceneObject | SceneStatelessBehavior): SceneDeactivationHandler | void {
+    if (behavior instanceof SceneObjectBase) {
+      this._deactivationHandlers.set(behavior, behavior.activate());
+    } else if (typeof behavior === 'function') {
+      const deactivate = behavior(this);
+      if (deactivate) {
+        this._deactivationHandlers.set(behavior, deactivate);
       }
     }
   }

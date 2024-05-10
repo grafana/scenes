@@ -229,6 +229,7 @@ describe('SceneObject', () => {
         $variables: new SceneVariableSet({ variables: [] }),
         $data: new SceneDataNode({}),
         $timeRange: new SceneTimeRange({}),
+        $behaviors: [],
       });
 
       scene.activate();
@@ -239,6 +240,7 @@ describe('SceneObject', () => {
         $variables: new SceneVariableSet({ variables: [] }),
         $data: new SceneDataNode({}),
         $timeRange: new SceneTimeRange({}),
+        $behaviors: [],
       });
 
       const newState = scene.state;
@@ -252,6 +254,40 @@ describe('SceneObject', () => {
       expect(newState.$variables!.isActive).toBe(true);
       expect(newState.$data!.isActive).toBe(true);
       expect(newState.$timeRange!.isActive).toBe(true);
+    });
+
+    it('Call activation handlers for new behaviors in state', () => {
+      const behavior1Deactivate = jest.fn();
+      const behavior1 = jest.fn().mockReturnValue(behavior1Deactivate);
+      const behavior2Deactivate = jest.fn();
+      const behavior2 = jest.fn().mockReturnValue(behavior2Deactivate);
+      const behavior3Deactivate = jest.fn();
+      const behavior3 = jest.fn().mockReturnValue(behavior3Deactivate);
+
+      const scene = new TestScene({
+        name: 'root',
+        $behaviors: [behavior1, behavior2],
+      });
+
+      const deactivate = scene.activate();
+
+      // Remove behavior 2 and and behavior 3
+      scene.setState({ $behaviors: [behavior1, behavior3] });
+
+      // 1 should have been called 1 times and not deactivated
+      expect(behavior1Deactivate).toHaveBeenCalledTimes(0);
+      expect(behavior1).toHaveBeenCalledTimes(1);
+
+      // 2 should have been deactivated
+      expect(behavior2Deactivate).toHaveBeenCalledTimes(1);
+
+      // 3 should have been activated
+      expect(behavior3).toHaveBeenCalledTimes(1);
+
+      deactivate();
+      expect(behavior1Deactivate).toHaveBeenCalledTimes(1);
+      expect(behavior2Deactivate).toHaveBeenCalledTimes(1); // just to check it's not deactivated again
+      expect(behavior3Deactivate).toHaveBeenCalledTimes(1);
     });
   });
 
