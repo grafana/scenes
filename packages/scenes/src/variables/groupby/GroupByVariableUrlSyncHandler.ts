@@ -66,7 +66,7 @@ function toUrlValues(values: VariableValue, texts: VariableValue): string[] {
 function fromUrlValues(urlValues: string | string[]): { values: string[]; texts: string[] } {
   urlValues = Array.isArray(urlValues) ? urlValues : [urlValues];
 
-  return urlValues.reduce(
+  return urlValues.reduce<{ values: string[]; texts: string[] }>(
     (acc, urlValue) => {
       const [value, label] = (urlValue ?? '').split(',');
 
