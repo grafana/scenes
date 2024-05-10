@@ -15,13 +15,14 @@ import {
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
-import { SceneDataTransformer, SceneDataTransformerState } from './SceneDataTransformer';
+import { SceneDataTransformer } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
 import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistry';
 import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneTimeRange } from '../core/SceneTimeRange';
+import { subscribeToStateUpdates } from '../../utils/test/utils';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
 
@@ -529,8 +530,7 @@ describe('SceneDataTransformer', () => {
 
     transformationNode.activate();
 
-    const stateUpdates: SceneDataTransformerState[] = [];
-    transformationNode.subscribeToState((state) => stateUpdates.push(state));
+    const stateUpdates = subscribeToStateUpdates(transformationNode);
 
     sourceDataNode.setState({
       data: {
