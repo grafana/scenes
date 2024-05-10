@@ -1,3 +1,16 @@
+# v4.19.0 (Fri May 10 2024)
+
+#### 🚀 Enhancement
+
+- SceneDataTransformer: Performance optimizations [#725](https://github.com/grafana/scenes/pull/725) ([@torkelo](https://github.com/torkelo))
+- Variables: Do not update value when value and text are the same [#726](https://github.com/grafana/scenes/pull/726) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.18.0 (Fri May 10 2024)
 
 #### 🚀 Enhancement
