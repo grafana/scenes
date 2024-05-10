@@ -12,13 +12,13 @@ import { GrafanaTheme2 } from '@grafana/data';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
-  const ref = useRef<HTMLDivElement>();
+  const ref = useRef<HTMLDivElement | null>(null);
 
   /**
    * The class that enables drag animations needs to be added after mount otherwise panels move on mount to their set positions which is annoying
    */
   useEffect(() => {
-    updateAnimationClass(ref, isDraggable);
+    updateAnimationClass(ref, !!isDraggable);
   }, [isDraggable]);
 
   validateChildrenSize(children);
@@ -147,7 +147,11 @@ function validateChildrenSize(children: SceneGridItemLike[]) {
   }
 }
 
-function updateAnimationClass(ref: React.MutableRefObject<HTMLDivElement>, isDraggable: boolean, retry?: boolean) {
+function updateAnimationClass(
+  ref: React.MutableRefObject<HTMLDivElement | null>,
+  isDraggable: boolean,
+  retry?: boolean
+) {
   if (ref.current) {
     if (isDraggable) {
       ref.current.classList.add('react-grid-layout--enable-move-animations');
