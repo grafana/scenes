@@ -5,7 +5,7 @@ import { VariableFormatID } from '@grafana/schema';
 
 import { SceneVariableValueChangedEvent } from '../types';
 import { CustomAllValue } from '../variants/MultiValueVariable';
-import { TestVariable, TestVariableState } from './TestVariable';
+import { TestVariable } from './TestVariable';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 
 describe('MultiValueVariable', () => {
