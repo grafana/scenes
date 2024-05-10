@@ -39,6 +39,13 @@
       "path": "/a/%PLUGIN_ID%/grafana-monitoring",
       "role": "Admin",
       "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "React only demo",
+      "path": "/a/%PLUGIN_ID%/react-only",
+      "role": "Admin",
+      "addToNav": true
     }
   ],
   "dependencies": {
