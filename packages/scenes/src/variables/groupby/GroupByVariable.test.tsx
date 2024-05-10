@@ -56,6 +56,7 @@ describe('GroupByVariable', () => {
       });
 
       expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
 
       act(() => {
         variable.changeValueTo(['a']);
@@ -68,12 +69,14 @@ describe('GroupByVariable', () => {
       });
 
       expect(variable.state.value).toEqual(['a', 'b']);
+      expect(variable.state.text).toEqual(['a', 'b']);
 
       act(() => {
         locationService.push('/?var-test=a&var-test=b&var-test=c');
       });
 
       expect(variable.state.value).toEqual(['a', 'b', 'c']);
+      expect(variable.state.text).toEqual(['a', 'b', 'c']);
     });
 
     it('should work with received options', async () => {
@@ -95,6 +98,7 @@ describe('GroupByVariable', () => {
       });
 
       expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
 
       act(() => {
         variable.changeValueTo(['a']);
@@ -107,12 +111,14 @@ describe('GroupByVariable', () => {
       });
 
       expect(variable.state.value).toEqual(['a', 'b']);
+      expect(variable.state.text).toEqual(['A', 'b']);
 
       act(() => {
         locationService.push('/?var-test=a,A&var-test=b&var-test=c');
       });
 
       expect(variable.state.value).toEqual(['a', 'b', 'c']);
+      expect(variable.state.text).toEqual(['A', 'b', 'c']);
     });
 
     it('should work with commas', async () => {
@@ -124,6 +130,7 @@ describe('GroupByVariable', () => {
       });
 
       expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
 
       await act(async () => {
         await lastValueFrom(variable.validateAndUpdate());
@@ -140,6 +147,7 @@ describe('GroupByVariable', () => {
       });
 
       expect(variable.state.value).toEqual(['a', 'b,something']);
+      expect(variable.state.text).toEqual(['A,something', 'b,something']);
 
       act(() => {
         locationService.push(
@@ -148,6 +156,7 @@ describe('GroupByVariable', () => {
       });
 
       expect(variable.state.value).toEqual(['a', 'b,something', 'c,something']);
+      expect(variable.state.text).toEqual(['A,something', 'b,something', 'C,something']);
     });
   });
 

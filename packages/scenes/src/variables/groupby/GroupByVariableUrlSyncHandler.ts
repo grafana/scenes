@@ -1,8 +1,7 @@
-import { unzip, zip } from 'lodash';
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import { GroupByVariable } from './GroupByVariable';
 import { toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
-import { VariableValueSingle } from '../types';
+import { VariableValue } from '../types';
 
 export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _sceneObject: GroupByVariable) {}
@@ -24,14 +23,7 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
       return {};
     }
 
-    let { value: values, text: texts } = this._sceneObject.state;
-
-    values = Array.isArray(values) ? values : [values];
-    texts = Array.isArray(texts) ? texts : [texts];
-
-    const urlValue = zip(values, texts).map(toUrlValues);
-
-    return { [this.getKey()]: urlValue };
+    return { [this.getKey()]: toUrlValues(this._sceneObject.state.value, this._sceneObject.state.text) };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
@@ -46,32 +38,46 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
         this._sceneObject.skipNextValidation = true;
       }
 
-      urlValue = Array.isArray(urlValue) ? urlValue : [urlValue];
-      const valuesLabelsPairs = urlValue.map((value) => (value ? value.split(',') : [value]));
-      let [values, labels] = unzip(valuesLabelsPairs);
+      const { values, texts } = fromUrlValues(urlValue);
 
-      values = (values ?? []).map(unescapeUrlDelimiters);
-      labels = (labels ?? []).map(unescapeUrlDelimiters);
-
-      this._sceneObject.setState({
-        urlOptions: values.map((value, idx) => ({
-          value,
-          text: labels[idx],
-        })),
-      });
-
-      this._sceneObject.changeValueTo(values, labels);
+      this._sceneObject.changeValueTo(values, texts);
     }
   }
 }
 
-function toUrlValues([value, label]: [VariableValueSingle | undefined, VariableValueSingle | undefined]): string {
-  if (value === undefined || value === null) {
-    return '';
-  }
+function toUrlValues(values: VariableValue, texts: VariableValue): string[] {
+  values = Array.isArray(values) ? values : [values];
+  texts = Array.isArray(texts) ? texts : [texts];
 
-  value = String(value);
-  label = label === undefined || label === null ? value : String(label);
+  return values.map((value, idx) => {
+    if (value === undefined || value === null) {
+      return '';
+    }
 
-  return toUrlCommaDelimitedString(value, label);
+    value = String(value);
+
+    let text = texts[idx];
+    text = text === undefined || text === null ? value : String(text);
+
+    return toUrlCommaDelimitedString(value, text);
+  });
+}
+
+function fromUrlValues(urlValues: string | string[]): { values: string[]; texts: string[] } {
+  urlValues = Array.isArray(urlValues) ? urlValues : [urlValues];
+
+  return urlValues.reduce(
+    (acc, urlValue) => {
+      const [value, label] = (urlValue ?? '').split(',');
+
+      acc.values.push(unescapeUrlDelimiters(value));
+      acc.texts.push(unescapeUrlDelimiters(label ?? value));
+
+      return acc;
+    },
+    {
+      values: [],
+      texts: [],
+    }
+  );
 }

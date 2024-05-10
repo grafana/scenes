@@ -9,7 +9,7 @@ import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } f
 import { from, lastValueFrom, map, mergeMap, Observable, of, take } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect } from '@grafana/ui';
-import { isArray, unionBy } from 'lodash';
+import { isArray } from 'lodash';
 import { getQueriesForVariables } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
@@ -20,8 +20,6 @@ export interface GroupByVariableState extends MultiValueVariableState {
   /** The visible keys to group on */
   // TODO review this type and name (naming is hard)
   defaultOptions?: MetricFindValue[];
-  /** Options obtained through URL sync */
-  urlOptions?: MetricFindValue[];
   /** Base filters to always apply when looking up keys */
   baseFilters?: AdHocVariableFilter[];
   /** Datasource to use for getTagKeys and also controls which scene queries the group by should apply to */
@@ -85,12 +83,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
-    const urlOptions = this.state.urlOptions ?? [];
-
     // When default dimensions are provided, return the static list
     if (this.state.defaultOptions) {
       return of(
-        unionBy(this.state.defaultOptions, urlOptions, 'value').map((o) => ({
+        this.state.defaultOptions.map((o) => ({
           label: o.text,
           value: String(o.value),
         }))
@@ -108,7 +104,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         return from(this._getKeys(ds)).pipe(
           take(1),
           mergeMap((data: MetricFindValue[]) => {
-            const a: VariableValueOption[] = unionBy(data, urlOptions, 'value').map((i) => {
+            const a: VariableValueOption[] = data.map((i) => {
               return {
                 label: i.text,
                 value: i.value ? String(i.value) : i.text,
@@ -252,7 +248,10 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       components={{ Option: OptionWithCheckbox }}
       onInputChange={onInputChange}
       onBlur={() => {
-        model.changeValueTo(uncommittedValue.map((x) => x.value!));
+        model.changeValueTo(
+          uncommittedValue.map((x) => x.value!),
+          uncommittedValue.map((x) => x.label!)
+        );
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
