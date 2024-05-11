@@ -11,18 +11,22 @@ import { RepeatByVariablePage } from './RepeatByVariablePage';
 import { DynamicVisualiationPage } from './DynamicVisualizationPage';
 import { DynamicVariablesPage } from './DynamicVariablesPage';
 import { NestedContextsPage } from './NestedContextPage';
+import { InterpolationHookPage } from './InterpolationHookPage';
+
+const urlBase = prefixRoute(`${ROUTES.ReactDemo}`);
 
 export function ReactDemoPage() {
   return (
     <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }}>
       <RCustomVariable name="env" query="dev, test, prod" initialValue="dev">
         <Switch>
-          <Route path={prefixRoute(`${ROUTES.ReactDemo}`)} component={HomePage} exact />
-          <Route path={prefixRoute(`${ROUTES.ReactDemo}/repeat-by-variable`)} component={RepeatByVariablePage} />
-          <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-queries`)} component={DynamicQueriesPage} />
-          <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-viz`)} component={DynamicVisualiationPage} />
-          <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-vars`)} component={DynamicVariablesPage} />
-          <Route path={prefixRoute(`${ROUTES.ReactDemo}/nested-context`)} component={NestedContextsPage} />
+          <Route path={`${urlBase}`} component={HomePage} exact />
+          <Route path={`${urlBase}/repeat-by-variable`} component={RepeatByVariablePage} />
+          <Route path={`${urlBase}/dynamic-queries`} component={DynamicQueriesPage} />
+          <Route path={`${urlBase}/dynamic-viz`} component={DynamicVisualiationPage} />
+          <Route path={`${urlBase}/dynamic-vars`} component={DynamicVariablesPage} />
+          <Route path={`${urlBase}/nested-context`} component={NestedContextsPage} />
+          <Route path={`${urlBase}/interpolation-hook`} component={InterpolationHookPage} />
         </Switch>
       </RCustomVariable>
     </SceneContextProvider>
@@ -35,11 +39,12 @@ function HomePage() {
       <Stack direction={'column'} gap={2}>
         <PlainGraphWithRandomWalk title="Welcome" maxDataPoints={50} />
         <h2>Examples</h2>
-        <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/repeat-by-variable`)}>Repeat by variable</TextLink>
-        <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-queries`)}>Dynamic queries</TextLink>
-        <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-viz`)}>Dynamic visualization</TextLink>
-        <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-vars`)}>Dynamic variables</TextLink>
-        <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/nested-context`)}>Nested contexts</TextLink>
+        <TextLink href={`${urlBase}/repeat-by-variable`}>Repeat by variable</TextLink>
+        <TextLink href={`${urlBase}/dynamic-queries`}>Dynamic queries</TextLink>
+        <TextLink href={`${urlBase}/dynamic-viz`}>Dynamic visualization</TextLink>
+        <TextLink href={`${urlBase}/dynamic-vars`}>Dynamic variables</TextLink>
+        <TextLink href={`${urlBase}/nested-context`}>Nested contexts</TextLink>
+        <TextLink href={`${urlBase}/interpolation-hook`}>Interpolation hook</TextLink>
       </Stack>
     </PageWrapper>
   );
