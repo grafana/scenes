@@ -1,4 +1,4 @@
-import React, { useId, useMemo } from 'react';
+import React, { useEffect, useId } from 'react';
 import { SceneDataProvider } from '../core/types';
 import { VizPanel } from '../components/VizPanel/VizPanel';
 import { DataProxyProvider } from './DataProxyProvider';
@@ -11,31 +11,35 @@ export interface RVizPanelProps {
 
 export function RVizPanel(props: RVizPanelProps) {
   const scene = useSceneContext();
-  const id = useId();
+  const key = useId();
 
-  const panel = useMemo(() => {
-    let panel = scene.state.children.find((x) => x.state.key === id);
+  let panel = scene.findByKey<VizPanel>(key);
 
-    if (!panel) {
-      panel = new VizPanel({
-        key: id,
-        pluginId: 'timeseries',
-        title: props.title,
-        $data: new DataProxyProvider({ source: props.dataProvider.getRef() }),
-      });
-      scene.setState({ children: [...scene.state.children, panel] });
+  if (!panel) {
+    panel = new VizPanel({
+      key: key,
+      pluginId: 'timeseries',
+      title: props.title,
+      $data: new DataProxyProvider({ source: props.dataProvider.getRef() }),
+    });
+  }
 
-      panel.addActivationHandler(() => {
-        return () => {
-          console.log('removing viz panel');
-          scene.setState({ children: scene.state.children.filter((x) => x !== panel) });
-        };
-      });
-    } else {
-      // Update props
+  useEffect(() => {
+    console.log('adding panel', key);
+    scene.addToScene(panel);
+
+    return () => {
+      console.log('removing panel', key);
+      scene.removeFromScene(panel);
+    };
+  }, [panel, scene, key]);
+
+  // Update options
+  useEffect(() => {
+    if (panel.state.title !== props.title) {
+      panel.setState({ title: props.title });
     }
-    return panel;
-  }, [scene, props, id]);
+  }, [panel, props.title]);
 
   return <panel.Component model={panel} />;
 }

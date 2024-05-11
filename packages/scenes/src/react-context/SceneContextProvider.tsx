@@ -11,7 +11,19 @@ export interface ReactSceneContextObjectState extends SceneObjectState {
   children: SceneObject[];
 }
 
-export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectState> {}
+export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectState> {
+  public addToScene(obj: SceneObject) {
+    this.setState({ children: [...this.state.children, obj] });
+  }
+
+  public removeFromScene(obj: SceneObject) {
+    this.setState({ children: this.state.children.filter((x) => x !== obj) });
+  }
+
+  public findByKey<T>(key: string): T | undefined {
+    return this.state.children.find((x) => x.state.key === key) as T;
+  }
+}
 
 export const SceneContext = createContext<SceneContextObject | null>(null);
 

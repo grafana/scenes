@@ -13,6 +13,7 @@ import { ROUTES } from '../constants';
 import { Route, Switch } from 'react-router-dom';
 import { DataViz } from './Components';
 import { PageWrapper } from './PageWrapper';
+import { DynamicQueriesPage } from './DynamicQueriesPage';
 
 export function ReactDemoPage() {
   return (
@@ -25,6 +26,7 @@ export function ReactDemoPage() {
       <Switch>
         <Route path={prefixRoute(`${ROUTES.ReactDemo}`)} component={HomePage} exact />
         <Route path={prefixRoute(`${ROUTES.ReactDemo}/repeat-by-variable`)} component={RepeatByVariablePage} />
+        <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-queries`)} component={DynamicQueriesPage} />
       </Switch>
     </SceneContextProvider>
   );
@@ -35,8 +37,9 @@ function HomePage() {
     <PageWrapper title="Home" subTitle="Welcome to the React first demos">
       <Stack direction={'column'} gap={2}>
         <DataViz title="Welcome" maxDataPoints={50} />
-        <h2>Other demos</h2>
+        <h2>Examples</h2>
         <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/repeat-by-variable`)}>Repeat by variable</TextLink>
+        <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-queries`)}>Dynamic queries</TextLink>
       </Stack>
     </PageWrapper>
   );

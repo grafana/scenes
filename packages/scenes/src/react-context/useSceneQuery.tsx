@@ -1,11 +1,14 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useId } from 'react';
 import { SceneDataProvider } from '../core/types';
 import { DataQueryExtended, SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { useSceneContext } from './SceneContextProvider';
+import { DataSourceRef } from '@grafana/schema';
+import { isEqual } from 'lodash';
 
 export interface UseQueryOptions {
   queries: DataQueryExtended[];
   maxDataPoints?: number;
+  datasource?: DataSourceRef;
 }
 
 /**
@@ -13,22 +16,36 @@ export interface UseQueryOptions {
  */
 export function useSceneQuery(options: UseQueryOptions): SceneDataProvider {
   const scene = useSceneContext();
+  const key = useId();
 
-  const queryRunner = useMemo(() => {
-    const queryRunner = new SceneQueryRunner({
+  let queryRunner = scene.findByKey<SceneQueryRunner>(key);
+
+  if (!queryRunner) {
+    queryRunner = new SceneQueryRunner({
+      key: key,
       queries: options.queries,
       maxDataPoints: options.maxDataPoints,
+      datasource: options.datasource,
     });
-
-    scene.setState({ children: [...scene.state.children, queryRunner] });
-
-    return queryRunner;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scene]);
+  }
 
   useEffect(() => {
-    return queryRunner.activate();
-  }, [queryRunner]);
+    scene.addToScene(queryRunner);
+    const deactivate = queryRunner.activate();
+
+    return () => {
+      scene.removeFromScene(queryRunner);
+      return deactivate();
+    };
+  }, [queryRunner, scene]);
+
+  // Update queries when they change
+  useEffect(() => {
+    if (!isEqual(queryRunner.state.queries, options.queries)) {
+      queryRunner.setState({ queries: options.queries });
+      queryRunner.runQueries();
+    }
+  }, [queryRunner, options]);
 
   return queryRunner;
 }
