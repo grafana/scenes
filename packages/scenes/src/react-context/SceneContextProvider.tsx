@@ -1,28 +1,27 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneObjectState, SceneTimeRangeLike } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
 import { TimeRange } from '@grafana/data';
 import { SceneVariable, SceneVariables, VariableValueSingle } from '../variables/types';
-import { Stack } from '@grafana/ui';
-
-export interface SceneContextValue {
-  scene: ReactSceneContextObject;
-}
+import { getUrlSyncManager } from '../services/UrlSyncManager';
 
 export interface ReactSceneContextObjectState extends SceneObjectState {
-  childContext?: ReactSceneContextObject;
+  childContext?: SceneContextObject;
   children: SceneObject[];
 }
 
-export class ReactSceneContextObject extends SceneObjectBase<ReactSceneContextObjectState> {}
+export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectState> {}
 
-export const SceneContext = createContext<SceneContextValue>({
-  scene: new ReactSceneContextObject({ children: [] }),
-});
+export const SceneContext = createContext<SceneContextObject | null>(null);
 
 export function useSceneContext() {
-  return useContext(SceneContext).scene;
+  const scene = useContext(SceneContext);
+  if (!scene) {
+    throw new Error('Cannot find a SceneContext');
+  }
+
+  return scene;
 }
 
 export function useTimeRange(): [TimeRange, SceneTimeRangeLike] {
@@ -48,28 +47,40 @@ export interface SceneContextProviderProps {
  * We could have TimeRangeContextProvider provider and VariableContextProvider as utility components, but the underlying context would be this context
  */
 export function SceneContextProvider(props: SceneContextProviderProps) {
-  const parentContext = useSceneContext();
-  const [isActive, setActive] = useState(false);
-
-  const childScene = useMemo(() => {
-    const child = new ReactSceneContextObject({ ...props.initialState, children: [] });
-    parentContext.setState({ childContext: child });
-    return child;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parentContext]);
+  const parentContext = useContext(SceneContext);
+  const [childContext, setChildContext] = useState<SceneContextObject | undefined>();
+  const [initialState, _] = useState(props.initialState);
 
   useEffect(() => {
-    const fn = childScene.activate();
-    setActive(true);
-    return fn;
-  }, [childScene]);
+    const childContext = new SceneContextObject({ ...initialState, children: [] });
 
-  // This is to make sure the context scene is active before children is rendered. Important for child SceneQueryRunners
-  if (!isActive) {
+    if (parentContext) {
+      parentContext.setState({ childContext });
+    } else {
+      // We are the root context
+      getUrlSyncManager().initSync(childContext);
+    }
+
+    const deactivate = childContext.activate();
+    setChildContext(childContext);
+
+    return () => {
+      deactivate();
+
+      if (parentContext) {
+        parentContext.setState({ childContext: undefined });
+      } else {
+        // Cleanup url sync
+        getUrlSyncManager().cleanUp(childContext);
+      }
+    };
+  }, [parentContext, initialState]);
+
+  if (!childContext) {
     return null;
   }
 
-  return <SceneContext.Provider value={{ scene: childScene }}>{props.children}</SceneContext.Provider>;
+  return <SceneContext.Provider value={childContext}>{props.children}</SceneContext.Provider>;
 }
 
 export function useVariableValues(name: string): [VariableValueSingle[] | undefined, boolean] {

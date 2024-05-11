@@ -18,7 +18,7 @@ export function ReactDemoPage() {
   return (
     <SceneContextProvider
       initialState={{
-        $timeRange: new SceneTimeRange({ from: 'now-10m', to: 'now' }),
+        $timeRange: new SceneTimeRange({ from: 'now-6h', to: 'now' }),
         $variables: getOuterVariables(),
       }}
     >

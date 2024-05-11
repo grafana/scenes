@@ -1,8 +1,8 @@
-import React, { useContext, useId, useMemo } from 'react';
+import React, { useId, useMemo } from 'react';
 import { SceneDataProvider } from '../core/types';
 import { VizPanel } from '../components/VizPanel/VizPanel';
 import { DataProxyProvider } from './DataProxyProvider';
-import { SceneContext } from './SceneContextProvider';
+import { useSceneContext } from './SceneContextProvider';
 
 export interface RVizPanelProps {
   title: string;
@@ -10,7 +10,7 @@ export interface RVizPanelProps {
 }
 
 export function RVizPanel(props: RVizPanelProps) {
-  const { scene } = useContext(SceneContext);
+  const scene = useSceneContext();
   const id = useId();
 
   const panel = useMemo(() => {
