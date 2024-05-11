@@ -4,6 +4,7 @@ import { SceneObject, SceneObjectState, SceneTimeRangeLike } from '../core/types
 import { sceneGraph } from '../core/sceneGraph';
 import { TimeRange } from '@grafana/data';
 import { SceneVariable, SceneVariables, VariableValueSingle } from '../variables/types';
+import { Stack } from '@grafana/ui';
 
 export interface SceneContextValue {
   scene: ReactSceneContextObject;

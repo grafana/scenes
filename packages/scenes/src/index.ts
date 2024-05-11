@@ -106,6 +106,7 @@ export {
 } from './core/PanelBuilders';
 export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
+export * from './react-context';
 
 export const sceneUtils = {
   getUrlWithAppState,
