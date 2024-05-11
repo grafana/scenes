@@ -1,4 +1,4 @@
-import { SceneTimeRange, SceneVariableSet, CustomVariable, SceneContextProvider } from '@grafana/scenes';
+import { SceneContextProvider, RCustomVariable } from '@grafana/scenes';
 import { Stack, TextLink } from '@grafana/ui';
 import React from 'react';
 import { prefixRoute } from '../utils/utils.routing';
@@ -10,22 +10,21 @@ import { DynamicQueriesPage } from './DynamicQueriesPage';
 import { RepeatByVariablePage } from './RepeatByVariablePage';
 import { DynamicVisualiationPage } from './DynamicVisualizationPage';
 import { DynamicVariablesPage } from './DynamicVariablesPage';
+import { NestedContextsPage } from './NestedContextPage';
 
 export function ReactDemoPage() {
   return (
-    <SceneContextProvider
-      initialState={{
-        $timeRange: new SceneTimeRange({ from: 'now-6h', to: 'now' }),
-        $variables: getOuterVariables(),
-      }}
-    >
-      <Switch>
-        <Route path={prefixRoute(`${ROUTES.ReactDemo}`)} component={HomePage} exact />
-        <Route path={prefixRoute(`${ROUTES.ReactDemo}/repeat-by-variable`)} component={RepeatByVariablePage} />
-        <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-queries`)} component={DynamicQueriesPage} />
-        <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-viz`)} component={DynamicVisualiationPage} />
-        <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-vars`)} component={DynamicVariablesPage} />
-      </Switch>
+    <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }}>
+      <RCustomVariable name="env" query="dev, test, prod" initialValue="dev">
+        <Switch>
+          <Route path={prefixRoute(`${ROUTES.ReactDemo}`)} component={HomePage} exact />
+          <Route path={prefixRoute(`${ROUTES.ReactDemo}/repeat-by-variable`)} component={RepeatByVariablePage} />
+          <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-queries`)} component={DynamicQueriesPage} />
+          <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-viz`)} component={DynamicVisualiationPage} />
+          <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-vars`)} component={DynamicVariablesPage} />
+          <Route path={prefixRoute(`${ROUTES.ReactDemo}/nested-context`)} component={NestedContextsPage} />
+        </Switch>
+      </RCustomVariable>
     </SceneContextProvider>
   );
 }
@@ -40,13 +39,8 @@ function HomePage() {
         <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-queries`)}>Dynamic queries</TextLink>
         <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-viz`)}>Dynamic visualization</TextLink>
         <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-vars`)}>Dynamic variables</TextLink>
+        <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/nested-context`)}>Nested contexts</TextLink>
       </Stack>
     </PageWrapper>
   );
-}
-
-function getOuterVariables() {
-  return new SceneVariableSet({
-    variables: [new CustomVariable({ name: 'env', query: 'dev, test, prod', value: 'dev' })],
-  });
 }

@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObject, SceneObjectState } from '../core/types';
+import { SceneObject, SceneObjectState, SceneTimeRangeState } from '../core/types';
 import { SceneVariable } from '../variables/types';
 import { getUrlSyncManager } from '../services/UrlSyncManager';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { writeSceneLog } from '../utils/writeSceneLog';
+import { SceneTimeRange } from '../core/SceneTimeRange';
 
 export interface ReactSceneContextObjectState extends SceneObjectState {
   childContext?: SceneContextObject;
@@ -63,7 +64,7 @@ export const SceneContext = createContext<SceneContextObject | null>(null);
 
 export interface SceneContextProviderProps {
   children: React.ReactNode;
-  initialState?: Partial<ReactSceneContextObjectState>;
+  timeRange?: Partial<SceneTimeRangeState>;
 }
 
 /**
@@ -72,10 +73,10 @@ export interface SceneContextProviderProps {
 export function SceneContextProvider(props: SceneContextProviderProps) {
   const parentContext = useContext(SceneContext);
   const [childContext, setChildContext] = useState<SceneContextObject | undefined>();
-  const [initialState, _] = useState(props.initialState);
+  const [timeRange, _] = useState(props.timeRange);
 
   useEffect(() => {
-    const childContext = new SceneContextObject({ ...initialState, children: [] });
+    const childContext = new SceneContextObject({ children: [], $timeRange: new SceneTimeRange(timeRange) });
 
     if (parentContext) {
       parentContext.setState({ childContext });
@@ -97,7 +98,7 @@ export function SceneContextProvider(props: SceneContextProviderProps) {
         getUrlSyncManager().cleanUp(childContext);
       }
     };
-  }, [parentContext, initialState]);
+  }, [parentContext, timeRange]);
 
   if (!childContext) {
     return null;
