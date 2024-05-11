@@ -9,6 +9,7 @@ import { PageWrapper } from './PageWrapper';
 import { DynamicQueriesPage } from './DynamicQueriesPage';
 import { RepeatByVariablePage } from './RepeatByVariablePage';
 import { DynamicVisualiationPage } from './DynamicVisualizationPage';
+import { DynamicVariablesPage } from './DynamicVariablesPage';
 
 export function ReactDemoPage() {
   return (
@@ -23,6 +24,7 @@ export function ReactDemoPage() {
         <Route path={prefixRoute(`${ROUTES.ReactDemo}/repeat-by-variable`)} component={RepeatByVariablePage} />
         <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-queries`)} component={DynamicQueriesPage} />
         <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-viz`)} component={DynamicVisualiationPage} />
+        <Route path={prefixRoute(`${ROUTES.ReactDemo}/dynamic-vars`)} component={DynamicVariablesPage} />
       </Switch>
     </SceneContextProvider>
   );
@@ -37,6 +39,7 @@ function HomePage() {
         <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/repeat-by-variable`)}>Repeat by variable</TextLink>
         <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-queries`)}>Dynamic queries</TextLink>
         <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-viz`)}>Dynamic visualization</TextLink>
+        <TextLink href={prefixRoute(`${ROUTES.ReactDemo}/dynamic-vars`)}>Dynamic variables</TextLink>
       </Stack>
     </PageWrapper>
   );
