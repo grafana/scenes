@@ -1,10 +1,16 @@
-import { useCallback, useContext, useEffect } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { SceneContext } from './SceneContextProvider';
 import { TimeRange } from '@grafana/data';
 import { SceneTimeRangeLike } from '../core/types';
-import { SceneVariable, SceneVariableValueChangedEvent, SceneVariables, VariableValueSingle, sceneGraph } from '..';
+import {
+  SceneVariable,
+  SceneVariableValueChangedEvent,
+  SceneVariables,
+  VariableValue,
+  VariableValueSingle,
+  sceneGraph,
+} from '..';
 import { Subscription } from 'rxjs';
-import { useForceUpdate } from '@grafana/ui';
 
 export function useSceneContext() {
   const scene = useContext(SceneContext);
@@ -50,18 +56,24 @@ export function useVariableValues(name: string): [VariableValueSingle[] | undefi
   return [value, isLoading];
 }
 
-export interface UseVariableInterpolatorOptions {
+export interface UseUpdateWhenSceneChangesOptions {
   /** Variable names */
   variables?: string[];
   timeRange?: boolean;
 }
 
+export interface UseUpdateWhenSceneChangesReason {
+  variableName?: string;
+  variableValue?: VariableValue;
+  timeRange?: TimeRange;
+}
+
 /**
- * Mainly a utility hook to re-render the calling react component when specified variables or time range changes
+ * A utility hook to re-render the calling react component when specified variables or time range changes
  */
-export function useVariableInterpolator({ timeRange, variables }: UseVariableInterpolatorOptions) {
+export function useUpdateWhenSceneChanges({ timeRange, variables }: UseUpdateWhenSceneChangesOptions) {
   const scene = useSceneContext();
-  const forceUpdate = useForceUpdate();
+  const [updateReason, setUpdateReason] = useState<UseUpdateWhenSceneChangesReason>();
 
   useEffect(() => {
     const subscriptions = new Subscription();
@@ -70,7 +82,11 @@ export function useVariableInterpolator({ timeRange, variables }: UseVariableInt
       for (const v of variables) {
         const variable = sceneGraph.lookupVariable(v, scene);
         if (variable) {
-          subscriptions.add(variable.subscribeToEvent(SceneVariableValueChangedEvent, forceUpdate));
+          subscriptions.add(
+            variable.subscribeToEvent(SceneVariableValueChangedEvent, () => {
+              setUpdateReason({ variableName: variable.state.name, variableValue: variable.getValue() });
+            })
+          );
         }
       }
     }
@@ -79,14 +95,25 @@ export function useVariableInterpolator({ timeRange, variables }: UseVariableInt
       const tr = sceneGraph.getTimeRange(scene);
       tr.subscribeToState((newState, oldState) => {
         if (newState.value !== oldState.value) {
-          forceUpdate();
+          setUpdateReason({ timeRange: newState.value });
         }
       });
     }
 
     return () => subscriptions.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scene, forceUpdate, timeRange, ...variables]);
+  }, [scene, setUpdateReason, timeRange, ...variables]);
+
+  return updateReason;
+}
+
+/**
+ * Mainly a utility hook to re-render the calling react component when specified variables or time range changes
+ */
+export function useVariableInterpolator(options: UseUpdateWhenSceneChangesOptions) {
+  const scene = useSceneContext();
+
+  useUpdateWhenSceneChanges(options);
 
   return useCallback(
     (str: string) => {
