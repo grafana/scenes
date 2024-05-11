@@ -5,6 +5,7 @@ import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
 import { toOption } from '@grafana/data';
 import { DataQueryExtended } from '@grafana/scenes/src/querying/SceneQueryRunner';
+import { plainGraph } from './visualizations';
 
 export function DynamicQueriesPage() {
   const scenarios = ['Slow query', 'Random walk'].map(toOption);
@@ -22,7 +23,7 @@ export function DynamicQueriesPage() {
           </Field>
         </Stack>
         <div style={{ height: '300px', minWidth: '300px', flexGrow: 1 }}>
-          <RVizPanel title={scenario} dataProvider={dataProvider} />
+          <RVizPanel title={scenario} dataProvider={dataProvider} viz={plainGraph} />
         </div>
       </Stack>
     </PageWrapper>

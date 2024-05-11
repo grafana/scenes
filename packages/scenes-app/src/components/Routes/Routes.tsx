@@ -4,7 +4,7 @@ import { prefixRoute } from '../../utils/utils.routing';
 import { ROUTES } from '../../constants';
 import { DemoListPage } from '../../pages/DemoListPage';
 import GrafanaMonitoringApp from '../../monitoring-app/GrafanaMonitoringApp';
-import { ReactDemoPage } from '../../react-demo/ReactDemoPage';
+import { ReactDemoPage } from '../../react-demo/Home';
 
 export const Routes = () => {
   return (
