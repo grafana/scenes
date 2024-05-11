@@ -19,9 +19,7 @@ export function RVizPanel(props: RVizPanelProps) {
   const { title, viz, dataProvider, headerActions } = props;
   const scene = useSceneContext();
   const key = useId();
-
-  // Used to detect changing visualization
-  const previousViz = usePrevious(viz);
+  const prevProps = usePrevious(props);
 
   let panel = scene.findByKey<VizPanel>(key);
 
@@ -33,7 +31,7 @@ export function RVizPanel(props: RVizPanelProps) {
       pluginVersion: viz.pluginVersion,
       options: viz.options,
       fieldConfig: viz.fieldConfig,
-      $data: new DataProxyProvider({ source: dataProvider.getRef() }),
+      $data: getDataProviderForVizPanel(dataProvider),
       headerActions: headerActions,
     });
   }
@@ -50,20 +48,24 @@ export function RVizPanel(props: RVizPanelProps) {
   useEffect(() => {
     const stateUpdate: Partial<VizPanelState> = {};
 
-    if (!previousViz) {
+    if (!prevProps) {
       return;
     }
 
-    if (panel.state.title !== title) {
+    if (title !== prevProps.title) {
       stateUpdate.title = title;
     }
 
-    if (panel.state.headerActions !== headerActions) {
+    if (headerActions !== prevProps.headerActions) {
       stateUpdate.headerActions = headerActions;
     }
 
-    if (viz !== previousViz) {
-      if (viz.pluginId === previousViz.pluginId) {
+    if (dataProvider !== prevProps.dataProvider) {
+      stateUpdate.$data = getDataProviderForVizPanel(dataProvider);
+    }
+
+    if (viz !== prevProps.viz) {
+      if (viz.pluginId === prevProps.viz.pluginId) {
         const optionsWithDefaults = getPanelOptionsWithDefaults({
           plugin: panel.getPlugin(),
           currentOptions: viz.options,
@@ -79,7 +81,15 @@ export function RVizPanel(props: RVizPanelProps) {
 
     writeSceneLog('RVizPanel', 'Updating VizPanel state', stateUpdate);
     panel.setState(stateUpdate);
-  }, [panel, title, headerActions, viz, previousViz]);
+  }, [panel, title, headerActions, viz, dataProvider, prevProps]);
 
   return <panel.Component model={panel} />;
+}
+
+function getDataProviderForVizPanel(data: SceneDataProvider | undefined) {
+  if (data && data.parent) {
+    return new DataProxyProvider({ source: data.getRef() });
+  }
+
+  return data;
 }

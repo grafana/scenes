@@ -6,6 +6,7 @@ import { VariableValue } from '../variables/types';
 export interface RCustomVariableProps {
   query: string;
   name: string;
+  label?: string;
   initialValue?: VariableValue;
   isMulti?: boolean;
   children: React.ReactNode;
@@ -14,6 +15,7 @@ export interface RCustomVariableProps {
 export function RCustomVariable({
   query,
   name,
+  label,
   initialValue,
   children,
   isMulti,
@@ -24,7 +26,7 @@ export function RCustomVariable({
   let variable: CustomVariable = scene.findVariable(name);
 
   if (!variable) {
-    variable = new CustomVariable({ name, query, value: initialValue, isMulti });
+    variable = new CustomVariable({ name, label, query, value: initialValue, isMulti });
   }
 
   useEffect(() => {

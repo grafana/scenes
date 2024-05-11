@@ -12,6 +12,7 @@ import { DynamicVisualiationPage } from './DynamicVisualizationPage';
 import { DynamicVariablesPage } from './DynamicVariablesPage';
 import { NestedContextsPage } from './NestedContextPage';
 import { InterpolationHookPage } from './InterpolationHookPage';
+import { RepeatBySeriesPage } from './RepeatBySeriesPage';
 
 const urlBase = prefixRoute(`${ROUTES.ReactDemo}`);
 
@@ -22,6 +23,7 @@ export function ReactDemoPage() {
         <Switch>
           <Route path={`${urlBase}`} component={HomePage} exact />
           <Route path={`${urlBase}/repeat-by-variable`} component={RepeatByVariablePage} />
+          <Route path={`${urlBase}/repeat-by-series`} component={RepeatBySeriesPage} />
           <Route path={`${urlBase}/dynamic-queries`} component={DynamicQueriesPage} />
           <Route path={`${urlBase}/dynamic-viz`} component={DynamicVisualiationPage} />
           <Route path={`${urlBase}/dynamic-vars`} component={DynamicVariablesPage} />
@@ -40,6 +42,7 @@ function HomePage() {
         <PlainGraphWithRandomWalk title="Welcome" maxDataPoints={50} />
         <h2>Examples</h2>
         <TextLink href={`${urlBase}/repeat-by-variable`}>Repeat by variable</TextLink>
+        <TextLink href={`${urlBase}/repeat-by-series`}>Repeat by series</TextLink>
         <TextLink href={`${urlBase}/dynamic-queries`}>Dynamic queries</TextLink>
         <TextLink href={`${urlBase}/dynamic-viz`}>Dynamic visualization</TextLink>
         <TextLink href={`${urlBase}/dynamic-vars`}>Dynamic variables</TextLink>
