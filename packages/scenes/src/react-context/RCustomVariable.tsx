@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSceneContext } from './SceneContextProvider';
 import { CustomVariable } from '../variables/variants/CustomVariable';
 
@@ -11,31 +11,25 @@ export interface RCustomVariableProps {
 
 export function RCustomVariable({ query, name, initialValue, children }: RCustomVariableProps): React.ReactNode {
   const scene = useSceneContext();
-  const key = useId();
-  const [variable, setVariable] = useState<CustomVariable>(scene.findVariable(name));
+  const [variableAdded, setVariableAdded] = useState<boolean>();
 
-  useEffect(() => {
-    if (variable) {
-      return;
-    }
-
-    const newVariable = new CustomVariable({ key, name, query, value: initialValue });
-    scene.addVariable(newVariable);
-
-    setVariable(newVariable);
-
-    console.log('RCustomVariable: Adding variable', key);
-
-    return () => {
-      console.log('RCustomVariable: Removing variable', key);
-      scene.removeVariable(variable);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
+  let variable: CustomVariable = scene.findVariable(name);
 
   if (!variable) {
+    variable = new CustomVariable({ name, query, value: initialValue });
+  }
+
+  useEffect(() => {
+    scene.addVariable(variable);
+    setVariableAdded(true);
+
+    return () => {
+      scene.removeVariable(variable);
+    };
+  }, [variable, scene, name]);
+
+  // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
+  if (!variableAdded) {
     return null;
   }
 

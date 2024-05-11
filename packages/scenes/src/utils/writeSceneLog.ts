@@ -1,5 +1,11 @@
 export function writeSceneLog(logger: string, message: string, ...rest: unknown[]) {
-  if ((window as any).grafanaSceneLogging) {
+  let loggingEnabled = false;
+
+  if (typeof window !== 'undefined') {
+    loggingEnabled = localStorage.getItem('grafana.debug.scenes') === 'true';
+  }
+
+  if (loggingEnabled) {
     console.log(`${logger}: `, message, ...rest);
   }
 }

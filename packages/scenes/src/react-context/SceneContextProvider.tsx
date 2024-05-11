@@ -6,6 +6,7 @@ import { TimeRange } from '@grafana/data';
 import { SceneVariable, SceneVariables, VariableValueSingle } from '../variables/types';
 import { getUrlSyncManager } from '../services/UrlSyncManager';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
+import { writeSceneLog } from '../utils/writeSceneLog';
 
 export interface ReactSceneContextObjectState extends SceneObjectState {
   childContext?: SceneContextObject;
@@ -15,10 +16,13 @@ export interface ReactSceneContextObjectState extends SceneObjectState {
 export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectState> {
   public addToScene(obj: SceneObject) {
     this.setState({ children: [...this.state.children, obj] });
+
+    writeSceneLog('SceneContext', `Adding to scene: ${obj.constructor.name} key: ${obj.state.key}`);
   }
 
   public removeFromScene(obj: SceneObject) {
     this.setState({ children: this.state.children.filter((x) => x !== obj) });
+    writeSceneLog('SceneContext', `Removing from scene: ${obj.constructor.name} key: ${obj.state.key}`);
   }
 
   public findByKey<T>(key: string): T | undefined {
@@ -40,16 +44,17 @@ export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectS
     if (set) {
       set.setState({ variables: [...set.state.variables, variable] });
     } else {
-      this.setState({
-        $variables: new SceneVariableSet({ variables: [variable] }),
-      });
+      this.setState({ $variables: new SceneVariableSet({ variables: [variable] }) });
     }
+
+    writeSceneLog('SceneContext', `Adding variable: ${variable.constructor.name} key: ${variable.state.key}`);
   }
 
   public removeVariable(variable: SceneVariable) {
     let set = this.state.$variables as SceneVariableSet;
     if (set) {
       set.setState({ variables: set.state.variables.filter((x) => x !== variable) });
+      writeSceneLog('SceneContext', `Removing variable: ${variable.constructor.name} key: ${variable.state.key}`);
     }
   }
 }

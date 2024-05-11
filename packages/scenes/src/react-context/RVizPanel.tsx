@@ -6,6 +6,7 @@ import { useSceneContext } from './SceneContextProvider';
 import { RVisualization } from './RVisualizationBuilder';
 import { usePrevious } from 'react-use';
 import { getPanelOptionsWithDefaults } from '@grafana/data';
+import { writeSceneLog } from '../utils/writeSceneLog';
 
 export interface RVizPanelProps {
   title: string;
@@ -38,11 +39,9 @@ export function RVizPanel(props: RVizPanelProps) {
   }
 
   useEffect(() => {
-    console.log('RVizPanel: Adding panel to scene', key);
     scene.addToScene(panel);
 
     return () => {
-      console.log('RVizPanel: Removing panel from scene', key);
       scene.removeFromScene(panel);
     };
   }, [panel, scene, key]);
@@ -78,7 +77,7 @@ export function RVizPanel(props: RVizPanelProps) {
       }
     }
 
-    console.log('RVizPanel: Updating VizPanel state', stateUpdate);
+    writeSceneLog('RVizPanel', 'Updating VizPanel state', stateUpdate);
     panel.setState(stateUpdate);
   }, [panel, title, headerActions, viz, previousViz]);
 
