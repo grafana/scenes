@@ -76,7 +76,8 @@ export function SceneContextProvider(props: SceneContextProviderProps) {
   const [timeRange, _] = useState(props.timeRange);
 
   useEffect(() => {
-    const childContext = new SceneContextObject({ children: [], $timeRange: new SceneTimeRange(timeRange) });
+    const sceneTimeRange = timeRange ? new SceneTimeRange(timeRange) : undefined;
+    const childContext = new SceneContextObject({ children: [], $timeRange: sceneTimeRange });
 
     if (parentContext) {
       parentContext.setState({ childContext });
