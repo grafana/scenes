@@ -1,6 +1,6 @@
 import { TimeRangePicker } from '@grafana/ui';
-import { useTimeRange } from './SceneContextProvider';
 import React from 'react';
+import { useTimeRange } from './hooks';
 
 export interface Props {}
 

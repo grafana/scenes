@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObject, SceneObjectState, SceneTimeRangeLike } from '../core/types';
-import { sceneGraph } from '../core/sceneGraph';
-import { TimeRange } from '@grafana/data';
-import { SceneVariable, SceneVariables, VariableValueSingle } from '../variables/types';
+import { SceneObject, SceneObjectState } from '../core/types';
+import { SceneVariable } from '../variables/types';
 import { getUrlSyncManager } from '../services/UrlSyncManager';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { writeSceneLog } from '../utils/writeSceneLog';
@@ -41,6 +39,8 @@ export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectS
   public addVariable(variable: SceneVariable) {
     let set = this.state.$variables as SceneVariableSet;
 
+    getUrlSyncManager().syncNewObj(variable);
+
     if (set) {
       set.setState({ variables: [...set.state.variables, variable] });
     } else {
@@ -60,29 +60,6 @@ export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectS
 }
 
 export const SceneContext = createContext<SceneContextObject | null>(null);
-
-export function useSceneContext() {
-  const scene = useContext(SceneContext);
-  if (!scene) {
-    throw new Error('Cannot find a SceneContext');
-  }
-
-  return scene;
-}
-
-export function useTimeRange(): [TimeRange, SceneTimeRangeLike] {
-  const scene = useSceneContext();
-  const sceneTimeRange = sceneGraph.getTimeRange(scene);
-  const { value } = sceneTimeRange.useState();
-
-  return [value, sceneTimeRange];
-}
-
-export function useVariables(): SceneVariable[] {
-  const scene = useSceneContext();
-  const variables = sceneGraph.getVariables(scene);
-  return variables.useState().variables;
-}
 
 export interface SceneContextProviderProps {
   children: React.ReactNode;
@@ -127,25 +104,4 @@ export function SceneContextProvider(props: SceneContextProviderProps) {
   }
 
   return <SceneContext.Provider value={childContext}>{props.children}</SceneContext.Provider>;
-}
-
-export function useVariableValues(name: string): [VariableValueSingle[] | undefined, boolean] {
-  const scene = useSceneContext();
-  const variable = sceneGraph.lookupVariable(name, scene);
-
-  if (!variable) {
-    return [undefined, false];
-  }
-
-  variable.useState();
-
-  const set = variable.parent as SceneVariables;
-  const isLoading = set.isVariableLoadingOrWaitingToUpdate(variable);
-  let value = variable.getValue();
-
-  if (!Array.isArray(value)) {
-    value = [value];
-  }
-
-  return [value, isLoading];
 }

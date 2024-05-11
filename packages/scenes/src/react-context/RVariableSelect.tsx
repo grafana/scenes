@@ -1,7 +1,7 @@
-import { useSceneContext } from './SceneContextProvider';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { VariableValueSelectWrapper } from '../variables/components/VariableValueSelectors';
+import { useSceneContext } from './hooks';
 
 export interface Props {
   name: string;

@@ -1,9 +1,9 @@
 import { useEffect, useId } from 'react';
 import { SceneDataProvider } from '../core/types';
 import { DataQueryExtended, SceneQueryRunner } from '../querying/SceneQueryRunner';
-import { useSceneContext } from './SceneContextProvider';
 import { DataSourceRef } from '@grafana/schema';
 import { isEqual } from 'lodash';
+import { useSceneContext } from './hooks';
 
 export interface UseQueryOptions {
   queries: DataQueryExtended[];

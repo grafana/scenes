@@ -13,6 +13,7 @@ export interface UrlSyncManagerLike {
   initSync(root: SceneObject): void;
   cleanUp(root: SceneObject): void;
   getUrlState(root: SceneObject): SceneObjectUrlValues;
+  syncNewObj(obj: SceneObject): void;
 }
 
 export class UrlSyncManager implements UrlSyncManagerLike {
@@ -22,6 +23,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   private _locationSub?: UnregisterCallback | null = null;
   private _lastPath?: string;
   private _ignoreNextLocationUpdate = false;
+  private _urlParams: URLSearchParams | undefined;
 
   /**
    * Updates the current scene state to match URL state.
@@ -37,8 +39,11 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       this._stateSub.unsubscribe();
     }
 
+    const location = locationService.getLocation();
+
     this._sceneRoot = root;
-    this._lastPath = locationService.getLocation().pathname;
+    this._lastPath = location.pathname;
+    this._urlParams = new URLSearchParams(location.search);
     this._stateSub = root.subscribeToEvent(SceneObjectStateChangedEvent, this._onStateChanged);
 
     this.syncFrom(this._sceneRoot);
@@ -78,6 +83,8 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   }
 
   private _onLocationUpdate = (location: Location) => {
+    this._urlParams = new URLSearchParams(location.search);
+
     if (this._ignoreNextLocationUpdate) {
       this._ignoreNextLocationUpdate = false;
       return;
@@ -87,11 +94,10 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       return;
     }
 
-    const urlParams = new URLSearchParams(location.search);
     // Rebuild key mapper index before starting sync
     this._urlKeyMapper.rebuildIndex(this._sceneRoot);
     // Sync scene state tree from url
-    syncStateFromUrl(this._sceneRoot, urlParams, this._urlKeyMapper);
+    syncStateFromUrl(this._sceneRoot, this._urlParams, this._urlKeyMapper);
     this._lastPath = location.pathname;
   };
 
@@ -121,6 +127,10 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       }
     }
   };
+
+  public syncNewObj(obj: SceneObject) {
+    syncStateFromUrl(obj, this._urlParams, this._urlKeyMapper);
+  }
 
   public getUrlState(root: SceneObject): SceneObjectUrlValues {
     return getUrlState(root);

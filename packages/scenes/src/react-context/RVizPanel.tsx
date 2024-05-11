@@ -2,11 +2,11 @@ import React, { useEffect, useId } from 'react';
 import { SceneDataProvider } from '../core/types';
 import { VizPanel, VizPanelState } from '../components/VizPanel/VizPanel';
 import { DataProxyProvider } from './DataProxyProvider';
-import { useSceneContext } from './SceneContextProvider';
 import { RVisualization } from './RVisualizationBuilder';
 import { usePrevious } from 'react-use';
 import { getPanelOptionsWithDefaults } from '@grafana/data';
 import { writeSceneLog } from '../utils/writeSceneLog';
+import { useSceneContext } from './hooks';
 
 export interface RVizPanelProps {
   title: string;

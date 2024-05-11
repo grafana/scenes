@@ -6,3 +6,4 @@ export { RVizPanel } from './RVizPanel';
 export { RCustomVariable } from './RCustomVariable';
 export { RVisualizationBuilder } from './RVisualizationBuilder';
 export { RVisualizationBuilders } from './RVisualizationBuilders';
+export * from './hooks';

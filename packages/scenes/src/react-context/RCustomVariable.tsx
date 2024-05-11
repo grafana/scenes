@@ -1,22 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { useSceneContext } from './SceneContextProvider';
 import { CustomVariable } from '../variables/variants/CustomVariable';
+import { useSceneContext } from './hooks';
+import { VariableValue } from '../variables/types';
 
 export interface RCustomVariableProps {
   query: string;
   name: string;
-  initialValue?: string;
+  initialValue?: VariableValue;
+  isMulti?: boolean;
   children: React.ReactNode;
 }
 
-export function RCustomVariable({ query, name, initialValue, children }: RCustomVariableProps): React.ReactNode {
+export function RCustomVariable({
+  query,
+  name,
+  initialValue,
+  children,
+  isMulti,
+}: RCustomVariableProps): React.ReactNode {
   const scene = useSceneContext();
   const [variableAdded, setVariableAdded] = useState<boolean>();
 
   let variable: CustomVariable = scene.findVariable(name);
 
   if (!variable) {
-    variable = new CustomVariable({ name, query, value: initialValue });
+    variable = new CustomVariable({ name, query, value: initialValue, isMulti });
   }
 
   useEffect(() => {
