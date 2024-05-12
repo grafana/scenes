@@ -6,12 +6,14 @@ interface Props {
   maxDataPoints?: number;
   title: string;
   queryAlias?: string;
+  cacheKey?: string;
 }
 
 export function PlainGraphWithRandomWalk({ maxDataPoints, title, queryAlias }: Props) {
   const dataProvider = useSceneQuery({
     queries: [{ uid: 'gdev-testdata', refId: 'A', scenarioId: 'random_walk', alias: queryAlias ?? 'env = $env' }],
     maxDataPoints: maxDataPoints ?? 20,
+    cacheKey: `${maxDataPoints} ${title} ${queryAlias}`,
   });
 
   return (

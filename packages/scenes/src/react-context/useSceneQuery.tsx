@@ -4,11 +4,13 @@ import { DataQueryExtended, SceneQueryRunner } from '../querying/SceneQueryRunne
 import { DataSourceRef } from '@grafana/schema';
 import { isEqual } from 'lodash';
 import { useSceneContext } from './hooks';
+import { getSceneObjectCache } from './SceneObjectCache';
 
 export interface UseQueryOptions {
   queries: DataQueryExtended[];
   maxDataPoints?: number;
   datasource?: DataSourceRef;
+  cacheKey?: string;
 }
 
 /**
@@ -24,6 +26,10 @@ export function useSceneQuery(options: UseQueryOptions): SceneDataProvider {
 
   let queryRunner = scene.findByKey<SceneQueryRunner>(key);
 
+  if (!queryRunner && options.cacheKey) {
+    queryRunner = getSceneObjectCache().get(options.cacheKey);
+  }
+
   if (!queryRunner) {
     queryRunner = new SceneQueryRunner({
       key: key,
@@ -31,6 +37,10 @@ export function useSceneQuery(options: UseQueryOptions): SceneDataProvider {
       maxDataPoints: options.maxDataPoints,
       datasource: options.datasource,
     });
+
+    if (options.cacheKey) {
+      getSceneObjectCache().add(options.cacheKey, queryRunner);
+    }
   }
 
   useEffect(() => {
