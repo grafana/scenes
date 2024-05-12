@@ -1,4 +1,6 @@
 import React, { CSSProperties } from 'react';
+import { prefixRoute } from '../utils/utils.routing';
+import { ROUTES } from '../constants';
 
 export interface Props {
   children: React.ReactNode;
@@ -27,3 +29,5 @@ export function RenderCounter({ name }: { name: string }) {
     </div>
   );
 }
+
+export const urlBase = prefixRoute(`${ROUTES.ReactDemo}`);

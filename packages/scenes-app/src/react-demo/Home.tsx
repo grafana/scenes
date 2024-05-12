@@ -1,8 +1,6 @@
 import { SceneContextProvider, RCustomVariable } from '@grafana/scenes';
 import { Stack, TextLink } from '@grafana/ui';
 import React from 'react';
-import { prefixRoute } from '../utils/utils.routing';
-import { ROUTES } from '../constants';
 import { Route, Switch } from 'react-router-dom';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 import { PageWrapper } from './PageWrapper';
@@ -13,9 +11,8 @@ import { DynamicVariablesPage } from './DynamicVariablesPage';
 import { NestedContextsPage } from './NestedContextPage';
 import { InterpolationHookPage } from './InterpolationHookPage';
 import { RepeatBySeriesPage } from './RepeatBySeriesPage';
-import { DemoVizLayout } from './utils';
-
-const urlBase = prefixRoute(`${ROUTES.ReactDemo}`);
+import { DemoVizLayout, urlBase } from './utils';
+import { DrilldownDemoPage } from './DrilldownDemoPage';
 
 export function ReactDemoPage() {
   return (
@@ -30,6 +27,7 @@ export function ReactDemoPage() {
           <Route path={`${urlBase}/dynamic-vars`} component={DynamicVariablesPage} />
           <Route path={`${urlBase}/nested-context`} component={NestedContextsPage} />
           <Route path={`${urlBase}/interpolation-hook`} component={InterpolationHookPage} />
+          <Route path={`${urlBase}/drilldown`} component={DrilldownDemoPage} />
         </Switch>
       </RCustomVariable>
     </SceneContextProvider>
@@ -51,6 +49,7 @@ function HomePage() {
         <TextLink href={`${urlBase}/dynamic-vars`}>Dynamic variables</TextLink>
         <TextLink href={`${urlBase}/nested-context`}>Nested contexts</TextLink>
         <TextLink href={`${urlBase}/interpolation-hook`}>Interpolation hook</TextLink>
+        <TextLink href={`${urlBase}/drilldown`}>Drilldown demo</TextLink>
       </Stack>
     </PageWrapper>
   );
