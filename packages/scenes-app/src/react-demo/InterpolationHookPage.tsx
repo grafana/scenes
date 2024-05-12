@@ -3,21 +3,16 @@ import { Button, Stack } from '@grafana/ui';
 import React, { useEffect, useRef } from 'react';
 import { PageWrapper } from './PageWrapper';
 import { locationService } from '@grafana/runtime';
+import { RenderCounter } from './utils';
 
 export function InterpolationHookPage() {
-  const renderCount = useRef<number>(0);
-
-  useEffect(() => {
-    renderCount.current += 1;
-  });
-
   return (
     <PageWrapper
       title="Interpolation hook"
       subTitle="Testing a hook that makes any component re-render when variable or time range change"
     >
       <Stack direction="column">
-        <div>PageRender: {renderCount.current}</div>
+        <RenderCounter name="Page" />
         <PageBody />
       </Stack>
     </PageWrapper>
@@ -44,8 +39,8 @@ const PageBody = React.memo(() => {
   };
 
   return (
-    <Stack direction="column">
-      <div>InnerRender: {renderCount.current}</div>
+    <Stack direction="column" gap={2}>
+      <RenderCounter name="Memozied component" />
       <div>$env: {interpolator('$env')}</div>
       <div>__url_time_range: {interpolator('$__url_time_range')}</div>
       <Stack>

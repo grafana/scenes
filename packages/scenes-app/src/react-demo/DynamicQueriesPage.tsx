@@ -6,6 +6,7 @@ import { PageWrapper } from './PageWrapper';
 import { toOption } from '@grafana/data';
 import { DataQueryExtended } from '@grafana/scenes/src/querying/SceneQueryRunner';
 import { plainGraph } from './visualizations';
+import { DemoVizLayout } from './utils';
 
 export function DynamicQueriesPage() {
   const scenarios = ['Slow query', 'Random walk'].map(toOption);
@@ -22,9 +23,9 @@ export function DynamicQueriesPage() {
             <Select value={scenario} options={scenarios} onChange={(x) => setScenario(x.value!)} />
           </Field>
         </Stack>
-        <div style={{ height: '300px', minWidth: '300px', flexGrow: 1 }}>
+        <DemoVizLayout>
           <RVizPanel title={scenario} dataProvider={dataProvider} viz={plainGraph} />
-        </div>
+        </DemoVizLayout>
       </Stack>
     </PageWrapper>
   );

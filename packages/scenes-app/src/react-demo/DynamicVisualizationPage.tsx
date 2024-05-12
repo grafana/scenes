@@ -6,6 +6,7 @@ import { PageWrapper } from './PageWrapper';
 import { SelectableValue } from '@grafana/data';
 import { graphWithGrapdientColor, plainGraph, timeSeriesBars } from './visualizations';
 import { RVisualization } from '@grafana/scenes/src/react-context/RVisualizationBuilder';
+import { DemoVizLayout } from './utils';
 
 export function DynamicVisualiationPage() {
   const [selectedViz, setSelectedViz] = useState<RVisualization>(plainGraph);
@@ -20,14 +21,14 @@ export function DynamicVisualiationPage() {
   return (
     <PageWrapper title="Dynamic visualisation" subTitle="Rebuild queries based on some user input / state">
       <Stack direction="column">
-        <div style={{ height: '300px', minWidth: '300px', flexGrow: 1 }}>
+        <DemoVizLayout>
           <RVizPanel
             title={selectedValue.label!}
             dataProvider={dataProvider}
             viz={selectedViz}
             headerActions={vizSelector}
           />
-        </div>
+        </DemoVizLayout>
       </Stack>
     </PageWrapper>
   );

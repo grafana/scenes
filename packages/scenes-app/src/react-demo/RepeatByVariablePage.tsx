@@ -3,6 +3,7 @@ import { Stack } from '@grafana/ui';
 import React from 'react';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 import { PageWrapper } from './PageWrapper';
+import { DemoVizLayout } from './utils';
 
 export function RepeatByVariablePage() {
   return (
@@ -27,10 +28,10 @@ function RepeatPanelByVariable() {
   }
 
   return (
-    <Stack direction="row" wrap={'wrap'} gap={2}>
+    <DemoVizLayout>
       {(values as string[]).map((value: string) => (
         <PlainGraphWithRandomWalk key={value} title={`${value} data points`} maxDataPoints={parseInt(value, 10)} />
       ))}
-    </Stack>
+    </DemoVizLayout>
   );
 }

@@ -12,6 +12,7 @@ import React from 'react';
 import { PageWrapper } from './PageWrapper';
 import { getFrameDisplayName } from '@grafana/data';
 import { plainGraph } from './visualizations';
+import { DemoVizLayout } from './utils';
 
 export function RepeatBySeriesPage() {
   return (
@@ -50,7 +51,7 @@ const RepeatPanelBySeries = React.memo(() => {
   }
 
   return (
-    <Stack direction="row" wrap={'wrap'} gap={2}>
+    <DemoVizLayout>
       {data.series.map((frame, index) => {
         const seriesName = getFrameDisplayName(frame, index);
         const dataNode = new SceneDataNode({
@@ -60,13 +61,9 @@ const RepeatPanelBySeries = React.memo(() => {
           },
         });
 
-        return (
-          <div key={seriesName} style={{ height: '300px', minWidth: '300px', flexGrow: 1 }}>
-            <RVizPanel title={seriesName} viz={plainGraph} dataProvider={dataNode} />
-          </div>
-        );
+        return <RVizPanel key={seriesName} title={seriesName} viz={plainGraph} dataProvider={dataNode} />;
       })}
-    </Stack>
+    </DemoVizLayout>
   );
 });
 

@@ -13,6 +13,7 @@ import { DynamicVariablesPage } from './DynamicVariablesPage';
 import { NestedContextsPage } from './NestedContextPage';
 import { InterpolationHookPage } from './InterpolationHookPage';
 import { RepeatBySeriesPage } from './RepeatBySeriesPage';
+import { DemoVizLayout } from './utils';
 
 const urlBase = prefixRoute(`${ROUTES.ReactDemo}`);
 
@@ -39,7 +40,9 @@ function HomePage() {
   return (
     <PageWrapper title="Home" subTitle="Welcome to the React first demos">
       <Stack direction={'column'} gap={2}>
-        <PlainGraphWithRandomWalk title="Welcome" maxDataPoints={50} />
+        <DemoVizLayout>
+          <PlainGraphWithRandomWalk title="Welcome" maxDataPoints={50} />
+        </DemoVizLayout>
         <h2>Examples</h2>
         <TextLink href={`${urlBase}/repeat-by-variable`}>Repeat by variable</TextLink>
         <TextLink href={`${urlBase}/repeat-by-series`}>Repeat by series</TextLink>

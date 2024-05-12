@@ -3,6 +3,7 @@ import { Stack } from '@grafana/ui';
 import React from 'react';
 import { PageWrapper } from './PageWrapper';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
+import { DemoVizLayout } from './utils';
 
 export function DynamicVariablesPage() {
   return (
@@ -12,9 +13,9 @@ export function DynamicVariablesPage() {
           <Stack>
             <RVariableSelect name="job" />
           </Stack>
-          <div style={{ height: '300px', minWidth: '300px', flexGrow: 1 }}>
+          <DemoVizLayout>
             <PlainGraphWithRandomWalk title={'Testing job = $job'} queryAlias="job = $job" />
-          </div>
+          </DemoVizLayout>
         </Stack>
       </RCustomVariable>
     </PageWrapper>

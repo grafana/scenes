@@ -14,9 +14,5 @@ export function PlainGraphWithRandomWalk({ maxDataPoints, title, queryAlias }: P
     maxDataPoints: maxDataPoints ?? 20,
   });
 
-  return (
-    <div style={{ height: '300px', minWidth: '300px', flexGrow: 1 }}>
-      <RVizPanel title={title} viz={plainGraph} dataProvider={dataProvider} />
-    </div>
-  );
+  return <RVizPanel title={title} viz={plainGraph} dataProvider={dataProvider} />;
 }
