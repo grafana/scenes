@@ -6,6 +6,7 @@ import { getUrlSyncManager } from '../services/UrlSyncManager';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { SceneTimeRange } from '../core/SceneTimeRange';
+import { SceneQueryController } from '../behaviors';
 
 export interface ReactSceneContextObjectState extends SceneObjectState {
   childContext?: SceneContextObject;
@@ -13,6 +14,13 @@ export interface ReactSceneContextObjectState extends SceneObjectState {
 }
 
 export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectState> {
+  public constructor(state?: Partial<ReactSceneContextObjectState>) {
+    super({
+      ...state,
+      children: state.children ?? [],
+    });
+  }
+
   public addToScene(obj: SceneObject) {
     this.setState({ children: [...this.state.children, obj] });
 
@@ -63,8 +71,15 @@ export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectS
 export const SceneContext = createContext<SceneContextObject | null>(null);
 
 export interface SceneContextProviderProps {
-  /** Only the initial time range, cannot be used to update time range */
+  /**
+   * Only the initial time range, cannot be used to update time range
+   **/
   timeRange?: Partial<SceneTimeRangeState>;
+  /**
+   *  This makes it possbile to view running state of queries via
+   *  refresh picker and also cancel all queries in the scene.
+   */
+  hasQueryController?: boolean;
   /** Children */
   children: React.ReactNode;
 }
@@ -72,14 +87,23 @@ export interface SceneContextProviderProps {
 /**
  * We could have TimeRangeContextProvider provider and VariableContextProvider as utility components, but the underlying context would be this context
  */
-export function SceneContextProvider({ children, timeRange }: SceneContextProviderProps) {
+export function SceneContextProvider({ children, timeRange, hasQueryController }: SceneContextProviderProps) {
   const parentContext = useContext(SceneContext);
   const [childContext, setChildContext] = useState<SceneContextObject | undefined>();
   const initialTimeRange = useRef(timeRange);
 
   useEffect(() => {
-    const sceneTimeRange = initialTimeRange.current ? new SceneTimeRange(initialTimeRange.current) : undefined;
-    const childContext = new SceneContextObject({ children: [], $timeRange: sceneTimeRange });
+    const state: ReactSceneContextObjectState = { children: [] };
+
+    if (hasQueryController) {
+      state.$behaviors = [new SceneQueryController()];
+    }
+
+    if (initialTimeRange.current) {
+      state.$timeRange = new SceneTimeRange(initialTimeRange.current);
+    }
+
+    const childContext = new SceneContextObject(state);
 
     if (parentContext) {
       parentContext.setState({ childContext });
@@ -101,7 +125,7 @@ export function SceneContextProvider({ children, timeRange }: SceneContextProvid
         getUrlSyncManager().cleanUp(childContext);
       }
     };
-  }, [parentContext]);
+  }, [parentContext, hasQueryController]);
 
   if (!childContext) {
     return null;

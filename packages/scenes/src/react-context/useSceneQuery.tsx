@@ -12,7 +12,11 @@ export interface UseQueryOptions {
 }
 
 /**
- * Missing a way to detect changes to queries after initial render, but should not be that hard.
+ * Maintains the state of SceneQueryRunner in the scene
+ *
+ * @example // To access query results do
+ * const query = useSceneQuery(...);
+ * const {data} = query.useState();
  */
 export function useSceneQuery(options: UseQueryOptions): SceneDataProvider {
   const scene = useSceneContext();

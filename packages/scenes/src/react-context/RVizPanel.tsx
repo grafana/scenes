@@ -7,6 +7,7 @@ import { usePrevious } from 'react-use';
 import { getPanelOptionsWithDefaults } from '@grafana/data';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { useSceneContext } from './hooks';
+import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 
 export interface RVizPanelProps {
   title: string;
@@ -86,8 +87,13 @@ export function RVizPanel(props: RVizPanelProps) {
   return <panel.Component model={panel} />;
 }
 
+/**
+ * Since the useSceneQuery attaches query runners to the scene context their parent is already set
+ * This proxy is to work around that.
+ * TODO: Figure out a better way to handle this'
+ */
 function getDataProviderForVizPanel(data: SceneDataProvider | undefined) {
-  if (data && data.parent) {
+  if (data instanceof SceneQueryRunner) {
     return new DataProxyProvider({ source: data.getRef() });
   }
 

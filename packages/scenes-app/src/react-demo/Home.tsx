@@ -18,7 +18,7 @@ const urlBase = prefixRoute(`${ROUTES.ReactDemo}`);
 
 export function ReactDemoPage() {
   return (
-    <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }}>
+    <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }} hasQueryController>
       <RCustomVariable name="env" query="dev, test, prod" initialValue="dev">
         <Switch>
           <Route path={`${urlBase}`} component={HomePage} exact />
