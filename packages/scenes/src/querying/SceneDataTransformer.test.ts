@@ -700,7 +700,7 @@ describe('SceneDataTransformer', () => {
       dataNode.setState({ data: { ...dataNode.state.data, state: LoadingState.Loading } });
 
       expect(customTransformerSpy).toHaveBeenCalledTimes(1);
-      expect(transformer.state.data.state).toBe(LoadingState.Loading);
+      expect(transformer.state.data?.state).toBe(LoadingState.Loading);
     });
   });
 });
