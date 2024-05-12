@@ -29,6 +29,10 @@ export function useTimeRange(): [TimeRange, SceneTimeRangeLike] {
   return [value, sceneTimeRange];
 }
 
+/**
+ * Only returns the variables on the closest context level.
+ * We could modify it to extract all variables from the full context tree.
+ */
 export function useVariables(): SceneVariable[] {
   const scene = useSceneContext();
   const variables = sceneGraph.getVariables(scene);
