@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneObjectState, SceneTimeRangeState } from '../core/types';
 import { SceneVariable } from '../variables/types';
@@ -63,20 +63,22 @@ export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectS
 export const SceneContext = createContext<SceneContextObject | null>(null);
 
 export interface SceneContextProviderProps {
-  children: React.ReactNode;
+  /** Only the initial time range, cannot be used to update time range */
   timeRange?: Partial<SceneTimeRangeState>;
+  /** Children */
+  children: React.ReactNode;
 }
 
 /**
  * We could have TimeRangeContextProvider provider and VariableContextProvider as utility components, but the underlying context would be this context
  */
-export function SceneContextProvider(props: SceneContextProviderProps) {
+export function SceneContextProvider({ children, timeRange }: SceneContextProviderProps) {
   const parentContext = useContext(SceneContext);
   const [childContext, setChildContext] = useState<SceneContextObject | undefined>();
-  const [timeRange, _] = useState(props.timeRange);
+  const initialTimeRange = useRef(timeRange);
 
   useEffect(() => {
-    const sceneTimeRange = timeRange ? new SceneTimeRange(timeRange) : undefined;
+    const sceneTimeRange = initialTimeRange.current ? new SceneTimeRange(initialTimeRange.current) : undefined;
     const childContext = new SceneContextObject({ children: [], $timeRange: sceneTimeRange });
 
     if (parentContext) {
@@ -99,11 +101,11 @@ export function SceneContextProvider(props: SceneContextProviderProps) {
         getUrlSyncManager().cleanUp(childContext);
       }
     };
-  }, [parentContext, timeRange]);
+  }, [parentContext]);
 
   if (!childContext) {
     return null;
   }
 
-  return <SceneContext.Provider value={childContext}>{props.children}</SceneContext.Provider>;
+  return <SceneContext.Provider value={childContext}>{children}</SceneContext.Provider>;
 }
