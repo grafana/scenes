@@ -38,6 +38,8 @@ export function RCustomVariable({
     };
   }, [variable, scene, name]);
 
+  // TOOD: handle prop updates
+
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {
     return null;
