@@ -9,7 +9,10 @@ export interface DataProxyProviderState extends SceneDataState {
 
 export class DataProxyProvider extends SceneObjectBase<DataProxyProviderState> implements SceneDataProvider {
   public constructor(state: DataProxyProviderState) {
-    super(state);
+    super({
+      source: state.source,
+      data: state.source.resolve().state.data,
+    });
 
     this.addActivationHandler(() => {
       this._subs.add(
