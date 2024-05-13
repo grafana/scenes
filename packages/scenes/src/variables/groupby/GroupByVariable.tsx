@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AdHocVariableFilter, DataSourceApi, MetricFindValue } from '@grafana/data';
+import { AdHocVariableFilter, DataSourceApi, MetricFindValue, SelectableValue } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
-import { SceneComponentProps, ControlsLayout } from '../../core/types';
+import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
 import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
@@ -12,6 +12,7 @@ import { InputActionMeta, MultiSelect } from '@grafana/ui';
 import { isArray } from 'lodash';
 import { getQueriesForVariables } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
+import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -56,6 +57,8 @@ export type getTagKeysProvider = (
 export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
   isLazy = true;
+
+  protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -182,19 +185,27 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 }
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key, maxVisibleValues, noValueOnClear } = model.useState();
-  const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
+  const { value, text, key, maxVisibleValues, noValueOnClear } = model.useState();
+  const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
+    const arrayValue = isArray(value) ? value : [value];
+    const arrayText = isArray(text) ? text : [text];
+
+    return arrayValue.map((value, idx) => ({
+      value,
+      label: String(arrayText[idx] ?? value),
+    }));
+  }, [value, text]);
   const [isFetchingOptions, setIsFetchingOptions] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
-  const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
+  const [uncommittedValue, setUncommittedValue] = useState(values);
 
   // Detect value changes outside
   useEffect(() => {
-    setUncommittedValue(arrayValue);
-  }, [arrayValue]);
+    setUncommittedValue(values);
+  }, [values]);
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
@@ -237,13 +248,16 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       components={{ Option: OptionWithCheckbox }}
       onInputChange={onInputChange}
       onBlur={() => {
-        model.changeValueTo(uncommittedValue);
+        model.changeValueTo(
+          uncommittedValue.map((x) => x.value!),
+          uncommittedValue.map((x) => x.label!)
+        );
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([]);
         }
-        setUncommittedValue(newValue.map((x) => x.value!));
+        setUncommittedValue(newValue);
       }}
       onOpenMenu={async () => {
         setIsFetchingOptions(true);
