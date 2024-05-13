@@ -238,7 +238,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
       virtualized
-      allowCustomValue
       options={model.getOptionsForSelect()}
       closeMenuOnSelect={false}
       isOpen={isOptionsOpen}
