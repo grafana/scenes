@@ -23,12 +23,7 @@ export function InterpolationHookPage() {
  * Memoized to make sure re-render due to location change is not re-rendering this
  */
 const PageBody = React.memo(() => {
-  const renderCount = useRef<number>(0);
   const interpolator = useVariableInterpolator({ variables: ['env'], timeRange: true });
-
-  useEffect(() => {
-    renderCount.current += 1;
-  });
 
   const onUpdateQueryParam = () => {
     locationService.partial({ someParam: '1' });
