@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import { forkJoin, ReplaySubject, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
@@ -187,7 +187,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     // Skip unnessary state updates
     if (
-      alertState === this.state.data?.alertState &&
+      isEqual(alertState, this.state.data?.alertState) &&
       allFramesEmpty(annotations) &&
       allFramesEmpty(this._layerAnnotations)
     ) {
