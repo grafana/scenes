@@ -1,3 +1,16 @@
+# v4.21.1 (Tue May 14 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Group by: Do not allow custom options [#736](https://github.com/grafana/scenes/pull/736) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v4.21.0 (Tue May 14 2024)
 
 #### 🚀 Enhancement
