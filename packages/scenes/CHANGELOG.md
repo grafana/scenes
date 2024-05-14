@@ -1,3 +1,20 @@
+# v4.21.0 (Tue May 14 2024)
+
+#### 🚀 Enhancement
+
+- SceneVariableSet: Do not propagate variable value changes when a local variable has the same name [#729](https://github.com/grafana/scenes/pull/729) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- NestedScene: Don't show `cursor: pointer;` for everything [#735](https://github.com/grafana/scenes/pull/735) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.20.0 (Mon May 13 2024)
 
 #### 🚀 Enhancement
