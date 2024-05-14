@@ -187,9 +187,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     // Skip unnessary state updates
     if (
-      isEqual(alertState, this.state.data?.alertState) &&
       allFramesEmpty(annotations) &&
-      allFramesEmpty(this._layerAnnotations)
+      allFramesEmpty(this._layerAnnotations) &&
+      isEqual(alertState, this.state.data?.alertState)
     ) {
       return;
     }
