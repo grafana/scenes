@@ -33,6 +33,7 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler } from '../core/types';
+import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -356,6 +357,54 @@ describe('SceneQueryRunner', () => {
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].filters).toEqual(filtersVar.state.filters);
+    });
+
+    it('only passes fully completed adhoc filters', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{
+          key: 'A', operator: '=', value: 'B', condition: ''
+        }, {
+          key: 'C', operator: '=', value: '', condition: ''
+        }],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].filters).toEqual([{
+        key: 'A', operator: '=', value: 'B', condition: ''
+      }]);
+
+      // Verify updating filter re-triggers query
+      filtersVar._updateFilter(filtersVar.state.filters[1], 'value', { value: 'D' });
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+
+      const runRequestCall2 = runRequestMock.mock.calls[1];
+      expect(runRequestCall2[1].filters).toEqual([{
+        key: 'A', operator: '=', value: 'B', condition: ''
+      }, {
+        key: 'C', operator: '=', value: 'D', condition: ''
+      }]);
     });
 
     it('Adhoc filter added after first query', async () => {
@@ -785,6 +834,41 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       // Should execute query a second time
+      expect(runRequestMock.mock.calls.length).toBe(2);
+    });
+
+    it('Should execute query when variables changed after clone', async () => {
+      const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+      });
+
+      scene.activate();
+
+      // should execute query when variable completes update
+      variable.signalUpdateCompleted();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      const clone = new TestScene({
+        $variables: new SceneVariableSet({ variables: [new LocalValueVariable({ name: 'A', value: 'local' })] }),
+        $data: queryRunner.clone(),
+      });
+
+      scene.setState({ nested: clone });
+
+      clone.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
@@ -2087,10 +2171,10 @@ describe('SceneQueryRunner', () => {
       const clone = queryRunner.clone();
 
       expect(clone['_resultAnnotations']).not.toBeUndefined();
-      expect(clone['_resultAnnotations'].length).toBe(1);
+      expect(clone['_resultAnnotations']?.length).toBe(1);
       expect(clone['_resultAnnotations']).toStrictEqual(queryRunner['_resultAnnotations']);
       expect(clone['_layerAnnotations']).not.toBeUndefined();
-      expect(clone['_layerAnnotations'].length).toBe(1);
+      expect(clone['_layerAnnotations']?.length).toBe(1);
       expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
       expect(clone['_results']['_buffer']).not.toEqual([]);
     });

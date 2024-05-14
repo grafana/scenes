@@ -174,7 +174,14 @@ export class AdHocFiltersVariable
 
     const updatedFilters = this.state.filters.map((f) => {
       if (f === filter) {
-        return { ...f, [prop]: value, [propLabelKey]: label };
+        const updatedFilter = { ...f, [prop]: value, [propLabelKey]: label };
+
+        // clear value if key has changed
+        if (prop === 'key' && filter[prop] !== value) {
+          updatedFilter.value = '';
+          updatedFilter.valueLabel = '';
+        }
+        return updatedFilter;
       }
       return f;
     });
@@ -315,4 +322,8 @@ export function toSelectableValue({ text, value }: MetricFindValue): SelectableV
     label: text,
     value: String(value ?? text),
   };
+}
+
+export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
+  return filter.key !== "" && filter.operator !== "" && filter.value !== "";
 }

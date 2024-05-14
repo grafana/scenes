@@ -250,6 +250,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       }
     }
 
+    // Do nothing if value and text are the same
+    if (isEqual(value, this.state.value) && isEqual(text, this.state.text)) {
+      return;
+    }
+
     this.setStateHelper({ value, text, loading: false });
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
   }

@@ -6,6 +6,7 @@ import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableValueChangedEvent } from '../types';
 import { CustomAllValue } from '../variants/MultiValueVariable';
 import { TestVariable } from './TestVariable';
+import { subscribeToStateUpdates } from '../../../utils/test/utils';
 
 describe('MultiValueVariable', () => {
   describe('When validateAndUpdate is called', () => {
@@ -307,6 +308,30 @@ describe('MultiValueVariable', () => {
       variable.changeValueTo([ALL_VARIABLE_VALUE, '1']);
       // Should remove the all value so only the new value is present
       expect(variable.state.value).toEqual(['1']);
+    });
+
+    it('When value is the same', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        isMulti: true,
+        defaultToAll: true,
+        optionsToReturn: [],
+        delayMs: 0,
+        value: ['1', '2'],
+        text: ['A', 'B'],
+      });
+
+      variable.activate();
+
+      const stateUpdates = subscribeToStateUpdates(variable);
+
+      variable.changeValueTo(['1', '2']);
+
+      expect(stateUpdates).toHaveLength(0);
     });
   });
 

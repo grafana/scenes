@@ -21,6 +21,7 @@ import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { select } from 'react-select-event';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
+import { subscribeToStateUpdates } from '../../../utils/test/utils';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -84,6 +85,17 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('val4');
   });
 
+  it('clears the value of a filter if the key is changed', async () => {
+    const { filtersVar } = setup();
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await waitFor(() => select(selects[0], 'Key 3', { container: document.body }));
+
+    expect(filtersVar.state.filters[0].value).toBe('');
+  });
+
   it('can set a custom value', async () => {
     const { filtersVar, runRequest } = setup();
 
@@ -102,18 +114,46 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
+  it('can set the same custom value again', async () => {
+    const { filtersVar, runRequest } = setup();
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue');
+
+    expect(screen.getByText('Use custom value: myVeryCustomValue')).toBeInTheDocument();
+
+    await userEvent.type(selects[2], '{enter}');
+
+    // should not run a new query since the value is the same
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+  });
+
   it('Can set a custom value before the list of values returns', async () => {
-    let resolveCallback;
-    const delayingPromise = new Promise((resolve) => resolveCallback = resolve);
+    let resolveCallback = (v: string) => {};
+    const delayingPromise = new Promise<string>((resolve) => (resolveCallback = resolve));
 
     const { filtersVar, runRequest } = setup({
       getTagValuesProvider: async () => {
         await delayingPromise;
         return {
           replace: true,
-          values: [{ text: 'Value 3', value: 'value3' }]
-        }
-      }
+          values: [{ text: 'Value 3', value: 'value3' }],
+        };
+      },
     });
 
     await new Promise((r) => setTimeout(r, 1));
@@ -123,16 +163,14 @@ describe('AdHocFiltersVariable', () => {
 
     const wrapper = screen.getByTestId('AdHocFilter-key1');
     const selects = getAllByRole(wrapper, 'combobox');
-    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
-
-    // check the value has been set 
-    expect(runRequest.mock.calls.length).toBe(2);
-    expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
+    await userEvent.type(selects[2], 'myVeryCustomValue');
 
     // resolve the delaying promise
-    await act(resolveCallback);
+    act(() => resolveCallback(''));
 
-    // check the calls and values are the same
+    await userEvent.type(selects[2], '{enter}');
+
+    // check the value has been set
     expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
 
@@ -140,11 +178,10 @@ describe('AdHocFiltersVariable', () => {
     expect(screen.queryByText('Value 3')).not.toBeInTheDocument();
   });
 
-  describe('By default, Without altering `useQueriesAsFilterForOptions`', ()=>{
-
+  describe('By default, Without altering `useQueriesAsFilterForOptions`', () => {
     it('Should not collect and pass respective data source queries to getTagKeys call', async () => {
       const { getTagKeysSpy, timeRange } = setup({ filters: [] });
-  
+
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       expect(getTagKeysSpy).toBeCalledTimes(1);
@@ -154,17 +191,17 @@ describe('AdHocFiltersVariable', () => {
         timeRange: timeRange.state.value,
       });
     });
-  
+
     it('Should not collect and pass respective data source queries to getTagValues call', async () => {
       const { getTagValuesSpy, timeRange } = setup({ filters: [] });
-  
+
       // Select key
       const key = 'Key 3';
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
-  
+
       expect(getTagValuesSpy).toBeCalledTimes(1);
       expect(getTagValuesSpy).toBeCalledWith({
         filters: [],
@@ -175,11 +212,10 @@ describe('AdHocFiltersVariable', () => {
     });
   });
 
-  describe('When `useQueriesAsFilterForOptions` is set to `true`', ()=>{
-
+  describe('When `useQueriesAsFilterForOptions` is set to `true`', () => {
     it('Should collect and pass respective data source queries to getTagKeys call', async () => {
       const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
-  
+
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       expect(getTagKeysSpy).toBeCalledTimes(1);
@@ -194,17 +230,17 @@ describe('AdHocFiltersVariable', () => {
         timeRange: timeRange.state.value,
       });
     });
-  
+
     it('Should collect and pass respective data source queries to getTagValues call', async () => {
       const { getTagValuesSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
-  
+
       // Select key
       const key = 'Key 3';
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
-  
+
       expect(getTagValuesSpy).toBeCalledTimes(1);
       expect(getTagValuesSpy).toBeCalledWith({
         filters: [],
@@ -218,9 +254,7 @@ describe('AdHocFiltersVariable', () => {
         timeRange: timeRange.state.value,
       });
     });
-  
   });
-
 
   it('url sync works', async () => {
     const { filtersVar } = setup();
@@ -493,6 +527,17 @@ describe('AdHocFiltersVariable', () => {
     });
   });
 
+  it('only url sync fully completed filters', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: '', label: '' });
+    });
+
+    expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
+  });
+
   it('Can override and replace getTagKeys and getTagValues', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
@@ -642,8 +687,7 @@ describe('AdHocFiltersVariable', () => {
 
       variable.activate();
 
-      const stateUpdates: AdHocFiltersVariableState[] = [];
-      variable.subscribeToState((state) => stateUpdates.push(state));
+      const stateUpdates = subscribeToStateUpdates(variable);
 
       expect(stateUpdates.length).toBe(0);
 

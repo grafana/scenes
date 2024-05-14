@@ -135,3 +135,41 @@ function filterOutInactiveRunnerDuplicates(runners: SceneQueryRunner[]) {
     return activeItems;
   });
 }
+
+export function escapeUrlPipeDelimiters(value: string | undefined): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  // Replace the pipe due to using it as a filter separator
+  return (value = /\|/g[Symbol.replace](value, '__gfp__'));
+}
+
+export function escapeUrlCommaDelimiters(value: string | undefined): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  // Replace the comma due to using it as a value/label separator
+  return /,/g[Symbol.replace](value, '__gfc__');
+}
+
+export function unescapeUrlDelimiters(value: string | undefined): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  value = /__gfp__/g[Symbol.replace](value, '|');
+  value = /__gfc__/g[Symbol.replace](value, ',');
+
+  return value;
+}
+
+export function toUrlCommaDelimitedString(key: string, label?: string): string {
+  // Omit for identical key/label or when label is not set at all
+  if (!label || key === label) {
+    return escapeUrlCommaDelimiters(key);
+  }
+
+  return [key, label].map(escapeUrlCommaDelimiters).join(',');
+}

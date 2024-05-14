@@ -42,7 +42,7 @@ import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetA
 import { registerQueryWithController } from './registerQueryWithController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 
@@ -452,6 +452,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       clone['_layerAnnotations'] = this._layerAnnotations.map((frame) => ({ ...frame }));
     }
 
+    clone['_variableValueRecorder'] = this._variableValueRecorder.cloneAndRecordCurrentValuesForSceneObject(this);
+    clone['_containerWidth'] = this._containerWidth;
     clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
 
     return clone;
@@ -490,8 +492,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     };
 
     if (this._adhocFiltersVar) {
+      // only pass filters that have both key and value
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.filters = this._adhocFiltersVar.state.filters;
+      request.filters = this._adhocFiltersVar.state.filters.filter(isFilterComplete);
     }
 
     if (this._groupByVar) {

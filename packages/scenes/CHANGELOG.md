@@ -1,3 +1,110 @@
+# v4.21.1 (Tue May 14 2024)
+
+#### 🐛 Bug Fix
+
+- Group by: Do not allow custom options [#736](https://github.com/grafana/scenes/pull/736) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v4.21.0 (Tue May 14 2024)
+
+#### 🚀 Enhancement
+
+- SceneVariableSet: Do not propagate variable value changes when a local variable has the same name [#729](https://github.com/grafana/scenes/pull/729) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- NestedScene: Don't show `cursor: pointer;` for everything [#735](https://github.com/grafana/scenes/pull/735) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.20.0 (Mon May 13 2024)
+
+#### 🚀 Enhancement
+
+- GroupByVariable: Sync label to URL [#705](https://github.com/grafana/scenes/pull/705) ([@bfmatei](https://github.com/bfmatei))
+- Typescript: Enable strict mode [#728](https://github.com/grafana/scenes/pull/728) ([@torkelo](https://github.com/torkelo))
+- SceneGridLayout: Prevent panels from moving on mount [#733](https://github.com/grafana/scenes/pull/733) ([@torkelo](https://github.com/torkelo) [@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 3
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.19.0 (Fri May 10 2024)
+
+#### 🚀 Enhancement
+
+- SceneDataTransformer: Performance optimizations [#725](https://github.com/grafana/scenes/pull/725) ([@torkelo](https://github.com/torkelo))
+- Variables: Do not update value when value and text are the same [#726](https://github.com/grafana/scenes/pull/726) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.18.0 (Fri May 10 2024)
+
+#### 🚀 Enhancement
+
+- SceneQueryRunner: Detect new variable values when cloned [#727](https://github.com/grafana/scenes/pull/727) ([@torkelo](https://github.com/torkelo))
+- SceneObject: Handle new or removed behaviors [#731](https://github.com/grafana/scenes/pull/731) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.17.3 (Thu May 09 2024)
+
+#### 🐛 Bug Fix
+
+- AdHoc filters: Allow typing the same custom value [#723](https://github.com/grafana/scenes/pull/723) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v4.17.2 (Thu May 09 2024)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: clear filter value when key is changed [#714](https://github.com/grafana/scenes/pull/714) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v4.17.1 (Wed May 08 2024)
+
+#### 🐛 Bug Fix
+
+- AdHoc filters: Apply `isKeysOpen` state changes synchronously [#722](https://github.com/grafana/scenes/pull/722) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v4.17.0 (Wed May 08 2024)
 
 #### 🚀 Enhancement

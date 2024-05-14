@@ -25,6 +25,7 @@ export interface SceneDataTransformerState extends SceneDataState {
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> implements SceneDataProvider {
   private _transformSub?: Unsubscribable;
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
+  private _prevDataFromSource?: PanelData;
 
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
@@ -90,7 +91,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public reprocessTransformations() {
-    this.transform(this.getSourceData().state.data);
+    this.transform(this.getSourceData().state.data, true);
   }
 
   public cancelQuery() {
@@ -101,7 +102,53 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     return this._results;
   }
 
-  private transform(data: PanelData | undefined) {
+  public clone(withState?: Partial<SceneDataTransformerState>) {
+    const clone = super.clone(withState);
+
+    if (this._prevDataFromSource) {
+      clone['_prevDataFromSource'] = this._prevDataFromSource;
+    }
+
+    return clone;
+  }
+
+  private haveAlreadyTransformedData(data: PanelData) {
+    if (!this._prevDataFromSource) {
+      return false;
+    }
+
+    if (data === this._prevDataFromSource) {
+      return true;
+    }
+
+    const { series, annotations } = this._prevDataFromSource;
+
+    if (data.series === series && data.annotations === annotations) {
+      if (this.state.data && data.state !== this.state.data.state) {
+        this.setState({ data: { ...this.state.data, state: data.state } });
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  private transform(data: PanelData | undefined, force = false) {
+    if (this.state.transformations.length === 0 || !data) {
+      this._prevDataFromSource = data;
+      this.setState({ data });
+
+      if (data) {
+        this._results.next({ origin: this, data });
+      }
+      return;
+    }
+
+    // Skip transform step if we have already transformed this data
+    if (!force && this.haveAlreadyTransformedData(data)) {
+      return;
+    }
+
     const seriesTransformations = this.state.transformations
       .filter((transformation) => {
         if ('options' in transformation || 'topic' in transformation) {
@@ -121,15 +168,6 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         return false;
       })
       .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
-
-    if (this.state.transformations.length === 0 || !data) {
-      this.setState({ data });
-
-      if (data) {
-        this._results.next({ origin: this, data });
-      }
-      return;
-    }
 
     if (this._transformSub) {
       this._transformSub.unsubscribe();
@@ -176,9 +214,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
           return of(result);
         })
       )
-      .subscribe((data) => {
-        this.setState({ data });
-        this._results.next({ origin: this, data });
+      .subscribe((transformedData) => {
+        this.setState({ data: transformedData });
+        this._results.next({ origin: this, data: transformedData });
+        this._prevDataFromSource = data;
       });
   }
 }

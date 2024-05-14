@@ -88,7 +88,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flexDirection: 'column',
     flexGrow: 1,
     gap: theme.spacing(1),
-    cursor: 'pointer',
   }),
   row: css({
     width: '100%',

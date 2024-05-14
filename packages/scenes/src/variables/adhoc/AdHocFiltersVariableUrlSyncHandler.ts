@@ -1,5 +1,6 @@
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } from '../../core/types';
-import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFilterWithLabels, isFilterComplete } from './AdHocFiltersVariable';
+import { escapeUrlPipeDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
@@ -19,7 +20,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return { [this.getKey()]: [''] };
     }
 
-    const value = filters.map((filter) => toArray(filter).map(escapePipeDelimiters).join('|'));
+    const value = filters.filter(isFilterComplete).map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'));
     return { [this.getKey()]: value };
   }
 
@@ -45,50 +46,12 @@ function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLab
   return filter === null ? [] : [filter];
 }
 
-function escapePipeDelimiters(value: string | undefined): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-
-  // Replace the pipe due to using it as a filter separator
-  return (value = /\|/g[Symbol.replace](value, '__gfp__'));
-}
-
-function escapeCommaDelimiters(value: string | undefined): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-
-  // Replace the comma due to using it as a value/label separator
-  return /,/g[Symbol.replace](value, '__gfc__');
-}
-
-function unescapeDelimiters(value: string | undefined): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-
-  value = /__gfp__/g[Symbol.replace](value, '|');
-  value = /__gfc__/g[Symbol.replace](value, ',');
-
-  return value;
-}
-
 function toArray(filter: AdHocFilterWithLabels): string[] {
   return [
-    toCommaDelimitedString(filter.key, filter.keyLabel),
+    toUrlCommaDelimitedString(filter.key, filter.keyLabel),
     filter.operator,
-    toCommaDelimitedString(filter.value, filter.valueLabel),
+    toUrlCommaDelimitedString(filter.value, filter.valueLabel),
   ];
-}
-
-function toCommaDelimitedString(key: string, label?: string): string {
-  // Omit for identical key/label or when label is not set at all
-  if (!label || key === label) {
-    return escapeCommaDelimiters(key);
-  }
-
-  return [key, label].map(escapeCommaDelimiters).join(',');
 }
 
 function toFilter(urlValue: string | number | boolean | undefined | null): AdHocFilterWithLabels | null {
@@ -105,7 +68,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
 
       return acc;
     }, [])
-    .map(unescapeDelimiters);
+    .map(unescapeUrlDelimiters);
 
   return {
     key,
