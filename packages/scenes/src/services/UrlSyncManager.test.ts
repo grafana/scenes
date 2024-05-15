@@ -33,6 +33,15 @@ class TestObj extends SceneObjectBase<TestObjectState> {
 
   public updateFromUrl(values: SceneObjectUrlValues) {
     console.log('updateFromUrl', values);
+    const stateUpdate: Partial<TestObjectState> = {};
+
+    if (typeof values.name === 'string') {
+      stateUpdate.name = values.name;
+    }
+
+    if (typeof values.optional === 'string') {
+      stateUpdate.optional = values.optional;
+    }
 
     this.setState({
       name: typeof values.name === 'string' ? values.name : this.state.name,

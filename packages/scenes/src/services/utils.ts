@@ -55,15 +55,16 @@ export function syncStateFromUrl(
     for (const key of sceneObject.urlSync.getKeys()) {
       const uniqueKey = urlKeyMapper.getUniqueKey(key, sceneObject);
       const currentValue = currentState[key];
-      let newValue: string | string[] | null = urlParams.getAll(uniqueKey);
+      const values: string[] = urlParams.getAll(uniqueKey);
+      let newValue: string | string[] | undefined;
 
-      if (newValue.length > 0) {
+      if (values.length > 0) {
         if (!Array.isArray(currentValue)) {
-          newValue = newValue[0];
+          newValue = values[0];
         }
       } else {
         // mark this key as having no url state
-        newValue = null;
+        newValue = undefined;
       }
 
       urlState[key] = newValue;
