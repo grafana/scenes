@@ -67,16 +67,19 @@ export function RVizPanel(props: RVizPanelProps) {
 
     if (viz !== prevProps.viz) {
       if (viz.pluginId === prevProps.viz.pluginId) {
-        const optionsWithDefaults = getPanelOptionsWithDefaults({
-          plugin: panel.getPlugin(),
-          currentOptions: viz.options,
-          currentFieldConfig: viz.fieldConfig,
-          isAfterPluginChange: false,
-        });
-        stateUpdate.options = optionsWithDefaults.options;
-        stateUpdate.fieldConfig = optionsWithDefaults.fieldConfig;
+        const plugin = panel.getPlugin();
+        if (plugin) {
+          const optionsWithDefaults = getPanelOptionsWithDefaults({
+            plugin,
+            currentOptions: viz.options,
+            currentFieldConfig: viz.fieldConfig,
+            isAfterPluginChange: false,
+          });
+          stateUpdate.options = optionsWithDefaults.options;
+          stateUpdate.fieldConfig = optionsWithDefaults.fieldConfig;
 
-        panel.clearFieldConfigCache();
+          panel.clearFieldConfigCache();
+        }
       }
     }
 
@@ -92,10 +95,9 @@ export function RVizPanel(props: RVizPanelProps) {
  * This proxy is to work around that.
  * TODO: Figure out a better way to handle this'
  */
-function getDataProviderForVizPanel(data: SceneDataProvider | undefined) {
+function getDataProviderForVizPanel(data: SceneDataProvider | undefined): SceneDataProvider | undefined {
   if (data instanceof SceneQueryRunner) {
     return new DataProxyProvider({ source: data.getRef() });
   }
-
   return data;
 }

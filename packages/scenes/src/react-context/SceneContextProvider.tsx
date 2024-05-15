@@ -17,7 +17,7 @@ export class SceneContextObject extends SceneObjectBase<ReactSceneContextObjectS
   public constructor(state?: Partial<ReactSceneContextObjectState>) {
     super({
       ...state,
-      children: state.children ?? [],
+      children: state?.children ?? [],
     });
   }
 

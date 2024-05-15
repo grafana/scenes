@@ -1,6 +1,6 @@
 import { useVariableInterpolator } from '@grafana/scenes';
 import { Button, Stack } from '@grafana/ui';
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { PageWrapper } from './PageWrapper';
 import { locationService } from '@grafana/runtime';
 import { RenderCounter } from './utils';

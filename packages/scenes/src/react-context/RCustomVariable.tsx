@@ -23,7 +23,7 @@ export function RCustomVariable({
   const scene = useSceneContext();
   const [variableAdded, setVariableAdded] = useState<boolean>();
 
-  let variable: CustomVariable = scene.findVariable(name);
+  let variable: CustomVariable | undefined = scene.findVariable(name);
 
   if (!variable) {
     variable = new CustomVariable({ name, label, query, value: initialValue, isMulti });

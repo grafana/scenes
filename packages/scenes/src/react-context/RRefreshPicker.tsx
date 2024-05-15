@@ -3,7 +3,7 @@ import { useSceneContext } from './hooks';
 import { SceneRefreshPicker, SceneRefreshPickerState } from '../components/SceneRefreshPicker';
 import { usePrevious } from 'react-use';
 
-export interface Props extends SceneRefreshPickerState {}
+export interface Props extends Partial<SceneRefreshPickerState> {}
 
 export function RRefreshPicker(props: Props) {
   const scene = useSceneContext();

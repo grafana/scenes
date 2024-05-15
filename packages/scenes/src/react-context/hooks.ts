@@ -53,6 +53,10 @@ export function useVariableValues(name: string): [VariableValueSingle[] | undefi
   const isLoading = set.isVariableLoadingOrWaitingToUpdate(variable);
   let value = variable.getValue();
 
+  if (value == null) {
+    return [undefined, isLoading];
+  }
+
   if (!Array.isArray(value)) {
     value = [value];
   }
@@ -68,14 +72,14 @@ export interface UseUpdateWhenSceneChangesOptions {
 
 export interface UseUpdateWhenSceneChangesReason {
   variableName?: string;
-  variableValue?: VariableValue;
+  variableValue?: VariableValue | undefined | null;
   timeRange?: TimeRange;
 }
 
 /**
  * A utility hook to re-render the calling react component when specified variables or time range changes
  */
-export function useUpdateWhenSceneChanges({ timeRange, variables }: UseUpdateWhenSceneChangesOptions) {
+export function useUpdateWhenSceneChanges({ timeRange, variables = [] }: UseUpdateWhenSceneChangesOptions) {
   const scene = useSceneContext();
   const [updateReason, setUpdateReason] = useState<UseUpdateWhenSceneChangesReason>();
 

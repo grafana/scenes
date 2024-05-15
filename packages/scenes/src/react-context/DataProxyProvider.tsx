@@ -30,11 +30,11 @@ export class DataProxyProvider extends SceneObjectBase<DataProxyProviderState> i
   }
 
   public isDataReadyToDisplay() {
-    return this.state.source.resolve().isDataReadyToDisplay?.();
+    return this.state.source.resolve().isDataReadyToDisplay?.() ?? true;
   }
 
   public cancelQuery() {
-    this.state.source.resolve().cancelQuery();
+    this.state.source.resolve().cancelQuery?.();
   }
 
   public getResultsStream(): Observable<SceneDataProviderResult> {

@@ -129,6 +129,10 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   };
 
   public syncNewObj(obj: SceneObject) {
+    if (!this._urlParams) {
+      throw new Error('UrlSyncManager not initialized');
+    }
+
     syncStateFromUrl(obj, this._urlParams, this._urlKeyMapper);
   }
 
