@@ -14,7 +14,7 @@ import {
 
 import { SceneTimeRange } from '../core/SceneTimeRange';
 
-import { SceneQueryRunner } from './SceneQueryRunner';
+import { QueryRunnerState, SceneQueryRunner } from './SceneQueryRunner';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
@@ -1365,6 +1365,31 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data?.annotations).toHaveLength(1);
     });
 
+    it('should not cause unnessaray state updates', async () => {
+      const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.activate();
+
+      const stateUpdates: QueryRunnerState[] = [];
+      queryRunner.subscribeToState((state) => stateUpdates.push(state));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.annotations).toHaveLength(0);
+      expect(queryRunner.state.data?.series).toBeDefined();
+
+      layer.completeEmpty();
+
+      expect(stateUpdates).toHaveLength(1);
+    });
+
     describe('canceling queries', () => {
       it('should unsubscribe from data layers when query is canceled', async () => {
         const layer1 = new TestAnnotationsDataLayer({ name: 'Layer 1' });
@@ -2146,10 +2171,10 @@ describe('SceneQueryRunner', () => {
       const clone = queryRunner.clone();
 
       expect(clone['_resultAnnotations']).not.toBeUndefined();
-      expect(clone['_resultAnnotations'].length).toBe(1);
+      expect(clone['_resultAnnotations']?.length).toBe(1);
       expect(clone['_resultAnnotations']).toStrictEqual(queryRunner['_resultAnnotations']);
       expect(clone['_layerAnnotations']).not.toBeUndefined();
-      expect(clone['_layerAnnotations'].length).toBe(1);
+      expect(clone['_layerAnnotations']?.length).toBe(1);
       expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
       expect(clone['_results']['_buffer']).not.toEqual([]);
     });

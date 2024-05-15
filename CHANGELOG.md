@@ -1,3 +1,65 @@
+# v4.22.0 (Wed May 15 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Performance: Limit data layer state updates [#724](https://github.com/grafana/scenes/pull/724) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.21.1 (Tue May 14 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Group by: Do not allow custom options [#736](https://github.com/grafana/scenes/pull/736) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v4.21.0 (Tue May 14 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneVariableSet: Do not propagate variable value changes when a local variable has the same name [#729](https://github.com/grafana/scenes/pull/729) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - NestedScene: Don't show `cursor: pointer;` for everything [#735](https://github.com/grafana/scenes/pull/735) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.20.0 (Mon May 13 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - GroupByVariable: Sync label to URL [#705](https://github.com/grafana/scenes/pull/705) ([@bfmatei](https://github.com/bfmatei))
+  - Typescript: Enable strict mode [#728](https://github.com/grafana/scenes/pull/728) ([@torkelo](https://github.com/torkelo))
+  - SceneGridLayout: Prevent panels from moving on mount [#733](https://github.com/grafana/scenes/pull/733) ([@torkelo](https://github.com/torkelo) [@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 3
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.19.0 (Fri May 10 2024)
 
 #### 🚀 Enhancement

@@ -46,27 +46,118 @@ describe('GroupByVariable', () => {
     });
   });
 
-  it('url sync works', async () => {
-    const { variable } = setupTest({
-      defaultOptions: [
-        { text: 'a', value: 'a' },
-        { text: 'b', value: 'b' },
-      ],
+  describe('url sync', () => {
+    it('should work with default options', () => {
+      const { variable } = setupTest({
+        defaultOptions: [
+          { text: 'a', value: 'a' },
+          { text: 'b', value: 'b' },
+        ],
+      });
+
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+
+      act(() => {
+        variable.changeValueTo(['a']);
+      });
+
+      expect(locationService.getLocation().search).toBe('?var-test=a');
+
+      act(() => {
+        locationService.push('/?var-test=a&var-test=b');
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b']);
+      expect(variable.state.text).toEqual(['a', 'b']);
+
+      act(() => {
+        locationService.push('/?var-test=a&var-test=b&var-test=c');
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b', 'c']);
+      expect(variable.state.text).toEqual(['a', 'b', 'c']);
     });
 
-    expect(variable.state.value).toEqual('');
+    it('should work with received options', async () => {
+      const { variable } = setupTest({
+        getTagKeysProvider: () => {
+          return Promise.resolve({
+            replace: true,
+            values: [
+              { text: 'A', value: 'a' },
+              { text: 'b', value: 'b' },
+              { text: 'C', value: 'c' },
+            ],
+          });
+        },
+      });
 
-    act(() => {
-      variable.changeValueTo(['a']);
+      await act(async () => {
+        await lastValueFrom(variable.validateAndUpdate());
+      });
+
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+
+      act(() => {
+        variable.changeValueTo(['a']);
+      });
+
+      expect(locationService.getLocation().search).toBe('?var-test=a,A');
+
+      act(() => {
+        locationService.push('/?var-test=a,A&var-test=b');
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b']);
+      expect(variable.state.text).toEqual(['A', 'b']);
+
+      act(() => {
+        locationService.push('/?var-test=a,A&var-test=b&var-test=c');
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b', 'c']);
+      expect(variable.state.text).toEqual(['A', 'b', 'c']);
     });
 
-    expect(locationService.getLocation().search).toBe('?var-test=a');
+    it('should work with commas', async () => {
+      const { variable } = setupTest({
+        defaultOptions: [
+          { text: 'A,something', value: 'a' },
+          { text: 'B', value: 'b,something' },
+        ],
+      });
 
-    act(() => {
-      locationService.push('/?var-test=a&var-test=b');
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+
+      await act(async () => {
+        await lastValueFrom(variable.validateAndUpdate());
+      });
+
+      act(() => {
+        variable.changeValueTo(['a']);
+      });
+
+      expect(locationService.getLocation().search).toBe('?var-test=a,A__gfc__something');
+
+      act(() => {
+        locationService.push('/?var-test=a,A__gfc__something&var-test=b__gfc__something');
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b,something']);
+      expect(variable.state.text).toEqual(['A,something', 'b,something']);
+
+      act(() => {
+        locationService.push(
+          '/?var-test=a,A__gfc__something&var-test=b__gfc__something&var-test=c__gfc__something,C__gfc__something'
+        );
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b,something', 'c,something']);
+      expect(variable.state.text).toEqual(['A,something', 'b,something', 'C,something']);
     });
-
-    expect(variable.state.value).toEqual(['a', 'b']);
   });
 
   it('Can override and replace getTagKeys', async () => {

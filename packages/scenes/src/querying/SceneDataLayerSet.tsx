@@ -9,7 +9,7 @@ import {
   SceneDataLayerProviderState,
   SceneDataProviderResult,
 } from '../core/types';
-import { mergeMultipleDataLayers } from './mergeMultipleDataLayers';
+import { DataLayersMerger } from './DataLayersMerger';
 import { setBaseClassState } from '../utils/utils';
 
 export abstract class SceneDataLayerSetBase<T extends SceneDataLayerProviderState>
@@ -27,11 +27,12 @@ export abstract class SceneDataLayerSetBase<T extends SceneDataLayerProviderStat
   /**
    * Subject to emit results to.
    */
-  private _results = new ReplaySubject<SceneDataProviderResult>();
+  private _results = new ReplaySubject<SceneDataProviderResult>(1);
+  private _dataLayersMerger = new DataLayersMerger();
 
   protected subscribeToAllLayers(layers: SceneDataLayerProvider[]) {
     if (layers.length > 0) {
-      this.querySub = mergeMultipleDataLayers(layers).subscribe(this._onLayerUpdateReceived.bind(this));
+      this.querySub = this._dataLayersMerger.getMergedStream(layers).subscribe(this._onLayerUpdateReceived.bind(this));
     } else {
       this._results.next({ origin: this, data: emptyPanelData });
       this.setStateHelper({ data: emptyPanelData });

@@ -143,8 +143,8 @@ describe('AdHocFiltersVariable', () => {
   });
 
   it('Can set a custom value before the list of values returns', async () => {
-    let resolveCallback;
-    const delayingPromise = new Promise((resolve) => (resolveCallback = resolve));
+    let resolveCallback = (v: string) => {};
+    const delayingPromise = new Promise<string>((resolve) => (resolveCallback = resolve));
 
     const { filtersVar, runRequest } = setup({
       getTagValuesProvider: async () => {
@@ -166,7 +166,7 @@ describe('AdHocFiltersVariable', () => {
     await userEvent.type(selects[2], 'myVeryCustomValue');
 
     // resolve the delaying promise
-    await act(resolveCallback);
+    act(() => resolveCallback(''));
 
     await userEvent.type(selects[2], '{enter}');
 
@@ -535,9 +535,7 @@ describe('AdHocFiltersVariable', () => {
       filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: '', label: '' });
     });
 
-    expect(locationService.getLocation().search).toBe(
-      '?var-filters=key2%7C%3D%7Cval2'
-    );
+    expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
   });
 
   it('Can override and replace getTagKeys and getTagValues', async () => {
