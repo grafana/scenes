@@ -1,3 +1,16 @@
+# v4.22.0 (Wed May 15 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Performance: Limit data layer state updates [#724](https://github.com/grafana/scenes/pull/724) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.21.1 (Tue May 14 2024)
 
 #### 🐛 Bug Fix
