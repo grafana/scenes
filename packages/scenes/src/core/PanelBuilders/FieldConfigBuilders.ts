@@ -20,7 +20,7 @@ import {
 } from '@grafana/schema/dist/esm/raw/composable/statushistory/panelcfg/x/StatusHistoryPanelCfg_types.gen';
 import { FieldConfig as TimeSeriesFieldConfig } from '@grafana/schema/dist/esm/raw/composable/timeseries/panelcfg/x/TimeSeriesPanelCfg_types.gen';
 import { FieldConfig as TrendFieldConfig } from '@grafana/schema/dist/esm/raw/composable/trend/panelcfg/x/TrendPanelCfg_types.gen';
-import { defaultScatterFieldConfig as defaultXYChartFieldConfig } from '@grafana/schema/dist/esm/raw/composable/xychart/panelcfg/x/XYChartPanelCfg_types.gen';
+import { defaultFieldConfig as defaultXYChartFieldConfig } from '@grafana/schema/dist/esm/raw/composable/xychart/panelcfg/x/XYChartPanelCfg_types.gen';
 import { FieldConfigBuilder } from './FieldConfigBuilder';
 
 export const FieldConfigBuilders = {

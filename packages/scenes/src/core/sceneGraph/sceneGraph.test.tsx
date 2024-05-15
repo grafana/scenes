@@ -1,13 +1,14 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { TestAnnotationsDataLayer } from '../../querying/layers/TestDataLayer';
-import { SceneDataLayers } from '../../querying/SceneDataLayers';
+import { SceneDataLayerSet } from '../../querying/SceneDataLayerSet';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
 import { SceneTimePicker } from '../../components/SceneTimePicker';
 import { SceneDataNode } from '../SceneDataNode';
 import { sceneGraph } from '.';
+import { SceneObject } from '../types';
 
 describe('sceneGraph', () => {
   it('Can find object', () => {
@@ -33,13 +34,31 @@ describe('sceneGraph', () => {
     expect(sceneGraph.findObject(item2, (s) => s.state.key === 'time-picker')).toBe(timePicker);
   });
 
+  it('Can find all objects given a predicate', () => {
+    const data = new SceneDataNode();
+    const item1 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A' }), $data: data });
+    const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
+    const timePicker = new SceneTimePicker({ key: 'time-picker' });
+
+    const scene = new EmbeddedScene({
+      controls: [timePicker],
+      body: new SceneFlexLayout({
+        children: [item1, item2],
+      }),
+    });
+
+    const predicate = (o: SceneObject) => o instanceof SceneFlexItem;
+
+    expect(sceneGraph.findAllObjects(scene, predicate)).toEqual([item1, item2]);
+  });
+
   describe('getDataLayers', () => {
     it('resolves data layers from scene object', () => {
       const item1 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A' }) });
       const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
       const scene = new EmbeddedScene({
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
         }),
         body: new SceneFlexLayout({
@@ -62,11 +81,11 @@ describe('sceneGraph', () => {
       const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
       const scene = new EmbeddedScene({
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
         }),
         body: new SceneFlexLayout({
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
             layers: [new TestAnnotationsDataLayer({ name: 'Layer 2' })],
           }),
           children: [item1, item2],
@@ -88,12 +107,12 @@ describe('sceneGraph', () => {
       const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
       const scene = new EmbeddedScene({
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
         }),
         body: new SceneFlexLayout({
           $data: new SceneDataNode({
-            $data: new SceneDataLayers({
+            $data: new SceneDataLayerSet({
               layers: [new TestAnnotationsDataLayer({ name: 'Layer 2' })],
             }),
           }),
@@ -117,11 +136,13 @@ describe('sceneGraph', () => {
         const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
         const scene = new EmbeddedScene({
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
+            name: 'set1',
             layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
           }),
           body: new SceneFlexLayout({
-            $data: new SceneDataLayers({
+            $data: new SceneDataLayerSet({
+              name: 'set2',
               layers: [new TestAnnotationsDataLayer({ name: 'Layer 2' })],
             }),
             children: [item1, item2],
@@ -133,7 +154,7 @@ describe('sceneGraph', () => {
         const result = sceneGraph.getDataLayers(item1, true);
 
         expect(result).toHaveLength(1);
-        expect(result[0].state.name).toBe('Layer 2');
+        expect(result[0].state.name).toBe('set2');
       });
 
       it('when attached to a data provider', () => {
@@ -144,12 +165,14 @@ describe('sceneGraph', () => {
         const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
 
         const scene = new EmbeddedScene({
-          $data: new SceneDataLayers({
+          $data: new SceneDataLayerSet({
+            name: 'set1',
             layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
           }),
           body: new SceneFlexLayout({
             $data: new SceneDataNode({
-              $data: new SceneDataLayers({
+              $data: new SceneDataLayerSet({
+                name: 'set2',
                 layers: [new TestAnnotationsDataLayer({ name: 'Layer 2' })],
               }),
             }),
@@ -162,7 +185,7 @@ describe('sceneGraph', () => {
         const result = sceneGraph.getDataLayers(item1, true);
 
         expect(result).toHaveLength(1);
-        expect(result[0].state.name).toBe('Layer 2');
+        expect(result[0].state.name).toBe('set2');
       });
     });
   });

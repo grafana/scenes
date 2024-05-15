@@ -8,6 +8,7 @@ import { SceneGridItem } from './SceneGridItem';
 
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';
+import * as utils from './utils';
 
 // Mocking AutoSizer to allow testing of the SceneGridLayout component rendering
 jest.mock(
@@ -16,6 +17,11 @@ jest.mock(
     ({ children }: { children: (args: { width: number; height: number }) => React.ReactNode }) =>
       children({ height: 600, width: 600 })
 );
+
+jest.mock('./utils', () => ({
+  ...jest.requireActual('./utils'),
+  fitPanelsInHeight: jest.fn().mockImplementation((cells) => cells),
+}));
 
 class TestObject extends SceneObjectBase<SceneObjectState> {
   public static Component = (m: SceneComponentProps<TestObject>) => {
@@ -107,7 +113,7 @@ describe('SceneGridLayout', () => {
       expect(screen.queryAllByTestId('test-object')).toHaveLength(2);
     });
 
-    it('should  render children of an expanded row', async () => {
+    it('should render children of an expanded row', async () => {
       const scene = new EmbeddedScene({
         body: new SceneGridLayout({
           children: [
@@ -156,10 +162,43 @@ describe('SceneGridLayout', () => {
 
       expect(screen.queryAllByTestId('test-object')).toHaveLength(3);
     });
+
+    it('should process the layout when the autofit is enabled', async () => {
+      const scene = new EmbeddedScene({
+        body: new SceneGridLayout({
+          children: [
+            new SceneGridItem({
+              x: 0,
+              y: 0,
+              width: 12,
+              height: 5,
+              isResizable: false,
+              isDraggable: false,
+              body: new TestObject({ key: 'a' }),
+            }),
+            new SceneGridItem({
+              x: 0,
+              y: 5,
+              width: 12,
+              height: 5,
+              isResizable: false,
+              isDraggable: false,
+              body: new TestObject({ key: 'b' }),
+            }),
+          ],
+          isLazy: false,
+          UNSAFE_fitPanels: true,
+        }),
+      });
+
+      render(<scene.Component model={scene} />);
+
+      expect(utils.fitPanelsInHeight).toHaveBeenCalled();
+    });
   });
 
-  describe('when moving a panel', () => {
-    it('shoud update layout children placement and order ', () => {
+  describe('when moving a panel or row', () => {
+    it('should update layout children placement and order ', () => {
       const layout = new SceneGridLayout({
         children: [
           new SceneGridItem({
@@ -237,6 +276,217 @@ describe('SceneGridLayout', () => {
       expect(layout.state.children[2].state.width).toEqual(1);
       expect(layout.state.children[2].state.height).toEqual(1);
     });
+
+    it('should update row children placement and order as well', () => {
+      const layout = new SceneGridLayout({
+        children: [
+          new SceneGridItem({
+            key: 'a',
+            x: 0,
+            y: 0,
+            width: 1,
+            height: 1,
+            isResizable: false,
+            isDraggable: false,
+            body: new TestObject({}),
+          }),
+          new SceneGridRow({
+            title: 'Row A',
+            key: 'row-a',
+            isCollapsed: false,
+            y: 1,
+            children: [
+              new SceneGridItem({
+                key: 'b',
+                x: 0,
+                y: 2,
+                width: 1,
+                height: 1,
+                isResizable: false,
+                isDraggable: false,
+                body: new TestObject({}),
+              }),
+            ],
+          }),
+        ],
+        isLazy: false,
+      });
+
+      // move panel a to be the first child of the row:
+      // row
+      //  - a
+      //  - b
+      layout.onDragStop(
+        [
+          {
+              w: 12,
+              h: 8,
+              x: 0,
+              y: 2,
+              i: 'a',
+          },
+          {
+              w: 24,
+              h: 1,
+              x: 0,
+              y: 0,
+              i: 'row-a',
+          },
+          {
+              w: 12,
+              h: 8,
+              x: 0,
+              y: 10,
+              i: 'b',
+          }
+      ],
+        // @ts-expect-error
+        {},
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 2,
+          i: 'a',
+        },
+        {},
+        {},
+        {}
+      );
+
+      // after sorting by position, the row should have the children in the correct order [a,b]
+      const row = layout.state.children[0] as SceneGridRow;
+
+      expect(row.state.children[0].state.key).toEqual('a');
+      expect(row.state.children[1].state.key).toEqual('b');
+
+      // layout children should be positioned correctly
+      expect(layout.state.children[0].state.key).toEqual('row-a');
+      expect(layout.state.children[0].state.x).toEqual(0);
+      expect(layout.state.children[0].state.y).toEqual(0);
+      expect((layout.state.children[0] as SceneGridRow).state.children[0].state.key).toEqual('a');
+      expect((layout.state.children[0] as SceneGridRow).state.children[0].state.x).toEqual(0);
+      expect((layout.state.children[0] as SceneGridRow).state.children[0].state.y).toEqual(2);
+      expect((layout.state.children[0] as SceneGridRow).state.children[1].state.key).toEqual('b');
+      expect((layout.state.children[0] as SceneGridRow).state.children[1].state.x).toEqual(0);
+      expect((layout.state.children[0] as SceneGridRow).state.children[1].state.y).toEqual(10);
+    });
+
+    it('should disallow dropping a row within another row and revert to initial layout', () => {
+      const layout = new SceneGridLayout({
+        children: [
+          new SceneGridRow({
+            title: 'Row B',
+            key: 'row-b',
+            isCollapsed: true,
+            y: 0
+          }),
+          new SceneGridRow({
+            title: 'Row A',
+            key: 'row-a',
+            isCollapsed: false,
+            y: 1,
+            children: [
+              new SceneGridItem({
+                key: 'b',
+                x: 0,
+                y: 2,
+                width: 1,
+                height: 1,
+                isResizable: false,
+                isDraggable: false,
+                body: new TestObject({}),
+              }),
+            ],
+          }),
+        ],
+        isLazy: false,
+      });
+
+      // we save the initial layout here, if a state is invalid we will revert to this layout
+      layout.onDragStart([
+        {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 0,
+            i: 'row-b',
+        },
+        {
+            w: 24,
+            h: 1,
+            x: 0,
+            y: 1,
+            i: 'row-a',
+        },
+        {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 2,
+            i: 'b',
+        }
+      // @ts-expect-error
+    ], {}, {}, {}, {}, {})
+
+      // move row-b to be the first child of the row-a:
+      // row-a
+      //  - row-b
+      //  - b
+      // this is an invalid state, we cannot have a row within another row
+      layout.onDragStop(
+        [
+          {
+              w: 12,
+              h: 8,
+              x: 0,
+              y: 2,
+              i: 'row-b',
+          },
+          {
+              w: 24,
+              h: 1,
+              x: 0,
+              y: 0,
+              i: 'row-a',
+          },
+          {
+              w: 12,
+              h: 8,
+              x: 0,
+              y: 10,
+              i: 'b',
+          }
+      ],
+        // @ts-expect-error
+        {},
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 2,
+          i: 'row-b',
+        },
+        {},
+        {},
+        {}
+      );
+
+      //first call is skipped because onDragStop sets _skipOnLayoutChange
+      layout.onLayoutChange([])
+      // layout argument is irrelevant because we are in an invalid state and will load the old layout in this func
+      layout.onLayoutChange([])
+
+      // children state should be the same as in the beginning
+      expect(layout.state.children[0].state.key).toEqual('row-b');
+      expect(layout.state.children[0].state.y).toEqual(0);
+      expect(layout.state.children[0].parent).toBeInstanceOf(SceneGridLayout);
+      expect(layout.state.children[1].state.key).toEqual('row-a');
+      expect(layout.state.children[1].state.y).toEqual(1);
+      expect(layout.state.children[1].parent).toBeInstanceOf(SceneGridLayout);
+      expect((layout.state.children[1] as SceneGridRow).state.children[0].state.key).toEqual('b');
+      expect((layout.state.children[1] as SceneGridRow).state.children[0].state.y).toEqual(2);
+    })
   });
 
   describe('when using rows', () => {

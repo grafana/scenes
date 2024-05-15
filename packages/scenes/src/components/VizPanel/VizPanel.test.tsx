@@ -219,6 +219,16 @@ describe('VizPanel', () => {
     });
   });
 
+  describe('getLegacyPanelId', () => {
+    it('should return panel id', () => {
+      const panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        key: 'panel-12',
+      });
+
+      expect(panel.getLegacyPanelId()).toBe(12);
+    });
+  });
+
   describe('updating options', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 
@@ -356,8 +366,8 @@ describe('VizPanel', () => {
 
     test('Can toggle visibility on an off', () => {
       panel.applyFieldConfig(panel.state.$data?.state.data);
-
       panel.getPanelContext().onToggleSeriesVisibility!('B', SeriesVisibilityChangeMode.ToggleSelection);
+      panel.applyFieldConfig(panel.state.$data?.state.data);
       expect(panel.state.fieldConfig.overrides.length).toBe(1);
       panel.getPanelContext().onToggleSeriesVisibility!('B', SeriesVisibilityChangeMode.ToggleSelection);
       expect(panel.state.fieldConfig.overrides.length).toBe(0);
@@ -421,6 +431,35 @@ describe('VizPanel', () => {
   describe('Data support', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 
+    it('apply field config should return same data if called multiple times with same data', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+      await Promise.resolve();
+
+      const data = getTestData();
+      const dataWithFieldConfig1 = panel.applyFieldConfig(data);
+      const dataWithFieldConfig2 = panel.applyFieldConfig(data);
+      expect(dataWithFieldConfig1).toBe(dataWithFieldConfig2);
+    });
+
+    it('apply field config should return data with latest field config', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+      await Promise.resolve();
+
+      const data = getTestData();
+      const dataWithFieldConfig1 = panel.applyFieldConfig(data);
+      expect(dataWithFieldConfig1.structureRev).toBe(1);
+
+      panel.onFieldConfigChange({ defaults: { unit: 'ms' }, overrides: [] });
+
+      const dataWithFieldConfig2 = panel.applyFieldConfig(data);
+      expect(dataWithFieldConfig2).not.toBe(dataWithFieldConfig1);
+      expect(dataWithFieldConfig2.structureRev).toBe(2);
+    });
+
     it('should not provide alert states and annotations by default', async () => {
       panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({ pluginId: 'custom-plugin-id' });
       pluginToLoad = getTestPlugin1();
@@ -453,7 +492,7 @@ describe('VizPanel', () => {
       const testData = getTestData();
       const dataToRender = panel.applyFieldConfig(testData);
       expect(dataToRender.alertState).toBe(undefined);
-      expect(dataToRender.annotations).toBe(testData.annotations);
+      expect(dataToRender.annotations).toBeDefined();
     });
 
     it('should provide alert states and annotations if plugin supports these topics', async () => {
@@ -465,7 +504,37 @@ describe('VizPanel', () => {
       const testData = getTestData();
       const dataToRender = panel.applyFieldConfig(testData);
       expect(dataToRender.alertState).toBe(testData.alertState);
-      expect(dataToRender.annotations).toBe(testData.annotations);
+      expect(dataToRender.annotations).toBeDefined();
+    });
+
+    it('should not add fieldConfig to annotations, and keep annotations config', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        fieldConfig: {
+          defaults: {
+            links: [
+              {
+                title: 'some link',
+                url: 'some-valid-url',
+              },
+            ],
+          },
+          overrides: [],
+        },
+      });
+      pluginToLoad = getTestPlugin1({ alertStates: true, annotations: true });
+      panel.activate();
+      await Promise.resolve();
+
+      const testData = getTestData();
+      const dataToRender = panel.applyFieldConfig(testData);
+      expect(
+        dataToRender.annotations?.every((annotation) =>
+          annotation.fields.every(
+            (field) => field.config.links === undefined || field.config.links.at(0)?.title === 'some annotation link'
+          )
+        )
+      ).toBe(true);
     });
   });
 
@@ -511,6 +580,7 @@ describe('VizPanel', () => {
         expect(panelRenderCount).toBe(2);
         expect(panelProps?.data.state).toBe(LoadingState.Loading);
         // Verify panel props time range comes from data time range
+        expect(panelProps?.timeRange.from.toISOString()).toEqual('2022-01-01T00:00:00.000Z');
         expect(panelProps?.data.timeRange.from.toISOString()).toEqual('2022-01-01T00:00:00.000Z');
       });
     });
@@ -563,7 +633,18 @@ function getTestData(): PanelData {
         fields: [
           { name: 'time', values: [1, 2, 2, 5, 5] },
           { name: 'id', values: ['1', '2', '2', '5', '5'] },
-          { name: 'text', values: ['t1', 't2', 't3', 't4', 't5'] },
+          {
+            name: 'text',
+            values: ['t1', 't2', 't3', 't4', 't5'],
+            config: {
+              links: [
+                {
+                  title: 'some annotation link',
+                  url: 'some-valid-annotation-url',
+                },
+              ],
+            },
+          },
         ],
       }),
     ],

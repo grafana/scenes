@@ -38,18 +38,19 @@
     "typecheck": "lerna run typecheck"
   },
   "resolutions": {
-    "@types/react": "17.0.42"
+    "@types/react": "18.2.74"
   },
-  "packageManager": "yarn@3.3.1",
+  "packageManager": "yarn@4.1.1",
   "workspaces": [
     ".",
     "packages/*",
     "docusaurus/website"
   ],
   "devDependencies": {
-    "@auto-it/omit-commits": "^10.43.0",
-    "@auto-it/released": "^10.43.0",
-    "auto": "^10.43.0",
+    "@auto-it/omit-commits": "^11.0.7",
+    "@auto-it/released": "^11.0.7",
+    "@testing-library/react": "^14.1.2",
+    "auto": "^11.0.7",
     "lerna": "^6.5.1",
     "lint-staged": "^13.2.0"
   }

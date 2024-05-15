@@ -13,6 +13,7 @@ import {
   isDataSourceVariable,
   isConstantVariable,
   isIntervalVariable,
+  isGroupByVariable,
 } from './variables/variants/guards';
 
 export * from './core/types';
@@ -21,22 +22,29 @@ export { sceneGraph } from './core/sceneGraph';
 export * as behaviors from './behaviors';
 export * as dataLayers from './querying/layers';
 
-export { SceneObjectBase } from './core/SceneObjectBase';
+export { SceneObjectBase, useSceneObjectState } from './core/SceneObjectBase';
 export { SceneDataNode } from './core/SceneDataNode';
 export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
-export { SceneDataLayers } from './querying/SceneDataLayers';
+export { SceneDataLayerSet, SceneDataLayerSetBase } from './querying/SceneDataLayerSet';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
 export { SceneDataTransformer } from './querying/SceneDataTransformer';
+export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
+export type {
+  SceneQueryControllerLike,
+  SceneQueryControllerEntryType,
+  SceneQueryControllerEntry,
+} from './behaviors/SceneQueryController';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
 export { formatRegistry, type FormatVariable } from './variables/interpolation/formatRegistry';
 export { VariableValueSelectors } from './variables/components/VariableValueSelectors';
+export { VariableValueControl } from './variables/components/VariableValueControl';
 export { SceneVariableSet } from './variables/sets/SceneVariableSet';
 export { ConstantVariable } from './variables/variants/ConstantVariable';
 export { CustomVariable } from './variables/variants/CustomVariable';
@@ -47,8 +55,8 @@ export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 export { MultiValueVariable } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
-export { AdHocFilterSet } from './variables/adhoc/AdHocFiltersSet';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
+export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
 export { type UrlSyncManagerLike, UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
@@ -65,6 +73,7 @@ export { SceneRefreshPicker } from './components/SceneRefreshPicker';
 export { SceneTimeRangeTransformerBase } from './core/SceneTimeRangeTransformerBase';
 export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
+export { SceneByVariableRepeater } from './components/SceneByVariableRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export {
   SceneFlexLayout,
@@ -89,7 +98,12 @@ export { SceneApp, useSceneApp } from './components/SceneApp/SceneApp';
 export { SceneAppPage } from './components/SceneApp/SceneAppPage';
 export { SceneReactObject } from './components/SceneReactObject';
 export { SceneObjectRef } from './core/SceneObjectRef';
-export { PanelBuilders, PanelOptionsBuilders, FieldConfigBuilders } from './core/PanelBuilders';
+export {
+  PanelBuilders,
+  PanelOptionsBuilders,
+  FieldConfigBuilders,
+  FieldConfigOverridesBuilder,
+} from './core/PanelBuilders';
 export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 
@@ -111,4 +125,5 @@ export const sceneUtils = {
   isIntervalVariable,
   isQueryVariable,
   isTextBoxVariable,
+  isGroupByVariable,
 };

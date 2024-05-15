@@ -12,6 +12,8 @@ import {
   SceneDeactivationHandler,
   CancelActivationHandler,
   SceneObjectState,
+  UseStateHookOptions,
+  SceneStatelessBehavior,
 } from './types';
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
@@ -45,7 +47,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     this._events = new EventBusSrv();
 
     this._state = Object.freeze(state);
-    this._setParent();
+    this._setParent(this._state);
   }
 
   /** Current state */
@@ -78,11 +80,11 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Wraps the component in an EditWrapper that handles edit mode
    */
   public get Component(): SceneComponent<this> {
-    return SceneComponentWrapper;
+    return SceneComponentWrapper as SceneComponent<this>;
   }
 
-  private _setParent() {
-    this.forEachChild((child) => {
+  private _setParent(state: Partial<TState>) {
+    forEachChild(state, (child) => {
       // If we already have a parent and it's not this, then we likely have a bug
       if (child._parent && child._parent !== this) {
         console.warn(
@@ -121,7 +123,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     };
 
     this._state = Object.freeze(newState);
-    this._setParent();
+    this._setParent(update);
 
     // Handles cases when $data, $timeRange, or $variables are changed
     this._handleActivationOfChangedStateProps(prevState, newState);
@@ -145,6 +147,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   private _handleActivationOfChangedStateProps(prevState: TState, newState: TState) {
     if (!this.isActive) {
       return;
+    }
+
+    if (prevState.$behaviors !== newState.$behaviors) {
+      this._handleChangedBehaviors(prevState.$behaviors, newState.$behaviors);
     }
 
     if (prevState.$data !== newState.$data) {
@@ -174,6 +180,33 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     }
   }
 
+  private _handleChangedBehaviors(
+    oldValue: Array<SceneObject | SceneStatelessBehavior> | undefined,
+    newValue: Array<SceneObject | SceneStatelessBehavior> | undefined
+  ) {
+    // Handle removed behaviors
+    if (oldValue) {
+      for (const oldBehavior of oldValue) {
+        if (!newValue || !newValue.includes(oldBehavior)) {
+          const deactivationHandler = this._deactivationHandlers.get(oldBehavior);
+          if (deactivationHandler) {
+            deactivationHandler();
+            this._deactivationHandlers.delete(oldBehavior);
+          }
+        }
+      }
+    }
+
+    // Handle new behaviors
+    if (newValue) {
+      for (const newBehavior of newValue) {
+        if (!oldValue || !oldValue.includes(newBehavior)) {
+          this._activateBehavior(newBehavior);
+        }
+      }
+    }
+  }
+
   /*
    * Publish an event and optionally bubble it up the scene
    **/
@@ -194,6 +227,13 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     const { $data, $variables, $timeRange, $behaviors } = this.state;
 
+    this._activationHandlers.forEach((handler) => {
+      const result = handler();
+      if (result) {
+        this._deactivationHandlers.set(result, result);
+      }
+    });
+
     if ($timeRange && !$timeRange.isActive) {
       this._deactivationHandlers.set($timeRange, $timeRange.activate());
     }
@@ -208,23 +248,20 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     if ($behaviors) {
       for (const behavior of $behaviors) {
-        if (behavior instanceof SceneObjectBase) {
-          this._deactivationHandlers.set(behavior, behavior.activate());
-        } else if (typeof behavior === 'function') {
-          const deactivationHandler = behavior(this);
-          if (deactivationHandler) {
-            this._deactivationHandlers.set(behavior, deactivationHandler);
-          }
-        }
+        this._activateBehavior(behavior);
       }
     }
+  }
 
-    this._activationHandlers.forEach((handler) => {
-      const result = handler();
-      if (result) {
-        this._deactivationHandlers.set(result, result);
+  private _activateBehavior(behavior: SceneObject | SceneStatelessBehavior): SceneDeactivationHandler | void {
+    if (behavior instanceof SceneObjectBase) {
+      this._deactivationHandlers.set(behavior, behavior.activate());
+    } else if (typeof behavior === 'function') {
+      const deactivate = behavior(this);
+      if (deactivate) {
+        this._deactivationHandlers.set(behavior, deactivate);
       }
-    });
+    }
   }
 
   /**
@@ -246,7 +283,6 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
       if (called) {
         const msg = `SceneObject cancelation handler returned by activate() called a second time`;
-        console.error(msg, this);
         throw new Error(msg);
       }
 
@@ -280,7 +316,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /**
    * Utility hook to get and subscribe to state
    */
-  public useState() {
+  public useState(): TState {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     return useSceneObjectState(this);
   }
@@ -310,19 +346,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
    */
   public forEachChild(callback: (child: SceneObjectBase) => void) {
-    for (const propValue of Object.values(this.state)) {
-      if (propValue instanceof SceneObjectBase) {
-        callback(propValue);
-      }
-
-      if (Array.isArray(propValue)) {
-        for (const child of propValue) {
-          if (child instanceof SceneObjectBase) {
-            callback(child);
-          }
-        }
-      }
-    }
+    forEachChild(this.state, callback);
   }
 
   /** Returns a SceneObjectRef that will resolve to this object */
@@ -339,21 +363,55 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
  * This hook is always returning model.state instead of a useState that remembers the last state emitted on the subject
  * The reason for this is so that if the model instance change this function will always return the latest state.
  */
-function useSceneObjectState<TState extends SceneObjectState>(model: SceneObjectBase<TState>): TState {
+export function useSceneObjectState<TState extends SceneObjectState>(
+  model: SceneObject<TState>,
+  options?: UseStateHookOptions
+): TState {
   const [_, setState] = useState<TState>(model.state);
   const stateAtFirstRender = model.state;
+  const shouldActivateOrKeepAlive = options?.shouldActivateOrKeepAlive ?? false;
 
   useEffect(() => {
-    const s = model.subscribeToState(setState);
+    let unactivate: CancelActivationHandler | undefined;
+
+    if (shouldActivateOrKeepAlive) {
+      unactivate = model.activate();
+    }
+
+    const s = model.subscribeToState((state) => {
+      setState(state);
+    });
 
     // Re-render component if the state changed between first render and useEffect (mount)
     if (model.state !== stateAtFirstRender) {
       setState(model.state);
     }
 
-    return () => s.unsubscribe();
+    return () => {
+      s.unsubscribe();
+
+      if (unactivate) {
+        unactivate();
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model]);
+  }, [model, shouldActivateOrKeepAlive]);
 
   return model.state;
+}
+
+function forEachChild<T extends object>(state: T, callback: (child: SceneObjectBase) => void) {
+  for (const propValue of Object.values(state)) {
+    if (propValue instanceof SceneObjectBase) {
+      callback(propValue);
+    }
+
+    if (Array.isArray(propValue)) {
+      for (const child of propValue) {
+        if (child instanceof SceneObjectBase) {
+          callback(child);
+        }
+      }
+    }
+  }
 }

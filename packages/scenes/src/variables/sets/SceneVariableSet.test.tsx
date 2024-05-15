@@ -15,6 +15,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { LocalValueVariable } from '../variants/LocalValueVariable';
 import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
+import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
@@ -69,6 +70,18 @@ describe('SceneVariableList', () => {
       // When C completes issue correct interpolated query containing the new values for A and B
       C.signalUpdateCompleted();
       expect(C.state.issuedQuery).toBe('A.AA.AAA.*');
+    });
+
+    it('should not start lazy variable', () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] }, true);
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+      });
+
+      scene.activate();
+
+      expect(A.state.loading).toBe(undefined);
     });
   });
 
@@ -603,6 +616,10 @@ describe('SceneVariableList', () => {
   });
 
   describe('When variable throws error', () => {
+    const origError = console.error;
+    beforeEach(() => (console.error = jest.fn()));
+    afterEach(() => (console.error = origError));
+
     it('Should start update process', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], throwError: 'Danger!' });
 
@@ -664,6 +681,73 @@ describe('SceneVariableList', () => {
       // Now change variable A
       A.changeValueTo('AB');
       expect(B.state.loading).toBe(true);
+    });
+
+    describe('When local value overrides parent variable changes on top level should not propagate', () => {
+      const topLevelVar = new TestVariable({
+        name: 'test',
+        options: [],
+        value: 'B',
+        optionsToReturn: [{ label: 'B', value: 'B' }],
+        delayMs: 0,
+      });
+
+      const nestedScene = new TestObjectWithVariableDependency({
+        title: '$test',
+        $variables: new SceneVariableSet({
+          variables: [new LocalValueVariable({ name: 'test', value: 'nestedValue' })],
+        }),
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [topLevelVar] }),
+        nested: nestedScene,
+      });
+
+      activateFullSceneTree(scene);
+
+      topLevelVar.changeValueTo('E');
+
+      expect(nestedScene.state.didSomethingCount).toBe(0);
+      expect(nestedScene.state.variableValueChanged).toBe(0);
+    });
+  });
+
+  describe('When changing a dependency while variable is loading', () => {
+    it('Should cancel variable and re-start it', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+      const C = new TestVariable({ name: 'C', query: 'A.$A.$B.*', value: '', text: '', options: [] });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A, B] }),
+        nested: new TestScene({
+          $variables: new SceneVariableSet({ variables: [C] }),
+        }),
+      });
+
+      scene.activate();
+      scene.state.nested!.activate();
+
+      A.signalUpdateCompleted();
+      expect(B.state.loading).toBe(true);
+
+      // Change A while B is loading
+      A.changeValueTo('AB');
+
+      B.signalUpdateCompleted();
+
+      // This verifies that B was cancelled and a new query issued with the new value of A
+      expect(B.state.value).toBe('ABA');
+
+      // C should be loading
+      expect(C.state.loading).toBe(true);
+
+      B.changeValueTo('ABB');
+      C.signalUpdateCompleted();
+
+      // Change B while C is loading (They are on different levels but should behave the same as with A & B)
+      expect(C.state.value).toBe('ABBA');
     });
   });
 });

@@ -24,7 +24,10 @@ export function ControlsLabel(props: ControlsLabelProps) {
   const isVertical = props.layout === 'vertical';
 
   const loadingIndicator = Boolean(props.isLoading) ? (
-    <div style={{ marginLeft: theme.spacing(1), marginTop: '-1px' }}>
+    <div
+      style={{ marginLeft: theme.spacing(1), marginTop: '-1px' }}
+      aria-label={selectors.components.LoadingIndicator.icon}
+    >
       <LoadingIndicator
         onCancel={(e) => {
           e.preventDefault();
@@ -44,6 +47,15 @@ export function ControlsLabel(props: ControlsLabelProps) {
     );
   }
 
+  let descriptionIndicator = null;
+  if (props.description) {
+    descriptionIndicator = (
+      <Tooltip content={props.description} placement={isVertical ? 'top' : 'bottom'}>
+        <Icon className={styles.normalIcon} name="info-circle" />
+      </Tooltip>
+    );
+  }
+
   const testId =
     typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : '';
   let labelElement: JSX.Element;
@@ -54,6 +66,7 @@ export function ControlsLabel(props: ControlsLabelProps) {
     labelElement = (
       <label className={styles.verticalLabel} data-testid={testId} htmlFor={props.htmlFor}>
         {props.label}
+        {descriptionIndicator}
         {errorIndicator}
         {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
         {loadingIndicator}
@@ -68,16 +81,9 @@ export function ControlsLabel(props: ControlsLabelProps) {
         {errorIndicator}
         {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
         {props.label}
+        {descriptionIndicator}
         {loadingIndicator}
       </label>
-    );
-  }
-
-  if (props.description) {
-    return (
-      <Tooltip content={props.description} placement={isVertical ? 'top' : 'bottom'}>
-        {labelElement}
-      </Tooltip>
     );
   }
 

@@ -32,9 +32,17 @@ class TestObj extends SceneObjectBase<TestState> {
 describe('VariableDependencyConfig', () => {
   it('Should be able to extract dependencies from all state', () => {
     const sceneObj = new TestObj();
-    const deps = new VariableDependencyConfig(sceneObj, {});
+    const deps = new VariableDependencyConfig(sceneObj, { statePaths: ['*'] });
 
     expect(deps.getNames()).toEqual(new Set(['queryVarA', 'queryVarB', 'nestedVarA', 'otherPropA']));
+  });
+
+  it('Should not extract dependencies from all state if no statePaths or variableName is defined', () => {
+    const sceneObj = new TestObj();
+    const deps = new VariableDependencyConfig(sceneObj, {});
+
+    expect(deps.scanCount).toBe(0);
+    expect(deps.getNames()).toEqual(new Set([]));
   });
 
   it('Should be able to extract dependencies from statePaths', () => {
@@ -77,16 +85,36 @@ describe('VariableDependencyConfig', () => {
     expect(deps.scanCount).toBe(2);
   });
 
+  it('Should not scan the state if no statePaths defined', () => {
+    const sceneObj = new TestObj();
+    sceneObj.setState({ query: 'new query with ${newVar}' });
+    const deps = new VariableDependencyConfig(sceneObj, { variableNames: ['nonExistentVar'] });
+    deps.getNames();
+
+    expect(deps.getNames()).toEqual(new Set(['nonExistentVar']));
+    expect(deps.scanCount).toBe(1);
+  });
+
   it('variableValuesChanged should only call onReferencedVariableValueChanged if dependent variable has changed', () => {
     const sceneObj = new TestObj();
     const fn = jest.fn();
-    const deps = new VariableDependencyConfig(sceneObj, { onReferencedVariableValueChanged: fn });
+    const deps = new VariableDependencyConfig(sceneObj, { onReferencedVariableValueChanged: fn, statePaths: ['*'] });
 
     deps.variableUpdateCompleted(new ConstantVariable({ name: 'not-dep', value: '1' }), true);
     expect(fn.mock.calls.length).toBe(0);
 
     deps.variableUpdateCompleted(new ConstantVariable({ name: 'queryVarA', value: '1' }), true);
     expect(fn.mock.calls.length).toBe(1);
+  });
+
+  it('Can update explicit depenendencies and scan for variables', () => {
+    const sceneObj = new TestObj();
+    const deps = new VariableDependencyConfig(sceneObj, { statePaths: ['*'] });
+
+    expect(deps.getNames()).toEqual(new Set(['queryVarA', 'queryVarB', 'otherPropA', 'nestedVarA']));
+
+    deps.setVariableNames(['explicitDep']);
+    expect(deps.getNames()).toEqual(new Set(['explicitDep', 'queryVarA', 'queryVarB', 'otherPropA', 'nestedVarA']));
   });
 
   describe('Should remember when an object is waiting for variables', () => {

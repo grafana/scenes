@@ -120,7 +120,7 @@ class TextInterpolator extends SceneObjectBase<TextInterpolatorState> {
 
 `VariableDependencyConfig` accepts an object with the following configuration options:
 
-- `statePaths` - Configures which properties of the object state can contain variables.
+- `statePaths` - Configures which properties of the object state can contain variables. Use `['*']` to refer to any property of the object state.
 - `onReferencedVariableValueChanged` - Configures a callback that will be executed when variable(s) that the object depends on are changed.
 
 :::note
@@ -154,8 +154,8 @@ The preceding code will render a scene with a template variable, text input, and
 You can register a custom variable macro using `sceneUtils.registerVariableMacro`. A variable macro is useful for variable expressions you want to be evaluted dynamically based on some context. Examples of core variables
 that are implemented as macros.
 
-* ${__url.params:include:var-from,var-to}
-* ${__user.login}
+- ${\_\_url.params:include:var-from,var-to}
+- ${\_\_user.login}
 
 Example:
 
@@ -221,14 +221,12 @@ Variables: A, B, C (B depends on A, C depends on B). A depends on time range so 
 
 SceneQueryRunner with a query that depends on variable C
 
-* 1. Time range changes value
-* 2. Variable A starts loading
-* 3. SceneQueryRunner responds to time range change tries to start new query, but before new query is issued calls `variableDependency.hasDependencyInLoadingState`. This checks if variable C is loading wich it is not, so then checks if variable B is loading (since it's a dependency of C), which it is not so then checks A, A is loading so it returns true and SceneQueryRunner will skip issuing a new query. When this happens the VariableDependencyConfig will set an internal flag that it is waiting for a variable dependency, this makes sure that the moment a next variable completes onVariableUpdateCompleted is called (no matter if the variable that was completed is a direct dependency or if it has changed value or not, we just care that it completed loading).
-* 4. Variable A completes loading. The options (possible values) are the same so no change value.
-* 5. SceneQueryRunner's VariableDependencyConfig receives the notification that variable A has completed it's loading phase, since it is in a waiting for variables state it will call the onVariableUpdateCompleted callback even though A is not a direct dependency and it has not changed value.
+- 1. Time range changes value
+- 2. Variable A starts loading
+- 3. SceneQueryRunner responds to time range change tries to start new query, but before new query is issued calls `variableDependency.hasDependencyInLoadingState`. This checks if variable C is loading wich it is not, so then checks if variable B is loading (since it's a dependency of C), which it is not so then checks A, A is loading so it returns true and SceneQueryRunner will skip issuing a new query. When this happens the VariableDependencyConfig will set an internal flag that it is waiting for a variable dependency, this makes sure that the moment a next variable completes onVariableUpdateCompleted is called (no matter if the variable that was completed is a direct dependency or if it has changed value or not, we just care that it completed loading).
+- 4. Variable A completes loading. The options (possible values) are the same so no change value.
+- 5. SceneQueryRunner's VariableDependencyConfig receives the notification that variable A has completed it's loading phase, since it is in a waiting for variables state it will call the onVariableUpdateCompleted callback even though A is not a direct dependency and it has not changed value.
 
 ## Source code
 
 [View the example source code](https://github.com/grafana/scenes/tree/main/docusaurus/docs/advanced-variables.tsx)
-
-

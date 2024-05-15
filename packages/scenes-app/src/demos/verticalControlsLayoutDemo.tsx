@@ -1,4 +1,4 @@
-import { VariableRefresh } from '@grafana/data';
+import { AdHocVariableFilter, VariableRefresh } from '@grafana/data';
 import {
   SceneFlexLayout,
   SceneVariableSet,
@@ -14,6 +14,7 @@ import {
   SceneControlsSpacer,
   AdHocFiltersVariable,
 } from '@grafana/scenes';
+import { VariableHide } from '@grafana/schema';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
@@ -61,11 +62,26 @@ export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
               options: [],
               refresh: VariableRefresh.onTimeRangeChanged,
             }),
-            AdHocFiltersVariable.create({
+            new AdHocFiltersVariable({
               name: 'filters',
+              hide: VariableHide.hideLabel,
               layout: 'vertical',
-              datasource: { uid: 'gdev-prometheus' },
+              applyMode: 'manual',
               filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
+              getTagKeysProvider: async (variable: AdHocFiltersVariable, currentKey: string | null) => {
+                await new Promise((resolve)=>setTimeout(resolve, 200));
+                return {
+                  replace: true,
+                  values: [{text: 'job'}, {text: 'instance'}],
+                };
+              },
+              getTagValuesProvider: async (variable: AdHocFiltersVariable, filter: AdHocVariableFilter) => {
+                await new Promise((resolve)=>setTimeout(resolve, 400));
+                return {
+                  replace: true,
+                  values: ['A', 'B', 'C', 'D', 'E', 'F', 'grafana'].map((v)=>({text: v})),
+                };
+              },
             }),
           ],
         }),

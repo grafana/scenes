@@ -1,10 +1,11 @@
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 
 import { SceneDataNode } from './SceneDataNode';
-import { SceneObjectBase } from './SceneObjectBase';
+import { SceneObjectBase, useSceneObjectState } from './SceneObjectBase';
 import { SceneObjectStateChangedEvent } from './events';
 import { SceneObject, SceneObjectState } from './types';
 import { SceneTimeRange } from '../core/SceneTimeRange';
+import { act, renderHook } from '@testing-library/react';
 
 interface TestSceneState extends SceneObjectState {
   name?: string;
@@ -125,6 +126,25 @@ describe('SceneObject', () => {
     });
   });
 
+  describe('Should activate itself before child objects', () => {
+    const dataChild = new SceneDataNode({});
+    const scene = new TestScene({
+      $data: dataChild,
+    });
+
+    let parentActive = false;
+
+    scene.addActivationHandler(() => {
+      parentActive = true;
+    });
+
+    dataChild.addActivationHandler(() => {
+      expect(parentActive).toBe(true);
+    });
+
+    scene.activate();
+  });
+
   describe('When deactivated', () => {
     const scene = new TestScene({
       $data: new SceneDataNode({}),
@@ -209,6 +229,7 @@ describe('SceneObject', () => {
         $variables: new SceneVariableSet({ variables: [] }),
         $data: new SceneDataNode({}),
         $timeRange: new SceneTimeRange({}),
+        $behaviors: [],
       });
 
       scene.activate();
@@ -219,6 +240,7 @@ describe('SceneObject', () => {
         $variables: new SceneVariableSet({ variables: [] }),
         $data: new SceneDataNode({}),
         $timeRange: new SceneTimeRange({}),
+        $behaviors: [],
       });
 
       const newState = scene.state;
@@ -232,6 +254,40 @@ describe('SceneObject', () => {
       expect(newState.$variables!.isActive).toBe(true);
       expect(newState.$data!.isActive).toBe(true);
       expect(newState.$timeRange!.isActive).toBe(true);
+    });
+
+    it('Call activation handlers for new behaviors in state', () => {
+      const behavior1Deactivate = jest.fn();
+      const behavior1 = jest.fn().mockReturnValue(behavior1Deactivate);
+      const behavior2Deactivate = jest.fn();
+      const behavior2 = jest.fn().mockReturnValue(behavior2Deactivate);
+      const behavior3Deactivate = jest.fn();
+      const behavior3 = jest.fn().mockReturnValue(behavior3Deactivate);
+
+      const scene = new TestScene({
+        name: 'root',
+        $behaviors: [behavior1, behavior2],
+      });
+
+      const deactivate = scene.activate();
+
+      // Remove behavior 2 and and behavior 3
+      scene.setState({ $behaviors: [behavior1, behavior3] });
+
+      // 1 should have been called 1 times and not deactivated
+      expect(behavior1Deactivate).toHaveBeenCalledTimes(0);
+      expect(behavior1).toHaveBeenCalledTimes(1);
+
+      // 2 should have been deactivated
+      expect(behavior2Deactivate).toHaveBeenCalledTimes(1);
+
+      // 3 should have been activated
+      expect(behavior3).toHaveBeenCalledTimes(1);
+
+      deactivate();
+      expect(behavior1Deactivate).toHaveBeenCalledTimes(1);
+      expect(behavior2Deactivate).toHaveBeenCalledTimes(1); // just to check it's not deactivated again
+      expect(behavior3Deactivate).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -260,13 +316,70 @@ describe('SceneObject', () => {
       expect(deactivatedCounter).toBe(1);
     });
 
-    it('Cannot call deactivation function twice', () => {
-      const scene = new TestScene({ name: 'nested' });
+    describe('When calling deactivation function twice', () => {
+      it('should throw error', () => {
+        const scene = new TestScene({ name: 'nested' });
 
-      const deactivateScene = scene.activate();
-      deactivateScene();
+        const deactivateScene = scene.activate();
+        deactivateScene();
 
-      expect(() => deactivateScene()).toThrow();
+        expect(() => deactivateScene()).toThrow();
+      });
     });
+  });
+});
+
+describe('useSceneObjectState', () => {
+  it('When called with no options', () => {
+    const scene = new TestScene({ name: 'nested' });
+
+    const { result } = renderHook(() => useSceneObjectState(scene));
+
+    expect(result.current).toBe(scene.state);
+    expect(scene.isActive).toBe(false);
+
+    act(() => scene.setState({ name: 'New name' }));
+
+    expect(result.current.name).toBe('New name');
+  });
+
+  it('Should activate scene object when shouldActivateOrKeepAlive is true', () => {
+    const scene = new TestScene({ name: 'nested' });
+
+    const { result, unmount } = renderHook(() => useSceneObjectState(scene, { shouldActivateOrKeepAlive: true }));
+
+    expect(scene.isActive).toBe(true);
+    expect(result.current).toBe(scene.state);
+
+    act(() => scene.setState({ name: 'New name' }));
+
+    expect(result.current.name).toBe('New name');
+
+    // Verify multiple components can useState on same object
+    const { result: result2, unmount: unmount2 } = renderHook(() =>
+      useSceneObjectState(scene, { shouldActivateOrKeepAlive: true })
+    );
+
+    unmount();
+    expect(scene.isActive).toBe(true);
+
+    act(() => scene.setState({ name: 'Second update' }));
+    expect(result2.current.name).toBe('Second update');
+
+    // Last useState unmounts deactive scene object
+    unmount2();
+    expect(scene.isActive).toBe(false);
+  });
+
+  it('Should return latest state on rerender', () => {
+    const scene = new TestScene({ name: 'nested' });
+
+    const { result, rerender } = renderHook((scene) => useSceneObjectState(scene), { initialProps: scene });
+
+    const scene2 = new TestScene({ name: 'new scene name' });
+
+    rerender(scene2);
+
+    expect(result.current.name).toBe('new scene name');
   });
 });

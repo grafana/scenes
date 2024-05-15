@@ -79,7 +79,7 @@ import {
 import {
   Options as XYChartOptions,
   defaultOptions as defaultXYChartOptions,
-  defaultScatterFieldConfig as defaultXYChartFieldConfig,
+  defaultFieldConfig as defaultXYChartFieldConfig,
 } from '@grafana/schema/dist/esm/raw/composable/xychart/panelcfg/x/XYChartPanelCfg_types.gen';
 
 import { VizPanelBuilder } from './VizPanelBuilder';
@@ -181,3 +181,4 @@ export const PanelBuilders = {
 
 export { PanelOptionsBuilders } from './PanelOptionsBuilders';
 export { FieldConfigBuilders } from './FieldConfigBuilders';
+export { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';

@@ -34,6 +34,8 @@ import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
 import { cloneDeep, isArray, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
+import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
+import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -51,6 +53,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Only shows header on hover, absolutly positioned above the panel.
    */
   hoverHeader?: boolean;
+  /**
+   * Offset hoverHeader position on the y axis
+   */
+  hoverHeaderOffset?: number;
   /**
    * Defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
    * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
@@ -108,11 +114,9 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       this._onActivate();
     });
 
-    if (state.menu) {
-      state.menu.addActivationHandler(() => {
-        this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-menu-shown' }), true);
-      });
-    }
+    state.menu?.addActivationHandler(() => {
+      this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-menu-shown' }), true);
+    });
   }
 
   private _onActivate() {
@@ -121,7 +125,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
   }
 
-  private _loadPlugin(pluginId: string) {
+  private async _loadPlugin(pluginId: string) {
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
@@ -130,14 +134,25 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        importPanelPlugin(pluginId).then((result) => {
-          return this._pluginLoaded(result);
-        });
+        const result = await importPanelPlugin(pluginId);
+        this._pluginLoaded(result);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
-        this.setState({ _pluginLoadError: (err as Error).message });
+
+        if (err instanceof Error) {
+          this.setState({ _pluginLoadError: err.message });
+        }
       }
     }
+  }
+
+  public getLegacyPanelId() {
+    const panelId = parseInt(this.state.key!.replace('panel-', ''), 10);
+    if (isNaN(panelId)) {
+      return 0;
+    }
+
+    return panelId;
   }
 
   private async _pluginLoaded(plugin: PanelPlugin) {
@@ -147,22 +162,18 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       title,
       options,
       fieldConfig,
-      id: 1,
+      id: this.getLegacyPanelId(),
       type: plugin.meta.id,
       pluginVersion: pluginVersion,
     };
 
     const currentVersion = this._getPluginVersion(plugin);
 
-    if (_UNSAFE_customMigrationHandler) {
-      _UNSAFE_customMigrationHandler(panel, plugin);
-    }
+    _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    if (plugin.onPanelMigration) {
-      if (currentVersion !== this.state.pluginVersion) {
-        // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
-        panel.options = await plugin.onPanelMigration(panel);
-      }
+    if (plugin.onPanelMigration && currentVersion !== this.state.pluginVersion) {
+      // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
+      panel.options = await plugin.onPanelMigration(panel);
     }
 
     const withDefaults = getPanelOptionsWithDefaults({
@@ -175,7 +186,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this._plugin = plugin;
 
     this.setState({
-      options: withDefaults.options,
+      options: withDefaults.options as DeepPartial<TOptions>,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
     });
@@ -196,9 +207,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   public getPanelContext(): PanelContext {
-    if (!this._panelContext) {
-      this._panelContext = this.buildPanelContext();
-    }
+    this._panelContext ??= this.buildPanelContext();
 
     return this._panelContext!;
   }
@@ -213,6 +222,27 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       from: toUtc(timeRange.from),
       to: toUtc(timeRange.to),
     });
+  };
+
+  public getTimeRange = (data?: PanelData) => {
+    const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
+    const sceneTimeRange = sceneGraph.getTimeRange(this);
+    if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
+      return evaluateTimeRange(
+        sceneTimeRange.state.from,
+        sceneTimeRange.state.to,
+        sceneTimeRange.getTimeZone(),
+        sceneTimeRange.state.fiscalYearStartMonth,
+        sceneTimeRange.state.UNSAFE_nowDelay
+      );
+    }
+
+    const plugin = this.getPlugin();
+    if (plugin && !plugin.meta.skipDataQuery && data && data.timeRange) {
+      return data.timeRange;
+    }
+
+    return sceneTimeRange.state.value;
   };
 
   public onTitleChange = (title: string) => {
@@ -248,7 +278,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     });
 
     this.setState({
-      options: withDefaults.options,
+      options: withDefaults.options as DeepPartial<TOptions>,
     });
   };
 
@@ -265,9 +295,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       isAfterPluginChange: false,
     });
 
-    this.setState({
-      fieldConfig: withDefaults.fieldConfig,
-    });
+    this._dataWithFieldConfig = undefined;
+    this.setState({ fieldConfig: withDefaults.fieldConfig });
   };
 
   public interpolate = ((value: string, scoped?: ScopedVars, format?: string | VariableCustomFormatterFn) => {
@@ -296,33 +325,47 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       return emptyPanelData;
     }
 
+    // If the data is the same as last time, we can skip the field config apply step and just return same result as last time
+    if (this._prevData === rawData && this._dataWithFieldConfig) {
+      return this._dataWithFieldConfig;
+    }
+
     const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
 
     const fieldConfigRegistry = plugin.fieldConfigRegistry;
-    const prevFrames = this._prevData?.series;
-    const newFrames = rawData?.series;
+    const prevFrames = this._dataWithFieldConfig?.series ?? [];
+    const newFrames = applyFieldOverrides({
+      data: rawData.series,
+      fieldConfig: this.state.fieldConfig,
+      fieldConfigRegistry,
+      replaceVariables: this.interpolate,
+      theme: config.theme2,
+      timeZone: rawData.request?.timezone,
+    });
 
-    if (
-      rawData.structureRev == null &&
-      newFrames &&
-      prevFrames &&
-      !compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)
-    ) {
+    if (!compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)) {
       this._structureRev++;
     }
 
     this._dataWithFieldConfig = {
       ...rawData,
       structureRev: this._structureRev,
-      series: applyFieldOverrides({
-        data: newFrames,
-        fieldConfig: this.state.fieldConfig,
+      series: newFrames,
+    };
+
+    if (this._dataWithFieldConfig.annotations) {
+      this._dataWithFieldConfig.annotations = applyFieldOverrides({
+        data: this._dataWithFieldConfig.annotations,
+        fieldConfig: {
+          defaults: {},
+          overrides: [],
+        },
         fieldConfigRegistry,
         replaceVariables: this.interpolate,
         theme: config.theme2,
         timeZone: rawData.request?.timezone,
-      }),
-    };
+      });
+    }
 
     if (!pluginDataSupport.alertStates) {
       this._dataWithFieldConfig.alertState = undefined;
@@ -332,6 +375,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       this._dataWithFieldConfig.annotations = undefined;
     }
 
+    this._prevData = rawData;
     return this._dataWithFieldConfig;
   }
 
@@ -364,6 +408,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   private _onInstanceStateChange = (state: any) => {
+    if (this._panelContext) {
+      this._panelContext = {
+        ...this._panelContext,
+        instanceState: state,
+      };
+    }
+
     this.setState({ _pluginInstanceState: state });
   };
 
@@ -390,10 +441,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       sortBy = sortKey;
     }
 
-    this.onOptionsChange({
-      ...this.state.options,
-      legend: { ...legendOptions, sortBy, sortDesc },
-    } as TOptions);
+    this.onOptionsChange(
+      {
+        ...this.state.options,
+        legend: { ...legendOptions, sortBy, sortDesc },
+      } as TOptions,
+      true
+    );
   };
 
   private buildPanelContext(): PanelContext {
@@ -423,7 +477,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 }
 
-function getPanelPluginNotFound(id: string, silent?: boolean): PanelPlugin {
+function getPanelPluginNotFound(id: string): PanelPlugin {
   const plugin = new PanelPlugin(() => null);
 
   plugin.meta = {
@@ -448,5 +502,6 @@ function getPanelPluginNotFound(id: string, silent?: boolean): PanelPlugin {
       version: '',
     },
   };
+
   return plugin;
 }

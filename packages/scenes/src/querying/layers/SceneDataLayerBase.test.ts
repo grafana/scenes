@@ -1,5 +1,6 @@
+import { getDefaultTimeRange } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
-import { SceneDataLayerProviderResult } from '../../core/types';
+import { SceneDataProviderResult } from '../../core/types';
 import { TestAnnotationsDataLayer } from './TestDataLayer';
 
 describe('SceneDataLayerBase', () => {
@@ -10,17 +11,38 @@ describe('SceneDataLayerBase', () => {
   beforeEach(() => {
     enableSpy.mockClear();
     disableSpy.mockClear();
+    runLayerSpy.mockClear();
   });
 
   describe('when activated', () => {
-    const layer = new TestAnnotationsDataLayer({
-      name: 'Layer 1',
-      isEnabled: true,
-      runLayerSpy: runLayerSpy,
-    });
-    layer.activate();
+    it('should run query when there is no data', () => {
+      const layer = new TestAnnotationsDataLayer({
+        name: 'Layer 1',
+        isEnabled: true,
+        runLayerSpy: runLayerSpy,
+      });
+      layer.activate();
 
-    expect(runLayerSpy).toBeCalledTimes(1);
+      expect(runLayerSpy).toBeCalledTimes(1);
+    });
+
+    it('should not run query there is data', () => {
+      const layer = new TestAnnotationsDataLayer({
+        name: 'Layer 1',
+        isEnabled: true,
+        runLayerSpy: runLayerSpy,
+        data: {
+          annotations: [],
+          series: [],
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+        },
+      });
+
+      layer.activate();
+
+      expect(runLayerSpy).toBeCalledTimes(0);
+    });
   });
 
   describe('when enabled', () => {
@@ -85,7 +107,8 @@ describe('SceneDataLayerBase', () => {
 
   describe('when disabling', () => {
     it('should emit empty results and call onDisable handler', (done) => {
-      let result: SceneDataLayerProviderResult | undefined = undefined;
+      let result: SceneDataProviderResult | undefined = undefined;
+
       const layer = new TestAnnotationsDataLayer({
         name: 'Layer 1',
         isEnabled: true,
@@ -102,8 +125,6 @@ describe('SceneDataLayerBase', () => {
 
       layer.setState({ isEnabled: false });
 
-      //   layer.completeRun();
-
       expect(result).toBeDefined();
       expect(result!.data.series).toEqual([]);
       expect(result!.data.state).toEqual(LoadingState.Done);
@@ -113,7 +134,8 @@ describe('SceneDataLayerBase', () => {
 
   describe('when enabling', () => {
     it('should call onEnable handler', (done) => {
-      let result: SceneDataLayerProviderResult | undefined = undefined;
+      let result: SceneDataProviderResult | undefined = undefined;
+
       const layer = new TestAnnotationsDataLayer({
         name: 'Layer 1',
         isEnabled: false,
@@ -124,6 +146,7 @@ describe('SceneDataLayerBase', () => {
       layer.activate();
 
       expect(enableSpy).not.toBeCalled();
+
       layer.getResultsStream().subscribe((r) => {
         result = r;
         done();
@@ -136,7 +159,7 @@ describe('SceneDataLayerBase', () => {
       layer.completeRun();
 
       expect(result).toBeDefined();
-      expect(result!.data.annotations).toMatchInlineSnapshot(`
+      expect(result!.data.series).toMatchInlineSnapshot(`
         [
           {
             "fields": [
@@ -168,6 +191,9 @@ describe('SceneDataLayerBase', () => {
               },
             ],
             "length": 1,
+            "meta": {
+              "dataTopic": "annotations",
+            },
           },
         ]
       `);

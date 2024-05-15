@@ -5,6 +5,7 @@ import { TestScene } from '../TestScene';
 import { ConstantVariable } from '../variants/ConstantVariable';
 import { ObjectVariable } from '../variants/ObjectVariable';
 import { TestVariable } from '../variants/TestVariable';
+import { VariableInterpolation } from '@grafana/runtime';
 import { VariableFormatID } from '@grafana/schema';
 
 import { sceneInterpolator } from './sceneInterpolator';
@@ -202,5 +203,73 @@ describe('sceneInterpolator', () => {
     });
 
     expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
+  });
+
+  describe('Interval variables', () => {
+    it('Does not add curly braces to unbraced variables', () => {
+      const scene = new TestScene({
+        $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+      });
+
+      expect(sceneInterpolator(scene, '$__interval')).toBe('$__interval');
+    });
+    it('Does not remove curly braces from braced variables', () => {
+      const scene = new TestScene({
+        $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+      });
+
+      expect(sceneInterpolator(scene, '${__interval}')).toBe('${__interval}');
+    });
+  });
+
+  describe('Interpolations', () => {
+    it('populates found interpolations', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new TestVariable({
+              name: 'cluster',
+              value: ['1', '2'],
+              text: ['hello', 'world'],
+              isMulti: true,
+              includeAll: true,
+            }),
+          ],
+        }),
+      });
+      const interpolations: VariableInterpolation[] = [];
+      sceneInterpolator(scene, '${cluster:text}', undefined, undefined, interpolations);
+      expect(interpolations).toHaveLength(1);
+      expect(interpolations[0].match).toEqual('${cluster:text}');
+      expect(interpolations[0].variableName).toEqual('cluster');
+      expect(interpolations[0].fieldPath).toBeUndefined();
+      expect(interpolations[0].format).toEqual('text');
+      expect(interpolations[0].found).toEqual(true);
+      expect(interpolations[0].value).toEqual('hello + world');
+    });
+    it('populates not found interpolations', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new TestVariable({
+              name: 'cluster',
+              value: ['1', '2'],
+              text: ['hello', 'world'],
+              isMulti: true,
+              includeAll: true,
+            }),
+          ],
+        }),
+      });
+      const interpolations: VariableInterpolation[] = [];
+      sceneInterpolator(scene, '${namespace}', undefined, undefined, interpolations);
+      expect(interpolations).toHaveLength(1);
+      expect(interpolations[0].match).toEqual('${namespace}');
+      expect(interpolations[0].variableName).toEqual('namespace');
+      expect(interpolations[0].fieldPath).toBeUndefined();
+      expect(interpolations[0].format).toBeUndefined();
+      expect(interpolations[0].found).toEqual(false);
+      expect(interpolations[0].value).toEqual('${namespace}');
+    });
   });
 });

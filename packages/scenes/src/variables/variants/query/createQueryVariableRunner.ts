@@ -144,11 +144,11 @@ export function setCreateQueryVariableRunnerFactory(fn: (datasource: DataSourceA
  * Fixes old legacy query string models and adds refId if missing
  */
 function ensureVariableQueryModelIsADataQuery(variable: QueryVariable): StandardVariableQuery {
-  const query = variable.state.query;
+  const query = variable.state.query ?? '';
 
   // Turn into query object if it's just a string
-  if (!query || typeof query !== 'object') {
-    return { query: query, refId: `variable-${variable.state.name}` };
+  if (typeof query === 'string') {
+    return { query, refId: `variable-${variable.state.name}` };
   }
 
   // Add potentially missing refId

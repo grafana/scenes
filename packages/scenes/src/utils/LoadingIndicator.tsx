@@ -1,4 +1,3 @@
-import { selectors } from '@grafana/e2e-selectors';
 import { Icon, Tooltip } from '@grafana/ui';
 import React, { useCallback } from 'react';
 import { LoadingIndicatorProps as SelectLoadingIndicatorProps } from 'react-select';
@@ -31,7 +30,6 @@ export function LoadingIndicator(props: LoadingIndicatorProps) {
         className="spin-clockwise"
         name="sync"
         size="xs"
-        aria-label={selectors.components.LoadingIndicator.icon}
         role="button"
         onMouseDown={(e) => {
           props.onCancel(e);

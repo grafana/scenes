@@ -1,13 +1,21 @@
-import { arrayToDataFrame, DataTopic, AnnotationQuery } from '@grafana/data';
+import { arrayToDataFrame, DataTopic, AnnotationQuery, ScopedVars } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
+import React from 'react';
 import { map, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../../core/SceneDataNode';
 import { sceneGraph } from '../../../core/sceneGraph';
-import { SceneDataLayerProvider, SceneTimeRangeLike, SceneDataLayerProviderState } from '../../../core/types';
+import {
+  SceneComponentProps,
+  SceneDataLayerProvider,
+  SceneDataLayerProviderState,
+  SceneTimeRangeLike,
+} from '../../../core/types';
 import { getDataSource } from '../../../utils/getDataSource';
 import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { writeSceneLog } from '../../../utils/writeSceneLog';
+import { registerQueryWithController } from '../../registerQueryWithController';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
+import { DataLayerControlSwitch } from '../SceneDataLayerControls';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
 
@@ -19,8 +27,10 @@ export class AnnotationsDataLayer
   extends SceneDataLayerBase<AnnotationsDataLayerState>
   implements SceneDataLayerProvider
 {
+  static Component = AnnotationsDataLayerRenderer;
+
+  private _scopedVars: ScopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
   private _timeRangeSub: Unsubscribable | undefined;
-  public topic = DataTopic.Annotations;
 
   public constructor(initialState: AnnotationsDataLayerState) {
     super(
@@ -65,35 +75,37 @@ export class AnnotationsDataLayer
     try {
       const ds = await this.resolveDataSource(query);
 
-      const queryExecution = executeAnnotationQuery(ds, timeRange, query, this).pipe(
+      let stream = executeAnnotationQuery(ds, timeRange, query, this).pipe(
+        registerQueryWithController({
+          type: 'annotations',
+          origin: this,
+          cancel: () => this.cancelQuery(),
+        }),
         map((events) => {
           const stateUpdate = this.processEvents(query, events);
           return stateUpdate;
         })
       );
 
-      this.querySub = queryExecution.subscribe((stateUpdate) => {
-        this.publishResults(stateUpdate, DataTopic.Annotations);
+      this.querySub = stream.subscribe((stateUpdate) => {
+        this.publishResults(stateUpdate);
       });
     } catch (e) {
-      this.publishResults(
-        {
-          ...emptyPanelData,
-          state: LoadingState.Error,
-          errors: [
-            {
-              message: getMessageFromError(e),
-            },
-          ],
-        },
-        DataTopic.Annotations
-      );
+      this.publishResults({
+        ...emptyPanelData,
+        state: LoadingState.Error,
+        errors: [
+          {
+            message: getMessageFromError(e),
+          },
+        ],
+      });
       console.error('AnnotationsDataLayer error', e);
     }
   }
 
   protected async resolveDataSource(query: AnnotationQuery) {
-    return await getDataSource(query.datasource || undefined, {});
+    return await getDataSource(query.datasource || undefined, this._scopedVars);
   }
 
   protected processEvents(query: AnnotationQuery, events: AnnotationQueryResults) {
@@ -102,13 +114,24 @@ export class AnnotationsDataLayer
 
     const stateUpdate = { ...emptyPanelData, state: events.state };
     const df = arrayToDataFrame(processedEvents);
+
     df.meta = {
       ...df.meta,
       dataTopic: DataTopic.Annotations,
     };
 
-    stateUpdate.annotations = [df];
+    stateUpdate.series = [df];
 
     return stateUpdate;
   }
+}
+
+function AnnotationsDataLayerRenderer({ model }: SceneComponentProps<AnnotationsDataLayer>) {
+  const { isHidden } = model.useState();
+
+  if (isHidden) {
+    return null;
+  }
+
+  return <DataLayerControlSwitch layer={model} />;
 }

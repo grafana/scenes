@@ -32,5 +32,6 @@ export function getUrlWithAppState(path: string, preserveParams?: string[]): str
 }
 
 export function renderSceneComponentWithRouteProps(sceneObject: SceneObject, routeProps: RouteComponentProps) {
+  // @ts-ignore
   return React.createElement(sceneObject.Component, { model: sceneObject, routeProps: routeProps });
 }

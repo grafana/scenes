@@ -153,7 +153,7 @@ describe('SceneApp', () => {
 
     it('Render first tab with its own url', async () => {
       history.push('/test/tab1');
-      expect(await screen.findByTestId(t1Object.state.key!)).toBeInTheDocument();
+      expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
     });
 
     it('Can render second tab', async () => {

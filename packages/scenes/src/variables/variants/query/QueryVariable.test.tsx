@@ -26,7 +26,7 @@ import { EmbeddedScene } from '../../../components/EmbeddedScene';
 import { SceneVariableSet } from '../../sets/SceneVariableSet';
 import { VariableValueSelectors } from '../../components/VariableValueSelectors';
 import { SceneCanvasText } from '../../../components/SceneCanvasText';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setRunRequest } from '@grafana/runtime';
 
@@ -329,8 +329,8 @@ describe('QueryVariable', () => {
 
       expect(variable.state.options).toEqual([
         { label: 'val1', value: 'val1' },
-        { label: 'val2', value: 'val2' },
         { label: 'val11', value: 'val11' },
+        { label: 'val2', value: 'val2' },
       ]);
     });
   });
@@ -356,6 +356,37 @@ describe('QueryVariable', () => {
 
       render(<scene.Component model={scene} />);
 
+      await act(() => new Promise((r) => setTimeout(r, 10)));
+
+      const select = await screen.findByRole('combobox');
+
+      await userEvent.click(select);
+      await userEvent.type(select, 'muu!');
+
+      // wait for debounce
+      await act(() => new Promise((r) => setTimeout(r, 500)));
+
+      expect(runRequestMock).toBeCalledTimes(2);
+      expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
+    });
+
+    it('Should not trigger new query whern __searchFilter is not present', async () => {
+      const variable = new QueryVariable({
+        name: 'server',
+        datasource: null,
+        query: 'A.*',
+      });
+
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        controls: [new VariableValueSelectors({})],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      render(<scene.Component model={scene} />);
+
+      await act(() => new Promise((r) => setTimeout(r, 10)));
+
       const select = await screen.findByRole('combobox');
       await userEvent.click(select);
       await userEvent.type(select, 'muu!');
@@ -363,8 +394,7 @@ describe('QueryVariable', () => {
       // wait for debounce
       await new Promise((r) => setTimeout(r, 500));
 
-      expect(runRequestMock).toBeCalledTimes(2);
-      expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
+      expect(runRequestMock).toBeCalledTimes(1);
     });
   });
 });

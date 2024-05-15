@@ -93,7 +93,9 @@ describe('timeMacros', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene1, '$__interval')).toBe('${__interval}');
-    expect(sceneInterpolator(scene1, '$__interval_ms')).toBe('${__interval_ms}');
+    expect(sceneInterpolator(scene1, '${__interval}')).toBe('${__interval}');
+    expect(sceneInterpolator(scene1, '$__interval')).toBe('$__interval');
+    expect(sceneInterpolator(scene1, '${__interval_ms}')).toBe('${__interval_ms}');
+    expect(sceneInterpolator(scene1, '$__interval_ms')).toBe('$__interval_ms');
   });
 });

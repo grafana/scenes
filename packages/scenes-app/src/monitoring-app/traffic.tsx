@@ -19,6 +19,7 @@ import { Button } from '@grafana/ui';
 
 import { getVariablesDefinitions } from './utils';
 import { getPromQueryInstant, getPromQueryTimeSeries } from '../demos/utils';
+import { prefixRoute } from '../utils/utils.routing';
 
 export function getTrafficScene(): EmbeddedScene {
   const httpHandlersTable = PanelBuilders.table()
@@ -41,7 +42,7 @@ export function getTrafficScene(): EmbeddedScene {
         .overrideLinks([
           {
             title: 'Go to handler drilldown view',
-            url: '/scenes/grafana-monitoring/traffic?handler=${__value.text:percentencode}',
+            url: prefixRoute('grafana-monitoring/traffic?handler=${__value.text:percentencode}'),
           },
         ])
     )

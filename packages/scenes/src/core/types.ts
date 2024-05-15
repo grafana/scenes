@@ -7,12 +7,11 @@ import {
   BusEventType,
   DataFrame,
   DataQueryRequest,
-  DataTopic,
   DataTransformContext,
   PanelData,
   TimeRange,
 } from '@grafana/data';
-import { TimeZone } from '@grafana/schema';
+import { DataTopic, TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
@@ -187,41 +186,40 @@ export type SceneObjectUrlValue = string | string[] | undefined | null;
 export type SceneObjectUrlValues = Record<string, SceneObjectUrlValue>;
 
 export type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
+export type CustomTransformerDefinition =
+  | { operator: CustomTransformOperator; topic: DataTopic }
+  | CustomTransformOperator;
 export type SceneStateChangedHandler<TState> = (newState: TState, prevState: TState) => void;
 
 export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
 
-export interface SceneDataProviderResultLike<O, T> {
-  origin: O;
-  data: T;
+export interface SceneDataProviderResult {
+  data: PanelData;
+  origin: SceneDataProvider;
 }
 
-export type SceneDataProviderResult = SceneDataProviderResultLike<SceneDataProvider, PanelData>;
-export type SceneDataLayerProviderResult = SceneDataProviderResultLike<SceneDataLayerProvider, PanelData> & {
-  topic: DataTopic;
-};
-
-export interface SceneDataProvider extends SceneObject<SceneDataState> {
+export interface SceneDataProvider<T extends SceneObjectState = SceneDataState> extends SceneObject<T> {
   setContainerWidth?: (width: number) => void;
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
-  getResultsStream?(): Observable<SceneDataProviderResult>;
+  getResultsStream(): Observable<SceneDataProviderResult>;
 }
 
-export interface SceneDataLayerProviderState extends SceneObjectState {
+export interface SceneDataLayerProviderState extends SceneDataState {
   name: string;
   description?: string;
-  data?: PanelData;
   isEnabled?: boolean;
   isHidden?: boolean;
 }
 
-export interface SceneDataLayerProvider extends SceneObject<SceneDataLayerProviderState> {
-  topic: DataTopic;
-  cancelQuery?: () => void;
-  getResultsStream(): Observable<SceneDataLayerProviderResult>;
+export interface SceneDataLayerProvider extends SceneDataProvider<SceneDataLayerProviderState> {
+  isDataLayer: true;
+}
+
+export function isDataLayer(obj: SceneObject): obj is SceneDataLayerProvider {
+  return 'isDataLayer' in obj;
 }
 
 export interface DataLayerFilter {
@@ -233,3 +231,16 @@ export interface SceneStatelessBehavior<T extends SceneObject = any> {
 }
 
 export type ControlsLayout = 'horizontal' | 'vertical';
+
+export interface UseStateHookOptions {
+  /**
+   * For some edge cases other scene objects want to subscribe to scene object state for objects
+   * that are not active, or whose main React Component can be un-mounted. Set this to true
+   * to keep the scene object active even if the React component is unmounted.
+   *
+   * Normally you would not need this but this can be useful in some edge cases.
+   *
+   * @experimental
+   */
+  shouldActivateOrKeepAlive?: boolean;
+}

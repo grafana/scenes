@@ -161,6 +161,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   private _variableNeedsUpdate(variable: SceneVariable): boolean {
+    if (variable.isLazy) {
+      return false;
+    }
+
     if (!variable.validateAndUpdate) {
       return false;
     }
@@ -203,6 +207,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
       variableToUpdate.subscription = variable.validateAndUpdate().subscribe({
         next: () => this._validateAndUpdateCompleted(variable),
+        complete: () => this._validateAndUpdateCompleted(variable),
         error: (err) => this._handleVariableError(variable, err),
       });
     }
@@ -212,6 +217,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * A variable has completed its update process. This could mean that variables that depend on it can now be updated in turn.
    */
   private _validateAndUpdateCompleted(variable: SceneVariable) {
+    if (!this._updating.has(variable)) {
+      return;
+    }
+
     const update = this._updating.get(variable);
     update?.subscription?.unsubscribe();
 
@@ -278,6 +287,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       if (otherVariable.variableDependency) {
         if (otherVariable.variableDependency.hasDependencyOn(variableThatChanged.state.name)) {
           writeVariableTraceLog(otherVariable, 'Added to update queue, dependant variable value changed');
+
+          if (this._updating.has(otherVariable) && otherVariable.onCancel) {
+            otherVariable.onCancel();
+          }
+
           this._variablesToUpdate.add(otherVariable);
         }
       }
@@ -308,6 +322,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     // Skip non active scene objects
     if (!sceneObject.isActive) {
       return;
+    }
+
+    // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
+    if (sceneObject.state.$variables && sceneObject.state.$variables !== this) {
+      const localVar = sceneObject.state.$variables.getByName(variable.state.name);
+      if (localVar) {
+        return;
+      }
     }
 
     if (sceneObject.variableDependency) {
@@ -343,7 +365,11 @@ export interface VariableUpdateInProgress {
 }
 
 function writeVariableTraceLog(variable: SceneVariable, message: string, err?: Error) {
-  writeSceneLog('SceneVariableSet', `Variable[${variable.state.name}]: ${message}`, err);
+  if (err) {
+    writeSceneLog('SceneVariableSet', `Variable[${variable.state.name}]: ${message}`, err);
+  } else {
+    writeSceneLog('SceneVariableSet', `Variable[${variable.state.name}]: ${message}`);
+  }
 }
 
 class SceneVariableSetVariableDependencyHandler implements SceneVariableDependencyConfigLike {

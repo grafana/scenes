@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import { forkJoin, map, merge, mergeAll, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
+import { forkJoin, ReplaySubject, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -14,13 +14,15 @@ import {
   preProcessPanelData,
   rangeUtil,
 } from '@grafana/data';
-import { getRunRequest, toDataQueryError } from '@grafana/runtime';
+
+// TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
+// @ts-ignore
+import { getRunRequest, toDataQueryError, isExpressionReference } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import {
   DataLayerFilter,
-  SceneDataLayerProviderResult,
   SceneDataProvider,
   SceneDataProviderResult,
   SceneObjectState,
@@ -36,8 +38,13 @@ import { getClosest } from '../core/sceneGraph/utils';
 import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
-import { AdHocFilterSet } from '../variables/adhoc/AdHocFiltersSet';
-import { findActiveAdHocFilterSetByUid } from '../variables/adhoc/patchGetAdhocFilters';
+import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetAdhocFilters';
+import { registerQueryWithController } from './registerQueryWithController';
+import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
+import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
+import { SceneVariable } from '../variables/types';
+import { mergeMultipleDataLayers } from './mergeMultipleDataLayers';
 
 let counter = 100;
 
@@ -53,6 +60,8 @@ export interface QueryRunnerState extends SceneObjectState {
   maxDataPoints?: number;
   liveStreaming?: boolean;
   maxDataPointsFromWidth?: boolean;
+  cacheTimeout?: DataQueryRequest['cacheTimeout'];
+  queryCachingTTL?: DataQueryRequest['queryCachingTTL'];
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
@@ -61,21 +70,25 @@ export interface QueryRunnerState extends SceneObjectState {
 
 export interface DataQueryExtended extends DataQuery {
   [key: string]: any;
+
+  // Opt this query out of time window comparison
+  timeRangeCompare?: boolean;
 }
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
   private _dataLayersSub?: Unsubscribable;
+  private _timeSub?: Unsubscribable;
+  private _timeSubRange?: SceneTimeRangeLike;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
-  private _results = new ReplaySubject<SceneDataProviderResult>();
+  private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
 
-  // Closest filter set if found)
-  private _adhocFilterSet?: AdHocFilterSet;
-  private _adhocFilterSub?: Unsubscribable;
+  private _adhocFiltersVar?: AdHocFiltersVariable;
+  private _groupByVar?: GroupByVariable;
 
   public getResultsStream() {
     return this._results;
@@ -84,6 +97,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
     statePaths: ['queries', 'datasource'],
     onVariableUpdateCompleted: this.onVariableUpdatesCompleted.bind(this),
+    onAnyVariableChanged: this.onAnyVariableChanged.bind(this),
   });
 
   public constructor(initialState: QueryRunnerState) {
@@ -106,14 +120,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       );
     }
 
-    this._subs.add(
-      timeRange.subscribeToState(() => {
-        this.runWithTimeRange(timeRange);
-      })
-    );
+    this.subscribeToTimeRangeChanges(timeRange);
 
     if (this.shouldRunQueriesOnActivate()) {
       this.runQueries();
+    }
+
+    if (!this._dataLayersSub) {
+      this._handleDataLayers();
     }
 
     return () => this._onDeactivate();
@@ -123,56 +137,31 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _handleDataLayers() {
     const dataLayers = sceneGraph.getDataLayers(this);
 
-    const observables: Array<Observable<SceneDataLayerProviderResult>> = [];
-
-    // This keeps track of multiple SceneDataLayers. The key responsibility od this map is to make sure individual from independent SceneDataLayers do not overwrite each other.
-    const resultsMap: Map<string, PanelData> = new Map();
-
-    if (dataLayers.length > 0) {
-      dataLayers.forEach((layer) => {
-        observables.push(layer.getResultsStream());
-      });
-
-      // possibly we want to combine the results from all layers and only then update, but this is tricky ;(
-      this._dataLayersSub = merge(observables)
-        .pipe(
-          mergeAll(),
-          map((v) => {
-            // Is there a better, rxjs only way to combine multiple same-data-topic observables?
-            // Indexing by origin state key is to make sure we do not duplicate/overwrite data from the different origins
-            resultsMap.set(v.origin.state.key!, v.data);
-            return resultsMap;
-          })
-        )
-        .subscribe((result) => {
-          this._onLayersReceived(result);
-        });
+    if (dataLayers.length === 0) {
+      return;
     }
+
+    this._dataLayersSub = mergeMultipleDataLayers(dataLayers).subscribe(this._onLayersReceived.bind(this));
   }
 
-  private _onLayersReceived(results: Map<string, PanelData>) {
+  private _onLayersReceived(results: Iterable<SceneDataProviderResult>) {
     const timeRange = sceneGraph.getTimeRange(this);
-    const dataLayers = sceneGraph.getDataLayers(this);
     const { dataLayerFilter } = this.state;
+
     let annotations: DataFrame[] = [];
     let alertStates: DataFrame[] = [];
     let alertState: AlertStateInfo | undefined;
-    const layerKeys = Array.from(results.keys());
 
-    Array.from(results.values()).forEach((result, i) => {
-      const layerKey = layerKeys[i];
-      const layer = dataLayers.find((l) => l.state.key === layerKey);
-      if (layer) {
-        if (layer.topic === DataTopic.Annotations && result[DataTopic.Annotations]) {
-          annotations = annotations.concat(result[DataTopic.Annotations]);
+    for (const result of results) {
+      for (let frame of result.data.series) {
+        if (frame.meta?.dataTopic === DataTopic.Annotations) {
+          annotations = annotations.concat(frame);
         }
-
-        // @ts-expect-error TODO: use DataTopic.AlertStates when exposed from core grafana
-        if (layer.topic === 'alertStates') {
-          alertStates = alertStates.concat(result.series);
+        if (frame.meta?.dataTopic === DataTopic.AlertStates) {
+          alertStates = alertStates.concat(frame);
         }
       }
-    });
+    }
 
     if (dataLayerFilter?.panelId) {
       if (annotations.length > 0) {
@@ -220,6 +209,29 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    */
   private onVariableUpdatesCompleted() {
     this.runQueries();
+  }
+
+  /**
+   * Check if value changed is a adhoc filter o group by variable that did not exist when we issued the last query
+   */
+  private onAnyVariableChanged(variable: SceneVariable) {
+    // If this variable has already been detected this variable as a dependency onVariableUpdatesCompleted above will handle value changes
+    if (this._adhocFiltersVar === variable || this._groupByVar === variable) {
+      return;
+    }
+
+    if (variable instanceof AdHocFiltersVariable && this._isRelevantAutoVariable(variable)) {
+      this.runQueries();
+    }
+
+    if (variable instanceof GroupByVariable && this._isRelevantAutoVariable(variable)) {
+      this.runQueries();
+    }
+  }
+
+  private _isRelevantAutoVariable(variable: AdHocFiltersVariable | GroupByVariable) {
+    const datasource = this.state.datasource ?? findFirstDatasource(this.state.queries);
+    return variable.state.applyMode === 'auto' && datasource?.uid === variable.state.datasource?.uid;
   }
 
   private shouldRunQueriesOnActivate() {
@@ -271,10 +283,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
-    if (this._adhocFilterSub) {
-      this._adhocFilterSub.unsubscribe();
-    }
-
+    this._timeSub?.unsubscribe();
+    this._timeSub = undefined;
+    this._timeSubRange = undefined;
+    this._adhocFiltersVar = undefined;
+    this._groupByVar = undefined;
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
@@ -304,8 +317,25 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return Boolean(this.state._hasFetchedData);
   }
 
+  private subscribeToTimeRangeChanges(timeRange: SceneTimeRangeLike) {
+    if (this._timeSubRange === timeRange) {
+      // Nothing to do, already subscribed
+      return;
+    }
+
+    if (this._timeSub) {
+      this._timeSub.unsubscribe();
+    }
+
+    this._timeSubRange = timeRange;
+    this._timeSub = timeRange.subscribeToState(() => {
+      this.runWithTimeRange(timeRange);
+    });
+  }
+
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
+    this.subscribeToTimeRangeChanges(timeRange);
     this.runWithTimeRange(timeRange);
   }
 
@@ -362,37 +392,58 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      if (!this._adhocFilterSet) {
-        this.findAndSubscribeToAdhocFilters(datasource?.uid);
-      }
+      this.findAndSubscribeToAdHocFilters(datasource?.uid);
 
       const runRequest = getRunRequest();
       const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
+      let stream = runRequest(ds, request);
+
       if (secondaryRequest) {
         // change subscribe callback below to pipe operator
-        this._querySub = forkJoin([runRequest(ds, request), runRequest(ds, secondaryRequest)])
-          .pipe(timeShiftQueryResponseOperator)
-          .subscribe(this.onDataReceived);
-      } else {
-        this._querySub = runRequest(ds, request).subscribe(this.onDataReceived);
+        stream = forkJoin([stream, runRequest(ds, secondaryRequest)]).pipe(timeShiftQueryResponseOperator);
       }
+
+      stream = stream.pipe(
+        registerQueryWithController({
+          type: 'data',
+          request,
+          origin: this,
+          cancel: () => this.cancelQuery(),
+        })
+      );
+
+      this._querySub = stream.subscribe(this.onDataReceived);
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 
-      const result = {
+      this.onDataReceived({
         ...emptyPanelData,
         ...this.state.data,
         state: LoadingState.Error,
         errors: [toDataQueryError(err)],
-      };
-
-      this.setState({
-        data: result,
       });
     }
+  }
+
+  public clone(withState?: Partial<QueryRunnerState>) {
+    const clone = super.clone(withState);
+
+    if (this._resultAnnotations) {
+      clone['_resultAnnotations'] = this._resultAnnotations.map((frame) => ({ ...frame }));
+    }
+
+    if (this._layerAnnotations) {
+      clone['_layerAnnotations'] = this._layerAnnotations.map((frame) => ({ ...frame }));
+    }
+
+    clone['_variableValueRecorder'] = this._variableValueRecorder.cloneAndRecordCurrentValuesForSceneObject(this);
+    clone['_containerWidth'] = this._containerWidth;
+    clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
+
+    return clone;
   }
 
   private prepareRequests = (
@@ -404,7 +455,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     let secondaryRequest: DataQueryRequest | undefined;
 
-    let request: DataQueryRequest = {
+    let request: DataQueryRequest<DataQueryExtended> = {
       app: 'scenes',
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
@@ -421,17 +472,31 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         from: timeRange.state.from,
         to: timeRange.state.to,
       },
+      cacheTimeout: this.state.cacheTimeout,
+      queryCachingTTL: this.state.queryCachingTTL,
       // This asks the scene root to provide context properties like app, panel and dashboardUID
       ...getEnrichedDataRequest(this),
     };
 
-    if (this._adhocFilterSet) {
+    if (this._adhocFiltersVar) {
+      // only pass filters that have both key and value
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.filters = this._adhocFilterSet.state.filters;
+      request.filters = this._adhocFiltersVar.state.filters.filter(isFilterComplete);
+    }
+
+    if (this._groupByVar) {
+      // @ts-ignore (Temporary ignore until we update @grafana/data)
+      request.groupByKeys = this._groupByVar.state.value;
     }
 
     request.targets = request.targets.map((query) => {
-      if (!query.datasource) {
+      if (
+        !query.datasource ||
+        (query.datasource.uid !== ds.uid &&
+          !ds.meta?.mixed &&
+          isExpressionReference /* TODO: Remove this check when isExpressionReference is properly exported from grafan runtime */ &&
+          !isExpressionReference(query.datasource))
+      ) {
         query.datasource = ds.getRef();
       }
       return query;
@@ -455,11 +520,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (comparer) {
       const secondaryTimeRange = comparer.getCompareTimeRange(primaryTimeRange);
       if (secondaryTimeRange) {
-        secondaryRequest = {
-          ...request,
-          range: secondaryTimeRange,
-          requestId: getNextRequestId(),
-        };
+        const secondaryTargets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
+
+        if (secondaryTargets.length) {
+          secondaryRequest = {
+            ...request,
+            targets: secondaryTargets,
+            range: secondaryTimeRange,
+            requestId: getNextRequestId(),
+          };
+        }
 
         request = {
           ...request,
@@ -472,10 +542,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   };
 
   private onDataReceived = (data: PanelData) => {
-    this._results.next({ origin: this, data });
-
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
+
+    // Save query annotations
+    this._resultAnnotations = data.annotations;
 
     // Will combine annotations & alert state from data layer providers
     const dataWithLayersApplied = this._combineDataLayers(preProcessedData);
@@ -486,16 +557,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       hasFetchedData = true;
     }
 
-    this._resultAnnotations = data.annotations;
-    this.setState({
-      data: dataWithLayersApplied,
-      _hasFetchedData: hasFetchedData,
-    });
+    this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
+
+    this._results.next({ origin: this, data: dataWithLayersApplied });
   };
 
   private _combineDataLayers(data: PanelData) {
-    if (this.state.data && this.state.data.annotations) {
-      data.annotations = (data.annotations || []).concat(this._layerAnnotations ?? []);
+    if (this._layerAnnotations && this._layerAnnotations.length > 0) {
+      data.annotations = (data.annotations || []).concat(this._layerAnnotations);
     }
 
     if (this.state.data && this.state.data.alertState) {
@@ -537,16 +606,33 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private findAndSubscribeToAdhocFilters(uid: string | undefined) {
-    const set = findActiveAdHocFilterSetByUid(uid);
+  private findAndSubscribeToAdHocFilters(uid: string | undefined) {
+    const filtersVar = findActiveAdHocFilterVariableByUid(uid);
 
-    if (!set || set.state.applyMode !== 'same-datasource') {
-      return;
+    if (this._adhocFiltersVar !== filtersVar) {
+      this._adhocFiltersVar = filtersVar;
+      this._updateExplicitVariableDependencies();
     }
 
-    // Subscribe to filter set state changes so that queries are re-issued when it changes
-    this._adhocFilterSet = set;
-    this._adhocFilterSub = this._adhocFilterSet?.subscribeToState(() => this.runQueries());
+    const groupByVar = findActiveGroupByVariablesByUid(uid);
+    if (this._groupByVar !== groupByVar) {
+      this._groupByVar = groupByVar;
+      this._updateExplicitVariableDependencies();
+    }
+  }
+
+  private _updateExplicitVariableDependencies() {
+    const explicitDependencies: string[] = [];
+
+    if (this._adhocFiltersVar) {
+      explicitDependencies.push(this._adhocFiltersVar.state.name);
+    }
+
+    if (this._groupByVar) {
+      explicitDependencies.push(this._groupByVar.state.name);
+    }
+
+    this._variableDependency.setVariableNames(explicitDependencies);
   }
 }
 

@@ -21,6 +21,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   private _stateSub: Unsubscribable | null = null;
   private _locationSub?: UnregisterCallback | null = null;
   private _lastPath?: string;
+  private _ignoreNextLocationUpdate = false;
 
   /**
    * Updates the current scene state to match URL state.
@@ -77,6 +78,11 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   }
 
   private _onLocationUpdate = (location: Location) => {
+    if (this._ignoreNextLocationUpdate) {
+      this._ignoreNextLocationUpdate = false;
+      return;
+    }
+
     if (this._lastPath !== location.pathname) {
       return;
     }
@@ -117,6 +123,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       }
 
       if (Object.keys(mappedUpdated).length > 0) {
+        this._ignoreNextLocationUpdate = true;
         locationService.partial(mappedUpdated, true);
       }
     }

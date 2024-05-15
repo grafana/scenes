@@ -9,7 +9,7 @@ export function useUniqueId(): string {
   return idRefLazy.current;
 }
 
-export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange'> {
+export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange' | 'children'> {
   children: React.ReactNode | (({ isInView }: { isInView: boolean }) => React.ReactNode);
   key: string;
   onLoad?: () => void;

@@ -19,6 +19,7 @@ import {
   SceneQueryRunner,
   TextBoxVariable,
   QueryVariable,
+  CustomVariable,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -44,6 +45,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   text: '',
                   description: 'Server name',
                   delayMs: 1000,
+                  isMulti: true,
                   options: [],
                   refresh: VariableRefresh.onTimeRangeChanged,
                 }),
@@ -66,14 +68,13 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   options: [],
                   refresh: VariableRefresh.onTimeRangeChanged,
                 }),
-                new TestVariable({
-                  name: 'lonelyOne',
-                  query: 'B.*',
+                new CustomVariable({
+                  name: 'keyValue',
+                  description: 'CustomVariable with key value pairs',
                   value: '',
-                  delayMs: 1000,
                   isMulti: true,
                   text: '',
-                  options: [],
+                  query: 'A : 1, B : 2, C : 3',
                 }),
                 new IntervalVariable({
                   name: 'interval',
@@ -86,8 +87,8 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                 }),
 
                 new QueryVariable({
-                  name: 'serverUsingDefinition',
-                  label: 'Server with definition',
+                  name: 'queryVar',
+                  label: 'QueryVariable with TestData datasource',
                   query: { query: '*', refId: 'A' },
                   datasource: { uid: 'gdev-testdata' },
                   definition: '*',
@@ -96,7 +97,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
             }),
             body: new SceneFlexLayout({
               direction: 'column',
-              $behaviors: [getVariableChangeBehavior('lonelyOne'), getVariableChangeBehavior('server')],
+              $behaviors: [getVariableChangeBehavior('keyValue'), getVariableChangeBehavior('server')],
               children: [
                 getGraphAndTextPanel(),
                 new SceneFlexItem({
@@ -213,7 +214,9 @@ function getGraphAndTextPanel() {
 * pod: $pod
 * handler: $handler
 * interval: $interval
-* serverUsingDefinition: $serverUsingDefinition
+* keyValue: $keyValue
+* keyValue: \${keyValue:text} (text value)
+* queryVar: $queryVar
 * [Link that updates pod = AAG and AAH](\${__url.path}\${__url.params:exclude:var-pod}&var-pod=AAG&var-pod=AAH)
 
           `

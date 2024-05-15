@@ -6,7 +6,7 @@ import { SplitLayoutRenderer } from './SplitLayoutRenderer';
 
 interface SplitLayoutState extends SceneObjectState, SceneFlexItemPlacement {
   primary: SceneFlexItemLike;
-  secondary: SceneFlexItemLike;
+  secondary?: SceneFlexItemLike;
   direction: 'row' | 'column';
   initialSize?: number;
   primaryPaneStyles?: CSSProperties;

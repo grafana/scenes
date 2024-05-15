@@ -1,12 +1,12 @@
 import React, { RefCallback } from 'react';
 import { useMeasure } from 'react-use';
 
-import { AlertState, GrafanaTheme2, PanelData, PanelPlugin, PluginContextProvider } from '@grafana/data';
+import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider } from '@grafana/data';
 import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
-import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject, SceneTimeRangeLike } from '../../core/types';
+import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
 import { css, cx } from '@emotion/css';
@@ -17,9 +17,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     options,
     fieldConfig,
     _pluginLoadError,
-    $data,
     displayMode,
     hoverHeader,
+    hoverHeaderOffset,
     menu,
     headerActions,
     titleItems,
@@ -34,7 +34,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
   const timeZone = sceneTimeRange.getTimeZone();
-  const timeRange = getPanelTimeRange(sceneTimeRange, plugin, dataWithFieldConfig);
+  const timeRange = model.getTimeRange(dataWithFieldConfig);
 
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
@@ -52,8 +52,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const PanelComponent = plugin.panel;
 
   // If we have a query runner on our level inform it of the container width (used to set auto max data points)
-  if ($data && $data.setContainerWidth) {
-    $data.setContainerWidth(Math.round(width));
+  if (dataObject && dataObject.setContainerWidth) {
+    dataObject.setContainerWidth(Math.round(width));
   }
 
   let titleItemsElement: React.ReactNode[] = [];
@@ -126,7 +126,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
   const context = model.getPanelContext();
-  const panelId = context.instanceState?.legacyPanelId ?? 1;
+  const panelId = model.getLegacyPanelId();
 
   return (
     <div className={relativeWrapper}>
@@ -142,6 +142,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             height={height}
             displayMode={displayMode}
             hoverHeader={hoverHeader}
+            hoverHeaderOffset={hoverHeaderOffset}
             titleItems={titleItemsElement}
             dragClass={dragClass}
             actions={actionsElement}
@@ -260,15 +261,3 @@ const getAlertStateStyles = (theme: GrafanaTheme2) => {
     }),
   };
 };
-
-function getPanelTimeRange(sceneTimeRange: SceneTimeRangeLike, plugin: PanelPlugin | undefined, data?: PanelData) {
-  if (!plugin || plugin.meta.skipDataQuery) {
-    return sceneTimeRange.state.value;
-  }
-
-  if (data && data.request?.range) {
-    return data.request.range;
-  }
-
-  return sceneTimeRange.state.value;
-}

@@ -1,3 +1,4 @@
+import { DataLinkBuiltInVars } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
@@ -10,7 +11,7 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   /**
    * State paths to scan / extract variable dependencies from. Leave empty to scan all paths.
    */
-  statePaths?: Array<keyof TState>;
+  statePaths?: Array<keyof TState | '*'>;
 
   /**
    * Explicit list of variable names to depend on. Leave empty to scan state for dependencies.
@@ -30,12 +31,17 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    *    after any variable update completes. This is to cover scenarios where an object is waiting for indirect dependencies to complete.
    */
   onVariableUpdateCompleted?: () => void;
+
+  /**
+   * Optional way to subscribe to all variable value changes, even to variables that are not dependencies.
+   */
+  onAnyVariableChanged?: (variable: SceneVariable) => void;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
   private _state: TState | undefined;
   private _dependencies = new Set<string>();
-  private _statePaths?: Array<keyof TState>;
+  private _statePaths?: Array<keyof TState | '*'>;
   private _isWaitingForVariables = false;
 
   public scanCount = 0;
@@ -55,13 +61,13 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   }
 
   /**
-   * This is called whenever any set of variables have new values. It up to this implementation to check if it's relevant given the current dependencies.
+   * This is called whenever any set of variables have new values. It is up to this implementation to check if it's relevant given the current dependencies.
    */
   public variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean) {
     const deps = this.getNames();
     let dependencyChanged = false;
 
-    if (deps.has(variable.state.name) && hasChanged) {
+    if ((deps.has(variable.state.name) || deps.has(DataLinkBuiltInVars.includeVars)) && hasChanged) {
       dependencyChanged = true;
     }
 
@@ -72,6 +78,10 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       dependencyChanged,
       this._isWaitingForVariables
     );
+
+    if (this._options.onAnyVariableChanged) {
+      this._options.onAnyVariableChanged(variable);
+    }
 
     // If custom handler called when dependency is changed or when we are waiting for variables
     if (this._options.onVariableUpdateCompleted && (this._isWaitingForVariables || dependencyChanged)) {
@@ -114,7 +124,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     if (newState !== prevState) {
       if (this._statePaths) {
         for (const path of this._statePaths) {
-          if (newState[path] !== prevState[path]) {
+          if (path === '*' || newState[path] !== prevState[path]) {
             this.scanStateForDependencies(newState);
             break;
           }
@@ -127,7 +137,15 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     return this._dependencies;
   }
 
-  public setPaths(paths: Array<keyof TState>) {
+  /**
+   * Update variableNames
+   */
+  public setVariableNames(varNames: string[]) {
+    this._options.variableNames = varNames;
+    this.scanStateForDependencies(this._state!);
+  }
+
+  public setPaths(paths: Array<keyof TState | '*'>) {
     this._statePaths = paths;
   }
 
@@ -139,16 +157,19 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       for (const name of this._options.variableNames) {
         this._dependencies.add(name);
       }
-    } else {
-      if (this._statePaths) {
-        for (const path of this._statePaths) {
+    }
+
+    if (this._statePaths) {
+      for (const path of this._statePaths) {
+        if (path === '*') {
+          this.extractVariablesFrom(state);
+          break;
+        } else {
           const value = state[path];
           if (value) {
             this.extractVariablesFrom(value);
           }
         }
-      } else {
-        this.extractVariablesFrom(state);
       }
     }
   }

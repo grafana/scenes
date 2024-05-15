@@ -27,6 +27,7 @@ import { DataQuery, DataSourceRef } from '@grafana/schema';
 import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { DataQueryExtended } from '../../../querying/SceneQueryRunner';
 import { debounce } from 'lodash';
+import { registerQueryWithController } from '../../../querying/registerQueryWithController';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -78,6 +79,11 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
         const request = this.getRequest(target, args.searchFilter);
 
         return runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request).pipe(
+          registerQueryWithController({
+            type: 'variable',
+            request: request,
+            origin: this,
+          }),
           filter((data) => data.state === LoadingState.Done || data.state === LoadingState.Error), // we only care about done or error for now
           take(1), // take the first result, using first caused a bug where it in some situations throw an uncaught error because of no results had been received yet
           mergeMap((data: PanelData) => {
@@ -152,5 +158,5 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
 function containsSearchFilter(query: string | DataQuery) {
   const str = safeStringifyValue(query);
-  return str.indexOf(SEARCH_FILTER_VARIABLE);
+  return str.indexOf(SEARCH_FILTER_VARIABLE) > -1;
 }

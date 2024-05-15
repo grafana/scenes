@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import { isArray, isEqual } from 'lodash';
 import { map, Observable } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -35,6 +35,7 @@ export interface MultiValueVariableState extends SceneVariableState {
    * Defaults to 5
    */
   maxVisibleValues?: number;
+  noValueOnClear?: boolean;
 }
 
 export interface VariableGetOptionsArgs {
@@ -46,6 +47,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   implements SceneVariable<TState>
 {
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
+
+  /**
+   * Set to true to skip next value validation to maintain the current value even it it's not among the options (ie valid values)
+   */
+  public skipNextValidation?: boolean;
 
   /**
    * The source of value options.
@@ -88,6 +94,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       if (this.state.defaultToAll || this.state.includeAll) {
         stateUpdate.value = ALL_VARIABLE_VALUE;
         stateUpdate.text = ALL_VARIABLE_TEXT;
+      } else if (this.state.isMulti) {
+        stateUpdate.value = [];
+        stateUpdate.text = [];
+      } else {
+        stateUpdate.value = '';
+        stateUpdate.text = '';
       }
     } else if (this.hasAllValue()) {
       // If value is set to All then we keep it set to All but just store the options
@@ -104,9 +116,13 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         stateUpdate.text = defaultState.text;
       }
       // We have valid values, if it's different from current valid values update current values
-      else if (!isEqual(validValues, currentValue) || !isEqual(validTexts, currentText)) {
-        stateUpdate.value = validValues;
-        stateUpdate.text = validTexts;
+      else {
+        if (!isEqual(validValues, currentValue)) {
+          stateUpdate.value = validValues;
+        }
+        if (!isEqual(validTexts, currentText)) {
+          stateUpdate.text = validTexts;
+        }
       }
     } else {
       // Try find by value then text
@@ -114,7 +130,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       if (matchingOption) {
         // When updating the initial state from URL the text property is set the same as value
         // Here we can correct the text value state
-
         stateUpdate.text = matchingOption.label;
         stateUpdate.value = matchingOption.value;
       } else {
@@ -130,6 +145,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       }
     }
 
+    this.interceptStateUpdateAfterValidation(stateUpdate);
+
     // Perform state change
     this.setStateHelper(stateUpdate);
 
@@ -137,6 +154,22 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
+  }
+
+  /**
+   * Values set by initial URL sync needs to survive the next validation and update.
+   * This function can intercept and make sure those values are preserved.
+   */
+  protected interceptStateUpdateAfterValidation(stateUpdate: Partial<MultiValueVariableState>): void {
+    // If the validation wants to fix the all value (All ==> $__all) then we should let that pass
+    const isAllValueFix = stateUpdate.value === ALL_VARIABLE_VALUE && this.state.text === ALL_VARIABLE_TEXT;
+
+    if (this.skipNextValidation && stateUpdate.value !== this.state.value && !isAllValueFix) {
+      stateUpdate.value = this.state.value;
+      stateUpdate.text = this.state.text;
+    }
+
+    this.skipNextValidation = false;
   }
 
   public getValue(): VariableValue {
@@ -168,19 +201,21 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value[0] === ALL_VARIABLE_VALUE);
   }
 
-  private getDefaultMultiState(options: VariableValueOption[]) {
+  public getDefaultMultiState(options: VariableValueOption[]) {
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
-    } else {
+    } else if (options.length > 0) {
       return { value: [options[0].value], text: [options[0].label] };
+    } else {
+      return { value: [], text: [] };
     }
   }
 
   /**
-   * Change the value and publish SceneVariableValueChangedEvent event
+   * Change the value and publish SceneVariableValueChangedEvent event.
    */
   public changeValueTo(value: VariableValue, text?: VariableValue) {
-    // Igore if there is no change
+    // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
     }
@@ -213,6 +248,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
           text.shift();
         }
       }
+    }
+
+    // Do nothing if value and text are the same
+    if (isEqual(value, this.state.value) && isEqual(text, this.state.text)) {
+      return;
     }
 
     this.setStateHelper({ value, text, loading: false });
@@ -325,12 +365,35 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
-    const urlValue = values[this.getKey()];
+    let urlValue = values[this.getKey()];
 
     if (urlValue != null) {
+      // This is to be backwards compatible with old url all value
+      if (this._sceneObject.state.includeAll) {
+        urlValue = handleLegacyUrlAllValue(urlValue);
+      }
+
+      /**
+       * Initial URL Sync happens before scene objects are activated.
+       * We need to skip validation in this case to make sure values set via URL are maintained.
+       */
+      if (!this._sceneObject.isActive) {
+        this._sceneObject.skipNextValidation = true;
+      }
+
       this._sceneObject.changeValueTo(urlValue);
     }
   }
+}
+
+function handleLegacyUrlAllValue(value: string | string[]) {
+  if (isArray(value) && value[0] === ALL_VARIABLE_TEXT) {
+    return [ALL_VARIABLE_VALUE];
+  } else if (value === ALL_VARIABLE_TEXT) {
+    return ALL_VARIABLE_VALUE;
+  }
+
+  return value;
 }
 
 /**
