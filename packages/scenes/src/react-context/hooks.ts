@@ -110,7 +110,7 @@ export function useUpdateWhenSceneChanges({ timeRange, variables = [] }: UseUpda
 
     return () => subscriptions.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scene, setUpdateReason, timeRange, ...variables]);
+  }, [scene, timeRange, ...variables]);
 
   return updateReason;
 }
