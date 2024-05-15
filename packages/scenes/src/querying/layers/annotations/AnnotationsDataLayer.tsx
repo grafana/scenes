@@ -1,4 +1,4 @@
-import { arrayToDataFrame, DataTopic, AnnotationQuery, ScopedVars } from '@grafana/data';
+import { arrayToDataFrame, DataTopic, AnnotationQuery, ScopedVars, PanelData } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
 import React from 'react';
 import { map, Unsubscribable } from 'rxjs';
@@ -108,7 +108,7 @@ export class AnnotationsDataLayer
     return await getDataSource(query.datasource || undefined, this._scopedVars);
   }
 
-  protected processEvents(query: AnnotationQuery, events: AnnotationQueryResults) {
+  protected processEvents(query: AnnotationQuery, events: AnnotationQueryResults): PanelData {
     let processedEvents = postProcessQueryResult(query, events.events || []);
     processedEvents = dedupAnnotations(processedEvents);
 

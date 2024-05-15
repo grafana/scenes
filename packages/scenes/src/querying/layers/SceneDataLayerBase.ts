@@ -28,7 +28,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   /**
    * Subject to emit results to.
    */
-  private _results = new ReplaySubject<SceneDataProviderResult>();
+  private _results = new ReplaySubject<SceneDataProviderResult>(1);
 
   /**
    * Implement logic for enabling the layer. This is called when layer is enabled or when layer is enabled when activated.
