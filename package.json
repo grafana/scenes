@@ -33,6 +33,7 @@
     "docs:build": "yarn workspace website run build",
     "test:lib": "lerna run test --scope '@grafana/scenes' --",
     "dev:lib": "lerna run dev --scope '@grafana/scenes' --",
+    "dev:ml": "lerna run dev --scope '@grafana/scenes-ml' --",
     "dev:app": "lerna run dev --scope 'scenes-app' --",
     "test": "lerna run test --scope '@grafana/scenes' -- --watch",
     "typecheck": "lerna run typecheck"

@@ -15,18 +15,19 @@ export const passthroughProcessor: ProcessorFunc = (_, secondary) => secondary;
 // response and the secondary response to be processed.
 //
 // The output is a single frame with the primary series and all processed
-// secondary series combined.
+// secondary series and annotations combined.
 export const extraRequestProcessingOperator = (processors: Map<string, ProcessorFunc>) =>
   (data: Observable<[PanelData, PanelData, ...PanelData[]]>) => {
     return data.pipe(
       map(([primary, ...secondaries]) => {
-        const frames = secondaries.flatMap((s) => {
-          const processed = processors.get(s.request!.requestId)?.(primary, s) ?? s;
-          return processed.series;
-        });
+        const processed = secondaries.map((s) => processors.get(s.request!.requestId)?.(primary, s) ?? s);
         return {
           ...primary,
-          series: [...primary.series, ...frames],
+          series: [...primary.series, ...processed.flatMap((s) => s.series)],
+          annotations: [
+            ...(primary.annotations ?? []),
+            ...processed.flatMap((s) => s.annotations ?? [])
+          ],
         };
       })
     );
