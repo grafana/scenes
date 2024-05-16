@@ -260,6 +260,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   }
 
   private findLabelTextForValue(value: VariableValueSingle): VariableValueSingle {
+    if (value === ALL_VARIABLE_VALUE) {
+      return ALL_VARIABLE_TEXT;
+    }
+
     const option = this.state.options.find((x) => x.value === value);
     if (option) {
       return option.label;
@@ -371,6 +375,12 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
       // This is to be backwards compatible with old url all value
       if (this._sceneObject.state.includeAll) {
         urlValue = handleLegacyUrlAllValue(urlValue);
+      }
+
+      // For edge cases where data links include variables with custom all value.
+      // We want the variable to maintain the "All" meta value not the actual custom vall value. (Fixes https://github.com/grafana/grafana/issues/28635)
+      if (this._sceneObject.state.allValue && this._sceneObject.state.allValue === urlValue) {
+        urlValue = ALL_VARIABLE_VALUE;
       }
 
       /**
