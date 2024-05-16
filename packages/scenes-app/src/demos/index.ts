@@ -37,6 +37,7 @@ import { getQueryControllerDemo } from './queryController';
 import { getDynamicDataLayersDemo } from './dynamicDataLayers';
 import { getBaselinesDemo } from './baselines';
 import { getChangepointsDemo } from './changepoints';
+import { getMlDemo } from './ml';
 
 export interface DemoDescriptor {
   title: string;
@@ -83,5 +84,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Query controller demo', getPage: getQueryControllerDemo },
     { title: 'Baselines demo', getPage: getBaselinesDemo },
     { title: 'Changepoints demo', getPage: getChangepointsDemo },
+    { title: 'ML demo', getPage: getMlDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
