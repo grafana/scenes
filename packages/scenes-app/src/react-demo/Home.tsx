@@ -16,7 +16,7 @@ import { DrilldownDemoPage } from './DrilldownDemoPage';
 
 export function ReactDemoPage() {
   return (
-    <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }} hasQueryController>
+    <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }} withQueryController>
       <RCustomVariable name="env" query="dev, test, prod" initialValue="dev">
         <Switch>
           <Route path={`${urlBase}`} component={HomePage} exact />
