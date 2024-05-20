@@ -1,3 +1,15 @@
+# v4.23.0 (Mon May 20 2024)
+
+#### 🚀 Enhancement
+
+- MultiValueVariable: Fixes setting value from url when url value is a custom all value [#738](https://github.com/grafana/scenes/pull/738) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.22.0 (Wed May 15 2024)
 
 #### 🚀 Enhancement
