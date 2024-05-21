@@ -1,5 +1,5 @@
 {
-  "name": "@grafana/scenes-ml",
+  "name": "@grafana-ml/scenes-ml",
   "version": "0.1.0",
   "description": "Machine Learning extensions to Grafana Scenes",
   "author": "Grafana Labs",
@@ -31,7 +31,8 @@
     "test": "jest",
     "lint": "eslint --ignore-path ../../.gitignore . --ext .js,.tsx,.ts --cache",
     "prepack": "node ./scripts/prepack.js",
-    "postpack": "node ./scripts/postpack.js"
+    "postpack": "node ./scripts/postpack.js",
+    "authenticate-npm": "./scripts/authenticate-npm.sh"
   },
   "bugs": {
     "url": "https://github.com/grafana/scenes/issues"
