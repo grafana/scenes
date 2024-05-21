@@ -586,6 +586,26 @@ describe('MultiValueVariable', () => {
       expect(variable.getValue()).toEqual(['1', '2']);
     });
 
+    it('updateFromUrl with the custom all value should set value to ALL_VARIABLE_VALUE', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        includeAll: true,
+        isMulti: true,
+        value: ALL_VARIABLE_VALUE,
+        text: ALL_VARIABLE_TEXT,
+        allValue: '.*',
+        delayMs: 0,
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: '.*' });
+      expect(variable.state.value).toEqual(ALL_VARIABLE_VALUE);
+      expect(variable.state.text).toEqual(ALL_VARIABLE_TEXT);
+    });
+
     it('updateFromUrl with key value pair should lookup text representation ', async () => {
       const variable = new TestVariable({
         name: 'test',
