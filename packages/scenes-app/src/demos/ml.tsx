@@ -8,12 +8,11 @@ import {
   SceneFlexItem,
   SceneFlexLayout,
   SceneQueryRunner,
-  SceneRefreshPicker,
   SceneTimePicker,
   SceneTimeRange,
   SceneTimeRangeCompare,
 } from '@grafana/scenes';
-import { SceneBaseliner } from '@grafana/scenes-ml';
+import { SceneBaseliner, SceneChangepointDetector } from '@grafana/scenes-ml';
 import { DataQuery } from '@grafana/schema';
 import { DATASOURCE_REF } from '../constants';
 
@@ -34,6 +33,8 @@ const AIR_PASSENGERS = [
   315., 301., 356., 348., 355., 422., 465., 467., 404., 347., 305., 336., 340., 318., 362., 348.,
   363., 435., 491., 505., 404., 359., 310., 337., 360., 342., 406., 396., 420., 472., 548., 559.,
   463., 407., 362., 405., 417., 391., 419., 461., 472., 535., 622., 606., 508., 461., 390., 432.,
+  // Add in a few changepoints to make things more interesting.
+  10000., 10001., 10000.0, 10000.2,
 ].join(',');
 
 // Data from https://www.abs.gov.au/statistics/people/population/national-state-and-territory-population/sep-2020.
@@ -83,10 +84,10 @@ export function getQueryRunnerWithCSVWaveQuery(
   });
 }
 
-export function getBaselinesDemo(defaults: SceneAppPageState) {
+export function getMlDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Time range baselining test',
+    subTitle: 'Machine Learning demo',
     getScene: () => {
       return new EmbeddedScene({
         $data: getQueryRunnerWithCSVWaveQuery({}, { maxDataPointsFromWidth: false }),
@@ -96,8 +97,6 @@ export function getBaselinesDemo(defaults: SceneAppPageState) {
           new SceneControlsSpacer(),
           new SceneTimePicker({}),
           new SceneTimeRangeCompare({ key: 'top' }),
-          new SceneBaseliner({}),
-          new SceneRefreshPicker({}),
         ],
         key: 'Flex layout embedded scene',
         body: new SceneFlexLayout({
@@ -111,8 +110,12 @@ export function getBaselinesDemo(defaults: SceneAppPageState) {
                   minWidth: '40%',
                   minHeight: 500,
                   body: PanelBuilders.timeseries()
-                    .setTitle('Uses global time range, data and baseliner')
+                    .setTitle('Simple wave')
                     .setData(getQueryRunnerWithCSVWaveQuery({}, { maxDataPointsFromWidth: true }))
+                    .setHeaderActions([
+                      new SceneBaseliner({}),
+                      new SceneChangepointDetector({}),
+                    ])
                     .build(),
                 }),
 
@@ -120,36 +123,35 @@ export function getBaselinesDemo(defaults: SceneAppPageState) {
                   minWidth: '40%',
                   minHeight: 500,
                   body: PanelBuilders.timeseries()
-                    .setOverrides((b) =>
-                      b.matchComparisonQuery('MyQuery').overrideColor({
-                        mode: 'fixed',
-                        fixedColor: 'red',
-                      })
-                    )
-                    .setTitle('Uses global time range and baseliner, local data')
+                    .setTitle('Spikey data with changepoints')
                     .setData(getQueryRunnerWithCSVWaveQuery({ valuesCSV: AIR_PASSENGERS }, { maxDataPointsFromWidth: true }))
+                    .setHeaderActions([
+                      new SceneBaseliner({ discoverSeasonalities: true }),
+                      new SceneChangepointDetector({}),
+                    ])
                     .build(),
                 }),
                 new SceneFlexItem({
                   minWidth: '40%',
                   minHeight: 500,
                   body: PanelBuilders.timeseries()
-                    .setTitle('Uses global time range, local baseliner and data')
+                    .setTitle('Realistic repeated series')
                     .setData(getQueryRunnerWithCSVWaveQuery({ valuesCSV: INDIA_TEMPERATURES }, { maxDataPointsFromWidth: true }))
-                    .setHeaderActions([new SceneBaseliner({})])
+                    .setHeaderActions([
+                      new SceneBaseliner({}),
+                      new SceneChangepointDetector({}),
+                    ])
                     .build(),
                 }),
                 new SceneFlexItem({
                   minWidth: '40%',
                   minHeight: 500,
                   body: PanelBuilders.timeseries()
-                    .setTitle('Uses local time range, data and baseliner')
-                    .setTimeRange(new SceneTimeRange({}))
+                    .setTitle('Sawtooth data')
                     .setData(getQueryRunnerWithCSVWaveQuery({ valuesCSV: AUSTRALIAN_RESIDENTS }, { maxDataPointsFromWidth: true }))
                     .setHeaderActions([
-                      new SceneTimePicker({}),
                       new SceneBaseliner({}),
-                      new SceneRefreshPicker({}),
+                      new SceneChangepointDetector({}),
                     ])
                     .build(),
                 }),
@@ -161,3 +163,4 @@ export function getBaselinesDemo(defaults: SceneAppPageState) {
     },
   });
 }
+

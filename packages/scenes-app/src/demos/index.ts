@@ -35,8 +35,6 @@ import { getInteractiveTableDemo } from './interactiveTableDemo';
 import { getVariableRepeaterDemo } from './variableRepeater';
 import { getQueryControllerDemo } from './queryController';
 import { getDynamicDataLayersDemo } from './dynamicDataLayers';
-import { getBaselinesDemo } from './baselines';
-import { getChangepointsDemo } from './changepoints';
 import { getMlDemo } from './ml';
 
 export interface DemoDescriptor {
@@ -82,8 +80,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Vertical controls layout', getPage: getVerticalControlsLayoutDemo },
     { title: 'Interactive table with expandable rows', getPage: getInteractiveTableDemo },
     { title: 'Query controller demo', getPage: getQueryControllerDemo },
-    { title: 'Baselines demo', getPage: getBaselinesDemo },
-    { title: 'Changepoints demo', getPage: getChangepointsDemo },
     { title: 'ML demo', getPage: getMlDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
