@@ -33,10 +33,13 @@
     "docs:build": "yarn workspace website run build",
     "test:lib": "lerna run test --scope '@grafana/scenes' --",
     "dev:lib": "lerna run dev --scope '@grafana/scenes' --",
-    "dev:ml": "lerna run dev --scope '@grafana/scenes-ml' --",
+    "dev:ml": "lerna run dev --scope '@grafana-ml/scenes-ml' --",
     "dev:app": "lerna run dev --scope 'scenes-app' --",
     "test": "lerna run test --scope '@grafana/scenes' -- --watch",
-    "typecheck": "lerna run typecheck"
+    "typecheck": "lerna run typecheck",
+    "artifactregistry-login": "yarn dlx google-artifactregistry-auth",
+    "prepublishOnly": "yarn artifactregistry-login",
+    "set-registry-token": "yarn config set --home npmAuthToken $(gcloud auth print-access-token --project=grafanalabs-dev)"
   },
   "resolutions": {
     "@types/react": "18.2.74"

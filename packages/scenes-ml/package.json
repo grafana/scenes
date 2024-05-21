@@ -31,16 +31,14 @@
     "test": "jest",
     "lint": "eslint --ignore-path ../../.gitignore . --ext .js,.tsx,.ts --cache",
     "prepack": "node ./scripts/prepack.js",
-    "postpack": "node ./scripts/postpack.js",
-    "authenticate-npm": "./scripts/authenticate-npm.sh"
+    "postpack": "node ./scripts/postpack.js"
   },
   "bugs": {
     "url": "https://github.com/grafana/scenes/issues"
   },
   "dependencies": {
-    "@bsull/augurs": "/home/ben/repos/rust/augurs/crates/augurs-js/pkg",
-    "@grafana/scenes": "workspace:*",
-    "augurs": "/home/ben/repos/rust/augurs/crates/augurs-js/pkg"
+    "@grafana-ml/augurs": "^0.1.2",
+    "@grafana/scenes": "workspace:*"
   },
   "peerDependencies": {
     "@grafana/data": "^10.0.3",

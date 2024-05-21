@@ -12,7 +12,7 @@ import {
   SceneTimeRange,
   SceneTimeRangeCompare,
 } from '@grafana/scenes';
-import { SceneBaseliner, SceneChangepointDetector } from '@grafana/scenes-ml';
+import { SceneBaseliner, SceneChangepointDetector } from '@grafana-ml/scenes-ml';
 import { DataQuery } from '@grafana/schema';
 import { DATASOURCE_REF } from '../constants';
 

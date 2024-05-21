@@ -60,10 +60,10 @@
   },
   "dependencies": {
     "@emotion/css": "^11.1.3",
+    "@grafana-ml/scenes-ml": "workspace:*",
     "@grafana/data": "^10.4.1",
     "@grafana/runtime": "^10.4.1",
     "@grafana/scenes": "workspace:*",
-    "@grafana/scenes-ml": "workspace:*",
     "@grafana/schema": "^10.4.1",
     "@grafana/ui": "^10.4.1",
     "@types/lodash": "latest",

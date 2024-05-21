@@ -1,6 +1,6 @@
-import { ets, seasonalities } from "@bsull/augurs";
 import { css, cx } from "@emotion/css";
 import { DataFrame, DataQueryRequest, dateTime, durationToMilliseconds, Field, FieldType, GrafanaTheme2, TimeRange } from "@grafana/data";
+import { ets, seasonalities } from "@grafana-ml/augurs";
 import { FieldColorModeId } from "@grafana/schema";
 import { ButtonGroup, Checkbox, Slider, ToolbarButton, useStyles2 } from "@grafana/ui";
 import { Duration } from 'date-fns';
@@ -28,6 +28,7 @@ interface SceneBaselinerState extends SceneObjectState {
 // Default to a 95% prediction interval.
 const DEFAULT_INTERVAL = 0.95;
 
+// TODO: make this customisable.
 export const DEFAULT_TRAINING_FACTOR_OPTIONS = [
   { label: '1x', value: 1 },
   { label: '4x', value: 4 },
