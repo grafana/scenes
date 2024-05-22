@@ -1,3 +1,15 @@
+# v4.23.1 (Wed May 22 2024)
+
+#### 🐛 Bug Fix
+
+- VariableValueSelect: Add missing data-testids for e2e [#742](https://github.com/grafana/scenes/pull/742) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v4.23.0 (Mon May 20 2024)
 
 #### 🚀 Enhancement
