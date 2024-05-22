@@ -13,9 +13,6 @@ import { GrafanaTheme2 } from '@grafana/data';
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
   const { children, isLazy, isDraggable, isResizable } = model.useState();
 
-  // Attention to handle keyboard and hover shortcuts
-  const [attention, setAttention] = React.useState<string | undefined>();
-
   validateChildrenSize(children);
 
   return (
@@ -69,8 +66,6 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                   index={index}
                   isLazy={isLazy}
                   totalCount={layout.length}
-                  hasAttention={attention === gridItem.i}
-                  setAttention={() => setAttention(gridItem.i)}
                 />
               ))}
             </ReactGridLayout>
@@ -87,25 +82,10 @@ interface GridItemWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   index: number;
   totalCount: number;
   isLazy?: boolean;
-  hasAttention: boolean;
-  setAttention: () => void;
 }
 
 const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((props, ref) => {
-  const {
-    grid,
-    layoutItem,
-    index,
-    totalCount,
-    isLazy,
-    style,
-    onLoad,
-    onChange,
-    children,
-    hasAttention,
-    setAttention,
-    ...divProps
-  } = props;
+  const { grid, layoutItem, index, totalCount, isLazy, style, onLoad, onChange, children, ...divProps } = props;
   const sceneChild = grid.getSceneLayoutChild(layoutItem.i)!;
   const className = sceneChild.getClassName?.();
 
@@ -117,9 +97,6 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
         {...divProps}
         key={sceneChild.state.key!}
         data-griditem-key={sceneChild.state.key}
-        data-attention={hasAttention}
-        onFocus={() => !hasAttention && setAttention()}
-        onMouseMove={() => !hasAttention && setAttention()}
         className={cx(className, props.className)}
         style={style}
         ref={ref}
@@ -136,9 +113,6 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
       ref={ref}
       key={sceneChild.state.key}
       data-griditem-key={sceneChild.state.key}
-      data-attention={hasAttention}
-      onFocus={() => !hasAttention && setAttention()}
-      onMouseMove={() => !hasAttention && setAttention()}
       className={cx(className, props.className)}
       style={style}
     >

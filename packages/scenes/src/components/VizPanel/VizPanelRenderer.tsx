@@ -2,7 +2,8 @@ import React, { RefCallback } from 'react';
 import { useMeasure } from 'react-use';
 
 import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider } from '@grafana/data';
-import { getAppEvents } from '@grafana/runtime';
+// @ts-ignore
+import { getAppEvents, getPanelAttentionSrv } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
@@ -26,10 +27,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     description,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
+  const panelAttentionService = getPanelAttentionSrv();
   const plugin = model.getPlugin();
 
   const { dragClass, dragClassCancel } = getDragClasses(model);
   const dataObject = sceneGraph.getData(model);
+
   const rawData = dataObject.useState();
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
@@ -130,7 +133,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   return (
     <div className={relativeWrapper}>
-      <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
+      <div
+        ref={ref as RefCallback<HTMLDivElement>}
+        className={absoluteWrapper}
+        onFocus={() => panelAttentionService.setPanelWithAttention(model)}
+        onMouseMove={() => panelAttentionService.setPanelWithAttention(model)}
+        data-viz-panel-key={model.state.key}
+      >
         {width > 0 && height > 0 && (
           <PanelChrome
             title={titleInterpolated}
