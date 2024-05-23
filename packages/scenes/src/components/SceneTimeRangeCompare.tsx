@@ -119,7 +119,7 @@ export class SceneTimeRangeCompare
   // The query runner should rerun the comparison query if the compareWith value has changed.
   public shouldRerun(prev: SceneTimeRangeCompareState, next: SceneTimeRangeCompareState): { query: boolean; processor: boolean; } {
     const query = prev.compareWith !== next.compareWith;
-    return { query, processor: query };
+    return { query, processor: true };
   }
 
   public getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined {
@@ -183,36 +183,41 @@ export class SceneTimeRangeCompare
 // rendered appropriately.
 const timeShiftAlignmentProcessor: ProcessorFunc = (primary, secondary) => {
   const diff = secondary.timeRange.from.diff(primary.timeRange.from);
-  console.log(diff);
-  secondary.series.forEach((series) => {
-    series.refId = getCompareSeriesRefId(series.refId || '');
-    series.meta = {
-      ...series.meta,
-      // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
-      timeCompare: {
-        diffMs: diff,
-        isTimeShiftQuery: true,
-      },
-    };
-    series.fields.forEach((field) => {
-      // Align compare series time stamps with reference series
-      if (field.type === FieldType.time) {
-        field.values = field.values.map((v) => {
-          return diff < 0 ? v - diff : v + diff;
-        });
-      }
-
-      field.config = {
-        ...field.config,
-        color: {
-          mode: 'fixed',
-          fixedColor: config.theme.palette.gray60,
+  const x = {
+    ...secondary,
+    series: secondary.series.map((series) => ({
+      ...series,
+      refId: getCompareSeriesRefId(series.refId || ''),
+      meta: {
+        ...series.meta,
+        // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
+        timeCompare: {
+          diffMs: diff,
+          isTimeShiftQuery: true,
         },
-      };
-      return field;
-    });
-  });
-  return secondary;
+      },
+      fields: series.fields.map((field) => {
+        // Align compare series time stamps with reference series
+        const values = field.type === FieldType.time ?
+          field.values.map((v) => {
+            return diff < 0 ? v - diff : v + diff;
+          }) : field.values;
+
+        return {
+          ...field,
+          values,
+          config: {
+            ...field.config,
+            color: {
+              mode: 'fixed',
+              fixedColor: config.theme.palette.gray60,
+            },
+          },
+        }
+      }),
+    }))
+  };
+  return x;
 }
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {

@@ -82,6 +82,7 @@ interface Processors {
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
+  private _unprocessedSub?: Unsubscribable;
   private _processors?: Processors;
   private _dataLayersSub?: Unsubscribable;
   private _dataLayersMerger = new DataLayersMerger();
@@ -121,7 +122,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (processor) {
       processor.subscribeToState((n, p) => {
         const shouldRerun = processor.shouldRerun(p, n);
-        // console.log('processor state changed', shouldRerun);
         if (shouldRerun.query) {
           this.runQueries();
         } else if (shouldRerun.processor) {
@@ -135,7 +135,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._subs.add(
         adder.subscribeToState((n, p) => {
           const shouldRerun = adder.shouldRerun(p, n);
-          // console.log('adder state changed', shouldRerun);
           if (shouldRerun.query) {
             this.runQueries();
           } else if (shouldRerun.processor) {
@@ -320,7 +319,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
-    this._unprocessedResults.unsubscribe();
+    if (this._unprocessedSub) {
+      this._unprocessedSub.unsubscribe();
+    }
 
     this._timeSub?.unsubscribe();
     this._timeSub = undefined;
@@ -373,7 +374,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   public runQueries() {
-    // console.log('running queries');
     const timeRange = sceneGraph.getTimeRange(this);
     this.subscribeToTimeRangeChanges(timeRange);
     this.runWithTimeRange(timeRange);
@@ -381,30 +381,23 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private runProcessors() {
-    // console.log('running processors');
-    // console.log(this._unprocessedResults);
-    this._unprocessedResults.subscribe(this.processResults.bind(this));
+    if (this._unprocessedSub) {
+      this._unprocessedSub.unsubscribe();
+    }
+    this._unprocessedSub = this._unprocessedResults.subscribe((x) => this.processResults(x));
   }
 
   private processResults(data: [PanelData, ...PanelData[]]) {
-    // console.log('processing results');
     const [primary, ...secondaries] = data;
     if (this._processors === undefined) {
-      // console.log('no processor factories; returning unprocessed data')
       return this.onDataReceived(primary);
     }
     const { primary: primaryProcessor, secondaries: secondaryProcessors } = this._processors;
     const processedPrimary = primaryProcessor(data[0]);
     if (secondaries.length === 0) {
-      // console.log('no secondary processors found, returning processed primary data')
       return this.onDataReceived(processedPrimary);
     }
-    const processedSecondaries = secondaries.map((s) => {
-      // console.log('processing request', s.request!.requestId);
-      // console.log('primary', primary);
-      // console.log('secondary', s);
-      return secondaryProcessors.get(s.request!.requestId)?.(primary, s) ?? s
-    });
+    const processedSecondaries = secondaries.map((s) => secondaryProcessors.get(s.request!.requestId)?.(primary, s) ?? s);
     const processed = {
       ...processedPrimary,
       series: [...processedPrimary.series, ...processedSecondaries.flatMap((s) => s.series)],
@@ -497,14 +490,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         // change subscribe callback below to pipe operator
         const stream = forkJoin([primaryStream, ...secondaryStreams]);
         this._querySub = stream.subscribe((data) => {
-          // console.log('submitting unprocessed results');
           this._unprocessedResults.next(data);
         });
       } else {
         this._querySub = primaryStream
           .pipe(map((data) => [data] as [PanelData, ...PanelData[]]))
           .subscribe((data) => {
-            // console.log('submitting unprocessed primary results');
             this._unprocessedResults.next(data);
           });
       }

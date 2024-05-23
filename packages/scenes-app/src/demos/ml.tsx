@@ -116,7 +116,7 @@ export function getMlDemo(defaults: SceneAppPageState) {
     getScene: () => {
       return new EmbeddedScene({
         $data: getQueryRunnerWithCSVWaveQuery({}, { maxDataPointsFromWidth: false }),
-        $timeRange: new SceneTimeRange({}),
+        $timeRange: new SceneTimeRange({ from: 'now-48h', to: 'now' }),
 
         controls: [
           new SceneControlsSpacer(),
@@ -138,7 +138,10 @@ export function getMlDemo(defaults: SceneAppPageState) {
                     .setTitle('Outlier data')
                     .setData(getOutlierQueryRunner())
                     .setHeaderActions([
-                      new SceneOutlierDetector({}),
+                      new SceneOutlierDetector({
+                        epsilon: 0.5,
+                        onOutlierDetected: console.log,
+                      }),
                     ])
                     .build(),
                 }),
@@ -149,7 +152,7 @@ export function getMlDemo(defaults: SceneAppPageState) {
                     .setTitle('Simple wave')
                     .setData(getQueryRunnerWithCSVWaveQuery({}, { maxDataPointsFromWidth: true }))
                     .setHeaderActions([
-                      new SceneBaseliner({}),
+                      new SceneBaseliner({ interval: 0.95 }),
                       new SceneChangepointDetector({}),
                     ])
                     .build(),
@@ -162,8 +165,11 @@ export function getMlDemo(defaults: SceneAppPageState) {
                     .setTitle('Spikey data with changepoints')
                     .setData(getQueryRunnerWithCSVWaveQuery({ valuesCSV: AIR_PASSENGERS }, { maxDataPointsFromWidth: true }))
                     .setHeaderActions([
-                      new SceneBaseliner({ discoverSeasonalities: true }),
-                      new SceneChangepointDetector({}),
+                      new SceneBaseliner({}),
+                      new SceneChangepointDetector({
+                        enabled: true,
+                        onChangepointDetected: console.log,
+                      }),
                     ])
                     .build(),
                 }),
@@ -174,8 +180,12 @@ export function getMlDemo(defaults: SceneAppPageState) {
                     .setTitle('Realistic repeated series')
                     .setData(getQueryRunnerWithCSVWaveQuery({ valuesCSV: INDIA_TEMPERATURES }, { maxDataPointsFromWidth: true }))
                     .setHeaderActions([
-                      new SceneBaseliner({}),
-                      new SceneChangepointDetector({}),
+                      new SceneBaseliner({
+                        interval: 0.95,
+                      }),
+                      new SceneChangepointDetector({
+                        onChangepointDetected: console.log,
+                      }),
                     ])
                     .build(),
                 }),
@@ -186,8 +196,12 @@ export function getMlDemo(defaults: SceneAppPageState) {
                     .setTitle('Sawtooth data')
                     .setData(getQueryRunnerWithCSVWaveQuery({ valuesCSV: AUSTRALIAN_RESIDENTS }, { maxDataPointsFromWidth: true }))
                     .setHeaderActions([
-                      new SceneBaseliner({}),
-                      new SceneChangepointDetector({}),
+                      new SceneBaseliner({
+                        interval: 0.95,
+                      }),
+                      new SceneChangepointDetector({
+                        onChangepointDetected: console.log,
+                      }),
                     ])
                     .build(),
                 }),

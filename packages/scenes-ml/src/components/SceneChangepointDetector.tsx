@@ -6,6 +6,10 @@ import React from 'react';
 
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneObjectBase, SceneObjectUrlSyncConfig, ProcessorFunc, SceneRequestSupplementer, ExtraRequest } from "@grafana/scenes";
 
+export interface Changepoint {
+  time: number;
+}
+
 interface SceneChangepointDetectorState extends SceneObjectState {
   enabled?: boolean;
   // The look-back factor to use when establishing a baseline.
@@ -13,6 +17,10 @@ interface SceneChangepointDetectorState extends SceneObjectState {
   // the amount of data to use as training data. Defaults to 4.0.
   lookbackFactor?: number;
   lookbackFactorOptions: Array<{ label: string; value: number }>;
+
+  // Callback for when a changepoint is detected.
+  // TODO: add series info to this.
+  onChangepointDetected?: ((changepoint: Changepoint) => void);
 }
 
 // TODO: make this customisable.
@@ -31,7 +39,7 @@ export class SceneChangepointDetector extends SceneObjectBase<SceneChangepointDe
   implements SceneRequestSupplementer<SceneChangepointDetectorState> {
 
   public static Component = SceneChangepointDetectorRenderer;
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['hazard', 'lookbackFactor'] });
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['changepointLookbackFactor', 'changepointEnabled'] });
 
   public constructor(state: Partial<SceneChangepointDetectorState>) {
     super({ lookbackFactorOptions: DEFAULT_LOOKBACK_FACTOR_OPTIONS, ...state });
@@ -66,6 +74,7 @@ export class SceneChangepointDetector extends SceneObjectBase<SceneChangepointDe
   public shouldRerun(prev: SceneChangepointDetectorState, next: SceneChangepointDetectorState): { processor: boolean; query: boolean; } {
     return {
       query: prev.enabled !== next.enabled,
+      // TODO: change when we allow the state to be configured in the UI.
       processor: false,
     };
   }
@@ -73,7 +82,8 @@ export class SceneChangepointDetector extends SceneObjectBase<SceneChangepointDe
   // Get the URL state for the component.
   public getUrlState(): SceneObjectUrlValues {
     return {
-      lookbackFactor: this.state.lookbackFactor?.toString(),
+      changepointLookbackFactor: this.state.lookbackFactor?.toString(),
+      changepointEnabled: this.state.enabled?.toString(),
     };
   }
 
@@ -91,20 +101,20 @@ export class SceneChangepointDetector extends SceneObjectBase<SceneChangepointDe
 
   // Update the component state from the URL.
   public updateFromUrl(values: SceneObjectUrlValues) {
-    if (!values.lookbackFactor && !values.enabled) {
+    if (!values.changepointLookbackFactor && !values.changepointEnabled) {
       return;
     }
     let factor: number | undefined;
-    if (typeof values.lookbackFactor === 'string') {
-      factor = parseInt(values.lookbackFactor, 10);
-    } else if (values.lookbackFactor instanceof Array) {
-      factor = parseInt(values.lookbackFactor[0], 10);
+    if (typeof values.changepointLookbackFactor === 'string') {
+      factor = parseInt(values.changepointLookbackFactor, 10);
+    } else if (values.changepointLookbackFactor instanceof Array) {
+      factor = parseInt(values.changepointLookbackFactor[0], 10);
     }
     let enabled: boolean | undefined;
-    if (typeof values.enabled === 'string') {
-      enabled = values.enabled === 'true';
-    } else if (typeof values.enabled === 'number') {
-      enabled = values.enabled === 1;
+    if (typeof values.changepointEnabled === 'string') {
+      enabled = values.changepointEnabled === 'true';
+    } else if (typeof values.changepointEnabled === 'number') {
+      enabled = values.changepointEnabled === 1;
     }
     const stateUpdate: Partial<SceneChangepointDetectorState> = {};
     if (factor) {
@@ -126,13 +136,14 @@ export class SceneChangepointDetector extends SceneObjectBase<SceneChangepointDe
 //
 // This function will take the secondary frame returned by the query runner and
 // produce a new frame with the changepoint annotations.
-const changepointProcessor: (detector: SceneChangepointDetector) => ProcessorFunc = () => (_, secondary) => {
-  const annotations = secondary.series.map((series) => createChangepointAnnotations(series));
+const changepointProcessor: (detector: SceneChangepointDetector) => ProcessorFunc = (detector) => (_, secondary) => {
+  const annotations = secondary.series.map((series) => createChangepointAnnotations(series, detector.state.onChangepointDetected));
   return { timeRange: secondary.timeRange, series: [], state: secondary.state, annotations };
 }
 
 function createChangepointAnnotations(
   frame: DataFrame,
+  onChangepointDetected: ((changepoint: Changepoint) => void) | undefined,
 ): DataFrame {
   const annotationTimes = [];
   const annotationTexts = [];
@@ -144,7 +155,6 @@ function createChangepointAnnotations(
     if (field.type !== FieldType.number) {
       continue;
     }
-    console.log('running changepoint detection on frame', frame.name, 'field', field.name);
     // TODO: Pass through params to the detector.
     const cpd = ChangepointDetector.default_argpcp();
     const values = new Float64Array(field.values);
@@ -153,6 +163,7 @@ function createChangepointAnnotations(
       const time = timeField.values[cp + 1];
       annotationTimes.push(time);
       annotationTexts.push('Changepoint detected');
+      onChangepointDetected?.({ time });
     }
   }
   return {

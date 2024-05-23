@@ -7,9 +7,16 @@ import { ButtonGroup, Checkbox, Slider, ToolbarButton, useStyles2 } from "@grafa
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneObjectBase, SceneObjectUrlSyncConfig, SceneQueryProcessor } from "@grafana/scenes";
 import { css, cx } from '@emotion/css';
 
+interface Outlier {
+  series: number;
+  start: number;
+  end: number;
+}
+
 interface SceneOutlierDetectorState extends SceneObjectState {
   epsilon?: number;
   addAnnotations?: boolean;
+  onOutlierDetected?: (outlier: Outlier) => void;
 }
 
 const DEFAULT_EPSILON = 0.5;
@@ -37,11 +44,11 @@ export class SceneOutlierDetector extends SceneObjectBase<SceneOutlierDetectorSt
       if (this.state.epsilon === undefined) {
         return data;
       }
-      return addOutliers(data, this.state.addAnnotations ?? false);
+      return addOutliers(data, this.state.addAnnotations ?? true, this.state.onOutlierDetected);
     })
   }
 
-  shouldRerun(prev: SceneOutlierDetectorState, next: SceneOutlierDetectorState): { query: boolean; processor: boolean; } {
+  public shouldRerun(prev: SceneOutlierDetectorState, next: SceneOutlierDetectorState): { query: boolean; processor: boolean; } {
     return {
       query: false,
       processor: prev.epsilon !== next.epsilon || prev.addAnnotations !== next.addAnnotations,
@@ -79,7 +86,7 @@ export class SceneOutlierDetector extends SceneObjectBase<SceneOutlierDetectorSt
     if (addAnnotations) {
       stateUpdate.addAnnotations = addAnnotations;
     } else {
-      stateUpdate.addAnnotations = false;
+      stateUpdate.addAnnotations = true;
     }
     this.setState(stateUpdate);
   }
@@ -119,7 +126,7 @@ interface OutlierBand {
   max: number;
 }
 
-function addOutliers(data: PanelData, addAnnotations: boolean): PanelData {
+function addOutliers(data: PanelData, addAnnotations: boolean, onOutlierDetected?: (outlier: Outlier) => void): PanelData {
   const frames = data.series;
   // Combine all frames into one by joining on time.
   const joined = outerJoinDataFrames({ frames });
@@ -159,6 +166,18 @@ function addOutliers(data: PanelData, addAnnotations: boolean): PanelData {
       max: serieses.reduce((max, series) => Math.max(max, series.values[i] > 100 ? max : series.values[i]), -Infinity),
     })),
   };
+  if (onOutlierDetected !== undefined) {
+    const idx = 0;
+    for (const s of outliers.series) {
+      for (const i of s.intervals) {
+        onOutlierDetected({
+          series: idx,
+          start: joined.fields[0].values[i.start],
+          end: joined.fields[0].values[i.end],
+        });
+      }
+    }
+  }
 
   // increase transparency as the number of series increases, so that the non-outliers are less prominent
   const transparency = 1 / Math.sqrt(1 + (serieses.length ?? 0) / 2);
@@ -325,12 +344,12 @@ function SceneOutlierDetectorRenderer({ model }: SceneComponentProps<SceneOutlie
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
-          model.onAddAnnotationsChanged(!addAnnotations);
+          model.onAddAnnotationsChanged(!(addAnnotations ?? true));
         }}
       >
         <Checkbox
-          value={addAnnotations ?? false}
-          onChange={() => model.onAddAnnotationsChanged(!addAnnotations)}
+          value={addAnnotations ?? true}
+          onChange={() => model.onAddAnnotationsChanged(!(addAnnotations ?? true))}
         />
       </ToolbarButton>
     </ButtonGroup>
