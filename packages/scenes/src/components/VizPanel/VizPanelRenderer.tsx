@@ -136,8 +136,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       <div
         ref={ref as RefCallback<HTMLDivElement>}
         className={absoluteWrapper}
-        onFocus={() => panelAttentionService.setPanelWithAttention(model)}
-        onMouseMove={() => panelAttentionService.setPanelWithAttention(model)}
+        onFocus={() => panelAttentionService.setPanelWithAttention(model.state.key)}
+        onMouseMove={() => panelAttentionService.setPanelWithAttention(model.state.key)}
         data-viz-panel-key={model.state.key}
       >
         {width > 0 && height > 0 && (
