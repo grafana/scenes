@@ -12,7 +12,7 @@ import {
   SceneTimeRange,
   SceneTimeRangeCompare,
 } from '@grafana/scenes';
-import { SceneBaseliner, SceneChangepointDetector } from '@grafana-ml/scenes-ml';
+import { SceneBaseliner, SceneChangepointDetector, SceneOutlierDetector } from '@grafana-ml/scenes-ml';
 import { DataQuery } from '@grafana/schema';
 import { DATASOURCE_REF } from '../constants';
 
@@ -63,6 +63,31 @@ const INDIA_TEMPERATURES = [
   19.428571428571427
 ].join(',');
 
+const OUTLIER_DATA = [
+  Array.from({ length: 100 }, () => Math.random() * 100),
+  Array.from({ length: 100 }, () => Math.random() * 100),
+  [
+    ...Array.from({ length: 49 }, () => Math.random() * 100),
+    ...Array.from({ length: 2 }, () => Math.random() * 1000),
+    ...Array.from({ length: 49 }, () => Math.random() * 100),
+  ],
+];
+
+function getOutlierQueryRunner() {
+  return new SceneQueryRunner({
+    queries: OUTLIER_DATA.map((values, i) => ({
+      refId: String.fromCharCode(65 + i),
+      datasource: DATASOURCE_REF,
+      scenarioId: 'predictable_csv_wave',
+      csvWave: [{
+        timeStep: 600,
+        valuesCSV: values.join(','),
+      }],
+    })),
+    maxDataPointsFromWidth: true,
+  });
+}
+
 export function getQueryRunnerWithCSVWaveQuery(
   overrides?: Partial<PredictableCSVWaveQuery>,
   queryRunnerOverrides?: Partial<QueryRunnerState>
@@ -106,6 +131,17 @@ export function getMlDemo(defaults: SceneAppPageState) {
               direction: 'row',
               wrap: 'wrap',
               children: [
+                new SceneFlexItem({
+                  minWidth: '100%',
+                  minHeight: 500,
+                  body: PanelBuilders.timeseries()
+                    .setTitle('Outlier data')
+                    .setData(getOutlierQueryRunner())
+                    .setHeaderActions([
+                      new SceneOutlierDetector({}),
+                    ])
+                    .build(),
+                }),
                 new SceneFlexItem({
                   minWidth: '40%',
                   minHeight: 500,

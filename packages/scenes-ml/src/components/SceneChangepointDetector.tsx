@@ -4,7 +4,7 @@ import { ButtonGroup, Checkbox, ToolbarButton } from "@grafana/ui";
 import { ChangepointDetector } from "@grafana-ml/augurs";
 import React from 'react';
 
-import { sceneGraph, SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneTimeRangeLike, SceneObjectBase, SceneObjectUrlSyncConfig, ExtraRequest, ProcessorFunc, SceneRequestSupplementer } from "@grafana/scenes";
+import { sceneGraph, SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneTimeRangeLike, SceneObjectBase, SceneObjectUrlSyncConfig, ProcessorFunc, SceneRequestSupplementer } from "@grafana/scenes";
 
 interface SceneChangepointDetectorState extends SceneObjectState {
   enabled?: boolean;
@@ -38,34 +38,37 @@ export class SceneChangepointDetector extends SceneObjectBase<SceneChangepointDe
   }
 
   // Add secondary requests, used to obtain and transform the training data.
-  public getSupplementalRequests(request: DataQueryRequest): ExtraRequest[] {
-    const extraRequests: ExtraRequest[] = [];
+  public getSupplementalRequests(request: DataQueryRequest): DataQueryRequest[] {
+    const extraRequests: DataQueryRequest[] = [];
     if (this.state.enabled) {
       const { to, from: origFrom } = request.range;
       const diffMs = to.diff(origFrom);
       const from = dateTime(to).subtract(this.state.lookbackFactor ?? DEFAULT_LOOKBACK_FACTOR_OPTION.value * diffMs);
       extraRequests.push({
-        req: {
-          ...request,
-          range: {
+        ...request,
+        range: {
+          from,
+          to,
+          raw: {
             from,
             to,
-            raw: {
-              from,
-              to,
-            }
-          }
+          },
         },
-        processor: changepointProcessor(this.state, sceneGraph.getTimeRange(this)),
       });
     }
     return extraRequests;
   }
 
+  public getProcessor(): ProcessorFunc {
+    return changepointProcessor(this.state, sceneGraph.getTimeRange(this));
+  }
+
   // Determine if the component should be re-rendered.
-  public shouldRerun(prev: SceneChangepointDetectorState, next: SceneChangepointDetectorState): boolean {
-    return prev.lookbackFactor !== next.lookbackFactor ||
-      prev.enabled !== next.enabled;
+  public shouldRerun(prev: SceneChangepointDetectorState, next: SceneChangepointDetectorState): { processor: boolean; query: boolean; } {
+    return {
+      query: prev.enabled !== next.enabled,
+      processor: false,
+    };
   }
 
   // Get the URL state for the component.
@@ -142,6 +145,7 @@ function createChangepointAnnotations(
     if (field.type !== FieldType.number) {
       continue;
     }
+    console.log('running changepoint detection on frame', frame.name, 'field', field.name);
     // TODO: Pass through params to the detector.
     const cpd = ChangepointDetector.default_argpcp();
     const values = new Float64Array(field.values);

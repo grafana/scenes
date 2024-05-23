@@ -6,7 +6,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { DataQueryExtended } from '../querying/SceneQueryRunner';
-import { ExtraRequest, ProcessorFunc, SceneRequestSupplementer } from '../querying/SceneRequestAdder';
+import { ProcessorFunc, SceneRequestSupplementer } from '../querying/SceneRequestAdder';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
@@ -95,8 +95,8 @@ export class SceneTimeRangeCompare
   };
 
   // Get a time shifted request to compare with the primary request.
-  public getSupplementalRequests(request: DataQueryRequest): ExtraRequest[] {
-    const extraRequests: ExtraRequest[] = [];
+  public getSupplementalRequests(request: DataQueryRequest): DataQueryRequest[] {
+    const extraRequests: DataQueryRequest[] = [];
     const compareRange = this.getCompareTimeRange(request.range);
     if (!compareRange) {
       return extraRequests;
@@ -105,20 +105,22 @@ export class SceneTimeRangeCompare
     const targets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
     if (targets.length) {
       extraRequests.push({
-        req: {
-          ...request,
-          targets,
-          range: compareRange,
-        },
-        processor: timeShiftAlignmentProcessor,
+        ...request,
+        targets,
+        range: compareRange,
       });
     }
     return extraRequests;
   }
 
+  public getProcessor(): ProcessorFunc {
+    return timeShiftAlignmentProcessor;
+  }
+
   // The query runner should rerun the comparison query if the compareWith value has changed.
-  public shouldRerun(prev: SceneTimeRangeCompareState, next: SceneTimeRangeCompareState): boolean {
-    return prev.compareWith !== next.compareWith;
+  public shouldRerun(prev: SceneTimeRangeCompareState, next: SceneTimeRangeCompareState): { query: boolean; processor: boolean; } {
+    const query = prev.compareWith !== next.compareWith;
+    return { query, processor: query };
   }
 
   public getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined {

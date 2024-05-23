@@ -6,7 +6,7 @@ import { ButtonGroup, Checkbox, Slider, ToolbarButton, useStyles2 } from "@grafa
 import { Duration } from 'date-fns';
 import React from 'react';
 
-import { sceneGraph, SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneTimeRangeLike, SceneObjectBase, SceneObjectUrlSyncConfig, ExtraRequest, ProcessorFunc, SceneRequestSupplementer } from "@grafana/scenes";
+import { sceneGraph, SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneTimeRangeLike, SceneObjectBase, SceneObjectUrlSyncConfig, ProcessorFunc, SceneRequestSupplementer } from "@grafana/scenes";
 
 interface SceneBaselinerState extends SceneObjectState {
   // The prediction interval to use. Must be between 0 and 1.
@@ -51,35 +51,41 @@ export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
   }
 
   // Add secondary requests, used to obtain and transform the training data.
-  public getSupplementalRequests(request: DataQueryRequest): ExtraRequest[] {
-    const extraRequests: ExtraRequest[] = [];
+  public getSupplementalRequests(request: DataQueryRequest): DataQueryRequest[] {
+    const extraRequests: DataQueryRequest[] = [];
     if (this.state.interval) {
       const { to, from: origFrom } = request.range;
       const diffMs = to.diff(origFrom);
       const from = dateTime(to).subtract(this.state.trainingLookbackFactor ?? DEFAULT_TRAINING_FACTOR_OPTION.value * diffMs);
       extraRequests.push({
-        req: {
-          ...request,
-          range: {
+        ...request,
+        range: {
+          from,
+          to,
+          raw: {
             from,
             to,
-            raw: {
-              from,
-              to,
-            }
           }
         },
-        processor: baselineProcessor(this.state, sceneGraph.getTimeRange(this)),
       });
     }
     return extraRequests;
   }
 
+  public getProcessor(): ProcessorFunc {
+    return baselineProcessor(this.state, sceneGraph.getTimeRange(this));
+  }
+
   // Determine if the component should be re-rendered.
-  public shouldRerun(prev: SceneBaselinerState, next: SceneBaselinerState): boolean {
-    return prev.trainingLookbackFactor !== next.trainingLookbackFactor ||
-      prev.interval !== next.interval ||
-      prev.discoverSeasonalities !== next.discoverSeasonalities;
+  public shouldRerun(prev: SceneBaselinerState, next: SceneBaselinerState): { processor: boolean; query: boolean; } {
+    const wasEnabled = prev.interval !== undefined;
+    const nowEnabled = next.interval !== undefined;
+    return {
+      query: wasEnabled !== nowEnabled,
+      processor: prev.trainingLookbackFactor !== next.trainingLookbackFactor ||
+        prev.interval !== next.interval ||
+        prev.discoverSeasonalities !== next.discoverSeasonalities,
+    };
   }
 
   // Get the URL state for the component.
@@ -122,7 +128,7 @@ export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
     if (typeof values.interval === 'string') {
       interval = parseInt(values.interval, 10);
     } else if (values.interval instanceof Array) {
-      factor = parseInt(values.interval[0], 10);
+      interval = parseInt(values.interval[0], 10);
     }
     let discoverSeasonalities: boolean | undefined;
     if (typeof values.discoverSeasonalities === 'string') {
