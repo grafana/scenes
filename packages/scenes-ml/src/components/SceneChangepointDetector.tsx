@@ -4,7 +4,7 @@ import { ButtonGroup, Checkbox, ToolbarButton } from "@grafana/ui";
 import { ChangepointDetector } from "@grafana-ml/augurs";
 import React from 'react';
 
-import { sceneGraph, SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneTimeRangeLike, SceneObjectBase, SceneObjectUrlSyncConfig, ProcessorFunc, SceneRequestSupplementer } from "@grafana/scenes";
+import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneObjectBase, SceneObjectUrlSyncConfig, ProcessorFunc, SceneRequestSupplementer, ExtraRequest } from "@grafana/scenes";
 
 interface SceneChangepointDetectorState extends SceneObjectState {
   enabled?: boolean;
@@ -38,29 +38,28 @@ export class SceneChangepointDetector extends SceneObjectBase<SceneChangepointDe
   }
 
   // Add secondary requests, used to obtain and transform the training data.
-  public getSupplementalRequests(request: DataQueryRequest): DataQueryRequest[] {
-    const extraRequests: DataQueryRequest[] = [];
+  public getSupplementalRequests(request: DataQueryRequest): ExtraRequest[] {
+    const extraRequests: ExtraRequest[] = [];
     if (this.state.enabled) {
       const { to, from: origFrom } = request.range;
       const diffMs = to.diff(origFrom);
       const from = dateTime(to).subtract(this.state.lookbackFactor ?? DEFAULT_LOOKBACK_FACTOR_OPTION.value * diffMs);
       extraRequests.push({
-        ...request,
-        range: {
-          from,
-          to,
-          raw: {
+        req: {
+          ...request,
+          range: {
             from,
             to,
+            raw: {
+              from,
+              to,
+            },
           },
         },
+        processor: changepointProcessor(this),
       });
     }
     return extraRequests;
-  }
-
-  public getProcessor(): ProcessorFunc {
-    return changepointProcessor(this.state, sceneGraph.getTimeRange(this));
   }
 
   // Determine if the component should be re-rendered.
@@ -127,7 +126,7 @@ export class SceneChangepointDetector extends SceneObjectBase<SceneChangepointDe
 //
 // This function will take the secondary frame returned by the query runner and
 // produce a new frame with the changepoint annotations.
-const changepointProcessor: (params: SceneChangepointDetectorState, timeRange: SceneTimeRangeLike) => ProcessorFunc = () => (_, secondary) => {
+const changepointProcessor: (detector: SceneChangepointDetector) => ProcessorFunc = () => (_, secondary) => {
   const annotations = secondary.series.map((series) => createChangepointAnnotations(series));
   return { timeRange: secondary.timeRange, series: [], state: secondary.state, annotations };
 }

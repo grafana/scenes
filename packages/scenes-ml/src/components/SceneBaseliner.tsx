@@ -6,7 +6,7 @@ import { ButtonGroup, Checkbox, Slider, ToolbarButton, useStyles2 } from "@grafa
 import { Duration } from 'date-fns';
 import React from 'react';
 
-import { sceneGraph, SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneTimeRangeLike, SceneObjectBase, SceneObjectUrlSyncConfig, ProcessorFunc, SceneRequestSupplementer } from "@grafana/scenes";
+import { sceneGraph, SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneObjectBase, SceneObjectUrlSyncConfig, ProcessorFunc, SceneRequestSupplementer, ExtraRequest } from "@grafana/scenes";
 
 interface SceneBaselinerState extends SceneObjectState {
   // The prediction interval to use. Must be between 0 and 1.
@@ -51,29 +51,28 @@ export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
   }
 
   // Add secondary requests, used to obtain and transform the training data.
-  public getSupplementalRequests(request: DataQueryRequest): DataQueryRequest[] {
-    const extraRequests: DataQueryRequest[] = [];
+  public getSupplementalRequests(request: DataQueryRequest): ExtraRequest[] {
+    const extraRequests: ExtraRequest[] = [];
     if (this.state.interval) {
       const { to, from: origFrom } = request.range;
       const diffMs = to.diff(origFrom);
       const from = dateTime(to).subtract(this.state.trainingLookbackFactor ?? DEFAULT_TRAINING_FACTOR_OPTION.value * diffMs);
       extraRequests.push({
-        ...request,
-        range: {
-          from,
-          to,
-          raw: {
+        req: {
+          ...request,
+          range: {
             from,
             to,
-          }
+            raw: {
+              from,
+              to,
+            }
+          },
         },
+        processor: baselineProcessor(this),
       });
     }
     return extraRequests;
-  }
-
-  public getProcessor(): ProcessorFunc {
-    return baselineProcessor(this.state, sceneGraph.getTimeRange(this));
   }
 
   // Determine if the component should be re-rendered.
@@ -163,7 +162,9 @@ export class SceneBaseliner extends SceneObjectBase<SceneBaselinerState>
 //
 // This function will take the secondary frame returned by the query runner and
 // produce a new frame with the baselines added.
-const baselineProcessor: (params: SceneBaselinerState, timeRange: SceneTimeRangeLike) => ProcessorFunc = ({ interval, discoverSeasonalities }, timeRange) => (_, secondary) => {
+const baselineProcessor: (baseliner: SceneBaseliner) => ProcessorFunc = (baseliner) => (_, secondary) => {
+  const { interval, discoverSeasonalities } = baseliner.state;
+  const timeRange = sceneGraph.getTimeRange(baseliner);
   const baselines = secondary.series.map((series) => {
     const baselineFrame = createBaselinesForFrame(series, interval, undefined, discoverSeasonalities, timeRange.state.value);
     return {

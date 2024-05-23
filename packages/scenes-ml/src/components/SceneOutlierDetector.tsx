@@ -32,11 +32,13 @@ export class SceneOutlierDetector extends SceneObjectBase<SceneOutlierDetectorSt
     this.setState({ addAnnotations });
   }
 
-  public processQueryResults(data: PanelData): PanelData {
-    if (this.state.epsilon === undefined) {
-      return data;
-    }
-    return addOutliers(data, this.state.addAnnotations ?? false);
+  public getProcessor(): (data: PanelData) => PanelData {
+    return ((data) => {
+      if (this.state.epsilon === undefined) {
+        return data;
+      }
+      return addOutliers(data, this.state.addAnnotations ?? false);
+    })
   }
 
   shouldRerun(prev: SceneOutlierDetectorState, next: SceneOutlierDetectorState): { query: boolean; processor: boolean; } {

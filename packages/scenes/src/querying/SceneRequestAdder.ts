@@ -22,9 +22,7 @@ export interface ExtraRequest {
 // Indicates that this type wants to add extra requests to a query runner.
 export interface SceneRequestSupplementer<T extends SceneObjectState> extends SceneObjectBase<T> {
   // Get any supplemental requests.
-  getSupplementalRequests(request: DataQueryRequest): DataQueryRequest[];
-  // Get any processors that should be run on the result of the extra requests.
-  getProcessor(): ProcessorFunc | undefined;
+  getSupplementalRequests(request: DataQueryRequest): ExtraRequest[];
   // Determine whether a query should be rerun.
   shouldRerun(prev: T, next: T): { processor: boolean; query: boolean; };
 }

@@ -45,7 +45,6 @@ import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHoc
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { SceneQueryProcessor, isQueryProcessor } from './SceneQueryProcessor';
-import { passthroughProcessor } from './extraRequestProcessingOperator';
 
 let counter = 100;
 
@@ -83,6 +82,7 @@ interface Processors {
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
+  private _processors?: Processors;
   private _dataLayersSub?: Unsubscribable;
   private _dataLayersMerger = new DataLayersMerger();
   private _timeSub?: Unsubscribable;
@@ -121,6 +121,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (processor) {
       processor.subscribeToState((n, p) => {
         const shouldRerun = processor.shouldRerun(p, n);
+        // console.log('processor state changed', shouldRerun);
         if (shouldRerun.query) {
           this.runQueries();
         } else if (shouldRerun.processor) {
@@ -134,6 +135,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._subs.add(
         adder.subscribeToState((n, p) => {
           const shouldRerun = adder.shouldRerun(p, n);
+          // console.log('adder state changed', shouldRerun);
           if (shouldRerun.query) {
             this.runQueries();
           } else if (shouldRerun.processor) {
@@ -371,7 +373,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   public runQueries() {
-    console.log('running queries');
+    // console.log('running queries');
     const timeRange = sceneGraph.getTimeRange(this);
     this.subscribeToTimeRangeChanges(timeRange);
     this.runWithTimeRange(timeRange);
@@ -379,26 +381,29 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private runProcessors() {
-    console.log('running processors');
-    console.log(this._unprocessedResults);
+    // console.log('running processors');
+    // console.log(this._unprocessedResults);
     this._unprocessedResults.subscribe(this.processResults.bind(this));
   }
 
   private processResults(data: [PanelData, ...PanelData[]]) {
-    console.log('processing results');
+    // console.log('processing results');
     const [primary, ...secondaries] = data;
-    const { primary: primaryProcessor, secondaries: secondaryProcessors } = this.prepareProcessors();
+    if (this._processors === undefined) {
+      // console.log('no processor factories; returning unprocessed data')
+      return this.onDataReceived(primary);
+    }
+    const { primary: primaryProcessor, secondaries: secondaryProcessors } = this._processors;
     const processedPrimary = primaryProcessor(data[0]);
     if (secondaries.length === 0) {
+      // console.log('no secondary processors found, returning processed primary data')
       return this.onDataReceived(processedPrimary);
     }
-    console.log(secondaryProcessors);
-    console.log(secondaries);
     const processedSecondaries = secondaries.map((s) => {
-      console.log('running', s.request?.processor);
-      console.log('primary', primary);
-      console.log('secondary', s);
-      return secondaryProcessors.get(s.request?.processor)?.(primary, s) ?? s
+      // console.log('processing request', s.request!.requestId);
+      // console.log('primary', primary);
+      // console.log('secondary', s);
+      return secondaryProcessors.get(s.request!.requestId)?.(primary, s) ?? s
     });
     const processed = {
       ...processedPrimary,
@@ -467,8 +472,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.findAndSubscribeToAdHocFilters(datasource?.uid);
 
       const runRequest = getRunRequest();
-      const { primary, secondaries } = this.prepareRequests(timeRange, ds);
-      // this._processors = { primary: primaryProcessor, secondaries: processors };
+      const { primary, primaryProcessor, secondaries, secondaryProcessors } = this.prepareRequests(timeRange, ds);
+      this._processors = { primary: primaryProcessor, secondaries: secondaryProcessors };
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
@@ -492,14 +497,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         // change subscribe callback below to pipe operator
         const stream = forkJoin([primaryStream, ...secondaryStreams]);
         this._querySub = stream.subscribe((data) => {
-          console.log('submitting unprocessed results');
+          // console.log('submitting unprocessed results');
           this._unprocessedResults.next(data);
         });
       } else {
         this._querySub = primaryStream
           .pipe(map((data) => [data] as [PanelData, ...PanelData[]]))
           .subscribe((data) => {
-            console.log('submitting unprocessed primary results');
+            // console.log('submitting unprocessed primary results');
             this._unprocessedResults.next(data);
           });
       }
@@ -537,7 +542,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private prepareRequests = (
     timeRange: SceneTimeRangeLike,
     ds: DataSourceApi
-  ): { primary: DataQueryRequest, secondaries: DataQueryRequest[] } => {
+  ): {
+    primary: DataQueryRequest,
+    primaryProcessor: (data: PanelData) => PanelData,
+    secondaries: DataQueryRequest[]
+    secondaryProcessors: Map<string, ProcessorFunc>,
+  } => {
     const { minInterval, queries } = this.state;
 
     let request: DataQueryRequest<DataQueryExtended> = {
@@ -601,37 +611,30 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.interval = norm.interval;
     request.intervalMs = norm.intervalMs;
 
+    let primaryProcessor = (data: PanelData) => data;
+    const closestProcessor = this.getClosestProcessor();
+    if (closestProcessor) {
+      primaryProcessor = closestProcessor.getProcessor();
+    }
+
     const primaryTimeRange = timeRange.state.value;
-    let secondaryRequests: DataQueryRequest[] = [];
+    const secondaryRequests: DataQueryRequest[] = [];
+    const secondaryProcessors = new Map();
     for (const adder of this.getClosestRequestAdders().values() ?? []) {
-      for (const req of adder.getSupplementalRequests(request)) {
+      for (const { req, processor } of adder.getSupplementalRequests(request)) {
         const requestId = getNextRequestId();
-        secondaryRequests.push({ ...req, requestId, processor: adder.constructor.name })
+        secondaryRequests.push({ ...req, requestId })
+        secondaryProcessors.set(requestId, processor);
       }
     }
     request.range = primaryTimeRange;
     return {
       primary: request,
+      primaryProcessor,
       secondaries: secondaryRequests,
+      secondaryProcessors,
     };
   };
-
-  private prepareProcessors(): Processors {
-    let primary = (data: PanelData) => data;
-    const closestProcessor = this.getClosestProcessor();
-    if (closestProcessor) {
-      primary = closestProcessor.processQueryResults.bind(closestProcessor);
-    }
-
-    let secondaryProcessors = new Map();
-    for (const adder of this.getClosestRequestAdders().values() ?? []) {
-      secondaryProcessors.set(adder.constructor.name, adder.getProcessor() ?? passthroughProcessor);
-    }
-    return {
-      primary,
-      secondaries: secondaryProcessors,
-    };
-  }
 
   private onDataReceived = (data: PanelData) => {
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
