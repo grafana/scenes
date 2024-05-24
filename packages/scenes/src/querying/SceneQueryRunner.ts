@@ -110,7 +110,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const adders = this.getClosestRequestAdders();
-    for (const adder of adders.values()) {
+    for (const adder of adders) {
       this._subs.add(
         adder.subscribeToState((n, p) => {
           if (adder.shouldRerun(p, n)) {
@@ -531,7 +531,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const primaryTimeRange = timeRange.state.value;
     let secondaryRequests: DataQueryRequest[] = [];
     let secondaryProcessors = new Map();
-    for (const adder of this.getClosestRequestAdders().values() ?? []) {
+    for (const adder of this.getClosestRequestAdders() ?? []) {
       for (const { req, processor } of adder.getSupplementalRequests(request)) {
         const requestId = getNextRequestId();
         secondaryRequests.push({ ...req, requestId })
@@ -585,10 +585,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    *
    * This will return a map from id to the closest adder for each id.
    */
-  private getClosestRequestAdders(): Map<string, SceneRequestSupplementer<any>> {
+  private getClosestRequestAdders(): SceneRequestSupplementer<any>[] {
     const found = new Map();
     if (!this.parent) {
-      return new Map();
+      return [];
     }
     getClosest(this.parent, (s) => {
       if (isRequestAdder(s) && !found.has(s.constructor.name)) {
@@ -603,7 +603,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       // the scene graph.
       return null;
     });
-    return found;
+    return Array.from(found.values());
   }
 
   /**
