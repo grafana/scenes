@@ -34,7 +34,7 @@ import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { getClosest } from '../core/sceneGraph/utils';
-import { isSupplementalRequestProvider, ProcessorFunc, SupplementalRequestProvider } from './SupplementalRequestProvider';
+import { isSupplementaryRequestProvider, ProcessorFunc, SupplementaryRequestProvider } from './SupplementaryRequestProvider';
 import { passthroughProcessor, extraRequestProcessingOperator } from './extraRequestProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
@@ -110,9 +110,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
 
-    // Add subscriptions to any supplemental providers so that they rerun queries
+    // Add subscriptions to any supplementary providers so that they rerun queries
     // when their state changes and they should rerun.
-    const providers = this.getClosestSupplementalRequestProviders();
+    const providers = this.getClosestSupplementaryRequestProviders();
     for (const provider of providers) {
       this._subs.add(
         provider.subscribeToState((n, p) => {
@@ -421,7 +421,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         const secondaryStreams = secondaries.map((r) => runRequest(ds, r));
         // Create the rxjs operator which will combine the primary and secondary responses
         // by calling the correct processor functions provided by the
-        // supplemental request providers.
+        // supplementary request providers.
         const op = extraRequestProcessingOperator(processors);
         // Combine the primary and secondary streams into a single stream, and apply the operator.
         stream = forkJoin([stream, ...secondaryStreams]).pipe(op);
@@ -534,14 +534,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.interval = norm.interval;
     request.intervalMs = norm.intervalMs;
 
-    // If there are any supplemental request providers, we need to add a new request for each
+    // If there are any supplementary request providers, we need to add a new request for each
     // and map the request's ID to the processor function given by the provider, to ensure that
     // the processor is called with the correct response data.
     const primaryTimeRange = timeRange.state.value;
     let secondaryRequests: DataQueryRequest[] = [];
     let secondaryProcessors = new Map();
-    for (const provider of this.getClosestSupplementalRequestProviders() ?? []) {
-      for (const { req, processor } of provider.getSupplementalRequests(request)) {
+    for (const provider of this.getClosestSupplementaryRequestProviders() ?? []) {
+      for (const { req, processor } of provider.getSupplementaryRequests(request)) {
         const requestId = getNextRequestId();
         secondaryRequests.push({ ...req, requestId })
         secondaryProcessors.set(requestId, processor ?? passthroughProcessor);
@@ -590,21 +590,21 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Walk up the scene graph and find any SupplementalRequestProviders.
+   * Walk up the scene graph and find any SupplementaryRequestProviders.
    *
    * This will return an array of the closest provider of each type.
    */
-  private getClosestSupplementalRequestProviders(): Array<SupplementalRequestProvider<any>> {
+  private getClosestSupplementaryRequestProviders(): Array<SupplementaryRequestProvider<any>> {
     const found = new Map();
     if (!this.parent) {
       return [];
     }
     getClosest(this.parent, (s) => {
-      if (isSupplementalRequestProvider(s) && !found.has(s.constructor.name)) {
+      if (isSupplementaryRequestProvider(s) && !found.has(s.constructor.name)) {
         found.set(s.constructor.name, s);
       }
       s.forEachChild((child) => {
-        if (isSupplementalRequestProvider(child) && !found.has(child.constructor.name)) {
+        if (isSupplementaryRequestProvider(child) && !found.has(child.constructor.name)) {
           found.set(child.constructor.name, child);
         }
       });

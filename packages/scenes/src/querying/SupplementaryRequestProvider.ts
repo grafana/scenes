@@ -7,7 +7,7 @@ import { SceneObjectState } from "../core/types";
 // to any extra requests.
 //
 // A processor function should accept two arguments: the data returned by the
-// _primary_ query, and the data returned by the `SupplementalRequestProvider`'s
+// _primary_ query, and the data returned by the `SupplementaryRequestProvider`'s
 // _secondary_ query. It should return a new `PanelData` representing the processed output.
 // It should _not_ modify the primary PanelData.
 //
@@ -20,7 +20,7 @@ export type ProcessorFunc = (primary: PanelData, secondary: PanelData) => PanelD
 
 // An extra request that should be run by a query runner, and an optional
 // processor that should be called with the response data.
-export interface SupplementalRequest {
+export interface SupplementaryRequest {
   // The extra request to add.
   req: DataQueryRequest;
   // An optional function used to process the data before passing it
@@ -28,11 +28,11 @@ export interface SupplementalRequest {
   processor?: ProcessorFunc;
 }
 
-// Indicates that this type wants to add supplemental requests, along with
+// Indicates that this type wants to add supplementary requests, along with
 // optional processing functions, to a query runner.
-export interface SupplementalRequestProvider<T extends SceneObjectState> extends SceneObjectBase<T> {
-  // Get any supplemental requests and their required processors.
-  getSupplementalRequests(request: DataQueryRequest): SupplementalRequest[];
+export interface SupplementaryRequestProvider<T extends SceneObjectState> extends SceneObjectBase<T> {
+  // Get any supplementary requests and their required processors.
+  getSupplementaryRequests(request: DataQueryRequest): SupplementaryRequest[];
   // Determine whether a query should be rerun.
   //
   // When the provider's state changes this function will be passed both the previous and the
@@ -41,6 +41,6 @@ export interface SupplementalRequestProvider<T extends SceneObjectState> extends
   shouldRerun(prev: T, next: T): boolean;
 }
 
-export function isSupplementalRequestProvider(obj: any): obj is SupplementalRequestProvider<any> {
-  return typeof obj === 'object' && 'getSupplementalRequests' in obj;
+export function isSupplementaryRequestProvider(obj: any): obj is SupplementaryRequestProvider<any> {
+  return typeof obj === 'object' && 'getSupplementaryRequests' in obj;
 }

@@ -34,7 +34,8 @@ import { SceneQueryController, SceneQueryStateControllerState } from '../behavio
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
-import { SceneObjectBase, SupplementalRequest, SupplementalRequestProvider } from '..';
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { SupplementaryRequest, SupplementaryRequestProvider } from './SupplementaryRequestProvider';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -1093,7 +1094,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
       });
-      const provider = new TestSupplementalRequestProvider({ foo: 1 }, true);
+      const provider = new TestSupplementaryRequestProvider({ foo: 1 }, true);
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
         $data: queryRunner,
@@ -1108,10 +1109,10 @@ describe('SceneQueryRunner', () => {
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
       let runRequestCall = runRequestMock.mock.calls[0];
-      let supplementalRunRequestCall = runRequestMock.mock.calls[1];
+      let supplementaryRunRequestCall = runRequestMock.mock.calls[1];
       expect(runRequestCall[1].targets[0].refId).toEqual('A');
-      expect(supplementalRunRequestCall[1].targets[0].refId).toEqual('Supplemental');
-      expect(supplementalRunRequestCall[1].targets[0].foo).toEqual(1);
+      expect(supplementaryRunRequestCall[1].targets[0].refId).toEqual('Supplementary');
+      expect(supplementaryRunRequestCall[1].targets[0].foo).toEqual(1);
 
       // change the state of the provider, which will trigger the activation
       // handler to run the supplementary request again.
@@ -1120,10 +1121,10 @@ describe('SceneQueryRunner', () => {
 
       expect(runRequestMock.mock.calls.length).toEqual(4);
       runRequestCall = runRequestMock.mock.calls[2];
-      supplementalRunRequestCall = runRequestMock.mock.calls[3];
+      supplementaryRunRequestCall = runRequestMock.mock.calls[3];
       expect(runRequestCall[1].targets[0].refId).toEqual('A');
-      expect(supplementalRunRequestCall[1].targets[0].refId).toEqual('Supplemental');
-      expect(supplementalRunRequestCall[1].targets[0].foo).toEqual(2);
+      expect(supplementaryRunRequestCall[1].targets[0].refId).toEqual('Supplementary');
+      expect(supplementaryRunRequestCall[1].targets[0].foo).toEqual(2);
     });
 
     test('should not rerun supplementary requests when providers say not to', async () => {
@@ -1135,7 +1136,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
       });
-      const provider = new TestSupplementalRequestProvider({ foo: 1 }, false);
+      const provider = new TestSupplementaryRequestProvider({ foo: 1 }, false);
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
         $data: queryRunner,
@@ -1150,10 +1151,10 @@ describe('SceneQueryRunner', () => {
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
       let runRequestCall = runRequestMock.mock.calls[0];
-      let supplementalRunRequestCall = runRequestMock.mock.calls[1];
+      let supplementaryRunRequestCall = runRequestMock.mock.calls[1];
       expect(runRequestCall[1].targets[0].refId).toEqual('A');
-      expect(supplementalRunRequestCall[1].targets[0].refId).toEqual('Supplemental');
-      expect(supplementalRunRequestCall[1].targets[0].foo).toEqual(1);
+      expect(supplementaryRunRequestCall[1].targets[0].refId).toEqual('Supplementary');
+      expect(supplementaryRunRequestCall[1].targets[0].foo).toEqual(1);
 
       // change the state of the provider, which will trigger the activation
       // handler to run the supplementary request again. The provider will
@@ -2275,11 +2276,11 @@ class CustomDataSource extends RuntimeDataSource {
   }
 }
 
-interface TestSupplementalRequestProviderState extends SceneObjectState {
+interface TestSupplementaryRequestProviderState extends SceneObjectState {
   foo: number;
 }
 
-class TestSupplementalRequestProvider extends SceneObjectBase<TestSupplementalRequestProviderState> implements SupplementalRequestProvider<{}> {
+class TestSupplementaryRequestProvider extends SceneObjectBase<TestSupplementaryRequestProviderState> implements SupplementaryRequestProvider<{}> {
   private _shouldRerun: boolean;
 
   public constructor(state: { foo: number; }, shouldRerun: boolean) {
@@ -2287,12 +2288,12 @@ class TestSupplementalRequestProvider extends SceneObjectBase<TestSupplementalRe
     this._shouldRerun = shouldRerun;
   }
 
-  public getSupplementalRequests(): SupplementalRequest[] {
+  public getSupplementaryRequests(): SupplementaryRequest[] {
     return [{
       req: {
         targets: [
           // @ts-expect-error
-          { refId: 'Supplemental', foo: this.state.foo },
+          { refId: 'Supplementary', foo: this.state.foo },
         ],
       }
     }];

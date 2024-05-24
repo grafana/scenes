@@ -1,6 +1,6 @@
 import { PanelData } from '@grafana/data';
 import { map, Observable } from 'rxjs';
-import { ProcessorFunc } from './SupplementalRequestProvider';
+import { ProcessorFunc } from './SupplementaryRequestProvider';
 
 // Passthrough processor for use with ExtraRequests.
 export const passthroughProcessor: ProcessorFunc = (_, secondary) => secondary;
