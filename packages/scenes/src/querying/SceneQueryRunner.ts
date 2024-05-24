@@ -109,6 +109,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
+
+    // Add subscriptions to any supplemental providers so that they rerun queries
+    // when their state changes and they should rerun.
     const providers = this.getClosestSupplementalRequestProviders();
     for (const provider of providers) {
       this._subs.add(
@@ -414,11 +417,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       let stream = runRequest(ds, primary);
 
       if (secondaries.length > 0) {
-        const [sReq, ...otherSReqs] = secondaries;
-        const secondaryStreams = otherSReqs.map((r) => runRequest(ds, r));
-        // change subscribe callback below to pipe operator
+        // Submit all secondary requests in parallel.
+        const secondaryStreams = secondaries.map((r) => runRequest(ds, r));
+        // Create the rxjs operator which will combine the primary and secondary responses
+        // by calling the correct processor functions provided by the
+        // supplemental request providers.
         const op = extraRequestProcessingOperator(processors);
-        stream = forkJoin([stream, runRequest(ds, sReq), ...secondaryStreams]).pipe(op);
+        // Combine the primary and secondary streams into a single stream, and apply the operator.
+        stream = forkJoin([stream, ...secondaryStreams]).pipe(op);
       }
 
       stream = stream.pipe(
@@ -528,6 +534,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.interval = norm.interval;
     request.intervalMs = norm.intervalMs;
 
+    // If there are any supplemental request providers, we need to add a new request for each
+    // and map the request's ID to the processor function given by the provider, to ensure that
+    // the processor is called with the correct response data.
     const primaryTimeRange = timeRange.state.value;
     let secondaryRequests: DataQueryRequest[] = [];
     let secondaryProcessors = new Map();
