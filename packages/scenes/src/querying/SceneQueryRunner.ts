@@ -11,6 +11,7 @@ import {
   DataSourceApi,
   DataTopic,
   PanelData,
+  ScopedVars,
   preProcessPanelData,
   rangeUtil,
 } from '@grafana/data';
@@ -76,20 +77,21 @@ export interface DataQueryExtended extends DataQuery {
 }
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
-  private _querySub?: Unsubscribable;
-  private _dataLayersSub?: Unsubscribable;
-  private _dataLayersMerger = new DataLayersMerger();
-  private _timeSub?: Unsubscribable;
-  private _timeSubRange?: SceneTimeRangeLike;
-  private _containerWidth?: number;
-  private _variableValueRecorder = new VariableValueRecorder();
-  private _results = new ReplaySubject<SceneDataProviderResult>(1);
-  private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
-  private _layerAnnotations?: DataFrame[];
-  private _resultAnnotations?: DataFrame[];
 
-  private _adhocFiltersVar?: AdHocFiltersVariable;
-  private _groupByVar?: GroupByVariable;
+  protected _querySub?: Unsubscribable;
+  protected _dataLayersSub?: Unsubscribable;
+  protected _dataLayersMerger = new DataLayersMerger();
+  protected _timeSub?: Unsubscribable;
+  protected _timeSubRange?: SceneTimeRangeLike;
+  protected _containerWidth?: number;
+  protected _variableValueRecorder = new VariableValueRecorder();
+  protected _results = new ReplaySubject<SceneDataProviderResult>(1);
+  protected _scopedVars: ScopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
+  protected _layerAnnotations?: DataFrame[];
+  protected _resultAnnotations?: DataFrame[];
+
+  protected _adhocFiltersVar?: AdHocFiltersVariable;
+  protected _groupByVar?: GroupByVariable;
 
   public getResultsStream() {
     return this._results;
@@ -107,7 +109,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this.addActivationHandler(() => this._onActivate());
   }
 
-  private _onActivate() {
+  protected _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
     const comparer = this.getTimeCompare();
 
@@ -135,7 +137,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   // This method subscribes to all SceneDataLayers up until the root, and combines the results into data provided from SceneQueryRunner
-  private _handleDataLayers() {
+  protected _handleDataLayers() {
     const dataLayers = sceneGraph.getDataLayers(this);
 
     if (dataLayers.length === 0) {
@@ -247,7 +249,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return variable.state.applyMode === 'auto' && datasource?.uid === variable.state.datasource?.uid;
   }
 
-  private shouldRunQueriesOnActivate() {
+  protected shouldRunQueriesOnActivate() {
     if (this._variableValueRecorder.hasDependenciesChanged(this)) {
       writeSceneLog(
         'SceneQueryRunner',
@@ -285,7 +287,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return true;
   }
 
-  private _onDeactivate(): void {
+  protected _onDeactivate(): void {
     if (this._querySub) {
       this._querySub.unsubscribe();
       this._querySub = undefined;
@@ -330,7 +332,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return Boolean(this.state._hasFetchedData);
   }
 
-  private subscribeToTimeRangeChanges(timeRange: SceneTimeRangeLike) {
+  protected subscribeToTimeRangeChanges(timeRange: SceneTimeRangeLike) {
     if (this._timeSubRange === timeRange) {
       // Nothing to do, already subscribed
       return;
@@ -352,7 +354,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this.runWithTimeRange(timeRange);
   }
 
-  private getMaxDataPoints() {
+  protected getMaxDataPoints() {
     if (this.state.maxDataPoints) {
       return this.state.maxDataPoints;
     }
@@ -373,7 +375,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     });
   }
 
-  private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
+  protected async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // If no maxDataPoints specified we might need to wait for container width to be set from the outside
     if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
       return;
@@ -554,7 +556,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return [request, secondaryRequest];
   };
 
-  private onDataReceived = (data: PanelData) => {
+  protected onDataReceived = (data: PanelData) => {
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
@@ -586,7 +588,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return data;
   }
 
-  private _setNoDataState() {
+  protected _setNoDataState() {
     if (this.state.data !== emptyPanelData) {
       this.setState({ data: emptyPanelData });
     }
@@ -596,7 +598,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * Will walk up the scene graph and find the closest time range compare object
    * It performs buttom-up search, including shallow search across object children for supporting controls/header actions
    */
-  private getTimeCompare() {
+  protected getTimeCompare() {
     if (!this.parent) {
       return null;
     }
@@ -618,7 +620,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private findAndSubscribeToAdHocFilters(uid: string | undefined) {
+  protected findAndSubscribeToAdHocFilters(uid: string | undefined) {
     const filtersVar = findActiveAdHocFilterVariableByUid(uid);
 
     if (this._adhocFiltersVar !== filtersVar) {
