@@ -11,7 +11,7 @@ export type ProcessorFunc = (primary: PanelData, secondary: PanelData) => PanelD
 
 // An extra request that should be run by a query runner, and an optional
 // processor that should be called with the response data.
-export interface ExtraRequest {
+export interface SupplementalRequest {
   // The request.
   req: DataQueryRequest;
   // An optional function used to process the data before passing it
@@ -19,14 +19,14 @@ export interface ExtraRequest {
   processor?: ProcessorFunc;
 }
 
-// Indicates that this type wants to add extra requests to a query runner.
-export interface SceneRequestSupplementer<T extends SceneObjectState> extends SceneObjectBase<T> {
+// Indicates that this type wants to add supplemental requests to a query runner.
+export interface SupplementalRequestProvider<T extends SceneObjectState> extends SceneObjectBase<T> {
   // Get any supplemental requests and their required processors.
-  getSupplementalRequests(request: DataQueryRequest): ExtraRequest[];
+  getSupplementalRequests(request: DataQueryRequest): SupplementalRequest[];
   // Determine whether a query should be rerun.
   shouldRerun(prev: T, next: T): boolean;
 }
 
-export function isRequestAdder(obj: any): obj is SceneRequestSupplementer<any> {
+export function isSupplementalRequestProvider(obj: any): obj is SupplementalRequestProvider<any> {
   return typeof obj === 'object' && 'getSupplementalRequests' in obj;
 }

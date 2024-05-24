@@ -6,7 +6,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { DataQueryExtended } from '../querying/SceneQueryRunner';
-import { ExtraRequest, ProcessorFunc, SceneRequestSupplementer } from '../querying/SceneRequestAdder';
+import { SupplementalRequest, ProcessorFunc, SupplementalRequestProvider } from '../querying/SupplementalRequestProvider';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
@@ -38,7 +38,7 @@ export const DEFAULT_COMPARE_OPTIONS = [
 
 export class SceneTimeRangeCompare
   extends SceneObjectBase<SceneTimeRangeCompareState>
-  implements SceneRequestSupplementer<SceneTimeRangeCompareState> {
+  implements SupplementalRequestProvider<SceneTimeRangeCompareState> {
 
   static Component = SceneTimeRangeCompareRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
@@ -95,8 +95,8 @@ export class SceneTimeRangeCompare
   };
 
   // Get a time shifted request to compare with the primary request.
-  public getSupplementalRequests(request: DataQueryRequest): ExtraRequest[] {
-    const extraRequests: ExtraRequest[] = [];
+  public getSupplementalRequests(request: DataQueryRequest): SupplementalRequest[] {
+    const extraRequests: SupplementalRequest[] = [];
     const compareRange = this.getCompareTimeRange(request.range);
     if (!compareRange) {
       return extraRequests;
