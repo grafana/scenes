@@ -1,4 +1,4 @@
-import React, { RefCallback } from 'react';
+import React, { RefCallback, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
 import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider } from '@grafana/data';
@@ -11,6 +11,7 @@ import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '..
 
 import { VizPanel } from './VizPanel';
 import { css, cx } from '@emotion/css';
+import { debounce } from 'lodash';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -27,7 +28,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     description,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
-  const panelAttentionService = getPanelAttentionSrv();
+  const panelAttentionService = useMemo(() => getPanelAttentionSrv(), []);
+  const debouncedMouseMove = debounce(() => panelAttentionService.setPanelWithAttention(model.state.key), 100);
+
   const plugin = model.getPlugin();
 
   const { dragClass, dragClassCancel } = getDragClasses(model);
@@ -137,7 +140,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         ref={ref as RefCallback<HTMLDivElement>}
         className={absoluteWrapper}
         onFocus={() => panelAttentionService?.setPanelWithAttention(model.state.key)}
-        onMouseMove={() => panelAttentionService?.setPanelWithAttention(model.state.key)}
+        onMouseMove={debouncedMouseMove}
         data-viz-panel-key={model.state.key}
       >
         {width > 0 && height > 0 && (
