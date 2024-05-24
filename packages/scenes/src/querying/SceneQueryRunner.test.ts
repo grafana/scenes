@@ -35,7 +35,7 @@ import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
+import { ExtraQueryDescriptor, ExtraQueryProvider, ExtraQueryShouldRerun } from './ExtraQueryProvider';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -1191,6 +1191,48 @@ describe('SceneQueryRunner', () => {
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
     });
+
+    test('should run extra processors, but not queries, when providers declare it', async () => {
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+      });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, 'processors');
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      // activate the scene, which will also activate the provider
+      // and the provider will run the extra request
+      scene.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      let runRequestCall = runRequestMock.mock.calls[0];
+      let extraRunRequestCall = runRequestMock.mock.calls[1];
+      expect(runRequestCall[1].targets[0].refId).toEqual('A');
+      expect(extraRunRequestCall[1].targets[0].refId).toEqual('Extra');
+      expect(extraRunRequestCall[1].targets[0].foo).toEqual(1);
+      expect(queryRunner.state.data?.series[3].fields[0].values[0]).toEqual(1);
+
+      // change the state of the provider, which will trigger the activation
+      // handler to run the processor again. The provider will
+      // return 'processors' from shouldRun, so we should not see any more queries.
+      provider.setState({ foo: 2 });
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+
+      // we _should_ see that the processor has rerun and updated the data, however.
+      expect(queryRunner.state.data?.series[3].fields[0].values[0]).toEqual(2);
+    });
   });
 
   describe('time frame comparison', () => {
@@ -2308,9 +2350,9 @@ interface TestExtraQueryProviderState extends SceneObjectState {
 }
 
 class TestExtraQueryProvider extends SceneObjectBase<TestExtraQueryProviderState> implements ExtraQueryProvider<{}> {
-  private _shouldRerun: boolean;
+  private _shouldRerun: ExtraQueryShouldRerun;
 
-  public constructor(state: { foo: number }, shouldRerun: boolean) {
+  public constructor(state: { foo: number }, shouldRerun: ExtraQueryShouldRerun) {
     super(state);
     this._shouldRerun = shouldRerun;
   }
@@ -2324,11 +2366,21 @@ class TestExtraQueryProvider extends SceneObjectBase<TestExtraQueryProviderState
             { refId: 'Extra', foo: this.state.foo },
           ],
         },
-        processor: (primary, secondary) => of({ ...primary, ...secondary }),
+        processor: (primary, secondary) => {
+          return of({
+            ...primary,
+            ...secondary,
+            series: [...primary.series, ...secondary.series, {
+              fields: [{ name: "foo", values: [this.state.foo], config: {}, type: FieldType.number }],
+              length: 1,
+            }],
+          });
+        },
       },
     ];
   }
-  public shouldRerun(prev: {}, next: {}): boolean {
+
+  public shouldRerun(prev: {}, next: {}): ExtraQueryShouldRerun {
     return this._shouldRerun;
   }
 }
