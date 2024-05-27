@@ -1,3 +1,15 @@
+# v4.24.0 (Mon May 27 2024)
+
+#### 🚀 Enhancement
+
+- SceneFlexLayout: Min width/height option was ignored [#749](https://github.com/grafana/scenes/pull/749) ([@edvard-falkskar](https://github.com/edvard-falkskar))
+
+#### Authors: 1
+
+- Edvard Falkskär ([@edvard-falkskar](https://github.com/edvard-falkskar))
+
+---
+
 # v4.23.1 (Wed May 22 2024)
 
 #### 🐛 Bug Fix
