@@ -124,6 +124,41 @@ function findObjectInternal(
 }
 
 /**
+ * Returns a scene object from the scene graph with the requested key.
+ * 
+ * Throws error if no key-matching scene object found.
+ */
+export function findByKey<TargetType extends SceneObject>(sceneObject: SceneObject, key: string, targetType?: { new(...args: never[]): TargetType }) {
+  const found = findObject(sceneObject, (sceneToCheck) => {
+    return sceneToCheck.state.key === key;
+  });
+  if (!found) {
+    throw new Error('Unable to find scene with key ' + key);
+  }
+  return found;
+}
+
+/**
+ * Returns a scene object from the scene graph with the requested key.
+ * 
+ * Throws error if no key-matching scene object found.
+ * Throws error if the given type does not match.
+ */
+export function findByKeyAndType<TargetType extends SceneObject>(sceneObject: SceneObject, key: string, targetType: { new(...args: never[]): TargetType }) {
+  const found = findObject(sceneObject, (sceneToCheck) => {
+    return sceneToCheck.state.key === key;
+  });
+  if (!found) {
+    throw new Error('Unable to find scene with key ' + key);
+  }
+  if (!(found instanceof targetType)) {
+    throw new Error(`Found scene object with key ${key} does not match type ${targetType.name}`) 
+  }
+  return found;
+}
+
+
+/**
  * This will search the full scene graph, starting with the scene node passed in, then walking up the parent chain. *
  */
 export function findObject(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject | null {
