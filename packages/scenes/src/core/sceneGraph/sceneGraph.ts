@@ -128,7 +128,7 @@ function findObjectInternal(
  * 
  * Throws error if no key-matching scene object found.
  */
-export function findByKey<TargetType extends SceneObject>(sceneObject: SceneObject, key: string, targetType?: { new(...args: never[]): TargetType }) {
+export function findByKey(sceneObject: SceneObject, key: string) {
   const found = findObject(sceneObject, (sceneToCheck) => {
     return sceneToCheck.state.key === key;
   });
