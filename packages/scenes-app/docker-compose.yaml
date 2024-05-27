@@ -6,7 +6,7 @@ services:
     build:
       context: ./.config
       args:
-        grafana_version: ${GRAFANA_VERSION:latest}
+        grafana_version: ${GRAFANA_VERSION:-11.1.0-179671}
     ports:
       - 3001:3000/tcp
     volumes:
