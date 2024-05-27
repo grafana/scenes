@@ -614,17 +614,20 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * This will return an array of the closest provider of each type.
    */
   private getClosestSupplementaryRequestProviders(): Array<SupplementaryRequestProvider<any>> {
+    // Maintain a map from provider constructor to provider object. The constructor
+    // is used as a unique key for each class, to ensure we have no more than one
+    // type of each type of provider.
     const found = new Map();
     if (!this.parent) {
       return [];
     }
     getClosest(this.parent, (s) => {
-      if (isSupplementaryRequestProvider(s) && !found.has(s.constructor.name)) {
-        found.set(s.constructor.name, s);
+      if (isSupplementaryRequestProvider(s) && !found.has(s.constructor)) {
+        found.set(s.constructor, s);
       }
       s.forEachChild((child) => {
-        if (isSupplementaryRequestProvider(child) && !found.has(child.constructor.name)) {
-          found.set(child.constructor.name, child);
+        if (isSupplementaryRequestProvider(child) && !found.has(child.constructor)) {
+          found.set(child.constructor, child);
         }
       });
       // Always return null so that the search continues to the top of
