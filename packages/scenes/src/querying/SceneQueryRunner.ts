@@ -34,8 +34,8 @@ import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { getClosest } from '../core/sceneGraph/utils';
-import { isSupplementaryRequestProvider, ProcessorFunc, SupplementaryRequestProvider } from './SupplementaryRequestProvider';
-import { passthroughProcessor, extraRequestProcessingOperator } from './extraRequestProcessingOperator';
+import { isExtraQueryProvider, ExtraQueryProcessor, ExtraQueryProvider } from './ExtraQueryProvider';
+import { passthroughProcessor, extraQueryProcessingOperator } from './extraQueryProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetAdhocFilters';
@@ -79,7 +79,7 @@ export interface DataQueryExtended extends DataQuery {
 //
 // Generally the query runner will run a single primary request.
 // If the scene graph contains implementations of
-// `SupplementaryRequestProvider`, the requests created by these
+// `ExtraQueryProvider`, the requests created by these
 // implementations will be added to the list of secondary requests,
 // and these will be executed at the same time as the primary request.
 //
@@ -93,8 +93,8 @@ interface PreparedRequests {
   // the primary request.
   secondaries: DataQueryRequest[];
   // A map from `requestId` of secondary requests to processors
-  // for those requests. Provided by the `SupplementaryRequestProvider`.
-  processors: Map<string, ProcessorFunc>;
+  // for those requests. Provided by the `ExtraQueryProvider`.
+  processors: Map<string, ExtraQueryProcessor>;
 }
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
@@ -132,9 +132,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
 
-    // Add subscriptions to any supplementary providers so that they rerun queries
+    // Add subscriptions to any extra providers so that they rerun queries
     // when their state changes and they should rerun.
-    const providers = this.getClosestSupplementaryRequestProviders();
+    const providers = this.getClosestExtraQueryProviders();
     for (const provider of providers) {
       this._subs.add(
         provider.subscribeToState((n, p) => {
@@ -443,8 +443,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         const secondaryStreams = secondaries.map((r) => runRequest(ds, r));
         // Create the rxjs operator which will combine the primary and secondary responses
         // by calling the correct processor functions provided by the
-        // supplementary request providers.
-        const op = extraRequestProcessingOperator(processors);
+        // extra request providers.
+        const op = extraQueryProcessingOperator(processors);
         // Combine the primary and secondary streams into a single stream, and apply the operator.
         stream = forkJoin([stream, ...secondaryStreams]).pipe(op);
       }
@@ -553,14 +553,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.interval = norm.interval;
     request.intervalMs = norm.intervalMs;
 
-    // If there are any supplementary request providers, we need to add a new request for each
+    // If there are any extra request providers, we need to add a new request for each
     // and map the request's ID to the processor function given by the provider, to ensure that
     // the processor is called with the correct response data.
     const primaryTimeRange = timeRange.state.value;
     let secondaryRequests: DataQueryRequest[] = [];
     let secondaryProcessors = new Map();
-    for (const provider of this.getClosestSupplementaryRequestProviders() ?? []) {
-      for (const { req, processor } of provider.getSupplementaryRequests(request)) {
+    for (const provider of this.getClosestExtraQueryProviders() ?? []) {
+      for (const { req, processor } of provider.getExtraQueries(request)) {
         const requestId = getNextRequestId();
         secondaryRequests.push({ ...req, requestId })
         secondaryProcessors.set(requestId, processor ?? passthroughProcessor);
@@ -609,11 +609,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Walk up the scene graph and find any SupplementaryRequestProviders.
+   * Walk up the scene graph and find any ExtraQueryProviders.
    *
    * This will return an array of the closest provider of each type.
    */
-  private getClosestSupplementaryRequestProviders(): Array<SupplementaryRequestProvider<any>> {
+  private getClosestExtraQueryProviders(): Array<ExtraQueryProvider<any>> {
     // Maintain a map from provider constructor to provider object. The constructor
     // is used as a unique key for each class, to ensure we have no more than one
     // type of each type of provider.
@@ -622,11 +622,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return [];
     }
     getClosest(this.parent, (s) => {
-      if (isSupplementaryRequestProvider(s) && !found.has(s.constructor)) {
+      if (isExtraQueryProvider(s) && !found.has(s.constructor)) {
         found.set(s.constructor, s);
       }
       s.forEachChild((child) => {
-        if (isSupplementaryRequestProvider(child) && !found.has(child.constructor)) {
+        if (isExtraQueryProvider(child) && !found.has(child.constructor)) {
           found.set(child.constructor, child);
         }
       });

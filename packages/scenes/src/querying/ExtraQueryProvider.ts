@@ -7,7 +7,7 @@ import { SceneObjectState } from "../core/types";
 // to any extra requests.
 //
 // A processor function should accept two arguments: the data returned by the
-// _primary_ query, and the data returned by the `SupplementaryRequestProvider`'s
+// _primary_ query, and the data returned by the `ExtraQueryProvider`'s
 // _secondary_ query. It should return a new `PanelData` representing the processed output.
 // It should _not_ modify the primary PanelData.
 //
@@ -15,24 +15,24 @@ import { SceneObjectState } from "../core/types";
 // (see the `timeShiftAlignmentProcessor` returned by `SceneTimeRangeCompare`), or doing
 // some more advanced processing such as fitting a time series model on the secondary data.
 //
-// See the docs for `extraRequestProcessingOperator` for more information.
-export type ProcessorFunc = (primary: PanelData, secondary: PanelData) => PanelData;
+// See the docs for `extraQueryProcessingOperator` for more information.
+export type ExtraQueryProcessor = (primary: PanelData, secondary: PanelData) => PanelData;
 
 // An extra request that should be run by a query runner, and an optional
 // processor that should be called with the response data.
-export interface SupplementaryRequest {
+export interface ExtraQueryDescriptor {
   // The extra request to add.
   req: DataQueryRequest;
   // An optional function used to process the data before passing it
   // to any transformations or visualizations.
-  processor?: ProcessorFunc;
+  processor?: ExtraQueryProcessor;
 }
 
-// Indicates that this type wants to add supplementary requests, along with
+// Indicates that this type wants to add extra requests, along with
 // optional processing functions, to a query runner.
-export interface SupplementaryRequestProvider<T extends SceneObjectState> extends SceneObjectBase<T> {
-  // Get any supplementary requests and their required processors.
-  getSupplementaryRequests(request: DataQueryRequest): SupplementaryRequest[];
+export interface ExtraQueryProvider<T extends SceneObjectState> extends SceneObjectBase<T> {
+  // Get any extra requests and their required processors.
+  getExtraQueries(request: DataQueryRequest): ExtraQueryDescriptor[];
   // Determine whether a query should be rerun.
   //
   // When the provider's state changes this function will be passed both the previous and the
@@ -41,6 +41,6 @@ export interface SupplementaryRequestProvider<T extends SceneObjectState> extend
   shouldRerun(prev: T, next: T): boolean;
 }
 
-export function isSupplementaryRequestProvider(obj: any): obj is SupplementaryRequestProvider<any> {
-  return typeof obj === 'object' && 'getSupplementaryRequests' in obj;
+export function isExtraQueryProvider(obj: any): obj is ExtraQueryProvider<any> {
+  return typeof obj === 'object' && 'getExtraQueries' in obj;
 }

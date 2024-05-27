@@ -6,7 +6,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { DataQueryExtended } from '../querying/SceneQueryRunner';
-import { SupplementaryRequest, ProcessorFunc, SupplementaryRequestProvider } from '../querying/SupplementaryRequestProvider';
+import { ExtraQueryDescriptor, ExtraQueryProcessor, ExtraQueryProvider } from '../querying/ExtraQueryProvider';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
@@ -38,7 +38,7 @@ export const DEFAULT_COMPARE_OPTIONS = [
 
 export class SceneTimeRangeCompare
   extends SceneObjectBase<SceneTimeRangeCompareState>
-  implements SupplementaryRequestProvider<SceneTimeRangeCompareState> {
+  implements ExtraQueryProvider<SceneTimeRangeCompareState> {
 
   static Component = SceneTimeRangeCompareRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
@@ -95,16 +95,16 @@ export class SceneTimeRangeCompare
   };
 
   // Get a time shifted request to compare with the primary request.
-  public getSupplementaryRequests(request: DataQueryRequest): SupplementaryRequest[] {
-    const extraRequests: SupplementaryRequest[] = [];
+  public getExtraQueries(request: DataQueryRequest): ExtraQueryDescriptor[] {
+    const extraQueries: ExtraQueryDescriptor[] = [];
     const compareRange = this.getCompareTimeRange(request.range);
     if (!compareRange) {
-      return extraRequests;
+      return extraQueries;
     }
 
     const targets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
     if (targets.length) {
-      extraRequests.push({
+      extraQueries.push({
         req: {
           ...request,
           targets,
@@ -113,7 +113,7 @@ export class SceneTimeRangeCompare
         processor: timeShiftAlignmentProcessor,
       });
     }
-    return extraRequests;
+    return extraQueries;
   }
 
   // The query runner should rerun the comparison query if the compareWith value has changed.
@@ -180,7 +180,7 @@ export class SceneTimeRangeCompare
 // This aligns the secondary series with the primary and adds custom
 // metadata and config to the secondary series' fields so that it is
 // rendered appropriately.
-const timeShiftAlignmentProcessor: ProcessorFunc = (primary, secondary) => {
+const timeShiftAlignmentProcessor: ExtraQueryProcessor = (primary, secondary) => {
   const diff = secondary.timeRange.from.diff(primary.timeRange.from);
   secondary.series.forEach((series) => {
     series.refId = getCompareSeriesRefId(series.refId || '');

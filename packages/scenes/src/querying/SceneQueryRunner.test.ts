@@ -35,7 +35,7 @@ import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SupplementaryRequest, SupplementaryRequestProvider } from './SupplementaryRequestProvider';
+import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -1084,8 +1084,8 @@ describe('SceneQueryRunner', () => {
     });
   });
 
-  describe('supplementary requests', () => {
-    test('should run and rerun supplementary requests', async () => {
+  describe('extra requests', () => {
+    test('should run and rerun extra requests', async () => {
       const timeRange = new SceneTimeRange({
         from: '2023-08-24T05:00:00.000Z',
         to: '2023-08-24T07:00:00.000Z',
@@ -1094,7 +1094,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
       });
-      const provider = new TestSupplementaryRequestProvider({ foo: 1 }, true);
+      const provider = new TestExtraQueryProvider({ foo: 1 }, true);
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
         $data: queryRunner,
@@ -1103,31 +1103,31 @@ describe('SceneQueryRunner', () => {
       });
 
       // activate the scene, which will also activate the provider
-      // and the provider will run the supplementary request
+      // and the provider will run the extra request
       scene.activate();
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
       let runRequestCall = runRequestMock.mock.calls[0];
-      let supplementaryRunRequestCall = runRequestMock.mock.calls[1];
+      let extraRunRequestCall = runRequestMock.mock.calls[1];
       expect(runRequestCall[1].targets[0].refId).toEqual('A');
-      expect(supplementaryRunRequestCall[1].targets[0].refId).toEqual('Supplementary');
-      expect(supplementaryRunRequestCall[1].targets[0].foo).toEqual(1);
+      expect(extraRunRequestCall[1].targets[0].refId).toEqual('Extra');
+      expect(extraRunRequestCall[1].targets[0].foo).toEqual(1);
 
       // change the state of the provider, which will trigger the activation
-      // handler to run the supplementary request again.
+      // handler to run the extra request again.
       provider.setState({ foo: 2 });
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(4);
       runRequestCall = runRequestMock.mock.calls[2];
-      supplementaryRunRequestCall = runRequestMock.mock.calls[3];
+      extraRunRequestCall = runRequestMock.mock.calls[3];
       expect(runRequestCall[1].targets[0].refId).toEqual('A');
-      expect(supplementaryRunRequestCall[1].targets[0].refId).toEqual('Supplementary');
-      expect(supplementaryRunRequestCall[1].targets[0].foo).toEqual(2);
+      expect(extraRunRequestCall[1].targets[0].refId).toEqual('Extra');
+      expect(extraRunRequestCall[1].targets[0].foo).toEqual(2);
     });
 
-    test('should not rerun supplementary requests when providers say not to', async () => {
+    test('should not rerun extra requests when providers say not to', async () => {
       const timeRange = new SceneTimeRange({
         from: '2023-08-24T05:00:00.000Z',
         to: '2023-08-24T07:00:00.000Z',
@@ -1136,7 +1136,7 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A' }],
       });
-      const provider = new TestSupplementaryRequestProvider({ foo: 1 }, false);
+      const provider = new TestExtraQueryProvider({ foo: 1 }, false);
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
         $data: queryRunner,
@@ -1145,19 +1145,19 @@ describe('SceneQueryRunner', () => {
       });
 
       // activate the scene, which will also activate the provider
-      // and the provider will run the supplementary request
+      // and the provider will run the extra request
       scene.activate();
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
       let runRequestCall = runRequestMock.mock.calls[0];
-      let supplementaryRunRequestCall = runRequestMock.mock.calls[1];
+      let extraRunRequestCall = runRequestMock.mock.calls[1];
       expect(runRequestCall[1].targets[0].refId).toEqual('A');
-      expect(supplementaryRunRequestCall[1].targets[0].refId).toEqual('Supplementary');
-      expect(supplementaryRunRequestCall[1].targets[0].foo).toEqual(1);
+      expect(extraRunRequestCall[1].targets[0].refId).toEqual('Extra');
+      expect(extraRunRequestCall[1].targets[0].foo).toEqual(1);
 
       // change the state of the provider, which will trigger the activation
-      // handler to run the supplementary request again. The provider will
+      // handler to run the extra request again. The provider will
       // return false from shouldRun, so we should not see any more queries.
       provider.setState({ foo: 2 });
       await new Promise((r) => setTimeout(r, 1));
@@ -2276,11 +2276,11 @@ class CustomDataSource extends RuntimeDataSource {
   }
 }
 
-interface TestSupplementaryRequestProviderState extends SceneObjectState {
+interface TestExtraQueryProviderState extends SceneObjectState {
   foo: number;
 }
 
-class TestSupplementaryRequestProvider extends SceneObjectBase<TestSupplementaryRequestProviderState> implements SupplementaryRequestProvider<{}> {
+class TestExtraQueryProvider extends SceneObjectBase<TestExtraQueryProviderState> implements ExtraQueryProvider<{}> {
   private _shouldRerun: boolean;
 
   public constructor(state: { foo: number; }, shouldRerun: boolean) {
@@ -2288,12 +2288,12 @@ class TestSupplementaryRequestProvider extends SceneObjectBase<TestSupplementary
     this._shouldRerun = shouldRerun;
   }
 
-  public getSupplementaryRequests(): SupplementaryRequest[] {
+  public getExtraQueries(): ExtraQueryDescriptor[] {
     return [{
       req: {
         targets: [
           // @ts-expect-error
-          { refId: 'Supplementary', foo: this.state.foo },
+          { refId: 'Extra', foo: this.state.foo },
         ],
       }
     }];
