@@ -139,7 +139,7 @@ export function findByKey<TargetType extends SceneObject>(sceneObject: SceneObje
 }
 
 /**
- * Returns a scene object from the scene graph with the requested key.
+ * Returns a scene object from the scene graph with the requested key and type.
  * 
  * Throws error if no key-matching scene object found.
  * Throws error if the given type does not match.
