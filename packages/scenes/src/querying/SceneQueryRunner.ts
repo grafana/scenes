@@ -75,6 +75,28 @@ export interface DataQueryExtended extends DataQuery {
   timeRangeCompare?: boolean;
 }
 
+// The requests that will be run by the query runner.
+//
+// Generally the query runner will run a single primary request.
+// If the scene graph contains implementations of
+// `SupplementaryRequestProvider`, the requests created by these
+// implementations will be added to the list of secondary requests,
+// and these will be executed at the same time as the primary request.
+//
+// The results of each secondary request will be passed to an associated
+// processor function (along with the results of the primary request),
+// which can transform the results as desired.
+interface PreparedRequests {
+  // The primary request to run.
+  primary: DataQueryRequest;
+  // A possibly empty list of secondary requests to run alongside
+  // the primary request.
+  secondaries: DataQueryRequest[];
+  // A map from `requestId` of secondary requests to processors
+  // for those requests. Provided by the `SupplementaryRequestProvider`.
+  processors: Map<string, ProcessorFunc>;
+}
+
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
   private _dataLayersSub?: Unsubscribable;
@@ -467,10 +489,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return clone;
   }
 
-  private prepareRequests = (
-    timeRange: SceneTimeRangeLike,
-    ds: DataSourceApi
-  ): { primary: DataQueryRequest, secondaries: DataQueryRequest[], processors: Map<string, ProcessorFunc> } => {
+  private prepareRequests(timeRange: SceneTimeRangeLike, ds: DataSourceApi): PreparedRequests {
     const { minInterval, queries } = this.state;
 
     let request: DataQueryRequest<DataQueryExtended> = {
