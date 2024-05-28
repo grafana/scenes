@@ -108,9 +108,9 @@ export { FieldConfigBuilder } from './core/PanelBuilders/FieldConfigBuilder';
 export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
-export { VisualizationConfigBuilder } from './core/PanelBuilders/VisualizationConfigBuilder';
-export { VisualizationConfigBuilders } from './core/PanelBuilders/VisualizationConfigBuilders';
-export { type VisualizationConfig } from './core/PanelBuilders/types';
+export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
+export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
+export { type VizConfig } from './core/PanelBuilders/types';
 
 export const sceneUtils = {
   getUrlWithAppState,

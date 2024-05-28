@@ -3,7 +3,7 @@ import {
   SceneDataProvider,
   VizPanel as VizPanelObject,
   VizPanelState,
-  VisualizationConfig,
+  VizConfig,
   SceneQueryRunner,
 } from '@grafana/scenes';
 import { DataProxyProvider } from '../DataProxyProvider';
@@ -15,7 +15,7 @@ import { useSceneContext } from '../hooks/hooks';
 export interface VizPanelProps {
   title: string;
   dataProvider?: SceneDataProvider;
-  viz: VisualizationConfig;
+  viz: VizConfig;
   headerActions?: React.ReactNode;
 }
 

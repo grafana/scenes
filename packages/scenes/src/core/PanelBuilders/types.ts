@@ -26,7 +26,7 @@ export type StandardFieldConfig = Pick<
   | 'thresholds'
   | 'unit'
 >;
-export interface VisualizationConfig<TOptions = {}, TFieldConfig = {}> {
+export interface VizConfig<TOptions = {}, TFieldConfig = {}> {
   pluginId: string;
   pluginVersion: string;
   options: DeepPartial<TOptions>;

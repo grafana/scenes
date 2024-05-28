@@ -16,16 +16,8 @@ import { DrilldownDemoPage } from './DrilldownDemoPage';
 
 export function ReactDemoPage() {
   return (
-<<<<<<< HEAD
     <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }} withQueryController>
       <CustomVariable name="env" query="dev, test, prod" initialValue="dev">
-||||||| 281a0c3137
-    <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }} hasQueryController>
-      <RCustomVariable name="env" query="dev, test, prod" initialValue="dev">
-=======
-    <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }} withQueryController>
-      <RCustomVariable name="env" query="dev, test, prod" initialValue="dev">
->>>>>>> react-context-poc
         <Switch>
           <Route path={`${urlBase}`} component={HomePage} exact />
           <Route path={`${urlBase}/repeat-by-variable`} component={RepeatByVariablePage} />

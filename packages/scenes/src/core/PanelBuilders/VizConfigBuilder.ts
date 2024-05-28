@@ -2,11 +2,10 @@ import { DeepPartial } from '../types';
 import { FieldConfigBuilder } from './FieldConfigBuilder';
 import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
 import { PanelOptionsBuilder } from './PanelOptionsBuilder';
-import { StandardFieldConfig, StandardFieldConfigInterface, VisualizationConfig } from './types';
+import { StandardFieldConfig, StandardFieldConfigInterface, VizConfig } from './types';
 
-export class VisualizationConfigBuilder<TOptions extends {}, TFieldConfig extends {}>
-  implements
-    StandardFieldConfigInterface<StandardFieldConfig, VisualizationConfigBuilder<TOptions, TFieldConfig>, 'set'>
+export class VizConfigBuilder<TOptions extends {}, TFieldConfig extends {}>
+  implements StandardFieldConfigInterface<StandardFieldConfig, VizConfigBuilder<TOptions, TFieldConfig>, 'set'>
 {
   private _fieldConfigBuilder: FieldConfigBuilder<TFieldConfig>;
   private _panelOptionsBuilder: PanelOptionsBuilder<TOptions>;
@@ -134,7 +133,7 @@ export class VisualizationConfigBuilder<TOptions extends {}, TFieldConfig extend
   /**
    * Build the panel.
    */
-  public build(): VisualizationConfig<TOptions, TFieldConfig> {
+  public build(): VizConfig<TOptions, TFieldConfig> {
     return {
       pluginId: this._pluginId,
       pluginVersion: this._pluginVersion,

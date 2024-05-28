@@ -5,11 +5,11 @@ import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
 import { SelectableValue } from '@grafana/data';
 import { graphWithGrapdientColor, plainGraph, timeSeriesBars } from './visualizations';
-import { VisualizationConfig } from '@grafana/scenes';
+import { VizConfig } from '@grafana/scenes';
 import { DemoVizLayout } from './utils';
 
 export function DynamicVisualiationPage() {
-  const [selectedViz, setSelectedViz] = useState<VisualizationConfig>(plainGraph);
+  const [selectedViz, setSelectedViz] = useState<VizConfig>(plainGraph);
   const selectedValue = visualizationOptions.find((x) => x.value === selectedViz)!;
 
   const dataProvider = useSceneQuery({ queries: randomWalkQuery, maxDataPoints: 50, datasource: DATASOURCE_REF });
@@ -34,7 +34,7 @@ export function DynamicVisualiationPage() {
   );
 }
 
-const visualizationOptions: Array<SelectableValue<VisualizationConfig>> = [
+const visualizationOptions: Array<SelectableValue<VizConfig>> = [
   { label: 'Graph', value: plainGraph },
   { label: 'Bars', value: timeSeriesBars },
   { label: 'Gradient graph', value: graphWithGrapdientColor },
