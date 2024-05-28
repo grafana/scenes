@@ -227,8 +227,12 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // if the next child after the updated item is a scene grid row, then we are either at the top
     // of the dashboard, or between rows
+    // if it's not a grid row, but it's parent is the layout, it means we are not in between a
+    // rows children, so also valid state
     const nextSceneChild = this.getSceneLayoutChild(gridLayout[indexOfUpdatedItem + 1].i);
     if (nextSceneChild instanceof SceneGridRow) {
+      return true;
+    } else if (nextSceneChild.parent instanceof SceneGridLayout) {
       return true;
     }
 
