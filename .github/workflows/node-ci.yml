@@ -25,7 +25,7 @@ jobs:
       - name: Typecheck library
         run: yarn run lerna run typecheck
 
-     - name: Test library
+      - name: Test library
         run: yarn run lerna run test --scope=@grafana/scenes-react
 
       - name: Build library
