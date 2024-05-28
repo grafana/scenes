@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { CustomVariable } from '../variables/variants/CustomVariable';
+import { CustomVariable, VariableValue } from '@grafana/scenes';
 import { useSceneContext } from './hooks';
-import { VariableValue } from '../variables/types';
 
 export interface RCustomVariableProps {
   query: string;

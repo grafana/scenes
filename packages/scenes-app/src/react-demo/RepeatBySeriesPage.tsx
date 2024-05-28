@@ -3,9 +3,8 @@ import {
   RCustomVariable,
   useSceneQuery,
   useVariableInterpolator,
-  SceneDataNode,
   RVizPanel,
-} from '@grafana/scenes';
+} from '@grafana/scenes-react';
 import { Stack } from '@grafana/ui';
 import React from 'react';
 
@@ -13,6 +12,7 @@ import { PageWrapper } from './PageWrapper';
 import { getFrameDisplayName } from '@grafana/data';
 import { plainGraph } from './visualizations';
 import { DemoVizLayout } from './utils';
+import { SceneDataNode } from '@grafana/scenes';
 
 export function RepeatBySeriesPage() {
   return (

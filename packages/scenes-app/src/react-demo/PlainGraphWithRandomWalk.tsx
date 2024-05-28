@@ -1,4 +1,4 @@
-import { useSceneQuery, RVizPanel } from '@grafana/scenes';
+import { useSceneQuery, RVizPanel } from '@grafana/scenes-react';
 import React from 'react';
 import { plainGraph } from './visualizations';
 

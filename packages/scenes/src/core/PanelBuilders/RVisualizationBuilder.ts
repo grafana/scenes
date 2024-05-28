@@ -1,8 +1,8 @@
-import { DeepPartial } from '../core/types';
-import { FieldConfigBuilder } from '../core/PanelBuilders/FieldConfigBuilder';
-import { FieldConfigOverridesBuilder } from '../core/PanelBuilders/FieldConfigOverridesBuilder';
-import { PanelOptionsBuilder } from '../core/PanelBuilders/PanelOptionsBuilder';
-import { StandardFieldConfig, StandardFieldConfigInterface } from '../core/PanelBuilders/types';
+import { DeepPartial } from '../types';
+import { FieldConfigBuilder } from './FieldConfigBuilder';
+import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
+import { PanelOptionsBuilder } from './PanelOptionsBuilder';
+import { StandardFieldConfig, StandardFieldConfigInterface } from './types';
 import { FieldConfigSource } from '@grafana/data';
 
 export interface RVisualization<TOptions = {}, TFieldConfig = {}> {

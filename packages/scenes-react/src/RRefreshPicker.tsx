@@ -1,9 +1,12 @@
 import React, { useEffect, useId } from 'react';
 import { useSceneContext } from './hooks';
-import { SceneRefreshPicker, SceneRefreshPickerState } from '../components/SceneRefreshPicker';
+import { SceneRefreshPicker, SceneRefreshPickerState } from '@grafana/scenes';
 import { usePrevious } from 'react-use';
 
-export interface Props extends Partial<SceneRefreshPickerState> {}
+export interface Props {
+  refresh?: string;
+  withText?: boolean;
+}
 
 export function RRefreshPicker(props: Props) {
   const scene = useSceneContext();
@@ -37,6 +40,10 @@ export function RRefreshPicker(props: Props) {
 
     if (props.refresh !== prevProps.refresh) {
       stateUpdate.refresh = props.refresh;
+    }
+
+    if (props.withText !== prevProps.withText) {
+      stateUpdate.withText = props.withText;
     }
 
     picker.setState(stateUpdate);

@@ -1,4 +1,4 @@
-import { RCustomVariable, RVariableSelect } from '@grafana/scenes';
+import { RCustomVariable, RVariableSelect } from '@grafana/scenes-react';
 import { Stack } from '@grafana/ui';
 import React from 'react';
 import { PageWrapper } from './PageWrapper';

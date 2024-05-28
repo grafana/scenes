@@ -1,5 +1,6 @@
-import { FieldConfig } from '@grafana/data';
+import { FieldConfig, FieldConfigSource } from '@grafana/data';
 import { MatcherConfig } from '@grafana/schema';
+import { DeepPartial } from '../types';
 
 export type StandardFieldConfigInterface<T, C, Prefix extends string> = {
   [K in keyof T as `${Prefix}${Capitalize<string & K>}`]: (value: T[K]) => C;
@@ -25,3 +26,9 @@ export type StandardFieldConfig = Pick<
   | 'thresholds'
   | 'unit'
 >;
+export interface RVisualization<TOptions = {}, TFieldConfig = {}> {
+  pluginId: string;
+  pluginVersion: string;
+  options: DeepPartial<TOptions>;
+  fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
+}

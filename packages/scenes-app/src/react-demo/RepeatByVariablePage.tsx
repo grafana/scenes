@@ -1,4 +1,4 @@
-import { useVariableValues, RVariableSelect, RCustomVariable } from '@grafana/scenes';
+import { useVariableValues, RVariableSelect, RCustomVariable } from '@grafana/scenes-react';
 import { Stack } from '@grafana/ui';
 import React from 'react';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';

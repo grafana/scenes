@@ -1,4 +1,5 @@
-import { useSceneQuery, RVizPanel, RVisualizationBuilders, Breadcrumb, BreadcrumbProvider } from '@grafana/scenes';
+import { RVisualizationBuilders } from '@grafana/scenes';
+import { Breadcrumb, BreadcrumbProvider, RVizPanel, useSceneQuery } from '@grafana/scenes-react';
 import React from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';

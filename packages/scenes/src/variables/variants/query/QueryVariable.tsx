@@ -12,7 +12,7 @@ import {
 } from '@grafana/data';
 
 import { sceneGraph } from '../../../core/sceneGraph';
-import { SceneComponentProps } from '../../../core/types';
+import { SceneComponentProps, SceneDataQuery } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
 import { renderSelectForVariable } from '../../components/VariableValueSelect';
 import { VariableValueOption } from '../../types';
@@ -25,14 +25,13 @@ import { getDataSource } from '../../../utils/getDataSource';
 import { safeStringifyValue } from '../../utils';
 import { DataQuery, DataSourceRef } from '@grafana/schema';
 import { SEARCH_FILTER_VARIABLE } from '../../constants';
-import { DataQueryExtended } from '../../../querying/SceneQueryRunner';
 import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
   datasource: DataSourceRef | null;
-  query: string | DataQueryExtended;
+  query: string | SceneDataQuery;
   regex: string;
   refresh: VariableRefresh;
   sort: VariableSort;

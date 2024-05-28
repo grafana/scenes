@@ -1,11 +1,11 @@
-import { useSceneQuery, RVizPanel } from '@grafana/scenes';
+import { useSceneQuery, RVizPanel } from '@grafana/scenes-react';
 import { RadioButtonGroup, Stack } from '@grafana/ui';
 import React, { useState } from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
 import { SelectableValue } from '@grafana/data';
 import { graphWithGrapdientColor, plainGraph, timeSeriesBars } from './visualizations';
-import { RVisualization } from '@grafana/scenes/src/react-context/RVisualizationBuilder';
+import { RVisualization } from '@grafana/scenes';
 import { DemoVizLayout } from './utils';
 
 export function DynamicVisualiationPage() {

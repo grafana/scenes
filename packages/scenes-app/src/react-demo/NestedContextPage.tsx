@@ -2,7 +2,7 @@ import { Stack, useTheme2 } from '@grafana/ui';
 import React from 'react';
 import { PageWrapper } from './PageWrapper';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
-import { RCustomVariable, RTimeRangePicker, RVariableSelect, SceneContextProvider } from '@grafana/scenes';
+import { RCustomVariable, RTimeRangePicker, RVariableSelect, SceneContextProvider } from '@grafana/scenes-react';
 
 export function NestedContextsPage() {
   return (

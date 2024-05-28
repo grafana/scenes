@@ -31,10 +31,10 @@
     "packages:publish": "lerna exec --no-private -- npm publish",
     "docs": "yarn workspace website run start --port 8080",
     "docs:build": "yarn workspace website run build",
-    "test:lib": "lerna run test --scope '@grafana/scenes' --",
-    "dev:lib": "lerna run dev --scope '@grafana/scenes' --",
+    "test:lib": "lerna run test --scope '@grafana/{scenes,scenes-react}' --",
+    "dev:lib": "lerna run dev --scope '@grafana/{scenes,scenes-react}' --",
     "dev:app": "lerna run dev --scope 'scenes-app' --",
-    "test": "lerna run test --scope '@grafana/scenes' -- --watch",
+    "test": "lerna run test --scope '@grafana/scenes{scenes,scenes-react}' -- --watch",
     "typecheck": "lerna run typecheck"
   },
   "resolutions": {

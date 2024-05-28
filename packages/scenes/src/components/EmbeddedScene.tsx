@@ -7,7 +7,6 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObject } from '../core/types';
 import { getUrlSyncManager } from '../services/UrlSyncManager';
 import { setWindowGrafanaSceneContext } from '../utils/compatibility/setWindowGrafanaSceneContext';
-import { SceneContext, SceneContextObject } from '../react-context';
 
 export interface EmbeddedSceneState extends SceneObjectState {
   /**
@@ -18,11 +17,6 @@ export interface EmbeddedSceneState extends SceneObjectState {
    * Top row of variable selectors, filters, time pickers and custom actions.
    */
   controls?: SceneObject[];
-
-  /**
-   * For interoperability with new hooks and plain react components;
-   */
-  context?: SceneContextObject;
 }
 
 export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
@@ -54,7 +48,7 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
 }
 
 function EmbeddedSceneRenderer({ model }: SceneComponentProps<EmbeddedScene>) {
-  const { body, controls, context } = model.useState();
+  const { body, controls } = model.useState();
   const styles = useStyles2(getStyles);
 
   const inner = (
@@ -71,10 +65,6 @@ function EmbeddedSceneRenderer({ model }: SceneComponentProps<EmbeddedScene>) {
       </div>
     </div>
   );
-
-  if (context) {
-    return <SceneContext.Provider value={context}>{inner}</SceneContext.Provider>;
-  }
 
   return inner;
 }

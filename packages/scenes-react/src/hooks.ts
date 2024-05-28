@@ -1,7 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { SceneContext } from './SceneContextProvider';
 import { TimeRange } from '@grafana/data';
-import { SceneTimeRangeLike } from '../core/types';
 import {
   SceneVariable,
   SceneVariableValueChangedEvent,
@@ -9,7 +8,8 @@ import {
   VariableValue,
   VariableValueSingle,
   sceneGraph,
-} from '..';
+  SceneTimeRangeLike,
+} from '@grafana/scenes';
 import { Subscription } from 'rxjs';
 
 export function useSceneContext() {

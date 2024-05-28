@@ -1,10 +1,10 @@
-import { useSceneQuery, RVizPanel } from '@grafana/scenes';
+import { useSceneQuery, RVizPanel } from '@grafana/scenes-react';
 import { Field, Select, Stack } from '@grafana/ui';
 import React, { useMemo, useState } from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
 import { toOption } from '@grafana/data';
-import { DataQueryExtended } from '@grafana/scenes/src/querying/SceneQueryRunner';
+import { SceneDataQuery } from '@grafana/scenes';
 import { plainGraph } from './visualizations';
 import { DemoVizLayout } from './utils';
 
@@ -31,7 +31,7 @@ export function DynamicQueriesPage() {
   );
 }
 
-function buildQueriesForScenario(scenario: string): DataQueryExtended[] {
+function buildQueriesForScenario(scenario: string): SceneDataQuery[] {
   switch (scenario) {
     case 'Random walk':
       return [

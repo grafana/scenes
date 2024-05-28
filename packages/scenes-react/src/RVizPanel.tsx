@@ -1,13 +1,10 @@
 import React, { useEffect, useId } from 'react';
-import { SceneDataProvider } from '../core/types';
-import { VizPanel, VizPanelState } from '../components/VizPanel/VizPanel';
+import { SceneDataProvider, VizPanel, VizPanelState, RVisualization, SceneQueryRunner } from '@grafana/scenes';
 import { DataProxyProvider } from './DataProxyProvider';
-import { RVisualization } from './RVisualizationBuilder';
 import { usePrevious } from 'react-use';
 import { getPanelOptionsWithDefaults } from '@grafana/data';
-import { writeSceneLog } from '../utils/writeSceneLog';
+import { writeSceneLog } from './utils';
 import { useSceneContext } from './hooks';
-import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 
 export interface RVizPanelProps {
   title: string;

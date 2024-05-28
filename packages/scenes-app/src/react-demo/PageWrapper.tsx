@@ -1,6 +1,6 @@
 import { NavModelItem } from '@grafana/data';
 import { PluginPage } from '@grafana/runtime';
-import { BreadcrumbContext, RRefreshPicker, RTimeRangePicker, RVariableSelect } from '@grafana/scenes';
+import { BreadcrumbContext, RRefreshPicker, RTimeRangePicker, RVariableSelect } from '@grafana/scenes-react';
 import React, { useContext } from 'react';
 
 export interface Props {
@@ -37,7 +37,7 @@ function PageActions() {
     <>
       <RVariableSelect name="env" />
       <RTimeRangePicker />
-      <RRefreshPicker withText />
+      <RRefreshPicker withText={true} />
     </>
   );
 }

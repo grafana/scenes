@@ -1,4 +1,4 @@
-import { useVariableInterpolator } from '@grafana/scenes';
+import { useVariableInterpolator } from '@grafana/scenes-react';
 import { Button, Stack } from '@grafana/ui';
 import React from 'react';
 import { PageWrapper } from './PageWrapper';

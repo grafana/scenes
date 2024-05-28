@@ -25,6 +25,7 @@ import {
   DataLayerFilter,
   SceneDataProvider,
   SceneDataProviderResult,
+  SceneDataQuery,
   SceneObjectState,
   SceneTimeRangeLike,
 } from '../core/types';
@@ -54,7 +55,7 @@ export function getNextRequestId() {
 
 export interface QueryRunnerState extends SceneObjectState {
   data?: PanelData;
-  queries: DataQueryExtended[];
+  queries: SceneDataQuery[];
   datasource?: DataSourceRef;
   minInterval?: string;
   maxDataPoints?: number;
@@ -66,13 +67,6 @@ export interface QueryRunnerState extends SceneObjectState {
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
   _hasFetchedData?: boolean;
-}
-
-export interface DataQueryExtended extends DataQuery {
-  [key: string]: any;
-
-  // Opt this query out of time window comparison
-  timeRangeCompare?: boolean;
 }
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
@@ -468,7 +462,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     let secondaryRequest: DataQueryRequest | undefined;
 
-    let request: DataQueryRequest<DataQueryExtended> = {
+    let request: DataQueryRequest<SceneDataQuery> = {
       app: 'scenes',
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
@@ -533,7 +527,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (comparer) {
       const secondaryTimeRange = comparer.getCompareTimeRange(primaryTimeRange);
       if (secondaryTimeRange) {
-        const secondaryTargets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
+        const secondaryTargets = request.targets.filter((query: SceneDataQuery) => query.timeRangeCompare !== false);
 
         if (secondaryTargets.length) {
           secondaryRequest = {
