@@ -1,3 +1,20 @@
+# v4.24.1 (Tue May 28 2024)
+
+#### 🐛 Bug Fix
+
+- Plugin.json: update schema reference URL in scenes-app [#754](https://github.com/grafana/scenes/pull/754) ([@leventebalogh](https://github.com/leventebalogh))
+- `@grafana/scenes`
+  - Allow drag and dropping rows in valid states [#756](https://github.com/grafana/scenes/pull/756) ([@mdvictor](https://github.com/mdvictor))
+  - fix: undefined check on RefreshPicker.autoOption [#751](https://github.com/grafana/scenes/pull/751) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 3
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v4.24.0 (Mon May 27 2024)
 
 #### 🚀 Enhancement
