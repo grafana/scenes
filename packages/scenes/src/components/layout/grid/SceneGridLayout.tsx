@@ -213,6 +213,29 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 
   /**
+   * Helper func to check if we are dropping a row in between panels of another row
+   */
+  private isRowDropValid(
+    gridLayout: ReactGridLayout.Layout[],
+    updatedItem: ReactGridLayout.Layout,
+    indexOfUpdatedItem: number
+  ): boolean {
+    // if the row is dropped at the end of the dashboard grid layout, we accept this valid state
+    if (gridLayout[gridLayout.length - 1].i === updatedItem.i) {
+      return true;
+    }
+
+    // if the next child after the updated item is a scene grid row, then we are either at the top
+    // of the dashboard, or between rows
+    const nextSceneChild = this.getSceneLayoutChild(gridLayout[indexOfUpdatedItem + 1].i);
+    if (nextSceneChild instanceof SceneGridRow) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * This likely needs a slightly different approach. Where we clone or deactivate or and re-activate the moved child
    */
   public moveChildTo(child: SceneGridItemLike, target: SceneGridLayout | SceneGridRow) {
@@ -257,7 +280,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
   public onDragStart: ReactGridLayout.ItemCallback = (gridLayout) => {
     this._oldLayout = [...gridLayout];
-  }
+  };
 
   public onDragStop: ReactGridLayout.ItemCallback = (gridLayout, o, updatedItem) => {
     const sceneChild = this.getSceneLayoutChild(updatedItem.i)!;
@@ -285,10 +308,13 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     let newChildren = this.state.children;
 
     // if the child is a row and we are moving it under an uncollapsed row, keep the scene grid layout as parent
-    // and set the old layout flag. We allow setting the children in an invalid state, as the layout will be updated
-    // in onLayoutChange and avoid flickering
+    // and set the old layout flag if the state is invalid. We allow setting the children in an invalid state,
+    // as the layout will be updated in onLayoutChange and avoid flickering
     if (sceneChild instanceof SceneGridRow && newParent instanceof SceneGridRow) {
-      this._loadOldLayout = true;
+      if (!this.isRowDropValid(gridLayout, updatedItem, indexOfUpdatedItem)) {
+        this._loadOldLayout = true;
+      }
+
       newParent = this;
     }
 
