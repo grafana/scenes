@@ -80,6 +80,20 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * Check if current value is valid given new options. If not update the value.
    */
   private updateValueGivenNewOptions(options: VariableValueOption[]) {
+    const stateUpdate = this.getStateUpdateGivenNewOptions(options);
+
+    this.interceptStateUpdateAfterValidation(stateUpdate);
+
+    // Perform state change
+    this.setStateHelper(stateUpdate);
+
+    // Publish value changed event only if value changed
+    if (stateUpdate.value !== this.state.value || stateUpdate.text !== this.state.text || this.hasAllValue()) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
+
+  private getStateUpdateGivenNewOptions(options: VariableValueOption[]): Partial<MultiValueVariableState> {
     // Remember current value and text
     const { value: currentValue, text: currentText } = this.state;
 
@@ -101,9 +115,24 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         stateUpdate.value = '';
         stateUpdate.text = '';
       }
-    } else if (this.hasAllValue()) {
-      // If value is set to All then we keep it set to All but just store the options
-    } else if (this.state.isMulti) {
+
+      return stateUpdate;
+    }
+
+    if (this.hasAllValue()) {
+      if (!this.state.includeAll) {
+        stateUpdate.value = options[0].value;
+        stateUpdate.text = options[0].label;
+        // If multi switch to arrays
+        if (this.state.isMulti) {
+          stateUpdate.value = [options[0].value];
+          stateUpdate.text = [options[0].label];
+        }
+      }
+      return stateUpdate;
+    }
+
+    if (this.state.isMulti) {
       // If we are a multi valued variable validate the current values are among the options
       const currentValues = Array.isArray(currentValue) ? currentValue : [currentValue];
       const validValues = currentValues.filter((v) => options.find((o) => o.value === v));
@@ -114,9 +143,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         const defaultState = this.getDefaultMultiState(options);
         stateUpdate.value = defaultState.value;
         stateUpdate.text = defaultState.text;
-      }
-      // We have valid values, if it's different from current valid values update current values
-      else {
+      } else {
+        // We have valid values, if it's different from current valid values update current values
         if (!isEqual(validValues, currentValue)) {
           stateUpdate.value = validValues;
         }
@@ -124,36 +152,31 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
           stateUpdate.text = validTexts;
         }
       }
+      return stateUpdate;
+    }
+
+    // Single value variable validation
+
+    // Try find by value then text
+    let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options);
+    if (matchingOption) {
+      // When updating the initial state from URL the text property is set the same as value
+      // Here we can correct the text value state
+      stateUpdate.text = matchingOption.label;
+      stateUpdate.value = matchingOption.value;
     } else {
-      // Try find by value then text
-      let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options);
-      if (matchingOption) {
-        // When updating the initial state from URL the text property is set the same as value
-        // Here we can correct the text value state
-        stateUpdate.text = matchingOption.label;
-        stateUpdate.value = matchingOption.value;
+      // Current value is found in options
+      if (this.state.defaultToAll) {
+        stateUpdate.value = ALL_VARIABLE_VALUE;
+        stateUpdate.text = ALL_VARIABLE_TEXT;
       } else {
-        // Current value is found in options
-        if (this.state.defaultToAll) {
-          stateUpdate.value = ALL_VARIABLE_VALUE;
-          stateUpdate.text = ALL_VARIABLE_TEXT;
-        } else {
-          // Current value is not valid. Set to first of the available options
-          stateUpdate.value = options[0].value;
-          stateUpdate.text = options[0].label;
-        }
+        // Current value is not valid. Set to first of the available options
+        stateUpdate.value = options[0].value;
+        stateUpdate.text = options[0].label;
       }
     }
 
-    this.interceptStateUpdateAfterValidation(stateUpdate);
-
-    // Perform state change
-    this.setStateHelper(stateUpdate);
-
-    // Publish value changed event only if value changed
-    if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    }
+    return stateUpdate;
   }
 
   /**

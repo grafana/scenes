@@ -46,6 +46,24 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
     });
 
+    it('Should pick first option is current value is All value but all value is not enabled', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        value: ALL_VARIABLE_VALUE,
+        text: ALL_VARIABLE_TEXT,
+        optionsToReturn: [
+          { label: 'B', value: 'B' },
+          { label: 'C', value: 'C' },
+        ],
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe('B');
+    });
+
     it('Should keep current value if current value is valid', async () => {
       const variable = new TestVariable({
         name: 'test',
@@ -220,6 +238,7 @@ describe('MultiValueVariable', () => {
           { label: 'A', value: '1' },
           { label: 'B', value: '2' },
         ],
+        includeAll: true,
         value: ALL_VARIABLE_VALUE,
         text: ALL_VARIABLE_TEXT,
         delayMs: 0,
