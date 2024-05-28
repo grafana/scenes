@@ -16,7 +16,7 @@ export interface UseQueryOptions {
  *
  * @example // To access query results do
  * const query = useSceneQuery(...);
- * const {data} = query.useState();
+ * const { data } = query.useState();
  */
 export function useSceneQuery(options: UseQueryOptions): SceneDataProvider {
   const scene = useSceneContext();
