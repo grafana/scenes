@@ -174,12 +174,15 @@ function useLayoutStyle(state: SceneFlexLayoutState, parentState?: SceneFlexItem
     } else {
       style.display = 'flex';
       style.flexGrow = 1;
+      style.minWidth = state.minWidth;
+      style.minHeight = state.minHeight;
     }
 
     style.flexDirection = direction;
     style.gap = '8px';
     style.flexWrap = wrap || 'nowrap';
     style.alignContent = 'baseline';
+    style.minWidth = style.minWidth || 0;
     style.minHeight = style.minHeight || 0;
 
     style[theme.breakpoints.down('md')] = {

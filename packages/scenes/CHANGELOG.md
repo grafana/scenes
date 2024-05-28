@@ -1,3 +1,39 @@
+# v4.24.0 (Mon May 27 2024)
+
+#### 🚀 Enhancement
+
+- SceneFlexLayout: Min width/height option was ignored [#749](https://github.com/grafana/scenes/pull/749) ([@edvard-falkskar](https://github.com/edvard-falkskar))
+
+#### Authors: 1
+
+- Edvard Falkskär ([@edvard-falkskar](https://github.com/edvard-falkskar))
+
+---
+
+# v4.23.1 (Wed May 22 2024)
+
+#### 🐛 Bug Fix
+
+- VariableValueSelect: Add missing data-testids for e2e [#742](https://github.com/grafana/scenes/pull/742) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v4.23.0 (Mon May 20 2024)
+
+#### 🚀 Enhancement
+
+- MultiValueVariable: Fixes setting value from url when url value is a custom all value [#738](https://github.com/grafana/scenes/pull/738) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.22.0 (Wed May 15 2024)
 
 #### 🚀 Enhancement
