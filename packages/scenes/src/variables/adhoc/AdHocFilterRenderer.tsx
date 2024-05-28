@@ -196,7 +196,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
     flexShrink: 1,
   }),
   key: css({
-    flexShrink: 0,
+    minWidth: '90px',
+    flexShrink: 1,
   }),
   operator: css({
     flexShrink: 0,
@@ -205,6 +206,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
     paddingLeft: theme.spacing(3 / 2),
     paddingRight: theme.spacing(3 / 2),
     borderLeft: 'none',
+    width: theme.spacing(3),
+    marginRight: theme.spacing(1),
+    boxSizing: 'border-box',
     // To not have button background and last select border intersect
     position: 'relative',
     left: '1px',
