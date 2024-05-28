@@ -26,7 +26,7 @@ export type StandardFieldConfig = Pick<
   | 'thresholds'
   | 'unit'
 >;
-export interface RVisualization<TOptions = {}, TFieldConfig = {}> {
+export interface VisualizationConfig<TOptions = {}, TFieldConfig = {}> {
   pluginId: string;
   pluginVersion: string;
   options: DeepPartial<TOptions>;

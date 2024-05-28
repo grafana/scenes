@@ -1,15 +1,15 @@
-import { useSceneQuery, RVizPanel } from '@grafana/scenes-react';
+import { useSceneQuery, VizPanel } from '@grafana/scenes-react';
 import { RadioButtonGroup, Stack } from '@grafana/ui';
 import React, { useState } from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
 import { SelectableValue } from '@grafana/data';
 import { graphWithGrapdientColor, plainGraph, timeSeriesBars } from './visualizations';
-import { RVisualization } from '@grafana/scenes';
+import { VisualizationConfig } from '@grafana/scenes';
 import { DemoVizLayout } from './utils';
 
 export function DynamicVisualiationPage() {
-  const [selectedViz, setSelectedViz] = useState<RVisualization>(plainGraph);
+  const [selectedViz, setSelectedViz] = useState<VisualizationConfig>(plainGraph);
   const selectedValue = visualizationOptions.find((x) => x.value === selectedViz)!;
 
   const dataProvider = useSceneQuery({ queries: randomWalkQuery, maxDataPoints: 50, datasource: DATASOURCE_REF });
@@ -22,7 +22,7 @@ export function DynamicVisualiationPage() {
     <PageWrapper title="Dynamic visualisation" subTitle="Rebuild queries based on some user input / state">
       <Stack direction="column">
         <DemoVizLayout>
-          <RVizPanel
+          <VizPanel
             title={selectedValue.label!}
             dataProvider={dataProvider}
             viz={selectedViz}
@@ -34,7 +34,7 @@ export function DynamicVisualiationPage() {
   );
 }
 
-const visualizationOptions: Array<SelectableValue<RVisualization>> = [
+const visualizationOptions: Array<SelectableValue<VisualizationConfig>> = [
   { label: 'Graph', value: plainGraph },
   { label: 'Bars', value: timeSeriesBars },
   { label: 'Gradient graph', value: graphWithGrapdientColor },

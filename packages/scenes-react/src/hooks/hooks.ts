@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { SceneContext } from './SceneContextProvider';
+import { SceneContext } from '../contexts/SceneContextProvider';
 import { TimeRange } from '@grafana/data';
 import {
   SceneVariable,

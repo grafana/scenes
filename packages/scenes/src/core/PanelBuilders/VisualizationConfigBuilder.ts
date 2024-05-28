@@ -2,18 +2,11 @@ import { DeepPartial } from '../types';
 import { FieldConfigBuilder } from './FieldConfigBuilder';
 import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
 import { PanelOptionsBuilder } from './PanelOptionsBuilder';
-import { StandardFieldConfig, StandardFieldConfigInterface } from './types';
-import { FieldConfigSource } from '@grafana/data';
+import { StandardFieldConfig, StandardFieldConfigInterface, VisualizationConfig } from './types';
 
-export interface RVisualization<TOptions = {}, TFieldConfig = {}> {
-  pluginId: string;
-  pluginVersion: string;
-  options: DeepPartial<TOptions>;
-  fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
-}
-
-export class RVisualizationBuilder<TOptions extends {}, TFieldConfig extends {}>
-  implements StandardFieldConfigInterface<StandardFieldConfig, RVisualizationBuilder<TOptions, TFieldConfig>, 'set'>
+export class VisualizationConfigBuilder<TOptions extends {}, TFieldConfig extends {}>
+  implements
+    StandardFieldConfigInterface<StandardFieldConfig, VisualizationConfigBuilder<TOptions, TFieldConfig>, 'set'>
 {
   private _fieldConfigBuilder: FieldConfigBuilder<TFieldConfig>;
   private _panelOptionsBuilder: PanelOptionsBuilder<TOptions>;
@@ -141,7 +134,7 @@ export class RVisualizationBuilder<TOptions extends {}, TFieldConfig extends {}>
   /**
    * Build the panel.
    */
-  public build(): RVisualization<TOptions, TFieldConfig> {
+  public build(): VisualizationConfig<TOptions, TFieldConfig> {
     return {
       pluginId: this._pluginId,
       pluginVersion: this._pluginVersion,

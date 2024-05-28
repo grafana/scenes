@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { SceneContextProvider, SceneContextProviderProps } from './SceneContextProvider';
 import { SceneContextObject } from './SceneContextObject';
-import { useSceneContext } from './hooks';
+import { useSceneContext } from '../hooks/hooks';
 import { RenderResult, render } from '@testing-library/react';
 import { behaviors } from '@grafana/scenes';
 

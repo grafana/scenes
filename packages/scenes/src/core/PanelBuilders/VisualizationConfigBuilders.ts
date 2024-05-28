@@ -82,11 +82,11 @@ import {
   defaultFieldConfig as defaultXYChartFieldConfig,
 } from '@grafana/schema/dist/esm/raw/composable/xychart/panelcfg/x/XYChartPanelCfg_types.gen';
 
-import { RVisualizationBuilder } from './RVisualizationBuilder';
+import { VisualizationConfigBuilder } from './VisualizationConfigBuilder';
 
 export const RVisualizationBuilders = {
   barchart() {
-    return new RVisualizationBuilder<BarChartOptions, BarChartFieldConfig>(
+    return new VisualizationConfigBuilder<BarChartOptions, BarChartFieldConfig>(
       'barchart',
       '10.0.0',
       () => defaultBarChartOptions,
@@ -94,29 +94,29 @@ export const RVisualizationBuilders = {
     );
   },
   bargauge() {
-    return new RVisualizationBuilder<BarGaugeOptions, {}>('bargauge', '10.0.0', () => defaultBarGaugeOptions);
+    return new VisualizationConfigBuilder<BarGaugeOptions, {}>('bargauge', '10.0.0', () => defaultBarGaugeOptions);
   },
   datagrid() {
-    return new RVisualizationBuilder<DataGridOptions, {}>('datagrid', '10.0.0', () => defaultDataGridOptions);
+    return new VisualizationConfigBuilder<DataGridOptions, {}>('datagrid', '10.0.0', () => defaultDataGridOptions);
   },
   flamegraph() {
-    return new RVisualizationBuilder<{}, {}>('flamegraph', '10.0.0');
+    return new VisualizationConfigBuilder<{}, {}>('flamegraph', '10.0.0');
   },
   gauge() {
-    return new RVisualizationBuilder<GaugeOptions, {}>('gauge', '10.0.0', () => defaultGaugeOptions);
+    return new VisualizationConfigBuilder<GaugeOptions, {}>('gauge', '10.0.0', () => defaultGaugeOptions);
   },
   geomap() {
-    return new RVisualizationBuilder<GeomapOptions, {}>('geomap', '10.0.0', () => defaultGeomapOptions);
+    return new VisualizationConfigBuilder<GeomapOptions, {}>('geomap', '10.0.0', () => defaultGeomapOptions);
   },
   heatmap() {
-    return new RVisualizationBuilder<HeatmapOptions, HeatmapFieldConfig>(
+    return new VisualizationConfigBuilder<HeatmapOptions, HeatmapFieldConfig>(
       'heatmap',
       '10.0.0',
       () => defaultHeatmapOptions
     );
   },
   histogram() {
-    return new RVisualizationBuilder<HistogramOptions, HistogramFieldConfig>(
+    return new VisualizationConfigBuilder<HistogramOptions, HistogramFieldConfig>(
       'histogram',
       '10.0.0',
       () => defaultHistogramOptions,
@@ -124,26 +124,26 @@ export const RVisualizationBuilders = {
     );
   },
   logs() {
-    return new RVisualizationBuilder<LogsOptions, {}>('logs', '10.0.0');
+    return new VisualizationConfigBuilder<LogsOptions, {}>('logs', '10.0.0');
   },
   news() {
-    return new RVisualizationBuilder<NewsOptions, {}>('news', '10.0.0', () => defaultNewsOptions);
+    return new VisualizationConfigBuilder<NewsOptions, {}>('news', '10.0.0', () => defaultNewsOptions);
   },
   nodegraph() {
-    return new RVisualizationBuilder<NodeGraphOptions, {}>('nodeGraph', '10.0.0');
+    return new VisualizationConfigBuilder<NodeGraphOptions, {}>('nodeGraph', '10.0.0');
   },
   piechart() {
-    return new RVisualizationBuilder<PieChartOptions, PieChartFieldConfig>(
+    return new VisualizationConfigBuilder<PieChartOptions, PieChartFieldConfig>(
       'piechart',
       '10.0.0',
       () => defaultPieChartOptions
     );
   },
   stat() {
-    return new RVisualizationBuilder<StatOptions, {}>('stat', '10.0.0', () => defaultStatOptions);
+    return new VisualizationConfigBuilder<StatOptions, {}>('stat', '10.0.0', () => defaultStatOptions);
   },
   statetimeline() {
-    return new RVisualizationBuilder<StateTimelineOptions, StateTimelineFieldConfig>(
+    return new VisualizationConfigBuilder<StateTimelineOptions, StateTimelineFieldConfig>(
       'state-timeline',
       '10.0.0',
       () => defaultStateTimelineOptions,
@@ -151,7 +151,7 @@ export const RVisualizationBuilders = {
     );
   },
   statushistory() {
-    return new RVisualizationBuilder<StatusHistoryOptions, StatusHistoryFieldConfig>(
+    return new VisualizationConfigBuilder<StatusHistoryOptions, StatusHistoryFieldConfig>(
       'status-history',
       '10.0.0',
       () => defaultStatusHistoryOptions,
@@ -159,22 +159,22 @@ export const RVisualizationBuilders = {
     );
   },
   table() {
-    return new RVisualizationBuilder<TableOptions, TableFieldConfig>('table', '10.0.0', () => defaultTableOptions);
+    return new VisualizationConfigBuilder<TableOptions, TableFieldConfig>('table', '10.0.0', () => defaultTableOptions);
   },
   text() {
-    return new RVisualizationBuilder<TextOptions, {}>('text', '10.0.0', () => defaultTextOptions);
+    return new VisualizationConfigBuilder<TextOptions, {}>('text', '10.0.0', () => defaultTextOptions);
   },
   timeseries() {
-    return new RVisualizationBuilder<TimeSeriesOptions, TimeSeriesFieldConfig>('timeseries', '10.0.0');
+    return new VisualizationConfigBuilder<TimeSeriesOptions, TimeSeriesFieldConfig>('timeseries', '10.0.0');
   },
   trend() {
-    return new RVisualizationBuilder<{}, {}>('trend', '10.0.0');
+    return new VisualizationConfigBuilder<{}, {}>('trend', '10.0.0');
   },
   traces() {
-    return new RVisualizationBuilder<TrendOptions, TrendFieldConfig>('traces', '10.0.0');
+    return new VisualizationConfigBuilder<TrendOptions, TrendFieldConfig>('traces', '10.0.0');
   },
   xychart() {
-    return new RVisualizationBuilder<XYChartOptions, {}>(
+    return new VisualizationConfigBuilder<XYChartOptions, {}>(
       'xychart',
       '10.0.0',
       () => defaultXYChartOptions,

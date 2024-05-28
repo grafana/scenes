@@ -2,7 +2,7 @@ import { NavModelItem, UrlQueryMap, urlUtil } from '@grafana/data';
 import { locationSearchToObject, locationService } from '@grafana/runtime';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useTimeRange, useVariables } from './hooks';
+import { useTimeRange, useVariables } from '../hooks/hooks';
 
 /**
  * Code and concepts copied from https://github.com/grafana/hackathon-2023-12-grafana-react/blob/main/src/grafana-react

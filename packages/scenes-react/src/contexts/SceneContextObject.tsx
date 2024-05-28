@@ -6,7 +6,7 @@ import {
   getUrlSyncManager,
   SceneVariableSet,
 } from '@grafana/scenes';
-import { writeSceneLog } from './utils';
+import { writeSceneLog } from '../utils';
 
 export interface SceneContextObjectState extends SceneObjectState {
   childContext?: SceneContextObject;

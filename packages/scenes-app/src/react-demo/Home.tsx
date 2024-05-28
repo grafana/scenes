@@ -1,4 +1,4 @@
-import { SceneContextProvider, RCustomVariable } from '@grafana/scenes-react';
+import { SceneContextProvider, CustomVariable } from '@grafana/scenes-react';
 import { Stack, TextLink } from '@grafana/ui';
 import React from 'react';
 import { Route, Switch } from 'react-router-dom';
@@ -17,7 +17,7 @@ import { DrilldownDemoPage } from './DrilldownDemoPage';
 export function ReactDemoPage() {
   return (
     <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }} withQueryController>
-      <RCustomVariable name="env" query="dev, test, prod" initialValue="dev">
+      <CustomVariable name="env" query="dev, test, prod" initialValue="dev">
         <Switch>
           <Route path={`${urlBase}`} component={HomePage} exact />
           <Route path={`${urlBase}/repeat-by-variable`} component={RepeatByVariablePage} />
@@ -29,7 +29,7 @@ export function ReactDemoPage() {
           <Route path={`${urlBase}/interpolation-hook`} component={InterpolationHookPage} />
           <Route path={`${urlBase}/drilldown`} component={DrilldownDemoPage} />
         </Switch>
-      </RCustomVariable>
+      </CustomVariable>
     </SceneContextProvider>
   );
 }

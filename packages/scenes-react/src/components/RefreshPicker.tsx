@@ -1,5 +1,5 @@
 import React, { useEffect, useId } from 'react';
-import { useSceneContext } from './hooks';
+import { useSceneContext } from '../hooks/hooks';
 import { SceneRefreshPicker, SceneRefreshPickerState } from '@grafana/scenes';
 import { usePrevious } from 'react-use';
 
@@ -8,7 +8,7 @@ export interface Props {
   withText?: boolean;
 }
 
-export function RRefreshPicker(props: Props) {
+export function RefreshPicker(props: Props) {
   const scene = useSceneContext();
   const key = useId();
   const prevProps = usePrevious(props);

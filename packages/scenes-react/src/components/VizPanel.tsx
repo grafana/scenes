@@ -1,28 +1,34 @@
 import React, { useEffect, useId } from 'react';
-import { SceneDataProvider, VizPanel, VizPanelState, RVisualization, SceneQueryRunner } from '@grafana/scenes';
-import { DataProxyProvider } from './DataProxyProvider';
+import {
+  SceneDataProvider,
+  VizPanel as VizPanelObject,
+  VizPanelState,
+  VisualizationConfig,
+  SceneQueryRunner,
+} from '@grafana/scenes';
+import { DataProxyProvider } from '../DataProxyProvider';
 import { usePrevious } from 'react-use';
 import { getPanelOptionsWithDefaults } from '@grafana/data';
-import { writeSceneLog } from './utils';
-import { useSceneContext } from './hooks';
+import { writeSceneLog } from '../utils';
+import { useSceneContext } from '../hooks/hooks';
 
-export interface RVizPanelProps {
+export interface VizPanelProps {
   title: string;
   dataProvider?: SceneDataProvider;
-  viz: RVisualization;
+  viz: VisualizationConfig;
   headerActions?: React.ReactNode;
 }
 
-export function RVizPanel(props: RVizPanelProps) {
+export function VizPanel(props: VizPanelProps) {
   const { title, viz, dataProvider, headerActions } = props;
   const scene = useSceneContext();
   const key = useId();
   const prevProps = usePrevious(props);
 
-  let panel = scene.findByKey<VizPanel>(key);
+  let panel = scene.findByKey<VizPanelObject>(key);
 
   if (!panel) {
-    panel = new VizPanel({
+    panel = new VizPanelObject({
       key: key,
       title: title,
       pluginId: viz.pluginId,

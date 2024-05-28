@@ -1,5 +1,5 @@
 import { RVisualizationBuilders } from '@grafana/scenes';
-import { Breadcrumb, BreadcrumbProvider, RVizPanel, useSceneQuery } from '@grafana/scenes-react';
+import { Breadcrumb, BreadcrumbProvider, VizPanel, useSceneQuery } from '@grafana/scenes-react';
 import React from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
@@ -38,7 +38,7 @@ export function DrilldownHome() {
   return (
     <PageWrapper title="Drilldown demo" subTitle="The top level page (for the demo)">
       <DemoVizLayout>
-        <RVizPanel title="JS Libraries" dataProvider={dataProvider} viz={tableWithDrilldown} />
+        <VizPanel title="JS Libraries" dataProvider={dataProvider} viz={tableWithDrilldown} />
       </DemoVizLayout>
     </PageWrapper>
   );

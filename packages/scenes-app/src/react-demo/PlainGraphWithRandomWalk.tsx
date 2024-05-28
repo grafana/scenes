@@ -1,4 +1,4 @@
-import { useSceneQuery, RVizPanel } from '@grafana/scenes-react';
+import { useSceneQuery, VizPanel } from '@grafana/scenes-react';
 import React from 'react';
 import { plainGraph } from './visualizations';
 
@@ -14,5 +14,5 @@ export function PlainGraphWithRandomWalk({ maxDataPoints, title, queryAlias }: P
     maxDataPoints: maxDataPoints ?? 20,
   });
 
-  return <RVizPanel title={title} viz={plainGraph} dataProvider={dataProvider} />;
+  return <VizPanel title={title} viz={plainGraph} dataProvider={dataProvider} />;
 }

@@ -1,4 +1,4 @@
-import { useSceneQuery, RVizPanel } from '@grafana/scenes-react';
+import { useSceneQuery, VizPanel } from '@grafana/scenes-react';
 import { Field, Select, Stack } from '@grafana/ui';
 import React, { useMemo, useState } from 'react';
 import { DATASOURCE_REF } from '../constants';
@@ -24,7 +24,7 @@ export function DynamicQueriesPage() {
           </Field>
         </Stack>
         <DemoVizLayout>
-          <RVizPanel title={scenario} dataProvider={dataProvider} viz={plainGraph} />
+          <VizPanel title={scenario} dataProvider={dataProvider} viz={plainGraph} />
         </DemoVizLayout>
       </Stack>
     </PageWrapper>

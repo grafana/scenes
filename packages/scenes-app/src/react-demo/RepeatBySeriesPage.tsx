@@ -1,9 +1,9 @@
 import {
-  RVariableSelect,
-  RCustomVariable,
+  VariableSelect,
+  CustomVariable,
   useSceneQuery,
   useVariableInterpolator,
-  RVizPanel,
+  VizPanel,
 } from '@grafana/scenes-react';
 import { Stack } from '@grafana/ui';
 import React from 'react';
@@ -17,12 +17,12 @@ import { SceneDataNode } from '@grafana/scenes';
 export function RepeatBySeriesPage() {
   return (
     <PageWrapper title="Repeat by series" subTitle="Repeats visualizations returned by a single query">
-      <RCustomVariable name="series" label="Series count" query="1,2,5,10,20,30" initialValue={'3'}>
+      <CustomVariable name="series" label="Series count" query="1,2,5,10,20,30" initialValue={'3'}>
         <Stack direction={'column'}>
-          <RVariableSelect name="series" />
+          <VariableSelect name="series" />
           <RepeatPanelBySeries />
         </Stack>
-      </RCustomVariable>
+      </CustomVariable>
     </PageWrapper>
   );
 }
@@ -61,7 +61,7 @@ const RepeatPanelBySeries = React.memo(() => {
           },
         });
 
-        return <RVizPanel key={seriesName} title={seriesName} viz={plainGraph} dataProvider={dataNode} />;
+        return <VizPanel key={seriesName} title={seriesName} viz={plainGraph} dataProvider={dataNode} />;
       })}
     </DemoVizLayout>
   );

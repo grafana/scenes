@@ -1,9 +1,9 @@
-export { useSceneQuery } from './useSceneQuery';
-export * from './SceneContextProvider';
-export { RTimeRangePicker } from './RTimeRangePicker';
-export { RVariableSelect } from './RVariableSelect';
-export { RVizPanel } from './RVizPanel';
-export { RRefreshPicker } from './RRefreshPicker';
-export { RCustomVariable } from './RCustomVariable';
-export { Breadcrumb, BreadcrumbContext, BreadcrumbProvider } from './BreadcrumbContext';
-export * from './hooks';
+export { useSceneQuery } from './hooks/useSceneQuery';
+export * from './contexts/SceneContextProvider';
+export { TimeRangePicker } from './components/TimeRangePicker';
+export { VariableSelect } from './components/VariableSelect';
+export { VizPanel } from './components/VizPanel';
+export { RefreshPicker } from './components/RefreshPicker';
+export { CustomVariable } from './variables/CustomVariable';
+export { Breadcrumb, BreadcrumbContext, BreadcrumbProvider } from './contexts/BreadcrumbContext';
+export * from './hooks/hooks';
