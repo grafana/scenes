@@ -34,7 +34,7 @@
     "test:lib": "lerna run test --scope '@grafana/{scenes,scenes-react}' --",
     "dev:lib": "lerna run dev --scope '@grafana/{scenes,scenes-react}' --",
     "dev:app": "lerna run dev --scope 'scenes-app' --",
-    "test": "lerna run test --scope '@grafana/scenes{scenes,scenes-react}' -- --watch",
+    "test": "lerna run test --scope '@grafana/{scenes,scenes-react}' -- --watch",
     "typecheck": "lerna run typecheck"
   },
   "resolutions": {
