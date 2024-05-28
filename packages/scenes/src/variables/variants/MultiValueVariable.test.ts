@@ -46,7 +46,7 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
     });
 
-    it('Should pick first option is current value is All value but all value is not enabled', async () => {
+    it('Should pick first option whebn current value is All value but all value is not enabled', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
