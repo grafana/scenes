@@ -1,8 +1,6 @@
 import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
 
-import { matchers } from './test';
-
 Object.assign(global, { TextDecoder, TextEncoder });
 
 Object.defineProperty(global, 'matchMedia', {
@@ -28,5 +26,3 @@ global.IntersectionObserver = jest.fn(() => ({
   rootMargin: '',
   thresholds: [],
 }));
-
-expect.extend(matchers);
