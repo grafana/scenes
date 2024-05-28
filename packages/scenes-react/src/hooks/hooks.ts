@@ -4,9 +4,7 @@ import { TimeRange } from '@grafana/data';
 import {
   SceneVariable,
   SceneVariableValueChangedEvent,
-  SceneVariables,
   VariableValue,
-  VariableValueSingle,
   sceneGraph,
   SceneTimeRangeLike,
 } from '@grafana/scenes';
@@ -37,31 +35,6 @@ export function useVariables(): SceneVariable[] {
   const scene = useSceneContext();
   const variables = sceneGraph.getVariables(scene);
   return variables.useState().variables;
-}
-
-export function useVariableValues(name: string): [VariableValueSingle[] | undefined, boolean] {
-  const scene = useSceneContext();
-  const variable = sceneGraph.lookupVariable(name, scene);
-
-  if (!variable) {
-    return [undefined, false];
-  }
-
-  variable.useState();
-
-  const set = variable.parent as SceneVariables;
-  const isLoading = set.isVariableLoadingOrWaitingToUpdate(variable);
-  let value = variable.getValue();
-
-  if (value == null) {
-    return [undefined, isLoading];
-  }
-
-  if (!Array.isArray(value)) {
-    value = [value];
-  }
-
-  return [value, isLoading];
 }
 
 export interface UseUpdateWhenSceneChangesOptions {
