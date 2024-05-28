@@ -236,6 +236,6 @@ describe('sceneGraph', () => {
     expect(()=>sceneGraph.findByKeyAndType(scene, 'A', SceneDataNode)).toThrow();
     // By wrong key
     expect(()=>sceneGraph.findByKey(scene, 'NOT A KEY')).toThrow();
-    expect(()=>sceneGraph.findByKey(scene, 'NOT A KEY', SceneFlexItem)).toThrow();
+    expect(()=>sceneGraph.findByKeyAndType(scene, 'NOT A KEY', SceneFlexItem)).toThrow();
   })
 });
