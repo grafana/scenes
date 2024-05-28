@@ -18,13 +18,13 @@ export const extraQueryProcessingOperator = (processors: Map<string, ExtraQueryP
   (data: Observable<[PanelData, ...PanelData[]]>) => {
     return data.pipe(
       map(([primary, ...secondaries]) => {
-        const frames = secondaries.flatMap((s) => {
-          const processed = processors.get(s.request!.requestId)?.(primary, s) ?? s;
-          return processed.series;
+        const processedSecondaries = secondaries.flatMap((s) => {
+          return processors.get(s.request!.requestId)?.(primary, s) ?? s;
         });
         return {
           ...primary,
-          series: [...primary.series, ...frames],
+          series: [...primary.series, ...processedSecondaries.flatMap((s) => s.series)],
+          annotations: [...(primary.annotations ?? []), ...processedSecondaries.flatMap((s) => s.annotations ?? [])],
         };
       })
     );
