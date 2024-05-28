@@ -84,7 +84,7 @@ import {
 
 import { VisualizationConfigBuilder } from './VisualizationConfigBuilder';
 
-export const RVisualizationBuilders = {
+export const VisualizationConfigBuilders = {
   barchart() {
     return new VisualizationConfigBuilder<BarChartOptions, BarChartFieldConfig>(
       'barchart',

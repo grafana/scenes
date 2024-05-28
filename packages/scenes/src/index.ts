@@ -109,7 +109,7 @@ export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
 export { VisualizationConfigBuilder } from './core/PanelBuilders/VisualizationConfigBuilder';
-export { RVisualizationBuilders } from './core/PanelBuilders/VisualizationConfigBuilders';
+export { VisualizationConfigBuilders } from './core/PanelBuilders/VisualizationConfigBuilders';
 export { type VisualizationConfig } from './core/PanelBuilders/types';
 
 export const sceneUtils = {

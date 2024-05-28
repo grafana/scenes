@@ -1,4 +1,4 @@
-import { RVisualizationBuilders } from '@grafana/scenes';
+import { VisualizationConfigBuilders } from '@grafana/scenes';
 import { Breadcrumb, BreadcrumbProvider, VizPanel, useSceneQuery } from '@grafana/scenes-react';
 import React from 'react';
 import { DATASOURCE_REF } from '../constants';
@@ -56,7 +56,7 @@ export function DrilldownLibraryPage() {
   );
 }
 
-export const tableWithDrilldown = RVisualizationBuilders.table()
+export const tableWithDrilldown = VisualizationConfigBuilders.table()
   .setOverrides((b) =>
     b.matchFieldsWithName('Library').overrideLinks([
       {
