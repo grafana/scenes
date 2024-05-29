@@ -4,7 +4,7 @@
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
-  "homepage": "https://github.com/grafana/scenes#readme",
+  "homepage": "https://grafana.com/developers/scenes",
   "main": "dist/index.js",
   "types": "src/index.ts",
   "module": "dist/esm/index.js",
