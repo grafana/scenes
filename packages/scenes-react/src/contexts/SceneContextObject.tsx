@@ -19,11 +19,14 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
       ...state,
       children: state?.children ?? [],
     });
+
+    this.addActivationHandler(this._activationHandler.bind(this));
   }
+
+  private _activationHandler() {}
 
   public addToScene(obj: SceneObject) {
     this.setState({ children: [...this.state.children, obj] });
-
     writeSceneLog('SceneContext', `Adding to scene: ${obj.constructor.name} key: ${obj.state.key}`);
   }
 
@@ -47,8 +50,6 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
 
   public addVariable(variable: SceneVariable) {
     let set = this.state.$variables as SceneVariableSet;
-
-    getUrlSyncManager().syncNewObj(variable);
 
     if (set) {
       set.setState({ variables: [...set.state.variables, variable] });

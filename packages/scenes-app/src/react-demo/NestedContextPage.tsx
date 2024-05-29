@@ -3,12 +3,15 @@ import React from 'react';
 import { PageWrapper } from './PageWrapper';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 import { CustomVariable, TimeRangePicker, VariableSelect, SceneContextProvider } from '@grafana/scenes-react';
+import { DemoVizLayout } from './utils';
 
 export function NestedContextsPage() {
   return (
     <PageWrapper title="Nested context" subTitle="Nested contexts with different time ranges and variables">
       <Stack direction="column">
-        <PlainGraphWithRandomWalk title="Global" />
+        <DemoVizLayout>
+          <PlainGraphWithRandomWalk title="Global" />
+        </DemoVizLayout>
         <Line />
         <SceneContextProvider timeRange={{ from: 'now-10m', to: 'now' }}>
           <CustomVariable name="job" query="jobA-${env}, jobB-${env}, jobC-${env}">
@@ -17,7 +20,9 @@ export function NestedContextsPage() {
                 <VariableSelect name="job" />
                 <TimeRangePicker />
               </Stack>
-              <PlainGraphWithRandomWalk title="Nested time range" queryAlias="job = $job" />
+              <DemoVizLayout>
+                <PlainGraphWithRandomWalk title="Nested time range" queryAlias="job = $job" />
+              </DemoVizLayout>
             </Stack>
           </CustomVariable>
         </SceneContextProvider>

@@ -11,8 +11,7 @@ export class UniqueUrlKeyMapper {
   public getUniqueKey(key: string, obj: SceneObject) {
     const objectsWithKey = this.index.get(key);
     if (!objectsWithKey) {
-      //      throw new Error("Cannot find any scene object that uses the key '" + key + "'");
-      return key;
+      throw new Error("Cannot find any scene object that uses the key '" + key + "'");
     }
 
     const address = objectsWithKey.findIndex((o) => o.sceneObject === obj);

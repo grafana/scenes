@@ -13,7 +13,6 @@ export interface UrlSyncManagerLike {
   initSync(root: SceneObject): void;
   cleanUp(root: SceneObject): void;
   getUrlState(root: SceneObject): SceneObjectUrlValues;
-  syncNewObj(obj: SceneObject): void;
 }
 
 export class UrlSyncManager implements UrlSyncManagerLike {
@@ -127,14 +126,6 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       }
     }
   };
-
-  public syncNewObj(obj: SceneObject) {
-    if (!this._urlParams) {
-      throw new Error('UrlSyncManager not initialized');
-    }
-
-    syncStateFromUrl(obj, this._urlParams, this._urlKeyMapper);
-  }
 
   public getUrlState(root: SceneObject): SceneObjectUrlValues {
     return getUrlState(root);
