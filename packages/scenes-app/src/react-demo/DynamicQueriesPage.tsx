@@ -1,4 +1,4 @@
-import { useSceneQuery, VizPanel } from '@grafana/scenes-react';
+import { useQueryRunner, VizPanel } from '@grafana/scenes-react';
 import { Field, Select, Stack } from '@grafana/ui';
 import React, { useMemo, useState } from 'react';
 import { DATASOURCE_REF } from '../constants';
@@ -13,7 +13,7 @@ export function DynamicQueriesPage() {
   const [scenario, setScenario] = useState<string>('Random walk');
   const queries = useMemo(() => buildQueriesForScenario(scenario), [scenario]);
 
-  const dataProvider = useSceneQuery({ queries: queries, maxDataPoints: 100, datasource: DATASOURCE_REF });
+  const dataProvider = useQueryRunner({ queries: queries, maxDataPoints: 100, datasource: DATASOURCE_REF });
 
   return (
     <PageWrapper title="Dynamic queriues" subTitle="Rebuild queries based on some user input / state">

@@ -14,10 +14,10 @@ export interface UseQueryOptions {
  * Maintains the state of SceneQueryRunner in the scene
  *
  * @example // To access query results do
- * const query = useSceneQuery(...);
+ * const query = useQueryRunner(...);
  * const { data } = query.useState();
  */
-export function useSceneQuery(options: UseQueryOptions): SceneDataProvider {
+export function useQueryRunner(options: UseQueryOptions): SceneDataProvider {
   const scene = useSceneContext();
   const key = useId();
 

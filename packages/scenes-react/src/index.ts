@@ -1,4 +1,4 @@
-export { useSceneQuery } from './hooks/useSceneQuery';
+export { useQueryRunner } from './hooks/useQueryRunner';
 export * from './contexts/SceneContextProvider';
 export { TimeRangePicker } from './components/TimeRangePicker';
 export { VariableSelect } from './components/VariableSelect';
