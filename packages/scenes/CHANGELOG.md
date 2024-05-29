@@ -1,3 +1,16 @@
+# v4.24.2 (Wed May 29 2024)
+
+#### 🐛 Bug Fix
+
+- MultiValueVariable: Fixes issue when value is all value but all value is not enabled [#757](https://github.com/grafana/scenes/pull/757) ([@torkelo](https://github.com/torkelo) [@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 2
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.24.1 (Tue May 28 2024)
 
 #### 🐛 Bug Fix
