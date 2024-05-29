@@ -80,7 +80,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * Check if current value is valid given new options. If not update the value.
    */
   private updateValueGivenNewOptions(options: VariableValueOption[]) {
-    const stateUpdate = this.getStateUpdateGivenNewOptions(options);
+    // Remember current value and text
+    const { value: currentValue, text: currentText } = this.state;
+
+    const stateUpdate = this.getStateUpdateGivenNewOptions(options, currentValue, currentText);
 
     this.interceptStateUpdateAfterValidation(stateUpdate);
 
@@ -88,15 +91,16 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     this.setStateHelper(stateUpdate);
 
     // Publish value changed event only if value changed
-    if (stateUpdate.value !== this.state.value || stateUpdate.text !== this.state.text || this.hasAllValue()) {
+    if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
 
-  private getStateUpdateGivenNewOptions(options: VariableValueOption[]): Partial<MultiValueVariableState> {
-    // Remember current value and text
-    const { value: currentValue, text: currentText } = this.state;
-
+  private getStateUpdateGivenNewOptions(
+    options: VariableValueOption[],
+    currentValue: VariableValue,
+    currentText: VariableValue
+  ): Partial<MultiValueVariableState> {
     const stateUpdate: Partial<MultiValueVariableState> = {
       options,
       loading: false,
@@ -125,8 +129,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         stateUpdate.text = options[0].label;
         // If multi switch to arrays
         if (this.state.isMulti) {
-          stateUpdate.value = [options[0].value];
-          stateUpdate.text = [options[0].label];
+          stateUpdate.value = [stateUpdate.value];
+          stateUpdate.text = [stateUpdate.text];
         }
       }
       return stateUpdate;
