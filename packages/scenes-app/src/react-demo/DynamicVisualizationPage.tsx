@@ -1,4 +1,4 @@
-import { useSceneQuery, VizPanel } from '@grafana/scenes-react';
+import { useQueryRunner, VizPanel } from '@grafana/scenes-react';
 import { RadioButtonGroup, Stack } from '@grafana/ui';
 import React, { useState } from 'react';
 import { DATASOURCE_REF } from '../constants';
@@ -12,7 +12,7 @@ export function DynamicVisualiationPage() {
   const [selectedViz, setSelectedViz] = useState<VizConfig>(plainGraph);
   const selectedValue = visualizationOptions.find((x) => x.value === selectedViz)!;
 
-  const dataProvider = useSceneQuery({ queries: randomWalkQuery, maxDataPoints: 50, datasource: DATASOURCE_REF });
+  const dataProvider = useQueryRunner({ queries: randomWalkQuery, maxDataPoints: 50, datasource: DATASOURCE_REF });
 
   const vizSelector = (
     <RadioButtonGroup value={selectedViz} options={visualizationOptions} onChange={setSelectedViz} size="sm" />

@@ -1,7 +1,7 @@
 import {
   VariableSelect,
   CustomVariable,
-  useSceneQuery,
+  useQueryRunner,
   useVariableInterpolator,
   VizPanel,
 } from '@grafana/scenes-react';
@@ -31,7 +31,7 @@ const RepeatPanelBySeries = React.memo(() => {
   const interpolator = useVariableInterpolator({ variables: ['series'] });
   const seriesCount = parseInt(interpolator('$series'), 10);
 
-  const dataProvider = useSceneQuery({
+  const dataProvider = useQueryRunner({
     queries: [
       {
         uid: 'gdev-testdata',

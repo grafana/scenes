@@ -1,5 +1,5 @@
 import { VizConfigBuilders } from '@grafana/scenes';
-import { Breadcrumb, BreadcrumbProvider, VizPanel, useSceneQuery } from '@grafana/scenes-react';
+import { Breadcrumb, BreadcrumbProvider, VizPanel, useQueryRunner } from '@grafana/scenes-react';
 import React from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
@@ -24,7 +24,7 @@ export function DrilldownDemoPage() {
 }
 
 export function DrilldownHome() {
-  const dataProvider = useSceneQuery({
+  const dataProvider = useQueryRunner({
     queries: [
       {
         scenarioId: 'csv_file',

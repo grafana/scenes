@@ -94,7 +94,7 @@ export function VizPanel(props: VizPanelProps) {
 }
 
 /**
- * Since the useSceneQuery attaches query runners to the scene context their parent is already set
+ * Since the useQueryRunner attaches query runners to the scene context their parent is already set
  * This proxy is to work around that.
  * TODO: Figure out a better way to handle this'
  */
