@@ -6,7 +6,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { DataQueryExtended } from '../querying/SceneQueryRunner';
-import { ExtraQueryDescriptor, ExtraQueryProcessor, ExtraQueryProvider } from '../querying/ExtraQueryProvider';
+import { ExtraQueryDescriptor, ExtraQueryDataProcessor, ExtraQueryProvider } from '../querying/ExtraQueryProvider';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
@@ -180,7 +180,7 @@ export class SceneTimeRangeCompare
 // This aligns the secondary series with the primary and adds custom
 // metadata and config to the secondary series' fields so that it is
 // rendered appropriately.
-const timeShiftAlignmentProcessor: ExtraQueryProcessor = (primary, secondary) => {
+const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary) => {
   const diff = secondary.timeRange.from.diff(primary.timeRange.from);
   secondary.series.forEach((series) => {
     series.refId = getCompareSeriesRefId(series.refId || '');

@@ -16,7 +16,7 @@ import { SceneObjectState } from "../core/types";
 // some more advanced processing such as fitting a time series model on the secondary data.
 //
 // See the docs for `extraQueryProcessingOperator` for more information.
-export type ExtraQueryProcessor = (primary: PanelData, secondary: PanelData) => PanelData;
+export type ExtraQueryDataProcessor = (primary: PanelData, secondary: PanelData) => PanelData;
 
 // An extra request that should be run by a query runner, and an optional
 // processor that should be called with the response data.
@@ -25,7 +25,7 @@ export interface ExtraQueryDescriptor {
   req: DataQueryRequest;
   // An optional function used to process the data before passing it
   // to any transformations or visualizations.
-  processor?: ExtraQueryProcessor;
+  processor?: ExtraQueryDataProcessor;
 }
 
 // Indicates that this type wants to add extra requests, along with

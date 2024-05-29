@@ -34,7 +34,7 @@ import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { getClosest } from '../core/sceneGraph/utils';
-import { isExtraQueryProvider, ExtraQueryProcessor, ExtraQueryProvider } from './ExtraQueryProvider';
+import { isExtraQueryProvider, ExtraQueryDataProcessor, ExtraQueryProvider } from './ExtraQueryProvider';
 import { passthroughProcessor, extraQueryProcessingOperator } from './extraQueryProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
@@ -94,7 +94,7 @@ interface PreparedRequests {
   secondaries: DataQueryRequest[];
   // A map from `requestId` of secondary requests to processors
   // for those requests. Provided by the `ExtraQueryProvider`.
-  processors: Map<string, ExtraQueryProcessor>;
+  processors: Map<string, ExtraQueryDataProcessor>;
 }
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
