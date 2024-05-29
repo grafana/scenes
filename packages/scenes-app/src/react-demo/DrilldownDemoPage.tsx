@@ -1,4 +1,5 @@
-import { useSceneQuery, RVizPanel, RVisualizationBuilders, Breadcrumb, BreadcrumbProvider } from '@grafana/scenes';
+import { VizConfigBuilders } from '@grafana/scenes';
+import { Breadcrumb, BreadcrumbProvider, VizPanel, useQueryRunner } from '@grafana/scenes-react';
 import React from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
@@ -23,7 +24,7 @@ export function DrilldownDemoPage() {
 }
 
 export function DrilldownHome() {
-  const dataProvider = useSceneQuery({
+  const dataProvider = useQueryRunner({
     queries: [
       {
         scenarioId: 'csv_file',
@@ -37,7 +38,7 @@ export function DrilldownHome() {
   return (
     <PageWrapper title="Drilldown demo" subTitle="The top level page (for the demo)">
       <DemoVizLayout>
-        <RVizPanel title="JS Libraries" dataProvider={dataProvider} viz={tableWithDrilldown} />
+        <VizPanel title="JS Libraries" dataProvider={dataProvider} viz={tableWithDrilldown} />
       </DemoVizLayout>
     </PageWrapper>
   );
@@ -55,7 +56,7 @@ export function DrilldownLibraryPage() {
   );
 }
 
-export const tableWithDrilldown = RVisualizationBuilders.table()
+export const tableWithDrilldown = VizConfigBuilders.table()
   .setOverrides((b) =>
     b.matchFieldsWithName('Library').overrideLinks([
       {

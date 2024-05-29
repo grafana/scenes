@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { CustomVariable } from '../variables/variants/CustomVariable';
-import { useSceneContext } from './hooks';
-import { VariableValue } from '../variables/types';
+import { CustomVariable as CustomVariableObject, VariableValue } from '@grafana/scenes';
+import { useSceneContext } from '../hooks/hooks';
 
-export interface RCustomVariableProps {
+export interface CustomVariableProps {
   query: string;
   name: string;
   label?: string;
@@ -12,21 +11,21 @@ export interface RCustomVariableProps {
   children: React.ReactNode;
 }
 
-export function RCustomVariable({
+export function CustomVariable({
   query,
   name,
   label,
   initialValue,
   children,
   isMulti,
-}: RCustomVariableProps): React.ReactNode {
+}: CustomVariableProps): React.ReactNode {
   const scene = useSceneContext();
   const [variableAdded, setVariableAdded] = useState<boolean>();
 
-  let variable: CustomVariable | undefined = scene.findVariable(name);
+  let variable: CustomVariableObject | undefined = scene.findVariable(name);
 
   if (!variable) {
-    variable = new CustomVariable({ name, label, query, value: initialValue, isMulti });
+    variable = new CustomVariableObject({ name, label, query, value: initialValue, isMulti });
   }
 
   useEffect(() => {

@@ -1,19 +1,11 @@
-import { DeepPartial } from '../core/types';
-import { FieldConfigBuilder } from '../core/PanelBuilders/FieldConfigBuilder';
-import { FieldConfigOverridesBuilder } from '../core/PanelBuilders/FieldConfigOverridesBuilder';
-import { PanelOptionsBuilder } from '../core/PanelBuilders/PanelOptionsBuilder';
-import { StandardFieldConfig, StandardFieldConfigInterface } from '../core/PanelBuilders/types';
-import { FieldConfigSource } from '@grafana/data';
+import { DeepPartial } from '../types';
+import { FieldConfigBuilder } from './FieldConfigBuilder';
+import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
+import { PanelOptionsBuilder } from './PanelOptionsBuilder';
+import { StandardFieldConfig, StandardFieldConfigInterface, VizConfig } from './types';
 
-export interface RVisualization<TOptions = {}, TFieldConfig = {}> {
-  pluginId: string;
-  pluginVersion: string;
-  options: DeepPartial<TOptions>;
-  fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
-}
-
-export class RVisualizationBuilder<TOptions extends {}, TFieldConfig extends {}>
-  implements StandardFieldConfigInterface<StandardFieldConfig, RVisualizationBuilder<TOptions, TFieldConfig>, 'set'>
+export class VizConfigBuilder<TOptions extends {}, TFieldConfig extends {}>
+  implements StandardFieldConfigInterface<StandardFieldConfig, VizConfigBuilder<TOptions, TFieldConfig>, 'set'>
 {
   private _fieldConfigBuilder: FieldConfigBuilder<TFieldConfig>;
   private _panelOptionsBuilder: PanelOptionsBuilder<TOptions>;
@@ -141,7 +133,7 @@ export class RVisualizationBuilder<TOptions extends {}, TFieldConfig extends {}>
   /**
    * Build the panel.
    */
-  public build(): RVisualization<TOptions, TFieldConfig> {
+  public build(): VizConfig<TOptions, TFieldConfig> {
     return {
       pluginId: this._pluginId,
       pluginVersion: this._pluginVersion,

@@ -63,6 +63,7 @@
     "@grafana/data": "^10.4.1",
     "@grafana/runtime": "^10.4.1",
     "@grafana/scenes": "workspace:*",
+    "@grafana/scenes-react": "workspace:*",
     "@grafana/schema": "^10.4.1",
     "@grafana/ui": "^10.4.1",
     "@types/lodash": "latest",

@@ -1,6 +1,10 @@
-import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObjectRef } from '../core/SceneObjectRef';
-import { SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
+import {
+  SceneObjectBase,
+  SceneObjectRef,
+  SceneDataProvider,
+  SceneDataProviderResult,
+  SceneDataState,
+} from '@grafana/scenes';
 import { Observable } from 'rxjs';
 
 export interface DataProxyProviderState extends SceneDataState {

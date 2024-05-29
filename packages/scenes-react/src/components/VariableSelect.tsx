@@ -1,13 +1,12 @@
 import React from 'react';
-import { sceneGraph } from '../core/sceneGraph';
-import { VariableValueSelectWrapper } from '../variables/components/VariableValueSelectors';
-import { useSceneContext } from './hooks';
+import { sceneGraph, VariableValueSelectWrapper } from '@grafana/scenes';
+import { useSceneContext } from '../hooks/hooks';
 
 export interface Props {
   name: string;
 }
 
-export function RVariableSelect({ name }: Props) {
+export function VariableSelect({ name }: Props) {
   const scene = useSceneContext();
   const variable = sceneGraph.lookupVariable(name, scene);
 

@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { SceneTimeRangeState } from '../core/types';
-import { getUrlSyncManager } from '../services/UrlSyncManager';
-import { SceneTimeRange } from '../core/SceneTimeRange';
-import { SceneQueryController } from '../behaviors';
+import { SceneTimeRangeState, getUrlSyncManager, SceneTimeRange, behaviors } from '@grafana/scenes';
+
 import { SceneContextObject, SceneContextObjectState } from './SceneContextObject';
 
 export const SceneContext = createContext<SceneContextObject | null>(null);
@@ -35,7 +33,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
     const state: SceneContextObjectState = { children: [] };
 
     if (withQueryController) {
-      state.$behaviors = [new SceneQueryController()];
+      state.$behaviors = [new behaviors.SceneQueryController()];
     }
 
     if (initialTimeRange.current) {

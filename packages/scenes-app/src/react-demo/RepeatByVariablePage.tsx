@@ -1,4 +1,4 @@
-import { useVariableValues, RVariableSelect, RCustomVariable } from '@grafana/scenes';
+import { useVariableValues, VariableSelect, CustomVariable } from '@grafana/scenes-react';
 import { Stack } from '@grafana/ui';
 import React from 'react';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
@@ -11,12 +11,12 @@ export function RepeatByVariablePage() {
       title="Repeat by variable"
       subTitle="Has a nested variable scope with a new variable which we repeat some viz panels by"
     >
-      <RCustomVariable name="panels" query="10, 20, 30, 40, 50" initialValue={['10']} isMulti>
+      <CustomVariable name="panels" query="10, 20, 30, 40, 50" initialValue={['10']} isMulti>
         <Stack direction={'column'}>
-          <RVariableSelect name="panels" />
+          <VariableSelect name="panels" />
           <RepeatPanelByVariable />
         </Stack>
-      </RCustomVariable>
+      </CustomVariable>
     </PageWrapper>
   );
 }

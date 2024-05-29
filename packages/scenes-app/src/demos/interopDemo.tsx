@@ -3,16 +3,15 @@ import {
   SceneAppPage,
   SceneAppPageState,
   SceneComponentProps,
-  SceneContextObject,
   SceneFlexItem,
   SceneFlexLayout,
   SceneObjectBase,
   SceneObjectState,
   VizPanel,
-  useTimeRange,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 import React from 'react';
+import { useTimeRange } from '@grafana/scenes-react';
 
 export function getInteropDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -21,7 +20,7 @@ export function getInteropDemo(defaults: SceneAppPageState) {
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
-        context: new SceneContextObject({}),
+        //        context: new SceneContextObject({}),
         key: 'Flex layout embedded scene',
         body: new SceneFlexLayout({
           direction: 'column',

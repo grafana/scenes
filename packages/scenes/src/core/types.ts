@@ -11,7 +11,7 @@ import {
   PanelData,
   TimeRange,
 } from '@grafana/data';
-import { DataTopic, TimeZone } from '@grafana/schema';
+import { DataQuery, DataTopic, TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
@@ -243,4 +243,11 @@ export interface UseStateHookOptions {
    * @experimental
    */
   shouldActivateOrKeepAlive?: boolean;
+}
+
+export interface SceneDataQuery extends DataQuery {
+  [key: string]: any;
+
+  // Opt this query out of time window comparison
+  timeRangeCompare?: boolean;
 }

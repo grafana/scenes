@@ -1,12 +1,11 @@
 import { useEffect, useId } from 'react';
-import { SceneDataProvider } from '../core/types';
-import { DataQueryExtended, SceneQueryRunner } from '../querying/SceneQueryRunner';
+import { SceneDataProvider, SceneDataQuery, SceneQueryRunner } from '@grafana/scenes';
 import { DataSourceRef } from '@grafana/schema';
 import { isEqual } from 'lodash';
 import { useSceneContext } from './hooks';
 
 export interface UseQueryOptions {
-  queries: DataQueryExtended[];
+  queries: SceneDataQuery[];
   maxDataPoints?: number;
   datasource?: DataSourceRef;
 }
@@ -15,10 +14,10 @@ export interface UseQueryOptions {
  * Maintains the state of SceneQueryRunner in the scene
  *
  * @example // To access query results do
- * const query = useSceneQuery(...);
+ * const query = useQueryRunner(...);
  * const { data } = query.useState();
  */
-export function useSceneQuery(options: UseQueryOptions): SceneDataProvider {
+export function useQueryRunner(options: UseQueryOptions): SceneDataProvider {
   const scene = useSceneContext();
   const key = useId();
 

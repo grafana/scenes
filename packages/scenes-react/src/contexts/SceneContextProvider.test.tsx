@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { SceneContextProvider, SceneContextProviderProps } from './SceneContextProvider';
 import { SceneContextObject } from './SceneContextObject';
-import { useSceneContext } from './hooks';
+import { useSceneContext } from '../hooks/hooks';
 import { RenderResult, render } from '@testing-library/react';
-import { SceneQueryController } from '../behaviors';
+import { behaviors } from '@grafana/scenes';
 
 describe('SceneContextProvider', () => {
   it('Should activate on mount', () => {
@@ -23,7 +23,7 @@ describe('SceneContextProvider', () => {
     const s = setup({ timeRange: { from: '1m-now', to: 'now' }, withQueryController: true });
 
     expect(s.context!.state.$timeRange?.state.from).toBe('1m-now');
-    expect(s.context!.state.$behaviors?.[0]).toBeInstanceOf(SceneQueryController);
+    expect(s.context!.state.$behaviors?.[0]).toBeInstanceOf(behaviors.SceneQueryController);
   });
 
   it('Can nest', () => {

@@ -1,14 +1,14 @@
-import { TimeRangePicker } from '@grafana/ui';
+import { TimeRangePicker as TimeRangePickerUI } from '@grafana/ui';
 import React from 'react';
-import { useTimeRange } from './hooks';
+import { useTimeRange } from '../hooks/hooks';
 
 export interface Props {}
 
-export function RTimeRangePicker(props: Props) {
+export function TimeRangePicker(props: Props) {
   const [value, sceneTimeRange] = useTimeRange();
 
   return (
-    <TimeRangePicker
+    <TimeRangePickerUI
       isOnCanvas={true}
       value={value}
       onChange={sceneTimeRange.onTimeRangeChange}

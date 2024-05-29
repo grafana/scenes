@@ -1,10 +1,10 @@
-import { useSceneQuery, RVizPanel } from '@grafana/scenes';
+import { useQueryRunner, VizPanel } from '@grafana/scenes-react';
 import { Field, Select, Stack } from '@grafana/ui';
 import React, { useMemo, useState } from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
 import { toOption } from '@grafana/data';
-import { DataQueryExtended } from '@grafana/scenes/src/querying/SceneQueryRunner';
+import { SceneDataQuery } from '@grafana/scenes';
 import { plainGraph } from './visualizations';
 import { DemoVizLayout } from './utils';
 
@@ -13,7 +13,7 @@ export function DynamicQueriesPage() {
   const [scenario, setScenario] = useState<string>('Random walk');
   const queries = useMemo(() => buildQueriesForScenario(scenario), [scenario]);
 
-  const dataProvider = useSceneQuery({ queries: queries, maxDataPoints: 100, datasource: DATASOURCE_REF });
+  const dataProvider = useQueryRunner({ queries: queries, maxDataPoints: 100, datasource: DATASOURCE_REF });
 
   return (
     <PageWrapper title="Dynamic queriues" subTitle="Rebuild queries based on some user input / state">
@@ -24,14 +24,14 @@ export function DynamicQueriesPage() {
           </Field>
         </Stack>
         <DemoVizLayout>
-          <RVizPanel title={scenario} dataProvider={dataProvider} viz={plainGraph} />
+          <VizPanel title={scenario} dataProvider={dataProvider} viz={plainGraph} />
         </DemoVizLayout>
       </Stack>
     </PageWrapper>
   );
 }
 
-function buildQueriesForScenario(scenario: string): DataQueryExtended[] {
+function buildQueriesForScenario(scenario: string): SceneDataQuery[] {
   switch (scenario) {
     case 'Random walk':
       return [
