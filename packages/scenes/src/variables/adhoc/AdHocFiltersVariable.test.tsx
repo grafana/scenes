@@ -114,7 +114,8 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
-  it('shows groups', async () => {
+  // TODO enable once this repo is using @grafana/ui@11.1.0
+  it.skip('shows groups', async () => {
     const { runRequest } = setup({
       getTagValuesProvider: async () => ({
         replace: true,
