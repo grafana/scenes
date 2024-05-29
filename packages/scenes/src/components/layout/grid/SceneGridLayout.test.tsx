@@ -427,8 +427,8 @@ describe('SceneGridLayout', () => {
             y: 2,
             i: 'b',
           },
-          // @ts-expect-error
         ],
+        // @ts-expect-error
         {},
         {},
         {},
@@ -563,8 +563,8 @@ describe('SceneGridLayout', () => {
             y: 3,
             i: 'row-c',
           },
-          // @ts-expect-error
         ],
+        // @ts-expect-error
         {},
         {},
         {},
@@ -688,8 +688,8 @@ describe('SceneGridLayout', () => {
             y: 2,
             i: 'b',
           },
-          // @ts-expect-error
         ],
+        // @ts-expect-error
         {},
         {},
         {},
@@ -821,8 +821,8 @@ describe('SceneGridLayout', () => {
             y: 3,
             i: 'row-a',
           },
-          // @ts-expect-error
         ],
+        // @ts-expect-error
         {},
         {},
         {},
