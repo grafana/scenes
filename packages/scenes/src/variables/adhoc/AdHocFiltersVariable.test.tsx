@@ -114,6 +114,56 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
+  it('shows groups', async () => {
+    const { runRequest } = setup({
+      getTagValuesProvider: async () => ({
+        replace: true,
+        values: [{
+          text: 'Alice',
+          value: 'alice',
+          group: 'People',
+        }, {
+          text: 'Bob',
+          value: 'bob',
+          group: 'People',
+        }, {
+          text: 'Cat',
+          value: 'cat',
+          group: 'Animals',
+        }, {
+          text: 'Dog',
+          value: 'dog',
+          group: 'Animals',
+        }, {
+          text: 'Foo',
+          value: 'foo',
+        }]
+      })
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.click(selects[2]);
+
+    // Check the group headers are visible
+    expect(screen.getByText('People')).toBeInTheDocument();
+    expect(screen.getByText('Animals')).toBeInTheDocument();
+
+    // Check the correct options exist
+    expect(screen.getAllByRole('option').length).toBe(5);
+    expect(screen.getByRole('option', { name: 'Alice' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Bob' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Cat' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Dog' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Foo' })).toBeInTheDocument();
+  });
+
   it('can set the same custom value again', async () => {
     const { filtersVar, runRequest } = setup();
 
