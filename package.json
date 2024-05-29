@@ -31,21 +31,18 @@
     "packages:publish": "lerna exec --no-private -- npm publish",
     "docs": "yarn workspace website run start --port 8080",
     "docs:build": "yarn workspace website run build",
-    "build": "lerna run build --ignore website",
-    "test:scenes": "lerna run test --scope '@grafana/scenes' --",
-    "test:scenes-react": "lerna run test --scope '@grafana/scenes-react' -- ",
-    "dev:scenes": "lerna run dev --scope '@grafana/scenes' --",
-    "dev:scenes-react": "lerna run dev --scope '@grafana/scenes' --",
-    "dev:app": "lerna run dev --scope 'scenes-app' --",
-    "test": "lerna run test",
-    "typecheck": "lerna run typecheck"
+    "build": "yarn run turbo build --filter=!website",
+    "test:scenes": "yarn run turbo test --filter=@grafana/scenes -- --watch",
+    "test:scenes-react": "yarn run turbo test --filter=@grafana/scenes-react -- watch",
+    "dev": "yarn run turbo dev",
+    "test": "yarn run turbo test",
+    "typecheck": "yarn run turbo typecheck"
   },
   "resolutions": {
     "@types/react": "18.2.74"
   },
   "packageManager": "yarn@4.1.1",
   "workspaces": [
-    ".",
     "packages/*",
     "docusaurus/website"
   ],
@@ -54,7 +51,10 @@
     "@auto-it/released": "^11.0.7",
     "@testing-library/react": "^14.1.2",
     "auto": "^11.0.7",
+    "eslint": "^8.57.0",
     "lerna": "^6.5.1",
-    "lint-staged": "^13.2.0"
+    "lint-staged": "^13.2.0",
+    "prettier": "^3.2.5",
+    "turbo": "latest"
   }
 }

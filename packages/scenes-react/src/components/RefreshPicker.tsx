@@ -28,7 +28,7 @@ export function RefreshPicker(props: Props) {
     return () => {
       scene.removeFromScene(picker);
     };
-  }, [picker, scene, key]);
+  }, [picker, scene]);
 
   // Update options
   useEffect(() => {
