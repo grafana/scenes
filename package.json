@@ -34,7 +34,7 @@
     "build": "yarn turbo build --filter=!website",
     "test:scenes": "yarn turbo test --filter=@grafana/scenes -- --watch",
     "test:scenes-react": "yarn turbo test --filter=@grafana/scenes-react -- watch",
-    "dev": "yarn turbo dev --filer=!website",
+    "dev": "yarn turbo dev --filter=!website",
     "test": "yarn turbo test --filter=!website",
     "typecheck": "yarn turbo typecheck --filter=!website"
   },
