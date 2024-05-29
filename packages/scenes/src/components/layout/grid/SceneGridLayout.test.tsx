@@ -319,27 +319,27 @@ describe('SceneGridLayout', () => {
       layout.onDragStop(
         [
           {
-              w: 12,
-              h: 8,
-              x: 0,
-              y: 2,
-              i: 'a',
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 2,
+            i: 'a',
           },
           {
-              w: 24,
-              h: 1,
-              x: 0,
-              y: 0,
-              i: 'row-a',
+            w: 24,
+            h: 1,
+            x: 0,
+            y: 0,
+            i: 'row-a',
           },
           {
-              w: 12,
-              h: 8,
-              x: 0,
-              y: 10,
-              i: 'b',
-          }
-      ],
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 10,
+            i: 'b',
+          },
+        ],
         // @ts-expect-error
         {},
         {
@@ -379,7 +379,7 @@ describe('SceneGridLayout', () => {
             title: 'Row B',
             key: 'row-b',
             isCollapsed: true,
-            y: 0
+            y: 0,
           }),
           new SceneGridRow({
             title: 'Row A',
@@ -404,30 +404,37 @@ describe('SceneGridLayout', () => {
       });
 
       // we save the initial layout here, if a state is invalid we will revert to this layout
-      layout.onDragStart([
-        {
+      layout.onDragStart(
+        [
+          {
             w: 12,
             h: 8,
             x: 0,
             y: 0,
             i: 'row-b',
-        },
-        {
+          },
+          {
             w: 24,
             h: 1,
             x: 0,
             y: 1,
             i: 'row-a',
-        },
-        {
+          },
+          {
             w: 12,
             h: 8,
             x: 0,
             y: 2,
             i: 'b',
-        }
-      // @ts-expect-error
-    ], {}, {}, {}, {}, {})
+          },
+        ],
+        // @ts-expect-error
+        {},
+        {},
+        {},
+        {},
+        {}
+      );
 
       // move row-b to be the first child of the row-a:
       // row-a
@@ -437,27 +444,27 @@ describe('SceneGridLayout', () => {
       layout.onDragStop(
         [
           {
-              w: 12,
-              h: 8,
-              x: 0,
-              y: 2,
-              i: 'row-b',
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 2,
+            i: 'row-b',
           },
           {
-              w: 24,
-              h: 1,
-              x: 0,
-              y: 0,
-              i: 'row-a',
+            w: 24,
+            h: 1,
+            x: 0,
+            y: 0,
+            i: 'row-a',
           },
           {
-              w: 12,
-              h: 8,
-              x: 0,
-              y: 10,
-              i: 'b',
-          }
-      ],
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 10,
+            i: 'b',
+          },
+        ],
         // @ts-expect-error
         {},
         {
@@ -473,9 +480,9 @@ describe('SceneGridLayout', () => {
       );
 
       //first call is skipped because onDragStop sets _skipOnLayoutChange
-      layout.onLayoutChange([])
+      layout.onLayoutChange([]);
       // layout argument is irrelevant because we are in an invalid state and will load the old layout in this func
-      layout.onLayoutChange([])
+      layout.onLayoutChange([]);
 
       // children state should be the same as in the beginning
       expect(layout.state.children[0].state.key).toEqual('row-b');
@@ -486,7 +493,403 @@ describe('SceneGridLayout', () => {
       expect(layout.state.children[1].parent).toBeInstanceOf(SceneGridLayout);
       expect((layout.state.children[1] as SceneGridRow).state.children[0].state.key).toEqual('b');
       expect((layout.state.children[1] as SceneGridRow).state.children[0].state.y).toEqual(2);
-    })
+    });
+
+    it('should allow dropping a row around another uncollapsed row if state is valid', () => {
+      const layout = new SceneGridLayout({
+        children: [
+          new SceneGridRow({
+            title: 'Row B',
+            key: 'row-b',
+            isCollapsed: false,
+            y: 0,
+            children: [
+              new SceneGridItem({
+                key: 'b',
+                x: 0,
+                y: 1,
+                width: 1,
+                height: 1,
+                isResizable: false,
+                isDraggable: false,
+                body: new TestObject({}),
+              }),
+            ],
+          }),
+          new SceneGridRow({
+            title: 'Row A',
+            key: 'row-a',
+            isCollapsed: false,
+            y: 2,
+          }),
+          new SceneGridRow({
+            title: 'Row C',
+            key: 'row-c',
+            isCollapsed: true,
+            y: 3,
+          }),
+        ],
+        isLazy: false,
+      });
+
+      // we save the initial layout here, if a state is invalid we will revert to this layout
+      layout.onDragStart(
+        [
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 0,
+            i: 'row-b',
+          },
+          {
+            w: 24,
+            h: 1,
+            x: 0,
+            y: 1,
+            i: 'row-a',
+          },
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 2,
+            i: 'b',
+          },
+          {
+            w: 24,
+            h: 9,
+            x: 0,
+            y: 3,
+            i: 'row-c',
+          },
+        ],
+        // @ts-expect-error
+        {},
+        {},
+        {},
+        {},
+        {}
+      );
+
+      // move row-c to be between 2 uncollapsed rows:
+      // row-b
+      //  - b
+      // row-c
+      // row-a
+      const gridLayout = [
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 0,
+          i: 'row-b',
+        },
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 8,
+          i: 'b',
+        },
+        {
+          w: 24,
+          h: 1,
+          x: 0,
+          y: 10,
+          i: 'row-a',
+        },
+        {
+          w: 24,
+          h: 1,
+          x: 0,
+          y: 9,
+          i: 'row-c',
+        },
+      ];
+
+      layout.onDragStop(
+        gridLayout,
+        // @ts-expect-error
+        {},
+        {
+          w: 24,
+          h: 1,
+          x: 0,
+          y: 9,
+          i: 'row-c',
+        },
+        {},
+        {},
+        {}
+      );
+
+      //first call is skipped because onDragStop sets _skipOnLayoutChange
+      layout.onLayoutChange([]);
+      layout.onLayoutChange(gridLayout);
+
+      expect(layout.state.children[0].state.key).toEqual('row-b');
+      expect(layout.state.children[1].state.key).toEqual('row-c');
+      expect(layout.state.children[2].state.key).toEqual('row-a');
+    });
+
+    it('should allow dropping a row at the end of a dashboard, after a uncollapsed row', () => {
+      const layout = new SceneGridLayout({
+        children: [
+          new SceneGridRow({
+            title: 'Row B',
+            key: 'row-b',
+            isCollapsed: false,
+            y: 0,
+            children: [
+              new SceneGridItem({
+                key: 'b',
+                x: 0,
+                y: 1,
+                width: 1,
+                height: 1,
+                isResizable: false,
+                isDraggable: false,
+                body: new TestObject({}),
+              }),
+            ],
+          }),
+          new SceneGridRow({
+            title: 'Row A',
+            key: 'row-a',
+            isCollapsed: true,
+            y: 2,
+          }),
+        ],
+        isLazy: false,
+      });
+
+      // we save the initial layout here, if a state is invalid we will revert to this layout
+      layout.onDragStart(
+        [
+          {
+            w: 24,
+            h: 1,
+            x: 0,
+            y: 0,
+            i: 'row-a',
+          },
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 1,
+            i: 'row-b',
+          },
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 2,
+            i: 'b',
+          },
+        ],
+        // @ts-expect-error
+        {},
+        {},
+        {},
+        {},
+        {}
+      );
+
+      // move row-a to be after an uncollapsed row:
+      // row-b
+      //  - b
+      // row-a
+      const gridLayout = [
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 0,
+          i: 'row-b',
+        },
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 8,
+          i: 'b',
+        },
+        {
+          w: 24,
+          h: 1,
+          x: 0,
+          y: 9,
+          i: 'row-a',
+        },
+      ];
+
+      layout.onDragStop(
+        gridLayout,
+        // @ts-expect-error
+        {},
+        {
+          w: 24,
+          h: 1,
+          x: 0,
+          y: 9,
+          i: 'row-a',
+        },
+        {},
+        {},
+        {}
+      );
+
+      //first call is skipped because onDragStop sets _skipOnLayoutChange
+      layout.onLayoutChange([]);
+      layout.onLayoutChange(gridLayout);
+
+      expect(layout.state.children[0].state.key).toEqual('row-b');
+      expect(layout.state.children[1].state.key).toEqual('row-a');
+    });
+
+    it('should allow dropping a row between an uncollapsed row and a grid item that is not part of the row', () => {
+      const layout = new SceneGridLayout({
+        children: [
+          new SceneGridRow({
+            title: 'Row B',
+            key: 'row-b',
+            isCollapsed: false,
+            y: 0,
+            children: [
+              new SceneGridItem({
+                key: 'b',
+                x: 0,
+                y: 1,
+                width: 1,
+                height: 1,
+                isResizable: false,
+                isDraggable: false,
+                body: new TestObject({}),
+              }),
+            ],
+          }),
+          new SceneGridItem({
+            key: 'c',
+            x: 0,
+            y: 2,
+            width: 1,
+            height: 1,
+            isResizable: false,
+            isDraggable: false,
+            body: new TestObject({}),
+          }),
+          new SceneGridRow({
+            title: 'Row A',
+            key: 'row-a',
+            isCollapsed: true,
+            y: 3,
+          }),
+        ],
+        isLazy: false,
+      });
+
+      // we save the initial layout here, if a state is invalid we will revert to this layout
+      layout.onDragStart(
+        [
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 0,
+            i: 'row-b',
+          },
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 1,
+            i: 'b',
+          },
+          {
+            w: 24,
+            h: 1,
+            x: 0,
+            y: 2,
+            i: 'c',
+          },
+          {
+            w: 24,
+            h: 1,
+            x: 0,
+            y: 3,
+            i: 'row-a',
+          },
+        ],
+        // @ts-expect-error
+        {},
+        {},
+        {},
+        {},
+        {}
+      );
+
+      // move row-a to be between an uncollapsed row with a panel and a panel that is not part of that row:
+      // row-b
+      //  - b
+      // row-a
+      // c
+      const gridLayout = [
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 0,
+          i: 'row-b',
+        },
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 8,
+          i: 'b',
+        },
+        {
+          w: 24,
+          h: 1,
+          x: 0,
+          y: 9,
+          i: 'row-a',
+        },
+        {
+          w: 24,
+          h: 1,
+          x: 0,
+          y: 10,
+          i: 'c',
+        },
+      ];
+
+      layout.onDragStop(
+        gridLayout,
+        // @ts-expect-error
+        {},
+        {
+          w: 24,
+          h: 1,
+          x: 0,
+          y: 10,
+          i: 'c',
+        },
+        {},
+        {},
+        {}
+      );
+
+      //first call is skipped because onDragStop sets _skipOnLayoutChange
+      layout.onLayoutChange([]);
+      layout.onLayoutChange(gridLayout);
+
+      expect(layout.state.children[0].state.key).toEqual('row-b');
+      expect(layout.state.children[1].state.key).toEqual('row-a');
+      expect(layout.state.children[2].state.key).toEqual('c');
+    });
   });
 
   describe('when using rows', () => {

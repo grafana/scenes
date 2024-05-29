@@ -150,7 +150,7 @@ describe('SceneTimeRange', () => {
 
       timeRange.onTimeRangeChange({
         from: toUtc('2020-01-01'),
-        to: toUtc('now'),
+        to: toUtc(),
         raw: { from: toUtc('2020-01-01'), to: 'now' },
       });
 
