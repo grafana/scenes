@@ -1,11 +1,4 @@
-import {
-  SceneObjectBase,
-  SceneObject,
-  SceneObjectState,
-  SceneVariable,
-  getUrlSyncManager,
-  SceneVariableSet,
-} from '@grafana/scenes';
+import { SceneObjectBase, SceneObject, SceneObjectState, SceneVariable, SceneVariableSet } from '@grafana/scenes';
 import { writeSceneLog } from '../utils';
 
 export interface SceneContextObjectState extends SceneObjectState {
