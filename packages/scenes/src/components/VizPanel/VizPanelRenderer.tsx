@@ -1,4 +1,4 @@
-import React, { RefCallback } from 'react';
+import React, { RefCallback, useCallback, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
 // @ts-ignore
@@ -29,10 +29,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     description,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
-  const appEvents = getAppEvents();
+  const appEvents = useMemo(() => getAppEvents(), []);
 
-  const setPanelAttention = () => appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
-  const debouncedMouseMove = debounce(() => setPanelAttention(), 100);
+  const setPanelAttention = useCallback(
+    () => appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key })),
+    [model.state.key, appEvents]
+  );
+  const debouncedMouseMove = useMemo(() => debounce(setPanelAttention, 100), [setPanelAttention]);
 
   const plugin = model.getPlugin();
 
@@ -159,9 +162,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             padding={plugin.noPadding ? 'none' : 'md'}
             menu={panelMenu}
             onCancelQuery={model.onCancelQuery}
-            //@ts-ignore
             onFocus={() => setPanelAttention()}
-            onMouseMove={debouncedMouseMove}
+            onMouseMove={() => debouncedMouseMove()}
           >
             {(innerWidth, innerHeight) => (
               <>
