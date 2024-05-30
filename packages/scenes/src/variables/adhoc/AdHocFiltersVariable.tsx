@@ -262,6 +262,30 @@ export class AdHocFiltersVariable
       values = values.concat(override.values);
     }
 
+    values = [{
+      text: 'Cat',
+      value: 'cat',
+      group: 'Animals'
+    }, {
+      text: 'Bar',
+      value: 'bar'
+    }, {
+      text: 'Dog',
+      value: 'dog',
+      group: 'Animals'
+    }, {
+      text: 'Alice',
+      value: 'alice',
+      group: 'People'
+    }, {
+      text: 'Bob',
+      value: 'bob',
+      group: 'People'
+    }, {
+      text: 'Foo',
+      value: 'foo'
+    }];
+
     return handleOptionGroups(values);
   }
 
@@ -342,16 +366,13 @@ function handleOptionGroups(values: MetricFindValue[]): Array<SelectableValue<st
       if (!group) {
         group = [];
         groupedResults.set(groupLabel, group);
+        result.push({ label: groupLabel, options: group })
       }
 
       group.push(toSelectableValue(value));
     } else {
       result.push(toSelectableValue(value));
     }
-  }
-
-  for (const [group, values] of groupedResults) {
-    result.unshift({ label: group, options: values });
   }
 
   return result;
