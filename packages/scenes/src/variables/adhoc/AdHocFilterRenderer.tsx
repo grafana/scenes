@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Field, Select, useStyles2 } from '@grafana/ui';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 
 interface Props {
@@ -40,7 +40,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
       disabled={model.state.readOnly}
-      className={isKeysOpen ? styles.widthWhenOpen : undefined}
+      className={cx(styles.value, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
       value={valueValue}
       placeholder={'Select value'}
@@ -72,7 +72,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       // to ensure that the loaded values are shown after they are loaded
       key={`${isValuesLoading ? 'loading' : 'loaded'}`}
       disabled={model.state.readOnly}
-      className={isKeysOpen ? styles.widthWhenOpen : undefined}
+      className={cx(styles.key, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
       value={keyValue}
       placeholder={'Select label'}
@@ -127,6 +127,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     <div className={styles.wrapper} data-testid={`AdHocFilter-${filter.key}`}>
       {keySelect}
       <Select
+        className={styles.operator}
         value={filter.operator}
         disabled={model.state.readOnly}
         options={model._getOperators()}
@@ -191,10 +192,23 @@ const getStyles = (theme: GrafanaTheme2) => ({
   widthWhenOpen: css({
     minWidth: theme.spacing(16),
   }),
+  value: css({
+    flexShrink: 1,
+  }),
+  key: css({
+    minWidth: '90px',
+    flexShrink: 1,
+  }),
+  operator: css({
+    flexShrink: 0,
+  }),
   removeButton: css({
     paddingLeft: theme.spacing(3 / 2),
     paddingRight: theme.spacing(3 / 2),
     borderLeft: 'none',
+    width: theme.spacing(3),
+    marginRight: theme.spacing(1),
+    boxSizing: 'border-box',
     // To not have button background and last select border intersect
     position: 'relative',
     left: '1px',
