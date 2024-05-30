@@ -262,30 +262,6 @@ export class AdHocFiltersVariable
       values = values.concat(override.values);
     }
 
-    values = [{
-      text: 'Cat',
-      value: 'cat',
-      group: 'Animals'
-    }, {
-      text: 'Bar',
-      value: 'bar'
-    }, {
-      text: 'Dog',
-      value: 'dog',
-      group: 'Animals'
-    }, {
-      text: 'Alice',
-      value: 'alice',
-      group: 'People'
-    }, {
-      text: 'Bob',
-      value: 'bob',
-      group: 'People'
-    }, {
-      text: 'Foo',
-      value: 'foo'
-    }];
-
     return handleOptionGroups(values);
   }
 
