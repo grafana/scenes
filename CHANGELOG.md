@@ -1,3 +1,16 @@
+# v4.24.4 (Thu May 30 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanelRenderer: Emit SetPanelAttention event [#716](https://github.com/grafana/scenes/pull/716) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
 # v4.24.3 (Thu May 30 2024)
 
 #### 🐛 Bug Fix
