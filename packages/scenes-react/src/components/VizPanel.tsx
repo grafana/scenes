@@ -86,8 +86,10 @@ export function VizPanel(props: VizPanelProps) {
       }
     }
 
-    writeSceneLog('RVizPanel', 'Updating VizPanel state', stateUpdate);
-    panel.setState(stateUpdate);
+    if (Object.keys(stateUpdate).length > 0) {
+      panel.setState(stateUpdate);
+      writeSceneLog('VizPanel', 'Updating VizPanel state', stateUpdate);
+    }
   }, [panel, title, headerActions, viz, dataProvider, prevProps]);
 
   return <panel.Component model={panel} />;
