@@ -1,5 +1,5 @@
 import { useEffect, useId } from 'react';
-import { SceneDataProvider, SceneDataQuery, SceneQueryRunner } from '@grafana/scenes';
+import { SceneDataQuery, SceneQueryRunner } from '@grafana/scenes';
 import { DataSourceRef } from '@grafana/schema';
 import { isEqual } from 'lodash';
 import { useSceneContext } from './hooks';

@@ -13,7 +13,7 @@ import {
 import { Observable, map, of } from 'rxjs';
 import { SceneContextObject } from '../contexts/SceneContextObject';
 
-let sentRequest: DataQueryRequest | undefined;
+//let sentRequest: DataQueryRequest | undefined;
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -55,7 +55,7 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
   getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
-    sentRequest = request;
+    //sentRequest = request;
     return runRequestMock(ds, request);
   },
   getDataSourceSrv: () => {
@@ -70,13 +70,13 @@ jest.mock('@grafana/runtime', () => ({
 }));
 
 describe('useQueryRunner', () => {
-  it('Should return query runner', () => {
+  it('Should return query runner', async () => {
     const { context, wrapper } = getHookContextWrapper({});
 
     const { result, rerender, unmount } = renderHook(useQueryRunner, {
       wrapper,
       initialProps: {
-        queries: [{ uid: 'gdev-testdata', refId: 'first', scenarioId: 'random_walk', alias: 'env = $env' }],
+        queries: [{ uid: 'gdev-testdata', refId: 'first', scenarioId: 'random_walk', alias: 'env' }],
         maxDataPoints: 20,
       },
     });
@@ -96,6 +96,11 @@ describe('useQueryRunner', () => {
       queries: [{ uid: 'gdev-testdata', refId: 'first', scenarioId: 'random_walk', alias: 'Updated alias' }],
     });
     expect(queryRunner.state.queries[0].alias).toBe('Updated alias');
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should re-run queries
+    expect(runRequestMock.mock.calls.length).toBe(2);
 
     // unmount should remove and de-activate query runner
     unmount();
