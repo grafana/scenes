@@ -162,6 +162,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             padding={plugin.noPadding ? 'none' : 'md'}
             menu={panelMenu}
             onCancelQuery={model.onCancelQuery}
+            // @ts-ignore
             onFocus={() => setPanelAttention()}
             onMouseMove={() => debouncedMouseMove()}
           >
