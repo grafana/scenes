@@ -58,7 +58,7 @@ describe('timeMacros', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene1, '$__timezone')).toBe('browser');
+    expect(sceneInterpolator(scene1, '$__timezone')).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
     expect(sceneInterpolator(scene2, '$__timezone')).toBe('America/New_York');
     expect(sceneInterpolator(nestedScene, '$__timezone')).toBe('Africa/Abidjan');
   });
