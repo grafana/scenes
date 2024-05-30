@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@grafana/e2e-selectors": "^10.4.1",
-    "@grafana/scenes": "4.24.3",
+    "@grafana/scenes": "workspace:*",
     "react-use": "17.4.0"
   },
   "peerDependencies": {
