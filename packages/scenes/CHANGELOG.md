@@ -1,3 +1,15 @@
+# v4.25.0 (Fri May 31 2024)
+
+#### 🚀 Enhancement
+
+- AdHoc filters: Add support for adhoc filter value groups [#758](https://github.com/grafana/scenes/pull/758) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v4.24.4 (Thu May 30 2024)
 
 #### 🐛 Bug Fix
