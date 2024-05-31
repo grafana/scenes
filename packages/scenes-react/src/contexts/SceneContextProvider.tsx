@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { SceneTimeRangeState, getUrlSyncManager, SceneTimeRange, behaviors } from '@grafana/scenes';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { SceneTimeRangeState, SceneTimeRange, behaviors } from '@grafana/scenes';
 
 import { SceneContextObject, SceneContextObjectState } from './SceneContextObject';
 
@@ -22,12 +22,14 @@ export interface SceneContextProviderProps {
 }
 
 /**
- * We could have TimeRangeContextProvider provider and VariableContextProvider as utility components, but the underlying context would be this context
+ * Wrapps the react children in a SceneContext
  */
 export function SceneContextProvider({ children, timeRange, withQueryController }: SceneContextProviderProps) {
   const parentContext = useContext(SceneContext);
   const [childContext, setChildContext] = useState<SceneContextObject | undefined>();
-  const initialTimeRange = useRef(timeRange);
+
+  // Becasue timeRange is not part of useEffect dependencies
+  const initialTimeRange = timeRange;
 
   useEffect(() => {
     const state: SceneContextObjectState = { children: [] };
@@ -36,17 +38,14 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
       state.$behaviors = [new behaviors.SceneQueryController()];
     }
 
-    if (initialTimeRange.current) {
-      state.$timeRange = new SceneTimeRange(initialTimeRange.current);
+    if (initialTimeRange) {
+      state.$timeRange = new SceneTimeRange(initialTimeRange);
     }
 
     const childContext = new SceneContextObject(state);
 
     if (parentContext) {
       parentContext.setState({ childContext });
-    } else {
-      // We are the root context
-      getUrlSyncManager().initSync(childContext);
     }
 
     const deactivate = childContext.activate();
@@ -57,11 +56,9 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
 
       if (parentContext) {
         parentContext.setState({ childContext: undefined });
-      } else {
-        // Cleanup url sync
-        getUrlSyncManager().cleanUp(childContext);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parentContext, withQueryController]);
 
   if (!childContext) {
@@ -69,4 +66,46 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
   }
 
   return <SceneContext.Provider value={childContext}>{children}</SceneContext.Provider>;
+}
+
+export interface SceneContextValueProviderProps {
+  /**
+   * Only the initial time range, cannot be used to update time range
+   **/
+  value: SceneContextObject;
+  /**
+   * Children
+   */
+  children: React.ReactNode;
+}
+
+/**
+ * Mostly useful from tests where you need to interact with the scene context object directly from outside the provider react tree.
+ */
+export function SceneContextValueProvider({ children, value }: SceneContextValueProviderProps) {
+  const parentContext = useContext(SceneContext);
+  const [isActivate, setIsActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (parentContext) {
+      parentContext.setState({ childContext: value });
+    }
+
+    const deactivate = value.activate();
+    setIsActive(true);
+
+    return () => {
+      deactivate();
+
+      if (parentContext) {
+        parentContext.setState({ childContext: undefined });
+      }
+    };
+  }, [parentContext, value]);
+
+  if (!isActivate) {
+    return null;
+  }
+
+  return <SceneContext.Provider value={value}>{children}</SceneContext.Provider>;
 }

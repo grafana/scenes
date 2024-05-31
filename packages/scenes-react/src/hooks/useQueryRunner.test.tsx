@@ -1,6 +1,4 @@
-import React from 'react';
 import { renderHook } from '@testing-library/react';
-import { SceneContext } from '../contexts/SceneContextProvider';
 import { useQueryRunner } from './useQueryRunner';
 import {
   DataSourceApi,
@@ -11,9 +9,7 @@ import {
   toDataFrame,
 } from '@grafana/data';
 import { Observable, map, of } from 'rxjs';
-import { SceneContextObject } from '../contexts/SceneContextObject';
-
-//let sentRequest: DataQueryRequest | undefined;
+import { getHookContextWrapper } from '../utils/testUtils';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -55,7 +51,6 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
   getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
-    //sentRequest = request;
     return runRequestMock(ds, request);
   },
   getDataSourceSrv: () => {
@@ -64,9 +59,6 @@ jest.mock('@grafana/runtime', () => ({
       getInstanceSettings: () => ({ uid: 'test-uid' }),
     };
   },
-  getTemplateSrv: () => ({
-    getAdhocFilters: jest.fn(),
-  }),
 }));
 
 describe('useQueryRunner', () => {
@@ -108,20 +100,3 @@ describe('useQueryRunner', () => {
     expect(context.state.children.length).toBe(0);
   });
 });
-
-interface GetHookContextWrapperOptions {}
-
-interface GetHookContextWrapperResult {
-  wrapper: React.JSXElementConstructor<{ children: React.ReactNode }>;
-  context: SceneContextObject;
-}
-
-function getHookContextWrapper(options: GetHookContextWrapperOptions): GetHookContextWrapperResult {
-  const context = new SceneContextObject({});
-
-  const wrapper = (props: React.PropsWithChildren) => (
-    <SceneContext.Provider value={context}>{props.children}</SceneContext.Provider>
-  );
-
-  return { wrapper, context };
-}

@@ -1,4 +1,11 @@
-import { SceneObjectBase, SceneObject, SceneObjectState, SceneVariable, SceneVariableSet } from '@grafana/scenes';
+import {
+  SceneObjectBase,
+  SceneObject,
+  SceneObjectState,
+  SceneVariable,
+  SceneVariableSet,
+  getUrlSyncManager,
+} from '@grafana/scenes';
 import { writeSceneLog } from '../utils';
 
 export interface SceneContextObjectState extends SceneObjectState {
@@ -16,7 +23,17 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
     this.addActivationHandler(this._activationHandler.bind(this));
   }
 
-  private _activationHandler() {}
+  private _activationHandler() {
+    let cleanUp: (() => void) | undefined;
+
+    // If we are the root scene context initialize URL sync
+    if (!this.parent) {
+      getUrlSyncManager().initSync(this);
+      cleanUp = () => getUrlSyncManager().cleanUp(this);
+    }
+
+    return cleanUp;
+  }
 
   public addToScene(obj: SceneObject) {
     this.setState({ children: [...this.state.children, obj] });
