@@ -26717,6 +26717,8 @@ __metadata:
     "@docusaurus/core": "npm:2.4.0"
     "@docusaurus/module-type-aliases": "npm:2.4.0"
     "@docusaurus/preset-classic": "npm:2.4.0"
+    "@grafana/scenes": "workspace:*"
+    "@grafana/scenes-react": "workspace:*"
     "@iconscout/unicons": "npm:^4.0.8"
     "@mdx-js/react": "npm:^1.6.22"
     "@tsconfig/docusaurus": "npm:^1.0.5"
