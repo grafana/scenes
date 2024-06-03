@@ -2295,7 +2295,8 @@ class TestExtraQueryProvider extends SceneObjectBase<TestExtraQueryProviderState
           // @ts-expect-error
           { refId: 'Extra', foo: this.state.foo },
         ],
-      }
+      },
+      processor: (primary, secondary) => of({ ...primary, ...secondary }),
     }];
   }
   public shouldRerun(prev: {}, next: {}): boolean {
