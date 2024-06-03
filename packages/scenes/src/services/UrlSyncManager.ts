@@ -41,6 +41,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     this._lastPath = locationService.getLocation().pathname;
     this._stateSub = root.subscribeToEvent(SceneObjectStateChangedEvent, this._onStateChanged);
 
+    this._urlKeyMapper.clear();
     this.syncFrom(this._sceneRoot);
   }
 
@@ -73,7 +74,6 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   public syncFrom(sceneObj: SceneObject) {
     const urlParams = locationService.getSearch();
     // The index is always from the root
-    this._urlKeyMapper.rebuildIndex(this._sceneRoot);
     syncStateFromUrl(sceneObj, urlParams, this._urlKeyMapper);
   }
 
@@ -88,8 +88,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     }
 
     const urlParams = new URLSearchParams(location.search);
-    // Rebuild key mapper index before starting sync
-    this._urlKeyMapper.rebuildIndex(this._sceneRoot);
+
     // Sync scene state tree from url
     syncStateFromUrl(this._sceneRoot, urlParams, this._urlKeyMapper);
     this._lastPath = location.pathname;
@@ -103,8 +102,6 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
       const searchParams = locationService.getSearch();
       const mappedUpdated: SceneObjectUrlValues = {};
-
-      this._urlKeyMapper.rebuildIndex(this._sceneRoot);
 
       for (const [key, newUrlValue] of Object.entries(newUrlState)) {
         const uniqueKey = this._urlKeyMapper.getUniqueKey(key, changedObject);
