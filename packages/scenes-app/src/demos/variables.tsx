@@ -196,7 +196,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
             $variables: new SceneVariableSet({
               variables: [
                 new TestVariable({
-                  name: 'server',
+                  name: 'manyOptions',
                   query: '',
                   optionsToReturn: getRandomOptions(100000),
                   delayMs: 0,
