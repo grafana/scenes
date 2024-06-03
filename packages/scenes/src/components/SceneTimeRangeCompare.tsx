@@ -11,6 +11,7 @@ import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { css } from '@emotion/css';
+import { of } from 'rxjs';
 
 interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
@@ -210,7 +211,7 @@ const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary
       return field;
     });
   });
-  return secondary;
+  return of(secondary);
 }
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {

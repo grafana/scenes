@@ -1,4 +1,5 @@
 import { DataQueryRequest, PanelData } from "@grafana/data";
+import { Observable } from "rxjs";
 
 import { SceneObjectBase } from "../core/SceneObjectBase";
 import { SceneObjectState } from "../core/types";
@@ -16,7 +17,7 @@ import { SceneObjectState } from "../core/types";
 // some more advanced processing such as fitting a time series model on the secondary data.
 //
 // See the docs for `extraQueryProcessingOperator` for more information.
-export type ExtraQueryDataProcessor = (primary: PanelData, secondary: PanelData) => PanelData;
+export type ExtraQueryDataProcessor = (primary: PanelData, secondary: PanelData) => Observable<PanelData>;
 
 // An extra request that should be run by a query runner, and an optional
 // processor that should be called with the response data.

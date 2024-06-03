@@ -1,9 +1,9 @@
 import { PanelData } from '@grafana/data';
-import { map, Observable } from 'rxjs';
+import { forkJoin, of, map, mergeMap, Observable } from 'rxjs';
 import { ExtraQueryDataProcessor } from './ExtraQueryProvider';
 
 // Passthrough processor for use with ExtraQuerys.
-export const passthroughProcessor: ExtraQueryDataProcessor = (_, secondary) => secondary;
+export const passthroughProcessor: ExtraQueryDataProcessor = (_, secondary) => of(secondary);
 
 // Factory function which takes a map from request ID to processor functions and
 // returns an rxjs operator which operates on an array of panel data responses.
@@ -17,15 +17,16 @@ export const passthroughProcessor: ExtraQueryDataProcessor = (_, secondary) => s
 export const extraQueryProcessingOperator = (processors: Map<string, ExtraQueryDataProcessor>) =>
   (data: Observable<[PanelData, ...PanelData[]]>) => {
     return data.pipe(
-      map(([primary, ...secondaries]) => {
+      mergeMap(([primary, ...secondaries]) => {
         const processedSecondaries = secondaries.flatMap((s) => {
-          return processors.get(s.request!.requestId)?.(primary, s) ?? s;
+          return processors.get(s.request!.requestId)?.(primary, s) ?? of(s);
         });
-        return {
-          ...primary,
-          series: [...primary.series, ...processedSecondaries.flatMap((s) => s.series)],
-          annotations: [...(primary.annotations ?? []), ...processedSecondaries.flatMap((s) => s.annotations ?? [])],
-        };
-      })
+        return forkJoin([of(primary), ...processedSecondaries]);
+      }),
+      map(([primary, ...processedSecondaries]) => ({
+        ...primary,
+        series: [...primary.series, ...processedSecondaries.flatMap((s) => s.series)],
+        annotations: [...(primary.annotations ?? []), ...processedSecondaries.flatMap((s) => s.annotations ?? [])],
+      }))
     );
   }
