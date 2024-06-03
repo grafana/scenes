@@ -187,6 +187,39 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
           });
         },
       }),
+      new SceneAppPage({
+        title: 'Many variable options',
+        url: `${defaults.url}/many-values`,
+        getScene: () => {
+          return new EmbeddedScene({
+            controls: [new VariableValueSelectors({})],
+            $variables: new SceneVariableSet({
+              variables: [
+                new TestVariable({
+                  name: 'server',
+                  query: '',
+                  optionsToReturn: getRandomOptions(100000),
+                  delayMs: 0,
+                }),
+              ],
+            }),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  body: PanelBuilders.text()
+                    .setTitle('Description')
+                    .setOption(
+                      'content',
+                      'This tab is mainly to test a variable with 100 000 options, to test search / typing performance'
+                    )
+                    .build(),
+                }),
+              ],
+            }),
+          });
+        },
+      }),
     ],
   });
 }
@@ -243,4 +276,25 @@ function getVariableChangeBehavior(variableName: string) {
       };
     },
   });
+}
+
+function getRandomOptions(count: number) {
+  return new Array(count).fill(null).map((_, index) => ({
+    value: makeString(50),
+    label: makeString(50),
+  }));
+}
+
+function makeString(length: number) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+
+  return result;
 }
