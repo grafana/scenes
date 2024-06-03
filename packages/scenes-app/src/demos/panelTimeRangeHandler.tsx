@@ -38,9 +38,7 @@ export function getPanelTimeRangeHandlerDemoScene(defaults: SceneAppPageState): 
                   [
                     (vizPanel: VizPanel) => {
                       patchPanelContext(vizPanel);
-                      const altTimeRangeScene = sceneGraph.findObject(vizPanel, (scene) => {
-                        return scene.state.key === 'altTimeRangeScene';
-                      });
+                      const altTimeRangeScene = sceneGraph.findByKey(vizPanel, 'altTimeRangeScene');
 
                       function representTimeRangeSelection(selection: TimeRange) {
                         const data = vizPanel.state.$data?.state.data;
@@ -67,7 +65,7 @@ export function getPanelTimeRangeHandlerDemoScene(defaults: SceneAppPageState): 
                         }
 
                         vizPanel.state.$data?.setState(newState)
-                        altTimeRangeScene?.state.$timeRange?.onTimeRangeChange(selection);
+                        altTimeRangeScene.state.$timeRange?.onTimeRangeChange(selection);
                       }
 
                       // Override time range update behavior
