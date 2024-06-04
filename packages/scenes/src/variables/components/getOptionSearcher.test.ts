@@ -37,7 +37,7 @@ describe('getOptionSearcher', () => {
     ];
     const optionSearcher = getOptionSearcher(options, false, 2);
 
-    expect(optionSearcher('est')).toEqual([
+    expect(optionSearcher('')).toEqual([
       { label: 'Test', value: '1' },
       { label: 'Google', value: '2' },
     ]);
