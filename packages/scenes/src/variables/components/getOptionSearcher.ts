@@ -57,5 +57,7 @@ export function getOptionSearcher(
     if (allOptions.length > limit) {
       return allOptions.slice(0, limit);
     }
+
+    return allOptions;
   };
 }
