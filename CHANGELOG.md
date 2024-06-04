@@ -1,3 +1,16 @@
+# v4.26.0 (Tue Jun 04 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Search / typing performance improvements [#763](https://github.com/grafana/scenes/pull/763) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.25.0 (Fri May 31 2024)
 
 #### 🚀 Enhancement
