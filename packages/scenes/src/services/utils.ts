@@ -9,8 +9,6 @@ import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
  */
 export function getUrlState(root: SceneObject): SceneObjectUrlValues {
   const urlKeyMapper = new UniqueUrlKeyMapper();
-  urlKeyMapper.rebuildIndex(root);
-
   const result: SceneObjectUrlValues = {};
 
   const visitNode = (obj: SceneObject) => {
@@ -38,7 +36,6 @@ export function getUrlState(root: SceneObject): SceneObjectUrlValues {
  */
 export function syncStateFromSearchParams(root: SceneObject, urlParams: URLSearchParams) {
   const urlKeyMapper = new UniqueUrlKeyMapper();
-  urlKeyMapper.rebuildIndex(root);
   syncStateFromUrl(root, urlParams, urlKeyMapper);
 }
 

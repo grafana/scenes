@@ -19,24 +19,11 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
       ...state,
       children: state?.children ?? [],
     });
-
-    this.addActivationHandler(this._activationHandler.bind(this));
-  }
-
-  private _activationHandler() {
-    let cleanUp: (() => void) | undefined;
-
-    // If we are the root scene context initialize URL sync
-    if (!this.parent) {
-      getUrlSyncManager().initSync(this);
-      cleanUp = () => getUrlSyncManager().cleanUp(this);
-    }
-
-    return cleanUp;
   }
 
   public addToScene(obj: SceneObject) {
     this.setState({ children: [...this.state.children, obj] });
+    getUrlSyncManager().handleNewObject(obj);
     writeSceneLog('SceneContext', `Adding to scene: ${obj.constructor.name} key: ${obj.state.key}`);
 
     const deactivate = obj.activate();
@@ -64,6 +51,8 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
 
   public addVariable(variable: SceneVariable) {
     let set = this.state.$variables as SceneVariableSet;
+
+    getUrlSyncManager().handleNewObject(variable);
 
     if (set) {
       set.setState({ variables: [...set.state.variables, variable] });

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { SceneTimeRangeState, SceneTimeRange, behaviors } from '@grafana/scenes';
+import { SceneTimeRangeState, SceneTimeRange, behaviors, useUrlSync } from '@grafana/scenes';
 
 import { SceneContextObject, SceneContextObjectState } from './SceneContextObject';
 
@@ -65,47 +65,29 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
     return null;
   }
 
-  return <SceneContext.Provider value={childContext}>{children}</SceneContext.Provider>;
+  const innerProvider = <SceneContext.Provider value={childContext}>{children}</SceneContext.Provider>;
+
+  if (parentContext) {
+    return innerProvider;
+  }
+
+  // For root context we wrap the provider in a UrlSyncWrapper that handles the hook that updates state on location changes
+  return <UrlSyncWrapper context={childContext}>{innerProvider}</UrlSyncWrapper>;
 }
 
-export interface SceneContextValueProviderProps {
-  /**
-   * Only the initial time range, cannot be used to update time range
-   **/
-  value: SceneContextObject;
-  /**
-   * Children
-   */
+interface UrlSyncProps {
+  context: SceneContextObject;
   children: React.ReactNode;
 }
-
 /**
- * Mostly useful from tests where you need to interact with the scene context object directly from outside the provider react tree.
+ * This component is just to work around the limitation of not being able to call hooks conditionally
  */
-export function SceneContextValueProvider({ children, value }: SceneContextValueProviderProps) {
-  const parentContext = useContext(SceneContext);
-  const [isActivate, setIsActive] = useState<boolean>(false);
+function UrlSyncWrapper(props: UrlSyncProps) {
+  const isInitialized = useUrlSync(props.context);
 
-  useEffect(() => {
-    if (parentContext) {
-      parentContext.setState({ childContext: value });
-    }
-
-    const deactivate = value.activate();
-    setIsActive(true);
-
-    return () => {
-      deactivate();
-
-      if (parentContext) {
-        parentContext.setState({ childContext: undefined });
-      }
-    };
-  }, [parentContext, value]);
-
-  if (!isActivate) {
+  if (!isInitialized) {
     return null;
   }
 
-  return <SceneContext.Provider value={value}>{children}</SceneContext.Provider>;
+  return props.children;
 }
