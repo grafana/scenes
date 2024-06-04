@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { Button, Field, Select, useStyles2 } from '@grafana/ui';
+import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 
@@ -29,9 +29,18 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [isValuesLoading, setIsValuesLoading] = useState(false);
   const [isKeysOpen, setIsKeysOpen] = useState(false);
   const [isValuesOpen, setIsValuesOpen] = useState(false);
+  const [valueInputValue, setValueInputValue] = useState('');
+  const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
+
+  const onValueInputChange = (value: string, { action }: InputActionMeta) => {
+    if (action === 'input-change') {
+      setValueInputValue(value);
+    }
+    return value;
+  };
 
   const valueSelect = (
     <Select
@@ -45,7 +54,15 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       value={valueValue}
       placeholder={'Select value'}
       options={values}
-      onChange={(v) => model._updateFilter(filter, 'value', v)}
+      inputValue={valueInputValue}
+      onInputChange={onValueInputChange}
+      onChange={(v) => {
+        model._updateFilter(filter, 'value', v)
+
+        if (valueHasCustomValue !== v.__isNew__) {
+          setValueHasCustomValue(v.__isNew__);
+        }
+      }}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
       // see https://github.com/grafana/grafana/issues/63558
       // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
@@ -59,9 +76,13 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         const values = await model._getValuesFor(filter);
         setIsValuesLoading(false);
         setValues(values);
+        if (valueHasCustomValue) {
+          setValueInputValue(valueValue?.label ?? '');
+        }
       }}
       onCloseMenu={() => {
         setIsValuesOpen(false);
+        setValueInputValue('');
       }}
     />
   );
