@@ -40,13 +40,7 @@ export function VizPanel(props: VizPanelProps) {
     });
   }
 
-  useEffect(() => {
-    scene.addToScene(panel);
-
-    return () => {
-      scene.removeFromScene(panel);
-    };
-  }, [panel, scene, key]);
+  useEffect(() => scene.addToScene(panel), [panel, scene]);
 
   // Update options
   useEffect(() => {

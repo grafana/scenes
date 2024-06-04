@@ -29,15 +29,14 @@ export function CustomVariable({
   }
 
   useEffect(() => {
-    scene.addVariable(variable);
+    const removeFn = scene.addVariable(variable);
     setVariableAdded(true);
-
-    return () => {
-      scene.removeVariable(variable);
-    };
+    return removeFn;
   }, [variable, scene, name]);
 
-  // TOOD: handle prop updates
+  useEffect(() => {
+    // Handle prop changes
+  }, [variable]);
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {

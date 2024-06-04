@@ -22,13 +22,7 @@ export function RefreshPicker(props: Props) {
     });
   }
 
-  useEffect(() => {
-    scene.addToScene(picker);
-
-    return () => {
-      scene.removeFromScene(picker);
-    };
-  }, [picker, scene]);
+  useEffect(() => scene.addToScene(picker), [picker, scene]);
 
   // Update options
   useEffect(() => {

@@ -32,15 +32,7 @@ export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
     });
   }
 
-  useEffect(() => {
-    scene.addToScene(queryRunner);
-    const deactivate = queryRunner.activate();
-
-    return () => {
-      scene.removeFromScene(queryRunner);
-      return deactivate();
-    };
-  }, [queryRunner, scene]);
+  useEffect(() => scene.addToScene(queryRunner), [queryRunner, scene]);
 
   // Update queries when they change
   useEffect(() => {

@@ -38,11 +38,15 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
   public addToScene(obj: SceneObject) {
     this.setState({ children: [...this.state.children, obj] });
     writeSceneLog('SceneContext', `Adding to scene: ${obj.constructor.name} key: ${obj.state.key}`);
-  }
 
-  public removeFromScene(obj: SceneObject) {
-    this.setState({ children: this.state.children.filter((x) => x !== obj) });
-    writeSceneLog('SceneContext', `Removing from scene: ${obj.constructor.name} key: ${obj.state.key}`);
+    const deactivate = obj.activate();
+
+    return () => {
+      writeSceneLog('SceneContext', `Removing from scene: ${obj.constructor.name} key: ${obj.state.key}`);
+      this.setState({ children: this.state.children.filter((x) => x !== obj) });
+
+      deactivate();
+    };
   }
 
   public findByKey<T>(key: string): T | undefined {
@@ -68,13 +72,10 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
     }
 
     writeSceneLog('SceneContext', `Adding variable: ${variable.constructor.name} key: ${variable.state.key}`);
-  }
 
-  public removeVariable(variable: SceneVariable) {
-    let set = this.state.$variables as SceneVariableSet;
-    if (set) {
+    return () => {
       set.setState({ variables: set.state.variables.filter((x) => x !== variable) });
       writeSceneLog('SceneContext', `Removing variable: ${variable.constructor.name} key: ${variable.state.key}`);
-    }
+    };
   }
 }
