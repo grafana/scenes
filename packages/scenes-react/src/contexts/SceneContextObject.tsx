@@ -22,8 +22,9 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
   }
 
   public addToScene(obj: SceneObject) {
-    this.setState({ children: [...this.state.children, obj] });
     getUrlSyncManager().handleNewObject(obj);
+
+    this.setState({ children: [...this.state.children, obj] });
     writeSceneLog('SceneContext', `Adding to scene: ${obj.constructor.name} key: ${obj.state.key}`);
 
     const deactivate = obj.activate();
