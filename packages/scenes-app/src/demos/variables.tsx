@@ -211,7 +211,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                     .setTitle('Description')
                     .setOption(
                       'content',
-                      'This tab is mainly to test a variable with 100 000 options, to test search / typing performance'
+                      'This tab is mainly to test a variable with 100 000 options, to test search / typing performance. manyOptions=$manyOptions'
                     )
                     .build(),
                 }),

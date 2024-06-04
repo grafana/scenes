@@ -16,6 +16,8 @@ const filterNoOp = () => true;
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, text, key, options, includeAll } = model.useState();
   const [inputValue, setInputValue] = useState('');
+  const [hasCustomValue, setHasCustomValue] = useState(false);
+
   const optionSearcher = useMemo(
     () => getOptionSearcher(options, includeAll, value, text),
     [options, includeAll, value, text]
@@ -35,21 +37,38 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
 
   const filteredOptions = optionSearcher(inputValue);
 
+  const onOpenMenu = () => {
+    if (hasCustomValue) {
+      setInputValue(String(text));
+    }
+  };
+
+  const onCloseMenu = () => {
+    setInputValue('');
+  };
+
   return (
     <Select<VariableValue>
       id={key}
       placeholder="Select value"
       width="auto"
       value={value}
+      inputValue={inputValue}
       allowCustomValue
       virtualized
       filterOption={filterNoOp}
       tabSelectsValue={false}
       onInputChange={onInputChange}
+      onOpenMenu={onOpenMenu}
+      onCloseMenu={onCloseMenu}
       options={filteredOptions}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
+
+        if (hasCustomValue !== newValue.__isNew__) {
+          setHasCustomValue(newValue.__isNew__);
+        }
       }}
     />
   );
