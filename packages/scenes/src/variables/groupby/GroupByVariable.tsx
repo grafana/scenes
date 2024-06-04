@@ -206,8 +206,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
   const [uncommittedValue, setUncommittedValue] = useState(values);
 
   const optionSearcher = useMemo(
-    () => getOptionSearcher(options, includeAll, value, text),
-    [options, includeAll, value, text]
+    () => getOptionSearcher(options, includeAll),
+    [options, includeAll]
   );
 
   // Detect value changes outside

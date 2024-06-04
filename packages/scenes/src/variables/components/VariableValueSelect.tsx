@@ -19,8 +19,8 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
   const [hasCustomValue, setHasCustomValue] = useState(false);
 
   const optionSearcher = useMemo(
-    () => getOptionSearcher(options, includeAll, value, text),
-    [options, includeAll, value, text]
+    () => getOptionSearcher(options, includeAll),
+    [options, includeAll]
   );
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
@@ -50,6 +50,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
   return (
     <Select<VariableValue>
       id={key}
+      isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       placeholder="Select value"
       width="auto"
       value={value}
@@ -75,15 +76,15 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
 }
 
 export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, options, key, maxVisibleValues, noValueOnClear, includeAll } = model.useState();
+  const { value, options, key, maxVisibleValues, noValueOnClear, includeAll } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
   const [inputValue, setInputValue] = useState('');
 
   const optionSearcher = useMemo(
-    () => getOptionSearcher(options, includeAll, value, text),
-    [options, includeAll, value, text]
+    () => getOptionSearcher(options, includeAll),
+    [options, includeAll]
   );
 
   // Detect value changes outside
