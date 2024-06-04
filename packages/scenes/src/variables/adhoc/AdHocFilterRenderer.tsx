@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
+import { getOptionSearcher } from '../components/getOptionSearcher';
+import { VariableValueOption } from '../types';
 
 interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
+}
+
+function selectableValueToVariableValueOption(value: SelectableValue): VariableValueOption {
+  return {
+    label: value.label ?? String(value.value),
+    value: value.value,
+  }
 }
 
 function keyLabelToOption(key: string, label?: string): SelectableValue | null {
@@ -35,6 +44,11 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
 
+  const optionSearcher = useMemo(
+    () => getOptionSearcher(values.map(selectableValueToVariableValueOption), undefined, valueValue?.value ?? '', valueValue?.label ?? ''),
+    [values, valueValue?.value, valueValue?.label]
+  );
+
   const onValueInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
       setValueInputValue(value);
@@ -42,8 +56,11 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     return value;
   };
 
+  const filteredValueOptions: SelectableValue[] = optionSearcher(valueInputValue);
+
   const valueSelect = (
     <Select
+      virtualized
       allowCustomValue
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
@@ -53,7 +70,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       width="auto"
       value={valueValue}
       placeholder={'Select value'}
-      options={values}
+      options={filteredValueOptions}
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
       onChange={(v) => {

@@ -6,7 +6,7 @@ export function getOptionSearcher(
   options: VariableValueOption[],
   includeAll: boolean | undefined,
   value: VariableValue,
-  text: VariableValue
+  text: VariableValue,
 ) {
   const ufuzzy = new uFuzzy();
   let allOptions = options;
