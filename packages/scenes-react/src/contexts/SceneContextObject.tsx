@@ -68,7 +68,8 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
     if (set) {
       set.setState({ variables: [...set.state.variables, variable] });
     } else {
-      this.setState({ $variables: new SceneVariableSet({ variables: [variable] }) });
+      set = new SceneVariableSet({ variables: [variable] });
+      this.setState({ $variables: set });
     }
 
     writeSceneLog('SceneContext', `Adding variable: ${variable.constructor.name} key: ${variable.state.key}`);
