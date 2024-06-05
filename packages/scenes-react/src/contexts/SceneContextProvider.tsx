@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { SceneTimeRangeState, SceneTimeRange, behaviors, useUrlSync } from '@grafana/scenes';
+import { SceneTimeRangeState, SceneTimeRange, behaviors, UrlSyncContextProvider } from '@grafana/scenes';
 
 import { SceneContextObject, SceneContextObjectState } from './SceneContextObject';
 
@@ -72,22 +72,5 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
   }
 
   // For root context we wrap the provider in a UrlSyncWrapper that handles the hook that updates state on location changes
-  return <UrlSyncWrapper context={childContext}>{innerProvider}</UrlSyncWrapper>;
-}
-
-interface UrlSyncProps {
-  context: SceneContextObject;
-  children: React.ReactNode;
-}
-/**
- * This component is just to work around the limitation of not being able to call hooks conditionally
- */
-function UrlSyncWrapper(props: UrlSyncProps) {
-  const isInitialized = useUrlSync(props.context);
-
-  if (!isInitialized) {
-    return null;
-  }
-
-  return props.children;
+  return <UrlSyncContextProvider scene={childContext}>{innerProvider}</UrlSyncContextProvider>;
 }

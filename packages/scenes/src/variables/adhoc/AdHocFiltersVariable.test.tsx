@@ -10,7 +10,6 @@ import {
   getDefaultTimeRange,
   LoadingState,
   PanelData,
-  UrlQueryMap,
 } from '@grafana/data';
 import { Observable, of } from 'rxjs';
 import userEvent from '@testing-library/user-event';
@@ -23,7 +22,7 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { select } from 'react-select-event';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
-import { getUrlSyncManager } from '../../services/UrlSyncManager';
+import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -326,7 +325,7 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      updateUrlState({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
+      locationService.partial({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -351,7 +350,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      updateUrlState({ 'var-filters': '' });
+      locationService.partial({ 'var-filters': '' });
     });
 
     expect(filtersVar.state.filters.length).toBe(0);
@@ -371,7 +370,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup({ filters: [] });
 
     act(() => {
-      updateUrlState({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
+      locationService.partial({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
     });
 
     expect(filtersVar.state.filters.length).toEqual(2);
@@ -390,7 +389,7 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      updateUrlState({
+      locationService.partial({
         'var-filters': ['newKey,New Key|=|newValue,New Value', 'newKey2,New Key 2|=~|newValue2,New Value 2'],
       });
     });
@@ -426,7 +425,7 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      updateUrlState({
+      locationService.partial({
         'var-filters': ['newKey,New Key|=|newValue', 'newKey2,New Key 2|=~|newValue2'],
       });
     });
@@ -462,7 +461,7 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      updateUrlState({
+      locationService.partial({
         'var-filters': ['newKey|=|newValue,New Value', 'newKey2|=~|newValue2,New Value 2'],
       });
     });
@@ -498,7 +497,7 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      updateUrlState({
+      locationService.partial({
         'var-filters': ['newKey|=|newValue', 'newKey2|=~|newValue2'],
       });
     });
@@ -534,7 +533,7 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      updateUrlState({
+      locationService.partial({
         'var-filters': [
           'new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value',
           'new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2',
@@ -573,7 +572,7 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      updateUrlState({
+      locationService.partial({
         'var-filters': ['newKey|=|newValue', 'newKey2,newKey2|=~|newValue2,newValue2'],
       });
     });
@@ -946,14 +945,11 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
 
   locationService.push('/');
 
-  getUrlSyncManager().initSync(scene);
-
-  const { unmount } = render(<scene.Component model={scene} />);
+  const { unmount } = render(
+    <TestContextProvider scene={scene}>
+      <scene.Component model={scene} />
+    </TestContextProvider>
+  );
 
   return { scene, filtersVar, unmount, runRequest: runRequestMock.fn, getTagKeysSpy, getTagValuesSpy, timeRange };
-}
-
-function updateUrlState(searchParams: UrlQueryMap) {
-  locationService.partial(searchParams);
-  getUrlSyncManager().handleNewLocation(locationService.getLocation());
 }

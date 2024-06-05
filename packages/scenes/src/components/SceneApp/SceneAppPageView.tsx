@@ -8,7 +8,7 @@ import { SceneDebugger } from '../SceneDebugger/SceneDebugger';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getUrlWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
-import { useUrlSync } from '../../services/UrlSyncManager';
+import { useUrlSync } from '../../services/useUrlSync';
 
 export interface Props {
   page: SceneAppPageLike;

@@ -12,6 +12,7 @@ import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import userEvent from '@testing-library/user-event';
+import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 
 describe('GroupByVariable', () => {
   it('should not resolve values from the data source if default options provided', async () => {
@@ -312,9 +313,11 @@ export function setupTest(overrides?: Partial<GroupByVariableState>) {
 
   locationService.push('/');
 
-  scene.initUrlSync();
-
-  render(<scene.Component model={scene} />);
+  render(
+    <TestContextProvider scene={scene}>
+      <scene.Component model={scene} />
+    </TestContextProvider>
+  );
 
   return { scene, variable, getTagKeysSpy, timeRange };
 }

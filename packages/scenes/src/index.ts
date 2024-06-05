@@ -60,7 +60,9 @@ export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
-export { type UrlSyncManagerLike, UrlSyncManager, getUrlSyncManager, useUrlSync } from './services/UrlSyncManager';
+export { type UrlSyncManagerLike, UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
+export { useUrlSync } from './services/useUrlSync';
+export { UrlSyncContextProvider } from './services/UrlSyncContextProvider';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
