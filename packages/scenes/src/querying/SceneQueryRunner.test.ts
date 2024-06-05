@@ -32,8 +32,10 @@ import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
-import { SceneDeactivationHandler } from '../core/types';
+import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -97,6 +99,7 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
     state: LoadingState.Loading,
     series: [],
     annotations: [],
+    request,
     timeRange: request.range,
   };
 
@@ -1078,6 +1081,88 @@ describe('SceneQueryRunner', () => {
 
       // Should not any new query
       expect(runRequestMock.mock.calls.length).toEqual(1);
+    });
+  });
+
+  describe('extra requests', () => {
+    test('should run and rerun extra requests', async () => {
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+      });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, true);
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      // activate the scene, which will also activate the provider
+      // and the provider will run the extra request
+      scene.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      let runRequestCall = runRequestMock.mock.calls[0];
+      let extraRunRequestCall = runRequestMock.mock.calls[1];
+      expect(runRequestCall[1].targets[0].refId).toEqual('A');
+      expect(extraRunRequestCall[1].targets[0].refId).toEqual('Extra');
+      expect(extraRunRequestCall[1].targets[0].foo).toEqual(1);
+
+      // change the state of the provider, which will trigger the activation
+      // handler to run the extra request again.
+      provider.setState({ foo: 2 });
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(4);
+      runRequestCall = runRequestMock.mock.calls[2];
+      extraRunRequestCall = runRequestMock.mock.calls[3];
+      expect(runRequestCall[1].targets[0].refId).toEqual('A');
+      expect(extraRunRequestCall[1].targets[0].refId).toEqual('Extra');
+      expect(extraRunRequestCall[1].targets[0].foo).toEqual(2);
+    });
+
+    test('should not rerun extra requests when providers say not to', async () => {
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+      });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, false);
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      // activate the scene, which will also activate the provider
+      // and the provider will run the extra request
+      scene.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      let runRequestCall = runRequestMock.mock.calls[0];
+      let extraRunRequestCall = runRequestMock.mock.calls[1];
+      expect(runRequestCall[1].targets[0].refId).toEqual('A');
+      expect(extraRunRequestCall[1].targets[0].refId).toEqual('Extra');
+      expect(extraRunRequestCall[1].targets[0].foo).toEqual(1);
+
+      // change the state of the provider, which will trigger the activation
+      // handler to run the extra request again. The provider will
+      // return false from shouldRun, so we should not see any more queries.
+      provider.setState({ foo: 2 });
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
     });
   });
 
@@ -2188,5 +2273,33 @@ class CustomDataSource extends RuntimeDataSource {
 
   public query(options: DataQueryRequest<DataQuery>): Observable<DataQueryResponse> {
     return of({ data: [{ refId: 'A', fields: [{ name: 'time', type: FieldType.time, values: [123] }] }] });
+  }
+}
+
+interface TestExtraQueryProviderState extends SceneObjectState {
+  foo: number;
+}
+
+class TestExtraQueryProvider extends SceneObjectBase<TestExtraQueryProviderState> implements ExtraQueryProvider<{}> {
+  private _shouldRerun: boolean;
+
+  public constructor(state: { foo: number; }, shouldRerun: boolean) {
+    super(state);
+    this._shouldRerun = shouldRerun;
+  }
+
+  public getExtraQueries(): ExtraQueryDescriptor[] {
+    return [{
+      req: {
+        targets: [
+          // @ts-expect-error
+          { refId: 'Extra', foo: this.state.foo },
+        ],
+      },
+      processor: (primary, secondary) => of({ ...primary, ...secondary }),
+    }];
+  }
+  public shouldRerun(prev: {}, next: {}): boolean {
+    return this._shouldRerun;
   }
 }
