@@ -607,7 +607,8 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(variable.state.loading).toBe(true);
-      expect(queryRunner.state.data?.state).toBe(undefined);
+      expect(queryRunner.state.data?.state).toBe('Loading');
+      expect(runRequestMock.mock.calls.length).toBe(0);
     });
 
     it('Should not executed query on activate even when maxDataPointsFromWidth is true', async () => {
@@ -630,7 +631,9 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.state).toBe(undefined);
+      expect(variable.state.loading).toBe(true);
+      expect(queryRunner.state.data?.state).toBe('Loading');
+      expect(runRequestMock.mock.calls.length).toBe(0);
     });
 
     it('Should not executed query when time range change', async () => {
@@ -656,7 +659,9 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.state).toBe(undefined);
+      expect(variable.state.loading).toBe(true);
+      expect(queryRunner.state.data?.state).toBe('Loading');
+      expect(runRequestMock.mock.calls.length).toBe(0);
     });
 
     it('Should execute query when variable updates', async () => {
