@@ -61,7 +61,6 @@ function syncUrlStateToObject(sceneObject: SceneObject, urlParams: URLSearchPara
     for (const key of sceneObject.urlSync.getKeys()) {
       const uniqueKey = urlKeyMapper.getUniqueKey(key, sceneObject);
       const newValue = urlParams.getAll(uniqueKey);
-      console.log('uniqueKey', uniqueKey, newValue);
       const currentValue = currentState[key];
 
       if (isUrlValueEqual(newValue, currentValue)) {
@@ -79,8 +78,6 @@ function syncUrlStateToObject(sceneObject: SceneObject, urlParams: URLSearchPara
         urlState[key] = null;
       }
     }
-
-    console.log('urlSync', sceneObject.state.key, urlState);
 
     if (Object.keys(urlState).length > 0) {
       sceneObject.urlSync.updateFromUrl(urlState);
