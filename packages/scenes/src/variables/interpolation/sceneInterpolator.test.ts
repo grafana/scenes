@@ -59,6 +59,28 @@ describe('sceneInterpolator', () => {
 
       expect(sceneInterpolator(scene, '${test:regex}')).toBe('.*');
     });
+
+    it('It can contain a variable expression', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new TestVariable({
+              name: 'test',
+              value: ALL_VARIABLE_VALUE,
+              text: ALL_VARIABLE_TEXT,
+              allValue: '$other',
+            }),
+            new TestVariable({
+              name: 'other',
+              value: 'hello',
+              text: 'hello',
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${test}')).toBe('hello');
+    });
   });
 
   describe('Given an expression with fieldPath', () => {
