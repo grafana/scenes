@@ -143,7 +143,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
             this.runQueries();
           }
         })
-      )
+      );
     }
 
     this.subscribeToTimeRangeChanges(timeRange);
@@ -493,17 +493,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private prepareRequests(timeRange: SceneTimeRangeLike, ds: DataSourceApi): PreparedRequests {
     const { minInterval, queries } = this.state;
 
-<<<<<<< HEAD
-    let secondaryRequest: DataQueryRequest | undefined;
-
-    let request: DataQueryRequest<SceneDataQuery> = {
-||||||| 6b2b5ef
-    let secondaryRequest: DataQueryRequest | undefined;
-
     let request: DataQueryRequest<DataQueryExtended> = {
-=======
-    let request: DataQueryRequest<DataQueryExtended> = {
->>>>>>> 207b3f5da3eada1190928aa5114f482b21fa03c1
       app: 'scenes',
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
@@ -568,58 +558,18 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // and map the request's ID to the processor function given by the provider, to ensure that
     // the processor is called with the correct response data.
     const primaryTimeRange = timeRange.state.value;
-<<<<<<< HEAD
-    if (comparer) {
-      const secondaryTimeRange = comparer.getCompareTimeRange(primaryTimeRange);
-      if (secondaryTimeRange) {
-        const secondaryTargets = request.targets.filter((query: SceneDataQuery) => query.timeRangeCompare !== false);
-
-        if (secondaryTargets.length) {
-          secondaryRequest = {
-            ...request,
-            targets: secondaryTargets,
-            range: secondaryTimeRange,
-            requestId: getNextRequestId(),
-          };
-        }
-
-        request = {
-          ...request,
-          range: primaryTimeRange,
-        };
-||||||| 6b2b5ef
-    if (comparer) {
-      const secondaryTimeRange = comparer.getCompareTimeRange(primaryTimeRange);
-      if (secondaryTimeRange) {
-        const secondaryTargets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
-
-        if (secondaryTargets.length) {
-          secondaryRequest = {
-            ...request,
-            targets: secondaryTargets,
-            range: secondaryTimeRange,
-            requestId: getNextRequestId(),
-          };
-        }
-
-        request = {
-          ...request,
-          range: primaryTimeRange,
-        };
-=======
     let secondaryRequests: DataQueryRequest[] = [];
     let secondaryProcessors = new Map();
     for (const provider of this.getClosestExtraQueryProviders() ?? []) {
       for (const { req, processor } of provider.getExtraQueries(request)) {
         const requestId = getNextRequestId();
-        secondaryRequests.push({ ...req, requestId })
+        secondaryRequests.push({ ...req, requestId });
         secondaryProcessors.set(requestId, processor ?? passthroughProcessor);
->>>>>>> 207b3f5da3eada1190928aa5114f482b21fa03c1
       }
     }
     request.range = primaryTimeRange;
     return { primary: request, secondaries: secondaryRequests, processors: secondaryProcessors };
-  };
+  }
 
   private onDataReceived = (data: PanelData) => {
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
