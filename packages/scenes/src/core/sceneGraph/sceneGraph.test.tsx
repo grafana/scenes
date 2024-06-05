@@ -208,4 +208,34 @@ describe('sceneGraph', () => {
       }).toThrow();
     });
   });
+
+  describe('can find by key (and type)', ()=>{
+    const data = new SceneDataNode();
+    const item1 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A' }), $data: data });
+    const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
+    const timePicker = new SceneTimePicker({ key: 'time-picker' });
+
+    const scene = new EmbeddedScene({
+      controls: [timePicker],
+      body: new SceneFlexLayout({
+        children: [item1, item2],
+      }),
+    });
+
+    // from root
+    expect(sceneGraph.findByKey(scene, 'A')).toBe(item1);
+    // from sibling
+    expect(sceneGraph.findByKey(item2, 'A')).toBe(item1);
+    // from data
+    expect(sceneGraph.findByKey(data, 'A')).toBe(item1);
+    // from item deep in graph finding control
+    expect(sceneGraph.findByKey(item2, 'time-picker')).toBe(timePicker);
+    // By type
+    expect(sceneGraph.findByKeyAndType(scene, 'A', SceneFlexItem)).toBe(item1);
+    // By wrong type
+    expect(()=>sceneGraph.findByKeyAndType(scene, 'A', SceneDataNode)).toThrow();
+    // By wrong key
+    expect(()=>sceneGraph.findByKey(scene, 'NOT A KEY')).toThrow();
+    expect(()=>sceneGraph.findByKeyAndType(scene, 'NOT A KEY', SceneFlexItem)).toThrow();
+  })
 });

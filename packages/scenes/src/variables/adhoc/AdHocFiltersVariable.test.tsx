@@ -114,6 +114,62 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
+  // TODO enable once this repo is using @grafana/ui@11.1.0
+  it.skip('shows groups and orders according to first occurence of a group item', async () => {
+    const { runRequest } = setup({
+      getTagValuesProvider: async () => ({
+        replace: true,
+        values: [{
+          text: 'Alice',
+          value: 'alice',
+          group: 'People',
+        }, {
+          text: 'Bar',
+          value: 'bar'
+        }, {
+          text: 'Cat',
+          value: 'cat',
+          group: 'Animals',
+        }, {
+          text: 'Bob',
+          value: 'bob',
+          group: 'People',
+        }, {
+          text: 'Dog',
+          value: 'dog',
+          group: 'Animals',
+        }, {
+          text: 'Foo',
+          value: 'foo',
+        }]
+      })
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.click(selects[2]);
+
+    // Check the group headers are visible
+    expect(screen.getByText('People')).toBeInTheDocument();
+    expect(screen.getByText('Animals')).toBeInTheDocument();
+
+    // Check the correct options exist
+    const options = screen.getAllByRole('option');
+    expect(options.length).toBe(6);
+    expect(options[0]).toHaveTextContent('Alice');
+    expect(options[1]).toHaveTextContent('Bob');
+    expect(options[2]).toHaveTextContent('Bar');
+    expect(options[3]).toHaveTextContent('Cat');
+    expect(options[4]).toHaveTextContent('Dog');
+    expect(options[5]).toHaveTextContent('Foo');
+  });
+
   it('can set the same custom value again', async () => {
     const { filtersVar, runRequest } = setup();
 

@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes",
-  "version": "4.24.4",
+  "version": "4.26.0",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@grafana/e2e-selectors": "^10.4.1",
+    "@leeoniya/ufuzzy": "^1.0.14",
     "react-grid-layout": "1.3.4",
     "react-use": "17.4.0",
     "react-virtualized-auto-sizer": "1.0.7",

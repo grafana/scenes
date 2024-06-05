@@ -1,3 +1,27 @@
+# v4.26.0 (Tue Jun 04 2024)
+
+#### 🚀 Enhancement
+
+- Variables: Search / typing performance improvements [#763](https://github.com/grafana/scenes/pull/763) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.25.0 (Fri May 31 2024)
+
+#### 🚀 Enhancement
+
+- AdHoc filters: Add support for adhoc filter value groups [#758](https://github.com/grafana/scenes/pull/758) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v4.24.4 (Thu May 30 2024)
 
 #### 🐛 Bug Fix

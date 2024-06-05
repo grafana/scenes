@@ -13,6 +13,7 @@ import { isArray } from 'lodash';
 import { getQueriesForVariables } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
+import { getOptionSearcher } from '../components/getOptionSearcher';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -185,7 +186,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 }
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, maxVisibleValues, noValueOnClear } = model.useState();
+  const { value, text, key, maxVisibleValues, noValueOnClear, options, includeAll } = model.useState();
+
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
     const arrayText = isArray(text) ? text : [text];
@@ -195,12 +197,18 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       label: String(arrayText[idx] ?? value),
     }));
   }, [value, text]);
+
   const [isFetchingOptions, setIsFetchingOptions] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(values);
+
+  const optionSearcher = useMemo(
+    () => getOptionSearcher(options, includeAll, value, text),
+    [options, includeAll, value, text]
+  );
 
   // Detect value changes outside
   useEffect(() => {
@@ -224,13 +232,13 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     return inputValue;
   };
 
-  const placeholder = 'Select value';
+  const filteredOptions = optionSearcher(inputValue);
 
   return (
     <MultiSelect<VariableValueSingle>
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={placeholder}
+      placeholder={'Select value'}
       width="auto"
       inputValue={inputValue}
       value={uncommittedValue}
@@ -238,7 +246,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
       virtualized
-      options={model.getOptionsForSelect()}
+      options={filteredOptions}
+      filterOption={filterNoOp}
       closeMenuOnSelect={false}
       isOpen={isOptionsOpen}
       isClearable={true}
@@ -270,3 +279,5 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     />
   );
 }
+
+const filterNoOp = () => true;
