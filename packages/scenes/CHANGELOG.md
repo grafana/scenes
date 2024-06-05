@@ -1,3 +1,18 @@
+# v4.26.1 (Wed Jun 05 2024)
+
+#### 🐛 Bug Fix
+
+- PlainReact: Expose scene features through contexts and hooks and normal react components [#734](https://github.com/grafana/scenes/pull/734) ([@torkelo](https://github.com/torkelo) [@oscarkilhed](https://github.com/oscarkilhed))
+- SceneQueryRunner: decouple time range comparisons [#587](https://github.com/grafana/scenes/pull/587) ([@sd2k](https://github.com/sd2k))
+
+#### Authors: 3
+
+- Ben Sully ([@sd2k](https://github.com/sd2k))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.26.0 (Tue Jun 04 2024)
 
 #### 🚀 Enhancement

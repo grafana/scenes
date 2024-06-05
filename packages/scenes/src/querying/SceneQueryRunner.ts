@@ -25,6 +25,7 @@ import {
   DataLayerFilter,
   SceneDataProvider,
   SceneDataProviderResult,
+  SceneDataQuery,
   SceneObjectState,
   SceneTimeRangeLike,
 } from '../core/types';
@@ -33,9 +34,9 @@ import { VariableDependencyConfig } from '../variables/VariableDependencyConfig'
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
-import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { getClosest } from '../core/sceneGraph/utils';
-import { timeShiftQueryResponseOperator } from './timeShiftQueryResponseOperator';
+import { isExtraQueryProvider, ExtraQueryDataProcessor, ExtraQueryProvider } from './ExtraQueryProvider';
+import { passthroughProcessor, extraQueryProcessingOperator } from './extraQueryProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetAdhocFilters';
@@ -54,7 +55,7 @@ export function getNextRequestId() {
 
 export interface QueryRunnerState extends SceneObjectState {
   data?: PanelData;
-  queries: DataQueryExtended[];
+  queries: SceneDataQuery[];
   datasource?: DataSourceRef;
   minInterval?: string;
   maxDataPoints?: number;
@@ -73,6 +74,28 @@ export interface DataQueryExtended extends DataQuery {
 
   // Opt this query out of time window comparison
   timeRangeCompare?: boolean;
+}
+
+// The requests that will be run by the query runner.
+//
+// Generally the query runner will run a single primary request.
+// If the scene graph contains implementations of
+// `ExtraQueryProvider`, the requests created by these
+// implementations will be added to the list of secondary requests,
+// and these will be executed at the same time as the primary request.
+//
+// The results of each secondary request will be passed to an associated
+// processor function (along with the results of the primary request),
+// which can transform the results as desired.
+interface PreparedRequests {
+  // The primary request to run.
+  primary: DataQueryRequest;
+  // A possibly empty list of secondary requests to run alongside
+  // the primary request.
+  secondaries: DataQueryRequest[];
+  // A map from `requestId` of secondary requests to processors
+  // for those requests. Provided by the `ExtraQueryProvider`.
+  processors: Map<string, ExtraQueryDataProcessor>;
 }
 
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
@@ -109,12 +132,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private _onActivate() {
     const timeRange = sceneGraph.getTimeRange(this);
-    const comparer = this.getTimeCompare();
 
-    if (comparer) {
+    // Add subscriptions to any extra providers so that they rerun queries
+    // when their state changes and they should rerun.
+    const providers = this.getClosestExtraQueryProviders();
+    for (const provider of providers) {
       this._subs.add(
-        comparer.subscribeToState((n, p) => {
-          if (n.compareWith !== p.compareWith) {
+        provider.subscribeToState((n, p) => {
+          if (provider.shouldRerun(p, n)) {
             this.runQueries();
           }
         })
@@ -408,21 +433,27 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.findAndSubscribeToAdHocFilters(datasource?.uid);
 
       const runRequest = getRunRequest();
-      const [request, secondaryRequest] = this.prepareRequests(timeRange, ds);
+      const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
-      let stream = runRequest(ds, request);
+      let stream = runRequest(ds, primary);
 
-      if (secondaryRequest) {
-        // change subscribe callback below to pipe operator
-        stream = forkJoin([stream, runRequest(ds, secondaryRequest)]).pipe(timeShiftQueryResponseOperator);
+      if (secondaries.length > 0) {
+        // Submit all secondary requests in parallel.
+        const secondaryStreams = secondaries.map((r) => runRequest(ds, r));
+        // Create the rxjs operator which will combine the primary and secondary responses
+        // by calling the correct processor functions provided by the
+        // extra request providers.
+        const op = extraQueryProcessingOperator(processors);
+        // Combine the primary and secondary streams into a single stream, and apply the operator.
+        stream = forkJoin([stream, ...secondaryStreams]).pipe(op);
       }
 
       stream = stream.pipe(
         registerQueryWithController({
           type: 'data',
-          request,
+          request: primary,
           origin: this,
           cancel: () => this.cancelQuery(),
         })
@@ -459,14 +490,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return clone;
   }
 
-  private prepareRequests = (
-    timeRange: SceneTimeRangeLike,
-    ds: DataSourceApi
-  ): [DataQueryRequest, DataQueryRequest | undefined] => {
-    const comparer = this.getTimeCompare();
+  private prepareRequests(timeRange: SceneTimeRangeLike, ds: DataSourceApi): PreparedRequests {
     const { minInterval, queries } = this.state;
-
-    let secondaryRequest: DataQueryRequest | undefined;
 
     let request: DataQueryRequest<DataQueryExtended> = {
       app: 'scenes',
@@ -529,30 +554,22 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.interval = norm.interval;
     request.intervalMs = norm.intervalMs;
 
+    // If there are any extra request providers, we need to add a new request for each
+    // and map the request's ID to the processor function given by the provider, to ensure that
+    // the processor is called with the correct response data.
     const primaryTimeRange = timeRange.state.value;
-    if (comparer) {
-      const secondaryTimeRange = comparer.getCompareTimeRange(primaryTimeRange);
-      if (secondaryTimeRange) {
-        const secondaryTargets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
-
-        if (secondaryTargets.length) {
-          secondaryRequest = {
-            ...request,
-            targets: secondaryTargets,
-            range: secondaryTimeRange,
-            requestId: getNextRequestId(),
-          };
-        }
-
-        request = {
-          ...request,
-          range: primaryTimeRange,
-        };
+    let secondaryRequests: DataQueryRequest[] = [];
+    let secondaryProcessors = new Map();
+    for (const provider of this.getClosestExtraQueryProviders() ?? []) {
+      for (const { req, processor } of provider.getExtraQueries(request)) {
+        const requestId = getNextRequestId();
+        secondaryRequests.push({ ...req, requestId });
+        secondaryProcessors.set(requestId, processor ?? passthroughProcessor);
       }
     }
-
-    return [request, secondaryRequest];
-  };
+    request.range = primaryTimeRange;
+    return { primary: request, secondaries: secondaryRequests, processors: secondaryProcessors };
+  }
 
   private onDataReceived = (data: PanelData) => {
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
@@ -593,26 +610,32 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Will walk up the scene graph and find the closest time range compare object
-   * It performs buttom-up search, including shallow search across object children for supporting controls/header actions
+   * Walk up the scene graph and find any ExtraQueryProviders.
+   *
+   * This will return an array of the closest provider of each type.
    */
-  private getTimeCompare() {
+  private getClosestExtraQueryProviders(): Array<ExtraQueryProvider<any>> {
+    // Maintain a map from provider constructor to provider object. The constructor
+    // is used as a unique key for each class, to ensure we have no more than one
+    // type of each type of provider.
+    const found = new Map();
     if (!this.parent) {
-      return null;
+      return [];
     }
-    return getClosest(this.parent, (s) => {
-      let found = null;
-      if (s instanceof SceneTimeRangeCompare) {
-        return s;
+    getClosest(this.parent, (s) => {
+      if (isExtraQueryProvider(s) && !found.has(s.constructor)) {
+        found.set(s.constructor, s);
       }
       s.forEachChild((child) => {
-        if (child instanceof SceneTimeRangeCompare) {
-          found = child;
+        if (isExtraQueryProvider(child) && !found.has(child.constructor)) {
+          found.set(child.constructor, child);
         }
       });
-
-      return found;
+      // Always return null so that the search continues to the top of
+      // the scene graph.
+      return null;
     });
+    return Array.from(found.values());
   }
 
   /**
