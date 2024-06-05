@@ -36,10 +36,10 @@ interface VariableSelectProps {
   /** To override hide from VariableValueSelectByName  */
   showAlways?: boolean;
   /** To provide an option to hide the label in the variable value selector */
-  hideControllerLabel?: boolean;
+  hideLabel?: boolean;
 }
 
-export function VariableValueSelectWrapper({ variable, layout, showAlways, hideControllerLabel }: VariableSelectProps) {
+export function VariableValueSelectWrapper({ variable, layout, showAlways, hideLabel }: VariableSelectProps) {
   const state = useSceneObjectState<SceneVariableState>(variable, { shouldActivateOrKeepAlive: true });
 
   if (state.hide === VariableHide.hideVariable && !showAlways) {
@@ -49,7 +49,7 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways, hideC
   if (layout === 'vertical') {
     return (
       <div className={verticalContainer} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
-        <VariableLabel variable={variable} layout={layout} hideControllerLabel={hideControllerLabel} />
+        <VariableLabel variable={variable} layout={layout} hideLabel={hideLabel} />
         <variable.Component model={variable} />
       </div>
     );
@@ -57,16 +57,16 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways, hideC
 
   return (
     <div className={containerStyle} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
-      <VariableLabel variable={variable} hideControllerLabel={hideControllerLabel} />
+      <VariableLabel variable={variable} hideLabel={hideLabel} />
       <variable.Component model={variable} />
     </div>
   );
 }
 
-function VariableLabel({ variable, layout, hideControllerLabel }: VariableSelectProps) {
+function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
   const { state } = variable;
 
-  if (variable.state.hide === VariableHide.hideLabel || hideControllerLabel) {
+  if (variable.state.hide === VariableHide.hideLabel || hideLabel) {
     return null;
   }
 

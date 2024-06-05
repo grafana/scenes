@@ -10,7 +10,7 @@ export interface VariableValueControlState extends SceneObjectState {
   /** Render the specific select control for a variable */
   variableName: string;
   /** Hide the label in the variable value controller */
-  hideControllerLabel?: boolean;
+  hideLabel?: boolean;
 }
 
 export class VariableValueControl extends SceneObjectBase<VariableValueControlState> {
