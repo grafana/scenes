@@ -32,8 +32,8 @@
     "docs": "yarn workspace website run start --port 8080",
     "docs:build": "yarn turbo build --filter=website",
     "build": "yarn turbo build --filter=!website",
-    "test:scenes": "yarn turbo test --filter=@grafana/scenes -- --watch",
-    "test:scenes-react": "yarn turbo test --filter=@grafana/scenes-react -- --watch",
+    "test:scenes": "yarn workspace @grafana/scenes test --watch",
+    "test:scenes-react": "yarn workspace @grafana/scenes-react test --watch",
     "dev": "yarn turbo dev --filter=!website",
     "test": "yarn turbo test --filter=!website",
     "typecheck": "yarn turbo typecheck --filter=!website"
