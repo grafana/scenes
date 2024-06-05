@@ -39,11 +39,21 @@ export function syncStateFromSearchParams(root: SceneObject, urlParams: URLSearc
   syncStateFromUrl(root, urlParams, urlKeyMapper);
 }
 
-export function syncStateFromUrl(
-  sceneObject: SceneObject,
-  urlParams: URLSearchParams,
-  urlKeyMapper: UniqueUrlKeyMapper
-) {
+export function syncStateFromUrl(root: SceneObject, urlParams: URLSearchParams, urlKeyMapper: UniqueUrlKeyMapper) {
+  if (!root.parent) {
+    // If top level object we need to sync here
+    syncUrlStateToObject(root, urlParams, urlKeyMapper);
+  }
+
+  // These two forEachChild loops might look strange but it's to make sure we walk through the scene graph one level at a time as url key conflicts depend depth in the scene tree
+  root.forEachChild((child) => {
+    syncUrlStateToObject(child, urlParams, urlKeyMapper);
+  });
+
+  root.forEachChild((child) => syncStateFromUrl(child, urlParams, urlKeyMapper));
+}
+
+function syncUrlStateToObject(sceneObject: SceneObject, urlParams: URLSearchParams, urlKeyMapper: UniqueUrlKeyMapper) {
   if (sceneObject.urlSync) {
     const urlState: SceneObjectUrlValues = {};
     const currentState = sceneObject.urlSync.getUrlState();
@@ -51,6 +61,7 @@ export function syncStateFromUrl(
     for (const key of sceneObject.urlSync.getKeys()) {
       const uniqueKey = urlKeyMapper.getUniqueKey(key, sceneObject);
       const newValue = urlParams.getAll(uniqueKey);
+      console.log('uniqueKey', uniqueKey, newValue);
       const currentValue = currentState[key];
 
       if (isUrlValueEqual(newValue, currentValue)) {
@@ -69,12 +80,12 @@ export function syncStateFromUrl(
       }
     }
 
+    console.log('urlSync', sceneObject.state.key, urlState);
+
     if (Object.keys(urlState).length > 0) {
       sceneObject.urlSync.updateFromUrl(urlState);
     }
   }
-
-  sceneObject.forEachChild((child) => syncStateFromUrl(child, urlParams, urlKeyMapper));
 }
 
 export function isUrlValueEqual(currentUrlValue: string[], newUrlValue: SceneObjectUrlValue): boolean {

@@ -10,6 +10,7 @@ import { SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
 import { UrlSyncManager } from './UrlSyncManager';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
+import { UrlQueryMap } from '@grafana/data';
 
 interface TestObjectState extends SceneObjectState {
   name: string;
@@ -134,18 +135,18 @@ describe('UrlSyncManager', () => {
       expect(obj.state.nested?.state.name).toEqual('nested name from initial url');
     });
 
-    it.skip('Should update scene state from url for objects created after initial sync', () => {
+    it('Should update scene state from url for objects created after initial sync', () => {
       scene = new SceneFlexLayout({ children: [] });
+
+      locationService.partial({ name: 'name-from-url' });
 
       urlManager = new UrlSyncManager();
       urlManager.initSync(scene);
 
-      locationService.partial({ name: 'name-from-url' });
-
       deactivate = scene.activate();
 
       const obj = new TestObj({ name: 'test' });
-      //urlManager.syncNewObj(obj);
+      urlManager.handleNewObject(obj);
 
       scene.setState({ children: [new SceneFlexItem({ body: obj })] });
 
@@ -167,29 +168,28 @@ describe('UrlSyncManager', () => {
       deactivate = scene.activate();
 
       // When non relevant key changes in url
-      locationService.partial({ someOtherProp: 'test2' });
+      updateUrlAndNotifyUrlSyncManager({ someOtherProp: 'test2' }, urlManager);
+
       // Should not affect state
       expect(obj.state).toBe(initialObjState);
 
       // When relevant key changes in url
-      locationService.partial({ name: 'test2' });
+      updateUrlAndNotifyUrlSyncManager({ name: 'test2' }, urlManager);
+
       // Should update state
       expect(obj.state.name).toBe('test2');
 
       // When relevant key is cleared
-      locationService.partial({ name: null });
-
-      // Should revert to initial state
-      // expect(obj.state.name).toBe('test');
+      updateUrlAndNotifyUrlSyncManager({ name: null }, urlManager);
 
       // When relevant key is set to current state
       const currentState = obj.state;
-      locationService.partial({ name: currentState.name });
+      updateUrlAndNotifyUrlSyncManager({ name: currentState.name }, urlManager);
       // Should not affect state (same instance)
       expect(obj.state).toBe(currentState);
     });
 
-    it('should ignore state update when path also changed', () => {
+    it('should ignore location update when handleNewLocation is not called', () => {
       const obj = new TestObj({ name: 'test' });
       scene = new SceneFlexLayout({
         children: [new SceneFlexItem({ body: obj })],
@@ -255,7 +255,7 @@ describe('UrlSyncManager', () => {
       });
 
       // When updating via url
-      locationService.partial({ ['from-2']: 'now-10s' });
+      updateUrlAndNotifyUrlSyncManager({ ['from-2']: 'now-10s' }, urlManager);
       // should find the correct object
       expect(innerTimeRange.state.from).toBe('now-10s');
       // should not update the first object
@@ -291,7 +291,8 @@ describe('UrlSyncManager', () => {
       expect(locationUpdates.length).toBe(1);
 
       // When updating via url
-      locationService.partial({ array: ['A', 'B', 'C'] });
+      updateUrlAndNotifyUrlSyncManager({ array: ['A', 'B', 'C'] }, urlManager);
+
       // Should update state
       expect(obj.state.array).toEqual(['A', 'B', 'C']);
     });
@@ -310,13 +311,13 @@ describe('UrlSyncManager', () => {
       deactivate = scene.activate();
 
       // When setting value via url
-      locationService.partial({ optional: 'handler' });
+      updateUrlAndNotifyUrlSyncManager({ optional: 'handler' }, urlManager);
 
       // Should update state
       expect(obj.state.optional).toBe('handler');
 
       // When updating via url and remove optional
-      locationService.partial({ optional: null });
+      updateUrlAndNotifyUrlSyncManager({ optional: null }, urlManager);
 
       // Should update state
       expect(obj.state.optional).toBe(undefined);
@@ -339,7 +340,7 @@ describe('UrlSyncManager', () => {
       expect(locationService.getSearchObject().optional).toEqual('handler');
 
       // When updating via url and remove optional
-      locationService.partial({ optional: null });
+      updateUrlAndNotifyUrlSyncManager({ optional: null }, urlManager);
 
       // Should update state
       expect(obj.state.optional).toBe(undefined);
@@ -415,7 +416,7 @@ describe('UrlSyncManager', () => {
       expect(locationService.getSearchObject().name).toBeUndefined();
 
       // When updating via url
-      locationService.partial({ name: 'Hello' });
+      updateUrlAndNotifyUrlSyncManager({ name: 'Hello' }, urlManager);
 
       // Should not update state
       expect(obj1.state.name).toBe('B');
@@ -449,3 +450,8 @@ describe('UrlSyncManager', () => {
     });
   });
 });
+
+function updateUrlAndNotifyUrlSyncManager(searchParams: UrlQueryMap, urlManager: UrlSyncManager) {
+  locationService.partial(searchParams);
+  urlManager.handleNewLocation(locationService.getLocation());
+}
