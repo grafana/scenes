@@ -176,16 +176,18 @@ export const OptionWithCheckbox = ({
       ref={innerRef}
       className={cx(selectStyles.option, isFocused && selectStyles.optionFocused)}
       {...rest}
-      aria-label="Select option"
-      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownOptionTexts(
-        data.label || String(data.value)
-      )}
+      data-testid={selectors.components.Select.option}
       title={data.title}
     >
       <div className={optionStyles.checkbox}>
         <Checkbox value={isSelected} />
       </div>
-      <div className={selectStyles.optionBody}>
+      <div
+        className={selectStyles.optionBody}
+        data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownOptionTexts(
+          data.label || String(data.value)
+        )}
+      >
         <span>{children}</span>
       </div>
     </div>
