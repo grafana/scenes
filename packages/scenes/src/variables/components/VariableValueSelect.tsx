@@ -185,7 +185,7 @@ export const OptionWithCheckbox = ({
       <div
         className={selectStyles.optionBody}
         data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownOptionTexts(
-          data.label || String(data.value)
+          data.label ?? String(data.value)
         )}
       >
         <span>{children}</span>
