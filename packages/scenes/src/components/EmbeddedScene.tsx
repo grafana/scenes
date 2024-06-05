@@ -51,7 +51,7 @@ function EmbeddedSceneRenderer({ model }: SceneComponentProps<EmbeddedScene>) {
   const { body, controls } = model.useState();
   const styles = useStyles2(getStyles);
 
-  const inner = (
+  return (
     <div className={styles.container}>
       {controls && (
         <div className={styles.controls}>
@@ -65,8 +65,6 @@ function EmbeddedSceneRenderer({ model }: SceneComponentProps<EmbeddedScene>) {
       </div>
     </div>
   );
-
-  return inner;
 }
 
 const getStyles = (theme: GrafanaTheme2) => {
