@@ -25,6 +25,7 @@ import {
   DataLayerFilter,
   SceneDataProvider,
   SceneDataProviderResult,
+  SceneDataQuery,
   SceneObjectState,
   SceneTimeRangeLike,
 } from '../core/types';
@@ -54,7 +55,7 @@ export function getNextRequestId() {
 
 export interface QueryRunnerState extends SceneObjectState {
   data?: PanelData;
-  queries: DataQueryExtended[];
+  queries: SceneDataQuery[];
   datasource?: DataSourceRef;
   minInterval?: string;
   maxDataPoints?: number;
@@ -142,7 +143,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
             this.runQueries();
           }
         })
-      )
+      );
     }
 
     this.subscribeToTimeRangeChanges(timeRange);
@@ -562,13 +563,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     for (const provider of this.getClosestExtraQueryProviders() ?? []) {
       for (const { req, processor } of provider.getExtraQueries(request)) {
         const requestId = getNextRequestId();
-        secondaryRequests.push({ ...req, requestId })
+        secondaryRequests.push({ ...req, requestId });
         secondaryProcessors.set(requestId, processor ?? passthroughProcessor);
       }
     }
     request.range = primaryTimeRange;
     return { primary: request, secondaries: secondaryRequests, processors: secondaryProcessors };
-  };
+  }
 
   private onDataReceived = (data: PanelData) => {
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)

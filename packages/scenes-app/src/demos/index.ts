@@ -35,6 +35,7 @@ import { getInteractiveTableDemo } from './interactiveTableDemo';
 import { getVariableRepeaterDemo } from './variableRepeater';
 import { getQueryControllerDemo } from './queryController';
 import { getDynamicDataLayersDemo } from './dynamicDataLayers';
+import { getInteropDemo } from './interopDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -79,5 +80,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Vertical controls layout', getPage: getVerticalControlsLayoutDemo },
     { title: 'Interactive table with expandable rows', getPage: getInteractiveTableDemo },
     { title: 'Query controller demo', getPage: getQueryControllerDemo },
+    { title: 'Interop with hooks and context', getPage: getInteropDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

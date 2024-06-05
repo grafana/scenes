@@ -371,11 +371,20 @@ describe('SceneQueryRunner', () => {
       const filtersVar = new AdHocFiltersVariable({
         datasource: { uid: 'test-uid' },
         applyMode: 'auto',
-        filters: [{
-          key: 'A', operator: '=', value: 'B', condition: ''
-        }, {
-          key: 'C', operator: '=', value: '', condition: ''
-        }],
+        filters: [
+          {
+            key: 'A',
+            operator: '=',
+            value: 'B',
+            condition: '',
+          },
+          {
+            key: 'C',
+            operator: '=',
+            value: '',
+            condition: '',
+          },
+        ],
       });
 
       const scene = new EmbeddedScene({
@@ -391,9 +400,14 @@ describe('SceneQueryRunner', () => {
 
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].filters).toEqual([{
-        key: 'A', operator: '=', value: 'B', condition: ''
-      }]);
+      expect(runRequestCall[1].filters).toEqual([
+        {
+          key: 'A',
+          operator: '=',
+          value: 'B',
+          condition: '',
+        },
+      ]);
 
       // Verify updating filter re-triggers query
       filtersVar._updateFilter(filtersVar.state.filters[1], 'value', { value: 'D' });
@@ -403,11 +417,20 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toEqual(2);
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
-      expect(runRequestCall2[1].filters).toEqual([{
-        key: 'A', operator: '=', value: 'B', condition: ''
-      }, {
-        key: 'C', operator: '=', value: 'D', condition: ''
-      }]);
+      expect(runRequestCall2[1].filters).toEqual([
+        {
+          key: 'A',
+          operator: '=',
+          value: 'B',
+          condition: '',
+        },
+        {
+          key: 'C',
+          operator: '=',
+          value: 'D',
+          condition: '',
+        },
+      ]);
     });
 
     it('Adhoc filter added after first query', async () => {

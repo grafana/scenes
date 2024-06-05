@@ -6,6 +6,7 @@ export enum ROUTES {
   Home = '',
   Demos = 'demos',
   GrafanaMonitoring = 'grafana-monitoring',
+  ReactDemo = 'react-only',
 }
 
 export const DATASOURCE_REF = {

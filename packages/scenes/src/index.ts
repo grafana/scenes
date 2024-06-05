@@ -70,7 +70,7 @@ export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
 export { SceneTimePicker } from './components/SceneTimePicker';
-export { SceneRefreshPicker } from './components/SceneRefreshPicker';
+export { SceneRefreshPicker, type SceneRefreshPickerState } from './components/SceneRefreshPicker';
 export { SceneTimeRangeTransformerBase } from './core/SceneTimeRangeTransformerBase';
 export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
@@ -105,8 +105,13 @@ export {
   FieldConfigBuilders,
   FieldConfigOverridesBuilder,
 } from './core/PanelBuilders';
+export { FieldConfigBuilder } from './core/PanelBuilders/FieldConfigBuilder';
 export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
+export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
+export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
+export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
+export { type VizConfig } from './core/PanelBuilders/types';
 
 export const sceneUtils = {
   getUrlWithAppState,

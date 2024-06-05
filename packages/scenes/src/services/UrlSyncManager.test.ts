@@ -134,23 +134,23 @@ describe('UrlSyncManager', () => {
       expect(obj.state.nested?.state.name).toEqual('nested name from initial url');
     });
 
-    // it('Should get url state from with objects created after initial sync', () => {
-    //   const obj = new TestObj({ name: 'test' });
-    //   scene = new SceneFlexLayout({
-    //     children: [],
-    //   });
+    it.skip('Should update scene state from url for objects created after initial sync', () => {
+      scene = new SceneFlexLayout({ children: [] });
 
-    //   locationService.partial({ name: 'name-from-url' });
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
 
-    //   urlManager = new UrlSyncManager();
-    //   urlManager.initSync(scene);
+      locationService.partial({ name: 'name-from-url' });
 
-    //   deactivate = scene.activate();
+      deactivate = scene.activate();
 
-    //   scene.setState({ children: [new SceneFlexItem({ body: obj })] });
+      const obj = new TestObj({ name: 'test' });
+      //urlManager.syncNewObj(obj);
 
-    //   expect(obj.state.name).toEqual('name-from-url');
-    // });
+      scene.setState({ children: [new SceneFlexItem({ body: obj })] });
+
+      expect(obj.state.name).toEqual('name-from-url');
+    });
   });
 
   describe('When url changes', () => {

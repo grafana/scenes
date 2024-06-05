@@ -314,6 +314,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return '';
   };
 
+  public clearFieldConfigCache() {
+    this._dataWithFieldConfig = undefined;
+  }
+
   /**
    * Called from the react render path to apply the field config to the data provided by the data provider
    */

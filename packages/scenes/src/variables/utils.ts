@@ -2,8 +2,8 @@ import { isEqual } from 'lodash';
 import { VariableValue } from './types';
 import { AdHocVariableFilter } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneObject, SceneObjectState } from '../core/types';
-import { DataQueryExtended, SceneQueryRunner } from '../querying/SceneQueryRunner';
+import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
+import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
@@ -101,7 +101,7 @@ export function getQueriesForVariables(
     return [];
   }
 
-  const result: DataQueryExtended[] = [];
+  const result: SceneDataQuery[] = [];
   applicableRunners.forEach((r) => {
     result.push(...r.state.queries);
   });
