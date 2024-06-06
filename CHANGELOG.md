@@ -1,3 +1,16 @@
+# v4.26.3 (Thu Jun 06 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VariableValueSelect: Adjust data-testid in OptionWithCheckbox [#770](https://github.com/grafana/scenes/pull/770) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v4.26.2 (Thu Jun 06 2024)
 
 #### 🐛 Bug Fix
