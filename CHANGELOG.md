@@ -1,3 +1,18 @@
+# v4.26.2 (Thu Jun 06 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Support variable expressions inside custom values [#774](https://github.com/grafana/scenes/pull/774) ([@torkelo](https://github.com/torkelo))
+  - SceneQueryRunner: Act as if we're loading when waiting for variables to load. [#768](https://github.com/grafana/scenes/pull/768) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 2
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.26.1 (Wed Jun 05 2024)
 
 #### 🐛 Bug Fix
