@@ -117,7 +117,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
       if (Object.keys(mappedUpdated).length > 0) {
         writeSceneLog('UrlSyncManager', 'onStateChange updating URL');
-        locationService.partial(mappedUpdated, false);
+        locationService.partial(mappedUpdated, true);
         this._lastLocation = locationService.getLocation();
       }
     }
