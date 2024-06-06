@@ -10,7 +10,7 @@ export function TransformationsDemoPage() {
   return (
     <PageWrapper title="Transformations" subTitle="Transformations demo page">
       <Select
-        onChange={(e) => setReducer(e.value || ReducerID.mean)}
+        onChange={(e) => setReducer(e.value ?? ReducerID.mean)}
         value={reducer}
         options={[
           { label: 'mean', value: ReducerID.mean },
