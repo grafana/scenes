@@ -263,6 +263,43 @@ describe('UrlSyncManager', () => {
       // Should not cause another url update
       expect(locationUpdates.length).toBe(3);
     });
+
+    it('should handle dynamically added objects that use same key', () => {
+      const outerTimeRange = new SceneTimeRange();
+      const layout = new SceneFlexLayout({ children: [] });
+
+      scene = new SceneFlexLayout({
+        children: [
+          new SceneFlexItem({
+            body: layout,
+          }),
+        ],
+        $timeRange: outerTimeRange,
+      });
+
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
+
+      deactivate = scene.activate();
+
+      outerTimeRange.setState({ from: 'now-20m' });
+
+      const dynamicallyAddedTimeRange = new SceneTimeRange();
+      layout.setState({ $timeRange: dynamicallyAddedTimeRange });
+
+      dynamicallyAddedTimeRange.setState({ from: 'now-5m' });
+
+      // Should use unique key based where it is in the scene
+      expect(locationService.getSearchObject()['from-2']).toBe('now-5m');
+
+      // Now set a new instance of the time range (making the prevous time range an orphan)
+      const dynamicallyAddedTimeRange2 = new SceneTimeRange();
+      layout.setState({ $timeRange: dynamicallyAddedTimeRange2 });
+
+      dynamicallyAddedTimeRange2.setState({ from: 'now-1s' });
+      // should still use same key
+      expect(locationService.getSearchObject()['from-2']).toBe('now-1s');
+    });
   });
 
   describe('When updating array value', () => {

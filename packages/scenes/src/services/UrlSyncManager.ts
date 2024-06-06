@@ -35,15 +35,15 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
     writeSceneLog('UrlSyncManager', 'init', root.state.key);
 
-    const location = locationService.getLocation();
-
     this._sceneRoot = root;
-    this._lastLocation = location;
-    this._urlParams = new URLSearchParams(location.search);
     this._stateSub = root.subscribeToEvent(SceneObjectStateChangedEvent, this._onStateChanged);
 
     this._urlKeyMapper.clear();
-    this.syncFrom(this._sceneRoot);
+
+    this._lastLocation = locationService.getLocation();
+    this._urlParams = new URLSearchParams(this._lastLocation.search);
+
+    this.handleNewObject(this._sceneRoot);
   }
 
   public cleanUp(root: SceneObject) {
@@ -67,12 +67,6 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
     this._sceneRoot = undefined;
     this._urlParams = undefined;
-  }
-
-  public syncFrom(sceneObj: SceneObject) {
-    const urlParams = locationService.getSearch();
-    // The index is always from the root
-    syncStateFromUrl(sceneObj, urlParams, this._urlKeyMapper);
   }
 
   public handleNewLocation(location: Location) {
@@ -118,7 +112,10 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       if (Object.keys(mappedUpdated).length > 0) {
         writeSceneLog('UrlSyncManager', 'onStateChange updating URL');
         locationService.partial(mappedUpdated, true);
+
+        /// Mark the location already handled
         this._lastLocation = locationService.getLocation();
+        this._urlParams = new URLSearchParams(this._lastLocation.search);
       }
     }
   };

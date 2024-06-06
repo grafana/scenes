@@ -1,3 +1,4 @@
+import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject } from '../core/types';
 
 export interface SceneObjectWithDepth {
@@ -9,7 +10,7 @@ export class UniqueUrlKeyMapper {
   private index = new Map<string, SceneObject[]>();
 
   public getUniqueKey(key: string, obj: SceneObject) {
-    let objectsWithKey = this.index.get(key);
+    const objectsWithKey = this.index.get(key);
 
     if (!objectsWithKey) {
       this.index.set(key, [obj]);
@@ -18,8 +19,9 @@ export class UniqueUrlKeyMapper {
 
     let address = objectsWithKey.findIndex((o) => o === obj);
     if (address === -1) {
-      objectsWithKey = filterOutDeadObjects(objectsWithKey);
+      filterOutOrphanedObjects(objectsWithKey);
       objectsWithKey.push(obj);
+
       address = objectsWithKey.length - 1;
     }
 
@@ -35,18 +37,22 @@ export class UniqueUrlKeyMapper {
   }
 }
 
-function filterOutDeadObjects(sceneObjects: SceneObject[]) {
-  const filtered: SceneObject[] = [];
-
+function filterOutOrphanedObjects(sceneObjects: SceneObject[]) {
   for (const obj of sceneObjects) {
-    if (obj.parent) {
-      obj.parent.forEachChild((child) => {
-        if (child === obj) {
-          filtered.push(child);
-        }
-      });
+    if (isOrphanOrInActive(obj)) {
+      const index = sceneObjects.indexOf(obj);
+      sceneObjects.splice(index, 1);
     }
   }
+}
 
-  return filtered;
+function isOrphanOrInActive(obj: SceneObject) {
+  const root = obj.getRoot();
+
+  // If we cannot find it from the root it's an orphan
+  if (!sceneGraph.findObject(root, (child) => child === obj)) {
+    return true;
+  }
+
+  return false;
 }

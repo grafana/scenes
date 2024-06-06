@@ -61,7 +61,7 @@ export const tableWithDrilldown = VizConfigBuilders.table()
     b.matchFieldsWithName('Library').overrideLinks([
       {
         title: 'Go to library details',
-        url: '${__url.path}/lib/${__value.text}',
+        url: '${__url.path}/lib/${__value.text}${__url.params}',
       },
     ])
   )
