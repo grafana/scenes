@@ -187,6 +187,8 @@ describe('AdHocFiltersVariable', () => {
     expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
 
+    await userEvent.click(selects[2]);
+    await userEvent.clear(selects[2]);
     await userEvent.type(selects[2], 'myVeryCustomValue');
 
     expect(screen.getByText('Use custom value: myVeryCustomValue')).toBeInTheDocument();
