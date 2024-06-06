@@ -1,3 +1,15 @@
+# v4.27.0 (Thu Jun 06 2024)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersVariable: Performance improvements [#766](https://github.com/grafana/scenes/pull/766) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v4.26.3 (Thu Jun 06 2024)
 
 #### 🐛 Bug Fix
