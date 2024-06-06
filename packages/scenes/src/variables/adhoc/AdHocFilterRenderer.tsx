@@ -29,6 +29,8 @@ function keyLabelToOption(key: string, label?: string): SelectableValue | null {
     : null;
 }
 
+const filterNoOp = () => true;
+
 export function AdHocFilterRenderer({ filter, model }: Props) {
   const styles = useStyles2(getStyles);
 
@@ -45,7 +47,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
 
   const optionSearcher = useMemo(
-    () => getOptionSearcher(values.map(selectableValueToVariableValueOption), undefined, 1000),
+    () => getOptionSearcher(values.map(selectableValueToVariableValueOption), undefined),
     [values]
   );
 
@@ -69,6 +71,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       className={cx(styles.value, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
       value={valueValue}
+      filterOption={filterNoOp}
       placeholder={'Select value'}
       options={filteredValueOptions}
       inputValue={valueInputValue}

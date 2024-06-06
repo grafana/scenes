@@ -5,11 +5,11 @@ import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 export function getOptionSearcher(
   options: VariableValueOption[],
   includeAll: boolean | undefined,
-  limit = 10000,
 ) {
   const ufuzzy = new uFuzzy();
   let allOptions = options;
   const haystack: string[] = [];
+  const limit = 10000;
 
   if (includeAll) {
     allOptions = [{ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT }, ...allOptions];

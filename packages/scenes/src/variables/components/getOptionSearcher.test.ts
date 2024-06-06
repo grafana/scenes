@@ -28,18 +28,4 @@ describe('getOptionSearcher', () => {
       { label: 'estimate', value: '2' },
     ]);
   });
-
-  it('Honours the configurable limit', async () => {
-    const options = [
-      { label: 'Test', value: '1' },
-      { label: 'Google', value: '2' },
-      { label: 'estimate', value: '2' },
-    ];
-    const optionSearcher = getOptionSearcher(options, false, 2);
-
-    expect(optionSearcher('')).toEqual([
-      { label: 'Test', value: '1' },
-      { label: 'Google', value: '2' },
-    ]);
-  });
 });

@@ -13,10 +13,18 @@ import { getOptionSearcher } from './getOptionSearcher';
 
 const filterNoOp = () => true;
 
+export function toSelectableValue<T>(value: T, label?: string): SelectableValue<T> {
+  return {
+    value,
+    label: label ?? String(value),
+  };
+}
+
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, text, key, options, includeAll } = model.useState();
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
+  const selectValue = toSelectableValue(value, String(text));
 
   const optionSearcher = useMemo(
     () => getOptionSearcher(options, includeAll),
@@ -53,7 +61,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       placeholder="Select value"
       width="auto"
-      value={value}
+      value={selectValue}
       inputValue={inputValue}
       allowCustomValue
       virtualized
