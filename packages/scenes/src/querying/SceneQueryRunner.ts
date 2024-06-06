@@ -497,7 +497,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       app: 'scenes',
       requestId: getNextRequestId(),
       timezone: timeRange.getTimeZone(),
-      panelId: 1,
       range: timeRange.state.value,
       interval: '1s',
       intervalMs: 1000,
