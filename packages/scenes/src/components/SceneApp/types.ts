@@ -1,5 +1,5 @@
 import { ComponentType } from 'react';
-import { DataRequestEnricher, FiltersRequestEnricher, SceneObject, SceneObjectState } from '../../core/types';
+import { DataRequestEnricher, SceneObject, SceneObjectState } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { IconName } from '@grafana/data';
 
@@ -68,7 +68,7 @@ export interface SceneAppPageState extends SceneObjectState {
   getFallbackPage?: () => SceneAppPageLike;
 }
 
-export interface SceneAppPageLike extends SceneObject<SceneAppPageState>, DataRequestEnricher, FiltersRequestEnricher {
+export interface SceneAppPageLike extends SceneObject<SceneAppPageState>, DataRequestEnricher {
   initializeScene(scene: SceneObject): void;
   /**
    * @internal. Please don't call this from plugin code.

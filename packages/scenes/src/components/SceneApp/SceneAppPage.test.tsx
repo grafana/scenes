@@ -8,11 +8,4 @@ describe('SceneAppPage', () => {
     const result = page.enrichDataRequest(source);
     expect(result).toBe(null);
   });
-
-  it('enrichFiltersRequest should handle standalone pages', () => {
-    const page = new SceneAppPage({ title: 'Page', url: '/page' });
-    const source = new SceneCanvasText({ text: 'text' });
-    const result = page.enrichFiltersRequest(source);
-    expect(result).toBe(null);
-  });
 });

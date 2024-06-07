@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneObject, isDataRequestEnricher, isFiltersRequestEnricher } from '../../core/types';
+import { SceneComponentProps, SceneObject, isDataRequestEnricher } from '../../core/types';
 import { getUrlSyncManager } from '../../services/UrlSyncManager';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
@@ -73,24 +73,6 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
 
     if (isDataRequestEnricher(root)) {
       return root.enrichDataRequest(source);
-    }
-
-    return null;
-  }
-
-  public enrichFiltersRequest(source: SceneObject) {
-    if (this.state.getParentPage) {
-      return this.state.getParentPage().enrichFiltersRequest(source);
-    }
-
-    if (!this.parent) {
-      return null;
-    }
-
-    const root = this.getRoot();
-
-    if (isFiltersRequestEnricher(root)) {
-      return root.enrichFiltersRequest(source);
     }
 
     return null;
