@@ -1,3 +1,22 @@
+# v4.28.0 (Fri Jun 07 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Do not set panelId by default [#776](https://github.com/grafana/scenes/pull/776) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - provide an option to hide the label from the variable value controller [#769](https://github.com/grafana/scenes/pull/769) ([@eskirk](https://github.com/eskirk))
+
+#### Authors: 2
+
+- Elliot Kirk ([@eskirk](https://github.com/eskirk))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.27.0 (Thu Jun 06 2024)
 
 #### 🚀 Enhancement
