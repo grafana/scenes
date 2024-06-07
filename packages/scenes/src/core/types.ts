@@ -178,8 +178,17 @@ export interface DataRequestEnricher {
   enrichDataRequest(source: SceneObject): Partial<DataQueryRequest> | null;
 }
 
+export interface FiltersRequestEnricher {
+  // Return partial getTagKeys or getTagValues query request that will be merged with the original request provided by SceneQueryRunner
+  enrichFiltersRequest(source: SceneObject): object | null;
+}
+
 export function isDataRequestEnricher(obj: any): obj is DataRequestEnricher {
   return 'enrichDataRequest' in obj;
+}
+
+export function isFiltersRequestEnricher(obj: any): obj is FiltersRequestEnricher {
+  return 'enrichFiltersRequest' in obj;
 }
 
 export type SceneObjectUrlValue = string | string[] | undefined | null;
