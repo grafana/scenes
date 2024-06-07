@@ -18,7 +18,7 @@ export interface EmbeddedSceneState extends SceneObjectState {
    */
   controls?: SceneObject[];
   /**
-   * For interoperability
+   * For interoperability (used from EmbeddedSceneWithContext)
    */
   context?: SceneObject;
 }
