@@ -181,7 +181,7 @@ export interface DataRequestEnricher {
 }
 
 export interface FiltersRequestEnricher {
-  // Return partial getTagKeys or getTagValues query request that will be merged with the original request provided by SceneQueryRunner
+  // Return partial getTagKeys or getTagValues query request that will be merged with the original request provided by ad hoc or group by variable
   enrichFiltersRequest(
     source: SceneObject
   ): Partial<DataSourceGetTagKeysOptions | DataSourceGetTagValuesOptions> | null;
