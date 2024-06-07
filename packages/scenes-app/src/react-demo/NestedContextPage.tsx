@@ -2,7 +2,7 @@ import { Stack, useTheme2 } from '@grafana/ui';
 import React from 'react';
 import { PageWrapper } from './PageWrapper';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
-import { CustomVariable, TimeRangePicker, VariableSelect, SceneContextProvider } from '@grafana/scenes-react';
+import { CustomVariable, TimeRangePicker, VariableControl, SceneContextProvider } from '@grafana/scenes-react';
 import { DemoVizLayout } from './utils';
 
 export function NestedContextsPage() {
@@ -17,7 +17,7 @@ export function NestedContextsPage() {
           <CustomVariable name="job" query="jobA-${env}, jobB-${env}, jobC-${env}">
             <Stack direction="column">
               <Stack direction={'row'} justifyContent={'flex-end'}>
-                <VariableSelect name="job" />
+                <VariableControl name="job" />
                 <TimeRangePicker />
               </Stack>
               <DemoVizLayout>
