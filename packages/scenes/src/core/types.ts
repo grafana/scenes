@@ -7,6 +7,8 @@ import {
   BusEventType,
   DataFrame,
   DataQueryRequest,
+  DataSourceGetTagKeysOptions,
+  DataSourceGetTagValuesOptions,
   DataTransformContext,
   PanelData,
   TimeRange,
@@ -180,7 +182,9 @@ export interface DataRequestEnricher {
 
 export interface FiltersRequestEnricher {
   // Return partial getTagKeys or getTagValues query request that will be merged with the original request provided by SceneQueryRunner
-  enrichFiltersRequest(source: SceneObject): object | null;
+  enrichFiltersRequest(
+    source: SceneObject
+  ): Partial<DataSourceGetTagKeysOptions | DataSourceGetTagValuesOptions> | null;
 }
 
 export function isDataRequestEnricher(obj: any): obj is DataRequestEnricher {
