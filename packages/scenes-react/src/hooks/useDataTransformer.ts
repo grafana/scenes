@@ -15,7 +15,6 @@ export function useDataTransformer(options: UseDataTransformerOptions) {
   const key = useId();
 
   let dataTransformer = scene.findByKey<SceneDataTransformer>(key);
-  console.log('asd')
 
   if (!dataTransformer) {
     dataTransformer = new SceneDataTransformer({
