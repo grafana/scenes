@@ -1,3 +1,15 @@
+# v4.29.0 (Fri Jun 07 2024)
+
+#### 🚀 Enhancement
+
+- Introduce enrichFiltersRequest [#779](https://github.com/grafana/scenes/pull/779) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v4.28.0 (Fri Jun 07 2024)
 
 #### 🚀 Enhancement
