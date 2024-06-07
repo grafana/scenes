@@ -17,6 +17,10 @@ export interface EmbeddedSceneState extends SceneObjectState {
    * Top row of variable selectors, filters, time pickers and custom actions.
    */
   controls?: SceneObject[];
+  /**
+   * For interoperability
+   */
+  context?: SceneObject;
 }
 
 export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
