@@ -1,5 +1,4 @@
 import {
-  EmbeddedScene,
   SceneAppPage,
   SceneAppPageState,
   SceneComponentProps,
@@ -11,16 +10,18 @@ import {
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 import React from 'react';
-import { useTimeRange } from '@grafana/scenes-react';
+import { EmbeddedSceneWithContext, useTimeRange } from '@grafana/scenes-react';
+import { Stack } from '@grafana/ui';
+import { DemoVizLayout } from '../react-demo/utils';
+import { PlainGraphWithRandomWalk } from '../react-demo/PlainGraphWithRandomWalk';
 
 export function getInteropDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
     subTitle: 'Testing using the hooks and plain react components from normal scene',
     getScene: () => {
-      return new EmbeddedScene({
+      return new EmbeddedSceneWithContext({
         ...getEmbeddedSceneDefaults(),
-        //        context: new SceneContextObject({}),
         key: 'Flex layout embedded scene',
         body: new SceneFlexLayout({
           direction: 'column',
@@ -46,6 +47,13 @@ class CustomSceneObject extends SceneObjectBase<SceneObjectState> {
   static Component = ({ model }: SceneComponentProps<CustomSceneObject>) => {
     const [timeRange, _] = useTimeRange();
 
-    return <div>Time hook: {timeRange.from.toString()}</div>;
+    return (
+      <Stack direction="column">
+        <div>Time hook: {timeRange.from.toString()}</div>
+        <DemoVizLayout>
+          <PlainGraphWithRandomWalk title="Visualization using React VizPanel with data from useQueryRunner" />
+        </DemoVizLayout>
+      </Stack>
+    );
   };
 }
