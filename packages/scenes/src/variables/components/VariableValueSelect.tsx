@@ -21,15 +21,12 @@ export function toSelectableValue<T>(value: T, label?: string): SelectableValue<
 }
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, options, includeAll } = model.useState();
+  const { value, text, key, options, includeAll, isReadOnly } = model.useState();
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
   const selectValue = toSelectableValue(value, String(text));
 
-  const optionSearcher = useMemo(
-    () => getOptionSearcher(options, includeAll),
-    [options, includeAll]
-  );
+  const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
@@ -61,6 +58,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       placeholder="Select value"
       width="auto"
+      disabled={isReadOnly}
       value={selectValue}
       inputValue={inputValue}
       allowCustomValue
@@ -84,16 +82,13 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
 }
 
 export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, options, key, maxVisibleValues, noValueOnClear, includeAll } = model.useState();
+  const { value, options, key, maxVisibleValues, noValueOnClear, includeAll, isReadOnly } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
   const [inputValue, setInputValue] = useState('');
 
-  const optionSearcher = useMemo(
-    () => getOptionSearcher(options, includeAll),
-    [options, includeAll]
-  );
+  const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   // Detect value changes outside
   useEffect(() => {
@@ -126,6 +121,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       placeholder={placeholder}
       width="auto"
       inputValue={inputValue}
+      disabled={isReadOnly}
       value={uncommittedValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}

@@ -28,7 +28,11 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
-export { type ExtraQueryDescriptor, type ExtraQueryProvider, type ExtraQueryDataProcessor } from './querying/ExtraQueryProvider';
+export {
+  type ExtraQueryDescriptor,
+  type ExtraQueryProvider,
+  type ExtraQueryDataProcessor,
+} from './querying/ExtraQueryProvider';
 export { SceneDataLayerSet, SceneDataLayerSetBase } from './querying/SceneDataLayerSet';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
@@ -49,6 +53,7 @@ export { VariableValueControl } from './variables/components/VariableValueContro
 export { SceneVariableSet } from './variables/sets/SceneVariableSet';
 export { ConstantVariable } from './variables/variants/ConstantVariable';
 export { CustomVariable } from './variables/variants/CustomVariable';
+export { SnapshotVariable } from './variables/variants/SnapshotVariable';
 export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
