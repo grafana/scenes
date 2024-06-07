@@ -3,6 +3,7 @@ import { useSceneContext } from "./hooks";
 import { useEffect, useId } from "react";
 import { isEqual } from "lodash";
 import { DataTransformerConfig } from "@grafana/schema";
+import { DataProxyProvider } from "../DataProxyProvider";
 
 export interface UseDataTransformerOptions {
   transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
@@ -14,9 +15,13 @@ export function useDataTransformer(options: UseDataTransformerOptions) {
   const key = useId();
 
   let dataTransformer = scene.findByKey<SceneDataTransformer>(key);
+  console.log('asd')
 
   if (!dataTransformer) {
-    dataTransformer = new SceneDataTransformer({ $data: options.data, transformations: options.transformations });
+    dataTransformer = new SceneDataTransformer({
+      $data: new DataProxyProvider({ source: options.data.getRef() }),
+      transformations: options.transformations,
+    });
   }
 
   useEffect(() => scene.addToScene(dataTransformer));
