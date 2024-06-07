@@ -18,19 +18,20 @@ export function useDataTransformer(options: UseDataTransformerOptions) {
 
   if (!dataTransformer) {
     dataTransformer = new SceneDataTransformer({
+      key: key,
       $data: new DataProxyProvider({ source: options.data.getRef() }),
       transformations: options.transformations,
     });
   }
 
-  useEffect(() => scene.addToScene(dataTransformer));
+  useEffect(() => scene.addToScene(dataTransformer), [dataTransformer, scene]);
 
   useEffect(() => {
     if (!isEqual(dataTransformer.state.transformations, options.transformations)) {
       dataTransformer.setState({ transformations: options.transformations });
       dataTransformer.reprocessTransformations();
     }
-  });
+  }, [dataTransformer, options.transformations]);
 
   return dataTransformer;
 }
