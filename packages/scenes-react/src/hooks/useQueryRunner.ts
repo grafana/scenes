@@ -27,7 +27,7 @@ export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
 
   let data = undefined;
   if (options.annotations instanceof SceneDataLayerSet) {
-      data = new DataLayerProxyProvider({ source: options.annotations.getRef() })
+      data = new DataLayerProxyProvider({ name: options.annotations.state.name, source: options.annotations.getRef() })
   }
 
   if (!queryRunner) {

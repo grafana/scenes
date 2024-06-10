@@ -4,7 +4,7 @@ import { useEffect, useId } from "react";
 import { isEqual } from "lodash";
 
 export interface UseDataLayersOptions {
-    layers: Array<dataLayers.AnnotationsDataLayer>;
+    layers: dataLayers.AnnotationsDataLayer[];
 }
 
 export function useDataLayers(options: UseDataLayersOptions): SceneDataProvider {
