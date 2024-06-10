@@ -906,6 +906,7 @@ describe('AdHocFiltersVariable', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         filters: [{ key: 'key1', operator: '!=', value: 'val1' }],
+        layout: 'vertical',
       });
 
       render(<variable.Component model={variable} />);
