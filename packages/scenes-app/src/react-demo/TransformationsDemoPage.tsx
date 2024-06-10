@@ -2,11 +2,35 @@ import { Select, Stack } from '@grafana/ui';
 import React, { useState } from 'react';
 import { PageWrapper } from './PageWrapper';
 import { DemoVizLayout } from './utils';
-import { GraphWithWindowTransformation } from './GraphWithTransformation';
-import { ReducerID } from '@grafana/data';
+import { DataTransformerID, ReducerID } from '@grafana/data';
+import { VizPanel, useDataTransformer, useQueryRunner } from '@grafana/scenes-react';
+import { plainGraph } from './visualizations';
 
 export function TransformationsDemoPage() {
-  const [reducer, setReducer] = useState(ReducerID.mean)
+  const [reducer, setReducer] = useState(ReducerID.mean);
+
+  const dataProvider = useQueryRunner({
+    queries: [{ uid: 'gdev-testdata', refId: 'A', scenarioId: 'random_walk', alias: 'foo' }],
+    maxDataPoints: 20,
+  });
+
+  // Unfortunately the option definitions are currently not exported from grafana data.
+  const transformerOptions = {
+    mode: 'windowFunctions',
+    window: {
+      windowSize: 10,
+      windowSizeMode: 'percentage',
+      windowAlignment: 'center',
+      field: 'foo',
+      reducer: reducer,
+    },
+  };
+
+  const dataTransformer = useDataTransformer({
+    transformations: [{ id: DataTransformerID.calculateField, options: transformerOptions }],
+    data: dataProvider,
+  });
+
   return (
     <PageWrapper title="Transformations" subTitle="Transformations demo page">
       <Select
@@ -19,7 +43,7 @@ export function TransformationsDemoPage() {
       ></Select>
       <Stack direction={'column'} gap={2}>
         <DemoVizLayout>
-          <GraphWithWindowTransformation title="Transformations" maxDataPoints={50} reducer={reducer}/>
+          <VizPanel title="Viz with transformations" viz={plainGraph} dataProvider={dataTransformer} />
         </DemoVizLayout>
       </Stack>
     </PageWrapper>
