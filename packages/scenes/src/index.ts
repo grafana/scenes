@@ -53,12 +53,15 @@ export { VariableValueControl } from './variables/components/VariableValueContro
 export { SceneVariableSet } from './variables/sets/SceneVariableSet';
 export { ConstantVariable } from './variables/variants/ConstantVariable';
 export { CustomVariable } from './variables/variants/CustomVariable';
-export { SnapshotVariable } from './variables/variants/SnapshotVariable';
 export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
-export { MultiValueVariable } from './variables/variants/MultiValueVariable';
+export {
+  MultiValueVariable,
+  type MultiValueVariableState,
+  type VariableGetOptionsArgs,
+} from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
@@ -114,6 +117,7 @@ export { FieldConfigBuilder } from './core/PanelBuilders/FieldConfigBuilder';
 export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
+export { renderSelectForVariable } from './variables/components/VariableValueSelect';
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
 export { type VizConfig } from './core/PanelBuilders/types';
