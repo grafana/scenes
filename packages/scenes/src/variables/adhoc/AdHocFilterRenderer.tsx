@@ -68,11 +68,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
       disabled={model.state.readOnly}
-      className={cx(
-        styles.value,
-        isKeysOpen ? styles.widthWhenOpen : undefined,
-        model.state.layout === 'vertical' ? styles.valueVertical : undefined
-      )}
+      className={cx(styles.value, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
       value={valueValue}
       filterOption={filterNoOp}
@@ -156,9 +152,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
       return (
         <Field label={label} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
-          <>
+          <div className={styles.wrapper}>
             <Select
-              className={styles.operatorVertical}
+              className={styles.operator}
               value={filter.operator}
               disabled={model.state.readOnly}
               options={model._getOperators()}
@@ -166,7 +162,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
               onChange={(v) => model._updateFilter(filter, 'operator', v)}
             />
             {valueSelect}
-          </>
+          </div>
         </Field>
       );
     } else {
@@ -256,15 +252,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   operator: css({
     flexShrink: 0,
-  }),
-  operatorVertical: css({
-    borderRight: 'none',
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-  }),
-  valueVertical: css({
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
   }),
   removeButton: css({
     paddingLeft: theme.spacing(3 / 2),
