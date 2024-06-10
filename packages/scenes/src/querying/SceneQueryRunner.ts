@@ -1,5 +1,5 @@
 import { cloneDeep, isEqual } from 'lodash';
-import { forkJoin, ReplaySubject, Unsubscribable } from 'rxjs';
+import { forkJoin, map, mergeMap, Observable, of, ReplaySubject, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -36,7 +36,6 @@ import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { getClosest } from '../core/sceneGraph/utils';
 import { isExtraQueryProvider, ExtraQueryDataProcessor, ExtraQueryProvider } from './ExtraQueryProvider';
-import { passthroughProcessor, extraQueryProcessingOperator } from './extraQueryProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetAdhocFilters';
@@ -98,6 +97,9 @@ interface PreparedRequests {
   processors: Map<string, ExtraQueryDataProcessor>;
 }
 
+// Passthrough processor for secondary requests which don't define a processor.
+const passthroughProcessor: ExtraQueryDataProcessor = (_, secondary) => of(secondary);
+
 export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implements SceneDataProvider {
   private _querySub?: Unsubscribable;
   private _dataLayersSub?: Unsubscribable;
@@ -110,6 +112,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
+
+  // The results of the latest query before it was processed by any extra query providers.
+  private _unprocessedResults = new ReplaySubject<[PanelData, ...PanelData[]]>(1);
+  // The subscription to the unprocessed results.
+  private _unprocessedSub?: Unsubscribable;
+  // The processors provided by any extra query providers.
+  // The key is the request ID of the secondary request.
+  private _processors?: Map<string, ExtraQueryDataProcessor>;
 
   private _adhocFiltersVar?: AdHocFiltersVariable;
   private _groupByVar?: GroupByVariable;
@@ -139,8 +149,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     for (const provider of providers) {
       this._subs.add(
         provider.subscribeToState((n, p) => {
-          if (provider.shouldRerun(p, n)) {
+          const shouldRerun = provider.shouldRerun(p, n);
+          if (shouldRerun === true || shouldRerun === 'queries') {
+            // don't explicitly run processors here, that's done automatically
+            // as part of `this.runQueries`.
             this.runQueries();
+          } else if (shouldRerun === 'processors') {
+            this.runProcessors();
           }
         })
       );
@@ -321,6 +336,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._dataLayersSub = undefined;
     }
 
+    if (this._unprocessedSub) {
+      this._unprocessedSub.unsubscribe();
+    }
+
     this._timeSub?.unsubscribe();
     this._timeSub = undefined;
     this._timeSubRange = undefined;
@@ -368,6 +387,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._timeSubRange = timeRange;
     this._timeSub = timeRange.subscribeToState(() => {
       this.runWithTimeRange(timeRange);
+      this.runProcessors();
     });
   }
 
@@ -375,6 +395,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     const timeRange = sceneGraph.getTimeRange(this);
     this.subscribeToTimeRangeChanges(timeRange);
     this.runWithTimeRange(timeRange);
+    this.runProcessors();
+  }
+
+  private runProcessors() {
+    if (this._unprocessedSub) {
+      this._unprocessedSub.unsubscribe();
+    }
+    this._unprocessedSub = this._unprocessedResults
+      .pipe((data) => this.processResults(data))
+      .subscribe((data) => this.onDataReceived(data));
   }
 
   private getMaxDataPoints() {
@@ -435,32 +465,33 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
+      this._processors = processors;
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
-      let stream = runRequest(ds, primary);
-
-      if (secondaries.length > 0) {
-        // Submit all secondary requests in parallel.
-        const secondaryStreams = secondaries.map((r) => runRequest(ds, r));
-        // Create the rxjs operator which will combine the primary and secondary responses
-        // by calling the correct processor functions provided by the
-        // extra request providers.
-        const op = extraQueryProcessingOperator(processors);
-        // Combine the primary and secondary streams into a single stream, and apply the operator.
-        stream = forkJoin([stream, ...secondaryStreams]).pipe(op);
-      }
-
-      stream = stream.pipe(
-        registerQueryWithController({
+      let primaryStream = runRequest(ds, primary)
+        .pipe(registerQueryWithController({
           type: 'data',
           request: primary,
           origin: this,
           cancel: () => this.cancelQuery(),
-        })
-      );
+        }));
 
-      this._querySub = stream.subscribe(this.onDataReceived);
+      if (secondaries.length === 0) {
+        this._querySub = primaryStream
+          .pipe(map((data) => [data] as [PanelData, ...PanelData[]]))
+          .subscribe((data) => this._unprocessedResults.next(data));
+      } else {
+        const secondaryStreams = secondaries.map((r) => runRequest(ds, r)
+          .pipe(registerQueryWithController({
+            type: 'data',
+            request: r,
+            origin: this,
+            cancel: () => this.cancelQuery(),
+          })));
+        const stream = forkJoin([primaryStream, ...secondaryStreams]);
+        this._querySub = stream.subscribe((data) => this._unprocessedResults.next(data));
+      }
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 
@@ -471,6 +502,25 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         errors: [toDataQueryError(err)],
       });
     }
+  }
+
+  private processResults(data: Observable<[PanelData, ...PanelData[]]>): Observable<PanelData> {
+    return data.pipe(
+      mergeMap(([primary, ...secondaries]: [PanelData, ...PanelData[]]) => {
+        if (this._processors === undefined || secondaries.length === 0) {
+          return of([primary]);
+        }
+        const processedSecondaries = secondaries.flatMap((s) => {
+          return this._processors!.get(s.request!.requestId)?.(primary, s) ?? of(s);
+        });
+        return forkJoin([of(primary), ...processedSecondaries]);
+      }),
+      map(([primary, ...processedSecondaries]) => ({
+        ...primary,
+        series: [...primary.series, ...processedSecondaries.flatMap((s) => s.series)],
+        annotations: [...(primary.annotations ?? []), ...processedSecondaries.flatMap((s) => s.annotations ?? [])],
+      }))
+    )
   }
 
   public clone(withState?: Partial<QueryRunnerState>) {

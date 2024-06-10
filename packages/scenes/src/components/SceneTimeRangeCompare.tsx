@@ -6,7 +6,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { DataQueryExtended } from '../querying/SceneQueryRunner';
-import { ExtraQueryDescriptor, ExtraQueryDataProcessor, ExtraQueryProvider } from '../querying/ExtraQueryProvider';
+import { ExtraQueryDescriptor, ExtraQueryDataProcessor, ExtraQueryProvider, ExtraQueryShouldRerun } from '../querying/ExtraQueryProvider';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
@@ -118,7 +118,7 @@ export class SceneTimeRangeCompare
   }
 
   // The query runner should rerun the comparison query if the compareWith value has changed.
-  public shouldRerun(prev: SceneTimeRangeCompareState, next: SceneTimeRangeCompareState): boolean {
+  public shouldRerun(prev: SceneTimeRangeCompareState, next: SceneTimeRangeCompareState): ExtraQueryShouldRerun {
     return prev.compareWith !== next.compareWith;
   }
 

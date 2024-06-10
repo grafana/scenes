@@ -29,6 +29,18 @@ export interface ExtraQueryDescriptor {
   processor?: ExtraQueryDataProcessor;
 }
 
+// Whether extra queries, providers, or neither should be rerun as the result
+// of a state change.
+//
+// Returning `true` or 'queries' will cause the query runner to completely rerun all queries
+// _and_ processors.
+// Returning 'processors' will avoid rerunning queries, and pass the most
+// recent (unprocessed) query results to the processors again for reprocessing. This allows
+// the processors to process differently depending on their most recent state, without incurring
+// the cost of a query.
+// Returning `false` will not rerun queries or processors.
+export type ExtraQueryShouldRerun = boolean | 'queries' | 'processors';
+
 // Indicates that this type wants to add extra requests, along with
 // optional processing functions, to a query runner.
 export interface ExtraQueryProvider<T extends SceneObjectState> extends SceneObjectBase<T> {
@@ -38,8 +50,8 @@ export interface ExtraQueryProvider<T extends SceneObjectState> extends SceneObj
   //
   // When the provider's state changes this function will be passed both the previous and the
   // next state. The implementation can use this to determine whether the change should trigger
-  // a rerun of the query or not.
-  shouldRerun(prev: T, next: T): boolean;
+  // a rerun of the queries, processors or neither.
+  shouldRerun(prev: T, next: T): ExtraQueryShouldRerun;
 }
 
 export function isExtraQueryProvider(obj: any): obj is ExtraQueryProvider<any> {
