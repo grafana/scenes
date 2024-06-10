@@ -17,7 +17,7 @@ function selectableValueToVariableValueOption(value: SelectableValue): VariableV
   return {
     label: value.label ?? String(value.value),
     value: value.value,
-  }
+  };
 }
 
 function keyLabelToOption(key: string, label?: string): SelectableValue | null {
@@ -68,7 +68,11 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
       disabled={model.state.readOnly}
-      className={cx(styles.value, isKeysOpen ? styles.widthWhenOpen : undefined)}
+      className={cx(
+        styles.value,
+        isKeysOpen ? styles.widthWhenOpen : undefined,
+        model.state.layout === 'vertical' ? styles.valueVertical : undefined
+      )}
       width="auto"
       value={valueValue}
       filterOption={filterNoOp}
@@ -77,7 +81,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
       onChange={(v) => {
-        model._updateFilter(filter, 'value', v)
+        model._updateFilter(filter, 'value', v);
 
         if (valueHasCustomValue !== v.__isNew__) {
           setValueHasCustomValue(v.__isNew__);
@@ -152,7 +156,17 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
       return (
         <Field label={label} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
-          {valueSelect}
+          <>
+            <Select
+              className={styles.operatorVertical}
+              value={filter.operator}
+              disabled={model.state.readOnly}
+              options={model._getOperators()}
+              width="auto"
+              onChange={(v) => model._updateFilter(filter, 'operator', v)}
+            />
+            {valueSelect}
+          </>
         </Field>
       );
     } else {
@@ -242,6 +256,15 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   operator: css({
     flexShrink: 0,
+  }),
+  operatorVertical: css({
+    borderRight: 'none',
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  }),
+  valueVertical: css({
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
   }),
   removeButton: css({
     paddingLeft: theme.spacing(3 / 2),

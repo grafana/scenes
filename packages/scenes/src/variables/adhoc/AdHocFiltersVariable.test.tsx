@@ -902,6 +902,15 @@ describe('AdHocFiltersVariable', () => {
 
       expect(variable.isActive).toBe(true);
     });
+    it('should render operator in vertical adhoc layout', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        filters: [{ key: 'key,1', operator: '!=', value: 'val1' }],
+      });
+
+      render(<variable.Component model={variable} />);
+      expect(screen.getByText('!=')).toBeInTheDocument();
+    });
   });
 });
 
