@@ -5,6 +5,8 @@ import {
   SceneVariable,
   SceneVariableSet,
   getUrlSyncManager,
+  SceneDataLayerSet,
+  SceneDataLayerProvider,
 } from '@grafana/scenes';
 import { writeSceneLog } from '../utils';
 
@@ -78,5 +80,32 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
       set.setState({ variables: set.state.variables.filter((x) => x !== variable) });
       writeSceneLog('SceneContext', `Removing variable: ${variable.constructor.name} key: ${variable.state.key}`);
     };
+  }
+
+  public findAnnotationLayer<T>(name: string): T | undefined {
+      const layerSet = this.state.$data as SceneDataLayerSet;
+      if (!layerSet) {
+          return;
+      }
+
+      return layerSet.state.layers.find((layer: SceneDataLayerProvider) => layer.state.name === name) as T; 
+  }
+
+  public addAnnotationLayer(layer: SceneDataLayerProvider) {
+      let layerSet = this.state.$data as SceneDataLayerSet;
+
+      if (layerSet) {
+          layerSet.setState({ layers: [...layerSet.state.layers, layer] });
+      } else {
+        layerSet = new SceneDataLayerSet({ layers: [layer] });
+        this.setState({ $data: layerSet });
+      }
+
+      writeSceneLog('SceneContext', `Adding annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
+
+      return () => {
+          layerSet.setState({ layers: layerSet.state.layers.filter((x) => x !== layer) });
+          writeSceneLog('SceneContext', `Removing annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
+      }
   }
 }
