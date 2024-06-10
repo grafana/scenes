@@ -1,4 +1,4 @@
-import { useVariableValues, VariableSelect, CustomVariable } from '@grafana/scenes-react';
+import { useVariableValues, CustomVariable, VariableControl } from '@grafana/scenes-react';
 import { Stack } from '@grafana/ui';
 import React from 'react';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
@@ -13,7 +13,7 @@ export function RepeatByVariablePage() {
     >
       <CustomVariable name="panels" query="10, 20, 30, 40, 50" initialValue={['10']} isMulti>
         <Stack direction={'column'}>
-          <VariableSelect name="panels" />
+          <VariableControl name="panels" />
           <RepeatPanelByVariable />
         </Stack>
       </CustomVariable>
@@ -21,7 +21,7 @@ export function RepeatByVariablePage() {
   );
 }
 function RepeatPanelByVariable() {
-  const [values, loading] = useVariableValues('panels');
+  const [values, loading] = useVariableValues<string>('panels');
 
   if (loading || !values) {
     return <div>Waiting for variable</div>;
@@ -29,7 +29,7 @@ function RepeatPanelByVariable() {
 
   return (
     <DemoVizLayout>
-      {(values as string[]).map((value: string) => (
+      {values.map((value: string) => (
         <PlainGraphWithRandomWalk key={value} title={`${value} data points`} maxDataPoints={parseInt(value, 10)} />
       ))}
     </DemoVizLayout>
