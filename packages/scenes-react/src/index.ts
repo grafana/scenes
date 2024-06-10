@@ -1,4 +1,5 @@
 export { useQueryRunner } from './hooks/useQueryRunner';
+export { useDataTransformer } from './hooks/useDataTransformer'
 export * from './contexts/SceneContextProvider';
 export { TimeRangePicker } from './components/TimeRangePicker';
 export { VariableControl } from './components/VariableControl';

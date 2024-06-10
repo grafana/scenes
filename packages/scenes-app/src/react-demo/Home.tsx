@@ -13,6 +13,7 @@ import { InterpolationHookPage } from './InterpolationHookPage';
 import { RepeatBySeriesPage } from './RepeatBySeriesPage';
 import { DemoVizLayout, urlBase } from './utils';
 import { DrilldownDemoPage } from './DrilldownDemoPage';
+import { TransformationsDemoPage } from './TransformationsDemoPage';
 
 export function ReactDemoPage() {
   return (
@@ -28,6 +29,7 @@ export function ReactDemoPage() {
           <Route path={`${urlBase}/nested-context`} component={NestedContextsPage} />
           <Route path={`${urlBase}/interpolation-hook`} component={InterpolationHookPage} />
           <Route path={`${urlBase}/drilldown`} component={DrilldownDemoPage} />
+          <Route path={`${urlBase}/transformations`} component={TransformationsDemoPage} />
         </Switch>
       </CustomVariable>
     </SceneContextProvider>
@@ -50,6 +52,7 @@ function HomePage() {
         <TextLink href={`${urlBase}/nested-context`}>Nested contexts</TextLink>
         <TextLink href={`${urlBase}/interpolation-hook`}>Interpolation hook</TextLink>
         <TextLink href={`${urlBase}/drilldown`}>Drilldown demo</TextLink>
+        <TextLink href={`${urlBase}/transformations`}>Transformation demo</TextLink>
       </Stack>
     </PageWrapper>
   );
