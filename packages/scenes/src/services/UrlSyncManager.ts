@@ -117,7 +117,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
       if (Object.keys(mappedUpdated).length > 0) {
         this._ignoreNextLocationUpdate = true;
-        locationService.partial(mappedUpdated, true);
+        locationService.partial(mappedUpdated, false);
       }
     }
   };
