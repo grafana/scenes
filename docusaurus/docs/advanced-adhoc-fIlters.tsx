@@ -1,9 +1,7 @@
 import {
-  AdHocFilterSet,
   AdHocFiltersVariable,
   EmbeddedScene,
   PanelBuilders,
-  QueryVariable,
   SceneFlexItem,
   SceneFlexLayout,
   SceneQueryRunner,
@@ -14,7 +12,8 @@ import {
 import { AdHocVariableFilter } from '@grafana/data';
 
 export function adhocFiltersExamples() {
-  const filterSet1 = new AdHocFilterSet({
+  // @ts-ignore
+  const filterSet1 = new AdHocFiltersVariable({
     name: 'Filters',
     datasource: {
       type: 'prometheus',
@@ -27,7 +26,8 @@ export function adhocFiltersExamples() {
     filters: [],
   });
 
-  const filterSet2 = new AdHocFilterSet({
+  // @ts-ignore
+  const filterSet2 = new AdHocFiltersVariable({
     name: 'Filters',
     datasource: {
       type: 'prometheus',
@@ -42,7 +42,7 @@ export function adhocFiltersExamples() {
         ],
       });
     },
-    getTagValuesProvider: (set: AdHocFilterSet, filter: AdHocVariableFilter) => {
+    getTagValuesProvider: (variable: AdHocFiltersVariable, filter: AdHocVariableFilter) => {
       // Customize value look up
       return Promise.resolve({ replace: false, values: [] });
     },
@@ -52,9 +52,10 @@ export function adhocFiltersExamples() {
   const scene = new EmbeddedScene({
     $variables: new SceneVariableSet({
       variables: [
-        AdHocFiltersVariable.create({
+        new AdHocFiltersVariable({
           datasource: { uid: 'gdev-prometheus' },
           filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
+          applyMode: 'manual',
         }),
       ],
     }),

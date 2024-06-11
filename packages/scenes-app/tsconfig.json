@@ -5,14 +5,14 @@
       "./node_modules/@types",
       "../../node_modules/@types"
     ],
+    "rootDir": null,
     "rootDirs": [
-      "../src",
-      "../../../docusaurus/docs"
+      "./src",
+      "../../docusaurus/docs"
     ]
   },
   "include": [
-    "../src",
-    "./types",
-    "../../../docusaurus/docs"
+    "./src",
+    "../../docusaurus/docs"
   ]
 }
