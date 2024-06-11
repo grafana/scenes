@@ -13,7 +13,7 @@ export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', 
 
 export interface SceneRefreshPickerState extends SceneObjectState {
   // Refresh interval, e.g. 5s, 1m, 2h
-  refresh: string;
+  refresh?: string;
   autoEnabled?: boolean;
   autoMinInterval?: string;
   autoValue?: string;
