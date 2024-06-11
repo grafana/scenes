@@ -60,6 +60,18 @@ const sidebars = {
         'advanced-time-range-comparison',
       ],
     },
+    {
+      type: 'category',
+      label: 'Machine Learning',
+      collapsible: true,
+      collapsed: false,
+      items: [
+        'getting-started',
+        'baselines-and-forecasts',
+        'outlier-detection',
+        'changepoint-detection',
+      ].map(id => `scenes-ml/${id}`),
+    }
   ],
 };
 module.exports = sidebars;
