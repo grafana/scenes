@@ -23,6 +23,7 @@ import { select } from 'react-select-event';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
+import { FiltersRequestEnricher } from '../../core/types';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -120,30 +121,37 @@ describe('AdHocFiltersVariable', () => {
     const { runRequest } = setup({
       getTagValuesProvider: async () => ({
         replace: true,
-        values: [{
-          text: 'Alice',
-          value: 'alice',
-          group: 'People',
-        }, {
-          text: 'Bar',
-          value: 'bar'
-        }, {
-          text: 'Cat',
-          value: 'cat',
-          group: 'Animals',
-        }, {
-          text: 'Bob',
-          value: 'bob',
-          group: 'People',
-        }, {
-          text: 'Dog',
-          value: 'dog',
-          group: 'Animals',
-        }, {
-          text: 'Foo',
-          value: 'foo',
-        }]
-      })
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+            group: 'People',
+          },
+          {
+            text: 'Bar',
+            value: 'bar',
+          },
+          {
+            text: 'Cat',
+            value: 'cat',
+            group: 'Animals',
+          },
+          {
+            text: 'Bob',
+            value: 'bob',
+            group: 'People',
+          },
+          {
+            text: 'Dog',
+            value: 'dog',
+            group: 'Animals',
+          },
+          {
+            text: 'Foo',
+            value: 'foo',
+          },
+        ],
+      }),
     });
 
     await new Promise((r) => setTimeout(r, 1));
@@ -188,6 +196,8 @@ describe('AdHocFiltersVariable', () => {
     expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
 
+    await userEvent.click(selects[2]);
+    await userEvent.clear(selects[2]);
     await userEvent.type(selects[2], 'myVeryCustomValue');
 
     expect(screen.getByText('Use custom value: myVeryCustomValue')).toBeInTheDocument();
@@ -288,6 +298,25 @@ describe('AdHocFiltersVariable', () => {
       });
     });
 
+    it('Should apply the filters request enricher to getTagKeys call', async () => {
+      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true }, () => ({
+        key: 'overwrittenKey',
+      }));
+
+      await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
+        filters: [],
+        queries: [
+          {
+            expr: 'my_metric{}',
+            refId: 'A',
+          },
+        ],
+        timeRange: timeRange.state.value,
+        key: 'overwrittenKey',
+      });
+    });
+
     it('Should collect and pass respective data source queries to getTagValues call', async () => {
       const { getTagValuesSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
 
@@ -302,6 +331,30 @@ describe('AdHocFiltersVariable', () => {
       expect(getTagValuesSpy).toBeCalledWith({
         filters: [],
         key: 'key3',
+        queries: [
+          {
+            expr: 'my_metric{}',
+            refId: 'A',
+          },
+        ],
+        timeRange: timeRange.state.value,
+      });
+    });
+
+    it('Should apply the filters request enricher to getTagValues call', async () => {
+      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true }, () => ({
+        key: 'overwrittenKey',
+      }));
+
+      const key = 'Key 3';
+      await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
+      await waitFor(() => select(selects[0], key, { container: document.body }));
+      await userEvent.click(selects[2]);
+
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
+        filters: [],
+        key: 'overwrittenKey',
         queries: [
           {
             expr: 'my_metric{}',
@@ -870,7 +923,10 @@ const runRequestMock = {
 
 let runRequestSet = false;
 
-function setup(overrides?: Partial<AdHocFiltersVariableState>) {
+function setup(
+  overrides?: Partial<AdHocFiltersVariableState>,
+  filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest']
+) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
   setDataSourceSrv({
@@ -942,6 +998,10 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
       ],
     }),
   });
+
+  if (filtersRequestEnricher) {
+    (scene as EmbeddedScene & FiltersRequestEnricher).enrichFiltersRequest = filtersRequestEnricher;
+  }
 
   locationService.push('/');
 

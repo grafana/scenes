@@ -7,6 +7,8 @@ import {
   BusEventType,
   DataFrame,
   DataQueryRequest,
+  DataSourceGetTagKeysOptions,
+  DataSourceGetTagValuesOptions,
   DataTransformContext,
   PanelData,
   TimeRange,
@@ -178,8 +180,19 @@ export interface DataRequestEnricher {
   enrichDataRequest(source: SceneObject): Partial<DataQueryRequest> | null;
 }
 
+export interface FiltersRequestEnricher {
+  // Return partial getTagKeys or getTagValues query request that will be merged with the original request provided by ad hoc or group by variable
+  enrichFiltersRequest(
+    source: SceneObject
+  ): Partial<DataSourceGetTagKeysOptions | DataSourceGetTagValuesOptions> | null;
+}
+
 export function isDataRequestEnricher(obj: any): obj is DataRequestEnricher {
   return 'enrichDataRequest' in obj;
+}
+
+export function isFiltersRequestEnricher(obj: any): obj is FiltersRequestEnricher {
+  return 'enrichFiltersRequest' in obj;
 }
 
 export type SceneObjectUrlValue = string | string[] | undefined | null;

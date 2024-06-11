@@ -180,7 +180,6 @@ describe('SceneQueryRunner', () => {
           "intervalMs": 30000,
           "liveStreaming": undefined,
           "maxDataPoints": 500,
-          "panelId": 1,
           "queryCachingTTL": 300000,
           "range": {
             "from": "2023-07-11T02:18:08.000Z",
@@ -633,7 +632,8 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(variable.state.loading).toBe(true);
-      expect(queryRunner.state.data?.state).toBe(undefined);
+      expect(queryRunner.state.data?.state).toBe('Loading');
+      expect(runRequestMock.mock.calls.length).toBe(0);
     });
 
     it('Should not executed query on activate even when maxDataPointsFromWidth is true', async () => {
@@ -656,7 +656,9 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.state).toBe(undefined);
+      expect(variable.state.loading).toBe(true);
+      expect(queryRunner.state.data?.state).toBe('Loading');
+      expect(runRequestMock.mock.calls.length).toBe(0);
     });
 
     it('Should not executed query when time range change', async () => {
@@ -682,7 +684,9 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.state).toBe(undefined);
+      expect(variable.state.loading).toBe(true);
+      expect(queryRunner.state.data?.state).toBe('Loading');
+      expect(runRequestMock.mock.calls.length).toBe(0);
     });
 
     it('Should execute query when variable updates', async () => {
@@ -2306,21 +2310,23 @@ interface TestExtraQueryProviderState extends SceneObjectState {
 class TestExtraQueryProvider extends SceneObjectBase<TestExtraQueryProviderState> implements ExtraQueryProvider<{}> {
   private _shouldRerun: boolean;
 
-  public constructor(state: { foo: number; }, shouldRerun: boolean) {
+  public constructor(state: { foo: number }, shouldRerun: boolean) {
     super(state);
     this._shouldRerun = shouldRerun;
   }
 
   public getExtraQueries(): ExtraQueryDescriptor[] {
-    return [{
-      req: {
-        targets: [
-          // @ts-expect-error
-          { refId: 'Extra', foo: this.state.foo },
-        ],
+    return [
+      {
+        req: {
+          targets: [
+            // @ts-expect-error
+            { refId: 'Extra', foo: this.state.foo },
+          ],
+        },
+        processor: (primary, secondary) => of({ ...primary, ...secondary }),
       },
-      processor: (primary, secondary) => of({ ...primary, ...secondary }),
-    }];
+    ];
   }
   public shouldRerun(prev: {}, next: {}): boolean {
     return this._shouldRerun;

@@ -1,12 +1,10 @@
-import { VariableValue, VariableValueOption } from '../types';
+import { VariableValueOption } from '../types';
 import uFuzzy from '@leeoniya/ufuzzy';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 export function getOptionSearcher(
   options: VariableValueOption[],
   includeAll: boolean | undefined,
-  value: VariableValue,
-  text: VariableValue
 ) {
   const ufuzzy = new uFuzzy();
   let allOptions = options;
@@ -15,13 +13,6 @@ export function getOptionSearcher(
 
   if (includeAll) {
     allOptions = [{ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT }, ...allOptions];
-  }
-
-  if (!Array.isArray(value)) {
-    const current = options.find((x) => x.value === value);
-    if (!current) {
-      allOptions = [{ value: value, label: String(text) }, ...allOptions];
-    }
   }
 
   return (search: string) => {

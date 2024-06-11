@@ -14,6 +14,7 @@ import { getQueriesForVariables } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
+import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -164,7 +165,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange });
+    let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
 
     if (override) {
       keys = keys.concat(override.values);
@@ -205,10 +206,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(values);
 
-  const optionSearcher = useMemo(
-    () => getOptionSearcher(options, includeAll, value, text),
-    [options, includeAll, value, text]
-  );
+  const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   // Detect value changes outside
   useEffect(() => {
