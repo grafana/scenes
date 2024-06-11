@@ -1,3 +1,24 @@
+# v4.30.0 (Tue Jun 11 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Add support to read only variables  and expose missing types for custom variables in core grafana [#781](https://github.com/grafana/scenes/pull/781) ([@axelavargas](https://github.com/axelavargas))
+
+#### 🐛 Bug Fix
+
+- Scripts: Demo.sh fix path to docker compose file [#780](https://github.com/grafana/scenes/pull/780) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes-react`
+  - React scenes: Add useDataTransformer hook [#775](https://github.com/grafana/scenes/pull/775) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 3
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.29.0 (Fri Jun 07 2024)
 
 #### 🚀 Enhancement

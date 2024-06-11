@@ -1,3 +1,15 @@
+# v4.30.0 (Tue Jun 11 2024)
+
+#### 🚀 Enhancement
+
+- Variables: Add support to read only variables  and expose missing types for custom variables in core grafana [#781](https://github.com/grafana/scenes/pull/781) ([@axelavargas](https://github.com/axelavargas))
+
+#### Authors: 1
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
 # v4.29.0 (Fri Jun 07 2024)
 
 #### 🚀 Enhancement

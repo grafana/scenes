@@ -1,3 +1,15 @@
+# v4.30.0 (Tue Jun 11 2024)
+
+#### 🐛 Bug Fix
+
+- React scenes: Add useDataTransformer hook [#775](https://github.com/grafana/scenes/pull/775) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v4.29.0 (Fri Jun 07 2024)
 
 #### 🐛 Bug Fix
