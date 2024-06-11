@@ -60,10 +60,12 @@ function lookupFormatVariable(
   scopedVars: ScopedVars | undefined,
   sceneObject: SceneObject
 ): FormatVariable | null {
-  const scopedVar = scopedVars?.[name];
+  if (scopedVars && scopedVars.hasOwnProperty(name)) {
+    const scopedVar = scopedVars[name];
 
-  if (scopedVar) {
-    return getSceneVariableForScopedVar(name, scopedVar);
+    if (scopedVar) {
+      return getSceneVariableForScopedVar(name, scopedVar);
+    }
   }
 
   const variable = lookupVariable(name, sceneObject);
@@ -71,8 +73,9 @@ function lookupFormatVariable(
     return variable;
   }
 
-  if (macrosIndex[name]) {
-    return new macrosIndex[name](name, sceneObject, match, scopedVars);
+  const Macro = macrosIndex.get(name);
+  if (Macro) {
+    return new Macro(name, sceneObject, match, scopedVars);
   }
 
   return null;
