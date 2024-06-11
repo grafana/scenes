@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes-react",
-  "version": "4.29.0",
+  "version": "4.30.0",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
