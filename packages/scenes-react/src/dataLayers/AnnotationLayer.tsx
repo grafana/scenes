@@ -6,9 +6,10 @@ import { AnnotationsDataLayer } from '@grafana/scenes/src/querying/layers';
 export interface AnnotationLayerProps {
     name: string;
     query: AnnotationQuery;
+    children: React.ReactNode;
 }
 
-export function AnnotationLayer({ name, query}: AnnotationLayerProps): React.ReactNode {
+export function AnnotationLayer({ name, query, children }: AnnotationLayerProps): React.ReactNode {
     const scene = useSceneContext();
     const [annotationAdded, setAnnotationAdded] = useState<boolean>();
 
@@ -19,7 +20,7 @@ export function AnnotationLayer({ name, query}: AnnotationLayerProps): React.Rea
     }
 
     useEffect(() => {
-        const removeFn = scene.addAnnotationLayer(annotationLayer);
+        const removeFn = scene.addAnnotationLayer(annotationLayer!);
         setAnnotationAdded(true);
         return removeFn;
     }, [annotationLayer, scene, name]);
@@ -31,4 +32,6 @@ export function AnnotationLayer({ name, query}: AnnotationLayerProps): React.Rea
     if (!annotationAdded) {
         return null;
     }
+
+    return children;
 }

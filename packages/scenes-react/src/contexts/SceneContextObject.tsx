@@ -94,6 +94,8 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
   public addAnnotationLayer(layer: SceneDataLayerProvider) {
       let layerSet = this.state.$data as SceneDataLayerSet;
 
+      console.log(this);
+
       if (layerSet) {
           layerSet.setState({ layers: [...layerSet.state.layers, layer] });
       } else {
