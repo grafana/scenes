@@ -6,10 +6,13 @@ import { TestScene } from '../TestScene';
 import { selectors } from '@grafana/e2e-selectors';
 import { CustomVariable } from '../variants/CustomVariable';
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
+import userEvent from '@testing-library/user-event';
 
 describe('VariableValueSelect', () => {
-  it('should render VariableValueSelect component', async () => {
-    const model = new CustomVariable({
+  let model: MultiValueVariable<MultiValueVariableState>;
+
+  beforeEach(() => {
+    model = new CustomVariable({
       name: 'test',
       query: 'A,B,C',
       isMulti: true,
@@ -32,7 +35,9 @@ describe('VariableValueSelect', () => {
     });
 
     scene.activate();
+  });
 
+  it('should render VariableValueSelect component', async () => {
     render(<VariableValueSelect model={model} />);
     const variableValueSelectElement = screen.getByTestId(
       selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
@@ -45,7 +50,7 @@ describe('VariableValueSelect', () => {
       name: 'test',
       query: 'A,B,C',
       isMulti: true,
-      value: '',
+      value: [],
       text: '',
       options: [
         { value: 'A', label: 'Option A' },
@@ -79,7 +84,7 @@ describe('VariableValueSelect', () => {
       name: 'test',
       query: 'A,B,C',
       isMulti: true,
-      value: '',
+      value: [],
       text: '',
       options: [
         { value: 'A', label: 'Option A' },
@@ -107,5 +112,21 @@ describe('VariableValueSelect', () => {
     const inputElement = variableValueSelectElement.querySelector('input');
     expect(variableValueSelectElement).toBeInTheDocument();
     expect(inputElement).toBeDisabled();
+  });
+
+  it('should render options in VariableValueSelect component', async () => {
+    render(<VariableValueSelect model={model} />);
+    const variableValueSelectElement = screen.getByTestId(
+      selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
+    );
+    //open dropwdown
+    const inputElement = variableValueSelectElement.querySelector('input');
+    expect(inputElement).toBeInTheDocument();
+    if (!inputElement) {
+      return;
+    }
+    await userEvent.click(inputElement);
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(3);
   });
 });
