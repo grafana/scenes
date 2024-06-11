@@ -1,3 +1,17 @@
+# v4.31.0 (Tue Jun 11 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Fixes sceneInterpolator when string contains variables with object prototype function names [#785](https://github.com/grafana/scenes/pull/785) ([@torkelo](https://github.com/torkelo))
+  - SceneRefreshPicker: Fixes url state issue [#784](https://github.com/grafana/scenes/pull/784) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.30.0 (Tue Jun 11 2024)
 
 #### 🚀 Enhancement
