@@ -1,6 +1,18 @@
 {
   "extends": "./.config/tsconfig.json",
   "compilerOptions": {
-    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
-  }
+    "typeRoots": [
+      "./node_modules/@types",
+      "../../node_modules/@types"
+    ],
+    "rootDirs": [
+      "../src",
+      "../../../docusaurus/docs"
+    ]
+  },
+  "include": [
+    "../src",
+    "./types",
+    "../../../docusaurus/docs"
+  ]
 }
