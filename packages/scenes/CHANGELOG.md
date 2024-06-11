@@ -1,3 +1,15 @@
+# v4.32.0 (Tue Jun 11 2024)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersVariable: Show operator in vertical mode [#783](https://github.com/grafana/scenes/pull/783) ([@ivanahuckova](https://github.com/ivanahuckova))
+
+#### Authors: 1
+
+- Ivana Huckova ([@ivanahuckova](https://github.com/ivanahuckova))
+
+---
+
 # v4.31.0 (Tue Jun 11 2024)
 
 #### 🚀 Enhancement
