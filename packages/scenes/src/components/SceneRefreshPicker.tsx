@@ -84,10 +84,10 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   public updateFromUrl(values: SceneObjectUrlValues) {
     const refresh = values.refresh;
 
-    if (refresh && typeof refresh === 'string') {
-      this.setState({
-        refresh,
-      });
+    if (typeof refresh === 'string') {
+      this.setState({ refresh });
+    } else if (refresh == null) {
+      this.setState({ refresh: '' });
     }
   }
 
