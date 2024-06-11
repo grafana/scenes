@@ -1,12 +1,16 @@
+import React from 'react';
 import {
   EmbeddedScene,
   PanelBuilders,
   QueryRunnerState,
   SceneAppPage,
   SceneAppPageState,
+  SceneComponentProps,
   SceneControlsSpacer,
   SceneFlexItem,
   SceneFlexLayout,
+  SceneObjectBase,
+  SceneObjectState,
   SceneQueryRunner,
   SceneTimePicker,
   SceneTimeRange,
@@ -15,6 +19,8 @@ import {
 import { SceneBaseliner, SceneChangepointDetector, SceneOutlierDetector } from '@grafana/scenes-ml';
 import { DataQuery } from '@grafana/schema';
 import { DATASOURCE_REF } from '../constants';
+import { Button } from '@grafana/ui';
+import { openai } from '@grafana/llm';
 
 interface PredictableCSVWaveQuery extends DataQuery {
   timeStep?: number;
@@ -105,6 +111,74 @@ export function getQueryRunnerWithCSVWaveQuery(
     ],
     ...queryRunnerOverrides,
   });
+}
+
+interface ExplainerState extends SceneObjectState {
+  ref?: React.RefObject<HTMLDivElement | null>;
+}
+
+class Explainer extends SceneObjectBase<ExplainerState> {
+  static Component = ExplainerRenderer;
+
+  public constructor(state: Partial<ExplainerState>) {
+    super(state);
+  }
+
+  private findCanvas(): HTMLCanvasElement | null | undefined {
+    let component: HTMLElement | null | undefined = this.state.ref?.current;
+    if (!component) {
+      return undefined;
+    }
+    let canvas = undefined;
+    while (component?.parentElement && !canvas) {
+      canvas = component.querySelector('canvas');
+      component = component.parentElement;
+    }
+    return canvas;
+  }
+
+  public async click() {
+    const canvas = this.findCanvas();
+    if (!canvas) {
+      return;
+    }
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#181b1f';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const png = canvas.toDataURL('image/png');
+
+    const systemPrompt = 'You are a data scientist explaining a time series plot to a colleague.';
+    const userPrompt = 'Explain what is happening in this time series plot.';
+    console.log('asking openai...');
+    const response = await openai.chatCompletions({
+      model: 'large',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        {
+          // @ts-ignore
+          role: 'user', content: [
+            { type: 'text', text: userPrompt },
+            { type: 'image_url', image_url: { url: png } },
+          ]
+        }
+      ],
+    });
+    console.log(response.choices[0].message.content);
+  }
+}
+
+function ExplainerRenderer({ model }: SceneComponentProps<Explainer>) {
+  const ref = React.useRef<HTMLDivElement | null>(null);
+  model.setState({ ref });
+  return (
+    <div ref={ref}>
+      <Button onClick={() => model.click()}>Explain</Button>
+    </div>
+  )
 }
 
 export function getMlDemo(defaults: SceneAppPageState) {
@@ -199,6 +273,7 @@ export function getMlDemo(defaults: SceneAppPageState) {
                       new SceneBaseliner({
                         interval: 0.95,
                       }),
+                      new Explainer({}),
                     ])
                     .build(),
                 }),
