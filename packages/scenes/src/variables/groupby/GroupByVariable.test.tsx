@@ -12,6 +12,7 @@ import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import userEvent from '@testing-library/user-event';
+import { FiltersRequestEnricher } from '../../core/types';
 
 describe('GroupByVariable', () => {
   it('should not resolve values from the data source if default options provided', async () => {
@@ -224,6 +225,32 @@ describe('GroupByVariable', () => {
     });
   });
 
+  it('Should apply the filters request enricher to getTagKeys call', async () => {
+    const { variable, getTagKeysSpy, timeRange } = setupTest(undefined, () => ({
+      key: 'overwrittenKey',
+    }));
+
+    await act(async () => {
+      await lastValueFrom(variable.validateAndUpdate());
+      expect(getTagKeysSpy).toHaveBeenCalled();
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+      expect(variable.state.options).toEqual([{ label: 'key3', value: 'key3' }]);
+    });
+
+    expect(getTagKeysSpy).toHaveBeenCalledWith({
+      filters: [],
+      queries: [
+        {
+          expr: 'my_metric{$filters}',
+          refId: 'A',
+        },
+      ],
+      timeRange: timeRange.state.value,
+      key: 'overwrittenKey',
+    });
+  });
+
   describe('component', () => {
     it('should fetch dimensions when Select is opened', async () => {
       const { variable, getTagKeysSpy } = setupTest();
@@ -245,7 +272,10 @@ const runRequestMock = {
 
 let runRequestSet = false;
 
-export function setupTest(overrides?: Partial<GroupByVariableState>) {
+export function setupTest(
+  overrides?: Partial<GroupByVariableState>,
+  filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest']
+) {
   const getTagKeysSpy = jest.fn();
   setDataSourceSrv({
     get() {
@@ -309,6 +339,10 @@ export function setupTest(overrides?: Partial<GroupByVariableState>) {
       ],
     }),
   });
+
+  if (filtersRequestEnricher) {
+    (scene as EmbeddedScene & FiltersRequestEnricher).enrichFiltersRequest = filtersRequestEnricher;
+  }
 
   locationService.push('/');
 
