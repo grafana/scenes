@@ -77,7 +77,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 
   public getUrlState() {
     return {
-      refresh: this.state.refresh,
+      refresh: this.state.refresh !== '' ? this.state.refresh : undefined,
     };
   }
 
