@@ -12,6 +12,7 @@ export function PlainGraphWithRandomWalk({ maxDataPoints, title, queryAlias }: P
   const dataProvider = useQueryRunner({
     queries: [{ uid: 'gdev-testdata', refId: 'A', scenarioId: 'random_walk', alias: queryAlias ?? 'env = $env' }],
     maxDataPoints: maxDataPoints ?? 20,
+    cacheKey: title,
   });
 
   return <VizPanel title={title} viz={plainGraph} dataProvider={dataProvider} />;
