@@ -636,6 +636,28 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toBe(0);
     });
 
+    it('Should produce valid PanelData when a variable is loading', async () => {
+      const variable = new TestVariable({ name: 'A', value: '1' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe('Loading');
+      expect(queryRunner.state.data?.timeRange).toBeDefined();
+      expect(queryRunner.state.data?.series).toBeDefined();
+    });
+
     it('Should not executed query on activate even when maxDataPointsFromWidth is true', async () => {
       const variable = new TestVariable({ name: 'A', value: '1' });
       const queryRunner = new SceneQueryRunner({

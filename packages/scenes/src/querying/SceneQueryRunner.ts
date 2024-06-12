@@ -415,7 +415,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     // Skip executing queries if variable dependency is in loading state
     if (this._variableDependency.hasDependencyInLoadingState()) {
       writeSceneLog('SceneQueryRunner', 'Variable dependency is in loading state, skipping query execution');
-      this.setState({ data: { ...this.state.data!, state: LoadingState.Loading } });
+      this.setState({ data: { ...(this.state.data ?? emptyPanelData), state: LoadingState.Loading } });
       return;
     }
 
