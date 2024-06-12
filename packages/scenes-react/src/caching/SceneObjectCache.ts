@@ -4,8 +4,7 @@ import { LRUCache } from 'lru-cache';
 
 export type CacheKey = CacheKeyPart | CacheKeyPart[];
 
-export type CacheKeyPart = string | number | object | boolean | CacheKeyHashKeyProvider;
-export type CacheKeyHashKeyProvider = () => string;
+export type CacheKeyPart = string | number | object | boolean;
 
 export type SceneObjectConstructor = { new (...args: never[]): SceneObject };
 

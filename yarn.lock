@@ -14583,7 +14583,6 @@ __metadata:
     eslint: "npm:^8.57.0"
     lerna: "npm:^6.5.1"
     lint-staged: "npm:^13.2.0"
-    lru-cache: "npm:^10.2.2"
     prettier: "npm:2.5.1"
     turbo: "npm:latest"
   languageName: unknown
