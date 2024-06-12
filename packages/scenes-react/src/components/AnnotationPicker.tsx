@@ -1,17 +1,20 @@
-import React from 'react';
-import { useDataLayers } from '../hooks/hooks';
-import { DataLayerControlSwitch } from '@grafana/scenes/src/querying/layers/SceneDataLayerControls';
+import React, { useEffect, useId } from 'react';
+import { useSceneContext } from '../hooks/hooks';
+import { SceneDataLayerControls } from '@grafana/scenes';
 
 export interface Props {}
 
 export function AnnotationPicker(props: Props) {
-  const layers = useDataLayers();
+  const scene = useSceneContext();
+  const key = useId();
 
-  return (
-    <>
-      {layers.map((layer, key) => {
-        return <DataLayerControlSwitch layer={layer} key={`data-layer-control-switch-${key}`} />;
-      })}
-    </>
-  );
+  let picker = scene.findByKey<SceneDataLayerControls>(key);
+
+  if (!picker) {
+    picker = new SceneDataLayerControls();
+  }
+
+  useEffect(() => scene.addToScene(picker), [picker, scene]);
+
+  return <picker.Component model={picker} />;
 }

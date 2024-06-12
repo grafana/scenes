@@ -39,23 +39,6 @@ export function useVariables(): SceneVariable[] {
   return variables.useState().variables;
 }
 
-export function useDataLayers(): SceneDataLayerProvider[] {
-  const scene = useSceneContext();
-  console.log(scene);
-  return [];
-  // const state = scene.useState();
-  // console.log(state.$data);
-
-  // if (!(state.$data instanceof SceneDataLayerSet)) {
-  //   return [];
-  // }
-
-  // const layerSet = (state.$data as SceneDataLayerSet).useState();
-
-  // console.log(layerSet);
-  // return layerSet.layers;
-}
-
 export interface UseUpdateWhenSceneChangesOptions {
   /** Variable names */
   variables?: string[];

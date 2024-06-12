@@ -11,7 +11,7 @@ export interface AnnotationLayerSetProps {
 
 export function AnnotationLayer({ name, query, children }: AnnotationLayerSetProps): React.ReactNode {
   const scene = useSceneContext();
-  const [annotationSetAdded, setAnnotationSetAdded] = useState<boolean>();
+  const [annotationAdded, setAnnotationAdded] = useState<boolean>();
 
   let annotation: dataLayers.AnnotationsDataLayer | undefined = scene.findAnnotationLayer(name);
 
@@ -21,15 +21,15 @@ export function AnnotationLayer({ name, query, children }: AnnotationLayerSetPro
 
   useEffect(() => {
     const removeFn = scene.addAnnotationLayer(annotation);
-    setAnnotationSetAdded(true);
+    setAnnotationAdded(true);
     return removeFn;
   }, [scene, name, annotation]);
 
   useEffect(() => {
     // Handle prop changes
-  }, [annotationSetAdded]);
+  }, [annotationAdded]);
 
-  if (!annotationSetAdded) {
+  if (!annotationAdded) {
     return null;
   }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { DemoVizLayout } from './utils';
 import { PageWrapper } from './PageWrapper';
 import { Stack } from '@grafana/ui';
-import { AnnotationLayer, SceneContextProvider, useSceneContext } from '@grafana/scenes-react';
+import { AnnotationLayer, AnnotationPicker, SceneContextProvider } from '@grafana/scenes-react';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 
 export function AnnotationDemoPage() {
@@ -54,30 +54,52 @@ export function AnnotationDemoPage() {
     },
   };
 
-  console.log(useSceneContext());
+  const globalQuery = {
+    datasource: {
+      type: 'testdata',
+      uid: 'gdev-testdata',
+    },
+    enable: true,
+    iconColor: 'green',
+    name: 'New annotation',
+    target: {
+      // @ts-ignore
+      lines: 11,
+      refId: 'Anno',
+      scenarioId: 'annotations',
+    },
+  };
 
   return (
     <PageWrapper title="Annotations" subTitle="Annotation demo page">
-      <Stack direction={'column'} gap={2}>
-        <SceneContextProvider withAnnotationControls timeRange={{ from: 'now-1h', to: 'now' }}>
-          <DemoVizLayout>
-            <AnnotationLayer name="AnnoLayer1" query={query1}>
-              <AnnotationLayer name="AnnoLayer3" query={query3}>
-                <PlainGraphWithRandomWalk title="Plain graph 1" />
+      <AnnotationLayer name="GlobalAnno" query={globalQuery}>
+        <Stack direction={'column'} gap={2}>
+          <SceneContextProvider>
+            <Stack direction="column">
+              <Stack direction="row" justifyContent="flex-start">
+                <AnnotationPicker />
+              </Stack>
+              <DemoVizLayout>
+                <AnnotationLayer name="AnnoLayer1" query={query1}>
+                  <AnnotationLayer name="AnnoLayer3" query={query3}>
+                    <PlainGraphWithRandomWalk title="Plain graph 1" />
+                  </AnnotationLayer>
+                </AnnotationLayer>
+              </DemoVizLayout>
+            </Stack>
+          </SceneContextProvider>
+          <SceneContextProvider>
+            <AnnotationPicker />
+            <DemoVizLayout>
+              <AnnotationLayer name="AnnoLayer2" query={query2}>
+                <PlainGraphWithRandomWalk title="Plain graph 2" />
+                <PlainGraphWithRandomWalk title="Plain graph 3" />
+                <PlainGraphWithRandomWalk title="Plain graph 4" />
               </AnnotationLayer>
-            </AnnotationLayer>
-          </DemoVizLayout>
-        </SceneContextProvider>
-        <SceneContextProvider>
-          <DemoVizLayout>
-            <AnnotationLayer name="AnnoLayer2" query={query2}>
-              <PlainGraphWithRandomWalk title="Plain graph 2" />
-              <PlainGraphWithRandomWalk title="Plain graph 3" />
-              <PlainGraphWithRandomWalk title="Plain graph 4" />
-            </AnnotationLayer>
-          </DemoVizLayout>
-        </SceneContextProvider>
-      </Stack>
+            </DemoVizLayout>
+          </SceneContextProvider>
+        </Stack>
+      </AnnotationLayer>
     </PageWrapper>
   );
 }
