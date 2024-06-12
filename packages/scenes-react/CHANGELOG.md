@@ -1,3 +1,15 @@
+# v5.0.0 (Wed Jun 12 2024)
+
+#### 💥 Breaking Change
+
+- UrlSync: Major refactoring to simplify and make it work better across page routes (for scenes-react use case) [#765](https://github.com/grafana/scenes/pull/765) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.30.0 (Tue Jun 11 2024)
 
 #### 🐛 Bug Fix
