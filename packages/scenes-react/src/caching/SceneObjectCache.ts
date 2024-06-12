@@ -2,10 +2,10 @@ import { SceneObject } from '@grafana/scenes';
 import { isPlainObject } from 'lodash';
 import { LRUCache } from 'lru-cache';
 
-export type CacheKey<T = {}> = string | CacheKeyPartOptionsProperty<T> | Array<string | CacheKeyPartOptionsProperty<T>>;
+export type CacheKey = CacheKeyPart | CacheKeyPart[];
 
-export type CacheKeyPartOptionsProperty<T = {}> = { property: keyof T; byRef?: boolean };
-//export type CacheKeyPartObjectValue = { value: any, byRef?: boolean };
+export type CacheKeyPart = string | number | object | boolean | CacheKeyHashKeyProvider;
+export type CacheKeyHashKeyProvider = () => string;
 
 export type SceneObjectConstructor = { new (...args: never[]): SceneObject };
 
@@ -21,23 +21,23 @@ export class SceneObjectCache {
     });
   }
 
-  public add(key: CacheKey, object: SceneObject) {
-    this.#cache.set(getHashKey(key), object);
+  public add(keyHash: string, object: SceneObject) {
+    this.#cache.set(keyHash, object);
   }
 
-  public get<T>(key: CacheKey): T | undefined {
-    return this.#cache.get(getHashKey(key)) as T;
+  public get<T>(keyHash: string): T | undefined {
+    return this.#cache.get(keyHash) as T;
   }
 
-  public getHashKey<T = {}>(key: CacheKey<T>, type: SceneObjectConstructor, values?: T): string {
+  public getHashKey(key: CacheKey, type: SceneObjectConstructor): string {
     if (Array.isArray(key)) {
-      return `${type.name}-${key.map((k) => this.getHashKeyElement(k, values)).join()}`;
+      return `${type.name}-${key.map((k) => this.getHashKeyElement(k)).join()}`;
     }
 
-    return `${type.name}-${this.getHashKeyElement(key, values)}`;
+    return `${type.name}-${this.getHashKeyElement(key)}`;
   }
 
-  private getObjectRefId(obj: unknown) {
+  public getByRefHashKey(obj: unknown) {
     let objectRefId = this.#objectRefIds.get(obj);
     if (objectRefId == null) {
       objectRefId = this.#objectRefIdCounter++;
@@ -47,36 +47,31 @@ export class SceneObjectCache {
     return objectRefId;
   }
 
-  private getHashKeyElement<T>(key: CacheKey<T>, values?: T) {
-    if (typeof key === 'string') {
+  private getHashKeyElement<T>(key: CacheKey) {
+    if (typeof key === 'string' || typeof key === 'boolean' || typeof key === 'number') {
       return key;
     }
 
-    if ('property' in key) {
-      const value = values && values[key.property];
-      if (value == null) {
-        return '';
-      }
-
-      if (key.byRef) {
-        return this.getObjectRefId(value);
-      }
-
-      return JSON.stringify(value);
-    }
+    return getObjectHash(key);
   }
 }
+
+let cache: SceneObjectCache | undefined;
 
 export function getSceneObjectCache(): SceneObjectCache {
-  if ((window as any).__sceneObjectCache) {
-    return (window as any).__sceneObjectCache;
+  if (cache) {
+    return cache;
   }
 
-  return ((window as any).__sceneObjectCache = new SceneObjectCache());
+  return (cache = new SceneObjectCache());
 }
 
-function getHashKey(key: CacheKey): string {
-  return JSON.stringify(key);
+/**
+ * Returns a unique hash key string for the given object reference.
+ */
+export function cacheByRef(value: unknown) {
+  const cache = getSceneObjectCache();
+  return cache.getByRefHashKey(value);
 }
 
 export function getObjectHash(obj: unknown): string {

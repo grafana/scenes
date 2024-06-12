@@ -1,15 +1,15 @@
-import { useEffect, useId } from 'react';
-import { SceneDataQuery, SceneObject, SceneQueryRunner } from '@grafana/scenes';
+import { useEffect } from 'react';
+import { SceneDataQuery, SceneQueryRunner } from '@grafana/scenes';
 import { DataSourceRef } from '@grafana/schema';
 import { isEqual } from 'lodash';
-import { useSceneContext } from './hooks';
-import { CacheKey, getSceneObjectCache } from '../caching/SceneObjectCache';
+import { CacheKey } from '../caching/SceneObjectCache';
+import { useSceneObject } from './useSceneObject';
 
 export interface UseQueryOptions {
   queries: SceneDataQuery[];
   maxDataPoints?: number;
   datasource?: DataSourceRef;
-  cacheKey?: CacheKey<UseQueryOptions>;
+  cacheKey?: CacheKey;
 }
 
 /**
@@ -28,6 +28,7 @@ export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
         maxDataPoints: options.maxDataPoints,
         datasource: options.datasource,
       }),
+    objectConstructor: SceneQueryRunner,
     cacheKey: options.cacheKey,
   });
 
@@ -40,35 +41,4 @@ export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
   }, [queryRunner, options]);
 
   return queryRunner;
-}
-
-interface UseSceneObjectProps<T extends SceneObject> {
-  factory: (key: string) => T;
-  cacheKey?: CacheKey<any>;
-}
-
-function useSceneObject<T extends SceneObject>(options: UseSceneObjectProps<T>) {
-  const scene = useSceneContext();
-  const key = useId();
-  const cache = getSceneObjectCache();
-
-  let obj = scene.findByKey<T>(key);
-
-  if (!obj && options.cacheKey) {
-    obj = cache.get<T>(options.cacheKey);
-    if (obj) {
-      console.log('Cache hit', options.cacheKey);
-    }
-  }
-
-  if (!obj) {
-    obj = options.factory(key);
-    if (options.cacheKey) {
-      cache.add(options.cacheKey, obj);
-    }
-  }
-
-  useEffect(() => scene.addToScene(obj), [obj, scene]);
-
-  return obj;
 }
