@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { SceneTimeRangeState, SceneTimeRange, behaviors } from '@grafana/scenes';
+import { SceneTimeRangeState, SceneTimeRange, behaviors, SceneDataLayerSet } from '@grafana/scenes';
 
 import { SceneContextObject, SceneContextObjectState } from './SceneContextObject';
 
@@ -15,6 +15,11 @@ export interface SceneContextProviderProps {
    *  refresh picker and also cancel all queries in the scene.
    */
   withQueryController?: boolean;
+
+  /**
+   * Needs to instantiate the SceneDataLayerSet so the hook doesn't crash
+   */
+  withAnnotationControls?: boolean;
   /**
    * Children
    */
@@ -24,7 +29,12 @@ export interface SceneContextProviderProps {
 /**
  * Wrapps the react children in a SceneContext
  */
-export function SceneContextProvider({ children, timeRange, withQueryController }: SceneContextProviderProps) {
+export function SceneContextProvider({
+  children,
+  timeRange,
+  withQueryController,
+  withAnnotationControls,
+}: SceneContextProviderProps) {
   const parentContext = useContext(SceneContext);
   const [childContext, setChildContext] = useState<SceneContextObject | undefined>();
 
@@ -40,6 +50,11 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
 
     if (initialTimeRange) {
       state.$timeRange = new SceneTimeRange(initialTimeRange);
+    }
+
+    if (withAnnotationControls) {
+      console.log('???', parentContext ? true : false);
+      state.$data = new SceneDataLayerSet({ layers: [] });
     }
 
     const childContext = new SceneContextObject(state);

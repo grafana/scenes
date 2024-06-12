@@ -7,6 +7,8 @@ import {
   VariableValue,
   sceneGraph,
   SceneTimeRangeLike,
+  SceneDataLayerSet,
+  SceneDataLayerProvider,
 } from '@grafana/scenes';
 import { Subscription } from 'rxjs';
 
@@ -35,6 +37,23 @@ export function useVariables(): SceneVariable[] {
   const scene = useSceneContext();
   const variables = sceneGraph.getVariables(scene);
   return variables.useState().variables;
+}
+
+export function useDataLayers(): SceneDataLayerProvider[] {
+  const scene = useSceneContext();
+  console.log(scene);
+  return [];
+  // const state = scene.useState();
+  // console.log(state.$data);
+
+  // if (!(state.$data instanceof SceneDataLayerSet)) {
+  //   return [];
+  // }
+
+  // const layerSet = (state.$data as SceneDataLayerSet).useState();
+
+  // console.log(layerSet);
+  // return layerSet.layers;
 }
 
 export interface UseUpdateWhenSceneChangesOptions {

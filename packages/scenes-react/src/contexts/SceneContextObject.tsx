@@ -85,6 +85,7 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
 
   public findAnnotationLayer<T>(name: string): T | undefined {
     const annotations = this.state.$data as SceneDataLayerSet;
+
     if (!annotations) {
       return;
     }
@@ -94,6 +95,7 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
 
   public addAnnotationLayer(layer: dataLayers.AnnotationsDataLayer) {
     let set = this.state.$data as SceneDataLayerSet;
+
     if (set) {
       set.setState({ layers: [...set.state.layers, layer] });
     } else {

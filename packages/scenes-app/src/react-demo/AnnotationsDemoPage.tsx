@@ -59,7 +59,7 @@ export function AnnotationDemoPage() {
   return (
     <PageWrapper title="Annotations" subTitle="Annotation demo page">
       <Stack direction={'column'} gap={2}>
-        <SceneContextProvider>
+        <SceneContextProvider withAnnotationControls timeRange={{ from: 'now-1h', to: 'now' }}>
           <DemoVizLayout>
             <AnnotationLayer name="AnnoLayer1" query={query1}>
               <AnnotationLayer name="AnnoLayer3" query={query3}>
