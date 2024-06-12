@@ -9,7 +9,7 @@ export interface UseQueryOptions {
   queries: SceneDataQuery[];
   maxDataPoints?: number;
   datasource?: DataSourceRef;
-  cacheKey?: CacheKey;
+  cacheKey?: CacheKey<UseQueryOptions>;
 }
 
 /**
@@ -44,7 +44,7 @@ export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
 
 interface UseSceneObjectProps<T extends SceneObject> {
   factory: (key: string) => T;
-  cacheKey?: CacheKey;
+  cacheKey?: CacheKey<any>;
 }
 
 function useSceneObject<T extends SceneObject>(options: UseSceneObjectProps<T>) {
