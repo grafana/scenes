@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { SceneContext } from '../contexts/SceneContextProvider';
 import { SceneContextObject } from '../contexts/SceneContextObject';
 import { SceneVariable, SceneVariableSet } from '@grafana/scenes';
+import { DataQueryRequest, DataQueryResponse, DataSourceApi, LoadingState, PanelData } from '@grafana/data';
+import { Observable, map } from 'rxjs';
 
 export interface TestContextProviderProps {
   /**
@@ -65,3 +67,22 @@ export function getHookContextWrapper({ variables }: GetHookContextWrapperOption
 
   return { wrapper: Wrapper, context };
 }
+
+
+export const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
+  const result: PanelData = {
+    state: LoadingState.Loading,
+    series: [],
+    annotations: [],
+    timeRange: request.range,
+  };
+
+  return (ds.query(request) as Observable<DataQueryResponse>).pipe(
+    map((packet) => {
+      result.state = LoadingState.Done;
+      result.series = packet.data.filter((d) => d.meta?.dataTopic !== 'annotations');
+      result.annotations = packet.data.filter((d) => d.meta?.dataTopic === 'annotations');
+      return result;
+    })
+  );
+});

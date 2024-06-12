@@ -20,6 +20,7 @@ import {
   TextBoxVariable,
   QueryVariable,
   CustomVariable,
+  AdHocFiltersVariable,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 
@@ -212,6 +213,58 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                     .setOption(
                       'content',
                       'This tab is mainly to test a variable with 100 000 options, to test search / typing performance. manyOptions=$manyOptions'
+                    )
+                    .build(),
+                }),
+              ],
+            }),
+          });
+        },
+      }),
+      new SceneAppPage({
+        title: 'Many adhoc variable values',
+        url: `${defaults.url}/many-adhoc-values`,
+        getScene: () => {
+          return new EmbeddedScene({
+            controls: [new VariableValueSelectors({})],
+            $variables: new SceneVariableSet({
+              variables: [
+                new AdHocFiltersVariable({
+                  name: 'manyAdhocOptions',
+                  getTagKeysProvider: async () => ({
+                    replace: true,
+                    values: [{
+                      value: 'a',
+                      text: 'A'
+                    }, {
+                      value: 'b',
+                      text: 'B'
+                    }, {
+                      value: 'c',
+                      text: 'C'
+                    }]
+                  }),
+                  getTagValuesProvider: async () => {
+                    return {
+                      replace: true,
+                      values: getRandomOptions(100000).map(({ value, label }) => ({
+                        value,
+                        text: label,
+                      }))
+                    };
+                  },
+                }),
+              ],
+            }),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  body: PanelBuilders.text()
+                    .setTitle('Description')
+                    .setOption(
+                      'content',
+                      'This tab is mainly to test an adhoc variable with 100 000 options, to test search / typing performance. manyAdhocOptions=$manyAdhocOptions'
                     )
                     .build(),
                 }),

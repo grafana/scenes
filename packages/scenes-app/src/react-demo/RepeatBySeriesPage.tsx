@@ -1,5 +1,5 @@
 import {
-  VariableSelect,
+  VariableControl,
   CustomVariable,
   useQueryRunner,
   useVariableInterpolator,
@@ -19,7 +19,7 @@ export function RepeatBySeriesPage() {
     <PageWrapper title="Repeat by series" subTitle="Repeats visualizations returned by a single query">
       <CustomVariable name="series" label="Series count" query="1,2,5,10,20,30" initialValue={'3'}>
         <Stack direction={'column'}>
-          <VariableSelect name="series" />
+          <VariableControl name="series" />
           <RepeatPanelBySeries />
         </Stack>
       </CustomVariable>

@@ -3,15 +3,12 @@ import { useQueryRunner } from './useQueryRunner';
 import {
   DataSourceApi,
   DataQueryRequest,
-  PanelData,
-  LoadingState,
-  DataQueryResponse,
   toDataFrame,
 } from '@grafana/data';
-import { Observable, map, of } from 'rxjs';
-import { getHookContextWrapper } from '../utils/testUtils';
+import { getHookContextWrapper, runRequestMock } from '../utils/testUtils';
+import { of } from 'rxjs';
 
-const getDataSourceMock = jest.fn().mockReturnValue({
+export const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
   getRef: () => ({ uid: 'test-uid' }),
   query: () => {
@@ -28,24 +25,6 @@ const getDataSourceMock = jest.fn().mockReturnValue({
       ],
     });
   },
-});
-
-const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
-  const result: PanelData = {
-    state: LoadingState.Loading,
-    series: [],
-    annotations: [],
-    timeRange: request.range,
-  };
-
-  return (ds.query(request) as Observable<DataQueryResponse>).pipe(
-    map((packet) => {
-      result.state = LoadingState.Done;
-      result.series = packet.data.filter((d) => d.meta?.dataTopic !== 'annotations');
-      result.annotations = packet.data.filter((d) => d.meta?.dataTopic === 'annotations');
-      return result;
-    })
-  );
 });
 
 jest.mock('@grafana/runtime', () => ({

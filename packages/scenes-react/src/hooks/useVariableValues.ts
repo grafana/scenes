@@ -1,7 +1,7 @@
 import { SceneVariables, VariableValueSingle, sceneGraph } from '@grafana/scenes';
 import { useSceneContext } from './hooks';
 
-export function useVariableValues(name: string): [VariableValueSingle[] | undefined, boolean] {
+export function useVariableValues<T = VariableValueSingle>(name: string): [T[] | undefined, boolean] {
   const scene = useSceneContext();
   const variable = sceneGraph.lookupVariable(name, scene);
 
@@ -23,5 +23,5 @@ export function useVariableValues(name: string): [VariableValueSingle[] | undefi
     value = [value];
   }
 
-  return [value, isLoading];
+  return [value as T[], isLoading];
 }

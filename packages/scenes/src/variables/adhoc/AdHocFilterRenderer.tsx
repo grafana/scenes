@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { Button, Field, Select, useStyles2 } from '@grafana/ui';
+import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
+import { getOptionSearcher } from '../components/getOptionSearcher';
+import { VariableValueOption } from '../types';
 
 interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
+}
+
+function selectableValueToVariableValueOption(value: SelectableValue): VariableValueOption {
+  return {
+    label: value.label ?? String(value.value),
+    value: value.value,
+  };
 }
 
 function keyLabelToOption(key: string, label?: string): SelectableValue | null {
@@ -20,6 +29,8 @@ function keyLabelToOption(key: string, label?: string): SelectableValue | null {
     : null;
 }
 
+const filterNoOp = () => true;
+
 export function AdHocFilterRenderer({ filter, model }: Props) {
   const styles = useStyles2(getStyles);
 
@@ -29,12 +40,29 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [isValuesLoading, setIsValuesLoading] = useState(false);
   const [isKeysOpen, setIsKeysOpen] = useState(false);
   const [isValuesOpen, setIsValuesOpen] = useState(false);
+  const [valueInputValue, setValueInputValue] = useState('');
+  const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
 
+  const optionSearcher = useMemo(
+    () => getOptionSearcher(values.map(selectableValueToVariableValueOption), undefined),
+    [values]
+  );
+
+  const onValueInputChange = (value: string, { action }: InputActionMeta) => {
+    if (action === 'input-change') {
+      setValueInputValue(value);
+    }
+    return value;
+  };
+
+  const filteredValueOptions: SelectableValue[] = optionSearcher(valueInputValue);
+
   const valueSelect = (
     <Select
+      virtualized
       allowCustomValue
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
@@ -43,9 +71,18 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       className={cx(styles.value, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
       value={valueValue}
+      filterOption={filterNoOp}
       placeholder={'Select value'}
-      options={values}
-      onChange={(v) => model._updateFilter(filter, 'value', v)}
+      options={filteredValueOptions}
+      inputValue={valueInputValue}
+      onInputChange={onValueInputChange}
+      onChange={(v) => {
+        model._updateFilter(filter, 'value', v);
+
+        if (valueHasCustomValue !== v.__isNew__) {
+          setValueHasCustomValue(v.__isNew__);
+        }
+      }}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
       // see https://github.com/grafana/grafana/issues/63558
       // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
@@ -59,9 +96,13 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         const values = await model._getValuesFor(filter);
         setIsValuesLoading(false);
         setValues(values);
+        if (valueHasCustomValue) {
+          setValueInputValue(valueValue?.label ?? '');
+        }
       }}
       onCloseMenu={() => {
         setIsValuesOpen(false);
+        setValueInputValue('');
       }}
     />
   );
@@ -111,7 +152,17 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
       return (
         <Field label={label} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
-          {valueSelect}
+          <div className={styles.wrapper}>
+            <Select
+              className={styles.operator}
+              value={filter.operator}
+              disabled={model.state.readOnly}
+              options={model._getOperators()}
+              width="auto"
+              onChange={(v) => model._updateFilter(filter, 'operator', v)}
+            />
+            {valueSelect}
+          </div>
         </Field>
       );
     } else {

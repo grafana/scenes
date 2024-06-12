@@ -13,6 +13,7 @@ import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
+import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
@@ -33,7 +34,6 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * @experimental
    * Controls the layout and design of the label.
-   * Vertical layout does not yet support operator selector.
    */
   layout?: ControlsLayout;
   /**
@@ -76,12 +76,12 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   expressionBuilder?: AdHocVariableExpressionBuilderFn;
 
   /**
-   * When querying the datasource for label names and values to determine keys and values 
+   * When querying the datasource for label names and values to determine keys and values
    * for this ad hoc filter, consider the queries in the scene and use them as a filter.
    * This queries filter can be used to ensure that only ad hoc filter options that would
    * impact the current queries are presented to the user.
    */
-  useQueriesAsFilterForOptions?: boolean
+  useQueriesAsFilterForOptions?: boolean;
 
   /**
    * @internal state of the new filter being added
@@ -220,7 +220,7 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
-    let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange });
+    let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
 
     if (override) {
       keys = keys.concat(override.values);
@@ -255,8 +255,14 @@ export class AdHocFiltersVariable
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
-    // @ts-expect-error TODO: remove this once 11.1.x is released
-    let values = await ds.getTagValues({ key: filter.key, filters: otherFilters, timeRange, queries });
+
+    let values = await ds.getTagValues({
+      key: filter.key,
+      filters: otherFilters,
+      timeRange, // @ts-expect-error TODO: remove this once 11.1.x is released
+      queries,
+      ...getEnrichedFiltersRequest(this),
+    });
 
     if (override) {
       values = values.concat(override.values);
@@ -325,7 +331,7 @@ export function toSelectableValue({ text, value }: MetricFindValue): SelectableV
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return filter.key !== "" && filter.operator !== "" && filter.value !== "";
+  return filter.key !== '' && filter.operator !== '' && filter.value !== '';
 }
 
 // Maps MetricFindValues to SelectableValues and collects them by group
@@ -342,7 +348,7 @@ function handleOptionGroups(values: MetricFindValue[]): Array<SelectableValue<st
       if (!group) {
         group = [];
         groupedResults.set(groupLabel, group);
-        result.push({ label: groupLabel, options: group })
+        result.push({ label: groupLabel, options: group });
       }
 
       group.push(toSelectableValue(value));
@@ -352,4 +358,4 @@ function handleOptionGroups(values: MetricFindValue[]): Array<SelectableValue<st
   }
 
   return result;
-};
+}

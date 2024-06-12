@@ -8,6 +8,7 @@ import { SceneDebugger } from '../SceneDebugger/SceneDebugger';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getUrlWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
+import { useUrlSync } from '../../services/useUrlSync';
 
 export interface Props {
   page: SceneAppPageLike;
@@ -29,12 +30,14 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     }
   }, [scene, containerPage, isInitialized]);
 
-  // Clear initializedScene when unmounting
   useEffect(() => {
+    // Clear initializedScene when unmounting
     return () => containerPage.setState({ initializedScene: undefined });
   }, [containerPage]);
 
-  if (!isInitialized) {
+  const urlSyncInitialized = useUrlSync(containerPage);
+
+  if (!isInitialized && !urlSyncInitialized) {
     return null;
   }
 

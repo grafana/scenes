@@ -14,6 +14,7 @@ import { RepeatBySeriesPage } from './RepeatBySeriesPage';
 import { DemoVizLayout, urlBase } from './utils';
 import { DrilldownDemoPage } from './DrilldownDemoPage';
 import { AnnotationDemoPage } from './AnnotationsDemoPage';
+import { TransformationsDemoPage } from './TransformationsDemoPage';
 
 export function ReactDemoPage() {
   return (
@@ -30,6 +31,7 @@ export function ReactDemoPage() {
           <Route path={`${urlBase}/interpolation-hook`} component={InterpolationHookPage} />
           <Route path={`${urlBase}/drilldown`} component={DrilldownDemoPage} />
           <Route path={`${urlBase}/annotations`} component={AnnotationDemoPage} />
+          <Route path={`${urlBase}/transformations`} component={TransformationsDemoPage} />
         </Switch>
       </CustomVariable>
     </SceneContextProvider>
@@ -53,6 +55,10 @@ function HomePage() {
         <TextLink href={`${urlBase}/interpolation-hook`}>Interpolation hook</TextLink>
         <TextLink href={`${urlBase}/drilldown`}>Drilldown demo</TextLink>
         <TextLink href={`${urlBase}/annotations`}>Annotations demo page</TextLink>
+        <TextLink href={`${urlBase}/drilldown?from=now-5m&to=now&var-env=prod`}>
+          Link with time range and variables
+        </TextLink>
+        <TextLink href={`${urlBase}/transformations`}>Transformation demo</TextLink>
       </Stack>
     </PageWrapper>
   );
