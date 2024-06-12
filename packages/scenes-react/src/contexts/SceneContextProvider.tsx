@@ -45,7 +45,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
     const childContext = new SceneContextObject(state);
 
     if (parentContext) {
-      parentContext.setState({ childContext });
+      parentContext.setState({ contextChildren: [...(parentContext.state.contextChildren ?? []), childContext] });
     }
 
     const deactivate = childContext.activate();
@@ -55,7 +55,9 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
       deactivate();
 
       if (parentContext) {
-        parentContext.setState({ childContext: undefined });
+        parentContext.setState({
+          contextChildren: parentContext.state.contextChildren?.filter((context) => childContext !== context),
+        });
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,7 +90,7 @@ export function SceneContextValueProvider({ children, value }: SceneContextValue
 
   useEffect(() => {
     if (parentContext) {
-      parentContext.setState({ childContext: value });
+      parentContext.setState({ contextChildren: [...(parentContext.state.contextChildren ?? []), value] });
     }
 
     const deactivate = value.activate();
@@ -98,7 +100,9 @@ export function SceneContextValueProvider({ children, value }: SceneContextValue
       deactivate();
 
       if (parentContext) {
-        parentContext.setState({ childContext: undefined });
+        parentContext.setState({
+          contextChildren: parentContext.state.contextChildren?.filter((context) => value !== context),
+        });
       }
     };
   }, [parentContext, value]);

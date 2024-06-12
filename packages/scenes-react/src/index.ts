@@ -7,6 +7,5 @@ export { RefreshPicker } from './components/RefreshPicker';
 export { CustomVariable } from './variables/CustomVariable';
 export { Breadcrumb, BreadcrumbContext, BreadcrumbProvider } from './contexts/BreadcrumbContext';
 export { useVariableValues } from './hooks/useVariableValues';
-export { useDataLayers } from './hooks/useDataLayers';
 export { AnnotationLayer } from './dataLayers/AnnotationLayer';
 export * from './hooks/hooks';

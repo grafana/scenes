@@ -6,12 +6,12 @@ import {
   SceneVariableSet,
   getUrlSyncManager,
   SceneDataLayerSet,
-  SceneDataLayerProvider,
+  dataLayers,
 } from '@grafana/scenes';
 import { writeSceneLog } from '../utils';
 
 export interface SceneContextObjectState extends SceneObjectState {
-  childContext?: SceneContextObject;
+  contextChildren?: SceneContextObject[];
   children: SceneObject[];
 }
 
@@ -20,6 +20,7 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
     super({
       ...state,
       children: state?.children ?? [],
+      contextChildren: state?.contextChildren ?? [],
     });
 
     this.addActivationHandler(this._activationHandler.bind(this));
@@ -83,31 +84,28 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
   }
 
   public findAnnotationLayer<T>(name: string): T | undefined {
-      const layerSet = this.state.$data as SceneDataLayerSet;
-      if (!layerSet) {
-          return;
-      }
+    const annotations = this.state.$data as SceneDataLayerSet;
+    if (!annotations) {
+      return;
+    }
 
-      return layerSet.state.layers.find((layer: SceneDataLayerProvider) => layer.state.name === name) as T; 
+    return annotations.state.layers.find((anno) => anno.state.name === name) as T;
   }
 
-  public addAnnotationLayer(layer: SceneDataLayerProvider) {
-      let layerSet = this.state.$data as SceneDataLayerSet;
+  public addAnnotationLayer(layer: dataLayers.AnnotationsDataLayer) {
+    let set = this.state.$data as SceneDataLayerSet;
+    if (set) {
+      set.setState({ layers: [...set.state.layers, layer] });
+    } else {
+      set = new SceneDataLayerSet({ layers: [layer] });
+      this.setState({ $data: set });
+    }
 
-      console.log(this);
+    writeSceneLog('SceneContext', `Adding annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
 
-      if (layerSet) {
-          layerSet.setState({ layers: [...layerSet.state.layers, layer] });
-      } else {
-        layerSet = new SceneDataLayerSet({ layers: [layer] });
-        this.setState({ $data: layerSet });
-      }
-
-      writeSceneLog('SceneContext', `Adding annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
-
-      return () => {
-          layerSet.setState({ layers: layerSet.state.layers.filter((x) => x !== layer) });
-          writeSceneLog('SceneContext', `Removing annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
-      }
+    return () => {
+      set.setState({ layers: set.state.layers.filter((x) => x !== layer) });
+      writeSceneLog('SceneContext', `Removing annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
+    };
   }
 }
