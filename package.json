@@ -57,7 +57,5 @@
     "prettier": "2.5.1",
     "turbo": "latest"
   },
-  "dependencies": {
-    "lru-cache": "^10.2.2"
-  }
+  "dependencies": {}
 }
