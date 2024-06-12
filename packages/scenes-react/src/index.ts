@@ -1,5 +1,5 @@
 export { useQueryRunner } from './hooks/useQueryRunner';
-export { useDataTransformer } from './hooks/useDataTransformer'
+export { useDataTransformer } from './hooks/useDataTransformer';
 export * from './contexts/SceneContextProvider';
 export { TimeRangePicker } from './components/TimeRangePicker';
 export { VariableControl } from './components/VariableControl';
@@ -9,5 +9,5 @@ export { AnnotationPicker } from './components/AnnotationPicker';
 export { CustomVariable } from './variables/CustomVariable';
 export { Breadcrumb, BreadcrumbContext, BreadcrumbProvider } from './contexts/BreadcrumbContext';
 export { useVariableValues } from './hooks/useVariableValues';
-export { AnnotationLayer } from './dataLayers/AnnotationLayer';
+export { AnnotationLayer } from './components/AnnotationLayer';
 export * from './hooks/hooks';
