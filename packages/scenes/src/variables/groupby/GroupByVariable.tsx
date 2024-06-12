@@ -178,7 +178,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     const response = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
     if (responseHasError(response)) {
       // @ts-expect-error Remove when 11.1.x is released
-      this.setState({ error: response.error });
+      this.setState({ error: response.error.message });
     }
   
     let keys = dataFromResponse(response);
