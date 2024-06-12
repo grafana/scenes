@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSceneContext } from '../hooks/hooks';
 import { AnnotationQuery } from '@grafana/data';
-import { dataLayers } from '@grafana/scenes';
+import { SceneDataLayerSet, dataLayers } from '@grafana/scenes';
+import { SceneContextObject } from '../contexts/SceneContextObject';
+import { writeSceneLog } from '../utils';
 
 export interface AnnotationLayerSetProps {
   name: string;
@@ -13,14 +15,14 @@ export function AnnotationLayer({ name, query, children }: AnnotationLayerSetPro
   const scene = useSceneContext();
   const [annotationAdded, setAnnotationAdded] = useState<boolean>();
 
-  let annotation: dataLayers.AnnotationsDataLayer | undefined = scene.findAnnotationLayer(name);
+  let annotation: dataLayers.AnnotationsDataLayer | undefined = findAnnotationLayer(scene, name);
 
   if (!annotation) {
     annotation = new dataLayers.AnnotationsDataLayer({ name, query });
   }
 
   useEffect(() => {
-    const removeFn = scene.addAnnotationLayer(annotation);
+    const removeFn = addAnnotationLayer(scene, annotation);
     setAnnotationAdded(true);
     return removeFn;
   }, [scene, name, annotation]);
@@ -34,4 +36,32 @@ export function AnnotationLayer({ name, query, children }: AnnotationLayerSetPro
   }
 
   return children;
+}
+
+function findAnnotationLayer<T>(scene: SceneContextObject, name: string): T | undefined {
+  const annotations = scene.state.$data as SceneDataLayerSet;
+
+  if (!annotations) {
+    return;
+  }
+
+  return annotations.state.layers.find((anno) => anno.state.name === name) as T;
+}
+
+function addAnnotationLayer(scene: SceneContextObject, layer: dataLayers.AnnotationsDataLayer) {
+  let set = scene.state.$data as SceneDataLayerSet;
+
+  if (set) {
+    set.setState({ layers: [...set.state.layers, layer] });
+  } else {
+    set = new SceneDataLayerSet({ layers: [layer] });
+    scene.setState({ $data: set });
+  }
+
+  writeSceneLog('SceneContext', `Adding annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
+
+  return () => {
+    set.setState({ layers: set.state.layers.filter((x) => x !== layer) });
+    writeSceneLog('SceneContext', `Removing annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
+  };
 }
