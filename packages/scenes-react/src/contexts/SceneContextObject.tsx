@@ -72,32 +72,4 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
       writeSceneLog('SceneContext', `Removing variable: ${variable.constructor.name} key: ${variable.state.key}`);
     };
   }
-
-  public findAnnotationLayer<T>(name: string): T | undefined {
-    const annotations = this.state.$data as SceneDataLayerSet;
-
-    if (!annotations) {
-      return;
-    }
-
-    return annotations.state.layers.find((anno) => anno.state.name === name) as T;
-  }
-
-  public addAnnotationLayer(layer: dataLayers.AnnotationsDataLayer) {
-    let set = this.state.$data as SceneDataLayerSet;
-
-    if (set) {
-      set.setState({ layers: [...set.state.layers, layer] });
-    } else {
-      set = new SceneDataLayerSet({ layers: [layer] });
-      this.setState({ $data: set });
-    }
-
-    writeSceneLog('SceneContext', `Adding annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
-
-    return () => {
-      set.setState({ layers: set.state.layers.filter((x) => x !== layer) });
-      writeSceneLog('SceneContext', `Removing annotation data layer: ${layer.state.name} key: ${layer.state.key}`);
-    };
-  }
 }
