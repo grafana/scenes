@@ -1,10 +1,11 @@
 import React from 'react';
-import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
+// @ts-expect-error Remove when 11.1.x is released
+import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
-import { getQueriesForVariables, renderPrometheusLabelFilters } from '../utils';
+import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
@@ -95,12 +96,12 @@ export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
   currentKey: string | null
-) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type getTagValuesProvider = (
   variable: AdHocFiltersVariable,
   filter: AdHocFilterWithLabels
-) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
 
@@ -206,7 +207,7 @@ export class AdHocFiltersVariable
     const override = await this.state.getTagKeysProvider?.(this, currentKey);
 
     if (override && override.replace) {
-      return override.values.map(toSelectableValue);
+      return dataFromResponse(override.values).map(toSelectableValue);
     }
 
     if (this.state.defaultKeys) {
@@ -221,14 +222,21 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
-    let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
+    const response = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
 
+    if (responseHasError(response)) {
+      // @ts-expect-error Remove when 11.1.x is released
+      this.setState({ error: response.error.message })
+    }
+
+    let keys = dataFromResponse(response);
     if (override) {
-      keys = keys.concat(override.values);
+      keys = keys.concat(dataFromResponse(override.values));
     }
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
     if (tagKeyRegexFilter) {
+      // @ts-expect-error Remove when 11.1.x is released
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
@@ -242,7 +250,7 @@ export class AdHocFiltersVariable
     const override = await this.state.getTagValuesProvider?.(this, filter);
 
     if (override && override.replace) {
-      return handleOptionGroups(override.values);
+      return handleOptionGroups(dataFromResponse(override.values));
     }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
@@ -257,7 +265,7 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
-    let values = await ds.getTagValues({
+    const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
       timeRange, // @ts-expect-error TODO: remove this once 11.1.x is released
@@ -265,8 +273,14 @@ export class AdHocFiltersVariable
       ...getEnrichedFiltersRequest(this),
     });
 
+    if (responseHasError(response)) {
+      // @ts-expect-error Remove when 11.1.x is released
+      this.setState({ error: response.error });
+    }
+
+    let values = dataFromResponse(response);
     if (override) {
-      values = values.concat(override.values);
+      values = values.concat(dataFromResponse(override.values));
     }
 
     return handleOptionGroups(values);
