@@ -7,8 +7,6 @@ import {
   VariableValue,
   sceneGraph,
   SceneTimeRangeLike,
-  SceneDataLayerSet,
-  SceneDataLayerProvider,
 } from '@grafana/scenes';
 import { Subscription } from 'rxjs';
 
