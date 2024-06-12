@@ -12,6 +12,7 @@ import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import userEvent from '@testing-library/user-event';
+import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 
 describe('GroupByVariable', () => {
@@ -346,9 +347,11 @@ export function setupTest(
 
   locationService.push('/');
 
-  scene.initUrlSync();
-
-  render(<scene.Component model={scene} />);
+  render(
+    <TestContextProvider scene={scene}>
+      <scene.Component model={scene} />
+    </TestContextProvider>
+  );
 
   return { scene, variable, getTagKeysSpy, timeRange };
 }

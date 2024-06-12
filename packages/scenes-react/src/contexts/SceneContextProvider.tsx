@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { SceneTimeRangeState, SceneTimeRange, behaviors } from '@grafana/scenes';
+import {
+  SceneTimeRangeState,
+  SceneTimeRange,
+  behaviors,
+  UrlSyncContextProvider,
+  getUrlSyncManager,
+} from '@grafana/scenes';
 
 import { SceneContextObject, SceneContextObjectState } from './SceneContextObject';
 
@@ -45,6 +51,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
     const childContext = new SceneContextObject(state);
 
     if (parentContext) {
+      getUrlSyncManager().handleNewObject(childContext);
       parentContext.setState({ childContext });
     }
 
@@ -65,47 +72,12 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
     return null;
   }
 
-  return <SceneContext.Provider value={childContext}>{children}</SceneContext.Provider>;
-}
+  const innerProvider = <SceneContext.Provider value={childContext}>{children}</SceneContext.Provider>;
 
-export interface SceneContextValueProviderProps {
-  /**
-   * Only the initial time range, cannot be used to update time range
-   **/
-  value: SceneContextObject;
-  /**
-   * Children
-   */
-  children: React.ReactNode;
-}
-
-/**
- * Mostly useful from tests where you need to interact with the scene context object directly from outside the provider react tree.
- */
-export function SceneContextValueProvider({ children, value }: SceneContextValueProviderProps) {
-  const parentContext = useContext(SceneContext);
-  const [isActivate, setIsActive] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (parentContext) {
-      parentContext.setState({ childContext: value });
-    }
-
-    const deactivate = value.activate();
-    setIsActive(true);
-
-    return () => {
-      deactivate();
-
-      if (parentContext) {
-        parentContext.setState({ childContext: undefined });
-      }
-    };
-  }, [parentContext, value]);
-
-  if (!isActivate) {
-    return null;
+  if (parentContext) {
+    return innerProvider;
   }
 
-  return <SceneContext.Provider value={value}>{children}</SceneContext.Provider>;
+  // For root context we wrap the provider in a UrlSyncWrapper that handles the hook that updates state on location changes
+  return <UrlSyncContextProvider scene={childContext}>{innerProvider}</UrlSyncContextProvider>;
 }

@@ -1,3 +1,4 @@
+import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject } from '../core/types';
 
 export interface SceneObjectWithDepth {
@@ -6,15 +7,24 @@ export interface SceneObjectWithDepth {
 }
 
 export class UniqueUrlKeyMapper {
-  private index = new Map<string, SceneObjectWithDepth[]>();
+  private index = new Map<string, SceneObject[]>();
 
   public getUniqueKey(key: string, obj: SceneObject) {
     const objectsWithKey = this.index.get(key);
+
     if (!objectsWithKey) {
-      throw new Error("Cannot find any scene object that uses the key '" + key + "'");
+      this.index.set(key, [obj]);
+      return key;
     }
 
-    const address = objectsWithKey.findIndex((o) => o.sceneObject === obj);
+    let address = objectsWithKey.findIndex((o) => o === obj);
+    if (address === -1) {
+      filterOutOrphanedObjects(objectsWithKey);
+      objectsWithKey.push(obj);
+
+      address = objectsWithKey.length - 1;
+    }
+
     if (address > 0) {
       return `${key}-${address + 1}`;
     }
@@ -22,24 +32,27 @@ export class UniqueUrlKeyMapper {
     return key;
   }
 
-  public rebuildIndex(root: SceneObject) {
+  public clear() {
     this.index.clear();
-    this.buildIndex(root, 0);
   }
+}
 
-  private buildIndex(sceneObject: SceneObject, depth: number) {
-    if (sceneObject.urlSync) {
-      for (const key of sceneObject.urlSync.getKeys()) {
-        const hit = this.index.get(key);
-        if (hit) {
-          hit.push({ sceneObject, depth });
-          hit.sort((a, b) => a.depth - b.depth);
-        } else {
-          this.index.set(key, [{ sceneObject, depth }]);
-        }
-      }
+function filterOutOrphanedObjects(sceneObjects: SceneObject[]) {
+  for (const obj of sceneObjects) {
+    if (isOrphanOrInActive(obj)) {
+      const index = sceneObjects.indexOf(obj);
+      sceneObjects.splice(index, 1);
     }
-
-    sceneObject.forEachChild((child) => this.buildIndex(child, depth + 1));
   }
+}
+
+function isOrphanOrInActive(obj: SceneObject) {
+  const root = obj.getRoot();
+
+  // If we cannot find it from the root it's an orphan
+  if (!sceneGraph.findObject(root, (child) => child === obj)) {
+    return true;
+  }
+
+  return false;
 }
