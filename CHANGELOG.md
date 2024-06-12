@@ -1,3 +1,43 @@
+# v5.0.0 (Wed Jun 12 2024)
+
+#### 💥 Breaking Change
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - UrlSync: Major refactoring to simplify and make it work better across page routes (for scenes-react use case) [#765](https://github.com/grafana/scenes/pull/765) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v4.32.0 (Tue Jun 11 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: Show operator in vertical mode [#783](https://github.com/grafana/scenes/pull/783) ([@ivanahuckova](https://github.com/ivanahuckova))
+
+#### Authors: 1
+
+- Ivana Huckova ([@ivanahuckova](https://github.com/ivanahuckova))
+
+---
+
+# v4.31.0 (Tue Jun 11 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Fixes sceneInterpolator when string contains variables with object prototype function names [#785](https://github.com/grafana/scenes/pull/785) ([@torkelo](https://github.com/torkelo))
+  - SceneRefreshPicker: Fixes url state issue [#784](https://github.com/grafana/scenes/pull/784) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v4.30.0 (Tue Jun 11 2024)
 
 #### 🚀 Enhancement

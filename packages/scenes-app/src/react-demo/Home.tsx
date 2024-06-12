@@ -52,6 +52,9 @@ function HomePage() {
         <TextLink href={`${urlBase}/nested-context`}>Nested contexts</TextLink>
         <TextLink href={`${urlBase}/interpolation-hook`}>Interpolation hook</TextLink>
         <TextLink href={`${urlBase}/drilldown`}>Drilldown demo</TextLink>
+        <TextLink href={`${urlBase}/drilldown?from=now-5m&to=now&var-env=prod`}>
+          Link with time range and variables
+        </TextLink>
         <TextLink href={`${urlBase}/transformations`}>Transformation demo</TextLink>
       </Stack>
     </PageWrapper>

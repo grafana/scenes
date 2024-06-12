@@ -2,7 +2,6 @@ import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObject, isDataRequestEnricher } from '../../core/types';
-import { getUrlSyncManager } from '../../services/UrlSyncManager';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneReactObject } from '../SceneReactObject';
@@ -20,15 +19,10 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
 
   public constructor(state: SceneAppPageState) {
     super(state);
-
-    this.addActivationHandler(() => {
-      return () => getUrlSyncManager().cleanUp(this);
-    });
   }
 
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });
-    getUrlSyncManager().initSync(this);
   }
 
   public getScene(routeMatch: SceneRouteMatch): EmbeddedScene {

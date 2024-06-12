@@ -8,9 +8,13 @@ describe('SceneContextObject', () => {
     const scene = new SceneContextObject({});
     const obj = new CustomSceneObject({});
 
-    scene.addToScene(obj);
+    const cleanUpFn = scene.addToScene(obj);
 
     expect(scene.state.children[0]).toBe(obj);
     expect(obj.parent).toBe(scene);
+
+    cleanUpFn();
+
+    expect(scene.state.children.length).toBe(0);
   });
 });

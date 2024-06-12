@@ -22,6 +22,7 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { select } from 'react-select-event';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
+import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 
 const templateSrv = {
@@ -377,7 +378,7 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
+      locationService.partial({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -402,7 +403,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      locationService.push('/?var-filters=');
+      locationService.partial({ 'var-filters': '' });
     });
 
     expect(filtersVar.state.filters.length).toBe(0);
@@ -422,7 +423,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup({ filters: [] });
 
     act(() => {
-      locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
+      locationService.partial({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
     });
 
     expect(filtersVar.state.filters.length).toEqual(2);
@@ -441,9 +442,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push(
-        '/?var-filters=newKey,New Key|=|newValue,New Value&var-filters=newKey2,New Key 2|=~|newValue2,New Value 2'
-      );
+      locationService.partial({
+        'var-filters': ['newKey,New Key|=|newValue,New Value', 'newKey2,New Key 2|=~|newValue2,New Value 2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -477,7 +478,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=newKey,New Key|=|newValue&var-filters=newKey2,New Key 2|=~|newValue2');
+      locationService.partial({
+        'var-filters': ['newKey,New Key|=|newValue', 'newKey2,New Key 2|=~|newValue2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -511,7 +514,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=newKey|=|newValue,New Value&var-filters=newKey2|=~|newValue2,New Value 2');
+      locationService.partial({
+        'var-filters': ['newKey|=|newValue,New Value', 'newKey2|=~|newValue2,New Value 2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -545,7 +550,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=newKey|=|newValue&var-filters=newKey2|=~|newValue2');
+      locationService.partial({
+        'var-filters': ['newKey|=|newValue', 'newKey2|=~|newValue2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -579,9 +586,12 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push(
-        '/?var-filters=new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value&var-filters=new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2'
-      );
+      locationService.partial({
+        'var-filters': [
+          'new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value',
+          'new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2',
+        ],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -615,7 +625,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=newKey|=|newValue&var-filters=newKey2,newKey2|=~|newValue2,newValue2');
+      locationService.partial({
+        'var-filters': ['newKey|=|newValue', 'newKey2,newKey2|=~|newValue2,newValue2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -902,6 +914,18 @@ describe('AdHocFiltersVariable', () => {
 
       expect(variable.isActive).toBe(true);
     });
+    it('should render key, value and operator in vertical adhoc layout', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        filters: [{ key: 'key1', operator: '!=', value: 'val1' }],
+        layout: 'vertical',
+      });
+
+      render(<variable.Component model={variable} />);
+      expect(screen.getByText('!=')).toBeInTheDocument();
+      expect(screen.getByText('key1')).toBeInTheDocument();
+      expect(screen.getByText('val1')).toBeInTheDocument();
+    });
   });
 });
 
@@ -993,9 +1017,11 @@ function setup(
 
   locationService.push('/');
 
-  scene.initUrlSync();
-
-  const { unmount } = render(<scene.Component model={scene} />);
+  const { unmount } = render(
+    <TestContextProvider scene={scene}>
+      <scene.Component model={scene} />
+    </TestContextProvider>
+  );
 
   return { scene, filtersVar, unmount, runRequest: runRequestMock.fn, getTagKeysSpy, getTagValuesSpy, timeRange };
 }

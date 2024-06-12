@@ -294,4 +294,19 @@ describe('sceneInterpolator', () => {
       expect(interpolations[0].value).toEqual('${namespace}');
     });
   });
+
+  describe('Variable expression with variable name that exists on object prototype', () => {
+    it('Should return original expression', () => {
+      const str = '$toString = 1';
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, str, {})).toBe(str);
+      expect(sceneInterpolator(scene, str)).toBe(str);
+    });
+  });
 });

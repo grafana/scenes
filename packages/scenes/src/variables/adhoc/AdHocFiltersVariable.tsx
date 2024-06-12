@@ -34,7 +34,6 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * @experimental
    * Controls the layout and design of the label.
-   * Vertical layout does not yet support operator selector.
    */
   layout?: ControlsLayout;
   /**
