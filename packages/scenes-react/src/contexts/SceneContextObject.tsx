@@ -5,8 +5,6 @@ import {
   SceneVariable,
   SceneVariableSet,
   getUrlSyncManager,
-  SceneDataLayerSet,
-  dataLayers,
 } from '@grafana/scenes';
 import { writeSceneLog } from '../utils';
 
