@@ -40,7 +40,6 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
     this._urlKeyMapper.clear();
     this._lastLocation = locationService.getLocation();
-    console.log('initSync', this._lastLocation.search);
 
     this.handleNewObject(this._sceneRoot);
   }
@@ -136,7 +135,6 @@ class UrlParamsCache {
     this.#location = location;
     this.#cache = new URLSearchParams(location.search);
 
-    console.log('UrlParamsCache.getParams', this.#cache.toString());
     return this.#cache;
   }
 }
