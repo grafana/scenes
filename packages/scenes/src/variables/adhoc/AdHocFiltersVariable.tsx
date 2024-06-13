@@ -275,7 +275,7 @@ export class AdHocFiltersVariable
 
     if (responseHasError(response)) {
       // @ts-expect-error Remove when 11.1.x is released
-      this.setState({ error: response.error });
+      this.setState({ error: response.error.message });
     }
 
     let values = dataFromResponse(response);
