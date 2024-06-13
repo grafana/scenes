@@ -23,12 +23,9 @@ export function useSceneObject<T extends SceneObject>(options: UseSceneObjectPro
 
   if (!obj && cacheKeyHash) {
     obj = cache.get<T>(cacheKeyHash);
+
     if (obj) {
-      console.log('Cache hit', options.cacheKey, obj.state);
-
       if (obj.parent !== scene) {
-        console.log('Cache hit but parent is different, clearing parent');
-
         // Before clearing parent make sure the object is not already in the scene
         if (sceneGraph.findObject(scene, (sceneObj) => sceneObj === obj)) {
           console.error('A scene object cache key matched an object that is already in the scene');
