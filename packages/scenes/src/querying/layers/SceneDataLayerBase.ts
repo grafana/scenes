@@ -142,6 +142,10 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   }
 
   private shouldRunLayerOnActivate() {
+    if (!this.state.isEnabled) {
+      return false;
+    }
+
     if (this._variableValueRecorder.hasDependenciesChanged(this)) {
       writeSceneLog(
         'SceneDataLayerBase',
