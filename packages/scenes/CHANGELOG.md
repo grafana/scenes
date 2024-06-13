@@ -1,3 +1,17 @@
+# v5.0.1 (Thu Jun 13 2024)
+
+#### 🐛 Bug Fix
+
+- UrlSync: Fixes issue with recent url sync change [#793](https://github.com/grafana/scenes/pull/793) ([@torkelo](https://github.com/torkelo))
+- SceneQueryRunner: When waiting for a variable to load, and PanelData is undefined, we should create a valid PanelData object. [#791](https://github.com/grafana/scenes/pull/791) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 2
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.0.0 (Wed Jun 12 2024)
 
 #### 💥 Breaking Change
