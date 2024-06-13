@@ -1,3 +1,16 @@
+# v5.0.2 (Thu Jun 13 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - UrlSync: Remove console.log left in prev PR [#794](https://github.com/grafana/scenes/pull/794) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.0.1 (Thu Jun 13 2024)
 
 #### 🐛 Bug Fix
