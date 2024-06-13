@@ -45,10 +45,8 @@ class TestObj extends SceneObjectBase<TestObjectState> {
       this.setState({ optional: typeof values.optional === 'string' ? values.optional : undefined });
     }
 
-    if (values.hasOwnProperty('nested')) {
+    if (values.hasOwnProperty('nested') && !this.state.nested) {
       this.setState({ nested: new TestObj({ name: 'default name' }) });
-    } else if (this.state.nested) {
-      this.setState({ nested: undefined });
     }
   }
 }
@@ -484,6 +482,30 @@ describe('UrlSyncManager', () => {
       obj1.setState({ name: 'A' });
 
       expect(locationService.getLocation().search).toEqual('?name=A&name-2=A');
+    });
+  });
+
+  describe('When init sync root is not scene root', () => {
+    it('Should sync init root', async () => {
+      const scene = new TestObj({ 
+        name: 'scene-root',
+        nested: new TestObj({ 
+          name: 'url-sync-root',
+         })
+       });
+
+      urlManager = new UrlSyncManager();
+     
+      locationService.push(`/?name=test1`);
+      urlManager.initSync(scene.state.nested!);
+
+      deactivate = activateFullSceneTree(scene);      
+
+      // Only updated the nested scene (as it's the only part of scene tree that is synced)
+      expect(scene.state.nested?.state.name).toEqual('test1');
+      
+      // Unchanged
+      expect(scene.state.name).toEqual('scene-root');
     });
   });
 });
