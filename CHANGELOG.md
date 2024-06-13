@@ -1,3 +1,16 @@
+# v5.0.3 (Thu Jun 13 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Data layers: Don't run layer on activation if disabled [#795](https://github.com/grafana/scenes/pull/795) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v5.0.2 (Thu Jun 13 2024)
 
 #### 🐛 Bug Fix
