@@ -1,6 +1,6 @@
 import { NavModelItem } from '@grafana/data';
 import { PluginPage } from '@grafana/runtime';
-import { AnnotationPicker, BreadcrumbContext, RefreshPicker, TimeRangePicker, VariableControl } from '@grafana/scenes-react';
+import { BreadcrumbContext, RefreshPicker, TimeRangePicker, VariableControl } from '@grafana/scenes-react';
 import React, { useContext } from 'react';
 
 export interface Props {
@@ -35,7 +35,6 @@ export function PageWrapper({ title, subTitle, children }: Props) {
 function PageActions() {
   return (
     <>
-      <AnnotationPicker />
       <VariableControl name="env" />
       <TimeRangePicker />
       <RefreshPicker withText={true} />

@@ -2,7 +2,7 @@ import React from 'react';
 import { DemoVizLayout } from './utils';
 import { PageWrapper } from './PageWrapper';
 import { Stack } from '@grafana/ui';
-import { AnnotationLayer, AnnotationPicker, SceneContextProvider } from '@grafana/scenes-react';
+import { AnnotationLayer, DataLayerControl, SceneContextProvider } from '@grafana/scenes-react';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 
 export function AnnotationDemoPage() {
@@ -76,27 +76,29 @@ export function AnnotationDemoPage() {
         <Stack direction={'column'} gap={2}>
           <SceneContextProvider>
             <Stack direction="column">
-              <Stack direction="row" justifyContent="flex-start">
-                <AnnotationPicker />
-              </Stack>
-              <DemoVizLayout>
-                <AnnotationLayer name="AnnoLayer1" query={query1}>
-                  <AnnotationLayer name="AnnoLayer3" query={query3}>
+              <AnnotationLayer name="AnnoLayer1" query={query1}>
+                <AnnotationLayer name="AnnoLayer3" query={query3}>
+                  <Stack direction="row">
+                    <DataLayerControl name="GlobalAnno" />
+                    <DataLayerControl name="AnnoLayer1" />
+                    <DataLayerControl name="AnnoLayer3" />
+                  </Stack>
+                  <DemoVizLayout>
                     <PlainGraphWithRandomWalk title="Plain graph 1" />
-                  </AnnotationLayer>
+                  </DemoVizLayout>
                 </AnnotationLayer>
-              </DemoVizLayout>
+              </AnnotationLayer>
             </Stack>
           </SceneContextProvider>
           <SceneContextProvider>
-            <AnnotationPicker />
-            <DemoVizLayout>
-              <AnnotationLayer name="AnnoLayer2" query={query2}>
+            <AnnotationLayer name="AnnoLayer2" query={query2}>
+              <DataLayerControl name="AnnoLayer2" />
+              <DemoVizLayout>
                 <PlainGraphWithRandomWalk title="Plain graph 2" />
                 <PlainGraphWithRandomWalk title="Plain graph 3" />
                 <PlainGraphWithRandomWalk title="Plain graph 4" />
-              </AnnotationLayer>
-            </DemoVizLayout>
+              </DemoVizLayout>
+            </AnnotationLayer>
           </SceneContextProvider>
         </Stack>
       </AnnotationLayer>
