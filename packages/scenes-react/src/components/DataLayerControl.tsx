@@ -1,7 +1,6 @@
 import React from 'react';
 import { SceneDataLayerProvider, SceneDataLayerSet, sceneGraph } from '@grafana/scenes';
 import { useSceneContext } from '../hooks/hooks';
-import { DataLayerControlSwitch } from '@grafana/scenes/src/querying/layers/SceneDataLayerControls';
 
 export interface Props {
   name: string;
@@ -17,13 +16,15 @@ export function DataLayerControl({ name }: Props) {
     return <div>Annotation {name} not found</div>;
   }
 
-  return <DataLayerControlSwitch layer={layer} />;
+  return <layer.Component model={layer} />;
 }
 
 function getLayer(layers: SceneDataLayerProvider[], name: string): SceneDataLayerProvider | undefined {
+  console.log('FET LAYER');
   for (let i = 0; i < layers.length; i++) {
     const layer = (layers[i] as SceneDataLayerSet).state.layers.find((layer) => layer.state.name === name);
 
+    console.log((layers[i] as SceneDataLayerSet).state.layers);
     if (layer) {
       return layer;
     }
