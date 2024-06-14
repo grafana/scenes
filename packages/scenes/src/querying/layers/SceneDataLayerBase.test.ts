@@ -15,6 +15,18 @@ describe('SceneDataLayerBase', () => {
   });
 
   describe('when activated', () => {
+    it('should not run layer if disabled', () => {
+      const layer = new TestAnnotationsDataLayer({
+        name: 'Test layer',
+        isEnabled: false,
+        runLayerSpy: runLayerSpy,
+      });
+
+      layer.activate();
+
+      expect(runLayerSpy).toBeCalledTimes(0);
+    });
+
     it('should run query when there is no data', () => {
       const layer = new TestAnnotationsDataLayer({
         name: 'Layer 1',
