@@ -20,11 +20,9 @@ export function DataLayerControl({ name }: Props) {
 }
 
 function getLayer(layers: SceneDataLayerProvider[], name: string): SceneDataLayerProvider | undefined {
-  console.log('FET LAYER');
   for (let i = 0; i < layers.length; i++) {
     const layer = (layers[i] as SceneDataLayerSet).state.layers.find((layer) => layer.state.name === name);
 
-    console.log((layers[i] as SceneDataLayerSet).state.layers);
     if (layer) {
       return layer;
     }
