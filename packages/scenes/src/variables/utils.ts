@@ -1,6 +1,7 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
-import { AdHocVariableFilter } from '@grafana/data';
+// @ts-expect-error Remove when 11.1.x is released
+import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
@@ -172,4 +173,12 @@ export function toUrlCommaDelimitedString(key: string, label?: string): string {
   }
 
   return [key, label].map(escapeUrlCommaDelimiters).join(',');
+}
+
+export function dataFromResponse(response: GetTagResponse | MetricFindValue[]) {
+  return Array.isArray(response) ? response : response.data;
+}
+
+export function responseHasError(response: GetTagResponse | MetricFindValue[]): response is GetTagResponse & { error: DataQueryError } {
+  return !Array.isArray(response) && Boolean(response.error);
 }
