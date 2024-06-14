@@ -1,3 +1,22 @@
+# v5.1.0 (Fri Jun 14 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Add support for new getTagKeys/getTagValues interface [#790](https://github.com/grafana/scenes/pull/790) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - ScenesReact: Use new react components and hooks from inside existing EmbeddedScenes [#777](https://github.com/grafana/scenes/pull/777) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.0.3 (Thu Jun 13 2024)
 
 #### 🐛 Bug Fix
