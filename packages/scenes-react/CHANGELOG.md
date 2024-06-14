@@ -1,3 +1,15 @@
+# v5.1.0 (Fri Jun 14 2024)
+
+#### 🐛 Bug Fix
+
+- ScenesReact: Use new react components and hooks from inside existing EmbeddedScenes [#777](https://github.com/grafana/scenes/pull/777) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.0.0 (Wed Jun 12 2024)
 
 #### 💥 Breaking Change
