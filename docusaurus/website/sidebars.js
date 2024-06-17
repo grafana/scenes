@@ -62,7 +62,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Machine Learning',
+      label: '@grafana/scenes-ml',
       collapsible: true,
       collapsed: false,
       items: [
