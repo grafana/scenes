@@ -75,6 +75,7 @@
     "@grafana/data": "^10.4.1",
     "@grafana/runtime": "^10.4.1",
     "@grafana/scenes": "workspace:*",
+    "@grafana/scenes-ml": "^0.1.0",
     "@grafana/scenes-react": "workspace:*",
     "@grafana/schema": "^10.4.1",
     "@grafana/ui": "^10.4.1",
