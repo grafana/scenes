@@ -3359,13 +3359,13 @@ __metadata:
   linkType: hard
 
 "@grafana/e2e-selectors@npm:^10.4.1":
-  version: 10.4.4
-  resolution: "@grafana/e2e-selectors@npm:10.4.4"
+  version: 10.4.3
+  resolution: "@grafana/e2e-selectors@npm:10.4.3"
   dependencies:
     "@grafana/tsconfig": "npm:^1.2.0-rc1"
     tslib: "npm:2.6.2"
     typescript: "npm:5.3.3"
-  checksum: 10/6ce5a44fd9d91d36a58ad495bc39cbf7fb7e291220091fd353c7e6c1bc0da523119c2c441fdc590be7bb1d777b0b72062e324c92a92fc15c18a5fce0fd072e10
+  checksum: 10/c8799f2f4440e22f3a39f41e8ec465fe35ae2c459142e52486ce88dd176cef8212905151b03d9c48e1708c5a0f342d74054bfecb84e64dc9bf0f459c36c0464b
   languageName: node
   linkType: hard
 
