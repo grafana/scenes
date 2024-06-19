@@ -25,7 +25,7 @@ export function sceneInterpolator(
   format?: InterpolationFormatParameter,
   interpolations?: VariableInterpolation[]
 ): string {
-  if (!target) {
+  if (!target || typeof target !== 'string') {
     return target ?? '';
   }
 
