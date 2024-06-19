@@ -22,6 +22,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   const params = useAppQueryParams();
   const scene = page.getScene(routeProps.match);
   const isInitialized = containerState.initializedScene === scene;
+  const {layout} = page.state;
 
   useLayoutEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
@@ -79,6 +80,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
 
   return (
     <PluginPage
+      layout={layout}
       pageNav={pageNav}
       actions={pageActions}
       renderTitle={containerState.renderTitle}
