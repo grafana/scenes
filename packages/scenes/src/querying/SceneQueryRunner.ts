@@ -139,7 +139,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     for (const provider of providers) {
       this._subs.add(
         provider.subscribeToState((n, p) => {
-          if (provider.shouldRerun(p, n)) {
+          if (provider.shouldRerun(p, n, this.state.queries)) {
             this.runQueries();
           }
         })
