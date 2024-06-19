@@ -124,7 +124,7 @@ export class SceneTimeRangeCompare
     queries: SceneDataQuery[]
   ): boolean {
     return (
-      prev.compareWith !== next.compareWith && queries.filter((query) => query.timeRangeCompare !== false).length > 0
+      prev.compareWith !== next.compareWith && queries.find((query) => query.timeRangeCompare !== false) !== undefined
     );
   }
 
