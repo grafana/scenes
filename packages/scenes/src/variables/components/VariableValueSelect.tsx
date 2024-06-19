@@ -181,7 +181,7 @@ export const OptionWithCheckbox = ({
       ref={innerRef}
       className={cx(selectStyles.option, isFocused && selectStyles.optionFocused)}
       {...rest}
-      // TODO: use below selector once new version synchs
+      // TODO: use below selector once we update grafana dependencies to ^11.1.0
       // data-testid={selectors.components.Select.option}
       data-testid="data-testid Select option"
       title={data.title}
