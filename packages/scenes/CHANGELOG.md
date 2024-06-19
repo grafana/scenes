@@ -1,3 +1,15 @@
+# v5.1.2 (Wed Jun 19 2024)
+
+#### 🐛 Bug Fix
+
+- Scenes: Return value if not string in interpolator [#796](https://github.com/grafana/scenes/pull/796) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.1.1 (Wed Jun 19 2024)
 
 #### 🐛 Bug Fix
