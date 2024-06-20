@@ -1,3 +1,15 @@
+# v5.2.0 (Thu Jun 20 2024)
+
+#### 🚀 Enhancement
+
+- SceneAppPage: add PageLayoutType 'layout' prop [#798](https://github.com/grafana/scenes/pull/798) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
 # v5.1.2 (Wed Jun 19 2024)
 
 #### 🐛 Bug Fix
