@@ -263,9 +263,15 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     // When replace is true, we want to replace the entire options object. Default will be applied.
     const nextOptions = replace
       ? optionsUpdate
-      : mergeWith(cloneDeep(options), optionsUpdate, (_, srcValue) => {
+      : mergeWith(cloneDeep(options), optionsUpdate, (objValue, srcValue, key, obj) => {
           if (isArray(srcValue)) {
             return srcValue;
+          }
+          // If customizer returns undefined, merging is handled by the method instead
+          // so we need to override the value in the object instead
+          if (objValue !== srcValue && typeof srcValue === 'undefined') {
+            obj[key] = srcValue;
+            return;
           }
           return;
         });

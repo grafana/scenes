@@ -54,7 +54,7 @@ export function interpolate(
   value: string | undefined | null,
   scopedVars?: ScopedVars,
   format?: string | VariableCustomFormatterFn,
-  interpolations?: VariableInterpolation[],
+  interpolations?: VariableInterpolation[]
 ): string {
   if (value === '' || value == null) {
     return '';
@@ -125,7 +125,7 @@ function findObjectInternal(
 
 /**
  * Returns a scene object from the scene graph with the requested key.
- * 
+ *
  * Throws error if no key-matching scene object found.
  */
 export function findByKey(sceneObject: SceneObject, key: string) {
@@ -140,11 +140,15 @@ export function findByKey(sceneObject: SceneObject, key: string) {
 
 /**
  * Returns a scene object from the scene graph with the requested key and type.
- * 
+ *
  * Throws error if no key-matching scene object found.
  * Throws error if the given type does not match.
  */
-export function findByKeyAndType<TargetType extends SceneObject>(sceneObject: SceneObject, key: string, targetType: { new(...args: never[]): TargetType }) {
+export function findByKeyAndType<TargetType extends SceneObject>(
+  sceneObject: SceneObject,
+  key: string,
+  targetType: { new (...args: never[]): TargetType }
+) {
   const found = findObject(sceneObject, (sceneToCheck) => {
     return sceneToCheck.state.key === key;
   });
@@ -152,11 +156,10 @@ export function findByKeyAndType<TargetType extends SceneObject>(sceneObject: Sc
     throw new Error('Unable to find scene with key ' + key);
   }
   if (!(found instanceof targetType)) {
-    throw new Error(`Found scene object with key ${key} does not match type ${targetType.name}`) 
+    throw new Error(`Found scene object with key ${key} does not match type ${targetType.name}`);
   }
   return found;
 }
-
 
 /**
  * This will search the full scene graph, starting with the scene node passed in, then walking up the parent chain. *
@@ -222,7 +225,7 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
  */
 export function getAncestor<ParentType>(
   sceneObject: SceneObject,
-  ancestorType: { new(...args: never[]): ParentType }
+  ancestorType: { new (...args: never[]): ParentType }
 ): ParentType {
   let parent: SceneObject | undefined = sceneObject;
 
