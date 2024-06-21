@@ -254,6 +254,18 @@ describe('VizPanel', () => {
       expect(panel.state.options.option2).toBe('updated option');
     });
 
+    test('should update partial options values to undefined value', () => {
+      panel.onOptionsChange({
+        option2: 'updated option',
+      });
+      panel.onOptionsChange({
+        option2: undefined,
+      });
+
+      expect(panel.state.options.showThresholds).toBe(true);
+      expect(panel.state.options.option2).toBe(undefined);
+    });
+
     test('should always allow overriding array values', () => {
       panel.onOptionsChange({ sortBy: ['asc'] });
       expect(panel.state.options.sortBy).toEqual(['asc']);
