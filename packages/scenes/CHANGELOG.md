@@ -1,3 +1,15 @@
+# v5.3.0 (Mon Jun 24 2024)
+
+#### 🚀 Enhancement
+
+- Add `toAbsolute` method to SceneTimePicker [#800](https://github.com/grafana/scenes/pull/800) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v5.2.1 (Fri Jun 21 2024)
 
 #### 🐛 Bug Fix
