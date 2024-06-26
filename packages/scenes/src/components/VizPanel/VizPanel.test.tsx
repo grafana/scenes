@@ -15,6 +15,7 @@ import {
   PanelProps,
   toUtc,
 } from '@grafana/data';
+import * as grafanaData from '@grafana/data';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel } from './VizPanel';
@@ -301,6 +302,18 @@ describe('VizPanel', () => {
 
       expect(panel.state.options.showThresholds).toBe(false);
       expect(panel.state.options.option2).not.toBeDefined();
+    });
+
+    test('should allow to call getPanelOptionsWithDefaults to compute new color options for plugin', () => {
+      const spy = jest.spyOn(grafanaData, 'getPanelOptionsWithDefaults');
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+
+      panel.onOptionsChange({}, false, true);
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      // Marked as after plugin change to readjust to prefered field color setting
+      expect(spy.mock.calls[0][0].isAfterPluginChange).toBe(true);
     });
   });
 
