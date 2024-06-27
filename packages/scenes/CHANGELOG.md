@@ -1,3 +1,15 @@
+# v5.3.2 (Thu Jun 27 2024)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Load plugin prefered default options when activating [#806](https://github.com/grafana/scenes/pull/806) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v5.3.1 (Wed Jun 26 2024)
 
 #### 🐛 Bug Fix
