@@ -54,6 +54,9 @@ interface FieldConfigPlugin1 {
 let panelProps: PanelProps | undefined;
 let panelRenderCount = 0;
 
+// Function called to compute the default panel options including prefered plugin defaults
+const getPanelOptionsSpy = jest.spyOn(grafanaData, 'getPanelOptionsWithDefaults');
+
 function getTestPlugin1(dataSupport?: PanelPluginDataSupport) {
   const pluginToLoad = getPanelPlugin(
     {
@@ -184,7 +187,8 @@ describe('VizPanel', () => {
   describe('when activated', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+      getPanelOptionsSpy.mockClear();
       panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
         pluginId: 'custom-plugin-id',
         fieldConfig: {
@@ -213,6 +217,12 @@ describe('VizPanel', () => {
     it('should apply fieldConfig defaults', () => {
       expect(panel.state.fieldConfig.defaults.unit).toBe('flop');
       expect(panel.state.fieldConfig.defaults.custom!.customProp).toBe(false);
+    });
+
+    it('should apply plugin option defaults', () => {
+      expect(getPanelOptionsSpy).toHaveBeenCalledTimes(1);
+      // Marked as after plugin change to readjust to prefered field color setting
+      expect(getPanelOptionsSpy.mock.calls[0][0].isAfterPluginChange).toBe(true);
     });
 
     it('should should remove props that are not defined for plugin', () => {
@@ -305,15 +315,15 @@ describe('VizPanel', () => {
     });
 
     test('should allow to call getPanelOptionsWithDefaults to compute new color options for plugin', () => {
-      const spy = jest.spyOn(grafanaData, 'getPanelOptionsWithDefaults');
+      getPanelOptionsSpy.mockClear();
       pluginToLoad = getTestPlugin1();
       panel.activate();
 
       panel.onOptionsChange({}, false, true);
 
-      expect(spy).toHaveBeenCalledTimes(1);
+      expect(getPanelOptionsSpy).toHaveBeenCalledTimes(1);
       // Marked as after plugin change to readjust to prefered field color setting
-      expect(spy.mock.calls[0][0].isAfterPluginChange).toBe(true);
+      expect(getPanelOptionsSpy.mock.calls[0][0].isAfterPluginChange).toBe(true);
     });
   });
 
