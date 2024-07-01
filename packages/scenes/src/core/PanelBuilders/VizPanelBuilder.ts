@@ -4,6 +4,7 @@ import { FieldConfigBuilder } from './FieldConfigBuilder';
 import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
 import { PanelOptionsBuilder } from './PanelOptionsBuilder';
 import { StandardFieldConfig, StandardFieldConfigInterface } from './types';
+import { PanelChromeProps } from '@grafana/ui';
 
 export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   implements StandardFieldConfigInterface<StandardFieldConfig, VizPanelBuilder<TOptions, TFieldConfig>, 'set'>
@@ -74,6 +75,14 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    */
   public setHeaderActions(headerActions: VizPanelState['headerActions']): this {
     this._state.headerActions = headerActions;
+    return this;
+  }
+
+  /**
+   * Set PanelChrome prop overrides
+   */
+  public setPanelChromeProps(props: Partial<PanelChromeProps>): this {
+    this._state.panelChromeProps = props;
     return this;
   }
 

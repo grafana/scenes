@@ -17,7 +17,7 @@ import {
   renderMarkdown,
   PanelPluginDataSupport,
 } from '@grafana/data';
-import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
+import { PanelChromeProps, PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
@@ -74,6 +74,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Mainly for advanced use cases that need custom handling of PanelContext callbacks.
    */
   extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
+  /**
+   * For advanced use cases that need to override PanelChrome props.
+   */
+  panelChromeProps?: Partial<PanelChromeProps>
   /**
    * @internal
    * Only for use from core to handle migration from old angular panels
