@@ -165,6 +165,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             // @ts-ignore
             onFocus={setPanelAttention}
             onMouseMove={debouncedMouseMove}
+            {...model.state.panelChromeProps}
           >
             {(innerWidth, innerHeight) => (
               <>
