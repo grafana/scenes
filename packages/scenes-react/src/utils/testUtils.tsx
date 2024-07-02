@@ -25,7 +25,7 @@ export function TestContextProvider({ children, value }: TestContextProviderProp
 
   useEffect(() => {
     if (parentContext) {
-      parentContext.setState({ contextChildren: [...(parentContext.state.contextChildren ?? []), value] });
+      parentContext.addChildContext(value);
     }
 
     const deactivate = value.activate();
@@ -35,7 +35,7 @@ export function TestContextProvider({ children, value }: TestContextProviderProp
       deactivate();
 
       if (parentContext) {
-        parentContext.setState({ contextChildren: [...(parentContext.state.contextChildren ?? []), value] });
+        parentContext.removeChildContext(value);
       }
     };
   }, [parentContext, value]);

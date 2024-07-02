@@ -52,7 +52,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
 
     if (parentContext) {
       getUrlSyncManager().handleNewObject(childContext);
-      parentContext.setState({ contextChildren: [...(parentContext.state.contextChildren ?? []), childContext] });
+      parentContext.addChildContext(childContext);
     }
 
     const deactivate = childContext.activate();
@@ -62,9 +62,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
       deactivate();
 
       if (parentContext) {
-        parentContext.setState({
-          contextChildren: parentContext.state.contextChildren?.filter((context) => childContext !== context),
-        });
+        parentContext.removeChildContext(childContext);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

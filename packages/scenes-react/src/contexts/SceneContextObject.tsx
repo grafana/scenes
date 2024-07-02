@@ -9,7 +9,7 @@ import {
 import { writeSceneLog } from '../utils';
 
 export interface SceneContextObjectState extends SceneObjectState {
-  contextChildren?: SceneContextObject[];
+  childContexts?: SceneContextObject[];
   children: SceneObject[];
 }
 
@@ -18,7 +18,7 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
     super({
       ...state,
       children: state?.children ?? [],
-      contextChildren: state?.contextChildren ?? [],
+      childContexts: state?.childContexts ?? [],
     });
   }
 
@@ -69,5 +69,15 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
       set.setState({ variables: set.state.variables.filter((x) => x !== variable) });
       writeSceneLog('SceneContext', `Removing variable: ${variable.constructor.name} key: ${variable.state.key}`);
     };
+  }
+
+  public addChildContext(ctx: SceneContextObject) {
+    this.setState({ childContexts: [...(this.state.childContexts ?? []), ctx] });
+  }
+
+  public removeChildContext(ctx: SceneContextObject) {
+    this.setState({
+      childContexts: this.state.childContexts?.filter((context) => ctx !== context),
+    });
   }
 }
