@@ -6,6 +6,7 @@ services:
     build:
       context: ./.config
       args:
+        grafana_image: grafana-dev
         grafana_version: ${GRAFANA_VERSION:-11.1.0-181853}
     ports:
       - 3001:3000/tcp

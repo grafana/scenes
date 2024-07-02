@@ -71,7 +71,7 @@ const filterSet = new AdHocFiltersVariable({
         ]
     });
   },
-  getTagValuesProvider: (set: AdHocFilterSet, filter: AdHocVariableFilter) => {
+  getTagValuesProvider: (variable: AdHocFiltersVariable, filter: AdHocVariableFilter) => {
     // Customize value look up
     return Promise.resolve({ replace: false, values: [] });
   },
