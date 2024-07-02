@@ -1047,7 +1047,7 @@ describe('SceneQueryRunner', () => {
       expect(getDataSourceCall[0]).toEqual({ uid: 'Muuu' });
     });
 
-    it.only('Should interpolate a variable when used in query options', async () => {
+    it('Should interpolate a variable when used in query options', async () => {
       const variable = new TestVariable({ name: 'A', value: '1h' });
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A', query: '$A' }],
