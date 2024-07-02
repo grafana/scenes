@@ -15,6 +15,7 @@ import {
   PanelProps,
   toUtc,
 } from '@grafana/data';
+import * as grafanaData from '@grafana/data';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel } from './VizPanel';
@@ -52,6 +53,9 @@ interface FieldConfigPlugin1 {
 
 let panelProps: PanelProps | undefined;
 let panelRenderCount = 0;
+
+// Function called to compute the default panel options including prefered plugin defaults
+const getPanelOptionsSpy = jest.spyOn(grafanaData, 'getPanelOptionsWithDefaults');
 
 function getTestPlugin1(dataSupport?: PanelPluginDataSupport) {
   const pluginToLoad = getPanelPlugin(
@@ -183,7 +187,8 @@ describe('VizPanel', () => {
   describe('when activated', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+      getPanelOptionsSpy.mockClear();
       panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
         pluginId: 'custom-plugin-id',
         fieldConfig: {
@@ -212,6 +217,12 @@ describe('VizPanel', () => {
     it('should apply fieldConfig defaults', () => {
       expect(panel.state.fieldConfig.defaults.unit).toBe('flop');
       expect(panel.state.fieldConfig.defaults.custom!.customProp).toBe(false);
+    });
+
+    it('should apply plugin option defaults', () => {
+      expect(getPanelOptionsSpy).toHaveBeenCalledTimes(1);
+      // Marked as after plugin change to readjust to prefered field color setting
+      expect(getPanelOptionsSpy.mock.calls[0][0].isAfterPluginChange).toBe(true);
     });
 
     it('should should remove props that are not defined for plugin', () => {
@@ -301,6 +312,18 @@ describe('VizPanel', () => {
 
       expect(panel.state.options.showThresholds).toBe(false);
       expect(panel.state.options.option2).not.toBeDefined();
+    });
+
+    test('should allow to call getPanelOptionsWithDefaults to compute new color options for plugin', () => {
+      getPanelOptionsSpy.mockClear();
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+
+      panel.onOptionsChange({}, false, true);
+
+      expect(getPanelOptionsSpy).toHaveBeenCalledTimes(1);
+      // Marked as after plugin change to readjust to prefered field color setting
+      expect(getPanelOptionsSpy.mock.calls[0][0].isAfterPluginChange).toBe(true);
     });
   });
 
