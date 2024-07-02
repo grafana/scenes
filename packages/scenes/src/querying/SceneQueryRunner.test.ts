@@ -1046,6 +1046,25 @@ describe('SceneQueryRunner', () => {
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
       expect(getDataSourceCall[0]).toEqual({ uid: 'Muuu' });
     });
+
+    it.only('Should interpolate a variable when used in query options', async () => {
+      const variable = new TestVariable({ name: 'A', value: '1h' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        minInterval: '${A}',
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest).toBeDefined();
+      const { scopedVars } = sentRequest!;
+      
+      expect(scopedVars.__interval?.text).toBe('1h')
+      expect(scopedVars.__interval?.value).toBe('1h')
+    });
   });
 
   describe('Supporting custom runtime data source', () => {
