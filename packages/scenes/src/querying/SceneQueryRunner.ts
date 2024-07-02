@@ -46,6 +46,7 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
+import { interpolate } from '../core/sceneGraph/sceneGraph';
 
 let counter = 100;
 
@@ -540,8 +541,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return query;
     });
 
-    // TODO interpolate minInterval
-    const lowerIntervalLimit = minInterval ? minInterval : ds.interval;
+    const lowerIntervalLimit = minInterval ? interpolate(this, minInterval) : ds.interval;
     const norm = rangeUtil.calculateInterval(timeRange.state.value, request.maxDataPoints!, lowerIntervalLimit);
 
     // make shallow copy of scoped vars,
