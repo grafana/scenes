@@ -31,19 +31,20 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   private _autoTimeRangeListener: Unsubscribable | undefined;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
-    const initialState = {
+    super({
       refresh: '',
       ...state,
       autoValue: undefined,
       autoEnabled: state.autoEnabled ?? true,
       autoMinInterval: state.autoMinInterval ?? config.minRefreshInterval,
       intervals: state.intervals ?? DEFAULT_INTERVALS,
-    };
-
-    super(initialState);
+    });
 
     this.addActivationHandler(() => {
-      this.setupIntervalTimer(initialState);
+      this.setupIntervalTimer({
+        refresh: state.refresh ?? '',
+        intervals: state.intervals ?? DEFAULT_INTERVALS,
+      });
 
       return () => {
         if (this._intervalTimer) {
@@ -108,11 +109,11 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     return rangeUtil.calculateInterval(timeRange.state.value, resolution, this.state.autoMinInterval);
   };
 
-  private setupIntervalTimer = (state?: SceneRefreshPickerState) => {
+  private setupIntervalTimer = (partialState?: Pick<SceneRefreshPickerState, 'refresh' | 'intervals'>) => {
     const timeRange = sceneGraph.getTimeRange(this);
-    // in constructor the state we reference here is not up to date, in particular refresh,
-    //  therefore passing initial state as optional variable here
-    const { refresh, intervals } = state || this.state;
+    // when calling setupIntervalTimer inside constructor this.state is out of sync with constructor state,
+    //  therefore passing partialState from constructor manually
+    const { refresh, intervals } = partialState || this.state;
 
     if (this._intervalTimer || refresh === '') {
       clearInterval(this._intervalTimer);
