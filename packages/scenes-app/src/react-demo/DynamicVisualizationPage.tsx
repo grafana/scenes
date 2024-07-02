@@ -12,7 +12,12 @@ export function DynamicVisualiationPage() {
   const [selectedViz, setSelectedViz] = useState<VizConfig>(plainGraph);
   const selectedValue = visualizationOptions.find((x) => x.value === selectedViz)!;
 
-  const dataProvider = useQueryRunner({ queries: randomWalkQuery, maxDataPoints: 50, datasource: DATASOURCE_REF });
+  const dataProvider = useQueryRunner({
+    queries: randomWalkQuery,
+    maxDataPoints: 50,
+    datasource: DATASOURCE_REF,
+    cacheKey: randomWalkQuery,
+  });
 
   const vizSelector = (
     <RadioButtonGroup value={selectedViz} options={visualizationOptions} onChange={setSelectedViz} size="sm" />
