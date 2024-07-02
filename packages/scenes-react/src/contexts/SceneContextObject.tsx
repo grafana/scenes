@@ -73,11 +73,15 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
 
   public addChildContext(ctx: SceneContextObject) {
     this.setState({ childContexts: [...(this.state.childContexts ?? []), ctx] });
+
+    writeSceneLog('SceneContext', `Adding child context: ${ctx.constructor.name} key: ${ctx.state.key}`);
   }
 
   public removeChildContext(ctx: SceneContextObject) {
     this.setState({
       childContexts: this.state.childContexts?.filter((context) => ctx !== context),
     });
+
+    writeSceneLog('SceneContext', `Remvoing child context: ${ctx.constructor.name} key: ${ctx.state.key}`);
   }
 }
