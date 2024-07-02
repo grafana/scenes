@@ -309,4 +309,10 @@ describe('sceneInterpolator', () => {
       expect(sceneInterpolator(scene, str)).toBe(str);
     });
   });
+
+  it('should not try to interpolate and return value if it is not a string', () => {
+    const scene = new TestScene({});
+
+    expect(sceneInterpolator(scene, 123 as any)).toBe(123);
+  });
 });

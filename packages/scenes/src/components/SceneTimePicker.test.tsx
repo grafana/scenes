@@ -76,6 +76,20 @@ describe('SceneTimePicker', () => {
     expect(dateTime(t2.from).diff(t1.from, 'h')).toBe(-6);
     expect(dateTime(t2.from).diff(t1.from, 'h')).toBe(-6);
   });
+
+
+  it('correctly calculates absolute time range', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(1704071943000); //  Monday, January 1, 2024 1:19:03 AM
+    const { timePicker, timeRange } = setupScene({
+      from: 'now-6h',
+      to: 'now',
+    });
+
+    timePicker.toAbsolute();
+    expect(timeRange.state.from).toBe('2023-12-31T19:19:03.000Z');
+    expect(timeRange.state.to).toBe('2024-01-01T01:19:03.000Z');
+  });
 });
 
 it('calculates zoomed time range correctly', () => {

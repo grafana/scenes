@@ -26,6 +26,14 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
     timeRange.setState({ fiscalYearStartMonth: month });
   };
 
+  public toAbsolute = () => {
+    const timeRange = sceneGraph.getTimeRange(this);
+    const timeRangeVal = timeRange.state.value;
+    const from = toUtc(timeRangeVal.from);
+    const to = toUtc(timeRangeVal.to);
+    timeRange.onTimeRangeChange({ from, to, raw: { from, to } });
+  };
+
   public onMoveBackward = () => {
     const timeRange = sceneGraph.getTimeRange(this);
     const {

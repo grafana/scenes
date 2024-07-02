@@ -180,7 +180,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       plugin,
       currentOptions: panel.options,
       currentFieldConfig: panel.fieldConfig,
-      isAfterPluginChange: false,
+      isAfterPluginChange: true,
     });
 
     this._plugin = plugin;
@@ -257,15 +257,21 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this.setState({ displayMode });
   };
 
-  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false) => {
+  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
     const { fieldConfig, options } = this.state;
 
     // When replace is true, we want to replace the entire options object. Default will be applied.
     const nextOptions = replace
       ? optionsUpdate
-      : mergeWith(cloneDeep(options), optionsUpdate, (_, srcValue) => {
+      : mergeWith(cloneDeep(options), optionsUpdate, (objValue, srcValue, key, obj) => {
           if (isArray(srcValue)) {
             return srcValue;
+          }
+          // If customizer returns undefined, merging is handled by the method instead
+          // so we need to override the value in the object instead
+          if (objValue !== srcValue && typeof srcValue === 'undefined') {
+            obj[key] = srcValue;
+            return;
           }
           return;
         });
@@ -274,7 +280,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       plugin: this._plugin!,
       currentOptions: nextOptions,
       currentFieldConfig: fieldConfig,
-      isAfterPluginChange: false,
+      isAfterPluginChange,
     });
 
     this.setState({

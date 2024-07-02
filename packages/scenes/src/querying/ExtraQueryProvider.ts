@@ -1,8 +1,8 @@
-import { DataQueryRequest, PanelData } from "@grafana/data";
-import { Observable } from "rxjs";
+import { DataQueryRequest, PanelData } from '@grafana/data';
+import { Observable } from 'rxjs';
 
-import { SceneObjectBase } from "../core/SceneObjectBase";
-import { SceneObjectState } from "../core/types";
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { SceneDataQuery, SceneObjectState } from '../core/types';
 
 // A processor function called by the query runner with responses
 // to any extra requests.
@@ -39,7 +39,7 @@ export interface ExtraQueryProvider<T extends SceneObjectState> extends SceneObj
   // When the provider's state changes this function will be passed both the previous and the
   // next state. The implementation can use this to determine whether the change should trigger
   // a rerun of the query or not.
-  shouldRerun(prev: T, next: T): boolean;
+  shouldRerun(prev: T, next: T, queries: SceneDataQuery[]): boolean;
 }
 
 export function isExtraQueryProvider(obj: any): obj is ExtraQueryProvider<any> {

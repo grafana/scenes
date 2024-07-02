@@ -1,3 +1,89 @@
+# v5.3.2 (Thu Jun 27 2024)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Load plugin prefered default options when activating [#806](https://github.com/grafana/scenes/pull/806) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.3.1 (Wed Jun 26 2024)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Allow to adapt color palette after plugin change [#805](https://github.com/grafana/scenes/pull/805) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- TimeRangeCompare: Do not re-run queries if all have opted out of comparison [#799](https://github.com/grafana/scenes/pull/799) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.3.0 (Mon Jun 24 2024)
+
+#### 🚀 Enhancement
+
+- Add `toAbsolute` method to SceneTimePicker [#800](https://github.com/grafana/scenes/pull/800) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v5.2.1 (Fri Jun 21 2024)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Clear options value when the option is undefined [#801](https://github.com/grafana/scenes/pull/801) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.2.0 (Thu Jun 20 2024)
+
+#### 🚀 Enhancement
+
+- SceneAppPage: add PageLayoutType 'layout' prop [#798](https://github.com/grafana/scenes/pull/798) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v5.1.2 (Wed Jun 19 2024)
+
+#### 🐛 Bug Fix
+
+- Scenes: Return value if not string in interpolator [#796](https://github.com/grafana/scenes/pull/796) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.1.1 (Wed Jun 19 2024)
+
+#### 🐛 Bug Fix
+
+- VariableValueSelect: Hardcode flaky Select option e2e-selector [#797](https://github.com/grafana/scenes/pull/797) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v5.1.0 (Fri Jun 14 2024)
 
 #### 🚀 Enhancement
