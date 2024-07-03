@@ -25,7 +25,7 @@ export function TestContextProvider({ children, value }: TestContextProviderProp
 
   useEffect(() => {
     if (parentContext) {
-      parentContext.setState({ childContext: value });
+      parentContext.addChildContext(value);
     }
 
     const deactivate = value.activate();
@@ -35,7 +35,7 @@ export function TestContextProvider({ children, value }: TestContextProviderProp
       deactivate();
 
       if (parentContext) {
-        parentContext.setState({ childContext: undefined });
+        parentContext.removeChildContext(value);
       }
     };
   }, [parentContext, value]);
@@ -67,7 +67,6 @@ export function getHookContextWrapper({ variables }: GetHookContextWrapperOption
 
   return { wrapper: Wrapper, context };
 }
-
 
 export const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
   const result: PanelData = {
