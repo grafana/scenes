@@ -1,3 +1,27 @@
+# v5.3.4 (Tue Jul 02 2024)
+
+#### 🐛 Bug Fix
+
+- Revert "VizPanel: Load plugin prefered default options when activating" [#812](https://github.com/grafana/scenes/pull/812) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.3.3 (Tue Jul 02 2024)
+
+#### 🐛 Bug Fix
+
+- Fix variable interpolation in query options interval [#810](https://github.com/grafana/scenes/pull/810) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.3.2 (Thu Jun 27 2024)
 
 #### 🐛 Bug Fix
