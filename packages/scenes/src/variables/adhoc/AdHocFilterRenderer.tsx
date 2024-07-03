@@ -5,19 +5,36 @@ import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
-import { getOptionSearcher } from '../components/getOptionSearcher';
-import { VariableValueOption } from '../types';
+import { getAdhocOptionSearcher } from './getAdhocOptionSearcher';
 
 interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
 }
 
-function selectableValueToVariableValueOption(value: SelectableValue): VariableValueOption {
-  return {
-    label: value.label ?? String(value.value),
-    value: value.value,
-  };
+// Collect a flat list of SelectableValues with a `group` property into a hierarchical list with groups
+function handleOptionGroups(values: SelectableValue[]): Array<SelectableValue<string>> {
+  const result: Array<SelectableValue<string>> = [];
+  const groupedResults = new Map<string, Array<SelectableValue<string>>>();
+
+  for (const value of values) {
+    const groupLabel = value.group;
+    if (groupLabel) {
+      let group = groupedResults.get(groupLabel);
+
+      if (!group) {
+        group = [];
+        groupedResults.set(groupLabel, group);
+        result.push({ label: groupLabel, options: group });
+      }
+
+      group.push(value);
+    } else {
+      result.push(value);
+    }
+  }
+
+  return result;
 }
 
 function keyLabelToOption(key: string, label?: string): SelectableValue | null {
@@ -47,7 +64,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
 
   const optionSearcher = useMemo(
-    () => getOptionSearcher(values.map(selectableValueToVariableValueOption), undefined),
+    () => getAdhocOptionSearcher(values),
     [values]
   );
 
@@ -58,7 +75,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     return value;
   };
 
-  const filteredValueOptions: SelectableValue[] = optionSearcher(valueInputValue);
+  const filteredValueOptions = useMemo(
+    () => handleOptionGroups(optionSearcher(valueInputValue)),
+    [optionSearcher, valueInputValue]
+  );
 
   const valueSelect = (
     <Select

@@ -249,7 +249,7 @@ export class AdHocFiltersVariable
     const override = await this.state.getTagValuesProvider?.(this, filter);
 
     if (override && override.replace) {
-      return handleOptionGroups(dataFromResponse(override.values));
+      return dataFromResponse(override.values).map(toSelectableValue);
     }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
@@ -282,7 +282,7 @@ export class AdHocFiltersVariable
       values = values.concat(dataFromResponse(override.values));
     }
 
-    return handleOptionGroups(values);
+    return values.map(toSelectableValue);
   }
 
   public _addWip() {
@@ -337,39 +337,20 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
-export function toSelectableValue({ text, value }: MetricFindValue): SelectableValue<string> {
-  return {
+export function toSelectableValue(input: MetricFindValue): SelectableValue<string> {
+  const { text, value } = input;
+  const result: SelectableValue<string> = {
     label: text,
     value: String(value ?? text),
   };
+
+  if ('group' in input) {
+    result.group = input.group;
+  }
+
+  return result;
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
   return filter.key !== '' && filter.operator !== '' && filter.value !== '';
-}
-
-// Maps MetricFindValues to SelectableValues and collects them by group
-function handleOptionGroups(values: MetricFindValue[]): Array<SelectableValue<string>> {
-  const result: Array<SelectableValue<string>> = [];
-  const groupedResults = new Map<string, Array<SelectableValue<string>>>();
-
-  for (const value of values) {
-    // @ts-expect-error TODO: remove this once 11.1.x is released
-    const groupLabel = value.group;
-    if (groupLabel) {
-      let group = groupedResults.get(groupLabel);
-
-      if (!group) {
-        group = [];
-        groupedResults.set(groupLabel, group);
-        result.push({ label: groupLabel, options: group });
-      }
-
-      group.push(toSelectableValue(value));
-    } else {
-      result.push(toSelectableValue(value));
-    }
-  }
-
-  return result;
 }
