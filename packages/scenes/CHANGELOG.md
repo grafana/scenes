@@ -1,3 +1,15 @@
+# v5.3.5 (Wed Jul 03 2024)
+
+#### 🐛 Bug Fix
+
+- Revert "SceneRefreshPicker: Fixes url state issue (#784)" [#814](https://github.com/grafana/scenes/pull/814) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v5.3.4 (Tue Jul 02 2024)
 
 #### 🐛 Bug Fix
