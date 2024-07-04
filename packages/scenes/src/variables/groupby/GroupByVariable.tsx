@@ -11,7 +11,7 @@ import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'r
 import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect } from '@grafana/ui';
 import { isArray } from 'lodash';
-import { dataFromResponse, getQueriesForVariables, responseHasError } from '../utils';
+import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
@@ -92,6 +92,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         this.state.defaultOptions.map((o) => ({
           label: o.text,
           value: String(o.value),
+          // @ts-expect-error Remove when we update to @grafana/data > 11.1.0
+          group: o.group,
         }))
       );
     }
@@ -118,6 +120,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
               return {
                 label: i.text,
                 value: i.value ? String(i.value) : i.text,
+                group: i.group,
               };
             });
             return of(a);
@@ -246,7 +249,10 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     return inputValue;
   };
 
-  const filteredOptions = optionSearcher(inputValue);
+  const filteredOptions = useMemo(
+    () => handleOptionGroups(optionSearcher(inputValue).map(toSelectableValue)),
+    [optionSearcher, inputValue]
+  );
 
   return (
     <MultiSelect<VariableValueSingle>
@@ -295,3 +301,17 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
 }
 
 const filterNoOp = () => true;
+
+function toSelectableValue(input: VariableValueOption): SelectableValue<VariableValueSingle> {
+  const { label, value, group } = input;
+  const result: SelectableValue<VariableValueSingle> = {
+    label,
+    value,
+  };
+
+  if (group) {
+    result.group = group;
+  }
+
+  return result;
+}
