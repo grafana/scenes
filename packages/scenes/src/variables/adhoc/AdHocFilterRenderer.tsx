@@ -137,7 +137,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       width="auto"
       value={keyValue}
       placeholder={'Select label'}
-      options={keys}
+      options={handleOptionGroups(keys)}
       onChange={(v) => model._updateFilter(filter, 'key', v)}
       autoFocus={filter.key === ''}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
