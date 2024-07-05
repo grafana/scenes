@@ -10,10 +10,8 @@ import { of } from 'rxjs';
 const QueryVariableClass = jest.requireActual('@grafana/scenes').QueryVariable;
 
 describe('QueryVariable', () => {  
-  let mock: jest.SpyInstance;
-
   beforeEach(() => {
-    mock = jest.spyOn(QueryVariableClass.prototype, 'getValueOptions').mockImplementation(() => of([]));
+    jest.spyOn(QueryVariableClass.prototype, 'getValueOptions').mockImplementation(() => of([]));
   });
 
   it('Should add itself to scene', async () => {
