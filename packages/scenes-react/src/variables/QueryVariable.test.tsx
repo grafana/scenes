@@ -19,16 +19,16 @@ describe('QueryVariable', () => {
 
     render(
       <TestContextProvider value={scene}>
-        <QueryVariable name="customVar" query={{ query: '*', refId: 'A' }} datasource={{ uid: 'gdev-testdata' }}  initialValue="A">
-          <VariableControl name="customVar" />
+        <QueryVariable name="queryVar" query={{ query: '*', refId: 'A' }} datasource={{ uid: 'gdev-testdata' }}  initialValue="A">
+          <VariableControl name="queryVar" />
         </QueryVariable>
       </TestContextProvider>
     );
 
-    const variable = scene.findVariable('customVar');
+    const variable = scene.findVariable('queryVar');
 
     expect(variable).toBeDefined();
-    expect(screen.getByText('customVar')).toBeInTheDocument();
+    expect(screen.getByText('queryVar')).toBeInTheDocument();
   });
 
   it('Should update variable state', async () => {
@@ -36,13 +36,13 @@ describe('QueryVariable', () => {
 
     const { rerender } = render(
       <TestContextProvider value={scene}>
-        <QueryVariable name="customVar" query={{ query: '*', refId: 'A' }} datasource={{ uid: 'gdev-testdata' }} initialValue="A" label="test1">
-          <VariableControl name="customVar" />
+        <QueryVariable name="queryVar" query={{ query: '*', refId: 'A' }} datasource={{ uid: 'gdev-testdata' }} initialValue="A" label="test1">
+          <VariableControl name="queryVar" />
         </QueryVariable>
       </TestContextProvider>
     );
 
-    const variable = scene.findVariable('customVar') as QueryVariableObject;
+    const variable = scene.findVariable('queryVar') as QueryVariableObject;
 
     expect(variable).toBeDefined();
     expect(variable.state.label).toBe('test1');
@@ -50,8 +50,8 @@ describe('QueryVariable', () => {
 
     rerender(
       <TestContextProvider value={scene}>
-        <QueryVariable name="customVar" query={{ query: '*', refId: 'A' }} datasource={{ uid: 'gdev-testdata' }}initialValue="A" label="test2">
-          <VariableControl name="customVar" />
+        <QueryVariable name="queryVar" query={{ query: '*', refId: 'A' }} datasource={{ uid: 'gdev-testdata' }}initialValue="A" label="test2">
+          <VariableControl name="queryVar" />
         </QueryVariable>
       </TestContextProvider>
     );
