@@ -1,12 +1,15 @@
-import { CustomVariable, QueryVariable, SceneContextProvider, VariableControl } from '@grafana/scenes-react';
+import { CustomVariable, QueryVariable, VariableControl, } from '@grafana/scenes-react';
 import { Button, Stack } from '@grafana/ui';
 import React from 'react';
 import { PageWrapper } from './PageWrapper';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 import { DemoVizLayout } from './utils';
-import { VariableRefresh, VariableSort } from '@grafana/schema';
+import { VariableHide, VariableRefresh, VariableSort } from '@grafana/schema';
 
 export function DynamicVariablesPage() {
+  const [hide, setHide] = React.useState<VariableHide>(VariableHide.dontHide);
+  const [isMulti, setIsMulti] = React.useState<boolean>(true);
+  const [includeAll, setIncludeAll] = React.useState<boolean>(true);
   const [sort, setSort] = React.useState<VariableSort>(VariableSort.alphabeticalAsc);
 
   return (
@@ -21,33 +24,48 @@ export function DynamicVariablesPage() {
           </DemoVizLayout>
         </Stack>
       </CustomVariable>
-      <SceneContextProvider>
-        <QueryVariable 
-          name="job2" 
-          initialValue="A"
-          query={{ query: '*', refId: 'A' }} 
-          datasource={{ uid: 'gdev-testdata' }} 
-          regex='/[ACDFG]/' 
-          sort={sort}
-          refresh={VariableRefresh.onTimeRangeChanged}
-          includeAll={true}
-        >
-          <Stack direction="column">
-            <Stack>
-              <VariableControl name="job2" />
-              <Button variant="secondary" onClick={() => setSort(VariableSort.alphabeticalAsc)}>
-                Sort var values ASC
-              </Button>
-              <Button variant="secondary" onClick={() => setSort(VariableSort.alphabeticalDesc)}>
-                Sort var values DESC
-              </Button>
-            </Stack>
-            <DemoVizLayout>
-              <PlainGraphWithRandomWalk title={'Testing job2 = $job2'} queryAlias="job2 = $job2" />
-            </DemoVizLayout>
+      <QueryVariable 
+        name="job2" 
+        initialValue="A"
+        query={{ query: '*', refId: 'A' }} 
+        datasource={{ uid: 'gdev-testdata' }} 
+        regex='/[ACDFG]/' 
+        hide={hide}
+        refresh={VariableRefresh.onTimeRangeChanged}
+        includeAll={includeAll}
+        isMulti={isMulti}
+        sort={sort}
+      >
+        <Stack direction="column">
+          <Stack>
+            <VariableControl name="job2" />
+            <Button variant="secondary" onClick={() => setHide(VariableHide.hideLabel)}>
+              Hide label
+            </Button>
+            <Button variant="secondary" onClick={() => setHide(VariableHide.hideVariable)}>
+              Hide variable
+            </Button>
+            <Button variant="secondary" onClick={() => setHide(VariableHide.dontHide)}>
+              dont hide variable
+            </Button>
+            <Button variant="secondary" onClick={() => setIsMulti(false)}>
+              disable is multi
+            </Button>
+            <Button variant="secondary" onClick={() => setIncludeAll(false)}>
+              disable include all
+            </Button>
+            <Button variant="secondary" onClick={() => setSort(VariableSort.alphabeticalAsc)}>
+              sort asc
+            </Button>
+            <Button variant="secondary" onClick={() => setSort(VariableSort.alphabeticalDesc)}>
+              sort desc
+            </Button>
           </Stack>
-        </QueryVariable>
-      </SceneContextProvider>
+          <DemoVizLayout>
+            <PlainGraphWithRandomWalk title={'Testing job2 = $job2'} queryAlias="job2 = $job2" />
+          </DemoVizLayout>
+        </Stack>
+      </QueryVariable>
     </PageWrapper>
   );
 }
