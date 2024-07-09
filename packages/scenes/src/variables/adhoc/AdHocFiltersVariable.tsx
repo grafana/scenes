@@ -292,9 +292,28 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    return ['=', '!=', '<', '>', '=~', '!~'].map<SelectableValue<string>>((value) => ({
+    return [{
+      value: '=',
+      description: "Equals"
+    }, {
+      value: '!=',
+      description: "Not equals"
+    }, {
+      value: '<',
+      description: "Less than"
+    }, {
+      value: '>',
+      description: "Greater than"
+    }, {
+      value: '=~',
+      description: "Matches regex. Can be used to select multiple values."
+    }, {
+      value: '!~',
+      description: "Does not match regex. Can be used to exclude multiple values."
+    }].map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
+      description,
     }));
   }
 }
