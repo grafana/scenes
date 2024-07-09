@@ -12,6 +12,7 @@ export function useUniqueId(): string {
 export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange' | 'children'> {
   children: React.ReactNode | (({ isInView }: { isInView: boolean }) => React.ReactNode);
   key: string;
+  isHidden?: boolean;
   onLoad?: () => void;
   onChange?: (isInView: boolean) => void;
 }
@@ -23,7 +24,7 @@ export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
 }
 
 export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props>(
-  ({ children, onLoad, onChange, ...rest }, ref) => {
+  ({ children, onLoad, onChange, isHidden, ...rest }, ref) => {
     const id = useUniqueId();
     const [loaded, setLoaded] = useState(false);
     const [isInView, setIsInView] = useState(false);
@@ -57,6 +58,9 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
       };
     });
 
+    if (isHidden) {
+      return null;
+    }
     return (
       <div id={id} ref={innerRef} {...rest}>
         {loaded && (typeof children === 'function' ? children({ isInView }) : children)}

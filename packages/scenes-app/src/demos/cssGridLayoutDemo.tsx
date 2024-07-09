@@ -5,6 +5,7 @@ import {
   PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
+  SceneCSSGridItem,
   SceneCSSGridLayout,
   SceneComponentProps,
   SceneObjectBase,
@@ -73,11 +74,16 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
 }
 
 function getLayoutChildren(count: number) {
-  return Array.from(Array(count), (v, index) =>
-    PanelBuilders.stat()
-      .setTitle(`Panel ${count}`)
-      .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
-      .build()
+  return Array.from(
+    Array(count),
+    (v, index) =>
+      new SceneCSSGridItem({
+        body: PanelBuilders.stat()
+          .setTitle(`Panel ${count}`)
+          .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
+          .build(),
+        isHidden: index % 3 === 0,
+      })
   );
 }
 
