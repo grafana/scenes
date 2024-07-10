@@ -2,6 +2,7 @@ import React, { ForwardRefExoticComponent, useImperativeHandle, useRef, useState
 import { useEffectOnce } from 'react-use';
 
 import { uniqueId } from 'lodash';
+import { css } from '@emotion/css';
 
 export function useUniqueId(): string {
   const idRefLazy = useRef<string | undefined>(undefined);
@@ -23,8 +24,9 @@ export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
 }
 
 export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props>(
-  ({ children, onLoad, onChange, ...rest }, ref) => {
+  ({ children, onLoad, onChange, className, ...rest }, ref) => {
     const id = useUniqueId();
+    const style = useStyle();
     const [loaded, setLoaded] = useState(false);
     const [isInView, setIsInView] = useState(false);
     const innerRef = useRef<HTMLDivElement>(null);
@@ -58,12 +60,20 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     });
 
     return (
-      <div id={id} ref={innerRef} {...rest}>
+      <div id={id} ref={innerRef} className={`${loaded ? style : ''} ${className}`} {...rest}>
         {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
       </div>
     );
   }
 ) as LazyLoaderType;
+
+function useStyle() {
+  return css({
+    '&:empty': {
+      display: 'none',
+    },
+  });
+}
 
 LazyLoader.displayName = 'LazyLoader';
 LazyLoader.callbacks = {} as Record<string, (e: IntersectionObserverEntry) => void>;
