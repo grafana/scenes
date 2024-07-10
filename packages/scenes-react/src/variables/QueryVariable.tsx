@@ -51,26 +51,24 @@ export function QueryVariable({
   }
 
   useEffect(() => {
-    if (variableAdded) {
-      variable?.setState({
-        label,
-        query,
-        datasource, 
-        refresh, 
-        sort, 
-        regex, 
-        value: initialValue, 
-        isMulti,
-        hide, 
-        includeAll,
-      })
-    }
-
     const removeFn = scene.addVariable(variable);
     setVariableAdded(true);
     return removeFn;
-  }, [variable, scene, name, variableAdded, label, query, datasource, refresh, sort, regex, initialValue, isMulti, hide, includeAll]);
+  }, [variable, scene, name]);
 
+  useEffect(() => {
+    variable?.setState({
+      label,
+      query,
+      datasource, 
+      refresh, 
+      sort, 
+      regex, 
+      hide, 
+      includeAll,
+    });
+  }, [datasource, hide, includeAll, label, query, refresh, regex, sort, variable]);
+ 
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {

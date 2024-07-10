@@ -8,7 +8,7 @@ import { VariableHide, VariableRefresh, VariableSort } from '@grafana/schema';
 
 export function DynamicVariablesPage() {
   const [hide, setHide] = React.useState<VariableHide>(VariableHide.dontHide);
-  const [isMulti, setIsMulti] = React.useState<boolean>(true);
+  const [regex, setRegex] = React.useState<string | undefined>('/[ACDFG]/');
   const [includeAll, setIncludeAll] = React.useState<boolean>(true);
   const [sort, setSort] = React.useState<VariableSort>(VariableSort.alphabeticalAsc);
 
@@ -29,11 +29,10 @@ export function DynamicVariablesPage() {
         initialValue="A"
         query={{ query: '*', refId: 'A' }} 
         datasource={{ uid: 'gdev-testdata' }} 
-        regex='/[ACDFG]/' 
+        regex={regex} 
         hide={hide}
         refresh={VariableRefresh.onTimeRangeChanged}
         includeAll={includeAll}
-        isMulti={isMulti}
         sort={sort}
       >
         <Stack direction="column">
@@ -48,11 +47,14 @@ export function DynamicVariablesPage() {
             <Button variant="secondary" onClick={() => setHide(VariableHide.dontHide)}>
               dont hide variable
             </Button>
-            <Button variant="secondary" onClick={() => setIsMulti(false)}>
-              disable is multi
+            <Button variant="secondary" onClick={() => setRegex('/[BF]/')}>
+              change regex
+            </Button>
+            <Button variant="secondary" onClick={() => setRegex(undefined)}>
+              no regex
             </Button>
             <Button variant="secondary" onClick={() => setIncludeAll(false)}>
-              disable include all
+              remove include all
             </Button>
             <Button variant="secondary" onClick={() => setSort(VariableSort.alphabeticalAsc)}>
               sort asc
