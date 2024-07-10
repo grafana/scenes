@@ -57,6 +57,10 @@ export function QueryVariable({
   }, [variable, scene, name]);
 
   useEffect(() => {
+    if (!variableAdded) {
+      return;
+    }
+
     variable?.setState({
       label,
       query,
@@ -67,7 +71,9 @@ export function QueryVariable({
       hide, 
       includeAll,
     });
-  }, [datasource, hide, includeAll, label, query, refresh, regex, sort, variable]);
+
+    variable.refreshOptions();
+  }, [datasource, hide, includeAll, label, query, refresh, regex, sort, variable, variableAdded]);
  
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable

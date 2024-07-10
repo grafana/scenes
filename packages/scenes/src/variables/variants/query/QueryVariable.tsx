@@ -15,7 +15,7 @@ import { sceneGraph } from '../../../core/sceneGraph';
 import { SceneComponentProps, SceneDataQuery } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
 import { renderSelectForVariable } from '../../components/VariableValueSelect';
-import { SceneVariableStateChangeEvent, VariableValueOption } from '../../types';
+import { VariableValueOption } from '../../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../MultiValueVariable';
 
 import { createQueryVariableRunner } from './createQueryVariableRunner';
@@ -25,7 +25,7 @@ import { getDataSource } from '../../../utils/getDataSource';
 import { safeStringifyValue } from '../../utils';
 import { DataQuery, DataSourceRef } from '@grafana/schema';
 import { SEARCH_FILTER_VARIABLE } from '../../constants';
-import { debounce, isEqual, pick } from 'lodash';
+import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
 
 export interface QueryVariableState extends MultiValueVariableState {
@@ -44,8 +44,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     statePaths: ['regex', 'query', 'datasource'],
   });
 
-  private _stateChangePropsToCompare = ['query', 'datasource', 'regex', 'refresh', 'sort'];
-
   public constructor(initialState: Partial<QueryVariableState>) {
     super({
       type: 'query',
@@ -60,12 +58,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       sort: VariableSort.disabled,
       ...initialState,
     });
-
-    this.addActivationHandler(this._onActivate);
-  }
-  
-  private _onActivate = () => {
-    this._subs.add(this.subscribeToState(this._updateOptionsOnStateChange));
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
@@ -157,12 +149,6 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     const result = await lastValueFrom(this.getValueOptions({ searchFilter }));
     this.setState({ options: result, loading: false });
   }, 400);
-
-  private _updateOptionsOnStateChange = (newState: QueryVariableState, oldState: QueryVariableState) => {
-    if (!isEqual(pick(newState, this._stateChangePropsToCompare), pick(oldState, this._stateChangePropsToCompare))) {
-      this.publishEvent(new SceneVariableStateChangeEvent(this), true);
-    }
-  };
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
     return renderSelectForVariable(model);
