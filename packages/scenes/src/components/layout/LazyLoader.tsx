@@ -3,6 +3,7 @@ import { useEffectOnce } from 'react-use';
 
 import { uniqueId } from 'lodash';
 import { css } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
 
 export function useUniqueId(): string {
   const idRefLazy = useRef<string | undefined>(undefined);
@@ -26,7 +27,7 @@ export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
 export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props>(
   ({ children, onLoad, onChange, className, ...rest }, ref) => {
     const id = useUniqueId();
-    const style = useStyle();
+    const { hideEmpty } = useStyles2(getStyles);
     const [loaded, setLoaded] = useState(false);
     const [isInView, setIsInView] = useState(false);
     const innerRef = useRef<HTMLDivElement>(null);
@@ -59,20 +60,28 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
       };
     });
 
+    // If the element was loaded, we add the `hideEmpty` class to potentially
+    // hide the LazyLoader if it does not have any children. This is the case
+    // when children have the `isHidden` property set. 
+    // We always include the `className` class, as this is coming from the 
+    // caller of the `LazyLoader` component.
+    const classes = `${loaded ? hideEmpty : ''} ${className}`;
     return (
-      <div id={id} ref={innerRef} className={`${loaded ? style : ''} ${className}`} {...rest}>
+      <div id={id} ref={innerRef} className={classes} {...rest}>
         {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
       </div>
     );
   }
 ) as LazyLoaderType;
 
-function useStyle() {
-  return css({
-    '&:empty': {
-      display: 'none',
-    },
-  });
+function getStyles() {
+  return {
+    hideEmpty: css({
+      '&:empty': {
+        display: 'none',
+      },
+    }),
+  };
 }
 
 LazyLoader.displayName = 'LazyLoader';
