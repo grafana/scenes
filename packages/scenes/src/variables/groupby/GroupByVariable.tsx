@@ -16,6 +16,7 @@ import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { SafeSerializableSceneObject } from '../../utils/SafeSerializableSceneObject';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -100,14 +101,14 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: { text: '__sceneObject', value: this },
+        __sceneObject: { text: '__sceneObject', value: new SafeSerializableSceneObject(this) },
       })
     ).pipe(
       mergeMap((ds) => {
         return from(this._getKeys(ds)).pipe(
           tap((response) => {
             if (responseHasError(response)) {
-              this.setState({ error: response.error.message })
+              this.setState({ error: response.error.message });
             }
           }),
           map((response) => dataFromResponse(response)),
@@ -162,9 +163,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (this.state.defaultOptions) {
-      return this.state.defaultOptions.concat(
-        dataFromResponse(override?.values ?? [])
-      );
+      return this.state.defaultOptions.concat(dataFromResponse(override?.values ?? []));
     }
 
     if (!ds.getTagKeys) {
@@ -175,12 +174,17 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const response = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
+    const response = await ds.getTagKeys({
+      filters: otherFilters,
+      queries,
+      timeRange,
+      ...getEnrichedFiltersRequest(this),
+    });
     if (responseHasError(response)) {
       // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
-  
+
     let keys = dataFromResponse(response);
     if (override) {
       keys = keys.concat(dataFromResponse(override.values));
