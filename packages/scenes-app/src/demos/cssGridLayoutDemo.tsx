@@ -24,7 +24,8 @@ const autoRowOptions = ['150px', '250px', 'auto'];
 export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A CSS Grid Layout demo, isLazy is enabled to showcase lazy rendering of panels',
+    subTitle:
+      'A CSS Grid Layout demo, isLazy is enabled to showcase lazy rendering of panels. Every 3rd panel is hidden to test the layout working properly.',
     getScene: () => {
       const layout = new SceneCSSGridLayout({
         children: getLayoutChildren(10),
@@ -79,7 +80,7 @@ function getLayoutChildren(count: number) {
     (v, index) =>
       new SceneCSSGridItem({
         body: PanelBuilders.stat()
-          .setTitle(`Panel ${count}`)
+          .setTitle(`Panel ${index + 1}`)
           .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
           .build(),
         isHidden: index % 3 === 0,
