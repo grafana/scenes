@@ -1,4 +1,4 @@
-import { useVariableValues, CustomVariable, VariableControl } from '@grafana/scenes-react';
+import { useVariableValues, CustomVariable, VariableControl, useQueryVariable } from '@grafana/scenes-react';
 import { Stack } from '@grafana/ui';
 import React from 'react';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
@@ -22,6 +22,11 @@ export function RepeatByVariablePage() {
 }
 function RepeatPanelByVariable() {
   const [values, loading] = useVariableValues<string>('panels');
+
+  //move this into a different demo
+  const queryVar = useQueryVariable({ name: 'test', datasource: 'gdev-testdata', query: '*' });
+  const state = queryVar?.useState();
+  console.log(state?.options);
 
   if (loading || !values) {
     return <div>Waiting for variable</div>;
