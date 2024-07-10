@@ -1,4 +1,4 @@
-import React, { ForwardRefExoticComponent, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import React, { ForwardRefExoticComponent, useImperativeHandle, useRef, useState } from 'react';
 import { useEffectOnce } from 'react-use';
 
 import { uniqueId } from 'lodash';
