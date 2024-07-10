@@ -18,6 +18,7 @@ import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { DataLayerControlSwitch } from '../SceneDataLayerControls';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
+import { proxifyScopedVarSceneObject } from '../../../utils/proxifyScopedVarSceneObject';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
@@ -29,7 +30,9 @@ export class AnnotationsDataLayer
 {
   static Component = AnnotationsDataLayerRenderer;
 
-  private _scopedVars: ScopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
+  private _scopedVars: ScopedVars = {
+    __sceneObject: { value: proxifyScopedVarSceneObject(this), text: '__sceneObject' },
+  };
   private _timeRangeSub: Unsubscribable | undefined;
 
   public constructor(initialState: AnnotationsDataLayerState) {

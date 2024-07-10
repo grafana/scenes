@@ -9,6 +9,7 @@ import { TestVariable } from '../../../variables/variants/TestVariable';
 import { SceneDataLayerSet } from '../../SceneDataLayerSet';
 import { AnnotationsDataLayer } from './AnnotationsDataLayer';
 import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithRequestEnricher';
+import { ProxiedSceneObject } from '../../../utils/proxifyScopedVarSceneObject';
 
 let mockedEvents: Array<Partial<Field>> = [];
 
@@ -221,7 +222,7 @@ describe('AnnotationsDataLayer', () => {
         const { scopedVars } = sentRequest!;
 
         expect(scopedVars['__sceneObject']).toBeDefined();
-        expect(scopedVars['__sceneObject']?.value).toBe(layer);
+        expect((scopedVars['__sceneObject']?.value as ProxiedSceneObject).__proxiedObject).toBe(layer);
         expect(Object.keys(scopedVars)).toMatchInlineSnapshot(`
           [
             "__interval",
