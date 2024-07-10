@@ -37,7 +37,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [isValuesOpen, setIsValuesOpen] = useState(false);
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
-  const isMulti = filter.operator === '=~' || filter.operator === '!~';
+  const isMulti = filter.operator === '=|' || filter.operator === '!=|';
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = isMulti ? filter.value.split('|').map((key: string) => keyLabelToOption(key)).filter(Boolean) : keyLabelToOption(filter.value, filter.valueLabel);

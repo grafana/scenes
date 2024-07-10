@@ -299,6 +299,12 @@ export class AdHocFiltersVariable
       value: '!=',
       description: "Not equals"
     }, {
+      value: '=|',
+      description: "Is one of"
+    }, {
+      value: '!=|',
+      description: "Is not one of"
+    }, {
       value: '<',
       description: "Less than"
     }, {
