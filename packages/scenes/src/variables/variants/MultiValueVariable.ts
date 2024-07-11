@@ -15,7 +15,6 @@ import {
   VariableValueSingle,
   CustomVariableValue,
   VariableCustomFormatterFn,
-  SceneVariableStateChangeEvent,
 } from '../types';
 import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
@@ -329,10 +328,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
     return options;
   }
-
-  public refreshOptions() {
-    this.publishEvent(new SceneVariableStateChangeEvent(this), true);
-  };
 
   /**
    * Can be used by subclasses to do custom handling of option search based on search input
