@@ -44,24 +44,26 @@ export function DataSourceVariable({
   }
 
   useEffect(() => {
-    if (variableAdded) {
-      variable?.setState({
-        pluginId,
-        regex,
-        name,
-        label,
-        value: initialValue, 
-        isMulti,
-        hide, 
-        includeAll,
-      })
-    }
-
     const removeFn = scene.addVariable(variable);
     setVariableAdded(true);
     return removeFn;
-  }, [variable, scene, name, variableAdded, label, regex, initialValue, isMulti, hide, includeAll, pluginId]);
+  }, [variable, scene, name]);
 
+  useEffect(() => {
+    if (!variableAdded) {
+      return;
+    }
+
+    variable?.setState({
+      pluginId,
+      regex,
+      label,
+      hide, 
+      includeAll,
+    })
+
+    variable.refreshOptions();
+  }, [hide, includeAll, label, pluginId, regex, variable, variableAdded])
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {
