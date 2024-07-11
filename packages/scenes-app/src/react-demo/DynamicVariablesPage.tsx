@@ -1,4 +1,4 @@
-import { CustomVariable, VariableControl } from '@grafana/scenes-react';
+import { CustomVariable, DataSourceVariable, VariableControl } from '@grafana/scenes-react';
 import { Stack } from '@grafana/ui';
 import React from 'react';
 import { PageWrapper } from './PageWrapper';
@@ -18,6 +18,16 @@ export function DynamicVariablesPage() {
           </DemoVizLayout>
         </Stack>
       </CustomVariable>
+        <DataSourceVariable name="dsVar" pluginId="grafana-testdata-datasource">
+          <Stack direction="column">
+            <Stack>
+              <VariableControl name="dsVar" />
+            </Stack>
+            <DemoVizLayout>
+              <PlainGraphWithRandomWalk title={'Testing datasource = $dsVar'} queryAlias="datasource = $dsVar" />
+            </DemoVizLayout>
+          </Stack>
+        </DataSourceVariable>
     </PageWrapper>
   );
 }

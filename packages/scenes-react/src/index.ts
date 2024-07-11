@@ -7,6 +7,7 @@ export { VizPanel } from './components/VizPanel';
 export { RefreshPicker } from './components/RefreshPicker';
 export { DataLayerControl } from './components/DataLayerControl';
 export { CustomVariable } from './variables/CustomVariable';
+export { DataSourceVariable } from './variables/DataSourceVariable';
 export { Breadcrumb, BreadcrumbContext, BreadcrumbProvider } from './contexts/BreadcrumbContext';
 export { useVariableValues } from './hooks/useVariableValues';
 export { AnnotationLayer } from './components/AnnotationLayer';
