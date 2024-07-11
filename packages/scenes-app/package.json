@@ -6,8 +6,8 @@
   "license": "AGPL-3.0-only",
   "description": "A basic grafana app plugin",
   "scripts": {
-    "build": "TS_NODE_PROJECT=\"./.config/webpack/tsconfig.webpack.json\" webpack -c ./.config/webpack/webpack.config.ts --env production",
-    "dev": "TS_NODE_PROJECT=\"./.config/webpack/tsconfig.webpack.json\" webpack -w -c ./.config/webpack/webpack.config.ts --env development",
+    "build": "TS_NODE_PROJECT=\"./.config/webpack/tsconfig.webpack.json\" webpack -c ./webpack.config.ts --env production",
+    "dev": "TS_NODE_PROJECT=\"./.config/webpack/tsconfig.webpack.json\" webpack -w -c ./webpack.config.ts --env development",
     "e2e": "yarn cypress install && TZ=UTC yarn grafana-e2e run",
     "test": "jest --passWithNoTests",
     "test:ci": "jest --maxWorkers 4",
@@ -63,6 +63,7 @@
     "@grafana/data": "^11.0.0",
     "@grafana/runtime": "^11.0.0",
     "@grafana/scenes": "workspace:*",
+    "@grafana/scenes-ml": "^0.2.0",
     "@grafana/scenes-react": "workspace:*",
     "@grafana/schema": "^11.0.0",
     "@grafana/ui": "^11.0.0",
