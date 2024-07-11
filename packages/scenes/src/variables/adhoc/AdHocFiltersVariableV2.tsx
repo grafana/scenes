@@ -1,8 +1,8 @@
 import { css, cx } from '@emotion/css';
-import { useStyles2, Icon, sharedInputStyle, Button, InputActionMeta, Select, Tag, IconButton } from '@grafana/ui';
+import { useStyles2, Icon, Button, InputActionMeta, Select } from '@grafana/ui';
 import React, { useMemo, useState } from 'react';
 import { SceneComponentProps } from '../../core/types';
-import { AdHocCombobox } from './AdHocCombobox';
+import { AdHocCombobox, AdHocFilterEditSwitch } from './AdHocCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { getOptionSearcher } from '../components/getOptionSearcher';
@@ -16,28 +16,15 @@ export function AdHocFiltersVariableRendererV2({ model }: SceneComponentProps<Ad
   const { filters } = model.useState();
   const styles = useStyles2(getStyles2);
 
-  console.log(filters);
-
   return (
-    <div className={cx(styles.wrapper, styles.inputStyles)}>
+    <div className={styles.wrapper}>
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
       {filters.map((filter, index) => (
-        <React.Fragment key={index}>
-          <Tag name={filter.key} />
-          <Tag name={filter.operator} />
-          <Tag name={filter.value} />
-          <IconButton
-            aria-label="delete filter"
-            name="times"
-            onClick={() => {
-              model._removeFilter(filter);
-            }}
-          />
-        </React.Fragment>
+        <AdHocFilterEditSwitch key={index} filter={filter} model={model} />
       ))}
 
-      <AdHocCombobox model={model} />
+      <AdHocCombobox model={model} wip />
 
       {/* {!readOnly && <AdHocFilterBuilderV2 model={model} key="'builder" addFilterButtonText={addFilterButtonText} />} */}
     </div>
@@ -45,13 +32,26 @@ export function AdHocFiltersVariableRendererV2({ model }: SceneComponentProps<Ad
 }
 
 const getStyles2 = (theme: GrafanaTheme2) => ({
-  inputStyles: cx(sharedInputStyle(theme, false)),
   wrapper: css({
     display: 'flex',
     flexWrap: 'wrap',
-    alignItems: 'flex-end',
-    columnGap: theme.spacing(2),
+    alignItems: 'center',
+    columnGap: theme.spacing(1),
     rowGap: theme.spacing(1),
+    minHeight: theme.spacing(4),
+    backgroundColor: theme.components.input.background,
+    border: `1px solid ${theme.colors.border.strong}`,
+    borderRadius: theme.shape.radius.default,
+    paddingInline: theme.spacing(1),
+
+    '&:focus-within': {
+      outline: '2px dotted transparent',
+      outlineOffset: '2px',
+      boxShadow: `0 0 0 2px ${theme.colors.background.canvas}, 0 0 0px 4px ${theme.colors.primary.main}`,
+      transitionTimingFunction: `cubic-bezier(0.19, 1, 0.22, 1)`,
+      transitionDuration: '0.2s',
+      transitionProperty: 'outline, outline-offset, box-shadow',
+    },
   }),
   filterIcon: css({
     color: theme.colors.text.secondary,
