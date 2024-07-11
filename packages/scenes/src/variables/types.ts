@@ -91,6 +91,10 @@ export class SceneVariableValueChangedEvent extends BusEventWithPayload<SceneVar
   public static type = 'scene-variable-changed-value';
 }
 
+export class SceneVariableOptionsRefreshEvent extends BusEventWithPayload<SceneVariable> {
+  public static type = 'scene-variable-options-refresh';
+}
+
 export interface SceneVariableDependencyConfigLike {
   /** Return all variable names this object depend on */
   getNames(): Set<string>;
