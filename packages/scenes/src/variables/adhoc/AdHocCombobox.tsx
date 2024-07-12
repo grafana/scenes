@@ -109,6 +109,41 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([role, dismiss, listNav]);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
+    if (inputType === 'key') {
+      const lastChar = event.target.value.slice(-1);
+      if (['=', '!', '<', '>'].includes(lastChar)) {
+        const key = event.target.value.slice(0, -1);
+        const optionIndex = options.findIndex((option) => option.value === key);
+        if (optionIndex >= 0) {
+          model._updateFilter(filterToUse!, inputType, options[optionIndex]);
+          setInputValue(lastChar);
+        }
+        flushSync(() => {
+          setInputType('operator');
+        });
+        refs.domReference.current?.focus();
+        return;
+      }
+    }
+    if (inputType === 'operator') {
+      const lastChar = event.target.value.slice(-1);
+      if (/\w/.test(lastChar)) {
+        const operator = event.target.value.slice(0, -1);
+        if (!/\w/.test(operator)) {
+          const optionIndex = options.findIndex((option) => option.value === operator);
+          if (optionIndex >= 0) {
+            model._updateFilter(filterToUse!, inputType, options[optionIndex]);
+            setInputValue(lastChar);
+          }
+          flushSync(() => {
+            setInputType('value');
+          });
+          refs.domReference.current?.focus();
+          return;
+        }
+      }
+    }
+
     const value = event.target.value;
     setInputValue(value);
     setActiveIndex(0);
