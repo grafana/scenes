@@ -53,13 +53,15 @@ interface AdHocComboboxProps {
   handleChangeViewMode?: () => void;
 }
 
+type AdHocInputType = 'key' | 'operator' | 'value';
+
 export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHocComboboxProps) {
   const [open, setOpen] = useState(false);
   //   const [optionsLoading, setOptionsLoading] = useState<boolean>(false);
   const [options, setOptions] = useState<Array<SelectableValue<string>>>([]);
   const [inputValue, setInputValue] = useState('');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [inputType, setInputType] = useState<'key' | 'operator' | 'value'>(!wip ? 'value' : 'key');
+  const [inputType, setInputType] = useState<AdHocInputType>(!wip ? 'value' : 'key');
   const styles = useStyles2(getStyles2);
 
   const listRef = useRef<Array<HTMLElement | null>>([]);
@@ -67,11 +69,15 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
 
   const filterToUse = filter || _wip;
 
+  const operatorIdentifier = `${filterToUse?.key ?? ''}-operator`;
+
   const { refs, floatingStyles, context } = useFloating<HTMLInputElement>({
     whileElementsMounted: autoUpdate,
     open,
     onOpenChange: (nextOpen, _, reason) => {
       setOpen(nextOpen);
+      // change from filter edit mode to filter view mode when clicked
+      //   outside input or dropdown
       if (reason === 'outside-press') {
         handleChangeViewMode?.();
       }
@@ -82,6 +88,7 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
         apply({ rects, availableHeight, elements }) {
           Object.assign(elements.floating.style, {
             width: `${rects.reference.width}px`,
+            // limit the maxHeight of dropdown
             maxHeight: `${availableHeight > 256 ? 256 : availableHeight}px`,
           });
         },
@@ -92,9 +99,10 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
 
   const role = useRole(context, { role: 'listbox' });
   const dismiss = useDismiss(context, {
+    // if outside click lands on operator pill, then ignore outside click
     outsidePress: (event) => {
       return !(event as unknown as React.MouseEvent<HTMLElement, MouseEvent>).currentTarget.classList.contains(
-        `${filterToUse?.key ?? ''}-operator`
+        operatorIdentifier
       );
     },
   });
@@ -109,6 +117,7 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([role, dismiss, listNav]);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
+    // part of POC for seamless filter parser
     if (inputType === 'key') {
       const lastChar = event.target.value.slice(-1);
       if (['=', '!', '<', '>'].includes(lastChar)) {
@@ -153,6 +162,14 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
     (item.label ?? item.value)?.toLocaleLowerCase().startsWith(inputValue.toLowerCase())
   );
 
+  const flushInputType = useCallback((inputType: AdHocInputType) => {
+    flushSync(() => {
+      setInputType(inputType);
+    });
+  }, []);
+
+  // when combobox is in wip mode then check and add _wip if its missing
+  //    needed on first render and when _wip is reset on filter value commit
   useEffect(() => {
     if (wip && !_wip) {
       model._addWip();
@@ -161,6 +178,8 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_wip]);
 
+  // when not in wip mode this is the point of switching from view to edit mode
+  //    and in this case we default to 'value' input type and focus input
   useEffect(() => {
     if (!wip && refs.domReference.current) {
       setInputType('value');
@@ -178,22 +197,19 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
           {filterToUse?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{filterToUse.key}</div> : null}
           {filterToUse?.key && filterToUse?.operator && inputType !== 'operator' ? (
             <div
-              className={cx(styles.basePill, `${filterToUse?.key ?? ''}-operator`)}
+              className={cx(styles.basePill, operatorIdentifier)}
               role="button"
               aria-label="Edit filter operator"
               tabIndex={0}
               onClick={() => {
-                flushSync(() => {
-                  setInputType('operator');
-                });
+                flushInputType('operator');
 
                 refs.domReference.current?.focus();
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  flushSync(() => {
-                    setInputType('operator');
-                  });
+                  flushInputType('operator');
+
                   refs.domReference.current?.focus();
                 }
               }}
@@ -215,6 +231,7 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
           ref: refs.setReference,
           onChange,
           value: inputValue,
+          // dynamic placeholder to display operator and/or value in filter edit mode
           placeholder: !wip
             ? inputType === 'operator'
               ? `${filterToUse![inputType]} ${filterToUse!.value || ''}`
@@ -226,16 +243,15 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
               model._updateFilter(filterToUse!, inputType, items[activeIndex]);
               setInputValue('');
 
-              flushSync(() => {
-                if (inputType === 'key') {
-                  setInputType('operator');
-                } else if (inputType === 'operator') {
-                  setInputType('value');
-                } else if (inputType === 'value') {
-                  setInputType('key');
-                  handleChangeViewMode?.();
-                }
-              });
+              if (inputType === 'key') {
+                flushInputType('operator');
+              } else if (inputType === 'operator') {
+                flushInputType('value');
+              } else if (inputType === 'value') {
+                flushInputType('key');
+
+                handleChangeViewMode?.();
+              }
 
               refs.domReference.current?.focus();
             }
@@ -245,6 +261,7 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
         key={inputType}
         onFocus={async () => {
           let options: Array<SelectableValue<string>> = [];
+          // TODO: missing async placeholder while options load
           if (inputType === 'key') {
             options = await model._getKeys(null);
           } else if (inputType === 'operator') {
@@ -283,16 +300,14 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
                       model._updateFilter(filterToUse!, inputType, item);
                       setInputValue('');
 
-                      flushSync(() => {
-                        if (inputType === 'key') {
-                          setInputType('operator');
-                        } else if (inputType === 'operator') {
-                          setInputType('value');
-                        } else if (inputType === 'value') {
-                          setInputType('key');
-                          handleChangeViewMode?.();
-                        }
-                      });
+                      if (inputType === 'key') {
+                        flushInputType('operator');
+                      } else if (inputType === 'operator') {
+                        flushInputType('value');
+                      } else if (inputType === 'value') {
+                        flushInputType('key');
+                        handleChangeViewMode?.();
+                      }
 
                       refs.domReference.current?.focus();
                     },
@@ -363,6 +378,8 @@ export function AdHocFilterEditSwitch({ filter, model }: AdHocFilterEditSwitchPr
     flushSync(() => {
       setViewMode((mode) => !mode);
     });
+    // focus is lost when switching to view mode with keyboard, so forcing
+    //  focus back in parent after finished editing
     if (wrapRef.current) {
       wrapRef.current.focus();
     }
@@ -390,12 +407,6 @@ export function AdHocFilterEditSwitch({ filter, model }: AdHocFilterEditSwitchPr
           onClick={(e) => {
             e.stopPropagation();
             model._removeFilter(filter);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.stopPropagation();
-              model._removeFilter(filter);
-            }
           }}
           name="times"
           size="md"
@@ -430,10 +441,6 @@ const getStyles3 = (theme: GrafanaTheme2) => ({
       transitionDuration: '0.2s',
       transitionProperty: 'outline, outline-offset, box-shadow',
     },
-  }),
-  filterIcon: css({
-    color: theme.colors.text.secondary,
-    alignSelf: 'center',
   }),
   combinedFilterPill: css({
     display: 'flex',
