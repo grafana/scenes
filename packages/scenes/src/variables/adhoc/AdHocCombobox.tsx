@@ -37,12 +37,6 @@ const Item = forwardRef<HTMLDivElement, ItemProps & React.HTMLProps<HTMLDivEleme
         aria-selected={active}
         className={cx(selectStyles.option, active && selectStyles.optionFocused)}
         {...rest}
-        style={{
-          background: active ? 'lightblue' : 'none',
-          padding: 4,
-          cursor: 'default',
-          ...rest.style,
-        }}
       >
         <div className={selectStyles.optionBody} data-testid={`data-testid ad hoc filter option value ${children}`}>
           <span>{children}</span>
@@ -76,14 +70,19 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
   const { refs, floatingStyles, context } = useFloating<HTMLInputElement>({
     whileElementsMounted: autoUpdate,
     open,
-    onOpenChange: setOpen,
+    onOpenChange: (nextOpen, _, reason) => {
+      setOpen(nextOpen);
+      if (reason === 'outside-press') {
+        handleChangeViewMode?.();
+      }
+    },
     middleware: [
       flip({ padding: 10 }),
       size({
         apply({ rects, availableHeight, elements }) {
           Object.assign(elements.floating.style, {
             width: `${rects.reference.width}px`,
-            maxHeight: `${availableHeight}px`,
+            maxHeight: `${availableHeight > 256 ? 256 : availableHeight}px`,
           });
         },
         padding: 10,
@@ -92,7 +91,13 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
   });
 
   const role = useRole(context, { role: 'listbox' });
-  const dismiss = useDismiss(context);
+  const dismiss = useDismiss(context, {
+    outsidePress: (event) => {
+      return !(event as unknown as React.MouseEvent<HTMLElement, MouseEvent>).currentTarget.classList.contains(
+        `${filterToUse?.key ?? ''}-operator`
+      );
+    },
+  });
   const listNav = useListNavigation(context, {
     listRef,
     activeIndex,
@@ -124,7 +129,7 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
   useEffect(() => {
     if (!wip && refs.domReference.current) {
       setInputType('value');
-      setInputValue(filter?.value || '');
+      setInputValue('');
 
       refs.domReference.current.focus();
     }
@@ -135,11 +140,36 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
     <>
       {filterToUse ? (
         <div className={styles.pillWrapper}>
-          {filterToUse?.key ? <div className={cx(styles.basePill, styles.boldText)}>{filterToUse.key}</div> : null}
+          {filterToUse?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{filterToUse.key}</div> : null}
           {filterToUse?.key && filterToUse?.operator && inputType !== 'operator' ? (
-            <div className={styles.basePill}>{filterToUse.operator}</div>
+            <div
+              className={cx(styles.basePill, `${filterToUse?.key ?? ''}-operator`)}
+              role="button"
+              aria-label="Edit filter operator"
+              tabIndex={0}
+              onClick={() => {
+                flushSync(() => {
+                  setInputType('operator');
+                });
+
+                refs.domReference.current?.focus();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  flushSync(() => {
+                    setInputType('operator');
+                  });
+                  refs.domReference.current?.focus();
+                }
+              }}
+            >
+              {filterToUse.operator}
+            </div>
           ) : null}
-          {filterToUse?.key && filterToUse?.operator && filterToUse?.value && inputType !== 'value' ? (
+          {filterToUse?.key &&
+          filterToUse?.operator &&
+          filterToUse?.value &&
+          !['operator', 'value'].includes(inputType) ? (
             <div className={cx(styles.basePill, styles.valuePill)}>{filterToUse.value}</div>
           ) : null}
         </div>
@@ -150,36 +180,45 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
           ref: refs.setReference,
           onChange,
           value: inputValue,
-          placeholder: 'Enter value',
+          placeholder: !wip
+            ? inputType === 'operator'
+              ? `${filterToUse![inputType]} ${filterToUse!.value || ''}`
+              : filterToUse![inputType]
+            : 'Filter by label values',
           'aria-autocomplete': 'list',
-          //   onKeyDown(event) {
-          //     if (event.key === 'Enter' && activeIndex != null && items[activeIndex]) {
-          //       setInputValue(items[activeIndex].value!);
-          //       setActiveIndex(null);
-          //       setOpen(false);
-          //     }
-          //   },
+          onKeyDown(event) {
+            if (event.key === 'Enter' && activeIndex != null && items[activeIndex]) {
+              model._updateFilter(filterToUse!, inputType, items[activeIndex]);
+              setInputValue('');
+
+              flushSync(() => {
+                if (inputType === 'key') {
+                  setInputType('operator');
+                } else if (inputType === 'operator') {
+                  setInputType('value');
+                } else if (inputType === 'value') {
+                  setInputType('key');
+                  handleChangeViewMode?.();
+                }
+              });
+
+              refs.domReference.current?.focus();
+            }
+          },
         })}
-        onBlur={() => {
-          handleChangeViewMode?.();
-        }}
+        className={styles.inputStyle}
+        key={inputType}
         onFocus={async () => {
-          console.log('trigger', inputType);
           let options: Array<SelectableValue<string>> = [];
           if (inputType === 'key') {
             options = await model._getKeys(null);
           } else if (inputType === 'operator') {
             options = model._getOperators();
           } else if (inputType === 'value') {
-            console.log('trigger values');
-            console.log('filterToUse', filterToUse);
-
             options = await model._getValuesFor(filterToUse!);
           }
-          console.log(options);
 
           setActiveIndex(0);
-
           setOptions(options);
           setOpen(true);
         }}
@@ -192,11 +231,10 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
                 ref: refs.setFloating,
                 style: {
                   ...floatingStyles,
-                  background: '#eee',
-                  color: 'black',
                   overflowY: 'auto',
                 },
               })}
+              className={styles.dropdownWrapper}
             >
               {items.map((item, index) => (
                 // eslint-disable-next-line react/jsx-key
@@ -254,12 +292,25 @@ const getStyles2 = (theme: GrafanaTheme2) => ({
     whiteSpace: 'nowrap',
     minHeight: '22px',
     ...theme.typography.bodySmall,
+    cursor: 'pointer',
   }),
-  boldText: css({
+  keyPill: css({
     fontWeight: theme.typography.fontWeightBold,
+    cursor: 'default',
   }),
   valuePill: css({
     background: theme.colors.action.selected,
+  }),
+  dropdownWrapper: css({
+    backgroundColor: theme.colors.background.primary,
+    color: theme.colors.text.primary,
+    boxShadow: theme.shadows.z2,
+  }),
+  inputStyle: css({
+    paddingBlock: 0,
+    '&:focus': {
+      outline: 'none',
+    },
   }),
 });
 
@@ -271,20 +322,45 @@ interface AdHocFilterEditSwitchProps {
 export function AdHocFilterEditSwitch({ filter, model }: AdHocFilterEditSwitchProps) {
   const styles = useStyles2(getStyles3);
   const [viewMode, setViewMode] = useState(true);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   const handleChangeViewMode = useCallback(() => {
-    setViewMode((mode) => !mode);
+    flushSync(() => {
+      setViewMode((mode) => !mode);
+    });
+    if (wrapRef.current) {
+      wrapRef.current.focus();
+    }
   }, []);
 
   if (viewMode) {
     return (
-      <div className={styles.combinedFilterPill} onClick={handleChangeViewMode}>
+      <div
+        className={styles.combinedFilterPill}
+        onClick={handleChangeViewMode}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleChangeViewMode();
+          }
+        }}
+        role="button"
+        aria-label="Edit filter"
+        tabIndex={0}
+        ref={wrapRef}
+      >
         <span>
           {filter.key} {filter.operator} {filter.value}
         </span>
         <IconButton
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             model._removeFilter(filter);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.stopPropagation();
+              model._removeFilter(filter);
+            }
           }}
           name="times"
           size="md"
@@ -337,6 +413,7 @@ const getStyles3 = (theme: GrafanaTheme2) => ({
     minHeight: '22px',
     ...theme.typography.bodySmall,
     fontWeight: theme.typography.fontWeightBold,
+    cursor: 'pointer',
 
     '&:hover': {
       background: theme.colors.emphasize(theme.colors.background.secondary),

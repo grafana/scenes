@@ -25,8 +25,6 @@ export function AdHocFiltersVariableRendererV2({ model }: SceneComponentProps<Ad
       ))}
 
       <AdHocCombobox model={model} wip />
-
-      {/* {!readOnly && <AdHocFilterBuilderV2 model={model} key="'builder" addFilterButtonText={addFilterButtonText} />} */}
     </div>
   );
 }
@@ -37,12 +35,14 @@ const getStyles2 = (theme: GrafanaTheme2) => ({
     flexWrap: 'wrap',
     alignItems: 'center',
     columnGap: theme.spacing(1),
-    rowGap: theme.spacing(1),
+    rowGap: theme.spacing(0.5),
     minHeight: theme.spacing(4),
     backgroundColor: theme.components.input.background,
     border: `1px solid ${theme.colors.border.strong}`,
     borderRadius: theme.shape.radius.default,
     paddingInline: theme.spacing(1),
+    paddingBlock: theme.spacing(0.5),
+    flexGrow: 1,
 
     '&:focus-within': {
       outline: '2px dotted transparent',
