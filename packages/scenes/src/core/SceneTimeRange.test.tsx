@@ -214,9 +214,10 @@ describe('SceneTimeRange', () => {
 
   describe('timerange invalidation', () => {
     const mockedNow = '2021-01-01T10:00:00.000Z';
-    const mockedHourLater = '2021-01-01T11:00:00.000Z';
     const mocked100MsLater = '2021-01-01T10:00:00.100Z';
     const mocked10sLater = '2021-01-01T10:00:10.000Z';
+    const mockedHourLater = '2021-01-01T11:00:00.000Z';
+    
     beforeEach(() => {
       jest.useFakeTimers();
       jest.setSystemTime(new Date(mockedNow));
