@@ -7,7 +7,7 @@ import { ControlsLayout, SceneComponentProps } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
 import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
-import { useStyles2 } from '@grafana/ui';
+import { Icon, useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
@@ -15,11 +15,14 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { AdHocCombobox, AdHocFilterEditSwitch } from './AdHocCombobox';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabel?: string;
 }
+
+export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
@@ -36,7 +39,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @experimental
    * Controls the layout and design of the label.
    */
-  layout?: ControlsLayout;
+  layout?: AdHocControlsLayout;
   /**
    * Defaults to automatic which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
    * In manual mode you either have to use the filters programmatically or as a variable inside query expressions.
@@ -221,11 +224,16 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
-    const response = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
+    const response = await ds.getTagKeys({
+      filters: otherFilters,
+      queries,
+      timeRange,
+      ...getEnrichedFiltersRequest(this),
+    });
 
     if (responseHasError(response)) {
       // @ts-expect-error Remove when 11.1.x is released
-      this.setState({ error: response.error.message })
+      this.setState({ error: response.error.message });
     }
 
     let keys = dataFromResponse(response);
@@ -310,6 +318,20 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
+  if (model.state.layout === 'combobox') {
+    return (
+      <div className={styles.comboboxWrapper}>
+        <Icon name="filter" className={styles.filterIcon} size="lg" />
+
+        {filters.map((filter, index) => (
+          <AdHocFilterEditSwitch key={index} filter={filter} model={model} />
+        ))}
+
+        <AdHocCombobox model={model} wip />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.wrapper}>
       {filters.map((filter, index) => (
@@ -331,9 +353,32 @@ const getStyles = (theme: GrafanaTheme2) => ({
     columnGap: theme.spacing(2),
     rowGap: theme.spacing(1),
   }),
+  comboboxWrapper: css({
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: theme.spacing(1),
+    rowGap: theme.spacing(0.5),
+    minHeight: theme.spacing(4),
+    backgroundColor: theme.components.input.background,
+    border: `1px solid ${theme.colors.border.strong}`,
+    borderRadius: theme.shape.radius.default,
+    paddingInline: theme.spacing(1),
+    paddingBlock: theme.spacing(0.5),
+    flexGrow: 1,
+
+    '&:focus-within': {
+      outline: '2px dotted transparent',
+      outlineOffset: '2px',
+      boxShadow: `0 0 0 2px ${theme.colors.background.canvas}, 0 0 0px 4px ${theme.colors.primary.main}`,
+      transitionTimingFunction: `cubic-bezier(0.19, 1, 0.22, 1)`,
+      transitionDuration: '0.2s',
+      transitionProperty: 'outline, outline-offset, box-shadow',
+    },
+  }),
   filterIcon: css({
     color: theme.colors.text.secondary,
-    paddingRight: theme.spacing(0.5),
+    alignSelf: 'center',
   }),
 });
 

@@ -15,7 +15,6 @@ import {
   SceneObjectBase,
   SceneObjectState,
   SceneObjectRef,
-  AdHocFiltersVariableV2,
 } from '@grafana/scenes';
 import { Button, Stack } from '@grafana/ui';
 import React from 'react';
@@ -203,12 +202,13 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
             ...getEmbeddedSceneDefaults(),
             $variables: new SceneVariableSet({
               variables: [
-                new AdHocFiltersVariableV2({
+                new AdHocFiltersVariable({
                   name: 'no-button-text',
                   label: 'Without add filter button text',
                   hide: VariableHide.hideLabel,
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'has no text', condition: '' }],
+                  layout: 'combobox',
                 }),
               ],
             }),
