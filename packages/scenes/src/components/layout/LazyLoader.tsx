@@ -53,10 +53,10 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
 
       return () => {
         wrapperEl && LazyLoader.observer.unobserve(wrapperEl);
+        delete LazyLoader.callbacks[id];
         if (Object.keys(LazyLoader.callbacks).length === 0) {
           LazyLoader.observer.disconnect();
         }
-        delete LazyLoader.callbacks[id];
       };
     });
 
