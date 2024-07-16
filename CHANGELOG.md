@@ -1,3 +1,16 @@
+# v5.4.0 (Tue Jul 16 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Adhoc filters/Group by: Support groups [#816](https://github.com/grafana/scenes/pull/816) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v5.3.9 (Tue Jul 16 2024)
 
 #### 🐛 Bug Fix
