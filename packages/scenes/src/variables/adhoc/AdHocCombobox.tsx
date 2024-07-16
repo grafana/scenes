@@ -239,6 +239,12 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
             : 'Filter by label values',
           'aria-autocomplete': 'list',
           onKeyDown(event) {
+            // change filter to view mode when navigating away with Tab key
+            //  this is needed because useDismiss only reacts to mousedown
+            if (event.key === 'Tab' && !event.shiftKey) {
+              handleChangeViewMode?.();
+            }
+
             if (event.key === 'Enter' && activeIndex != null && items[activeIndex]) {
               model._updateFilter(filterToUse!, inputType, items[activeIndex]);
               setInputValue('');
