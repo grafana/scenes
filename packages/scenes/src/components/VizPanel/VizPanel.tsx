@@ -49,6 +49,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
+  isAfterPluginChange?: boolean;
   /**
    * Only shows header on hover, absolutly positioned above the panel.
    */
@@ -180,7 +181,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       plugin,
       currentOptions: panel.options,
       currentFieldConfig: panel.fieldConfig,
-      isAfterPluginChange: false,
+      isAfterPluginChange: this.state.isAfterPluginChange ?? false,
     });
 
     this._plugin = plugin;
@@ -257,7 +258,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this.setState({ displayMode });
   };
 
-  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
+  public onOptionsChange = async (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
     const { fieldConfig, options } = this.state;
 
     // When replace is true, we want to replace the entire options object. Default will be applied.
