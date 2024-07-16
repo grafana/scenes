@@ -32,7 +32,7 @@ import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
-import { cloneDeep, isArray, merge, mergeWith } from 'lodash';
+import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
@@ -125,17 +125,17 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
   }
 
-  private async _loadPlugin(pluginId: string) {
+  private async _loadPlugin(pluginId: string, isAfterPluginChange?: boolean) {
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
-      this._pluginLoaded(plugin);
+      this._pluginLoaded(plugin, isAfterPluginChange);
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
         const result = await importPanelPlugin(pluginId);
-        this._pluginLoaded(result);
+        this._pluginLoaded(result, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
 
@@ -155,7 +155,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return panelId;
   }
 
-  private async _pluginLoaded(plugin: PanelPlugin) {
+  private async _pluginLoaded(plugin: PanelPlugin, isAfterPluginChange?: boolean) {
     const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
@@ -180,7 +180,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       plugin,
       currentOptions: panel.options,
       currentFieldConfig: panel.fieldConfig,
-      isAfterPluginChange: false,
+      isAfterPluginChange: isAfterPluginChange ?? false,
     });
 
     this._plugin = plugin;
@@ -245,6 +245,46 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return sceneTimeRange.state.value;
   };
 
+  public async changePluginType(pluginId: string, cachedOptions: any, newFieldConfig: any) {
+    const {
+      options: prevOptions,
+      fieldConfig: prevFieldConfig,
+      pluginId: prevPluginId,
+      ...restOfState
+    } = this.state;
+
+    this.setState({
+      options: cachedOptions ?? {},
+      fieldConfig: newFieldConfig,
+      pluginId,
+      ...restOfState
+    });
+
+    await this._loadPlugin(pluginId, true);
+
+    const panel: PanelModel = {
+      title: this.state.title,
+      options: this.state.options,
+      fieldConfig: this.state.fieldConfig,
+      id: 1,
+      type: pluginId,
+    };
+
+    const newOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
+
+    if (newOptions && !isEmpty(newOptions)) {
+      this.onOptionsChange(newOptions, true);
+    }
+
+    // this.onFieldConfigChange(newFieldConfig, true);
+
+    if (this._plugin?.onPanelMigration) {
+      this.setState({ 
+        pluginVersion: this._plugin && this._plugin.meta.info.version ? this._plugin.meta.info.version : config.buildInfo.version
+       });
+    }
+  }
+
   public onTitleChange = (title: string) => {
     this.setState({ title });
   };
@@ -257,7 +297,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this.setState({ displayMode });
   };
 
-  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
+  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false) => {
     const { fieldConfig, options } = this.state;
 
     // When replace is true, we want to replace the entire options object. Default will be applied.
@@ -280,7 +320,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       plugin: this._plugin!,
       currentOptions: nextOptions,
       currentFieldConfig: fieldConfig,
-      isAfterPluginChange: isAfterPluginChange,
+      isAfterPluginChange: false,
     });
 
     this.setState({
