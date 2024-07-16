@@ -258,7 +258,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this.setState({ displayMode });
   };
 
-  public onOptionsChange = async (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
+  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
     const { fieldConfig, options } = this.state;
 
     // When replace is true, we want to replace the entire options object. Default will be applied.
