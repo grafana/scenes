@@ -15,7 +15,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
     const from = state.from ?? 'now-6h';
-    const to = state.to ?? 'now';
+    const to = state.to ?? NOW;
     const timeZone = state.timeZone;
     const value = evaluateTimeRange(
       from,
@@ -56,12 +56,29 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       setWeekStart(this.state.weekStart);
     }
 
+    if(this.isRelative()){
+      this.invalidateIfStale();
+    }
+
     // Deactivation handler that restore weekStart if it was changed
     return () => {
       if (this.state.weekStart) {
         setWeekStart(config.bootData.user.weekStart);
       }
     };
+  }
+
+  private invalidateIfStale() {
+    let ms;
+    if (this.state.invalidateAfterPercent !== undefined) {
+      ms = this.calculatePercentOfInterval(this.state.invalidateAfterPercent);
+    }
+    if (this.state.invalidateAfterMs !== undefined) {
+      ms = Math.min(this.state.invalidateAfterMs, ms ?? Infinity);
+    }
+    if (ms !== undefined) {
+      this.invalidateAfter(ms);
+    }
   }
 
   /**
@@ -84,6 +101,33 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     }
 
     return source;
+  }
+
+  /**
+   * Refreshes time range if it is staler then the invalidation interval
+   * @param invalidateAfterMs invalidation interval (milliseconds)
+   * @private
+   */
+  private invalidateAfter(invalidateAfterMs: number) {
+    const value = evaluateTimeRange(
+      this.state.from,
+      this.state.to,
+      this.state.timeZone ?? getTimeZone(),
+      this.state.fiscalYearStartMonth,
+      this.state.UNSAFE_nowDelay
+    );
+
+    const diff = value.to.diff(this.state.value.to, 'milliseconds');
+    if(diff >= invalidateAfterMs){
+      this.setState({
+        value
+      })
+    }
+  }
+
+  private calculatePercentOfInterval(percent: number): number {
+    const intervalMs = this.state.value.to.diff(this.state.value.from, 'milliseconds');
+    return Math.ceil(intervalMs / percent)
   }
 
   public getTimeZone(): TimeZone {
@@ -193,4 +237,9 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
     this.setState(update);
   }
+
+  public isRelative(): boolean {
+    return this.state.to === NOW
+  }
 }
+const NOW = 'now'
