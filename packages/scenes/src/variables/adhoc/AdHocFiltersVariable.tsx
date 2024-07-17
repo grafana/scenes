@@ -202,6 +202,14 @@ export class AdHocFiltersVariable
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
   }
 
+  public _removeLastFilter() {
+    const filterToRemove = this.state.filters.at(-1);
+
+    if (filterToRemove) {
+      this._removeFilter(filterToRemove);
+    }
+  }
+
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */

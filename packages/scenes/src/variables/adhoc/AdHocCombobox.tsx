@@ -191,7 +191,6 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
   }, []);
 
   const handleFetchOptions = useCallback(async () => {
-    console.log('fetch fire');
     let options: Array<SelectableValue<string>> = [];
     // TODO: missing async placeholder while options load
     if (inputType === 'key') {
@@ -203,6 +202,49 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
     }
     setOptions(options);
   }, [filterToUse, inputType, model]);
+
+  const handleBackspaceInput = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'Backspace' && !inputValue && inputType === 'key') {
+        model._removeLastFilter();
+        setOpen(false);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inputValue]
+  );
+
+  const handleShiftTabInput = useCallback((event: React.KeyboardEvent) => {
+    // change filter to view mode when navigating away with Tab key
+    //  this is needed because useDismiss only reacts to mousedown
+    if (event.key === 'Tab' && !event.shiftKey) {
+      handleChangeViewMode?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleEnterInput = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter' && activeIndex != null && items[activeIndex]) {
+        model._updateFilter(filterToUse!, inputType, items[activeIndex]);
+        setInputValue('');
+
+        if (inputType === 'key') {
+          flushInputType('operator');
+        } else if (inputType === 'operator') {
+          flushInputType('value');
+        } else if (inputType === 'value') {
+          flushInputType('key');
+
+          handleChangeViewMode?.();
+        }
+
+        refs.domReference.current?.focus();
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeIndex, filterToUse, inputType, items, model]
+  );
 
   useEffect(() => {
     if (open) {
@@ -260,28 +302,9 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
             : 'Filter by label values',
           'aria-autocomplete': 'list',
           onKeyDown(event) {
-            // change filter to view mode when navigating away with Tab key
-            //  this is needed because useDismiss only reacts to mousedown
-            if (event.key === 'Tab' && !event.shiftKey) {
-              handleChangeViewMode?.();
-            }
-
-            if (event.key === 'Enter' && activeIndex != null && items[activeIndex]) {
-              model._updateFilter(filterToUse!, inputType, items[activeIndex]);
-              setInputValue('');
-
-              if (inputType === 'key') {
-                flushInputType('operator');
-              } else if (inputType === 'operator') {
-                flushInputType('value');
-              } else if (inputType === 'value') {
-                flushInputType('key');
-
-                handleChangeViewMode?.();
-              }
-
-              refs.domReference.current?.focus();
-            }
+            handleBackspaceInput(event);
+            handleShiftTabInput(event);
+            handleEnterInput(event);
           },
         })}
         className={styles.inputStyle}
