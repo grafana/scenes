@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   autoUpdate,
   size,
@@ -55,7 +55,10 @@ interface AdHocComboboxProps {
 
 type AdHocInputType = 'key' | 'operator' | 'value';
 
-export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHocComboboxProps) {
+export const AdHocCombobox = forwardRef(function AdHocCombobox(
+  { filter, model, wip, handleChangeViewMode }: AdHocComboboxProps,
+  parentRef
+) {
   const [open, setOpen] = useState(false);
   //   const [optionsLoading, setOptionsLoading] = useState<boolean>(false);
   const [options, setOptions] = useState<Array<SelectableValue<string>>>([]);
@@ -115,6 +118,9 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
   });
 
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([role, dismiss, listNav]);
+
+  // pass ability to focus on input element back to parent
+  useImperativeHandle(parentRef, () => () => refs.domReference.current?.focus(), [refs.domReference]);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
     // part of POC for seamless filter parser
@@ -264,7 +270,8 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
               role="button"
               aria-label="Edit filter operator"
               tabIndex={0}
-              onClick={() => {
+              onClick={(event) => {
+                event.stopPropagation();
                 flushInputType('operator');
 
                 refs.domReference.current?.focus();
@@ -308,7 +315,8 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
           },
         })}
         className={styles.inputStyle}
-        onClick={() => {
+        onClick={(event) => {
+          event.stopPropagation();
           setOpen(true);
         }}
         onFocus={() => {
@@ -364,7 +372,7 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
       </FloatingPortal>
     </>
   );
-}
+});
 
 const getStyles2 = (theme: GrafanaTheme2) => ({
   pillWrapper: css({
@@ -414,7 +422,8 @@ export function AdHocFilterEditSwitch({ filter, model }: AdHocFilterEditSwitchPr
   const styles = useStyles2(getStyles3);
   const [viewMode, setViewMode] = useState(true);
 
-  const handleChangeViewMode = useCallback(() => {
+  const handleChangeViewMode = useCallback((event?: React.MouseEvent) => {
+    event?.stopPropagation();
     flushSync(() => {
       setViewMode((mode) => !mode);
     });

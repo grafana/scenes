@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 // @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -326,16 +326,23 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
+  const focusOnInputRef = useRef<() => void>();
+
   if (model.state.layout === 'combobox') {
     return (
-      <div className={styles.comboboxWrapper}>
+      <div
+        className={styles.comboboxWrapper}
+        onClick={() => {
+          focusOnInputRef.current?.();
+        }}
+      >
         <Icon name="filter" className={styles.filterIcon} size="lg" />
 
         {filters.map((filter, index) => (
           <AdHocFilterEditSwitch key={index} filter={filter} model={model} />
         ))}
 
-        <AdHocCombobox model={model} wip />
+        <AdHocCombobox model={model} wip ref={focusOnInputRef} />
       </div>
     );
   }
