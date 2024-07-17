@@ -260,7 +260,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }, [open, inputType]);
 
   return (
-    <>
+    <div className={styles.comboboxWrapper}>
       {filterToUse ? (
         <div className={styles.pillWrapper}>
           {filterToUse?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{filterToUse.key}</div> : null}
@@ -370,11 +370,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           </FloatingFocusManager>
         )}
       </FloatingPortal>
-    </>
+    </div>
   );
 });
 
 const getStyles2 = (theme: GrafanaTheme2) => ({
+  comboboxWrapper: css({
+    display: 'flex',
+    flexWrap: 'nowrap',
+  }),
   pillWrapper: css({
     display: 'flex',
     alignItems: 'center',
