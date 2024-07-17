@@ -78,7 +78,7 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
       setOpen(nextOpen);
       // change from filter edit mode to filter view mode when clicked
       //   outside input or dropdown
-      if (reason === 'outside-press') {
+      if (['outside-press', 'escape-key'].includes(reason || '')) {
         handleChangeViewMode?.();
       }
     },
@@ -190,6 +190,27 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleFetchOptions = useCallback(async () => {
+    console.log('fetch fire');
+    let options: Array<SelectableValue<string>> = [];
+    // TODO: missing async placeholder while options load
+    if (inputType === 'key') {
+      options = await model._getKeys(null);
+    } else if (inputType === 'operator') {
+      options = model._getOperators();
+    } else if (inputType === 'value') {
+      options = await model._getValuesFor(filterToUse!);
+    }
+    setOptions(options);
+  }, [filterToUse, inputType, model]);
+
+  useEffect(() => {
+    if (open) {
+      handleFetchOptions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, inputType]);
+
   return (
     <>
       {filterToUse ? (
@@ -264,20 +285,11 @@ export function AdHocCombobox({ filter, model, wip, handleChangeViewMode }: AdHo
           },
         })}
         className={styles.inputStyle}
-        key={inputType}
-        onFocus={async () => {
-          let options: Array<SelectableValue<string>> = [];
-          // TODO: missing async placeholder while options load
-          if (inputType === 'key') {
-            options = await model._getKeys(null);
-          } else if (inputType === 'operator') {
-            options = model._getOperators();
-          } else if (inputType === 'value') {
-            options = await model._getValuesFor(filterToUse!);
-          }
-
+        onClick={() => {
+          setOpen(true);
+        }}
+        onFocus={() => {
           setActiveIndex(0);
-          setOptions(options);
           setOpen(true);
         }}
       />
@@ -378,17 +390,11 @@ interface AdHocFilterEditSwitchProps {
 export function AdHocFilterEditSwitch({ filter, model }: AdHocFilterEditSwitchProps) {
   const styles = useStyles2(getStyles3);
   const [viewMode, setViewMode] = useState(true);
-  const wrapRef = useRef<HTMLDivElement>(null);
 
   const handleChangeViewMode = useCallback(() => {
     flushSync(() => {
       setViewMode((mode) => !mode);
     });
-    // focus is lost when switching to view mode with keyboard, so forcing
-    //  focus back in parent after finished editing
-    if (wrapRef.current) {
-      wrapRef.current.focus();
-    }
   }, []);
 
   if (viewMode) {
@@ -404,7 +410,6 @@ export function AdHocFilterEditSwitch({ filter, model }: AdHocFilterEditSwitchPr
         role="button"
         aria-label="Edit filter"
         tabIndex={0}
-        ref={wrapRef}
       >
         <span>
           {filter.key} {filter.operator} {filter.value}
