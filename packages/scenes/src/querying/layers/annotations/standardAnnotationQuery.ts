@@ -98,7 +98,7 @@ export function executeAnnotationQuery(
     __interval: { text: interval.interval, value: interval.interval },
     __interval_ms: { text: interval.intervalMs.toString(), value: interval.intervalMs },
     __annotation: { text: annotation.name, value: annotation },
-    __sceneObject: { text: '__sceneObject', value: new SafeSerializableSceneObject(layer) },
+    __sceneObject: new SafeSerializableSceneObject(layer),
   };
 
   const queryRequest: DataQueryRequest = {

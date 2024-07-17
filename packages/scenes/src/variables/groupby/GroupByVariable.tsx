@@ -103,7 +103,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: { text: '__sceneObject', value: new SafeSerializableSceneObject(this) },
+        __sceneObject: new SafeSerializableSceneObject(this),
       })
     ).pipe(
       mergeMap((ds) => {

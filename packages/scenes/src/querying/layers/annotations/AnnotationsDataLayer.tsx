@@ -31,7 +31,7 @@ export class AnnotationsDataLayer
   static Component = AnnotationsDataLayerRenderer;
 
   private _scopedVars: ScopedVars = {
-    __sceneObject: { value: new SafeSerializableSceneObject(this), text: '__sceneObject' },
+    __sceneObject: new SafeSerializableSceneObject(this),
   };
   private _timeRangeSub: Unsubscribable | undefined;
 

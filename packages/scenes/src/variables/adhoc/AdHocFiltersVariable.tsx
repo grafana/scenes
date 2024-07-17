@@ -111,7 +111,7 @@ export class AdHocFiltersVariable
 {
   static Component = AdHocFiltersVariableRenderer;
 
-  private _scopedVars = { __sceneObject: { value: new SafeSerializableSceneObject(this) } };
+  private _scopedVars = { __sceneObject: new SafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);

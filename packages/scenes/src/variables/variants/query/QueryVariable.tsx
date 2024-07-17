@@ -70,7 +70,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: { text: '__sceneObject', value: new SafeSerializableSceneObject(this) },
+        __sceneObject: new SafeSerializableSceneObject(this),
       })
     ).pipe(
       mergeMap((ds) => {
@@ -113,7 +113,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
   private getRequest(target: DataQuery | string, searchFilter?: string) {
     const scopedVars: ScopedVars = {
-      __sceneObject: { text: '__sceneObject', value: new SafeSerializableSceneObject(this) },
+      __sceneObject: new SafeSerializableSceneObject(this),
     };
 
     if (searchFilter) {
