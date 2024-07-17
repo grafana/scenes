@@ -255,25 +255,17 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   public async changePluginType(pluginId: string, options?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
-    //we need old state for newOptions
     const {
       options: prevOptions,
       fieldConfig: prevFieldConfig,
       pluginId: prevPluginId,
     } = this.state;
 
-    //clear field config cache
+    //clear field config cache to update it later
     this._dataWithFieldConfig = undefined;
 
-    //we need options/fieldConfig to be set in loadPlugin to handle scenario where we 
-    //need the default options. e.g.: we change plugin type to new plugin that
-    //has no cached options, so we need to get default options merged with {}, instead
-    //of old plugin options, so we do not pollute new plugin options.
-    // but we cannot just set the state to {} because things will crash on rerender(e.g.: PanelOptions)
-    // because it expects options to have properties.
     await this._loadPlugin(pluginId, options ?? {}, newFieldConfig, true);
 
-    //update options if a migration is needed
     const panel: PanelModel = {
       title: this.state.title,
       options: this.state.options,
@@ -284,7 +276,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     const newOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
 
-    //newOptions returns empty when changing to timeseries, we need isEmpty, otherwise it loses cachedOptions
     if (newOptions && !isEmpty(newOptions)) {
       this.onOptionsChange(newOptions, true, true);
     }
