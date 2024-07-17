@@ -4,6 +4,8 @@ import { SceneObject } from '../core/types';
 export class SafeSerializableSceneObject implements ScopedVar {
   #value: SceneObject;
 
+  public text = '__sceneObject';
+
   public constructor(value: SceneObject) {
     this.#value = value;
   }
@@ -18,9 +20,5 @@ export class SafeSerializableSceneObject implements ScopedVar {
 
   public get value() {
     return this;
-  }
-
-  public get text() {
-    return '__sceneObject';
   }
 }
