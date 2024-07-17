@@ -125,17 +125,17 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
   }
 
-  private async _loadPlugin(pluginId: string, isAfterPluginChange?: boolean) {
+  private async _loadPlugin(pluginId: string, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
-      this._pluginLoaded(plugin, isAfterPluginChange);
+      this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
         const result = await importPanelPlugin(pluginId);
-        this._pluginLoaded(result, isAfterPluginChange);
+        this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
 
@@ -155,7 +155,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return panelId;
   }
 
-  private async _pluginLoaded(plugin: PanelPlugin, isAfterPluginChange?: boolean) {
+  private async _pluginLoaded(plugin: PanelPlugin, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
     const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
@@ -166,6 +166,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       type: plugin.meta.id,
       pluginVersion: pluginVersion,
     };
+
+    if (overwriteOptions) {
+      panel.options = overwriteOptions;
+    }
+
+    if (overwriteFieldConfig) {
+      panel.fieldConfig = overwriteFieldConfig;
+    }
 
     const currentVersion = this._getPluginVersion(plugin);
 
@@ -189,6 +197,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       options: withDefaults.options as DeepPartial<TOptions>,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
+      pluginId: plugin.meta.id,
     });
 
     // Non data panels needs to be re-rendered when time range change
@@ -245,23 +254,26 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return sceneTimeRange.state.value;
   };
 
-  public async changePluginType(pluginId: string, cachedOptions: any, newFieldConfig: any) {
+  public async changePluginType(pluginId: string, options?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
+    //we need old state for newOptions
     const {
       options: prevOptions,
       fieldConfig: prevFieldConfig,
       pluginId: prevPluginId,
-      ...restOfState
     } = this.state;
 
-    this.setState({
-      options: cachedOptions ?? {},
-      fieldConfig: newFieldConfig,
-      pluginId,
-      ...restOfState
-    });
+    //clear field config cache
+    this._dataWithFieldConfig = undefined;
 
-    await this._loadPlugin(pluginId, true);
+    //we need options/fieldConfig to be set in loadPlugin to handle scenario where we 
+    //need the default options. e.g.: we change plugin type to new plugin that
+    //has no cached options, so we need to get default options merged with {}, instead
+    //of old plugin options, so we do not pollute new plugin options.
+    // but we cannot just set the state to {} because things will crash on rerender(e.g.: PanelOptions)
+    // because it expects options to have properties.
+    await this._loadPlugin(pluginId, options ?? {}, newFieldConfig, true);
 
+    //update options if a migration is needed
     const panel: PanelModel = {
       title: this.state.title,
       options: this.state.options,
@@ -272,16 +284,9 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     const newOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
 
+    //newOptions returns empty when changing to timeseries, we need isEmpty, otherwise it loses cachedOptions
     if (newOptions && !isEmpty(newOptions)) {
-      this.onOptionsChange(newOptions, true);
-    }
-
-    // this.onFieldConfigChange(newFieldConfig, true);
-
-    if (this._plugin?.onPanelMigration) {
-      this.setState({ 
-        pluginVersion: this._plugin && this._plugin.meta.info.version ? this._plugin.meta.info.version : config.buildInfo.version
-       });
+      this.onOptionsChange(newOptions, true, true);
     }
   }
 
@@ -297,7 +302,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this.setState({ displayMode });
   };
 
-  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false) => {
+  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
     const { fieldConfig, options } = this.state;
 
     // When replace is true, we want to replace the entire options object. Default will be applied.
@@ -320,7 +325,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       plugin: this._plugin!,
       currentOptions: nextOptions,
       currentFieldConfig: fieldConfig,
-      isAfterPluginChange: false,
+      isAfterPluginChange: isAfterPluginChange,
     });
 
     this.setState({
