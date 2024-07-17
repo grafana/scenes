@@ -419,6 +419,13 @@ export function AdHocFilterEditSwitch({ filter, model }: AdHocFilterEditSwitchPr
             e.stopPropagation();
             model._removeFilter(filter);
           }}
+          onKeyDownCapture={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+              model._removeFilter(filter);
+            }
+          }}
           name="times"
           size="md"
           className={styles.removeButton}
