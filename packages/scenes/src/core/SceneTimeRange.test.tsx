@@ -223,7 +223,7 @@ describe('SceneTimeRange', () => {
       jest.setSystemTime(new Date(mockedNow));
     });
 
-    it('should NOT invalidate stale time range that does not meet invalidation threshold', () => {
+    it('should NOT invalidate stale time range that does not meet refresh threshold', () => {
       const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now'});
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
@@ -236,8 +236,8 @@ describe('SceneTimeRange', () => {
       expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
     })
 
-    it('should NOT invalidate stale time range before invalidation duration has elapsed', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', invalidateAfterMs: 101});
+    it('should NOT invalidate stale time range before refresh duration has elapsed', () => {
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 101} });
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
         body: new SceneReactObject({})
@@ -248,8 +248,8 @@ describe('SceneTimeRange', () => {
       expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
     })
 
-    it('should NOT invalidate stale time range with percent when invalidation threshold is not met', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', invalidateAfterMs: 60000, invalidateAfterPercent: 10});
+    it('should NOT invalidate stale time range with percent when refresh threshold is not met', () => {
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 60000, percent: 10}});
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
         body: new SceneReactObject({})
@@ -260,8 +260,8 @@ describe('SceneTimeRange', () => {
       expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
     })
 
-    it('should invalidate stale time range when invalidation threshold is met', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', invalidateAfterMs: 100});
+    it('should invalidate stale time range when refresh threshold is met', () => {
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 100} });
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
         body: new SceneReactObject({
@@ -273,8 +273,8 @@ describe('SceneTimeRange', () => {
       expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked100MsLater)
     })
 
-    it('should invalidate stale time range when either invalidation threshold is met', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', invalidateAfterMs: 60000, invalidateAfterPercent: 10});
+    it('should invalidate stale time range when either refresh threshold is met', () => {
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 60000, percent: 10}});
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
         body: new SceneReactObject({})

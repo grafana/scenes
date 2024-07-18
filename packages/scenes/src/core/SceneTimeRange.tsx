@@ -57,7 +57,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     }
 
     if(this.isRelative()){
-      this.invalidateIfStale();
+      this.refreshIfStale();
     }
 
     // Deactivation handler that restore weekStart if it was changed
@@ -68,16 +68,16 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     };
   }
 
-  private invalidateIfStale() {
+  private refreshIfStale() {
     let ms;
-    if (this.state.invalidateAfterPercent !== undefined) {
-      ms = this.calculatePercentOfInterval(this.state.invalidateAfterPercent);
+    if (this.state?.refreshOnActivate?.percent !== undefined) {
+      ms = this.calculatePercentOfInterval(this.state.refreshOnActivate.percent);
     }
-    if (this.state.invalidateAfterMs !== undefined) {
-      ms = Math.min(this.state.invalidateAfterMs, ms ?? Infinity);
+    if (this.state?.refreshOnActivate?.afterMs !== undefined) {
+      ms = Math.min(this.state.refreshOnActivate.afterMs, ms ?? Infinity);
     }
     if (ms !== undefined) {
-      this.invalidateAfter(ms);
+      this.refreshRange(ms);
     }
   }
 
@@ -104,11 +104,11 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   }
 
   /**
-   * Refreshes time range if it is staler then the invalidation interval
-   * @param invalidateAfterMs invalidation interval (milliseconds)
+   * Refreshes time range if it is older than the invalidation interval
+   * @param refreshAfterMs invalidation interval (milliseconds)
    * @private
    */
-  private invalidateAfter(invalidateAfterMs: number) {
+  private refreshRange(refreshAfterMs: number) {
     const value = evaluateTimeRange(
       this.state.from,
       this.state.to,
@@ -118,7 +118,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     );
 
     const diff = value.to.diff(this.state.value.to, 'milliseconds');
-    if(diff >= invalidateAfterMs){
+    if(diff >= refreshAfterMs){
       this.setState({
         value
       })
