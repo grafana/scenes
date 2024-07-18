@@ -109,6 +109,17 @@ class FakeQueryRunner implements QueryRunner {
 
 describe('QueryVariable', () => {
   describe('When empty query is provided', () => {
+    it('Should default to empty query', async () => {
+      const variable = new QueryVariable({ name: 'test' });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.query).toEqual('');
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+      expect(variable.state.options).toEqual([]);
+    });
+
     it('Should default to empty options and empty value', async () => {
       const variable = new QueryVariable({
         name: 'test',
