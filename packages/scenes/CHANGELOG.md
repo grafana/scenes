@@ -1,3 +1,15 @@
+# v5.5.0 (Thu Jul 18 2024)
+
+#### 🚀 Enhancement
+
+- Scenes: Move change panel plugin logic in VizPanel [#836](https://github.com/grafana/scenes/pull/836) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.4.1 (Thu Jul 18 2024)
 
 #### 🐛 Bug Fix
