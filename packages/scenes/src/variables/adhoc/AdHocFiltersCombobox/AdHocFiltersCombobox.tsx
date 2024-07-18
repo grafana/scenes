@@ -284,7 +284,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           {filterToUse?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{filterToUse.key}</div> : null}
           {filterToUse?.key && filterToUse?.operator && inputType !== 'operator' ? (
             <div
-              className={cx(styles.basePill, operatorIdentifier)}
+              className={cx(styles.basePill, styles.operatorPill, operatorIdentifier)}
               role="button"
               aria-label="Edit filter operator"
               tabIndex={0}
@@ -421,6 +421,11 @@ const getStyles2 = (theme: GrafanaTheme2) => ({
   keyPill: css({
     fontWeight: theme.typography.fontWeightBold,
     cursor: 'default',
+  }),
+  operatorPill: css({
+    '&:hover': {
+      background: theme.colors.action.hover,
+    },
   }),
   valuePill: css({
     background: theme.colors.action.selected,

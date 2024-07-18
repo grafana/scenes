@@ -3,13 +3,14 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 import React, { memo, useRef } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { SceneComponentProps } from '../../../core/types';
 import { AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { AdHocFiltersComboboxEditSwitch } from './AdHocFiltersComboboxEditSwitch';
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({
   model,
-}: SceneComponentProps<AdHocFiltersVariable>) {
+}: {
+  model: AdHocFiltersVariable;
+}) {
   const { filters } = model.useState();
   const styles = useStyles2(getStyles);
   const focusOnInputRef = useRef<() => void>();

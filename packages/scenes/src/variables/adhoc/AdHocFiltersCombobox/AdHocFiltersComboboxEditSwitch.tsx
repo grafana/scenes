@@ -6,12 +6,13 @@ import { flushSync } from 'react-dom';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 
-interface AdHocFilterEditSwitchProps {
+export function AdHocFiltersComboboxEditSwitch({
+  filter,
+  model,
+}: {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
-}
-
-export function AdHocFiltersComboboxEditSwitch({ filter, model }: AdHocFilterEditSwitchProps) {
+}) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
   const pillWrapperRef = useRef<HTMLDivElement>(null);
@@ -73,27 +74,6 @@ export function AdHocFiltersComboboxEditSwitch({ filter, model }: AdHocFilterEdi
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  wrapper: css({
-    display: 'flex',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    columnGap: theme.spacing(1),
-    rowGap: theme.spacing(1),
-    minHeight: theme.spacing(4),
-    backgroundColor: theme.components.input.background,
-    border: `1px solid ${theme.colors.border.strong}`,
-    borderRadius: theme.shape.radius.default,
-    paddingInline: theme.spacing(1),
-
-    '&:focus-within': {
-      outline: '2px dotted transparent',
-      outlineOffset: '2px',
-      boxShadow: `0 0 0 2px ${theme.colors.background.canvas}, 0 0 0px 4px ${theme.colors.primary.main}`,
-      transitionTimingFunction: `cubic-bezier(0.19, 1, 0.22, 1)`,
-      transitionDuration: '0.2s',
-      transitionProperty: 'outline, outline-offset, box-shadow',
-    },
-  }),
   combinedFilterPill: css({
     display: 'flex',
     alignItems: 'center',
@@ -110,7 +90,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     cursor: 'pointer',
 
     '&:hover': {
-      background: theme.colors.emphasize(theme.colors.background.secondary),
+      background: theme.colors.action.hover,
     },
   }),
   removeButton: css({
