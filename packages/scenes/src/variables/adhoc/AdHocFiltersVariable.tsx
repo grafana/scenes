@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 // @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -7,7 +7,7 @@ import { ControlsLayout, SceneComponentProps } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
 import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
-import { Icon, useStyles2 } from '@grafana/ui';
+import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
@@ -15,7 +15,7 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
-import { AdHocCombobox, AdHocFilterEditSwitch } from './AdHocCombobox';
+import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
@@ -326,25 +326,8 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
-  const focusOnInputRef = useRef<() => void>();
-
   if (model.state.layout === 'combobox') {
-    return (
-      <div
-        className={styles.comboboxWrapper}
-        onClick={() => {
-          focusOnInputRef.current?.();
-        }}
-      >
-        <Icon name="filter" className={styles.filterIcon} size="lg" />
-
-        {filters.map((filter, index) => (
-          <AdHocFilterEditSwitch key={index} filter={filter} model={model} />
-        ))}
-
-        <AdHocCombobox model={model} wip ref={focusOnInputRef} />
-      </div>
-    );
+    return <AdHocFiltersComboboxRenderer model={model} />;
   }
 
   return (
@@ -367,33 +350,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     alignItems: 'flex-end',
     columnGap: theme.spacing(2),
     rowGap: theme.spacing(1),
-  }),
-  comboboxWrapper: css({
-    display: 'flex',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    columnGap: theme.spacing(1),
-    rowGap: theme.spacing(0.5),
-    minHeight: theme.spacing(4),
-    backgroundColor: theme.components.input.background,
-    border: `1px solid ${theme.colors.border.strong}`,
-    borderRadius: theme.shape.radius.default,
-    paddingInline: theme.spacing(1),
-    paddingBlock: theme.spacing(0.5),
-    flexGrow: 1,
-
-    '&:focus-within': {
-      outline: '2px dotted transparent',
-      outlineOffset: '2px',
-      boxShadow: `0 0 0 2px ${theme.colors.background.canvas}, 0 0 0px 4px ${theme.colors.primary.main}`,
-      transitionTimingFunction: `cubic-bezier(0.19, 1, 0.22, 1)`,
-      transitionDuration: '0.2s',
-      transitionProperty: 'outline, outline-offset, box-shadow',
-    },
-  }),
-  filterIcon: css({
-    color: theme.colors.text.secondary,
-    alignSelf: 'center',
   }),
 });
 
