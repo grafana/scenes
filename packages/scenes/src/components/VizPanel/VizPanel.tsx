@@ -254,7 +254,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return sceneTimeRange.state.value;
   };
 
-  public async changePluginType(pluginId: string, options?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
+  public async changePluginType(pluginId: string, newOptions?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
     const {
       options: prevOptions,
       fieldConfig: prevFieldConfig,
@@ -264,7 +264,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     //clear field config cache to update it later
     this._dataWithFieldConfig = undefined;
 
-    await this._loadPlugin(pluginId, options ?? {}, newFieldConfig, true);
+    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, true);
 
     const panel: PanelModel = {
       title: this.state.title,
@@ -274,10 +274,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       type: pluginId,
     };
 
-    const newOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
+    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React. 
+    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches. 
+    const updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
 
-    if (newOptions && !isEmpty(newOptions)) {
-      this.onOptionsChange(newOptions, true, true);
+    if (updatedOptions && !isEmpty(updatedOptions)) {
+      this.onOptionsChange(updatedOptions, true, true);
     }
   }
 
