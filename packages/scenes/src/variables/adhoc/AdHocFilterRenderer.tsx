@@ -6,35 +6,11 @@ import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui'
 import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { getAdhocOptionSearcher } from './getAdhocOptionSearcher';
+import { handleOptionGroups } from '../utils';
 
 interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
-}
-
-// Collect a flat list of SelectableValues with a `group` property into a hierarchical list with groups
-function handleOptionGroups(values: SelectableValue[]): Array<SelectableValue<string>> {
-  const result: Array<SelectableValue<string>> = [];
-  const groupedResults = new Map<string, Array<SelectableValue<string>>>();
-
-  for (const value of values) {
-    const groupLabel = value.group;
-    if (groupLabel) {
-      let group = groupedResults.get(groupLabel);
-
-      if (!group) {
-        group = [];
-        groupedResults.set(groupLabel, group);
-        result.push({ label: groupLabel, options: group });
-      }
-
-      group.push(value);
-    } else {
-      result.push(value);
-    }
-  }
-
-  return result;
 }
 
 function keyLabelToOption(key: string, label?: string): SelectableValue | null {
@@ -134,7 +110,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       width="auto"
       value={keyValue}
       placeholder={'Select label'}
-      options={keys}
+      options={handleOptionGroups(keys)}
       onChange={(v) => model._updateFilter(filter, 'key', v)}
       autoFocus={filter.key === ''}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously

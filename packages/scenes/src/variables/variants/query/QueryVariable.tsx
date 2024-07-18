@@ -53,7 +53,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       options: [],
       datasource: null,
       regex: '',
-      query: { refId: 'A' },
+      query: '',
       refresh: VariableRefresh.onDashboardLoad,
       sort: VariableSort.disabled,
       ...initialState,
