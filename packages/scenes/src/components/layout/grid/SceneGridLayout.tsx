@@ -2,13 +2,16 @@ import ReactGridLayout from 'react-grid-layout';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneLayout, SceneObjectState } from '../../../core/types';
-import { DEFAULT_PANEL_SPAN } from './constants';
-import { isSceneGridRow } from './SceneGridItem';
+import { DEFAULT_PANEL_SPAN, GRID_COLUMN_COUNT } from './constants';
+import { isSceneGridRow, SceneGridItem } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement } from './types';
 import { fitPanelsInHeight } from './utils';
+import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
+import { lookupVariable } from '../../../variables/lookupVariable';
+import { interpolate } from '../../../core/sceneGraph/sceneGraph';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -33,6 +36,12 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   private _skipOnLayoutChange = false;
   private _oldLayout: ReactGridLayout.Layout[] = [];
   private _loadOldLayout = false;
+
+  private savedLayout: SceneGridItemLike[] | undefined = undefined;
+
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    variableNames: ['systemPanelFilterVar'],
+  });
 
   public constructor(state: SceneGridLayoutState) {
     super({
@@ -351,8 +360,38 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
   public buildGridLayout(width: number, height: number): ReactGridLayout.Layout[] {
     let cells: ReactGridLayout.Layout[] = [];
+    const systemPanelFilter = lookupVariable('systemPanelFilterVar', this);
+    const panelFilterValue = systemPanelFilter?.getValue()?.toString();
 
-    for (const child of this.state.children) {
+    let children = this.state.children;
+    if (panelFilterValue && panelFilterValue !== '') {
+      if (this.savedLayout === undefined) {
+        // save layout
+        this.savedLayout = this.state.children.map((v) => v.clone());
+      }
+
+      const panelFilterInterpolated = interpolate(this, panelFilterValue).toLowerCase();
+      const filteredChildren = this.state.children.filter(
+        (v) =>
+          typeof (v.state as any).body?.state?.title === 'string' &&
+          (v.state as any).body.state.title.toLowerCase().includes(panelFilterInterpolated)
+      );
+      return filteredChildren.map((child, i) => ({
+        ...this.toGridCell(child),
+        x: (i % 2) * GRID_COLUMN_COUNT,
+        y: Math.floor(i / 2),
+        isResizable: false,
+        isDraggable: false,
+      }));
+    } else if (!panelFilterValue || panelFilterValue === '') {
+      if (this.savedLayout) {
+        // restore saved layout
+        children = this.savedLayout;
+        this.savedLayout = undefined;
+      }
+    }
+
+    for (const child of children) {
       cells.push(this.toGridCell(child));
 
       if (child instanceof SceneGridRow && !child.state.isCollapsed) {
