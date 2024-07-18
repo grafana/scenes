@@ -8,7 +8,7 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
-import { config } from '@grafana/runtime';
+import { config, RefreshEvent } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone'] });
@@ -150,6 +150,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
         this.state.UNSAFE_nowDelay
       ),
     });
+
+    this.publishEvent(new RefreshEvent());
   };
 
   public getUrlState() {

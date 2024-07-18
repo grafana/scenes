@@ -116,6 +116,7 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
 let sentRequest: DataQueryRequest | undefined;
 
 jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
   getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
     sentRequest = request;
     return runRequestMock(ds, request);
@@ -1061,9 +1062,9 @@ describe('SceneQueryRunner', () => {
 
       expect(sentRequest).toBeDefined();
       const { scopedVars } = sentRequest!;
-      
-      expect(scopedVars.__interval?.text).toBe('1h')
-      expect(scopedVars.__interval?.value).toBe('1h')
+
+      expect(scopedVars.__interval?.text).toBe('1h');
+      expect(scopedVars.__interval?.value).toBe('1h');
     });
   });
 
