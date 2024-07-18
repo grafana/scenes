@@ -2,16 +2,25 @@ import { toUtc, setWeekStart, dateMath } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
-import { config } from '@grafana/runtime';
+import { config, RefreshEvent } from '@grafana/runtime';
 
 jest.mock('@grafana/data', () => ({
   ...jest.requireActual('@grafana/data'),
   setWeekStart: jest.fn(),
 }));
 
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  RefreshEvent: jest.fn(() => ({ type: 'refresh-event' })),
+}));
+
 config.bootData = { user: { weekStart: 'monday' } } as any;
 
 describe('SceneTimeRange', () => {
+  beforeEach(() => {
+    jest.mocked(RefreshEvent).mockClear();
+  });
+
   it('when created should evaluate time range', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
     expect(timeRange.state.value.raw.from).toBe('now-1h');
@@ -24,6 +33,13 @@ describe('SceneTimeRange', () => {
     timeRange.onRefresh();
     const diff = timeRange.state.value.from.valueOf() - startTime;
     expect(diff).toBeGreaterThan(0);
+  });
+
+  it('when time range refreshed should trigger refresh event', async () => {
+    const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now' });
+    expect(RefreshEvent).not.toHaveBeenCalled();
+    timeRange.onRefresh();
+    expect(RefreshEvent).toHaveBeenCalled();
   });
 
   it('toUrlValues with relative range', () => {
