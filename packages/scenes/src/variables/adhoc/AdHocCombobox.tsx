@@ -70,6 +70,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const { _wip } = model.useState();
 
+  const handleResetWip = useCallback(() => {
+    if (wip) {
+      model._addWip();
+      setInputType('key');
+      setInputValue('');
+    }
+  }, [model, wip]);
+
   const filterToUse = filter || _wip;
 
   const operatorIdentifier = `${filterToUse?.key ?? ''}-operator`;
@@ -82,6 +90,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       // change from filter edit mode to filter view mode when clicked
       //   outside input or dropdown
       if (['outside-press', 'escape-key'].includes(reason || '')) {
+        handleResetWip();
         handleChangeViewMode?.();
       }
     },
@@ -217,14 +226,23 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [inputValue]
+    [inputValue, inputType]
   );
 
-  const handleShiftTabInput = useCallback((event: React.KeyboardEvent) => {
+  const handleTabInput = useCallback((event: React.KeyboardEvent) => {
     // change filter to view mode when navigating away with Tab key
     //  this is needed because useDismiss only reacts to mousedown
     if (event.key === 'Tab' && !event.shiftKey) {
       handleChangeViewMode?.();
+      handleResetWip();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleShiftTabInput = useCallback((event: React.KeyboardEvent) => {
+    if (event.key === 'Tab' && event.shiftKey) {
+      handleChangeViewMode?.();
+      handleResetWip();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -276,10 +294,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
                 refs.domReference.current?.focus();
               }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+              onKeyDown={(event) => {
+                handleShiftTabInput(event);
+                if (event.key === 'Enter') {
                   flushInputType('operator');
-
                   refs.domReference.current?.focus();
                 }
               }}
@@ -309,8 +327,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             : 'Filter by label values',
           'aria-autocomplete': 'list',
           onKeyDown(event) {
+            if (inputType === 'operator') {
+              handleShiftTabInput(event);
+            }
             handleBackspaceInput(event);
-            handleShiftTabInput(event);
+            handleTabInput(event);
             handleEnterInput(event);
           },
         })}
@@ -425,12 +446,20 @@ interface AdHocFilterEditSwitchProps {
 export function AdHocFilterEditSwitch({ filter, model }: AdHocFilterEditSwitchProps) {
   const styles = useStyles2(getStyles3);
   const [viewMode, setViewMode] = useState(true);
+  const pillWrapperRef = useRef<HTMLDivElement>(null);
 
   const handleChangeViewMode = useCallback((event?: React.MouseEvent) => {
     event?.stopPropagation();
+    let viewMode = false;
     flushSync(() => {
-      setViewMode((mode) => !mode);
+      setViewMode((mode) => {
+        viewMode = mode;
+        return !mode;
+      });
     });
+    if (!viewMode) {
+      pillWrapperRef.current?.focus();
+    }
   }, []);
 
   if (viewMode) {
@@ -446,6 +475,7 @@ export function AdHocFilterEditSwitch({ filter, model }: AdHocFilterEditSwitchPr
         role="button"
         aria-label="Edit filter"
         tabIndex={0}
+        ref={pillWrapperRef}
       >
         <span>
           {filter.key} {filter.operator} {filter.value}
