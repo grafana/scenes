@@ -15,11 +15,14 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabel?: string;
 }
+
+export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
@@ -36,7 +39,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @experimental
    * Controls the layout and design of the label.
    */
-  layout?: ControlsLayout;
+  layout?: AdHocControlsLayout;
   /**
    * Defaults to automatic which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
    * In manual mode you either have to use the filters programmatically or as a variable inside query expressions.
@@ -199,6 +202,14 @@ export class AdHocFiltersVariable
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
   }
 
+  public _removeLastFilter() {
+    const filterToRemove = this.state.filters.at(-1);
+
+    if (filterToRemove) {
+      this._removeFilter(filterToRemove);
+    }
+  }
+
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
@@ -221,11 +232,16 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
-    const response = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
+    const response = await ds.getTagKeys({
+      filters: otherFilters,
+      queries,
+      timeRange,
+      ...getEnrichedFiltersRequest(this),
+    });
 
     if (responseHasError(response)) {
       // @ts-expect-error Remove when 11.1.x is released
-      this.setState({ error: response.error.message })
+      this.setState({ error: response.error.message });
     }
 
     let keys = dataFromResponse(response);
@@ -310,6 +326,10 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
+  if (model.state.layout === 'combobox') {
+    return <AdHocFiltersComboboxRenderer model={model} />;
+  }
+
   return (
     <div className={styles.wrapper}>
       {filters.map((filter, index) => (
@@ -330,10 +350,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     alignItems: 'flex-end',
     columnGap: theme.spacing(2),
     rowGap: theme.spacing(1),
-  }),
-  filterIcon: css({
-    color: theme.colors.text.secondary,
-    paddingRight: theme.spacing(0.5),
   }),
 });
 
