@@ -1,3 +1,16 @@
+# v5.6.0 (Fri Jul 19 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Wrap __sceneObject scoped var in an serialisable wrapper [#828](https://github.com/grafana/scenes/pull/828) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v5.5.1 (Thu Jul 18 2024)
 
 #### 🐛 Bug Fix
