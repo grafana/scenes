@@ -28,7 +28,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         <AdHocFiltersComboboxEditSwitch key={index} filter={filter} model={model} />
       ))}
 
-      <AdHocCombobox model={model} wip ref={focusOnInputRef} />
+      <AdHocCombobox model={model} isAlwaysWip ref={focusOnInputRef} />
     </div>
   );
 });

@@ -48,7 +48,7 @@ const Item = forwardRef<HTMLDivElement, ItemProps & React.HTMLProps<HTMLDivEleme
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
-  wip?: boolean;
+  isAlwaysWip?: boolean;
   model: AdHocFiltersVariable;
   handleChangeViewMode?: () => void;
 }
@@ -56,7 +56,7 @@ interface AdHocComboboxProps {
 type AdHocInputType = 'key' | 'operator' | 'value';
 
 export const AdHocCombobox = forwardRef(function AdHocCombobox(
-  { filter, model, wip, handleChangeViewMode }: AdHocComboboxProps,
+  { filter, model, isAlwaysWip, handleChangeViewMode }: AdHocComboboxProps,
   parentRef
 ) {
   const [open, setOpen] = useState(false);
@@ -66,19 +66,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const [optionsError, setOptionsError] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState('');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [inputType, setInputType] = useState<AdHocInputType>(!wip ? 'value' : 'key');
+  const [filterInputType, setInputType] = useState<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
   const styles = useStyles2(getStyles2);
 
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const { _wip } = model.useState();
 
   const handleResetWip = useCallback(() => {
-    if (wip) {
+    if (isAlwaysWip) {
       model._addWip();
       setInputType('key');
       setInputValue('');
     }
-  }, [model, wip]);
+  }, [model, isAlwaysWip]);
 
   const filterToUse = filter || _wip;
 
@@ -134,52 +134,52 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   useImperativeHandle(parentRef, () => () => refs.domReference.current?.focus(), [refs.domReference]);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
-    // part of POC for seamless filter parser
-    if (inputType === 'key') {
-      const lastChar = event.target.value.slice(-1);
-      if (['=', '!', '<', '>'].includes(lastChar)) {
-        const key = event.target.value.slice(0, -1);
-        const optionIndex = options.findIndex((option) => option.value === key);
-        if (optionIndex >= 0) {
-          model._updateFilter(filterToUse!, inputType, options[optionIndex]);
-          setInputValue(lastChar);
-        }
-        flushSync(() => {
-          setInputType('operator');
-        });
-        refs.domReference.current?.focus();
-        return;
-      }
-    }
-    if (inputType === 'operator') {
-      const lastChar = event.target.value.slice(-1);
-      if (/\w/.test(lastChar)) {
-        const operator = event.target.value.slice(0, -1);
-        if (!/\w/.test(operator)) {
-          const optionIndex = options.findIndex((option) => option.value === operator);
-          if (optionIndex >= 0) {
-            model._updateFilter(filterToUse!, inputType, options[optionIndex]);
-            setInputValue(lastChar);
-          }
-          flushSync(() => {
-            setInputType('value');
-          });
-          refs.domReference.current?.focus();
-          return;
-        }
-      }
-    }
+    // // part of POC for seamless filter parser
+    // if (filterInputType === 'key') {
+    //   const lastChar = event.target.value.slice(-1);
+    //   if (['=', '!', '<', '>'].includes(lastChar)) {
+    //     const key = event.target.value.slice(0, -1);
+    //     const optionIndex = options.findIndex((option) => option.value === key);
+    //     if (optionIndex >= 0) {
+    //       model._updateFilter(filterToUse!, filterInputType, options[optionIndex]);
+    //       setInputValue(lastChar);
+    //     }
+    //     flushSync(() => {
+    //       setInputType('operator');
+    //     });
+    //     refs.domReference.current?.focus();
+    //     return;
+    //   }
+    // }
+    // if (filterInputType === 'operator') {
+    //   const lastChar = event.target.value.slice(-1);
+    //   if (/\w/.test(lastChar)) {
+    //     const operator = event.target.value.slice(0, -1);
+    //     if (!/\w/.test(operator)) {
+    //       const optionIndex = options.findIndex((option) => option.value === operator);
+    //       if (optionIndex >= 0) {
+    //         model._updateFilter(filterToUse!, filterInputType, options[optionIndex]);
+    //         setInputValue(lastChar);
+    //       }
+    //       flushSync(() => {
+    //         setInputType('value');
+    //       });
+    //       refs.domReference.current?.focus();
+    //       return;
+    //     }
+    //   }
+    // }
 
     const value = event.target.value;
     setInputValue(value);
     setActiveIndex(0);
   }
 
-  const items = options.filter((item) =>
+  const filteredDropDownItems = options.filter((item) =>
     (item.label ?? item.value)?.toLocaleLowerCase().startsWith(inputValue.toLowerCase())
   );
 
-  const flushInputType = useCallback((inputType: AdHocInputType) => {
+  const flushSyncInputType = useCallback((inputType: AdHocInputType) => {
     flushSync(() => {
       setInputType(inputType);
     });
@@ -188,7 +188,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // when combobox is in wip mode then check and add _wip if its missing
   //    needed on first render and when _wip is reset on filter value commit
   useEffect(() => {
-    if (wip && !_wip) {
+    if (isAlwaysWip && !_wip) {
       model._addWip();
     }
 
@@ -198,7 +198,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // when not in wip mode this is the point of switching from view to edit mode
   //    and in this case we default to 'value' input type and focus input
   useEffect(() => {
-    if (!wip && refs.domReference.current) {
+    if (!isAlwaysWip && refs.domReference.current) {
       setInputType('value');
       setInputValue('');
 
@@ -232,13 +232,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleBackspaceInput = useCallback(
     (event: React.KeyboardEvent) => {
-      if (event.key === 'Backspace' && !inputValue && inputType === 'key') {
+      if (event.key === 'Backspace' && !inputValue && filterInputType === 'key') {
         model._removeLastFilter();
-        handleFetchOptions(inputType);
+        handleFetchOptions(filterInputType);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [inputValue, inputType]
+    [inputValue, filterInputType]
   );
 
   const handleTabInput = useCallback((event: React.KeyboardEvent) => {
@@ -261,17 +261,31 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent) => {
-      if (event.key === 'Enter' && activeIndex != null && items[activeIndex]) {
-        model._updateFilter(filterToUse!, inputType, items[activeIndex]);
+      if (event.key === 'Enter' && activeIndex != null) {
+        // dropDownItems[activeIndex] can be undefined if we entering custom value only
+        //  therefore adding a guard for other filterInputTypes
+        if (filterInputType !== 'value' && !filteredDropDownItems[activeIndex]) {
+          return;
+        }
+
+        let dropdownItem = filteredDropDownItems[activeIndex];
+
+        // if we entering value and match no items in dropdown then allow
+        //   to allow to enter current input value
+        if (filterInputType === 'value' && !filteredDropDownItems[activeIndex]) {
+          dropdownItem = { value: inputValue };
+        }
+
+        model._updateFilter(filterToUse!, filterInputType, dropdownItem);
         setInputValue('');
         setActiveIndex(0);
 
-        if (inputType === 'key') {
-          flushInputType('operator');
-        } else if (inputType === 'operator') {
-          flushInputType('value');
-        } else if (inputType === 'value') {
-          flushInputType('key');
+        if (filterInputType === 'key') {
+          flushSyncInputType('operator');
+        } else if (filterInputType === 'operator') {
+          flushSyncInputType('value');
+        } else if (filterInputType === 'value') {
+          flushSyncInputType('key');
 
           handleChangeViewMode?.();
         }
@@ -280,22 +294,22 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeIndex, filterToUse, inputType, items, model]
+    [activeIndex, filterToUse, filterInputType, filteredDropDownItems, model]
   );
 
   useEffect(() => {
     if (open) {
-      handleFetchOptions(inputType);
+      handleFetchOptions(filterInputType);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, inputType]);
+  }, [open, filterInputType]);
 
   return (
     <div className={styles.comboboxWrapper}>
       {filterToUse ? (
         <div className={styles.pillWrapper}>
           {filterToUse?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{filterToUse.key}</div> : null}
-          {filterToUse?.key && filterToUse?.operator && inputType !== 'operator' ? (
+          {filterToUse?.key && filterToUse?.operator && filterInputType !== 'operator' ? (
             <div
               className={cx(styles.basePill, styles.operatorPill, operatorIdentifier)}
               role="button"
@@ -303,14 +317,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               tabIndex={0}
               onClick={(event) => {
                 event.stopPropagation();
-                flushInputType('operator');
+                flushSyncInputType('operator');
 
                 refs.domReference.current?.focus();
               }}
               onKeyDown={(event) => {
                 handleShiftTabInput(event);
                 if (event.key === 'Enter') {
-                  flushInputType('operator');
+                  flushSyncInputType('operator');
                   refs.domReference.current?.focus();
                 }
               }}
@@ -321,7 +335,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           {filterToUse?.key &&
           filterToUse?.operator &&
           filterToUse?.value &&
-          !['operator', 'value'].includes(inputType) ? (
+          !['operator', 'value'].includes(filterInputType) ? (
             <div className={cx(styles.basePill, styles.valuePill)}>{filterToUse.value}</div>
           ) : null}
         </div>
@@ -333,14 +347,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           onChange,
           value: inputValue,
           // dynamic placeholder to display operator and/or value in filter edit mode
-          placeholder: !wip
-            ? inputType === 'operator'
-              ? `${filterToUse![inputType]} ${filterToUse!.value || ''}`
-              : filterToUse![inputType]
+          placeholder: !isAlwaysWip
+            ? filterInputType === 'operator'
+              ? `${filterToUse![filterInputType]} ${filterToUse!.value || ''}`
+              : filterToUse![filterInputType]
             : 'Filter by label values',
           'aria-autocomplete': 'list',
           onKeyDown(event) {
-            if (inputType === 'operator') {
+            if (filterInputType === 'operator') {
               handleShiftTabInput(event);
             }
             handleBackspaceInput(event);
@@ -374,39 +388,63 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               {optionsLoading ? (
                 <LoadingOptionsPlaceholder />
               ) : optionsError ? (
-                <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(inputType)} />
-              ) : !items.length ? (
+                <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
+              ) : !filteredDropDownItems.length && filterInputType !== 'value' ? (
                 <NoOptionsPlaceholder />
               ) : (
-                items.map((item, index) => (
-                  // eslint-disable-next-line react/jsx-key
-                  <Item
-                    {...getItemProps({
-                      key: item.value!,
-                      ref(node) {
-                        listRef.current[index] = node;
-                      },
-                      onClick() {
-                        model._updateFilter(filterToUse!, inputType, item);
-                        setInputValue('');
+                <>
+                  {filteredDropDownItems.map((item, index) => (
+                    // eslint-disable-next-line react/jsx-key
+                    <Item
+                      {...getItemProps({
+                        key: item.value!,
+                        ref(node) {
+                          listRef.current[index] = node;
+                        },
+                        onClick() {
+                          model._updateFilter(filterToUse!, filterInputType, item);
+                          setInputValue('');
 
-                        if (inputType === 'key') {
-                          flushInputType('operator');
-                        } else if (inputType === 'operator') {
-                          flushInputType('value');
-                        } else if (inputType === 'value') {
-                          flushInputType('key');
+                          if (filterInputType === 'key') {
+                            flushSyncInputType('operator');
+                          } else if (filterInputType === 'operator') {
+                            flushSyncInputType('value');
+                          } else if (filterInputType === 'value') {
+                            flushSyncInputType('key');
+                            handleChangeViewMode?.();
+                          }
+
+                          refs.domReference.current?.focus();
+                        },
+                      })}
+                      active={activeIndex === index}
+                    >
+                      {item.label ?? item.value}
+                    </Item>
+                  ))}
+                  {filterInputType === 'value' ? (
+                    <Item
+                      {...getItemProps({
+                        key: '__custom_value_list_item',
+                        ref(node) {
+                          listRef.current[filteredDropDownItems.length ? filteredDropDownItems.length + 1 : 0] = node;
+                        },
+                        onClick() {
+                          model._updateFilter(filterToUse!, filterInputType, { value: inputValue });
+                          setInputValue('');
+
+                          flushSyncInputType('key');
+
                           handleChangeViewMode?.();
-                        }
-
-                        refs.domReference.current?.focus();
-                      },
-                    })}
-                    active={activeIndex === index}
-                  >
-                    {item.label ?? item.value}
-                  </Item>
-                ))
+                          refs.domReference.current?.focus();
+                        },
+                      })}
+                      active={activeIndex === (filteredDropDownItems.length ? filteredDropDownItems.length + 1 : 0)}
+                    >
+                      Use custom value: {inputValue}
+                    </Item>
+                  ) : null}
+                </>
               )}
             </div>
           </FloatingFocusManager>
