@@ -239,7 +239,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   }
 
   public isRelative(): boolean {
-    return this.state.to === NOW
+    return this.state.to.includes(NOW)
   }
 }
 const NOW = 'now'
