@@ -36,6 +36,7 @@ import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
+import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -317,11 +318,17 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
+      expect(1).toBe(1);
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
-      expect(getDataSourceCall[1].__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
+      expect((runRequestCall[1].scopedVars.__sceneObject.value as SafeSerializableSceneObject).valueOf()).toBe(
+        queryRunner
+      );
+      expect(runRequestCall[1].scopedVars.__sceneObject.text).toBe('__sceneObject');
+
+      expect((getDataSourceCall[1].__sceneObject.value as SafeSerializableSceneObject).valueOf()).toBe(queryRunner);
+      expect(getDataSourceCall[1].__sceneObject.text).toBe('__sceneObject');
     });
 
     it('should pass adhoc filters via request object', async () => {
