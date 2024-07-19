@@ -60,8 +60,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   parentRef
 ) {
   const [open, setOpen] = useState(false);
-  //   const [optionsLoading, setOptionsLoading] = useState<boolean>(false);
+
   const [options, setOptions] = useState<Array<SelectableValue<string>>>([]);
+  const [optionsLoading, setOptionsLoading] = useState<boolean>(false);
+  const [optionsError, setOptionsError] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState('');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [inputType, setInputType] = useState<AdHocInputType>(!wip ? 'value' : 'key');
@@ -205,24 +207,34 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleFetchOptions = useCallback(async () => {
-    let options: Array<SelectableValue<string>> = [];
-    // TODO: missing async placeholder while options load
-    if (inputType === 'key') {
-      options = await model._getKeys(null);
-    } else if (inputType === 'operator') {
-      options = model._getOperators();
-    } else if (inputType === 'value') {
-      options = await model._getValuesFor(filterToUse!);
-    }
-    setOptions(options);
-  }, [filterToUse, inputType, model]);
+  const handleFetchOptions = useCallback(
+    async (inputType: AdHocInputType) => {
+      setOptionsError(false);
+      setOptionsLoading(true);
+      setOptions([]);
+      let options: Array<SelectableValue<string>> = [];
+      try {
+        if (inputType === 'key') {
+          options = await model._getKeys(null);
+        } else if (inputType === 'operator') {
+          options = model._getOperators();
+        } else if (inputType === 'value') {
+          options = await model._getValuesFor(filterToUse!);
+        }
+        setOptions(options);
+      } catch (e) {
+        setOptionsError(true);
+      }
+      setOptionsLoading(false);
+    },
+    [filterToUse, model]
+  );
 
   const handleBackspaceInput = useCallback(
     (event: React.KeyboardEvent) => {
       if (event.key === 'Backspace' && !inputValue && inputType === 'key') {
         model._removeLastFilter();
-        setOpen(false);
+        handleFetchOptions(inputType);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -252,6 +264,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       if (event.key === 'Enter' && activeIndex != null && items[activeIndex]) {
         model._updateFilter(filterToUse!, inputType, items[activeIndex]);
         setInputValue('');
+        setActiveIndex(0);
 
         if (inputType === 'key') {
           flushInputType('operator');
@@ -272,7 +285,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   useEffect(() => {
     if (open) {
-      handleFetchOptions();
+      handleFetchOptions(inputType);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, inputType]);
@@ -358,35 +371,43 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               })}
               className={styles.dropdownWrapper}
             >
-              {items.map((item, index) => (
-                // eslint-disable-next-line react/jsx-key
-                <Item
-                  {...getItemProps({
-                    key: item.value!,
-                    ref(node) {
-                      listRef.current[index] = node;
-                    },
-                    onClick() {
-                      model._updateFilter(filterToUse!, inputType, item);
-                      setInputValue('');
+              {optionsLoading ? (
+                <LoadingOptionsPlaceholder />
+              ) : optionsError ? (
+                <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(inputType)} />
+              ) : !items.length ? (
+                <NoOptionsPlaceholder />
+              ) : (
+                items.map((item, index) => (
+                  // eslint-disable-next-line react/jsx-key
+                  <Item
+                    {...getItemProps({
+                      key: item.value!,
+                      ref(node) {
+                        listRef.current[index] = node;
+                      },
+                      onClick() {
+                        model._updateFilter(filterToUse!, inputType, item);
+                        setInputValue('');
 
-                      if (inputType === 'key') {
-                        flushInputType('operator');
-                      } else if (inputType === 'operator') {
-                        flushInputType('value');
-                      } else if (inputType === 'value') {
-                        flushInputType('key');
-                        handleChangeViewMode?.();
-                      }
+                        if (inputType === 'key') {
+                          flushInputType('operator');
+                        } else if (inputType === 'operator') {
+                          flushInputType('value');
+                        } else if (inputType === 'value') {
+                          flushInputType('key');
+                          handleChangeViewMode?.();
+                        }
 
-                      refs.domReference.current?.focus();
-                    },
-                  })}
-                  active={activeIndex === index}
-                >
-                  {item.label ?? item.value}
-                </Item>
-              ))}
+                        refs.domReference.current?.focus();
+                      },
+                    })}
+                    active={activeIndex === index}
+                  >
+                    {item.label ?? item.value}
+                  </Item>
+                ))
+              )}
             </div>
           </FloatingFocusManager>
         )}
@@ -394,6 +415,22 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     </div>
   );
 });
+
+const LoadingOptionsPlaceholder = () => {
+  return <Item active={false}>Loading options...</Item>;
+};
+
+const NoOptionsPlaceholder = () => {
+  return <Item active={false}>No options found</Item>;
+};
+
+const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
+  return (
+    <Item active={false} onClick={handleFetchOptions}>
+      Error. Click to try again!
+    </Item>
+  );
+};
 
 const getStyles2 = (theme: GrafanaTheme2) => ({
   comboboxWrapper: css({
