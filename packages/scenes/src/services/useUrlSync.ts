@@ -1,11 +1,28 @@
+import { useLocationService } from '@grafana/runtime';
+
 import { SceneObject } from '../core/types';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getUrlSyncManager } from './UrlSyncManager';
-import { locationService } from '@grafana/runtime';
+import { UrlSyncManager } from './UrlSyncManager';
 
 export function useUrlSync(sceneRoot: SceneObject): boolean {
-  const urlSyncManager = getUrlSyncManager();
+  const locationService = useLocationService();
+  const urlSyncManager = useMemo(() => {
+    // TODO: not sure what to do with these typings
+    // @ts-ignore
+    if (sceneRoot.state.urlSyncManager) {
+      // The assumption here is that we need to pass it only in case this get initialized from the
+      // UrlSyncContextProvider. In other cases this will create a new syncManager and hopefully that is ok as this
+      // should be called once somewhere in the root of the scene.
+
+      // @ts-ignore
+      return sceneRoot.state.urlSyncManager;
+    }
+
+    return new UrlSyncManager(locationService)
+  }, [locationService, sceneRoot]);
+
+
   const location = useLocation();
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -25,7 +42,7 @@ export function useUrlSync(sceneRoot: SceneObject): boolean {
     }
 
     urlSyncManager.handleNewLocation(locationToHandle);
-  }, [sceneRoot, urlSyncManager, location]);
+  }, [sceneRoot, urlSyncManager, location, locationService]);
 
   return isInitialized;
 }

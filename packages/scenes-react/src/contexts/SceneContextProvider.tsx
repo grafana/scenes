@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   SceneTimeRangeState,
   SceneTimeRange,
   behaviors,
   UrlSyncContextProvider,
-  getUrlSyncManager,
+  UrlSyncManager,
 } from '@grafana/scenes';
+import { useLocationService } from '@grafana/runtime';
 
 import { SceneContextObject, SceneContextObjectState } from './SceneContextObject';
 
@@ -31,6 +32,9 @@ export interface SceneContextProviderProps {
  * Wrapps the react children in a SceneContext
  */
 export function SceneContextProvider({ children, timeRange, withQueryController }: SceneContextProviderProps) {
+  const locationService = useLocationService()
+  const urlSyncManager = useMemo(() => new UrlSyncManager(locationService), [locationService]);
+
   const parentContext = useContext(SceneContext);
   const [childContext, setChildContext] = useState<SceneContextObject | undefined>();
 
@@ -38,7 +42,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
   const initialTimeRange = timeRange;
 
   useEffect(() => {
-    const state: SceneContextObjectState = { children: [] };
+    const state: SceneContextObjectState = { children: [], urlSyncManager };
 
     if (withQueryController) {
       state.$behaviors = [new behaviors.SceneQueryController()];
@@ -51,7 +55,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
     const childContext = new SceneContextObject(state);
 
     if (parentContext) {
-      getUrlSyncManager().handleNewObject(childContext);
+      urlSyncManager.handleNewObject(childContext);
       parentContext.addChildContext(childContext);
     }
 
