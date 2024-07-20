@@ -1,4 +1,4 @@
-import { getTimeZone, setWeekStart, TimeRange } from '@grafana/data';
+import { getTimeZone, rangeUtil, setWeekStart, TimeRange } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -15,7 +15,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
     const from = state.from ?? 'now-6h';
-    const to = state.to ?? NOW;
+    const to = state.to ?? 'now';
     const timeZone = state.timeZone;
     const value = evaluateTimeRange(
       from,
@@ -56,7 +56,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       setWeekStart(this.state.weekStart);
     }
 
-    if(this.isRelative()){
+    if(rangeUtil.isRelativeTimeRange(this.state.value.raw)){
       this.refreshIfStale();
     }
 
@@ -237,9 +237,4 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
     this.setState(update);
   }
-
-  public isRelative(): boolean {
-    return this.state.to.includes(NOW)
-  }
 }
-const NOW = 'now'
