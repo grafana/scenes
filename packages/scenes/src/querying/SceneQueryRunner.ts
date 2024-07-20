@@ -1,15 +1,16 @@
 import { cloneDeep, isEqual } from 'lodash';
-import { forkJoin, ReplaySubject, Unsubscribable } from 'rxjs';
+import { forkJoin, Observable, ReplaySubject, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef } from '@grafana/schema';
 
 import {
   AlertStateInfo,
   DataFrame,
   DataFrameView,
   DataQueryRequest,
-  DataSourceApi,
+  DataSourceApi, DataSourceJsonData,
   DataTopic,
+  LoadingState,
   PanelData,
   preProcessPanelData,
   rangeUtil,
@@ -17,7 +18,7 @@ import {
 
 // TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
 // @ts-ignore
-import { getRunRequest, toDataQueryError, isExpressionReference } from '@grafana/runtime';
+import { getRunRequest, isExpressionReference, toDataQueryError } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -35,8 +36,8 @@ import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { getClosest } from '../core/sceneGraph/utils';
-import { isExtraQueryProvider, ExtraQueryDataProcessor, ExtraQueryProvider } from './ExtraQueryProvider';
-import { passthroughProcessor, extraQueryProcessingOperator } from './extraQueryProcessingOperator';
+import { ExtraQueryDataProcessor, ExtraQueryProvider, isExtraQueryProvider } from './ExtraQueryProvider';
+import { extraQueryProcessingOperator, passthroughProcessor } from './extraQueryProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetAdhocFilters';
@@ -47,6 +48,7 @@ import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHoc
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
+import { getSceneQueryRunnerStore, SceneQueryRunnerStore, SceneQueryRunnerStoreProps } from './SceneQueryRunnerStore';
 
 let counter = 100;
 
@@ -68,6 +70,7 @@ export interface QueryRunnerState extends SceneObjectState {
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
   _hasFetchedData?: boolean;
+  // limitConcurrency: SceneQueryRunnerStoreState
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -114,6 +117,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private _adhocFiltersVar?: AdHocFiltersVariable;
   private _groupByVar?: GroupByVariable;
+  private _limitConcurrency?: SceneQueryRunnerStore
 
   public getResultsStream() {
     return this._results;
@@ -125,9 +129,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     onAnyVariableChanged: this.onAnyVariableChanged.bind(this),
   });
 
-  public constructor(initialState: QueryRunnerState) {
-    super(initialState);
-
+  public constructor(initialState: QueryRunnerState & {concurrency?: SceneQueryRunnerStoreProps}) {
+    console.log('constructing scenequeryrunner')
+    super({
+      ...initialState,
+    });
+    this._limitConcurrency = getSceneQueryRunnerStore(initialState.concurrency ?? {maxConcurrentQueries: 1})
     this.addActivationHandler(() => this._onActivate());
   }
 
@@ -399,6 +406,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     });
   }
 
+  private getRunRequest(ds: DataSourceApi<DataQuery, DataSourceJsonData, {}>, request: DataQueryRequest<DataQuery>): Observable<PanelData> {
+    if(this._limitConcurrency?.runRequest){
+      return this._limitConcurrency.runRequest(ds, request)
+    }else{
+      console.warn('Concurrency limit not found')
+      const runRequest = getRunRequest()
+      return runRequest(ds, request)
+    }
+  }
+
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // If no maxDataPoints specified we might need to wait for container width to be set from the outside
     if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
@@ -434,16 +451,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       this.findAndSubscribeToAdHocFilters(datasource?.uid);
 
-      const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
-      let stream = runRequest(ds, primary);
+      let stream = this.getRunRequest(ds, primary);
 
       if (secondaries.length > 0) {
         // Submit all secondary requests in parallel.
-        const secondaryStreams = secondaries.map((r) => runRequest(ds, r));
+        const secondaryStreams = secondaries.map((r) => this.getRunRequest(ds, r));
         // Create the rxjs operator which will combine the primary and secondary responses
         // by calling the correct processor functions provided by the
         // extra request providers.
