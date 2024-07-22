@@ -422,7 +422,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                       {item.label ?? item.value}
                     </Item>
                   ))}
-                  {filterInputType === 'value' ? (
+                  {filterInputType === 'value' && inputValue ? (
                     <Item
                       {...getItemProps({
                         key: '__custom_value_list_item',
