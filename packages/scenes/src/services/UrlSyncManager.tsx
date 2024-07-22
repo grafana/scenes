@@ -6,7 +6,7 @@ import { writeSceneLog } from '../utils/writeSceneLog';
 import { Unsubscribable } from 'rxjs';
 import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
 import { getUrlState, isUrlValueEqual, syncStateFromUrl } from './utils';
-import { LocationService, locationService } from '@grafana/runtime';
+import { LocationService } from '@grafana/runtime';
 
 export interface UrlSyncManagerLike {
   initSync(root: SceneObject): void;
@@ -21,9 +21,11 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   private _sceneRoot?: SceneObject;
   private _stateSub: Unsubscribable | null = null;
   private _lastLocation: Location | undefined;
-  private _paramsCache = new UrlParamsCache();
+  private _paramsCache: UrlParamsCache;
 
-  public constructor(private locationService: LocationService = locationService) {}
+  public constructor(private locationService: LocationService = locationService) {
+    this._paramsCache = new UrlParamsCache(locationService);
+  }
 
   /**
    * Updates the current scene state to match URL state.
@@ -125,9 +127,14 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 class UrlParamsCache {
   #cache: URLSearchParams | undefined;
   #location: Location | undefined;
+  #locationService: LocationService;
+
+  public constructor(locationServiceArg: LocationService) {
+    this.#locationService = locationServiceArg
+  }
 
   public getParams(): URLSearchParams {
-    const location = locationService.getLocation();
+    const location = this.#locationService.getLocation();
 
     if (this.#location === location) {
       return this.#cache!;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { RouteComponentProps, useLocation } from 'react-router-dom';
 import { UrlQueryMap, locationUtil, urlUtil } from '@grafana/data';
-import { locationSearchToObject, locationService } from '@grafana/runtime';
+import { locationSearchToObject } from '@grafana/runtime';
 import { SceneObject } from '../../core/types';
 
 export function useAppQueryParams(): UrlQueryMap {
@@ -12,12 +12,13 @@ export function useAppQueryParams(): UrlQueryMap {
 /**
  *
  * @param path Url to append query params to
+ * @param searchParams Query params to be modified
  * @param preserveParams Query params to preserve
  * @returns Url with query params
  */
-export function getUrlWithAppState(path: string, preserveParams?: string[]): string {
+export function getUrlWithAppState(path: string, searchParams: UrlQueryMap, preserveParams?: string[]): string {
   // make a copy of params as the renderUrl function mutates the object
-  const paramsCopy = { ...locationService.getSearchObject() };
+  const paramsCopy = { ...searchParams };
 
   if (preserveParams) {
     for (const key of Object.keys(paramsCopy)) {
