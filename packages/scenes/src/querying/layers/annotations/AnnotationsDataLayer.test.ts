@@ -9,7 +9,6 @@ import { TestVariable } from '../../../variables/variants/TestVariable';
 import { SceneDataLayerSet } from '../../SceneDataLayerSet';
 import { AnnotationsDataLayer } from './AnnotationsDataLayer';
 import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithRequestEnricher';
-import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 
 let mockedEvents: Array<Partial<Field>> = [];
 
@@ -222,7 +221,7 @@ describe('AnnotationsDataLayer', () => {
         const { scopedVars } = sentRequest!;
 
         expect(scopedVars['__sceneObject']).toBeDefined();
-        expect((scopedVars['__sceneObject']?.value as SafeSerializableSceneObject).valueOf()).toBe(layer);
+        expect(scopedVars['__sceneObject']?.value).toBe(layer);
         expect(Object.keys(scopedVars)).toMatchInlineSnapshot(`
           [
             "__interval",

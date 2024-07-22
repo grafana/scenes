@@ -49,7 +49,6 @@ import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHoc
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
-import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
 import { getSceneQueryRunnerQueue, SceneQueryRunnerQueue, SceneQueryRunnerQueueProps } from './SceneQueryRunnerQueue';
 
 let counter = 100;
@@ -113,7 +112,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
-  private _scopedVars = { __sceneObject: new SafeSerializableSceneObject(this) };
+  private _scopedVars = { __sceneObject: { value: this, text: '__sceneObject' } };
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
 

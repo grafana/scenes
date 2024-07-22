@@ -15,7 +15,6 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
-import { SafeSerializableSceneObject } from '../../utils/SafeSerializableSceneObject';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
@@ -111,7 +110,7 @@ export class AdHocFiltersVariable
 {
   static Component = AdHocFiltersVariableRenderer;
 
-  private _scopedVars = { __sceneObject: new SafeSerializableSceneObject(this) };
+  private _scopedVars = { __sceneObject: { value: this } };
   private _dataSourceSrv = getDataSourceSrv();
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
@@ -222,16 +221,11 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
-    const response = await ds.getTagKeys({
-      filters: otherFilters,
-      queries,
-      timeRange,
-      ...getEnrichedFiltersRequest(this),
-    });
+    const response = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
 
     if (responseHasError(response)) {
       // @ts-expect-error Remove when 11.1.x is released
-      this.setState({ error: response.error.message });
+      this.setState({ error: response.error.message })
     }
 
     let keys = dataFromResponse(response);

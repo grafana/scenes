@@ -2,32 +2,16 @@ import { toUtc, setWeekStart, dateMath } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
-import { config, RefreshEvent } from '@grafana/runtime';
-import { EmbeddedScene } from '../components/EmbeddedScene';
-import { SceneReactObject } from '../components/SceneReactObject';
+import { config } from '@grafana/runtime';
 
 jest.mock('@grafana/data', () => ({
   ...jest.requireActual('@grafana/data'),
   setWeekStart: jest.fn(),
 }));
 
-jest.mock('@grafana/runtime', () => ({
-  ...jest.requireActual('@grafana/runtime'),
-  RefreshEvent: jest.fn(() => ({ type: 'refresh-event' })),
-}));
-
 config.bootData = { user: { weekStart: 'monday' } } as any;
 
-function simulateDelay(newDateString: string, scene: EmbeddedScene) {
-  jest.setSystemTime(new Date(newDateString));
-  scene.activate();
-}
-
 describe('SceneTimeRange', () => {
-  beforeEach(() => {
-    jest.mocked(RefreshEvent).mockClear();
-  });
-
   it('when created should evaluate time range', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
     expect(timeRange.state.value.raw.from).toBe('now-1h');
@@ -40,13 +24,6 @@ describe('SceneTimeRange', () => {
     timeRange.onRefresh();
     const diff = timeRange.state.value.from.valueOf() - startTime;
     expect(diff).toBeGreaterThan(0);
-  });
-
-  it('when time range refreshed should trigger refresh event', async () => {
-    const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now' });
-    expect(RefreshEvent).not.toHaveBeenCalled();
-    timeRange.onRefresh();
-    expect(RefreshEvent).toHaveBeenCalled();
   });
 
   it('toUrlValues with relative range', () => {
@@ -227,91 +204,4 @@ describe('SceneTimeRange', () => {
       expect(innerTimeRange.state.value.to).toEqual(dateMath.parse('now-1m', true));
     });
   });
-
-  describe('timerange invalidation', () => {
-    const mockedNow = '2021-01-01T10:00:00.000Z';
-    const mocked100MsLater = '2021-01-01T10:00:00.100Z';
-    const mocked10sLater = '2021-01-01T10:00:10.000Z';
-    const mockedHourLater = '2021-01-01T11:00:00.000Z';
-
-    beforeEach(() => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date(mockedNow));
-    });
-
-    it('should NOT invalidate stale time range that does not meet refresh threshold', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {}});
-      const scene = new EmbeddedScene({
-        $timeRange: timeRange,
-        body: new SceneReactObject({
-        })
-      })
-
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-      simulateDelay(mockedHourLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-    })
-
-    it('should invalidate stale time range by default', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now'});
-      const scene = new EmbeddedScene({
-        $timeRange: timeRange,
-        body: new SceneReactObject({
-        })
-      })
-
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-      simulateDelay(mockedHourLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedHourLater)
-    })
-
-    it('should NOT invalidate stale time range before refresh duration has elapsed', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 101} });
-      const scene = new EmbeddedScene({
-        $timeRange: timeRange,
-        body: new SceneReactObject({})
-      })
-
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-      simulateDelay(mocked100MsLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-    })
-
-    it('should NOT invalidate stale time range with percent when refresh threshold is not met', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 60000, percent: 10}});
-      const scene = new EmbeddedScene({
-        $timeRange: timeRange,
-        body: new SceneReactObject({})
-      })
-
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-      simulateDelay(mocked100MsLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-    })
-
-    it('should invalidate stale time range when refresh threshold is met', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 100} });
-      const scene = new EmbeddedScene({
-        $timeRange: timeRange,
-        body: new SceneReactObject({
-        })
-      })
-
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-      simulateDelay(mocked100MsLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked100MsLater)
-    })
-
-    it('should invalidate stale time range when either refresh threshold is met', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 60000, percent: 10}});
-      const scene = new EmbeddedScene({
-        $timeRange: timeRange,
-        body: new SceneReactObject({})
-      })
-
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-      simulateDelay(mocked10sLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked10sLater)
-    })
-  })
 });

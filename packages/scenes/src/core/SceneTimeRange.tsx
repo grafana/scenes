@@ -1,4 +1,4 @@
-import { getTimeZone, rangeUtil, setWeekStart, TimeRange } from '@grafana/data';
+import { getTimeZone, setWeekStart, TimeRange } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -8,7 +8,7 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
-import { config, RefreshEvent } from '@grafana/runtime';
+import { config } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone'] });
@@ -23,10 +23,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       timeZone || getTimeZone(),
       state.fiscalYearStartMonth,
       state.UNSAFE_nowDelay
-
     );
-    const refreshOnActivate = state.refreshOnActivate ?? {percent: 10}
-    super({ from, to, timeZone, value, refreshOnActivate, ...state });
+    super({ from, to, timeZone, value, ...state });
 
     this.addActivationHandler(this._onActivate.bind(this));
   }
@@ -58,29 +56,12 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       setWeekStart(this.state.weekStart);
     }
 
-    if(rangeUtil.isRelativeTimeRange(this.state.value.raw)){
-      this.refreshIfStale();
-    }
-
     // Deactivation handler that restore weekStart if it was changed
     return () => {
       if (this.state.weekStart) {
         setWeekStart(config.bootData.user.weekStart);
       }
     };
-  }
-
-  private refreshIfStale() {
-    let ms;
-    if (this.state?.refreshOnActivate?.percent !== undefined) {
-      ms = this.calculatePercentOfInterval(this.state.refreshOnActivate.percent);
-    }
-    if (this.state?.refreshOnActivate?.afterMs !== undefined) {
-      ms = Math.min(this.state.refreshOnActivate.afterMs, ms ?? Infinity);
-    }
-    if (ms !== undefined) {
-      this.refreshRange(ms);
-    }
   }
 
   /**
@@ -103,33 +84,6 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     }
 
     return source;
-  }
-
-  /**
-   * Refreshes time range if it is older than the invalidation interval
-   * @param refreshAfterMs invalidation interval (milliseconds)
-   * @private
-   */
-  private refreshRange(refreshAfterMs: number) {
-    const value = evaluateTimeRange(
-      this.state.from,
-      this.state.to,
-      this.state.timeZone ?? getTimeZone(),
-      this.state.fiscalYearStartMonth,
-      this.state.UNSAFE_nowDelay
-    );
-
-    const diff = value.to.diff(this.state.value.to, 'milliseconds');
-    if(diff >= refreshAfterMs){
-      this.setState({
-        value
-      })
-    }
-  }
-
-  private calculatePercentOfInterval(percent: number): number {
-    const intervalMs = this.state.value.to.diff(this.state.value.from, 'milliseconds');
-    return Math.ceil(intervalMs / percent)
   }
 
   public getTimeZone(): TimeZone {
@@ -196,8 +150,6 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
         this.state.UNSAFE_nowDelay
       ),
     });
-
-    this.publishEvent(new RefreshEvent());
   };
 
   public getUrlState() {

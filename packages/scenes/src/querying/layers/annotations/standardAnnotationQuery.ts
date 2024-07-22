@@ -18,7 +18,6 @@ import { shouldUseLegacyRunner, standardAnnotationSupport } from './standardAnno
 import { Dashboard, LoadingState } from '@grafana/schema';
 import { SceneObject, SceneTimeRangeLike } from '../../../core/types';
 import { getEnrichedDataRequest } from '../../getEnrichedDataRequest';
-import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 
 let counter = 100;
 function getNextRequestId() {
@@ -98,7 +97,7 @@ export function executeAnnotationQuery(
     __interval: { text: interval.interval, value: interval.interval },
     __interval_ms: { text: interval.intervalMs.toString(), value: interval.intervalMs },
     __annotation: { text: annotation.name, value: annotation },
-    __sceneObject: new SafeSerializableSceneObject(layer),
+    __sceneObject: { text: '__sceneObject', value: layer },
   };
 
   const queryRequest: DataQueryRequest = {

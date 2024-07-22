@@ -3,7 +3,6 @@ import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntim
 import { cloneSceneObjectState } from './core/sceneGraph/utils';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
-
 import { registerVariableMacro } from './variables/macros';
 import { renderPrometheusLabelFilters } from './variables/utils';
 import {
@@ -145,5 +144,3 @@ export const sceneUtils = {
   isTextBoxVariable,
   isGroupByVariable,
 };
-
-export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';

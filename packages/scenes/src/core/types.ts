@@ -151,18 +151,6 @@ export interface SceneTimeRangeState extends SceneObjectState {
    * Override the now time by entering a time delay. Use this option to accommodate known delays in data aggregation to avoid null values.
    * */
   UNSAFE_nowDelay?: string;
-
-  refreshOnActivate?: {
-    /**
-     * When set, the time range will invalidate relative ranges after the specified interval has elapsed
-     */
-    afterMs?: number
-    /**
-     * When set, the time range will invalidate relative ranges after the specified percentage of the current interval has elapsed.
-     * If both invalidate values are set, the smaller value will be used for the given interval.
-     */
-    percent?: number
-  }
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {

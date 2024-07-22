@@ -15,7 +15,7 @@ import {
 } from '@grafana/scenes';
 import { RadioButtonGroup } from '@grafana/ui';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
-import { GraphDrawStyle, LegendDisplayMode, StackingMode, TooltipDisplayMode, VizOrientation } from '@grafana/schema';
+import { GraphDrawStyle, LegendDisplayMode, StackingMode, TooltipDisplayMode } from '@grafana/schema';
 
 export function getDynamicVizOptionsTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -27,7 +27,7 @@ export function getDynamicVizOptionsTest(defaults: SceneAppPageState) {
         key: 'Dynamic options demo',
         $data: getQueryRunnerWithRandomWalkQuery({ seriesCount: 3, spread: 15 }, { maxDataPoints: 50 }),
         body: new SceneFlexLayout({
-          direction: 'column',
+          direction: 'row',
           children: [
             new SceneFlexItem({
               body: PanelBuilders.timeseries()
@@ -35,58 +35,11 @@ export function getDynamicVizOptionsTest(defaults: SceneAppPageState) {
                 .setHeaderActions([new VizOptions({ value: 'lines' })])
                 .build(),
             }),
-            new SceneFlexItem({
-              body: PanelBuilders.timeseries()
-                .setTitle('Graph')
-                .setHeaderActions([new VizChange({ value: 'timeseries' })])
-                .build(),
-            }),
           ],
         }),
       });
     },
   });
-}
-
-interface VizChangeState extends SceneObjectState {
-  value: string;
-}
-
-class VizChange extends SceneObjectBase<VizChangeState> {
-  public onChange = (value: string) => {
-    this.setState({ value });
-    const viz = this.parent as VizPanel;
-
-    if (value === 'timeseries') {
-      viz.changePluginType('timeseries');
-    } else if (value === 'stat') {
-      viz.changePluginType('stat');
-    } else if (value === 'gauge_extra') {
-      const options = PanelOptionsBuilders.gauge()
-      .setOption('orientation', VizOrientation.Vertical)
-      .build();
-
-      const fieldConfig = FieldConfigBuilders.gauge().setUnit('accMS2').build();
-      
-      viz.changePluginType('gauge', options, fieldConfig);
-    }
-  }
-
-  public static Component = ({ model }: SceneComponentProps<VizOptions>) => {
-    const { value } = model.useState();
-
-    const vizOptions = [
-      { label: 'Timeseries panel', value: 'timeseries' },
-      { label: 'Stat', value: 'stat' },
-      { label: 'Gauge with extra config', value: 'gauge_extra' },
-    ];
-
-    return (
-      <>
-        <RadioButtonGroup value={value} options={vizOptions} onChange={model.onChange} size="sm" />
-      </>
-    );
-  };
 }
 
 interface VizOptionsState extends SceneObjectState {

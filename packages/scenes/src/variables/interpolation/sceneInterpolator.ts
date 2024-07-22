@@ -68,10 +68,6 @@ function lookupFormatVariable(
     }
   }
 
-  console.log('brokend', {
-    name, sceneObject
-  })
-
   const variable = lookupVariable(name, sceneObject);
   if (variable) {
     return variable;
