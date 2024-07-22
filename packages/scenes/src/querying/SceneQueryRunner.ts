@@ -49,7 +49,7 @@ import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHoc
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
-import { getSceneQueryRunnerStore, SceneQueryRunnerStore, SceneQueryRunnerStoreProps } from './SceneQueryRunnerStore';
+import { getSceneQueryRunnerQueue, SceneQueryRunnerQueue, SceneQueryRunnerQueueProps } from './SceneQueryRunnerQueue';
 
 let counter = 100;
 
@@ -71,8 +71,7 @@ export interface QueryRunnerState extends SceneObjectState {
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
   _hasFetchedData?: boolean;
-  concurrency?: SceneQueryRunnerStoreProps
-  // limitConcurrency: SceneQueryRunnerStoreState
+  concurrency?: SceneQueryRunnerQueueProps
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -119,8 +118,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private _adhocFiltersVar?: AdHocFiltersVariable;
   private _groupByVar?: GroupByVariable;
-  private _limitConcurrency?: SceneQueryRunnerStore
-
+  private _limitConcurrency?: SceneQueryRunnerQueue
 
   public getResultsStream() {
     return this._results;
@@ -133,13 +131,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   });
 
   public constructor(initialState: QueryRunnerState) {
-    console.log('constructing scenequeryrunner')
-    super({
-      ...initialState,
-      concurrency: {
-        maxConcurrentQueries: 1
-      }
-    });
+    super(initialState);
 
     this.addActivationHandler(() => this._onActivate());
   }
@@ -171,8 +163,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     if(this.state.concurrency){
-      console.log('init concurrency', this.state.concurrency)
-      this._limitConcurrency = getSceneQueryRunnerStore(this.state.concurrency)
+      this._limitConcurrency = getSceneQueryRunnerQueue(this.state.concurrency)
     }
 
     return () => this._onDeactivate();
@@ -420,10 +411,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private getRunRequest(ds: DataSourceApi<DataQuery, DataSourceJsonData, {}>, request: DataQueryRequest<DataQuery>): Observable<PanelData> {
     const runRequest = getRunRequest()
 
-    if(this._limitConcurrency?.runRequest){
-      return this._limitConcurrency.runRequest(ds, request);
+    if(this._limitConcurrency?.queueRequest){
+      return this._limitConcurrency.queueRequest(ds, request);
     }else{
-      console.warn('Concurrency limit not found')
       return runRequest(ds, request)
     }
   }
