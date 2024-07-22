@@ -15,6 +15,7 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { SafeSerializableSceneObject } from '../../utils/SafeSerializableSceneObject';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
@@ -110,7 +111,7 @@ export class AdHocFiltersVariable
 {
   static Component = AdHocFiltersVariableRenderer;
 
-  private _scopedVars = { __sceneObject: { value: this } };
+  private _scopedVars = { __sceneObject: new SafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
@@ -221,11 +222,16 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
-    const response = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
+    const response = await ds.getTagKeys({
+      filters: otherFilters,
+      queries,
+      timeRange,
+      ...getEnrichedFiltersRequest(this),
+    });
 
     if (responseHasError(response)) {
       // @ts-expect-error Remove when 11.1.x is released
-      this.setState({ error: response.error.message })
+      this.setState({ error: response.error.message });
     }
 
     let keys = dataFromResponse(response);
@@ -249,7 +255,7 @@ export class AdHocFiltersVariable
     const override = await this.state.getTagValuesProvider?.(this, filter);
 
     if (override && override.replace) {
-      return handleOptionGroups(dataFromResponse(override.values));
+      return dataFromResponse(override.values).map(toSelectableValue);
     }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
@@ -282,7 +288,7 @@ export class AdHocFiltersVariable
       values = values.concat(dataFromResponse(override.values));
     }
 
-    return handleOptionGroups(values);
+    return values.map(toSelectableValue);
   }
 
   public _addWip() {
@@ -337,39 +343,20 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
-export function toSelectableValue({ text, value }: MetricFindValue): SelectableValue<string> {
-  return {
+export function toSelectableValue(input: MetricFindValue): SelectableValue<string> {
+  const { text, value } = input;
+  const result: SelectableValue<string> = {
     label: text,
     value: String(value ?? text),
   };
+
+  if ('group' in input) {
+    result.group = input.group;
+  }
+
+  return result;
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
   return filter.key !== '' && filter.operator !== '' && filter.value !== '';
-}
-
-// Maps MetricFindValues to SelectableValues and collects them by group
-function handleOptionGroups(values: MetricFindValue[]): Array<SelectableValue<string>> {
-  const result: Array<SelectableValue<string>> = [];
-  const groupedResults = new Map<string, Array<SelectableValue<string>>>();
-
-  for (const value of values) {
-    // @ts-expect-error TODO: remove this once 11.1.x is released
-    const groupLabel = value.group;
-    if (groupLabel) {
-      let group = groupedResults.get(groupLabel);
-
-      if (!group) {
-        group = [];
-        groupedResults.set(groupLabel, group);
-        result.push({ label: groupLabel, options: group });
-      }
-
-      group.push(toSelectableValue(value));
-    } else {
-      result.push(toSelectableValue(value));
-    }
-  }
-
-  return result;
 }

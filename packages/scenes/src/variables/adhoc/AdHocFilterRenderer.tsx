@@ -5,19 +5,12 @@ import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
-import { getOptionSearcher } from '../components/getOptionSearcher';
-import { VariableValueOption } from '../types';
+import { getAdhocOptionSearcher } from './getAdhocOptionSearcher';
+import { handleOptionGroups } from '../utils';
 
 interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
-}
-
-function selectableValueToVariableValueOption(value: SelectableValue): VariableValueOption {
-  return {
-    label: value.label ?? String(value.value),
-    value: value.value,
-  };
 }
 
 function keyLabelToOption(key: string, label?: string): SelectableValue | null {
@@ -47,7 +40,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
 
   const optionSearcher = useMemo(
-    () => getOptionSearcher(values.map(selectableValueToVariableValueOption), undefined),
+    () => getAdhocOptionSearcher(values),
     [values]
   );
 
@@ -58,7 +51,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     return value;
   };
 
-  const filteredValueOptions: SelectableValue[] = optionSearcher(valueInputValue);
+  const filteredValueOptions = useMemo(
+    () => handleOptionGroups(optionSearcher(valueInputValue)),
+    [optionSearcher, valueInputValue]
+  );
 
   const valueSelect = (
     <Select
@@ -117,7 +113,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       width="auto"
       value={keyValue}
       placeholder={'Select label'}
-      options={keys}
+      options={handleOptionGroups(keys)}
       onChange={(v) => model._updateFilter(filter, 'key', v)}
       autoFocus={filter.key === ''}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously

@@ -11,11 +11,12 @@ import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'r
 import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect } from '@grafana/ui';
 import { isArray } from 'lodash';
-import { dataFromResponse, getQueriesForVariables, responseHasError } from '../utils';
+import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { SafeSerializableSceneObject } from '../../utils/SafeSerializableSceneObject';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -92,6 +93,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         this.state.defaultOptions.map((o) => ({
           label: o.text,
           value: String(o.value),
+          // @ts-expect-error Remove when we update to @grafana/data > 11.1.0
+          group: o.group,
         }))
       );
     }
@@ -100,14 +103,14 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: { text: '__sceneObject', value: this },
+        __sceneObject: new SafeSerializableSceneObject(this),
       })
     ).pipe(
       mergeMap((ds) => {
         return from(this._getKeys(ds)).pipe(
           tap((response) => {
             if (responseHasError(response)) {
-              this.setState({ error: response.error.message })
+              this.setState({ error: response.error.message });
             }
           }),
           map((response) => dataFromResponse(response)),
@@ -118,6 +121,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
               return {
                 label: i.text,
                 value: i.value ? String(i.value) : i.text,
+                group: i.group,
               };
             });
             return of(a);
@@ -162,9 +166,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (this.state.defaultOptions) {
-      return this.state.defaultOptions.concat(
-        dataFromResponse(override?.values ?? [])
-      );
+      return this.state.defaultOptions.concat(dataFromResponse(override?.values ?? []));
     }
 
     if (!ds.getTagKeys) {
@@ -175,12 +177,17 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const response = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
+    const response = await ds.getTagKeys({
+      filters: otherFilters,
+      queries,
+      timeRange,
+      ...getEnrichedFiltersRequest(this),
+    });
     if (responseHasError(response)) {
       // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
-  
+
     let keys = dataFromResponse(response);
     if (override) {
       keys = keys.concat(dataFromResponse(override.values));
@@ -246,7 +253,10 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     return inputValue;
   };
 
-  const filteredOptions = optionSearcher(inputValue);
+  const filteredOptions = useMemo(
+    () => handleOptionGroups(optionSearcher(inputValue).map(toSelectableValue)),
+    [optionSearcher, inputValue]
+  );
 
   return (
     <MultiSelect<VariableValueSingle>
@@ -295,3 +305,17 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
 }
 
 const filterNoOp = () => true;
+
+function toSelectableValue(input: VariableValueOption): SelectableValue<VariableValueSingle> {
+  const { label, value, group } = input;
+  const result: SelectableValue<VariableValueSingle> = {
+    label,
+    value,
+  };
+
+  if (group) {
+    result.group = group;
+  }
+
+  return result;
+}

@@ -2,13 +2,18 @@ import { toUtc, setWeekStart, dateMath } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
-import { config } from '@grafana/runtime';
+import { config, RefreshEvent } from '@grafana/runtime';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneReactObject } from '../components/SceneReactObject';
 
 jest.mock('@grafana/data', () => ({
   ...jest.requireActual('@grafana/data'),
   setWeekStart: jest.fn(),
+}));
+
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  RefreshEvent: jest.fn(() => ({ type: 'refresh-event' })),
 }));
 
 config.bootData = { user: { weekStart: 'monday' } } as any;
@@ -19,6 +24,10 @@ function simulateDelay(newDateString: string, scene: EmbeddedScene) {
 }
 
 describe('SceneTimeRange', () => {
+  beforeEach(() => {
+    jest.mocked(RefreshEvent).mockClear();
+  });
+
   it('when created should evaluate time range', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
     expect(timeRange.state.value.raw.from).toBe('now-1h');
@@ -31,6 +40,13 @@ describe('SceneTimeRange', () => {
     timeRange.onRefresh();
     const diff = timeRange.state.value.from.valueOf() - startTime;
     expect(diff).toBeGreaterThan(0);
+  });
+
+  it('when time range refreshed should trigger refresh event', async () => {
+    const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now' });
+    expect(RefreshEvent).not.toHaveBeenCalled();
+    timeRange.onRefresh();
+    expect(RefreshEvent).toHaveBeenCalled();
   });
 
   it('toUrlValues with relative range', () => {
@@ -217,7 +233,7 @@ describe('SceneTimeRange', () => {
     const mocked100MsLater = '2021-01-01T10:00:00.100Z';
     const mocked10sLater = '2021-01-01T10:00:10.000Z';
     const mockedHourLater = '2021-01-01T11:00:00.000Z';
-    
+
     beforeEach(() => {
       jest.useFakeTimers();
       jest.setSystemTime(new Date(mockedNow));
