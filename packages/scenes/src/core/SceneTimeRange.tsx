@@ -8,7 +8,7 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
-import { config } from '@grafana/runtime';
+import { config, getTemplateSrv } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone'] });
@@ -26,6 +26,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     );
     super({ from, to, timeZone, value, ...state });
 
+    getTemplateSrv()?.updateTimeRange(value);
+
     this.addActivationHandler(this._onActivate.bind(this));
   }
 
@@ -37,15 +39,19 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
         this._subs.add(
           timeZoneSource.subscribeToState((n, p) => {
             if (n.timeZone !== undefined && n.timeZone !== p.timeZone) {
+              const timeRange = evaluateTimeRange(
+                this.state.from,
+                this.state.to,
+                timeZoneSource.getTimeZone(),
+                this.state.fiscalYearStartMonth,
+                this.state.UNSAFE_nowDelay
+              )
+
               this.setState({
-                value: evaluateTimeRange(
-                  this.state.from,
-                  this.state.to,
-                  timeZoneSource.getTimeZone(),
-                  this.state.fiscalYearStartMonth,
-                  this.state.UNSAFE_nowDelay
-                ),
+                value: timeRange,
               });
+
+              getTemplateSrv()?.updateTimeRange(timeRange);
             }
           })
         );
