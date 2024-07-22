@@ -8,7 +8,8 @@ import {
   DataFrame,
   DataFrameView,
   DataQueryRequest,
-  DataSourceApi, DataSourceJsonData,
+  DataSourceApi,
+  DataSourceJsonData,
   DataTopic,
   LoadingState,
   PanelData,
@@ -70,6 +71,7 @@ export interface QueryRunnerState extends SceneObjectState {
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
   _hasFetchedData?: boolean;
+  concurrency?: SceneQueryRunnerStoreProps
   // limitConcurrency: SceneQueryRunnerStoreState
 }
 
@@ -119,6 +121,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _groupByVar?: GroupByVariable;
   private _limitConcurrency?: SceneQueryRunnerStore
 
+
   public getResultsStream() {
     return this._results;
   }
@@ -129,12 +132,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     onAnyVariableChanged: this.onAnyVariableChanged.bind(this),
   });
 
-  public constructor(initialState: QueryRunnerState & {concurrency?: SceneQueryRunnerStoreProps}) {
+  public constructor(initialState: QueryRunnerState) {
     console.log('constructing scenequeryrunner')
     super({
       ...initialState,
+      concurrency: {
+        maxConcurrentQueries: 1
+      }
     });
-    this._limitConcurrency = getSceneQueryRunnerStore(initialState.concurrency ?? {maxConcurrentQueries: 1})
+
     this.addActivationHandler(() => this._onActivate());
   }
 
@@ -162,6 +168,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (!this._dataLayersSub) {
       this._handleDataLayers();
+    }
+
+    if(this.state.concurrency){
+      console.log('init concurrency', this.state.concurrency)
+      this._limitConcurrency = getSceneQueryRunnerStore(this.state.concurrency)
     }
 
     return () => this._onDeactivate();
@@ -407,11 +418,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private getRunRequest(ds: DataSourceApi<DataQuery, DataSourceJsonData, {}>, request: DataQueryRequest<DataQuery>): Observable<PanelData> {
+    const runRequest = getRunRequest()
+
     if(this._limitConcurrency?.runRequest){
-      return this._limitConcurrency.runRequest(ds, request)
+      return this._limitConcurrency.runRequest(ds, request);
     }else{
       console.warn('Concurrency limit not found')
-      const runRequest = getRunRequest()
       return runRequest(ds, request)
     }
   }

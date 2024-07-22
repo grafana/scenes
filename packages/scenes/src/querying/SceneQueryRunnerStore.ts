@@ -1,7 +1,7 @@
 import { DataQueryRequest, DataSourceApi, DataSourceJsonData, PanelData } from '@grafana/data';
+import { from, mergeAll, Observable } from 'rxjs';
 import { DataQuery } from '@grafana/schema';
-import { asyncScheduler, delay, from, merge, Observable, of, queueScheduler, scheduled } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
+import pLimit from 'p-limit';
 import { getRunRequest } from '@grafana/runtime';
 
 let sceneQueryRunnerStore: SceneQueryRunnerStore;
@@ -14,47 +14,16 @@ export function initializeSceneQueryRunnerStore(initialState: SceneQueryRunnerSt
 }
 
 export class SceneQueryRunnerStore {
-  public runRequest
-  private observables: Observable<Observable<PanelData>> | undefined;
-  private concurrencyLimit: number
+  // private limit
   public constructor(props: SceneQueryRunnerStoreProps) {
-    this.concurrencyLimit = props.maxConcurrentQueries;
-    this.runRequest = (ds: DataSourceApi<DataQuery, DataSourceJsonData, {}>, request: DataQueryRequest<DataQuery>) => {
+    // this.limit = pLimit(1);
+  }
 
-      const runRequestFn = () => {
-        console.log('runRequest is called', request)
-        return getRunRequest()
-      }
-
-      const subscription = queueScheduler.schedule<PanelData>(work => {
-        console.log('actually firing queue sub')
-        return runRequestFn()(ds, request)
-      })
-      const observableOfSub = of(subscription)
-
-
-      const observableObservable = scheduled([runRequestFn()(ds, request)], queueScheduler).pipe(delay(2500))
-      const observableObservable2 = scheduled([subscription], queueScheduler).pipe(delay(2500))
-      if(this.observables){
-        this.observables = merge(observableObservable, this.observables)
-      }else{
-        this.observables = observableObservable
-      }
-
-      observableObservable2.subscribe(value => {
-        console.log('queue sub coming back', value)
-      })
-
-      // Currently only scheduling the return, need to schedule the request instead
-      return observableObservable.pipe(
-        mergeMap(
-          observable => observable.pipe(obs => {
-            return obs.pipe(mergeMap(obs => scheduled([obs], asyncScheduler).pipe(delay(2500)), 2))
-          }), this.concurrencyLimit
-        )
-      )
-    }
-    console.log('SceneQueryRunnerStore constructor')
+  public runRequest = (ds: DataSourceApi<DataQuery, DataSourceJsonData, {}>, request: DataQueryRequest<DataQuery>): Observable<PanelData> => {
+    // const response = this.limit(() => getRunRequest()(ds, request))
+    // const obsObs = from(response)
+    // return obsObs.pipe(mergeAll())
+    return getRunRequest()(ds, request)
   }
 }
 
