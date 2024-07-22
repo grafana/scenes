@@ -27,6 +27,7 @@ import { FiltersRequestEnricher } from '../../core/types';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
+  updateTimeRange: jest.fn()
 } as any;
 
 describe('AdHocFiltersVariable', () => {

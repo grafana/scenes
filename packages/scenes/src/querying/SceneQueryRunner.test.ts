@@ -130,6 +130,7 @@ jest.mock('@grafana/runtime', () => ({
   },
   getTemplateSrv: () => ({
     getAdhocFilters: jest.fn(),
+    updateTimeRange: jest.fn(),
   }),
   config: {
     theme: {
