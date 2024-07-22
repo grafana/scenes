@@ -32,7 +32,7 @@ import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
-import { cloneDeep, isArray, merge, mergeWith } from 'lodash';
+import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
@@ -125,17 +125,17 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
   }
 
-  private async _loadPlugin(pluginId: string) {
+  private async _loadPlugin(pluginId: string, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
-      this._pluginLoaded(plugin);
+      this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
         const result = await importPanelPlugin(pluginId);
-        this._pluginLoaded(result);
+        this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
 
@@ -155,7 +155,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return panelId;
   }
 
-  private async _pluginLoaded(plugin: PanelPlugin) {
+  private async _pluginLoaded(plugin: PanelPlugin, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
     const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
@@ -166,6 +166,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       type: plugin.meta.id,
       pluginVersion: pluginVersion,
     };
+
+    if (overwriteOptions) {
+      panel.options = overwriteOptions;
+    }
+
+    if (overwriteFieldConfig) {
+      panel.fieldConfig = overwriteFieldConfig;
+    }
 
     const currentVersion = this._getPluginVersion(plugin);
 
@@ -180,7 +188,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       plugin,
       currentOptions: panel.options,
       currentFieldConfig: panel.fieldConfig,
-      isAfterPluginChange: false,
+      isAfterPluginChange: isAfterPluginChange ?? false,
     });
 
     this._plugin = plugin;
@@ -189,6 +197,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       options: withDefaults.options as DeepPartial<TOptions>,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
+      pluginId: plugin.meta.id,
     });
 
     // Non data panels needs to be re-rendered when time range change
@@ -244,6 +253,35 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     return sceneTimeRange.state.value;
   };
+
+  public async changePluginType(pluginId: string, newOptions?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
+    const {
+      options: prevOptions,
+      fieldConfig: prevFieldConfig,
+      pluginId: prevPluginId,
+    } = this.state;
+
+    //clear field config cache to update it later
+    this._dataWithFieldConfig = undefined;
+
+    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, true);
+
+    const panel: PanelModel = {
+      title: this.state.title,
+      options: this.state.options,
+      fieldConfig: this.state.fieldConfig,
+      id: 1,
+      type: pluginId,
+    };
+
+    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React. 
+    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches. 
+    const updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
+
+    if (updatedOptions && !isEmpty(updatedOptions)) {
+      this.onOptionsChange(updatedOptions, true, true);
+    }
+  }
 
   public onTitleChange = (title: string) => {
     this.setState({ title });

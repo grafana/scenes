@@ -1,7 +1,7 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
 // @ts-expect-error Remove when 11.1.x is released
-import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue } from '@grafana/data';
+import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
@@ -181,4 +181,29 @@ export function dataFromResponse(response: GetTagResponse | MetricFindValue[]) {
 
 export function responseHasError(response: GetTagResponse | MetricFindValue[]): response is GetTagResponse & { error: DataQueryError } {
   return !Array.isArray(response) && Boolean(response.error);
+}
+
+// Collect a flat list of SelectableValues with a `group` property into a hierarchical list with groups
+export function handleOptionGroups(values: SelectableValue[]): Array<SelectableValue<string>> {
+  const result: Array<SelectableValue<string>> = [];
+  const groupedResults = new Map<string, Array<SelectableValue<string>>>();
+
+  for (const value of values) {
+    const groupLabel = value.group;
+    if (groupLabel) {
+      let group = groupedResults.get(groupLabel);
+
+      if (!group) {
+        group = [];
+        groupedResults.set(groupLabel, group);
+        result.push({ label: groupLabel, options: group });
+      }
+
+      group.push(value);
+    } else {
+      result.push(value);
+    }
+  }
+
+  return result;
 }
