@@ -1,3 +1,16 @@
+# v5.6.1 (Mon Jul 22 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimeRange: Allow time range refresh on activation [#835](https://github.com/grafana/scenes/pull/835) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
 # v5.6.0 (Fri Jul 19 2024)
 
 #### 🚀 Enhancement
