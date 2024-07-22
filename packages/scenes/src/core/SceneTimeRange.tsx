@@ -23,8 +23,10 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       timeZone || getTimeZone(),
       state.fiscalYearStartMonth,
       state.UNSAFE_nowDelay
+
     );
-    super({ from, to, timeZone, value, ...state });
+    const refreshOnActivate = state.refreshOnActivate ?? {percent: 10}
+    super({ from, to, timeZone, value, refreshOnActivate, ...state });
 
     this.addActivationHandler(this._onActivate.bind(this));
   }

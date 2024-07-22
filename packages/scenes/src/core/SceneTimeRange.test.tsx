@@ -240,7 +240,7 @@ describe('SceneTimeRange', () => {
     });
 
     it('should NOT invalidate stale time range that does not meet refresh threshold', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now'});
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {}});
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
         body: new SceneReactObject({
@@ -250,6 +250,19 @@ describe('SceneTimeRange', () => {
       expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
       simulateDelay(mockedHourLater, scene);
       expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
+    })
+
+    it('should invalidate stale time range by default', () => {
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now'});
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        body: new SceneReactObject({
+        })
+      })
+
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
+      simulateDelay(mockedHourLater, scene);
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedHourLater)
     })
 
     it('should NOT invalidate stale time range before refresh duration has elapsed', () => {
