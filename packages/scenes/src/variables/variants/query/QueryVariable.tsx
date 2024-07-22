@@ -27,6 +27,7 @@ import { DataQuery, DataSourceRef } from '@grafana/schema';
 import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
+import { getTemplateSrv } from '@grafana/runtime';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -76,6 +77,8 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
         const runner = createQueryVariableRunner(ds);
         const target = runner.getTarget(this);
         const request = this.getRequest(target, args.searchFilter);
+
+        getTemplateSrv().updateTimeRange(request.range);
 
         return runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request).pipe(
           registerQueryWithController({
