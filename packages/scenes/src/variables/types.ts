@@ -70,6 +70,7 @@ export interface ValidateAndUpdateResult {}
 export interface VariableValueOption {
   label: string;
   value: VariableValueSingle;
+  group?: string;
 }
 
 export interface SceneVariableSetState extends SceneObjectState {
