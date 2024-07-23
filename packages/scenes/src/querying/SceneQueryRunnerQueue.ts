@@ -1,36 +1,122 @@
-import { DataQueryRequest, DataSourceApi, DataSourceJsonData, PanelData } from '@grafana/data';
-import { defer, lastValueFrom, Observable } from 'rxjs';
+import { DataQueryRequest, DataSourceApi, LoadingState, PanelData } from '@grafana/data';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { DataQuery } from '@grafana/schema';
-import { getRunRequest } from '@grafana/runtime';
-import pLimit from 'p-limit';
 
-let sceneQueryRunnerStore: SceneQueryRunnerQueue;
-export function initSceneQueryRunnerQueue(props: SceneQueryRunnerQueueProps): void {
-  if (!sceneQueryRunnerStore) {
-    sceneQueryRunnerStore = new SceneQueryRunnerQueue(props);
+export abstract class HttpHandler {
+  abstract handle(ds: DataSourceApi<DataQuery>, req: DataQueryRequest<DataQuery>): Observable<PanelData>
+}
+
+let sceneInterceptorService: InterceptorService;
+export function initSceneQueryRunnerQueue(props?: SceneQueryRunnerQueueProps): void {
+  if (!sceneInterceptorService) {
+    sceneInterceptorService = new InterceptorService(props);
   }
 }
 
-const runRequestFn = getRunRequest();
-
-export class SceneQueryRunnerQueue {
-  private limit
-  public constructor(props: SceneQueryRunnerQueueProps) {
-    this.limit = pLimit(props.maxConcurrentQueries);
-  }
-
-  public queueRequest = (ds: DataSourceApi<DataQuery, DataSourceJsonData, {}>, request: DataQueryRequest<DataQuery>): Observable<PanelData> => {
-    const response = this.limit(() => lastValueFrom(runRequestFn(ds, request)))
-    return defer(() => response)
-  }
-}
-
-export function getSceneQueryRunnerQueue(initialState: SceneQueryRunnerQueueProps): SceneQueryRunnerQueue {
-  if(!sceneQueryRunnerStore){
+export function getInterceptorService(initialState?: SceneQueryRunnerQueueProps): InterceptorService {
+  if(!sceneInterceptorService){
     initSceneQueryRunnerQueue(initialState)
   }
 
-  return sceneQueryRunnerStore
+  return sceneInterceptorService
+}
+
+interface HttpInterceptor {
+  intercept(ds: DataSourceApi<DataQuery>, req: DataQueryRequest<DataQuery>, next: HttpHandler): Observable<PanelData>
+}
+type request = {req: DataQueryRequest<DataQuery>, ds: DataSourceApi<DataQuery>}
+export class InterceptorService implements HttpInterceptor {
+  private pendingRequests: request[] = [];
+  private pendingRequestCount = 0;
+  private pendingRequestsQueue: Array<{ reqID: string, req: DataQueryRequest<DataQuery>, ds: DataSourceApi<DataQuery> }> = [];
+  private concurrencyLimit: number;
+  // private responseBehaviorSubject: BehaviorSubject<HttpEvent<any>> = new BehaviorSubject<any>(null);
+
+  private responseBehvaiorSubjectObject: any = {};
+
+  public constructor(props?: SceneQueryRunnerQueueProps) {
+    this.concurrencyLimit = 2 ?? props?.maxConcurrentQueries ?? 10
+  }
+
+  public intercept(ds: DataSourceApi<DataQuery>, request: DataQueryRequest<DataQuery>, next: HttpHandler): Observable<PanelData> {
+    // Check if the pending requests are over limit
+    if (this.pendingRequestCount >= this.concurrencyLimit) {
+      // Push the new request into the pending queue
+      const reqID: string = request.requestId
+      this.pendingRequestsQueue.push({
+        reqID,
+        req: request,
+        ds
+      });
+      this.responseBehvaiorSubjectObject[reqID] = new BehaviorSubject<any>(null);
+      return this.responseBehvaiorSubjectObject[reqID].asObservable();
+    } else {
+      this.responseBehvaiorSubjectObject = {};
+    }
+
+    // Increment the pending request count
+    this.pendingRequestCount++;
+
+    // Push the request into the array of pending requests
+    this.pendingRequests.push({
+      req: request,
+      ds
+    });
+
+    return next.handle(ds, request).pipe(
+      tap(
+        (event) => {
+          // @todo streaming
+          // When an event completes, allow the next one in the queue
+          if(event.state === LoadingState.Done){
+            // If request is done, decrement the pending request count
+            this.pendingRequestCount--;
+            this.sendRequestFromQueue(next);
+          }else if(event.state === LoadingState.Error){
+            // If request is done, decrement the pending request count
+            this.pendingRequestCount--;
+            this.sendRequestFromQueue(next)
+          }
+
+          return event;
+        }
+      ),
+    );
+  }
+
+  private processNextRequest(ds: DataSourceApi<DataQuery>, request: DataQueryRequest<DataQuery>, next: HttpHandler, reqID: string): void {
+    next.handle(ds, request).subscribe({
+      next: (data) => {
+        // @todo streaming/ split queries and cancelled queries
+        if (data.state === LoadingState.Done) {
+          this.sendRequestFromQueue(next);
+          if(this.responseBehvaiorSubjectObject[reqID]){
+            this.responseBehvaiorSubjectObject[reqID].next(data);
+          }else{
+            console.warn('Request ID missing?', reqID, this.responseBehvaiorSubjectObject)
+          }
+
+        } else if(data.state === LoadingState.Error) {
+          this.sendRequestFromQueue(next);
+          this.responseBehvaiorSubjectObject[reqID].next(data);
+        }
+      },
+    })
+  }
+
+  // Function to Send Checks Queue and Send REQUEST FROM Queue
+  private sendRequestFromQueue(next: HttpHandler) {
+    // Process the pending queue if there are any requests
+    if (this.pendingRequestsQueue.length > 0) {
+      const nextOne = this.pendingRequestsQueue.shift();
+      if(nextOne){
+        const reqID = nextOne.reqID;
+        const nextRequest = nextOne.req;
+        const nextDs = nextOne.ds;
+        this.processNextRequest(nextDs, nextRequest, next, reqID);
+      }
+    }
+  }
 }
 
 export interface SceneQueryRunnerQueueProps {

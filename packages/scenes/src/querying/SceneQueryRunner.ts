@@ -11,6 +11,7 @@ import {
   DataSourceApi,
   DataSourceJsonData,
   DataTopic,
+  getDefaultTimeRange,
   LoadingState,
   PanelData,
   preProcessPanelData,
@@ -49,7 +50,12 @@ import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHoc
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
-import { getSceneQueryRunnerQueue, SceneQueryRunnerQueue, SceneQueryRunnerQueueProps } from './SceneQueryRunnerQueue';
+import {
+  getInterceptorService,
+  HttpHandler,
+  InterceptorService,
+  SceneQueryRunnerQueueProps,
+} from './SceneQueryRunnerQueue';
 
 let counter = 100;
 
@@ -118,7 +124,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private _adhocFiltersVar?: AdHocFiltersVariable;
   private _groupByVar?: GroupByVariable;
-  private _limitConcurrency?: SceneQueryRunnerQueue
+  private interceptor: InterceptorService
 
   public getResultsStream() {
     return this._results;
@@ -134,6 +140,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     super(initialState);
 
     this.addActivationHandler(() => this._onActivate());
+    this.interceptor = getInterceptorService(initialState.concurrency)
   }
 
   private _onActivate() {
@@ -160,10 +167,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (!this._dataLayersSub) {
       this._handleDataLayers();
-    }
-
-    if(this.state.concurrency){
-      this._limitConcurrency = getSceneQueryRunnerQueue(this.state.concurrency)
     }
 
     return () => this._onDeactivate();
@@ -408,13 +411,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     });
   }
 
-  private getRunRequest(ds: DataSourceApi<DataQuery, DataSourceJsonData, {}>, request: DataQueryRequest<DataQuery>): Observable<PanelData> {
+  private getHttpHandler(): HttpHandler {
     const runRequest = getRunRequest()
-
-    if(this._limitConcurrency?.queueRequest){
-      return this._limitConcurrency.queueRequest(ds, request);
-    }else{
-      return runRequest(ds, request)
+    return {
+      handle: (ds: DataSourceApi<DataQuery, DataSourceJsonData, {}>, request: DataQueryRequest<DataQuery>): Observable<PanelData> => {
+        return runRequest(ds, request)
+      }
     }
   }
 
@@ -454,14 +456,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.findAndSubscribeToAdHocFilters(datasource?.uid);
 
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
+      let stream = this.interceptor.intercept(ds, primary, this.getHttpHandler())
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
-      let stream = this.getRunRequest(ds, primary);
-
       if (secondaries.length > 0) {
         // Submit all secondary requests in parallel.
-        const secondaryStreams = secondaries.map((r) => this.getRunRequest(ds, r));
+        const secondaryStreams = secondaries.map((r) => this.interceptor.intercept(ds, r, this.getHttpHandler()));
         // Create the rxjs operator which will combine the primary and secondary responses
         // by calling the correct processor functions provided by the
         // extra request providers.
@@ -589,7 +590,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return { primary: request, secondaries: secondaryRequests, processors: secondaryProcessors };
   }
 
-  private onDataReceived = (data: PanelData) => {
+  private onDataReceived = (data: PanelData | null) => {
+    if(!data?.state){
+      //@todo
+      data = {
+        state: LoadingState.Loading,
+        series: [],
+        timeRange: getDefaultTimeRange()
+      }
+    }
     // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
