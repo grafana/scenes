@@ -9,6 +9,7 @@ import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 import { VariableInterpolation } from '@grafana/runtime';
+import { SafeSerializableSceneObject } from '../../utils/SafeSerializableSceneObject';
 
 /**
  * Get the closest node with variables
@@ -59,8 +60,13 @@ export function interpolate(
   if (value === '' || value == null) {
     return '';
   }
+  let targetObject = sceneObject;
 
-  return sceneInterpolator(sceneObject, value, scopedVars, format, interpolations);
+  if (sceneObject instanceof SafeSerializableSceneObject) {
+    targetObject = sceneObject.valueOf();
+  }
+
+  return sceneInterpolator(targetObject, value, scopedVars, format, interpolations);
 }
 
 /**
