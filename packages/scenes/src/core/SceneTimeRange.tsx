@@ -9,6 +9,7 @@ import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 import { config, RefreshEvent } from '@grafana/runtime';
+import { sceneGraph } from './sceneGraph';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone'] });
@@ -23,9 +24,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       timeZone || getTimeZone(),
       state.fiscalYearStartMonth,
       state.UNSAFE_nowDelay
-
     );
-    const refreshOnActivate = state.refreshOnActivate ?? {percent: 10}
+    const refreshOnActivate = state.refreshOnActivate ?? { percent: 10 };
     super({ from, to, timeZone, value, refreshOnActivate, ...state });
 
     this.addActivationHandler(this._onActivate.bind(this));
@@ -58,7 +58,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       setWeekStart(this.state.weekStart);
     }
 
-    if(rangeUtil.isRelativeTimeRange(this.state.value.raw)){
+    if (rangeUtil.isRelativeTimeRange(this.state.value.raw)) {
       this.refreshIfStale();
     }
 
@@ -120,16 +120,16 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     );
 
     const diff = value.to.diff(this.state.value.to, 'milliseconds');
-    if(diff >= refreshAfterMs){
+    if (diff >= refreshAfterMs) {
       this.setState({
-        value
-      })
+        value,
+      });
     }
   }
 
   private calculatePercentOfInterval(percent: number): number {
     const intervalMs = this.state.value.to.diff(this.state.value.from, 'milliseconds');
-    return Math.ceil(intervalMs / percent)
+    return Math.ceil(intervalMs / percent);
   }
 
   public getTimeZone(): TimeZone {
@@ -150,6 +150,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeRangeChange = (timeRange: TimeRange) => {
     const update: Partial<SceneTimeRangeState> = {};
+
     const updateToEval: Partial<SceneTimeRangeState> = {};
 
     if (typeof timeRange.raw.from === 'string') {
@@ -178,6 +179,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
     // Only update if time range actually changed
     if (update.from !== this.state.from || update.to !== this.state.to) {
+      const queryController = sceneGraph.getQueryController(this);
+      queryController?.startTransaction(this);
       this.setState(update);
     }
   };

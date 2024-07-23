@@ -55,10 +55,12 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 
   public onRefresh = () => {
     const queryController = sceneGraph.getQueryController(this);
+
     if (queryController?.state.isRunning) {
       queryController.cancelAll();
       return;
     }
+    queryController?.startTransaction(this);
 
     const timeRange = sceneGraph.getTimeRange(this);
 
@@ -156,13 +158,13 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   let tooltip: string | undefined;
   let width: string | undefined;
 
-  if (isRunning) {
-    tooltip = 'Cancel all queries';
+  // if (isRunning) {
+  //   tooltip = 'Cancel all queries';
 
-    if (withText) {
-      text = 'Cancel';
-    }
-  }
+  //   if (withText) {
+  //     text = 'Cancel';
+  //   }
+  // }
 
   if (withText) {
     width = '96px';
@@ -176,10 +178,12 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       tooltip={tooltip}
       width={width}
       text={text}
-      onRefresh={model.onRefresh}
+      onRefresh={() => {
+        model.onRefresh();
+      }}
       primary={primary}
       onIntervalChanged={model.onIntervalChanged}
-      isLoading={isRunning}
+      // isLoading={isRunning}
       isOnCanvas={isOnCanvas ?? true}
     />
   );
