@@ -55,7 +55,7 @@ let panelProps: PanelProps | undefined;
 let panelRenderCount = 0;
 
 function getTestPlugin1(dataSupport?: PanelPluginDataSupport) {
-  const pluginToLoad = getPanelPlugin(
+  let pluginToLoad = getPanelPlugin(
     {
       id: 'custom-plugin-id',
     },
@@ -123,6 +123,72 @@ function getTestPlugin1(dataSupport?: PanelPluginDataSupport) {
     }
 
     return { option2: 'hello' };
+  });
+
+  return pluginToLoad;
+}
+
+function getTestPlugin2(dataSupport?: PanelPluginDataSupport) {
+  let pluginToLoad = getPanelPlugin(
+    {
+      id: 'custom2-plugin-id',
+    },
+    (props) => {
+      panelProps = props;
+      panelRenderCount++;
+      return <div>My custom2 panel</div>;
+    }
+  );
+
+  pluginToLoad.meta.info.version = '2.0.0';
+  pluginToLoad.meta.skipDataQuery = false;
+
+  if (dataSupport) {
+    pluginToLoad.setDataSupport(dataSupport);
+  }
+
+  pluginToLoad.setPanelOptions((builder) => {
+    builder.addBooleanSwitch({
+      name: 'Show thresholds',
+      path: 'showThresholds',
+      defaultValue: false,
+    });
+    builder.addTextInput({
+      name: 'option2',
+      path: 'option2',
+      defaultValue: undefined,
+    });
+  });
+
+  pluginToLoad.useFieldConfig({
+    standardOptions: {
+      [FieldConfigProperty.Unit]: {
+        defaultValue: 'flop',
+      },
+      [FieldConfigProperty.Decimals]: {
+        defaultValue: 2,
+      },
+    },
+    useCustomConfig: (builder) => {
+      builder.addBooleanSwitch({
+        name: 'CustomPropInOtherPlugin',
+        path: 'customPropInOtherPlugin',
+        defaultValue: false,
+      });
+      builder.addBooleanSwitch({
+        name: 'customProp2InOtherPlugin',
+        path: 'customProp2InOtherPlugin',
+        defaultValue: false,
+      });
+      builder.addTextInput({
+        name: 'customProp3',
+        path: 'customProp3',
+      });
+      builder.addTextInput({
+        name: 'Hide from',
+        path: 'hideFrom',
+      });
+    },
   });
 
   return pluginToLoad;
@@ -217,6 +283,86 @@ describe('VizPanel', () => {
 
     it('should should remove props that are not defined for plugin', () => {
       expect(panel.state.fieldConfig.defaults.custom?.junkProp).toEqual(undefined);
+    });
+  });
+
+  describe('When changing plugin', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeEach(async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        fieldConfig: {
+          defaults: { custom: { customProp: true } },
+          overrides: [],
+        },
+      });
+
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+    });
+
+    it('Should successfully change from one viz type to another', async () => {
+      expect(panel.state.pluginId).toBe('custom-plugin-id');
+      expect(panel.state.pluginVersion).toBe('1.0.0');
+      pluginToLoad = getTestPlugin2();
+      panel.changePluginType('custom2-plugin-id', undefined, panel.state.fieldConfig);
+      await Promise.resolve();
+
+      expect(panel.state.pluginId).toBe('custom2-plugin-id');
+      expect(panel.state.pluginVersion).toBe('2.0.0');
+    });
+
+    it('Should change to new plugin with default options/fieldconfig', async () => {
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customProp');
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customProp2');
+      expect(panel.state.options.showThresholds).toBe(true);
+
+      pluginToLoad = getTestPlugin2();
+      panel.changePluginType('custom2-plugin-id');
+      await Promise.resolve();
+
+      expect(Object.keys(panel.state.fieldConfig.defaults.custom!).length).toBe(2);
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customPropInOtherPlugin');
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customProp2InOtherPlugin');
+      expect(panel.state.options.showThresholds).toBe(false);
+    });
+
+    it('Should ovewrite options/fieldConfig when they exist', async () => {
+      const overwriteOptions = {
+        showThresholds: true,
+      } 
+
+      const overwriteFieldConfig = panel.state.fieldConfig;
+      overwriteFieldConfig.defaults.unit = 'test';
+
+      pluginToLoad = getTestPlugin2();
+      panel.changePluginType('custom2-plugin-id', overwriteOptions, overwriteFieldConfig);
+      await Promise.resolve();
+
+      expect(panel.state.options.showThresholds).toBe(true);
+      expect(panel.state.fieldConfig.defaults.unit).toBe('test');
+      expect(panel.state.fieldConfig.defaults.decimals).toBe(2);
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customPropInOtherPlugin');
+    });
+
+    it('Should set options from plugins onPanelTypeChanged', async () => {
+      const overwriteOptions = {
+        showThresholds: true,
+      } 
+
+      const overwriteFieldConfig = panel.state.fieldConfig;
+      overwriteFieldConfig.defaults.unit = 'test';
+
+      pluginToLoad = getTestPlugin2();
+      pluginToLoad.onPanelTypeChanged = ((panel, prevPluginId, prevOptions, prevFieldConfig) => {
+        return { showThresholds: true, option2: 'hello' };
+      });
+      panel.changePluginType('custom2-plugin-id', overwriteOptions, overwriteFieldConfig);
+      await Promise.resolve();
+
+      expect(panel.state.options.showThresholds).toBe(true);
+      expect(panel.state.options.option2).toBe('hello');
     });
   });
 
