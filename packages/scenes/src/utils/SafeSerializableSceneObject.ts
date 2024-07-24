@@ -14,9 +14,9 @@ export class SafeSerializableSceneObject implements ScopedVar {
     return undefined;
   }
 
-  public valueOf() {
+  public valueOf = () => {
     return this.#value;
-  }
+  };
 
   public get value() {
     return this;
