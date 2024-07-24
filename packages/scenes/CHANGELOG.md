@@ -1,3 +1,15 @@
+# v5.6.2 (Wed Jul 24 2024)
+
+#### 🐛 Bug Fix
+
+- SafeSerializableSceneObject: Make sure valueOf is bound to the instance [#844](https://github.com/grafana/scenes/pull/844) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v5.6.1 (Mon Jul 22 2024)
 
 #### 🐛 Bug Fix

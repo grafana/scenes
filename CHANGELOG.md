@@ -1,3 +1,19 @@
+# v5.6.2 (Wed Jul 24 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SafeSerializableSceneObject: Make sure valueOf is bound to the instance [#844](https://github.com/grafana/scenes/pull/844) ([@dprokop](https://github.com/dprokop))
+- `@grafana/scenes-react`
+  - ScenesReact: Add useVariableValue for single values [#821](https://github.com/grafana/scenes/pull/821) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.6.1 (Mon Jul 22 2024)
 
 #### 🐛 Bug Fix
