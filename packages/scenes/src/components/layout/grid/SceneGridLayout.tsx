@@ -3,7 +3,7 @@ import ReactGridLayout from 'react-grid-layout';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneLayout, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN, GRID_COLUMN_COUNT } from './constants';
-import { isSceneGridRow, SceneGridItem } from './SceneGridItem';
+import { isSceneGridRow } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
@@ -40,7 +40,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   private savedLayout: SceneGridItemLike[] | undefined = undefined;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
-    variableNames: ['systemPanelFilterVar'],
+    variableNames: ['systemPanelFilterVar', 'systemDynamicRowSizeVar'],
   });
 
   public constructor(state: SceneGridLayoutState) {
@@ -361,12 +361,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   public buildGridLayout(width: number, height: number): ReactGridLayout.Layout[] {
     let cells: ReactGridLayout.Layout[] = [];
     const systemPanelFilter = lookupVariable('systemPanelFilterVar', this);
+    const systemDynamicRowSize = lookupVariable('systemDynamicRowSizeVar', this);
     const panelFilterValue = systemPanelFilter?.getValue()?.toString();
+    const rowSizeVal = systemDynamicRowSize?.getValue()?.valueOf();
+    const rowSizeParsed = typeof rowSizeVal === 'string' ? Number.parseInt(rowSizeVal, 10) : rowSizeVal;
 
     let children = this.state.children;
-    if (panelFilterValue && panelFilterValue !== '') {
+    if ((panelFilterValue && panelFilterValue !== '') || (rowSizeParsed && Number.isInteger(rowSizeParsed))) {
       if (this.savedLayout === undefined) {
-        // save layout
         this.savedLayout = this.state.children.map((v) => v.clone());
       }
 
@@ -376,16 +378,21 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
           typeof (v.state as any).body?.state?.title === 'string' &&
           (v.state as any).body.state.title.toLowerCase().includes(panelFilterInterpolated)
       );
+      this._skipOnLayoutChange = true;
+      const rowSize = typeof rowSizeParsed === 'number' && Number.isInteger(rowSizeParsed) && rowSizeParsed > 0 ? rowSizeParsed : 2;
+      const panelWidth = GRID_COLUMN_COUNT / rowSize;
+      const panelHeight = 5;
       return filteredChildren.map((child, i) => ({
         ...this.toGridCell(child),
-        x: (i % 2) * GRID_COLUMN_COUNT,
-        y: Math.floor(i / 2),
+        x: (i % rowSize) * panelWidth,
+        y: Math.floor(i / rowSize) * panelHeight,
+        w: panelWidth,
+        h: panelHeight,
         isResizable: false,
         isDraggable: false,
       }));
-    } else if (!panelFilterValue || panelFilterValue === '') {
+    } else if ((!panelFilterValue || panelFilterValue === '') && (!rowSizeVal || rowSizeVal === '')) {
       if (this.savedLayout) {
-        // restore saved layout
         children = this.savedLayout;
         this.savedLayout = undefined;
       }
