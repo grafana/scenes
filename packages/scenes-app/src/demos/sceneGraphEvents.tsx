@@ -9,7 +9,7 @@ import {
   sceneGraph,
 } from '@grafana/scenes';
 import { BusEventWithPayload } from '@grafana/data';
-import { Button, Stack, useStyles2, useTheme2 } from '@grafana/ui';
+import { Button, Stack, useTheme2 } from '@grafana/ui';
 
 export function getSceneGraphEventsDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
