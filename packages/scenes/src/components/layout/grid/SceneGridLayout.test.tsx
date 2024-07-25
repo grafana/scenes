@@ -495,6 +495,133 @@ describe('SceneGridLayout', () => {
       expect((layout.state.children[1] as SceneGridRow).state.children[0].state.y).toEqual(2);
     });
 
+    it('should disallow dropping a row within another row and revert to initial layout', () => {
+      const layout = new SceneGridLayout({
+        children: [
+          new SceneGridItem({
+            key: 'a',
+            x: 0,
+            y: 0,
+            width: 1,
+            height: 1,
+            isResizable: false,
+            isDraggable: false,
+            body: new TestObject({}),
+          }),
+          new SceneGridRow({
+            title: 'Row A',
+            key: 'row-clone-a',
+            isCollapsed: false,
+            y: 1,
+            children: [
+              new SceneGridItem({
+                key: 'b',
+                x: 0,
+                y: 2,
+                width: 1,
+                height: 1,
+                isResizable: false,
+                isDraggable: false,
+                body: new TestObject({}),
+              }),
+            ],
+          }),
+        ],
+        isLazy: false,
+      });
+
+      // we save the initial layout here, if a state is invalid we will revert to this layout
+      layout.onDragStart(
+        [
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 0,
+            i: 'a',
+          },
+          {
+            w: 24,
+            h: 1,
+            x: 0,
+            y: 1,
+            i: 'row-clone-a',
+          },
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 2,
+            i: 'b',
+          },
+        ],
+        // @ts-expect-error
+        {},
+        {},
+        {},
+        {},
+        {}
+      );
+
+      // move panel a to be the first child of the row:
+      // row
+      //  - a
+      //  - b
+      // this is invalid, we cannot have a panel within a cloned row
+      layout.onDragStop(
+        [
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 2,
+            i: 'a',
+          },
+          {
+            w: 24,
+            h: 1,
+            x: 0,
+            y: 0,
+            i: 'row-clone-a',
+          },
+          {
+            w: 12,
+            h: 8,
+            x: 0,
+            y: 10,
+            i: 'b',
+          },
+        ],
+        // @ts-expect-error
+        {},
+        {
+          w: 12,
+          h: 8,
+          x: 0,
+          y: 2,
+          i: 'a',
+        },
+        {},
+        {},
+        {}
+      );
+
+      //first call is skipped because onDragStop sets _skipOnLayoutChange
+      layout.onLayoutChange([]);
+      // layout argument is irrelevant because we are in an invalid state and will load the old layout in this func
+      layout.onLayoutChange([]);
+
+      // children state should be the same as in the beginning
+      expect(layout.state.children[0].state.key).toEqual('a');
+      expect(layout.state.children[0].state.y).toEqual(0);
+      expect(layout.state.children[0].parent).toBeInstanceOf(SceneGridLayout);
+      expect(layout.state.children[1].state.key).toEqual('row-clone-a');
+      expect(layout.state.children[1].state.y).toEqual(1);
+      expect(layout.state.children[1].parent).toBeInstanceOf(SceneGridLayout);
+      expect((layout.state.children[1] as SceneGridRow).state.children[0].state.key).toEqual('b');
+      expect((layout.state.children[1] as SceneGridRow).state.children[0].state.y).toEqual(2);
+    });
+
     it('should allow dropping a row around another uncollapsed row if state is valid', () => {
       const layout = new SceneGridLayout({
         children: [

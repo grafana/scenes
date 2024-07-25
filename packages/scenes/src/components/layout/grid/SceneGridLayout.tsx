@@ -322,6 +322,15 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       newParent = this;
     }
 
+    // if we've moved a panel into a repeated row revert the layout to the old one
+    if (newParent instanceof SceneGridRow && newParent.state.key?.includes('clone')) {
+      this._loadOldLayout = true;
+      this.setState({ children: sortChildrenByPosition(newChildren) });
+      this._skipOnLayoutChange = true;
+
+      return;
+    }
+
     if (newParent !== sceneChild.parent) {
       newChildren = this.moveChildTo(sceneChild, newParent);
     }
