@@ -1,3 +1,15 @@
+# v5.7.0 (Mon Jul 29 2024)
+
+#### 🚀 Enhancement
+
+- Allow setting _skipOnLayoutChange in SceneGridLayout [#849](https://github.com/grafana/scenes/pull/849) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v5.6.2 (Wed Jul 24 2024)
 
 #### 🐛 Bug Fix
