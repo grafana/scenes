@@ -23,9 +23,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       timeZone || getTimeZone(),
       state.fiscalYearStartMonth,
       state.UNSAFE_nowDelay
-
     );
-    const refreshOnActivate = state.refreshOnActivate ?? {percent: 10}
+    const refreshOnActivate = state.refreshOnActivate ?? { percent: 10 };
     super({ from, to, timeZone, value, refreshOnActivate, ...state });
 
     this.addActivationHandler(this._onActivate.bind(this));
@@ -58,7 +57,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       setWeekStart(this.state.weekStart);
     }
 
-    if(rangeUtil.isRelativeTimeRange(this.state.value.raw)){
+    if (rangeUtil.isRelativeTimeRange(this.state.value.raw)) {
       this.refreshIfStale();
     }
 
@@ -120,16 +119,16 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     );
 
     const diff = value.to.diff(this.state.value.to, 'milliseconds');
-    if(diff >= refreshAfterMs){
+    if (diff >= refreshAfterMs) {
       this.setState({
-        value
-      })
+        value,
+      });
     }
   }
 
   private calculatePercentOfInterval(percent: number): number {
     const intervalMs = this.state.value.to.diff(this.state.value.from, 'milliseconds');
-    return Math.ceil(intervalMs / percent)
+    return Math.ceil(intervalMs / percent);
   }
 
   public getTimeZone(): TimeZone {
@@ -197,7 +196,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       ),
     });
 
-    this.publishEvent(new RefreshEvent());
+    this.publishEvent(new RefreshEvent(), true);
   };
 
   public getUrlState() {

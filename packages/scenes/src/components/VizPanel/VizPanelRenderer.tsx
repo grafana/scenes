@@ -189,7 +189,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           onOptionsChange={model.onOptionsChange}
                           onFieldConfigChange={model.onFieldConfigChange}
                           onChangeTimeRange={model.onTimeRangeChange}
-                          eventBus={appEvents}
+                          eventBus={context.eventBus}
                         />
                       )}
                     </PanelContextProvider>
