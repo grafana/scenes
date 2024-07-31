@@ -183,7 +183,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       }}
       primary={primary}
       onIntervalChanged={model.onIntervalChanged}
-      // isLoading={isRunning}
+      isLoading={isRunning}
       isOnCanvas={isOnCanvas ?? true}
     />
   );
