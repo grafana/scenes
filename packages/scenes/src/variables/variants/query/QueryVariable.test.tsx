@@ -28,7 +28,7 @@ import { VariableValueSelectors } from '../../components/VariableValueSelectors'
 import { SceneCanvasText } from '../../../components/SceneCanvasText';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { setRunRequest } from '@grafana/runtime';
+import { config, setRunRequest } from '@grafana/runtime';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 
 const runRequestMock = jest.fn().mockReturnValue(
@@ -89,6 +89,16 @@ jest.mock('@grafana/runtime', () => ({
       return Promise.resolve(fakeDsMock);
     },
   }),
+  config: {
+    buildInfo: {
+      version: '1.0.0',
+    },
+    theme2: {
+      visualization: {
+        getColorByName: jest.fn().mockReturnValue('red'),
+      },
+    },
+  },
 }));
 
 class FakeQueryRunner implements QueryRunner {
@@ -108,7 +118,11 @@ class FakeQueryRunner implements QueryRunner {
   }
 }
 
-describe('QueryVariable', () => {
+describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
+  beforeEach(() => {
+    config.buildInfo.version = v;
+  });
+
   describe('When empty query is provided', () => {
     it('Should default to empty query', async () => {
       const variable = new QueryVariable({ name: 'test' });

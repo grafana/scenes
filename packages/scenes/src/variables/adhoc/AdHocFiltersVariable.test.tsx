@@ -2,7 +2,14 @@ import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariableValueChangedEvent } from '../types';
 import { AdHocFiltersVariable, AdHocFiltersVariableState } from './AdHocFiltersVariable';
-import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
+import {
+  DataSourceSrv,
+  config,
+  locationService,
+  setDataSourceSrv,
+  setRunRequest,
+  setTemplateSrv,
+} from '@grafana/runtime';
 import {
   AdHocVariableFilter,
   DataQueryRequest,
@@ -29,21 +36,28 @@ const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
 } as any;
 
-describe('AdHocFiltersVariable', () => {
+describe('templateSrv.getAdhocFilters patch ', () => {
+  it('calls original when scene object is not active', async () => {
+    const { unmount } = setup();
+    unmount();
+
+    const result = templateSrv.getAdhocFilters('name');
+    expect(result[0].key).toBe('origKey');
+  });
+});
+
+// 11.1.2 - will use SafeSerializableSceneObject
+// 11.1.1 - will NOT use SafeSerializableSceneObject
+describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
+  beforeEach(() => {
+    config.buildInfo.version = v;
+  });
   it('renders filters', async () => {
     setup();
     expect(screen.getByText('key1')).toBeInTheDocument();
     expect(screen.getByText('val1')).toBeInTheDocument();
     expect(screen.getByText('key2')).toBeInTheDocument();
     expect(screen.getByText('val2')).toBeInTheDocument();
-  });
-
-  it('templateSrv.getAdhocFilters patch calls original when scene object is not active', async () => {
-    const { unmount } = setup();
-    unmount();
-
-    const result = templateSrv.getAdhocFilters('name');
-    expect(result[0].key).toBe('origKey');
   });
 
   it('adds filter', async () => {
