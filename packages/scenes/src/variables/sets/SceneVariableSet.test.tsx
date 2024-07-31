@@ -631,6 +631,46 @@ describe('SceneVariableList', () => {
 
       expect(A.state.error).toBe('Danger!');
     });
+
+    it('Should complete updating chained variables in case of error', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        throwError: 'Error in A',
+      });
+      const B = new TestVariable({
+        name: 'B',
+        query: 'A.$A.*',
+        value: '',
+        text: '',
+        options: [],
+        throwError: 'Error in B',
+      });
+      const C = new TestVariable({
+        name: 'C',
+        query: 'value=$B',
+        value: '',
+        text: '',
+        options: [],
+        throwError: 'Error in C',
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [C, B, A] }),
+      });
+
+      scene.activate();
+
+      expect(A.state.loading).toBe(false);
+      expect(A.state.error).toBe('Error in A');
+      expect(B.state.loading).toBe(false);
+      expect(B.state.error).toBe('Error in B');
+      expect(C.state.loading).toBe(false);
+      expect(C.state.error).toBe('Error in C');
+    });
   });
 
   describe('When nesting SceneVariableSet', () => {
