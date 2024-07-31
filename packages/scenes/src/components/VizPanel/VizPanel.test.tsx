@@ -23,6 +23,7 @@ import { SceneDataNode } from '../../core/SceneDataNode';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { act, render, screen } from '@testing-library/react';
+import { RefreshEvent } from '@grafana/runtime';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -331,7 +332,7 @@ describe('VizPanel', () => {
     it('Should ovewrite options/fieldConfig when they exist', async () => {
       const overwriteOptions = {
         showThresholds: true,
-      } 
+      };
 
       const overwriteFieldConfig = panel.state.fieldConfig;
       overwriteFieldConfig.defaults.unit = 'test';
@@ -349,15 +350,15 @@ describe('VizPanel', () => {
     it('Should set options from plugins onPanelTypeChanged', async () => {
       const overwriteOptions = {
         showThresholds: true,
-      } 
+      };
 
       const overwriteFieldConfig = panel.state.fieldConfig;
       overwriteFieldConfig.defaults.unit = 'test';
 
       pluginToLoad = getTestPlugin2();
-      pluginToLoad.onPanelTypeChanged = ((panel, prevPluginId, prevOptions, prevFieldConfig) => {
+      pluginToLoad.onPanelTypeChanged = (panel, prevPluginId, prevOptions, prevFieldConfig) => {
         return { showThresholds: true, option2: 'hello' };
-      });
+      };
       panel.changePluginType('custom2-plugin-id', overwriteOptions, overwriteFieldConfig);
       await Promise.resolve();
 
@@ -784,6 +785,34 @@ describe('VizPanel', () => {
 
         expect(panelRenderCount).toBe(2);
         expect(panelProps?.timeRange.from.toISOString()).toEqual('2020-01-01T00:00:00.000Z');
+      });
+
+      it('When refreshing should re-render and receive RefreshEvent', async () => {
+        const refreshEventHandler = jest.fn();
+        const timeRange = new SceneTimeRange();
+
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          pluginId: 'custom-plugin-id',
+          $timeRange: timeRange,
+        });
+
+        pluginToLoad = getTestPlugin1();
+        pluginToLoad.meta.skipDataQuery = true;
+
+        panelProps?.eventBus.subscribe(RefreshEvent, refreshEventHandler);
+
+        render(<panel.Component model={panel} />);
+
+        expect(await screen.findByText('My custom panel')).toBeInTheDocument();
+
+        expect(panelRenderCount).toBe(1);
+        expect(panelProps?.timeRange.raw.from).toBe('now-6h');
+
+        act(() => {
+          timeRange.onRefresh();
+        });
+
+        expect(panelRenderCount).toBe(2);
       });
     });
   });
