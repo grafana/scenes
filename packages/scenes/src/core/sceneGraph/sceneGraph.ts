@@ -7,8 +7,9 @@ import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types
 import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
-import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
+import { isQueryController } from '../../behaviors/SceneQueryController';
 import { VariableInterpolation } from '@grafana/runtime';
+import { SceneQueryControllerLike } from '../../behaviors/types';
 
 /**
  * Get the closest node with variables
