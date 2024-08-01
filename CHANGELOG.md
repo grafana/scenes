@@ -1,3 +1,16 @@
+# v5.7.3 (Thu Aug 01 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Support custom filter keys [#857](https://github.com/grafana/scenes/pull/857) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.7.2 (Wed Jul 31 2024)
 
 #### 🐛 Bug Fix
