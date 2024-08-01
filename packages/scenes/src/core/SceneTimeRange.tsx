@@ -180,7 +180,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     // Only update if time range actually changed
     if (update.from !== this.state.from || update.to !== this.state.to) {
       const queryController = sceneGraph.getQueryController(this);
-      queryController?.startTransaction(this);
+      queryController?.startProfile(this);
       this.setState(update);
     }
   };

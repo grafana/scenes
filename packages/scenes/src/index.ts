@@ -44,6 +44,7 @@ export type {
   SceneQueryControllerLike,
   SceneQueryControllerEntryType,
   SceneQueryControllerEntry,
+  SceneInteractionProfileEvent,
 } from './behaviors/SceneQueryController';
 
 export * from './variables/types';

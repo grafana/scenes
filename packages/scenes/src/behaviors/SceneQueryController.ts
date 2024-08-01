@@ -2,9 +2,17 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneObjectState, SceneStatelessBehavior } from '../core/types';
 import { DataQueryRequest } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
+import { writeSceneLog } from '../utils/writeSceneLog';
 
+export interface SceneInteractionProfileEvent {
+  origin: string;
+  duration: number;
+  crumbs: string[];
+  // add more granular data,i.e. network times? slow frames?
+}
 export interface SceneQueryStateControllerState extends SceneObjectState {
   isRunning: boolean;
+  onProfileComplete?(event: SceneInteractionProfileEvent): void;
 }
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
@@ -17,7 +25,7 @@ export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateCon
 
   queryStarted(entry: SceneQueryControllerEntry): void;
   queryCompleted(entry: SceneQueryControllerEntry): void;
-  startTransaction(source: SceneObject): void;
+  startProfile(source: SceneObject): void;
   runningQueriesCount(): number;
 }
 
@@ -51,8 +59,8 @@ export class SceneQueryController
 
   // lastFrameTime: number = 0;
 
-  public constructor() {
-    super({ isRunning: false });
+  public constructor(state: Partial<SceneQueryStateControllerState> = {}) {
+    super({ ...state, isRunning: false });
 
     // Clear running state on deactivate
     this.addActivationHandler(() => {
@@ -63,14 +71,13 @@ export class SceneQueryController
   public runningQueriesCount = () => {
     return this.#running.size;
   };
-  public startTransaction(source: SceneObject) {
+  public startProfile(source: SceneObject) {
     this.profiler.startProfile(source.constructor.name);
   }
 
   public queryStarted(entry: SceneQueryControllerEntry) {
     this.#running.add(entry);
-
-    this.changeRunningQueryCount(1);
+    this.changeRunningQueryCount(1, entry);
 
     if (!this.state.isRunning) {
       this.setState({ isRunning: true });
@@ -91,16 +98,20 @@ export class SceneQueryController
     }
   }
 
-  private changeRunningQueryCount(dir: 1 | -1) {
+  private changeRunningQueryCount(dir: 1 | -1, entry?: SceneQueryControllerEntry) {
     /**
      * Used by grafana-image-renderer to know when all queries are completed.
      */
     (window as any).__grafanaRunningQueryCount = ((window as any).__grafanaRunningQueryCount ?? 0) + dir;
-    console.log('\tRunning queries:', (window as any).__grafanaRunningQueryCount);
 
+    // console.log('\tRunning queries:', (window as any).__grafanaRunningQueryCount);
     if (dir === 1) {
+      if (entry) {
+        // Collect profile crumbs, variables, annotations and queries
+        this.profiler.addCrumb(entry.origin.constructor.name);
+      }
       if (this.profiler.isTailRecording()) {
-        console.log('\tNew query started, cancelling tail recording');
+        writeSceneLog(this.constructor.name, 'New query started, cancelling tail recording');
         this.profiler.cancelTailRecording();
       }
     }
@@ -127,6 +138,7 @@ export class SceneQueryController
 
 class SceneRenderProfiler {
   #transactionInProgress: {
+    // Transaction origin, i.e. scene refresh picker
     origin: string;
     crumbs: string[];
   } | null = null;
@@ -148,19 +160,18 @@ class SceneRenderProfiler {
     if (this.#trailAnimationFrameId) {
       cancelAnimationFrame(this.#trailAnimationFrameId);
       this.#trailAnimationFrameId = null;
-      console.log('\tNew transaction: Stopped recording frames');
-    }
 
-    // if there is anu running lead frame measurements, cancel them
-    if (this.#leadAnimationFrameId) {
-      console.log('\tNew transaction: Stopped recording lead frames');
-      cancelAnimationFrame(this.#leadAnimationFrameId);
-      this.#leadAnimationFrameId = null;
+      writeSceneLog(this.constructor.name, 'New transaction: Stopped recording frames');
     }
 
     this.#transactionInProgress = { origin: name, crumbs: [] };
     this.#transactionStartTs = performance.now();
-    console.log('\tMeasurement transaction started:', this.#transactionInProgress, this.#transactionStartTs);
+    writeSceneLog(
+      this.constructor.name,
+      'Measurement transaction started:',
+      this.#transactionInProgress,
+      this.#transactionStartTs
+    );
 
     // start recording leading frames
     // this will capture LEAD_RECORDING_TIME frames after transaction start to detect network silence
@@ -169,12 +180,12 @@ class SceneRenderProfiler {
   }
 
   private completeProfile(end?: number): [number, number] | null {
-    console.log('\tCompleting transaction');
+    writeSceneLog(this.constructor.name, 'Completing transaction');
     if (this.#transactionInProgress && this.#transactionStartTs) {
       this.#transactionEndTs = end || performance.now();
       const duration = this.#transactionEndTs - this.#transactionStartTs;
 
-      console.log('\tTransaction completed:', this.#transactionInProgress, duration);
+      writeSceneLog(this.constructor.name, 'Transaction completed:', this.#transactionInProgress, duration);
 
       // this.#transactionInProgress = null;
       // this.#transactionStartTs = null;
@@ -210,7 +221,14 @@ class SceneRenderProfiler {
     } else {
       const slowFrames = processRecordedSpans(this.#recordedTrailingSpans);
       const slowFramesTime = slowFrames.reduce((acc, val) => acc + val, 0);
-      console.log('\tTransaction tail recorded, slow frames duration:', slowFramesTime, slowFrames);
+      writeSceneLog(
+        this.constructor.name,
+        'Transaction tail recorded, slow frames duration:',
+        slowFramesTime,
+        slowFrames,
+        this.#transactionInProgress
+      );
+
       this.#recordedTrailingSpans = [];
 
       // Using performance api to calculate sum of all network requests time starting at performance.now() -transactionDuration - slowFramesTime
@@ -219,17 +237,29 @@ class SceneRenderProfiler {
       const n = performance.now();
 
       const transactionDuration = measurementStartTs - transactionStartTs;
-      console.log('\tStoped recording, total measured time (network included):', transactionDuration + slowFramesTime);
+      writeSceneLog(
+        this.constructor.name,
+        'Stoped recording, total measured time (network included):',
+        transactionDuration + slowFramesTime
+      );
       this.#trailAnimationFrameId = null;
       performance.measure('DashboardInteraction tail', {
         start: measurementStartTs,
         end: measurementStartTs + n,
       });
-      console.log({ start: transactionStartTs, end: transactionStartTs + transactionDuration + slowFramesTime });
+      // console.log({ start: transactionStartTs, end: transactionStartTs + transactionDuration + slowFramesTime });
       performance.measure('DashboardInteraction', {
         start: transactionStartTs,
         end: transactionStartTs + transactionDuration + slowFramesTime,
       });
+
+      if (this.queryController.state.onProfileComplete) {
+        this.queryController.state.onProfileComplete({
+          origin: this.#transactionInProgress!.origin,
+          crumbs: this.#transactionInProgress!.crumbs,
+          duration: transactionDuration + slowFramesTime,
+        });
+      }
       // @ts-ignore
       if (window.__runs) {
         // @ts-ignore
@@ -242,23 +272,10 @@ class SceneRenderProfiler {
   };
 
   public tryCompletingProfile() {
-    console.log('\tTrying to complete profile', this.#transactionInProgress);
+    writeSceneLog(this.constructor.name, 'Trying to complete profile', this.#transactionInProgress);
     if (this.queryController.runningQueriesCount() === 0 && this.#transactionInProgress) {
-      // If "all" queries completed, wait for lead frames to complete just in case there was another request that was started
-      // if (this.#leadAnimationFrameId) {
-      //   // console.log('\tAll queries completed, waiting for lead frames to complete', this.#leadAnimationFrameId);
-      //   requestAnimationFrame(() => {
-      //     this.tryCompletingProfile();
-      //   });
-      // } else {
-
-      console.log('\tAll queries completed, stopping transaction');
-      // const completedTransaction = this.completeProfile();
-      // if (completedTransaction !== null) {
-      // const transactionStartTs = completedTransaction[1] - completedTransaction[0];
+      writeSceneLog(this.constructor.name, 'All queries completed, stopping transaction');
       this.recordProfileTail(performance.now(), this.#transactionStartTs!);
-      // }
-      // }
     }
   }
 
@@ -269,7 +286,13 @@ class SceneRenderProfiler {
     if (this.#trailAnimationFrameId) {
       cancelAnimationFrame(this.#trailAnimationFrameId);
       this.#trailAnimationFrameId = null;
-      console.log('\tStopped recording frames, new transaction started');
+      writeSceneLog(this.constructor.name, 'Cancelled recording frames, new transaction started');
+    }
+  }
+
+  public addCrumb(crumb: string) {
+    if (this.#transactionInProgress) {
+      this.#transactionInProgress.crumbs.push(crumb);
     }
   }
 

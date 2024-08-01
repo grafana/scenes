@@ -56,11 +56,12 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   public onRefresh = () => {
     const queryController = sceneGraph.getQueryController(this);
 
+    queryController?.startProfile(this);
+
     if (queryController?.state.isRunning) {
       queryController.cancelAll();
       return;
     }
-    queryController?.startTransaction(this);
 
     const timeRange = sceneGraph.getTimeRange(this);
 

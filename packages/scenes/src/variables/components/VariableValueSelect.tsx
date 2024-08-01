@@ -10,6 +10,7 @@ import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
+import { sceneGraph } from '../../core/sceneGraph';
 
 const filterNoOp = () => true;
 
@@ -25,7 +26,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
   const selectValue = toSelectableValue(value, String(text));
-
+  const queryController = sceneGraph.getQueryController(model);
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
@@ -72,6 +73,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
+        queryController?.startProfile(model);
 
         if (hasCustomValue !== newValue.__isNew__) {
           setHasCustomValue(newValue.__isNew__);
@@ -87,6 +89,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
   const [inputValue, setInputValue] = useState('');
+  const queryController = sceneGraph.getQueryController(model);
 
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
@@ -136,6 +139,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(uncommittedValue);
+        queryController?.startProfile(model);
       }}
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
