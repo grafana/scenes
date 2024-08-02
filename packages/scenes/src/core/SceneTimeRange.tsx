@@ -200,7 +200,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       ),
     });
 
-    this.publishEvent(new RefreshEvent());
+    this.publishEvent(new RefreshEvent(), true);
   };
 
   public getUrlState() {
