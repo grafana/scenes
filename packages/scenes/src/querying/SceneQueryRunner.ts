@@ -48,6 +48,7 @@ import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
 import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
+import { DataSourceVariable } from '../variables/variants/DataSourceVariable';
 
 let counter = 100;
 
@@ -265,6 +266,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     if (variable instanceof GroupByVariable && this._isRelevantAutoVariable(variable)) {
+      this.runQueries();
+    }
+
+    if (variable instanceof DataSourceVariable) {
       this.runQueries();
     }
   }

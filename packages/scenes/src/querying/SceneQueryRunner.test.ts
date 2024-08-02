@@ -37,6 +37,7 @@ import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
 import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
+import { DataSourceVariable } from '../variables/variants/DataSourceVariable';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -741,6 +742,35 @@ describe('SceneQueryRunner', () => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
 
       variable.changeValueTo('AB');
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(2);
+    });
+
+    it('Should execute query datasource when variable updates', async () => {
+      const variable = new TestVariable({ name: 'A', value: '', query: 'A.*' });
+      const datasourceVariable = new DataSourceVariable({ name: 'ds', label: 'ds', value: 'uid-1', pluginId: '', options: [], });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const timeRange = new SceneTimeRange();
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable, datasourceVariable] }),
+        $timeRange: timeRange,
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+      // should execute query when variable completes update
+      variable.signalUpdateCompleted();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      datasourceVariable.changeValueTo('uid-2')
 
       await new Promise((r) => setTimeout(r, 1));
 
