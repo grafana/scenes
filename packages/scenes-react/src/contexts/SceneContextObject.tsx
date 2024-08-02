@@ -4,17 +4,18 @@ import {
   SceneObjectState,
   SceneVariable,
   SceneVariableSet,
-  getUrlSyncManager,
+  UrlSyncManager,
 } from '@grafana/scenes';
 import { writeSceneLog } from '../utils';
 
 export interface SceneContextObjectState extends SceneObjectState {
   childContexts?: SceneContextObject[];
   children: SceneObject[];
+  urlSyncManager: UrlSyncManager;
 }
 
 export class SceneContextObject extends SceneObjectBase<SceneContextObjectState> {
-  public constructor(state?: Partial<SceneContextObjectState>) {
+  public constructor(state: Partial<SceneContextObjectState> & { urlSyncManager: UrlSyncManager}) {
     super({
       ...state,
       children: state?.children ?? [],
@@ -23,7 +24,7 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
   }
 
   public addToScene(obj: SceneObject) {
-    getUrlSyncManager().handleNewObject(obj);
+    this.state.urlSyncManager.handleNewObject(obj);
 
     this.setState({ children: [...this.state.children, obj] });
     writeSceneLog('SceneContext', `Adding to scene: ${obj.constructor.name} key: ${obj.state.key}`);
@@ -54,7 +55,7 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
   public addVariable(variable: SceneVariable) {
     let set = this.state.$variables as SceneVariableSet;
 
-    getUrlSyncManager().handleNewObject(variable);
+    this.state.urlSyncManager.handleNewObject(variable);
 
     if (set) {
       set.setState({ variables: [...set.state.variables, variable] });

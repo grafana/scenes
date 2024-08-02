@@ -1,13 +1,12 @@
 import { Location } from 'history';
 
-import { locationService } from '@grafana/runtime';
-
 import { SceneObjectStateChangedEvent } from '../core/events';
 import { SceneObject, SceneObjectUrlValues } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { Unsubscribable } from 'rxjs';
 import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
 import { getUrlState, isUrlValueEqual, syncStateFromUrl } from './utils';
+import { LocationService } from '@grafana/runtime';
 
 export interface UrlSyncManagerLike {
   initSync(root: SceneObject): void;
@@ -22,7 +21,11 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   private _sceneRoot?: SceneObject;
   private _stateSub: Unsubscribable | null = null;
   private _lastLocation: Location | undefined;
-  private _paramsCache = new UrlParamsCache();
+  private _paramsCache: UrlParamsCache;
+
+  public constructor(private locationService: LocationService = locationService) {
+    this._paramsCache = new UrlParamsCache(locationService);
+  }
 
   /**
    * Updates the current scene state to match URL state.
@@ -39,7 +42,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     this._stateSub = root.subscribeToEvent(SceneObjectStateChangedEvent, this.#onStateChanged);
 
     this._urlKeyMapper.clear();
-    this._lastLocation = locationService.getLocation();
+    this._lastLocation = this.locationService.getLocation();
 
     this.handleNewObject(this._sceneRoot);
   }
@@ -94,7 +97,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     if (changedObject.urlSync) {
       const newUrlState = changedObject.urlSync.getUrlState();
 
-      const searchParams = locationService.getSearch();
+      const searchParams = this.locationService.getSearch();
       const mappedUpdated: SceneObjectUrlValues = {};
 
       for (const [key, newUrlValue] of Object.entries(newUrlState)) {
@@ -108,10 +111,10 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
       if (Object.keys(mappedUpdated).length > 0) {
         writeSceneLog('UrlSyncManager', 'onStateChange updating URL');
-        locationService.partial(mappedUpdated, true);
+        this.locationService.partial(mappedUpdated, true);
 
         /// Mark the location already handled
-        this._lastLocation = locationService.getLocation();
+        this._lastLocation = this.locationService.getLocation();
       }
     }
   };
@@ -124,9 +127,14 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 class UrlParamsCache {
   #cache: URLSearchParams | undefined;
   #location: Location | undefined;
+  #locationService: LocationService;
+
+  public constructor(locationServiceArg: LocationService) {
+    this.#locationService = locationServiceArg
+  }
 
   public getParams(): URLSearchParams {
-    const location = locationService.getLocation();
+    const location = this.#locationService.getLocation();
 
     if (this.#location === location) {
       return this.#cache!;
@@ -141,6 +149,9 @@ class UrlParamsCache {
 
 let urlSyncManager: UrlSyncManagerLike | undefined;
 
+/**
+ * @deprecated use useUrlSync() in the root component
+ */
 export function getUrlSyncManager(): UrlSyncManagerLike {
   if (!urlSyncManager) {
     urlSyncManager = new UrlSyncManager();
