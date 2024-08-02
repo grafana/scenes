@@ -15,6 +15,7 @@ import {
   VariableValueSingle,
   CustomVariableValue,
   VariableCustomFormatterFn,
+  SceneVariableOptionsRefreshEvent,
 } from '../types';
 import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
@@ -327,6 +328,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     return options;
+  }
+
+  public refreshOptions() {
+    this.publishEvent(new SceneVariableOptionsRefreshEvent(this), true);
   }
 
   /**
