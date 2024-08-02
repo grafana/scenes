@@ -19,7 +19,7 @@ import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLa
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
 import { TestScene } from '../variables/TestScene';
-import { RuntimeDataSource, registerRuntimeDataSource } from './RuntimeDataSource';
+import { RuntimeDataSource, registerRuntimeDataSource, runtimeDataSources } from './RuntimeDataSource';
 import { DataQuery } from '@grafana/schema';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneCanvasText } from '../components/SceneCanvasText';
@@ -30,13 +30,15 @@ import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequest
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
+import { SceneQueryController } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
 import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
+import { config } from '@grafana/runtime';
+import { SceneQueryStateControllerState } from '../behaviors/types';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -132,6 +134,9 @@ jest.mock('@grafana/runtime', () => ({
     getAdhocFilters: jest.fn(),
   }),
   config: {
+    buildInfo: {
+      version: '1.0.0',
+    },
     theme: {
       palette: {
         gray60: '#666666',
@@ -140,9 +145,13 @@ jest.mock('@grafana/runtime', () => ({
   },
 }));
 
-describe('SceneQueryRunner', () => {
+// 11.1.2 - will use SafeSerializableSceneObject
+// 11.1.1 - will NOT use SafeSerializableSceneObject
+describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
   let deactivationHandlers: SceneDeactivationHandler[] = [];
-
+  beforeEach(() => {
+    config.buildInfo.version = v;
+  });
   afterEach(() => {
     runRequestMock.mockClear();
     getDataSourceMock.mockClear();
@@ -174,40 +183,7 @@ describe('SceneQueryRunner', () => {
           "__interval_ms",
         ]
       `);
-      expect(request).toMatchInlineSnapshot(`
-        {
-          "app": "scenes",
-          "cacheTimeout": "30",
-          "interval": "30s",
-          "intervalMs": 30000,
-          "liveStreaming": undefined,
-          "maxDataPoints": 500,
-          "queryCachingTTL": 300000,
-          "range": {
-            "from": "2023-07-11T02:18:08.000Z",
-            "raw": {
-              "from": "now-6h",
-              "to": "now",
-            },
-            "to": "2023-07-11T08:18:08.000Z",
-          },
-          "rangeRaw": {
-            "from": "now-6h",
-            "to": "now",
-          },
-          "requestId": "SQR100",
-          "startTime": 1689063488000,
-          "targets": [
-            {
-              "datasource": {
-                "uid": "test-uid",
-              },
-              "refId": "A",
-            },
-          ],
-          "timezone": "browser",
-        }
-      `);
+      expect(request).toMatchSnapshot();
     });
   });
 
@@ -490,7 +466,7 @@ describe('SceneQueryRunner', () => {
 
       expect(queryRunner.state.data).toBeUndefined();
 
-      activateFullSceneTree(scene);
+      deactivationHandlers.push(activateFullSceneTree(scene));
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -1089,6 +1065,8 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(queryRunner.state.data?.series[0].fields[0].values.get(0)).toBe(123);
+
+      runtimeDataSources.clear();
     });
   });
 
