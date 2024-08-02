@@ -357,6 +357,13 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     return this._ref;
   }
+
+  /**
+   * Useful for edge cases when you want to move a scene object to another parent.
+   */
+  public clearParent() {
+    this._parent = undefined;
+  }
 }
 
 /**
