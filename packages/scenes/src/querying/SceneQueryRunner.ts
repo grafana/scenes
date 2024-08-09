@@ -400,7 +400,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     });
   }
 
-  private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
+  protected async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // If no maxDataPoints specified we might need to wait for container width to be set from the outside
     if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
       return;
