@@ -2,11 +2,12 @@ import { lastValueFrom } from 'rxjs';
 
 import { DataSourceInstanceSettings, ScopedVars, PluginType } from '@grafana/data';
 
-import { SceneObject } from '../../core/types';
+import { SceneObject, SceneObjectState } from '../../core/types';
 
 import { DataSourceVariable } from './DataSourceVariable';
 import { VariableCustomFormatterFn } from '../types';
 import { DataSourceSrv, GetDataSourceListFilters, setDataSourceSrv } from '@grafana/runtime';
+import { sceneGraph } from '../../core/sceneGraph';
 
 function getDataSource(overrides: Partial<DataSourceInstanceSettings>): DataSourceInstanceSettings {
   return {
@@ -65,23 +66,15 @@ setDataSourceSrv({
   getList: getDataSourceListMock,
 } as any as DataSourceSrv);
 
-jest.mock('../../core/sceneGraph', () => {
-  return {
-    ...jest.requireActual('../../core/sceneGraph'),
-    sceneGraph: {
-      interpolate: (
-        sceneObject: SceneObject,
-        value: string | undefined | null,
-        scopedVars?: ScopedVars,
-        format?: string | VariableCustomFormatterFn
-      ) => {
-        return value?.replace('$variable-1', 'slow');
-      },
-    },
-  };
-});
-
 describe('DataSourceVariable', () => {
+  beforeAll(() => {
+    jest
+      .spyOn(sceneGraph, 'interpolate')
+      .mockImplementation((_sceneObject: SceneObject<SceneObjectState>, value: string | null | undefined) => {
+        return value?.replace('$variable-1', 'slow') ?? '';
+      });
+  });
+
   describe('When empty query is provided', () => {
     it('Should default to empty options and empty value', async () => {
       const variable = new DataSourceVariable({
