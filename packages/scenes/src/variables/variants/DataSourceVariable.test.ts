@@ -1,11 +1,10 @@
 import { lastValueFrom } from 'rxjs';
 
-import { DataSourceInstanceSettings, ScopedVars, PluginType } from '@grafana/data';
+import { DataSourceInstanceSettings, PluginType } from '@grafana/data';
 
 import { SceneObject, SceneObjectState } from '../../core/types';
 
 import { DataSourceVariable } from './DataSourceVariable';
-import { VariableCustomFormatterFn } from '../types';
 import { DataSourceSrv, GetDataSourceListFilters, setDataSourceSrv } from '@grafana/runtime';
 import { sceneGraph } from '../../core/sceneGraph';
 
