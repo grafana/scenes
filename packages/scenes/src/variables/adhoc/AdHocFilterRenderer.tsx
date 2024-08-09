@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
-import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFilterWithLabels, isMultiValueOperator } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
@@ -35,6 +35,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [isValuesOpen, setIsValuesOpen] = useState(false);
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
+  const [operatorWidth, setOperatorWidth] = useState<number | 'auto'>('auto')
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
@@ -56,6 +57,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueSelect = (
     <Select
       virtualized
+      isMulti={isMultiValueOperator(filter.operator)}
       allowCustomValue
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
@@ -176,8 +178,14 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         value={filter.operator}
         disabled={model.state.readOnly}
         options={model._getOperators()}
-        width="auto"
         onChange={(v) => model._updateFilter(filter, 'operator', v)}
+        width={operatorWidth}
+        onOpenMenu={() => {
+          setOperatorWidth(20)
+        }}
+        onCloseMenu={() => {
+          setOperatorWidth('auto')
+        }}
       />
       {valueSelect}
       <Button

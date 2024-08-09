@@ -21,7 +21,6 @@ export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabel?: string;
 }
-
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
   addFilterButtonText?: string;
@@ -104,6 +103,38 @@ export type getTagValuesProvider = (
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
+
+export type operatorDefinition = {
+  value: string;
+  description?: string;
+  isMulti?: Boolean;
+};
+
+const OPERATORS: operatorDefinition[] = [{
+  value: '=',
+}, {
+  value: '!='
+}, {
+  value: '<'
+}, {
+  value: '>'
+}, {
+  value: '=~',
+  description: 'Matches regex',
+}, {
+  value: '!~',
+  description: 'Does not match regex',
+}];
+// TODO feature toggle here
+OPERATORS.push({
+  value: '=|',
+  description: 'Is one of. Use to filter on multiple values.',
+  isMulti: true,
+}, {
+  value: '!=|',
+  description: 'Is not one of. Use to exclude multiple values.',
+  isMulti: true
+})
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
@@ -298,9 +329,10 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    return ['=', '!=', '<', '>', '=~', '!~'].map<SelectableValue<string>>((value) => ({
+    return OPERATORS.map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
+      description,
     }));
   }
 }
@@ -359,4 +391,12 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
   return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+}
+
+export function isMultiValueOperator(operatorValue: string): boolean {
+  const operator = OPERATORS.find((o) => o.value === operatorValue);
+  if (!operator) {
+    throw new Error('Unknown operator');
+  }
+  return Boolean(operator.isMulti);
 }
