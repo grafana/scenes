@@ -16,7 +16,7 @@ import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
-import { SafeSerializableSceneObject } from '../../utils/SafeSerializableSceneObject';
+import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -103,7 +103,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: new SafeSerializableSceneObject(this),
+        __sceneObject: wrapInSafeSerializableSceneObject(this),
       })
     ).pipe(
       mergeMap((ds) => {
