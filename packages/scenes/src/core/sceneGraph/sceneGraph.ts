@@ -9,6 +9,7 @@ import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 import { VariableInterpolation } from '@grafana/runtime';
+import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 
 /**
  * Get the closest node with variables
@@ -75,6 +76,12 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   for (const name of sceneObject.variableDependency.getNames()) {
+    // This is for backwards compability. In the old architecture query variables could reference itself in a query without breaking.
+    if (sceneObject instanceof QueryVariable && sceneObject.state.name === name) {
+      console.warn('Query variable is referencing itself');
+      continue;
+    }
+
     const variable = lookupVariable(name, sceneObject);
     if (!variable) {
       continue;
