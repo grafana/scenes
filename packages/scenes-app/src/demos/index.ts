@@ -38,6 +38,7 @@ import { getDynamicDataLayersDemo } from './dynamicDataLayers';
 import { getInteropDemo } from './interopDemo';
 import { getUrlSyncTest } from './urlSyncTest';
 import { getMlDemo } from './ml';
+import { getPanelTimeRangeHandlerDemoScene } from './panelTimeRangeHandler';
 
 export interface DemoDescriptor {
   title: string;
@@ -50,6 +51,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Responsive layout', getPage: getResponsiveLayoutDemo },
     { title: 'Panel menu', getPage: getPanelMenuTest },
     { title: 'Panel context', getPage: getPanelContextDemoScene },
+    { title: 'Panel alternative time range selection', getPage: getPanelTimeRangeHandlerDemoScene },
     { title: 'Repeat layout by series', getPage: getPanelRepeaterTest },
     { title: 'Repeat layout by variable', getPage: getVariableRepeaterDemo },
     { title: 'Grid layout', getPage: getGridLayoutTest },
