@@ -11,7 +11,7 @@ import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
-import { getDataSourceSrv } from '@grafana/runtime';
+import { config, getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
@@ -125,16 +125,19 @@ const OPERATORS: operatorDefinition[] = [{
   value: '!~',
   description: 'Does not match regex',
 }];
-// TODO feature toggle here
-OPERATORS.push({
-  value: '=|',
-  description: 'Is one of. Use to filter on multiple values.',
-  isMulti: true,
-}, {
-  value: '!=|',
-  description: 'Is not one of. Use to exclude multiple values.',
-  isMulti: true
-})
+// @ts-expect-error Remove when this repo updates to the latest grafana runtime
+// TODO shift this logic to the state so it's controlled outside of the variable
+if (config.featureToggles.adhocFilterOneOf) {
+  OPERATORS.push({
+    value: '=|',
+    description: 'Is one of. Use to filter on multiple values.',
+    isMulti: true,
+  }, {
+    value: '!=|',
+    description: 'Is not one of. Use to exclude multiple values.',
+    isMulti: true
+  })
+}
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
@@ -182,6 +185,9 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
+  // options
+  // - update _updateFilter to be able to handle updating multiple props
+  // - updates values at the same time as value is updated
   public _updateFilter(
     filter: AdHocFilterWithLabels,
     prop: keyof AdHocFilterWithLabels,
@@ -210,7 +216,8 @@ export class AdHocFiltersVariable
         const updatedFilter = { ...f, [prop]: value, [propLabelKey]: label };
 
         // clear value if key has changed
-        if (prop === 'key' && filter[prop] !== value) {
+        // clear value if operator has changed between from multi to single (but not single to multi)
+        if (prop === 'key' && filter[prop] !== value || (prop === 'operator' && !isMultiValueOperator(value) && isMultiValueOperator(filter.operator))) {
           updatedFilter.value = '';
           updatedFilter.valueLabel = '';
         }

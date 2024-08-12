@@ -7,6 +7,7 @@ import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { getAdhocOptionSearcher } from './getAdhocOptionSearcher';
 import { handleOptionGroups } from '../utils';
+import { OptionWithCheckbox } from '../components/VariableValueSelect';
 
 interface Props {
   filter: AdHocFilterWithLabels;
@@ -36,6 +37,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
   const [operatorWidth, setOperatorWidth] = useState<number | 'auto'>('auto')
+  const isMulti = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
@@ -57,7 +59,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueSelect = (
     <Select
       virtualized
-      isMulti={isMultiValueOperator(filter.operator)}
+      isMulti={isMulti}
       allowCustomValue
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
@@ -65,14 +67,18 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       disabled={model.state.readOnly}
       className={cx(styles.value, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
-      value={valueValue}
+      value={isMulti && valueValue ? valueValue.value.split('|') : valueValue}
       filterOption={filterNoOp}
+      components={isMulti ? { Option: OptionWithCheckbox } : {}}
+      hideSelectedOptions={false}
+      closeMenuOnSelect={!isMulti}
       placeholder={'Select value'}
       options={filteredValueOptions}
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
       onChange={(v) => {
-        model._updateFilter(filter, 'value', v);
+        const updatedValue = isMulti ? v.map((option: SelectableValue<string>) => option.value).join('|') : v.value;
+        model._updateFilter(filter, 'value', { value: updatedValue });
 
         if (valueHasCustomValue !== v.__isNew__) {
           setValueHasCustomValue(v.__isNew__);
