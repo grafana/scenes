@@ -50,10 +50,14 @@ function renderFilter(filter: AdHocVariableFilter) {
   // map "one of" operator to regex
   if (operator === '=|') {
     operator = '=~'
-    value = filter.value.split('|').map(escapeLabelValueInRegexSelector).join('|');
+    // TODO remove when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
   } else if (operator === '!=|') {
     operator = '!~'
-    value = filter.value.split('|').map(escapeLabelValueInRegexSelector).join('|');
+    // TODO remove when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
   } else if (operator === '=~' || operator === '!~') {
     value = escapeLabelValueInRegexSelector(filter.value);
   } else {

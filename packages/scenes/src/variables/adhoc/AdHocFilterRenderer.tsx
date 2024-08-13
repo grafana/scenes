@@ -37,7 +37,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
   const [operatorWidth, setOperatorWidth] = useState<number | 'auto'>('auto')
-  const isMulti = isMultiValueOperator(filter.operator);
+  const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
@@ -56,10 +56,28 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     [optionSearcher, valueInputValue]
   );
 
+  const multiValueOptions = {
+    isMulti: true,
+    // TODO remove when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    value: filter.values,
+    components: {
+      Option: OptionWithCheckbox,
+    },
+    closeMenuOnSelect: false,
+    onChange: (v: SelectableValue) => {
+      const updatedValue = v.map((option: SelectableValue<string>) => option.value).join('__gfp__');
+      model._updateFilter(filter, 'value', { value: updatedValue });
+      // clear input value when creating a new custom multi value
+      if (v.some((value: SelectableValue) => value.__isNew__)) {
+        setValueInputValue('');
+      }
+    }
+  }
+
   const valueSelect = (
     <Select
       virtualized
-      isMulti={isMulti}
       allowCustomValue
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
@@ -67,18 +85,15 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       disabled={model.state.readOnly}
       className={cx(styles.value, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
-      value={isMulti && valueValue ? valueValue.value.split('|') : valueValue}
+      value={valueValue}
       filterOption={filterNoOp}
-      components={isMulti ? { Option: OptionWithCheckbox } : {}}
       hideSelectedOptions={false}
-      closeMenuOnSelect={!isMulti}
       placeholder={'Select value'}
       options={filteredValueOptions}
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
       onChange={(v) => {
-        const updatedValue = isMulti ? v.map((option: SelectableValue<string>) => option.value).join('|') : v.value;
-        model._updateFilter(filter, 'value', { value: updatedValue });
+        model._updateFilter(filter, 'value', v);
 
         if (valueHasCustomValue !== v.__isNew__) {
           setValueHasCustomValue(v.__isNew__);
@@ -105,6 +120,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         setIsValuesOpen(false);
         setValueInputValue('');
       }}
+      {...(isMultiValue && multiValueOptions)}
     />
   );
 

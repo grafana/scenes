@@ -216,10 +216,29 @@ export class AdHocFiltersVariable
         const updatedFilter = { ...f, [prop]: value, [propLabelKey]: label };
 
         // clear value if key has changed
-        // clear value if operator has changed between from multi to single (but not single to multi)
-        if (prop === 'key' && filter[prop] !== value || (prop === 'operator' && !isMultiValueOperator(value) && isMultiValueOperator(filter.operator))) {
+        if (prop === 'key' && filter[prop] !== value) {
           updatedFilter.value = '';
           updatedFilter.valueLabel = '';
+        }
+        if (prop === 'operator') {
+          // clear value if operator has changed from multi to single
+          if (!isMultiValueOperator(value) && isMultiValueOperator(filter.operator)) {
+            updatedFilter.value = '';
+            updatedFilter.valueLabel = '';
+            // TODO remove when we're on the latest version of @grafana/data
+            // @ts-expect-error
+            delete updatedFilter.values;
+          // set values if operator has changed from single to multi
+          } else if (isMultiValueOperator(value) && !isMultiValueOperator(filter.operator)) {
+            // TODO remove when we're on the latest version of @grafana/data
+            // @ts-expect-error
+            updatedFilter.values = [updatedFilter.value]
+          }
+        }
+        if (prop === 'value' && isMultiValueOperator(filter.operator)) {
+          // TODO remove when we're on the latest version of @grafana/data
+          // @ts-expect-error
+          updatedFilter.values = value.split('__gfp__').filter(Boolean);
         }
         return updatedFilter;
       }
