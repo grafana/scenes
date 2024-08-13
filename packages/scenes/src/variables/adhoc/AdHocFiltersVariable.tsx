@@ -185,15 +185,15 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
-  public _updateFilter<T extends keyof AdHocFilterWithLabels>(
+  public _updateFilter(
     filter: AdHocFilterWithLabels,
-    update: Partial<Record<T, AdHocFilterWithLabels[T]>>
+    update: Partial<AdHocFilterWithLabels>
   ) {
     const { filters, _wip } = this.state;
 
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
-      if (Object.keys(update).includes('value')) {
+      if ('value' in update && update['value'] !== '') {
         this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
       } else {
         this.setState({ _wip: { ...filter, ...update } });

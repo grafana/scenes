@@ -54,22 +54,19 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const onOperatorChange = (v: SelectableValue) => {
     const existingOperator = filter.operator;
     const newOperator = v.value;
+
+    const update: Partial<AdHocFilterWithLabels> = { operator: v.value };
     // clear value if operator has changed from multi to single
     if (!isMultiValueOperator(newOperator) && isMultiValueOperator(existingOperator)) {
-      model._updateFilter(filter, {
-        operator: v.value,
-        value: '',
-        valueLabel: '',
-      });
+      update.value = '';
+      update.valueLabel = '';
     // set values if operator has changed from single to multi
-    } else if (isMultiValueOperator(newOperator) && !isMultiValueOperator(existingOperator)) {
-      model._updateFilter(filter, {
-        operator: v.value,
-        // TODO remove when we're on the latest version of @grafana/data
-        // @ts-expect-error
-        values: [filter.value],
-      });
+    } else if (isMultiValueOperator(newOperator) && !isMultiValueOperator(existingOperator) && filter.value) {
+      // TODO remove when we're on the latest version of @grafana/data
+      // @ts-expect-error
+      update.values = [filter.value];
     }
+    model._updateFilter(filter, update);
   }
 
   const filteredValueOptions = useMemo(
