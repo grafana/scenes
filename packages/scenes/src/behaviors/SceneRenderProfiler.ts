@@ -78,16 +78,22 @@ export class SceneRenderProfiler {
         start: measurementStartTs,
         end: measurementStartTs + n,
       });
+
+      const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
+
       performance.measure('DashboardInteraction', {
         start: profileStartTs,
-        end: profileStartTs + profileDuration + slowFramesTime,
+        end: profileEndTs,
       });
+
+      const networkDuration = captureNetwork(profileStartTs, profileEndTs);
 
       if (this.queryController.state.onProfileComplete) {
         this.queryController.state.onProfileComplete({
           origin: this.#profileInProgress!.origin,
           crumbs: this.#profileInProgress!.crumbs,
           duration: profileDuration + slowFramesTime,
+          networkDuration,
         });
       }
       // @ts-ignore
@@ -135,4 +141,53 @@ function processRecordedSpans(spans: number[]) {
     }
   }
   return [spans[0]];
+}
+
+function captureNetwork(startTs: number, endTs: number) {
+  const entries = performance.getEntriesByType('resource');
+  performance.clearResourceTimings();
+  const networkEntries = entries.filter((entry) => entry.startTime >= startTs && entry.startTime <= endTs);
+  for (const entry of networkEntries) {
+    performance.measure('Network entry ' + entry.name, {
+      start: entry.startTime,
+      end: entry.responseEnd,
+    });
+  }
+
+  return calculateNetworkTime(networkEntries);
+}
+
+// Will calculate total time spent on Network
+function calculateNetworkTime(requests: PerformanceResourceTiming[]): number {
+  if (requests.length === 0) {
+    return 0;
+  }
+
+  // Step 1: Sort the requests by startTs
+  requests.sort((a, b) => a.startTime - b.startTime);
+
+  // Step 2: Initialize variables
+  let totalNetworkTime = 0;
+  let currentStart = requests[0].startTime;
+  let currentEnd = requests[0].responseEnd;
+
+  // Step 3: Iterate through the sorted list and merge overlapping intervals
+  for (let i = 1; i < requests.length; i++) {
+    if (requests[i].startTime <= currentEnd) {
+      // Overlapping intervals, merge them
+      currentEnd = Math.max(currentEnd, requests[i].responseEnd);
+    } else {
+      // Non-overlapping interval, add the duration to total time
+      totalNetworkTime += currentEnd - currentStart;
+
+      // Update current interval
+      currentStart = requests[i].startTime;
+      currentEnd = requests[i].responseEnd;
+    }
+  }
+
+  // Step 4: Add the last interval
+  totalNetworkTime += currentEnd - currentStart;
+
+  return totalNetworkTime;
 }

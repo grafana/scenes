@@ -18,6 +18,7 @@ export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' 
 export interface SceneInteractionProfileEvent {
   origin: string;
   duration: number;
+  networkDuration: number;
   crumbs: string[];
   // add more granular data,i.e. network times? slow frames?
 }
