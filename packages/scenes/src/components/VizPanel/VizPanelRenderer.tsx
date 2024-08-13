@@ -164,7 +164,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onCancelQuery={model.onCancelQuery}
             // @ts-ignore
             onFocus={setPanelAttention}
-            onMouseEnter={setPanelAttention}
+            onMouseEnter={debouncedMouseMove}
             onMouseMove={debouncedMouseMove}
           >
             {(innerWidth, innerHeight) => (
