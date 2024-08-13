@@ -19,7 +19,7 @@ import { SafeSerializableSceneObject } from '../../utils/SafeSerializableSceneOb
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
-  valueLabel?: string;
+  valueLabels?: string[];
 }
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
@@ -310,7 +310,7 @@ export class AdHocFiltersVariable
 
   public _addWip() {
     this.setState({
-      _wip: { key: '', keyLabel: '', value: '', valueLabel: '', operator: '=', condition: '' },
+      _wip: { key: '', value: '', operator: '=', condition: '' },
     });
   }
 

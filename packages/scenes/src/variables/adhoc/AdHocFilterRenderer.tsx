@@ -40,7 +40,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
-  const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
+  const valueValue = keyLabelToOption(filter.value, filter.valueLabels?.[0]);
 
   const optionSearcher = useMemo(() => getAdhocOptionSearcher(values), [values]);
 
@@ -59,7 +59,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     // clear value if operator has changed from multi to single
     if (!isMultiValueOperator(newOperator) && isMultiValueOperator(existingOperator)) {
       update.value = '';
-      update.valueLabel = '';
+      update.valueLabels = [''];
       // TODO remove expect-error when we're on the latest version of @grafana/data
       // @ts-expect-error
       update.values = undefined;
@@ -93,6 +93,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         // TODO remove expect-error when we're on the latest version of @grafana/data
         // @ts-expect-error
         values: v.map((option: SelectableValue<string>) => option.value),
+        valueLabels: v.map((option: SelectableValue<string>) => option.label),
       });
       // clear input value when creating a new custom multi value
       if (v.some((value: SelectableValue) => value.__isNew__)) {
@@ -121,7 +122,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       onChange={(v) => {
         model._updateFilter(filter, {
           value: v.value,
-          valueLabel: v.label
+          valueLabels: v.label ? [v.label] : [v.value]
         });
 
         if (valueHasCustomValue !== v.__isNew__) {
@@ -170,7 +171,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         keyLabel: v.label,
         // clear value if key has changed
         value: '',
-        valueLabel: ''
+        valueLabels: ['']
       })}
       autoFocus={filter.key === ''}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
