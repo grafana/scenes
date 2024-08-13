@@ -51,6 +51,27 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     return value;
   };
 
+  const onOperatorChange = (v: SelectableValue) => {
+    const existingOperator = filter.operator;
+    const newOperator = v.value;
+    // clear value if operator has changed from multi to single
+    if (!isMultiValueOperator(newOperator) && isMultiValueOperator(existingOperator)) {
+      model._updateFilter(filter, {
+        operator: v.value,
+        value: '',
+        valueLabel: '',
+      });
+    // set values if operator has changed from single to multi
+    } else if (isMultiValueOperator(newOperator) && !isMultiValueOperator(existingOperator)) {
+      model._updateFilter(filter, {
+        operator: v.value,
+        // TODO remove when we're on the latest version of @grafana/data
+        // @ts-expect-error
+        values: [filter.value],
+      });
+    }
+  }
+
   const filteredValueOptions = useMemo(
     () => handleOptionGroups(optionSearcher(valueInputValue)),
     [optionSearcher, valueInputValue]
@@ -67,7 +88,12 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     closeMenuOnSelect: false,
     onChange: (v: SelectableValue) => {
       const updatedValue = v.map((option: SelectableValue<string>) => option.value).join('__gfp__');
-      model._updateFilter(filter, 'value', { value: updatedValue });
+      model._updateFilter(filter, {
+        value: updatedValue,
+        // TODO remove when we're on the latest version of @grafana/data
+        // @ts-expect-error
+        values: v.map((option: SelectableValue<string>) => option.value),
+      });
       // clear input value when creating a new custom multi value
       if (v.some((value: SelectableValue) => value.__isNew__)) {
         setValueInputValue('');
@@ -93,7 +119,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
       onChange={(v) => {
-        model._updateFilter(filter, 'value', v);
+        model._updateFilter(filter, {
+          value: v.value,
+          valueLabel: v.label
+        });
 
         if (valueHasCustomValue !== v.__isNew__) {
           setValueHasCustomValue(v.__isNew__);
@@ -136,7 +165,13 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       value={keyValue}
       placeholder={'Select label'}
       options={handleOptionGroups(keys)}
-      onChange={(v) => model._updateFilter(filter, 'key', v)}
+      onChange={(v) => model._updateFilter(filter, {
+        key: v.value,
+        keyLabel: v.label,
+        // clear value if key has changed
+        value: '',
+        valueLabel: ''
+      })}
       autoFocus={filter.key === ''}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
       // see https://github.com/grafana/grafana/issues/63558
@@ -177,7 +212,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
               disabled={model.state.readOnly}
               options={model._getOperators()}
               width="auto"
-              onChange={(v) => model._updateFilter(filter, 'operator', v)}
+              onChange={onOperatorChange}
             />
             {valueSelect}
           </div>
@@ -200,7 +235,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         value={filter.operator}
         disabled={model.state.readOnly}
         options={model._getOperators()}
-        onChange={(v) => model._updateFilter(filter, 'operator', v)}
+        onChange={onOperatorChange}
         width={operatorWidth}
         onOpenMenu={() => {
           setOperatorWidth(20)

@@ -433,7 +433,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabel: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -496,8 +496,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabel: 'New Value' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -532,8 +532,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -568,8 +568,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabel: 'New Value' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -604,8 +604,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -640,8 +640,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'new,Key', label: 'New,Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'new,Value', label: 'New,Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'new,Key', keyLabel: 'New,Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'new,Value', valueLabel: 'New,Value' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -679,8 +679,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabel: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -715,8 +715,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: '', label: '' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: '', valueLabel: '' });
     });
 
     expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');

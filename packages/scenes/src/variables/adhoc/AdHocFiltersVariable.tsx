@@ -185,61 +185,25 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
-  // options
-  // - update _updateFilter to be able to handle updating multiple props
-  // - updates values at the same time as value is updated
-  public _updateFilter(
+  public _updateFilter<T extends keyof AdHocFilterWithLabels>(
     filter: AdHocFilterWithLabels,
-    prop: keyof AdHocFilterWithLabels,
-    { value, label }: SelectableValue<string | undefined | null>
+    update: Partial<Record<T, AdHocFilterWithLabels[T]>>
   ) {
-    if (value == null) {
-      return;
-    }
-
     const { filters, _wip } = this.state;
-
-    const propLabelKey = `${prop}Label`;
 
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
-      if (prop === 'value') {
-        this.setState({ filters: [...filters, { ..._wip, [prop]: value, [propLabelKey]: label }], _wip: undefined });
+      if (Object.keys(update).includes('value')) {
+        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
       } else {
-        this.setState({ _wip: { ...filter, [prop]: value, [propLabelKey]: label } });
+        this.setState({ _wip: { ...filter, ...update } });
       }
       return;
     }
 
     const updatedFilters = this.state.filters.map((f) => {
       if (f === filter) {
-        const updatedFilter = { ...f, [prop]: value, [propLabelKey]: label };
-
-        // clear value if key has changed
-        if (prop === 'key' && filter[prop] !== value) {
-          updatedFilter.value = '';
-          updatedFilter.valueLabel = '';
-        }
-        if (prop === 'operator') {
-          // clear value if operator has changed from multi to single
-          if (!isMultiValueOperator(value) && isMultiValueOperator(filter.operator)) {
-            updatedFilter.value = '';
-            updatedFilter.valueLabel = '';
-            // TODO remove when we're on the latest version of @grafana/data
-            // @ts-expect-error
-            delete updatedFilter.values;
-          // set values if operator has changed from single to multi
-          } else if (isMultiValueOperator(value) && !isMultiValueOperator(filter.operator)) {
-            // TODO remove when we're on the latest version of @grafana/data
-            // @ts-expect-error
-            updatedFilter.values = [updatedFilter.value]
-          }
-        }
-        if (prop === 'value' && isMultiValueOperator(filter.operator)) {
-          // TODO remove when we're on the latest version of @grafana/data
-          // @ts-expect-error
-          updatedFilter.values = value.split('__gfp__').filter(Boolean);
-        }
+        const updatedFilter = { ...f, ...update };
         return updatedFilter;
       }
       return f;
