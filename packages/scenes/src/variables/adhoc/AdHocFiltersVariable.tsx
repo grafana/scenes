@@ -11,7 +11,7 @@ import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
-import { config, getDataSourceSrv } from '@grafana/runtime';
+import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
@@ -77,6 +77,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   expressionBuilder?: AdHocVariableExpressionBuilderFn;
 
   /**
+   * Whether the filter supports new multi-value operators like =| and !=|
+   */
+  supportsMultiValueOperators?: boolean;
+
+  /**
    * When querying the datasource for label names and values to determine keys and values
    * for this ad hoc filter, consider the queries in the scene and use them as a filter.
    * This queries filter can be used to ensure that only ad hoc filter options that would
@@ -115,6 +120,14 @@ const OPERATORS: operatorDefinition[] = [{
 }, {
   value: '!='
 }, {
+  value: '=|',
+  description: 'Is one of. Use to filter on multiple values.',
+  isMulti: true,
+}, {
+  value: '!=|',
+  description: 'Is not one of. Use to exclude multiple values.',
+  isMulti: true
+}, {
   value: '<'
 }, {
   value: '>'
@@ -125,19 +138,6 @@ const OPERATORS: operatorDefinition[] = [{
   value: '!~',
   description: 'Does not match regex',
 }];
-// @ts-expect-error Remove when this repo updates to the latest grafana runtime
-// TODO shift this logic to the state so it's controlled outside of the variable
-if (config.featureToggles.adhocFilterOneOf) {
-  OPERATORS.push({
-    value: '=|',
-    description: 'Is one of. Use to filter on multiple values.',
-    isMulti: true,
-  }, {
-    value: '!=|',
-    description: 'Is not one of. Use to exclude multiple values.',
-    isMulti: true
-  })
-}
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
@@ -202,11 +202,7 @@ export class AdHocFiltersVariable
     }
 
     const updatedFilters = this.state.filters.map((f) => {
-      if (f === filter) {
-        const updatedFilter = { ...f, ...update };
-        return updatedFilter;
-      }
-      return f;
+      return f === filter ? { ...f, ...update } : f;
     });
 
     this.setState({ filters: updatedFilters });
@@ -319,7 +315,8 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    return OPERATORS.map<SelectableValue<string>>(({ value, description }) => ({
+    const filteredOperators = this.state.supportsMultiValueOperators ? OPERATORS : OPERATORS.filter((operator) => !operator.isMulti);
+    return filteredOperators.map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
       description,

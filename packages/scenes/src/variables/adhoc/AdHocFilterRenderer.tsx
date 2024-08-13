@@ -55,14 +55,17 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     const existingOperator = filter.operator;
     const newOperator = v.value;
 
-    const update: Partial<AdHocFilterWithLabels> = { operator: v.value };
+    const update: Partial<AdHocFilterWithLabels> = { operator: newOperator };
     // clear value if operator has changed from multi to single
     if (!isMultiValueOperator(newOperator) && isMultiValueOperator(existingOperator)) {
       update.value = '';
       update.valueLabel = '';
+      // TODO remove expect-error when we're on the latest version of @grafana/data
+      // @ts-expect-error
+      update.values = undefined;
     // set values if operator has changed from single to multi
     } else if (isMultiValueOperator(newOperator) && !isMultiValueOperator(existingOperator) && filter.value) {
-      // TODO remove when we're on the latest version of @grafana/data
+      // TODO remove expect-error when we're on the latest version of @grafana/data
       // @ts-expect-error
       update.values = [filter.value];
     }
@@ -76,9 +79,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
   const multiValueOptions = {
     isMulti: true,
-    // TODO remove when we're on the latest version of @grafana/data
+    // TODO remove expect-error when we're on the latest version of @grafana/data
     // @ts-expect-error
-    value: filter.values,
+    value: filter.values ?? null,
     components: {
       Option: OptionWithCheckbox,
     },
@@ -87,7 +90,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       const updatedValue = v.map((option: SelectableValue<string>) => option.value).join('__gfp__');
       model._updateFilter(filter, {
         value: updatedValue,
-        // TODO remove when we're on the latest version of @grafana/data
+        // TODO remove expect-error when we're on the latest version of @grafana/data
         // @ts-expect-error
         values: v.map((option: SelectableValue<string>) => option.value),
       });

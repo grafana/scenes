@@ -82,6 +82,7 @@ export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
                   values: ['A', 'B', 'C', 'D', 'E', 'F', 'grafana'].map((v)=>({text: v})),
                 };
               },
+              supportsMultiValueOperators: true,
             }),
           ],
         }),
