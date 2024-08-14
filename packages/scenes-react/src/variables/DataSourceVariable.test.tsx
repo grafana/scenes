@@ -5,13 +5,41 @@ import { TestContextProvider } from '../utils/testUtils';
 import { VariableControl } from '../components/VariableControl';
 import { DataSourceVariable } from './DataSourceVariable';
 import { DataSourceVariable as DataSourceVariableObject } from '@grafana/scenes';
-import { of } from 'rxjs';
+import { Observable, map, of } from 'rxjs';
+import { DataQueryRequest, DataQueryResponse, DataSourceApi } from '@grafana/data';
 
-const QueryVariableClass = jest.requireActual('@grafana/scenes').QueryVariable;
+const getDataSourceMock = jest.fn().mockReturnValue({
+  query: () =>
+    of({
+      data: [],
+    }),
+});
 
-describe('QueryVariable', () => {  
+const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
+  const result: any = {};
+
+  return (ds.query(request) as Observable<DataQueryResponse>).pipe(
+    map((packet) => {
+      return result;
+    })
+  );
+});
+
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  getDataSourceSrv: () => {
+    return { get: getDataSourceMock };
+  },
+  getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
+    return runRequestMock(ds, request);
+  },
+}));
+
+const DataSourceVariableClass = jest.requireActual('@grafana/scenes').DataSourceVariable;
+
+describe('DatasourceVariable', () => {  
   beforeEach(() => {
-    jest.spyOn(QueryVariableClass.prototype, 'getValueOptions').mockImplementation(() => of([]));
+    jest.spyOn(DataSourceVariableClass.prototype, 'getValueOptions').mockImplementation(() => of([]));
   });
 
   it('Should add itself to scene', async () => {
@@ -36,7 +64,7 @@ describe('QueryVariable', () => {
 
     const { rerender } = render(
       <TestContextProvider value={scene}>
-        <DataSourceVariable name="dsVar" pluginId="grafana-testdata-datasource">
+        <DataSourceVariable name="dsVar" pluginId="grafana-testdata-datasource" label='test1'>
           <VariableControl name="dsVar" />
         </DataSourceVariable>
       </TestContextProvider>
@@ -50,7 +78,7 @@ describe('QueryVariable', () => {
 
     rerender(
       <TestContextProvider value={scene}>
-        <DataSourceVariable name="dsVar" pluginId="grafana-testdata-datasource">
+        <DataSourceVariable name="dsVar" pluginId="grafana-testdata-datasource" label='test2'>
           <VariableControl name="dsVar" />
         </DataSourceVariable>
       </TestContextProvider>
