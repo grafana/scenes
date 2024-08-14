@@ -1,3 +1,16 @@
+# v5.7.5 (Wed Aug 14 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Possibility to refresh variable options based on state changes [#827](https://github.com/grafana/scenes/pull/827) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.7.4 (Fri Aug 09 2024)
 
 #### 🐛 Bug Fix
