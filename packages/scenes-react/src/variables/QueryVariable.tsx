@@ -61,7 +61,7 @@ export function QueryVariable({
       return;
     }
 
-    variable?.setState({
+    variable.setState({
       label,
       query,
       datasource, 
@@ -73,7 +73,8 @@ export function QueryVariable({
     });
 
     variable.refreshOptions();
-  }, [datasource, hide, includeAll, label, query, refresh, regex, sort, variable, variableAdded]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datasource, hide, includeAll, label, query, refresh, regex, sort, variable]);
  
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
