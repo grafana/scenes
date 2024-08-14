@@ -329,6 +329,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     return options;
   }
 
+  public refreshOptions() {
+    this.getValueOptions({}).subscribe((options) => {
+        this.updateValueGivenNewOptions(options);
+    });
+  }
+
   /**
    * Can be used by subclasses to do custom handling of option search based on search input
    */

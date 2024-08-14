@@ -10,6 +10,7 @@ export { CustomVariable } from './variables/CustomVariable';
 export { DataSourceVariable } from './variables/DataSourceVariable';
 export { Breadcrumb, BreadcrumbContext, BreadcrumbProvider } from './contexts/BreadcrumbContext';
 export { useVariableValues } from './hooks/useVariableValues';
+export { useVariableValue } from './hooks/useVariableValue';
 export { AnnotationLayer } from './components/AnnotationLayer';
 export { EmbeddedSceneWithContext } from './interoperability/EmbeddedSceneWithContext';
 export * from './hooks/hooks';
