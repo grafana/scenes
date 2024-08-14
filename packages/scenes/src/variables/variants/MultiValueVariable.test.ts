@@ -7,6 +7,7 @@ import { SceneVariableValueChangedEvent } from '../types';
 import { CustomAllValue } from '../variants/MultiValueVariable';
 import { TestVariable } from './TestVariable';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
+import { CustomVariable } from './CustomVariable';
 
 describe('MultiValueVariable', () => {
   describe('When validateAndUpdate is called', () => {
@@ -519,6 +520,34 @@ describe('MultiValueVariable', () => {
       });
 
       variable.urlSync?.updateFromUrl({ ['var-test']: '2' });
+      expect(variable.state.value).toEqual('2');
+      expect(variable.state.text).toEqual('B');
+    });
+
+    it('updateFromUrl should update value from label in the case of key/value custom variable', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        options: [],
+        value: '',
+        text: '',
+        query: 'A : 1,B : 2',
+      });
+
+      await variable.urlSync?.updateFromUrl({ ['var-test']: 'B' });
+      expect(variable.state.value).toEqual('2');
+      expect(variable.state.text).toEqual('B');
+    });
+
+    it('updateFromUrl should update value from value in the case of key/value custom variable', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        options: [],
+        value: '',
+        text: '',
+        query: 'A : 1,B : 2',
+      });
+
+      await variable.urlSync?.updateFromUrl({ ['var-test']: '2' });
       expect(variable.state.value).toEqual('2');
       expect(variable.state.text).toEqual('B');
     });

@@ -1,5 +1,5 @@
 import { isArray, isEqual } from 'lodash';
-import { map, Observable } from 'rxjs';
+import { lastValueFrom, map, Observable } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
@@ -396,7 +396,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     return { [this.getKey()]: urlValue };
   }
 
-  public updateFromUrl(values: SceneObjectUrlValues): void {
+  public async updateFromUrl(values: SceneObjectUrlValues): Promise<void> {
     let urlValue = values[this.getKey()];
 
     if (urlValue != null) {
@@ -406,7 +406,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
       }
 
       // For edge cases where data links include variables with custom all value.
-      // We want the variable to maintain the "All" meta value not the actual custom vall value. (Fixes https://github.com/grafana/grafana/issues/28635)
+      // We want the variable to maintain the "All" meta value not the actual custom all value. (Fixes https://github.com/grafana/grafana/issues/28635)
       if (this._sceneObject.state.allValue && this._sceneObject.state.allValue === urlValue) {
         urlValue = ALL_VARIABLE_VALUE;
       }
@@ -417,6 +417,23 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
        */
       if (!this._sceneObject.isActive) {
         this._sceneObject.skipNextValidation = true;
+      }
+
+      if (!this._sceneObject.state.options || !this._sceneObject.state.options.length) {
+        const options = await lastValueFrom(this._sceneObject.getValueOptions({}));
+
+        const optionByValue = options.find((x) => x.value === urlValue);
+        if (optionByValue) {
+          this._sceneObject.changeValueTo(optionByValue.value, optionByValue.label);
+          return;
+        }
+
+        const optionByLabel = options.find((x) => x.label === urlValue);
+
+        if (optionByLabel) {
+          this._sceneObject.changeValueTo(optionByLabel.value, optionByLabel.label);
+          return;
+        }
       }
 
       this._sceneObject.changeValueTo(urlValue);
