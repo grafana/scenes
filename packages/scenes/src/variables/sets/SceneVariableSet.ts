@@ -8,7 +8,6 @@ import { writeSceneLog } from '../../utils/writeSceneLog';
 import {
   SceneVariable,
   SceneVariableDependencyConfigLike,
-  SceneVariableOptionsRefreshEvent,
   SceneVariables,
   SceneVariableSetState,
   SceneVariableValueChangedEvent,
@@ -53,11 +52,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     // Subscribe to changes to child variables
     this._subs.add(
       this.subscribeToEvent(SceneVariableValueChangedEvent, (event) => this._handleVariableValueChanged(event.payload))
-    );
-
-    // Subscribe to variable options changes
-    this._subs.add(
-      this.subscribeToEvent(SceneVariableOptionsRefreshEvent, (event) => this._handleVariableOptionsUpdate(event.payload))
     );
 
     this._subs.add(
@@ -259,12 +253,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     console.error('SceneVariableSet updateAndValidate error', err);
 
     writeVariableTraceLog(variable, 'updateAndValidate error', err);
-  }
-
-  private _handleVariableOptionsUpdate(variable: SceneVariable) {
-    this._variablesToUpdate.add(variable);
-
-    this._updateNextBatch();
   }
 
   private _handleVariableValueChanged(variableThatChanged: SceneVariable) {
