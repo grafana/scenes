@@ -63,7 +63,8 @@ export function DataSourceVariable({
     })
 
     variable.refreshOptions();
-  }, [hide, includeAll, label, pluginId, regex, variable, variableAdded])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hide, includeAll, label, pluginId, regex, variable])
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {
