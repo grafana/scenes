@@ -54,7 +54,7 @@ export function DataSourceVariable({
       return;
     }
 
-    variable?.setState({
+    variable.setState({
       pluginId,
       regex,
       label,
