@@ -74,7 +74,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
   };
 
   return (
-    <div ref={outerDivRef as RefCallback<HTMLDivElement>} style={{ flex: '1 1 auto', position: 'relative', zIndex: 1 }}>
+    <div ref={outerDivRef as RefCallback<HTMLDivElement>} style={{ flex: '1 1 auto', position: 'relative', zIndex: 1, width: '100%' }}>
       {width && height && renderGrid(width, height)}
     </div>
   );
