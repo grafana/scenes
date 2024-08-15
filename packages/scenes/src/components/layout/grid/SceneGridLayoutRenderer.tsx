@@ -25,6 +25,10 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
   validateChildrenSize(children);
 
   const renderGrid = (width: number, height: number) => {
+    if (!width || !height) {
+      return null;
+    }
+
     const layout = model.buildGridLayout(width, height);
 
     return (
@@ -78,7 +82,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
       ref={outerDivRef as RefCallback<HTMLDivElement>}
       style={{ flex: '1 1 auto', position: 'relative', zIndex: 1, width: '100%' }}
     >
-      {width && height && renderGrid(width, height)}
+      {renderGrid(width, height)}
     </div>
   );
 }
