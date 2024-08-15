@@ -142,20 +142,20 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const timeRange = sceneGraph.getTimeRange(this);
 
       // Add subscriptions to any extra providers so that they rerun queries
-    // when their state changes and they should rerun.
-    const providers = this.getClosestExtraQueryProviders();
-    for (const provider of providers) {
+      // when their state changes and they should rerun.
+      const providers = this.getClosestExtraQueryProviders();
+      for (const provider of providers) {
         this._subs.add(
           provider.subscribeToState((n, p) => {
             if (provider.shouldRerun(p, n, this.state.queries)) {
               this.runQueries();
             }
-          })
+          }),
         );
       }
 
       this.subscribeToTimeRangeChanges(
-        timeRange
+        timeRange,
       );
 
       if (this.shouldRunQueriesOnActivate()) {
