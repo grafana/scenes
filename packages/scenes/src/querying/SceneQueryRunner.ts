@@ -267,18 +267,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    */
   private onAnyVariableChanged(variable: SceneVariable) {
     // If this variable has already been detected this variable as a dependency onVariableUpdatesCompleted above will handle value changes
-    if (this._adhocFiltersVar === variable || this._groupByVar === variable) {
+    if (this._adhocFiltersVar === variable || this._groupByVar === variable || !this.isQueryModeAuto()) {
       return;
     }
 
-    if(this.isQueryModeAuto()){
-      if (variable instanceof AdHocFiltersVariable && this._isRelevantAutoVariable(variable)) {
-        this.runQueries();
-      }
+    if (variable instanceof AdHocFiltersVariable && this._isRelevantAutoVariable(variable)) {
+      this.runQueries();
+    }
 
-      if (variable instanceof GroupByVariable && this._isRelevantAutoVariable(variable)) {
-        this.runQueries();
-      }
+    if (variable instanceof GroupByVariable && this._isRelevantAutoVariable(variable)) {
+      this.runQueries();
     }
   }
 

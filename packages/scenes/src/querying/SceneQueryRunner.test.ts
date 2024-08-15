@@ -274,7 +274,7 @@ describe('SceneQueryRunner', () => {
   });
 
   describe('when runQueriesMode is set to manual', () => {
-    it('should not run queries', async () => {
+    it('should not run queries on activate', async () => {
       const queryRunner = new SceneQueryRunner({
         runQueriesMode: 'manual',
         queries: [{ refId: 'A' }],
