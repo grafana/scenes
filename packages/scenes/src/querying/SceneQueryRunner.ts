@@ -138,9 +138,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onActivate() {
-    const runQueriesMode = this.state.runQueriesMode ?? 'auto';
-
-    if (runQueriesMode === 'auto') {
+    if (this.isQueryModeAuto()) {
       const timeRange = sceneGraph.getTimeRange(this);
 
 
@@ -260,7 +258,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * be called many times until all dependencies are in a non loading state.   *
    */
   private onVariableUpdatesCompleted() {
-    this.runQueries();
+    if(this.isQueryModeAuto()){
+      this.runQueries();
+    }
   }
 
   /**
@@ -272,12 +272,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    if (variable instanceof AdHocFiltersVariable && this._isRelevantAutoVariable(variable)) {
-      this.runQueries();
-    }
+    if(this.isQueryModeAuto()){
+      if (variable instanceof AdHocFiltersVariable && this._isRelevantAutoVariable(variable)) {
+        this.runQueries();
+      }
 
-    if (variable instanceof GroupByVariable && this._isRelevantAutoVariable(variable)) {
-      this.runQueries();
+      if (variable instanceof GroupByVariable && this._isRelevantAutoVariable(variable)) {
+        this.runQueries();
+      }
     }
   }
 
@@ -349,7 +351,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._containerWidth = width;
 
       // If we don't have maxDataPoints specifically set and maxDataPointsFromWidth is true
-      if (this.state.maxDataPointsFromWidth && !this.state.maxDataPoints) {
+      if (this.state.maxDataPointsFromWidth && !this.state.maxDataPoints && this.isQueryModeAuto()) {
         // As this is called from render path we need to wait for next tick before running queries
         setTimeout(() => {
           if (this.isActive && !this.state._hasFetchedData) {
@@ -387,7 +389,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
-    this.subscribeToTimeRangeChanges(timeRange);
+    if(this.isQueryModeAuto()){
+      this.subscribeToTimeRangeChanges(timeRange);
+    }
+
     this.runWithTimeRange(timeRange);
   }
 
@@ -681,6 +686,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     this._variableDependency.setVariableNames(explicitDependencies);
+  }
+
+  private isQueryModeAuto(): boolean {
+    return (this.state.runQueriesMode ?? 'auto') === 'auto'
   }
 }
 
