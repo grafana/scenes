@@ -79,33 +79,70 @@ export const sortVariableValues = (options: any[], sortOrder: VariableSort) => {
     return options;
   }
 
-  const sortType = Math.ceil(sortOrder / 2);
-  const reverseSort = sortOrder % 2 === 0;
+  // @ts-ignore
+  const sortByNumeric = (opt) => {
+    if (!opt.text) {
+      return -1;
+    }
+    const matches = opt.text.match(/.*?(\d+).*/);
+    if (!matches || matches.length < 2) {
+      return -1;
+    } else {
+      return parseInt(matches[1], 10);
+    }
+  };
 
-  if (sortType === 1) {
-    options = sortBy(options, 'text');
-  } else if (sortType === 2) {
-    options = sortBy(options, (opt) => {
-      if (!opt.text) {
+  // @ts-ignore
+  const sortByNaturalSort = (options) => {
+    //@ts-ignore
+    return options.sort((a, b) => {
+      if (!a.text) {
         return -1;
       }
 
-      const matches = opt.text.match(/.*?(\d+).*/);
-      if (!matches || matches.length < 2) {
-        return -1;
-      } else {
-        return parseInt(matches[1], 10);
+      if (!b.text) {
+        return 1;
       }
-    });
-  } else if (sortType === 3) {
-    options = sortBy(options, (opt) => {
-      return toLower(opt.text);
-    });
-  }
 
-  if (reverseSort) {
-    options = options.reverse();
-  }
+      return a.text.localeCompare(b.text, undefined, { numeric: true });
+    });
+  };
 
+  switch (sortOrder) {
+    case VariableSort.alphabeticalAsc:
+      options = sortBy(options, 'label');
+      break;
+    case VariableSort.alphabeticalDesc:
+      options = sortBy(options, 'label').reverse();
+      break;
+    case VariableSort.numericalAsc:
+      options = sortBy(options, sortByNumeric);
+      break;
+    case VariableSort.numericalDesc:
+      options = sortBy(options, sortByNumeric);
+      options = options.reverse();
+      break;
+    case VariableSort.alphabeticalCaseInsensitiveAsc:
+      options = sortBy(options, (opt) => {
+        return toLower(opt.label);
+      });
+      break;
+    case VariableSort.alphabeticalCaseInsensitiveDesc:
+      options = sortBy(options, (opt) => {
+        return toLower(opt.label);
+      });
+      options = options.reverse();
+      break;
+    case VariableSort.naturalAsc || 7:
+      // Sort by natural sort
+      options = sortByNaturalSort(options);
+      break;
+    case VariableSort.naturalDesc || 8:
+      options = sortByNaturalSort(options);
+      options = options.reverse();
+      break;
+    default:
+      break;
+  }
   return options;
 };

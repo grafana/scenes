@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import { isArray, isEqual } from 'lodash';
 import { map, Observable } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -30,6 +30,13 @@ export interface MultiValueVariableState extends SceneVariableState {
   defaultToAll?: boolean;
   allValue?: string;
   placeholder?: string;
+  /**
+   * For multi value variables, this option controls how many values to show before they are collapsed into +N.
+   * Defaults to 5
+   */
+  maxVisibleValues?: number;
+  noValueOnClear?: boolean;
+  isReadOnly?: boolean;
 }
 
 export interface VariableGetOptionsArgs {
@@ -41,6 +48,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   implements SceneVariable<TState>
 {
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
+
+  /**
+   * Set to true to skip next value validation to maintain the current value even it it's not among the options (ie valid values)
+   */
+  public skipNextValidation?: boolean;
 
   /**
    * The source of value options.
@@ -59,7 +71,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     );
   }
 
-  public cancel?(): void {
+  public onCancel(): void {
     this.setStateHelper({ loading: false });
     const sceneVarSet = this.parent as SceneVariableSet;
     sceneVarSet?.cancel(this);
@@ -69,59 +81,123 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * Check if current value is valid given new options. If not update the value.
    */
   private updateValueGivenNewOptions(options: VariableValueOption[]) {
+    // Remember current value and text
+    const { value: currentValue, text: currentText } = this.state;
+
+    const stateUpdate = this.getStateUpdateGivenNewOptions(options, currentValue, currentText);
+
+    this.interceptStateUpdateAfterValidation(stateUpdate);
+
+    // Perform state change
+    this.setStateHelper(stateUpdate);
+
+    // Publish value changed event only if value changed
+    if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
+
+  private getStateUpdateGivenNewOptions(
+    options: VariableValueOption[],
+    currentValue: VariableValue,
+    currentText: VariableValue
+  ): Partial<MultiValueVariableState> {
     const stateUpdate: Partial<MultiValueVariableState> = {
       options,
       loading: false,
-      value: this.state.value,
-      text: this.state.text,
+      value: currentValue,
+      text: currentText,
     };
 
     if (options.length === 0) {
-      // TODO handle the no value state
-    } else if (this.hasAllValue()) {
-      // If value is set to All then we keep it set to All but just store the options
-    } else if (this.state.isMulti) {
+      if (this.state.defaultToAll || this.state.includeAll) {
+        stateUpdate.value = ALL_VARIABLE_VALUE;
+        stateUpdate.text = ALL_VARIABLE_TEXT;
+      } else if (this.state.isMulti) {
+        stateUpdate.value = [];
+        stateUpdate.text = [];
+      } else {
+        stateUpdate.value = '';
+        stateUpdate.text = '';
+      }
+
+      return stateUpdate;
+    }
+
+    if (this.hasAllValue()) {
+      if (!this.state.includeAll) {
+        stateUpdate.value = options[0].value;
+        stateUpdate.text = options[0].label;
+        // If multi switch to arrays
+        if (this.state.isMulti) {
+          stateUpdate.value = [stateUpdate.value];
+          stateUpdate.text = [stateUpdate.text];
+        }
+      }
+      return stateUpdate;
+    }
+
+    if (this.state.isMulti) {
       // If we are a multi valued variable validate the current values are among the options
-      const currentValues = Array.isArray(this.state.value) ? this.state.value : [this.state.value];
+      const currentValues = Array.isArray(currentValue) ? currentValue : [currentValue];
       const validValues = currentValues.filter((v) => options.find((o) => o.value === v));
+      const validTexts = validValues.map((v) => options.find((o) => o.value === v)!.label);
 
       // If no valid values pick the first option
       if (validValues.length === 0) {
         const defaultState = this.getDefaultMultiState(options);
         stateUpdate.value = defaultState.value;
         stateUpdate.text = defaultState.text;
-      }
-      // We have valid values, if it's different from current valid values update current values
-      else if (!isEqual(validValues, this.state.value)) {
-        const validTexts = validValues.map((v) => options.find((o) => o.value === v)!.label);
-        stateUpdate.value = validValues;
-        stateUpdate.text = validTexts;
-      }
-    } else {
-      // Single valued variable
-      const foundCurrent = options.find((x) => x.value === this.state.value);
-      if (!foundCurrent) {
-        if (this.state.defaultToAll) {
-          stateUpdate.value = ALL_VARIABLE_VALUE;
-          stateUpdate.text = ALL_VARIABLE_TEXT;
-        } else {
-          // Current value is not valid. Set to first of the available options
-          stateUpdate.value = options[0].value;
-          stateUpdate.text = options[0].label;
+      } else {
+        // We have valid values, if it's different from current valid values update current values
+        if (!isEqual(validValues, currentValue)) {
+          stateUpdate.value = validValues;
+        }
+        if (!isEqual(validTexts, currentText)) {
+          stateUpdate.text = validTexts;
         }
       }
+      return stateUpdate;
     }
 
-    // Remember current value and text
-    const { value: prevValue, text: prevText } = this.state;
+    // Single value variable validation
 
-    // Perform state change
-    this.setStateHelper(stateUpdate);
-
-    // Publish value changed event only if value changed
-    if (stateUpdate.value !== prevValue || stateUpdate.text !== prevText || this.hasAllValue()) {
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    // Try find by value then text
+    let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options);
+    if (matchingOption) {
+      // When updating the initial state from URL the text property is set the same as value
+      // Here we can correct the text value state
+      stateUpdate.text = matchingOption.label;
+      stateUpdate.value = matchingOption.value;
+    } else {
+      // Current value is found in options
+      if (this.state.defaultToAll) {
+        stateUpdate.value = ALL_VARIABLE_VALUE;
+        stateUpdate.text = ALL_VARIABLE_TEXT;
+      } else {
+        // Current value is not valid. Set to first of the available options
+        stateUpdate.value = options[0].value;
+        stateUpdate.text = options[0].label;
+      }
     }
+
+    return stateUpdate;
+  }
+
+  /**
+   * Values set by initial URL sync needs to survive the next validation and update.
+   * This function can intercept and make sure those values are preserved.
+   */
+  protected interceptStateUpdateAfterValidation(stateUpdate: Partial<MultiValueVariableState>): void {
+    // If the validation wants to fix the all value (All ==> $__all) then we should let that pass
+    const isAllValueFix = stateUpdate.value === ALL_VARIABLE_VALUE && this.state.text === ALL_VARIABLE_TEXT;
+
+    if (this.skipNextValidation && stateUpdate.value !== this.state.value && !isAllValueFix) {
+      stateUpdate.value = this.state.value;
+      stateUpdate.text = this.state.text;
+    }
+
+    this.skipNextValidation = false;
   }
 
   public getValue(): VariableValue {
@@ -153,19 +229,21 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value[0] === ALL_VARIABLE_VALUE);
   }
 
-  private getDefaultMultiState(options: VariableValueOption[]) {
+  public getDefaultMultiState(options: VariableValueOption[]) {
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
-    } else {
+    } else if (options.length > 0) {
       return { value: [options[0].value], text: [options[0].label] };
+    } else {
+      return { value: [], text: [] };
     }
   }
 
   /**
-   * Change the value and publish SceneVariableValueChangedEvent event
+   * Change the value and publish SceneVariableValueChangedEvent event.
    */
   public changeValueTo(value: VariableValue, text?: VariableValue) {
-    // Igore if there is no change
+    // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
     }
@@ -200,11 +278,20 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       }
     }
 
+    // Do nothing if value and text are the same
+    if (isEqual(value, this.state.value) && isEqual(text, this.state.text)) {
+      return;
+    }
+
     this.setStateHelper({ value, text, loading: false });
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
   }
 
   private findLabelTextForValue(value: VariableValueSingle): VariableValueSingle {
+    if (value === ALL_VARIABLE_VALUE) {
+      return ALL_VARIABLE_TEXT;
+    }
+
     const option = this.state.options.find((x) => x.value === value);
     if (option) {
       return option.label;
@@ -241,6 +328,41 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
     return options;
   }
+
+  public refreshOptions() {
+    this.getValueOptions({}).subscribe((options) => {
+        this.updateValueGivenNewOptions(options);
+    });
+  }
+
+  /**
+   * Can be used by subclasses to do custom handling of option search based on search input
+   */
+  public onSearchChange?(searchFilter: string): void;
+}
+
+/**
+ * Looks for matching option, first by value but as a fallback by text (label).
+ */
+function findOptionMatchingCurrent(
+  currentValue: VariableValue,
+  currentText: VariableValue,
+  options: VariableValueOption[]
+) {
+  let textMatch: VariableValueOption | undefined;
+
+  for (const item of options) {
+    if (item.value === currentValue) {
+      return item;
+    }
+
+    // No early return here as want to continue to look a value match
+    if (item.label === currentText) {
+      textMatch = item;
+    }
+  }
+
+  return textMatch;
 }
 
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
@@ -253,10 +375,18 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   }
 
   public getKeys(): string[] {
+    if (this._sceneObject.state.skipUrlSync) {
+      return [];
+    }
+
     return [this.getKey()];
   }
 
   public getUrlState(): SceneObjectUrlValues {
+    if (this._sceneObject.state.skipUrlSync) {
+      return {};
+    }
+
     let urlValue: string | string[] | null = null;
     let value = this._sceneObject.state.value;
 
@@ -273,12 +403,41 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
-    const urlValue = values[this.getKey()];
+    let urlValue = values[this.getKey()];
 
     if (urlValue != null) {
+      // This is to be backwards compatible with old url all value
+      if (this._sceneObject.state.includeAll) {
+        urlValue = handleLegacyUrlAllValue(urlValue);
+      }
+
+      // For edge cases where data links include variables with custom all value.
+      // We want the variable to maintain the "All" meta value not the actual custom vall value. (Fixes https://github.com/grafana/grafana/issues/28635)
+      if (this._sceneObject.state.allValue && this._sceneObject.state.allValue === urlValue) {
+        urlValue = ALL_VARIABLE_VALUE;
+      }
+
+      /**
+       * Initial URL Sync happens before scene objects are activated.
+       * We need to skip validation in this case to make sure values set via URL are maintained.
+       */
+      if (!this._sceneObject.isActive) {
+        this._sceneObject.skipNextValidation = true;
+      }
+
       this._sceneObject.changeValueTo(urlValue);
     }
   }
+}
+
+function handleLegacyUrlAllValue(value: string | string[]) {
+  if (isArray(value) && value[0] === ALL_VARIABLE_TEXT) {
+    return [ALL_VARIABLE_VALUE];
+  } else if (value === ALL_VARIABLE_TEXT) {
+    return ALL_VARIABLE_VALUE;
+  }
+
+  return value;
 }
 
 /**

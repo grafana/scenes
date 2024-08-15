@@ -1,26 +1,36 @@
-import { dateMath, getTimeZone, TimeRange, toUtc } from '@grafana/data';
+import { getTimeZone, rangeUtil, setWeekStart, TimeRange } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
 import { SceneObjectBase } from './SceneObjectBase';
-import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues, SceneObjectUrlValue } from './types';
+import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from './types';
 import { getClosest } from './sceneGraph/utils';
+import { parseUrlParam } from '../utils/parseUrlParam';
+import { evaluateTimeRange } from '../utils/evaluateTimeRange';
+import { config, RefreshEvent } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to'] });
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone'] });
 
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
     const from = state.from ?? 'now-6h';
     const to = state.to ?? 'now';
     const timeZone = state.timeZone;
-    const value = evaluateTimeRange(from, to, timeZone || getTimeZone());
-    super({ from, to, timeZone, value, ...state });
+    const value = evaluateTimeRange(
+      from,
+      to,
+      timeZone || getTimeZone(),
+      state.fiscalYearStartMonth,
+      state.UNSAFE_nowDelay
+    );
+    const refreshOnActivate = state.refreshOnActivate ?? { percent: 10 };
+    super({ from, to, timeZone, value, refreshOnActivate, ...state });
 
-    this.addActivationHandler(this._onActivate);
+    this.addActivationHandler(this._onActivate.bind(this));
   }
 
-  private _onActivate = () => {
+  private _onActivate() {
     // When SceneTimeRange has no time zone provided, find closest source of time zone and subscribe to it
     if (!this.state.timeZone) {
       const timeZoneSource = this.getTimeZoneSource();
@@ -29,14 +39,48 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
           timeZoneSource.subscribeToState((n, p) => {
             if (n.timeZone !== undefined && n.timeZone !== p.timeZone) {
               this.setState({
-                value: evaluateTimeRange(this.state.from, this.state.to, timeZoneSource.getTimeZone()),
+                value: evaluateTimeRange(
+                  this.state.from,
+                  this.state.to,
+                  timeZoneSource.getTimeZone(),
+                  this.state.fiscalYearStartMonth,
+                  this.state.UNSAFE_nowDelay
+                ),
               });
             }
           })
         );
       }
     }
-  };
+
+    if (this.state.weekStart) {
+      setWeekStart(this.state.weekStart);
+    }
+
+    if (rangeUtil.isRelativeTimeRange(this.state.value.raw)) {
+      this.refreshIfStale();
+    }
+
+    // Deactivation handler that restore weekStart if it was changed
+    return () => {
+      if (this.state.weekStart) {
+        setWeekStart(config.bootData.user.weekStart);
+      }
+    };
+  }
+
+  private refreshIfStale() {
+    let ms;
+    if (this.state?.refreshOnActivate?.percent !== undefined) {
+      ms = this.calculatePercentOfInterval(this.state.refreshOnActivate.percent);
+    }
+    if (this.state?.refreshOnActivate?.afterMs !== undefined) {
+      ms = Math.min(this.state.refreshOnActivate.afterMs, ms ?? Infinity);
+    }
+    if (ms !== undefined) {
+      this.refreshRange(ms);
+    }
+  }
 
   /**
    * Will traverse up the scene graph to find the closest SceneTimeRangeLike with time zone set
@@ -60,6 +104,33 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     return source;
   }
 
+  /**
+   * Refreshes time range if it is older than the invalidation interval
+   * @param refreshAfterMs invalidation interval (milliseconds)
+   * @private
+   */
+  private refreshRange(refreshAfterMs: number) {
+    const value = evaluateTimeRange(
+      this.state.from,
+      this.state.to,
+      this.state.timeZone ?? getTimeZone(),
+      this.state.fiscalYearStartMonth,
+      this.state.UNSAFE_nowDelay
+    );
+
+    const diff = value.to.diff(this.state.value.to, 'milliseconds');
+    if (diff >= refreshAfterMs) {
+      this.setState({
+        value,
+      });
+    }
+  }
+
+  private calculatePercentOfInterval(percent: number): number {
+    const intervalMs = this.state.value.to.diff(this.state.value.from, 'milliseconds');
+    return Math.ceil(intervalMs / percent);
+  }
+
   public getTimeZone(): TimeZone {
     // Return local time zone if provided
     if (this.state.timeZone) {
@@ -78,20 +149,31 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeRangeChange = (timeRange: TimeRange) => {
     const update: Partial<SceneTimeRangeState> = {};
+    const updateToEval: Partial<SceneTimeRangeState> = {};
 
     if (typeof timeRange.raw.from === 'string') {
       update.from = timeRange.raw.from;
+      updateToEval.from = timeRange.raw.from;
     } else {
       update.from = timeRange.raw.from.toISOString();
+      updateToEval.from = timeRange.raw.from.toISOString(true);
     }
 
     if (typeof timeRange.raw.to === 'string') {
       update.to = timeRange.raw.to;
+      updateToEval.to = timeRange.raw.to;
     } else {
       update.to = timeRange.raw.to.toISOString();
+      updateToEval.to = timeRange.raw.to.toISOString(true);
     }
 
-    update.value = evaluateTimeRange(update.from, update.to, this.getTimeZone());
+    update.value = evaluateTimeRange(
+      updateToEval.from,
+      updateToEval.to,
+      this.getTimeZone(),
+      this.state.fiscalYearStartMonth,
+      this.state.UNSAFE_nowDelay
+    );
 
     // Only update if time range actually changed
     if (update.from !== this.state.from || update.to !== this.state.to) {
@@ -104,11 +186,26 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   public onRefresh = () => {
-    this.setState({ value: evaluateTimeRange(this.state.from, this.state.to, this.getTimeZone()) });
+    this.setState({
+      value: evaluateTimeRange(
+        this.state.from,
+        this.state.to,
+        this.getTimeZone(),
+        this.state.fiscalYearStartMonth,
+        this.state.UNSAFE_nowDelay
+      ),
+    });
+
+    this.publishEvent(new RefreshEvent(), true);
   };
 
   public getUrlState() {
-    return { from: this.state.from, to: this.state.to };
+    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to };
+    if (this.state.timeZone) {
+      urlValues.timezone = this.state.timeZone;
+    }
+
+    return urlValues;
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
@@ -129,55 +226,18 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.to = to;
     }
 
-    update.value = evaluateTimeRange(update.from ?? this.state.from, update.to ?? this.state.to, this.getTimeZone());
+    if (typeof values.timezone === 'string') {
+      update.timeZone = values.timezone !== '' ? values.timezone : undefined;
+    }
+
+    update.value = evaluateTimeRange(
+      update.from ?? this.state.from,
+      update.to ?? this.state.to,
+      update.timeZone ?? this.getTimeZone(),
+      this.state.fiscalYearStartMonth,
+      this.state.UNSAFE_nowDelay
+    );
+
     this.setState(update);
   }
-}
-
-export function parseUrlParam(value: SceneObjectUrlValue): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  if (value.indexOf('now') !== -1) {
-    return value;
-  }
-
-  if (value.length === 8) {
-    const utcValue = toUtc(value, 'YYYYMMDD');
-    if (utcValue.isValid()) {
-      return utcValue.toISOString();
-    }
-  } else if (value.length === 15) {
-    const utcValue = toUtc(value, 'YYYYMMDDTHHmmss');
-    if (utcValue.isValid()) {
-      return utcValue.toISOString();
-    }
-  } else if (value.length === 24) {
-    const utcValue = toUtc(value);
-    return utcValue.toISOString();
-  }
-
-  const epoch = parseInt(value, 10);
-  if (!isNaN(epoch)) {
-    return toUtc(epoch).toISOString();
-  }
-
-  return null;
-}
-
-export function evaluateTimeRange(
-  from: string,
-  to: string,
-  timeZone: TimeZone,
-  fiscalYearStartMonth?: number
-): TimeRange {
-  return {
-    from: dateMath.parse(from, false, timeZone, fiscalYearStartMonth)!,
-    to: dateMath.parse(to, true, timeZone, fiscalYearStartMonth)!,
-    raw: {
-      from: from,
-      to: to,
-    },
-  };
 }

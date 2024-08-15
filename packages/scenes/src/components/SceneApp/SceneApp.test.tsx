@@ -3,14 +3,15 @@ import { PluginPageProps } from '@grafana/runtime';
 import { screen, render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import React from 'react';
-import { Router } from 'react-router-dom';
+import { renderAppInsideRouterWithStartingUrl } from '../../../utils/test/utils';
 import { SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneCanvasText } from '../SceneCanvasText';
-import { SceneApp } from './SceneApp';
+import { SceneApp, useSceneApp } from './SceneApp';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneRouteMatch } from './types';
+import { SceneReactObject } from '../SceneReactObject';
 
 let history = createMemoryHistory();
 let pluginPageProps: PluginPageProps | undefined;
@@ -78,7 +79,7 @@ describe('SceneApp', () => {
       ],
     });
 
-    beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test'));
+    beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test'));
 
     it('should render correct page on mount', async () => {
       expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
@@ -110,12 +111,12 @@ describe('SceneApp', () => {
               titleIcon: 'grafana',
               tabSuffix: () => <strong>tab1 suffix</strong>,
               url: '/test/tab1',
-              getScene: () => setupScene(t1Object),
+              getScene: () => setupScene(t1Object, 'tab1-scene'),
             }),
             new SceneAppPage({
               title: 'Tab2',
               url: '/test/tab2',
-              getScene: () => setupScene(t2Object),
+              getScene: () => setupScene(t2Object, 'tab2-scene'),
             }),
           ],
         }),
@@ -127,10 +128,15 @@ describe('SceneApp', () => {
       ],
     });
 
-    beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test'));
+    beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test'));
 
     it('should render correct breadcrumbs', async () => {
       expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Container page']);
+    });
+
+    it('Inner embedded scene should be active and connected to containerPage', async () => {
+      expect((window as any).__grafanaSceneContext.state.key).toBe('tab1-scene');
+      expect((window as any).__grafanaSceneContext.parent.state.title).toBe('Container page');
     });
 
     it('should render tab title with icon and suffix', async () => {
@@ -147,7 +153,7 @@ describe('SceneApp', () => {
 
     it('Render first tab with its own url', async () => {
       history.push('/test/tab1');
-      expect(await screen.findByTestId(t1Object.state.key!)).toBeInTheDocument();
+      expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
     });
 
     it('Can render second tab', async () => {
@@ -156,6 +162,8 @@ describe('SceneApp', () => {
       expect(await screen.findByTestId(t2Object.state.key!)).toBeInTheDocument();
       expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
       expect(screen.queryByTestId(t1Object.state.key!)).not.toBeInTheDocument();
+
+      expect((window as any).__grafanaSceneContext.state.key).toBe('tab2-scene');
     });
   });
 
@@ -165,7 +173,8 @@ describe('SceneApp', () => {
       const page1Scene = setupScene(p1Object);
 
       const app = new SceneApp({
-        key: 'app',
+        name: 'cool-app-123',
+        key: 'cool-app-123',
         pages: [
           // Page with tabs
           new SceneAppPage({
@@ -193,7 +202,7 @@ describe('SceneApp', () => {
         ],
       });
 
-      beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test-drilldown'));
+      beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test-drilldown'));
 
       it('should render a drilldown page', async () => {
         expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
@@ -203,6 +212,10 @@ describe('SceneApp', () => {
         expect(await screen.findByText('some-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
 
+        // Verify embedded scene is activated and is connected to it's parent page
+        expect((window as any).__grafanaSceneContext.state.key).toBe('drilldown-scene-some-id');
+        expect((window as any).__grafanaSceneContext.parent.state.key).toBe('drilldown-page');
+
         // Verify pageNav is correct
         expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Drilldown some-id', 'Top level page']);
 
@@ -211,6 +224,10 @@ describe('SceneApp', () => {
         expect(await screen.findByText('some-other-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
         expect(screen.queryByText('some-id drilldown!')).not.toBeInTheDocument();
+
+        // Verify data enricher is forwarded to SceneApp
+        const page = (window as any).__grafanaSceneContext.parent as SceneAppPage;
+        expect(page.enrichDataRequest(page)).toEqual({ app: 'cool-app-123' });
       });
 
       it('When url does not match any drilldown sub page show fallback route', async () => {
@@ -254,7 +271,7 @@ describe('SceneApp', () => {
           ],
         });
 
-        beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/main/drilldown/10'));
+        beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/main/drilldown/10'));
 
         it('should render a drilldown page', async () => {
           expect(await screen.findByText('10 drilldown!')).toBeInTheDocument();
@@ -305,7 +322,7 @@ describe('SceneApp', () => {
         ],
       });
 
-      beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test/tab'));
+      beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test/tab'));
 
       it('should render a drilldown that is part of tab page', async () => {
         expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
@@ -334,11 +351,65 @@ describe('SceneApp', () => {
         expect(await screen.findByTestId('default-fallback-content')).toBeInTheDocument();
       });
     });
+
+    describe('Custom fallback page', () => {
+      const page1Obj = new SceneCanvasText({ text: 'Page 1' });
+      const page1Scene = setupScene(page1Obj);
+      const app = new SceneApp({
+        pages: [
+          new SceneAppPage({
+            title: 'Test',
+            url: '/test',
+            getScene: () => {
+              return page1Scene;
+            },
+            getFallbackPage: () => {
+              return new SceneAppPage({
+                title: 'Loading',
+                url: '',
+                getScene: () =>
+                  new EmbeddedScene({
+                    body: new SceneReactObject({
+                      component: () => <div data-testid="custom-fallback-content">Loading...</div>,
+                    }),
+                  }),
+              });
+            },
+          }),
+        ],
+      });
+
+      it('should render custom fallback page if url does not match', async () => {
+        renderAppInsideRouterWithStartingUrl(history, app, '/test');
+        expect(await screen.findByTestId(page1Obj.state.key!)).toBeInTheDocument();
+        history.push('/test/does-not-exist');
+        expect(await screen.findByTestId('custom-fallback-content')).toBeInTheDocument();
+      });
+    });
+  });
+
+  it('useSceneApp should cache instance', () => {
+    const getSceneApp1 = () =>
+      new SceneApp({
+        pages: [],
+      });
+
+    const getSceneApp2 = () =>
+      new SceneApp({
+        pages: [],
+      });
+
+    const app1 = useSceneApp(getSceneApp1);
+    const app2 = useSceneApp(getSceneApp2);
+
+    expect(app1).toBe(useSceneApp(getSceneApp1));
+    expect(app2).toBe(useSceneApp(getSceneApp2));
   });
 });
 
-function setupScene(inspectableObject: SceneObject) {
+function setupScene(inspectableObject: SceneObject, key?: string) {
   return new EmbeddedScene({
+    key,
     body: new SceneFlexLayout({
       children: [new SceneFlexItem({ body: inspectableObject })],
     }),
@@ -346,15 +417,9 @@ function setupScene(inspectableObject: SceneObject) {
 }
 
 function getDrilldownScene(match: SceneRouteMatch<{ id: string }>) {
-  return setupScene(new SceneCanvasText({ text: `${match.params.id} drilldown!` }));
-}
-
-function renderAppInsideRouterWithStartingUrl(app: SceneApp, startingUrl: string) {
-  history.push(startingUrl);
-  render(
-    <Router history={history}>
-      <app.Component model={app} />
-    </Router>
+  return setupScene(
+    new SceneCanvasText({ text: `${match.params.id} drilldown!` }),
+    `drilldown-scene-${match.params.id}`
   );
 }
 

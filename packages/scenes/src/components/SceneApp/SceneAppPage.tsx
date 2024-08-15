@@ -2,7 +2,6 @@ import React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObject, isDataRequestEnricher } from '../../core/types';
-import { getUrlSyncManager } from '../../services/UrlSyncManager';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneReactObject } from '../SceneReactObject';
@@ -20,15 +19,10 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
 
   public constructor(state: SceneAppPageState) {
     super(state);
-
-    this.addActivationHandler(() => {
-      return () => getUrlSyncManager().cleanUp(this);
-    });
   }
 
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });
-    getUrlSyncManager().initSync(this);
   }
 
   public getScene(routeMatch: SceneRouteMatch): EmbeddedScene {
@@ -61,8 +55,12 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   }
 
   public enrichDataRequest(source: SceneObject) {
-    if (!this.parent && this.state.getParentPage) {
+    if (this.state.getParentPage) {
       return this.state.getParentPage().enrichDataRequest(source);
+    }
+
+    if (!this.parent) {
+      return null;
     }
 
     const root = this.getRoot();
@@ -150,7 +148,7 @@ function getFallbackRoute(page: SceneAppPage, routeProps: RouteComponentProps) {
     <Route
       key={'fallback route'}
       render={(props) => {
-        const fallbackPage = getDefaultFallbackPage();
+        const fallbackPage = page.state.getFallbackPage?.() ?? getDefaultFallbackPage();
         return <SceneAppPageView page={fallbackPage} routeProps={routeProps} />;
       }}
     ></Route>

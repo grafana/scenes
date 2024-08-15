@@ -1,6 +1,6 @@
 import { NavModelItem, UrlQueryMap } from '@grafana/data';
 import { PluginPage } from '@grafana/runtime';
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 
 import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
@@ -8,6 +8,7 @@ import { SceneDebugger } from '../SceneDebugger/SceneDebugger';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getUrlWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
+import { useUrlSync } from '../../services/useUrlSync';
 
 export interface Props {
   page: SceneAppPageLike;
@@ -20,17 +21,24 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   const containerState = containerPage.useState();
   const params = useAppQueryParams();
   const scene = page.getScene(routeProps.match);
-  const [initialized, setInitialized] = useState(false);
+  const isInitialized = containerState.initializedScene === scene;
+  const {layout} = page.state;
 
   useLayoutEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
-    if (!initialized) {
+    if (!isInitialized) {
       containerPage.initializeScene(scene);
-      setInitialized(true);
     }
-  }, [initialized, scene, containerPage]);
+  }, [scene, containerPage, isInitialized]);
 
-  if (!initialized) {
+  useEffect(() => {
+    // Clear initializedScene when unmounting
+    return () => containerPage.setState({ initializedScene: undefined });
+  }, [containerPage]);
+
+  const urlSyncInitialized = useUrlSync(containerPage);
+
+  if (!isInitialized && !urlSyncInitialized) {
     return null;
   }
 
@@ -72,6 +80,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
 
   return (
     <PluginPage
+      layout={layout}
       pageNav={pageNav}
       actions={pageActions}
       renderTitle={containerState.renderTitle}

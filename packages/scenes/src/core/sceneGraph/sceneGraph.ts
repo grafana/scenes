@@ -4,10 +4,12 @@ import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/d
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
 
-import { SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
+import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
-import { SceneDataLayers } from '../../querying/SceneDataLayers';
+import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
+import { VariableInterpolation } from '@grafana/runtime';
+import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 
 /**
  * Get the closest node with variables
@@ -41,22 +43,32 @@ export function getLayout(scene: SceneObject): SceneLayout | null {
 
 /**
  * Interpolates the given string using the current scene object as context.   *
+ *
+ * Note: the interpolations array will be mutated by adding information about variables that
+ * have been interpolated during replacement. Variables that were specified in the target but not found in
+ * the list of available variables are also added to the array. See {@link VariableInterpolation} for more details.
+ *
+ * @param {VariableInterpolation[]} interpolations an optional array that is updated with interpolated variables.
  */
 export function interpolate(
   sceneObject: SceneObject,
   value: string | undefined | null,
   scopedVars?: ScopedVars,
-  format?: string | VariableCustomFormatterFn
+  format?: string | VariableCustomFormatterFn,
+  interpolations?: VariableInterpolation[]
 ): string {
   if (value === '' || value == null) {
     return '';
   }
 
-  return sceneInterpolator(sceneObject, value, scopedVars, format);
+  return sceneInterpolator(sceneObject, value, scopedVars, format, interpolations);
 }
 
 /**
- * Checks if the variable is currently loading or waiting to update
+ * Checks if the variable is currently loading or waiting to update.
+ * It also returns true if a dependency of the variable is loading.
+ *
+ * For example if C depends on variable B which depends on variable A and A is loading this returns true for variable C and B.
  */
 export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   if (!sceneObject.variableDependency) {
@@ -64,13 +76,21 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   for (const name of sceneObject.variableDependency.getNames()) {
+    // This is for backwards compability. In the old architecture query variables could reference itself in a query without breaking.
+    if (sceneObject instanceof QueryVariable && sceneObject.state.name === name) {
+      console.warn('Query variable is referencing itself');
+      continue;
+    }
+
     const variable = lookupVariable(name, sceneObject);
     if (!variable) {
       continue;
     }
 
     const set = variable.parent as SceneVariables;
-    return set.isVariableLoadingOrWaitingToUpdate(variable);
+    if (set.isVariableLoadingOrWaitingToUpdate(variable)) {
+      return true;
+    }
   }
 
   return false;
@@ -111,6 +131,44 @@ function findObjectInternal(
 }
 
 /**
+ * Returns a scene object from the scene graph with the requested key.
+ *
+ * Throws error if no key-matching scene object found.
+ */
+export function findByKey(sceneObject: SceneObject, key: string) {
+  const found = findObject(sceneObject, (sceneToCheck) => {
+    return sceneToCheck.state.key === key;
+  });
+  if (!found) {
+    throw new Error('Unable to find scene with key ' + key);
+  }
+  return found;
+}
+
+/**
+ * Returns a scene object from the scene graph with the requested key and type.
+ *
+ * Throws error if no key-matching scene object found.
+ * Throws error if the given type does not match.
+ */
+export function findByKeyAndType<TargetType extends SceneObject>(
+  sceneObject: SceneObject,
+  key: string,
+  targetType: { new (...args: never[]): TargetType }
+) {
+  const found = findObject(sceneObject, (sceneToCheck) => {
+    return sceneToCheck.state.key === key;
+  });
+  if (!found) {
+    throw new Error('Unable to find scene with key ' + key);
+  }
+  if (!(found instanceof targetType)) {
+    throw new Error(`Found scene object with key ${key} does not match type ${targetType.name}`);
+  }
+  return found;
+}
+
+/**
  * This will search the full scene graph, starting with the scene node passed in, then walking up the parent chain. *
  */
 export function findObject(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject | null {
@@ -118,17 +176,96 @@ export function findObject(scene: SceneObject, check: (obj: SceneObject) => bool
 }
 
 /**
- * Will walk up the scene object graph up until the root and collect all SceneDataLayerProvider objects
+ * This will search down the full scene graph, looking for objects that match the provided predicate.
  */
-export function getDataLayers(sceneObject: SceneObject): SceneDataLayerProvider[] {
-  let parent: SceneObject | undefined = sceneObject;
+export function findAllObjects(scene: SceneObject, check: (obj: SceneObject) => boolean): SceneObject[] {
+  const found: SceneObject[] = [];
+
+  scene.forEachChild((child) => {
+    if (check(child)) {
+      found.push(child);
+    }
+
+    found.push(...findAllObjects(child, check));
+  });
+
+  return found;
+}
+
+/**
+ * Will walk up the scene object graph up until the root and collect all SceneDataLayerProvider objects.
+ * When localOnly set to true, it will only collect the closest layers.
+ */
+export function getDataLayers(sceneObject: SceneObject, localOnly = false): SceneDataLayerProvider[] {
+  let currentLevel: SceneObject | undefined = sceneObject;
   let collected: SceneDataLayerProvider[] = [];
+
+  while (currentLevel) {
+    const dataProvider = currentLevel.state.$data;
+    if (!dataProvider) {
+      currentLevel = currentLevel.parent;
+      continue;
+    }
+
+    // Check if data layer exists nested inside another data provider
+    if (isDataLayer(dataProvider)) {
+      collected = collected.concat(dataProvider);
+    } else {
+      if (dataProvider.state.$data && isDataLayer(dataProvider.state.$data)) {
+        collected = collected.concat(dataProvider.state.$data);
+      }
+    }
+
+    if (localOnly && collected.length > 0) {
+      break;
+    }
+
+    currentLevel = currentLevel.parent;
+  }
+
+  return collected;
+}
+
+/**
+ * A utility function to find the closest ancestor of a given type. This function expects
+ * to find it and will throw an error if it does not.
+ */
+export function getAncestor<ParentType>(
+  sceneObject: SceneObject,
+  ancestorType: { new (...args: never[]): ParentType }
+): ParentType {
+  let parent: SceneObject | undefined = sceneObject;
+
   while (parent) {
-    if (parent.state.$data && parent.state.$data instanceof SceneDataLayers) {
-      collected = collected.concat(parent.state.$data.state.layers);
+    if (parent instanceof ancestorType) {
+      return parent;
     }
     parent = parent.parent;
   }
 
-  return collected;
+  if (!parent) {
+    throw new Error('Unable to find parent of type ' + ancestorType.name);
+  }
+
+  return parent as ParentType;
+}
+
+/**
+ * Returns the closest query controller undefined if none found
+ */
+export function getQueryController(sceneObject: SceneObject): SceneQueryControllerLike | undefined {
+  let parent: SceneObject | undefined = sceneObject;
+
+  while (parent) {
+    if (parent.state.$behaviors) {
+      for (const behavior of parent.state.$behaviors) {
+        if (isQueryController(behavior)) {
+          return behavior;
+        }
+      }
+    }
+    parent = parent.parent;
+  }
+
+  return undefined;
 }

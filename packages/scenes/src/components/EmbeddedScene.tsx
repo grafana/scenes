@@ -5,7 +5,7 @@ import React from 'react';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState, SceneObject } from '../core/types';
-import { getUrlSyncManager } from '../services/UrlSyncManager';
+import { setWindowGrafanaSceneContext } from '../utils/compatibility/setWindowGrafanaSceneContext';
 
 export interface EmbeddedSceneState extends SceneObjectState {
   /**
@@ -16,6 +16,10 @@ export interface EmbeddedSceneState extends SceneObjectState {
    * Top row of variable selectors, filters, time pickers and custom actions.
    */
   controls?: SceneObject[];
+  /**
+   * For interoperability (used from EmbeddedSceneWithContext)
+   */
+  context?: SceneObject;
 }
 
 export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
@@ -25,18 +29,13 @@ export class EmbeddedScene extends SceneObjectBase<EmbeddedSceneState> {
     super(state);
 
     this.addActivationHandler(() => {
-      return () => getUrlSyncManager().cleanUp(this);
+      // This function is setting window.__grafanaSceneContext which is used from Grafana core in the old services TimeSrv and TemplateSrv.
+      // This works as a backward compatability method to support accessing scene time range and variables from those old services.
+      const unsetGlobalScene = setWindowGrafanaSceneContext(this);
+      return () => {
+        unsetGlobalScene();
+      };
     });
-  }
-
-  /**
-   * initUrlSync should be called before the scene is rendered to ensure that objects are in sync
-   * before they get activated. This saves some unnecessary re-renders and makes sure variables
-   * queries are issued as needed. If your using SceneAppPage you will not need to call this as
-   * url sync is handled on the SceneAppPage level not this level.
-   */
-  public initUrlSync() {
-    getUrlSyncManager().initSync(this);
   }
 }
 
@@ -60,7 +59,7 @@ function EmbeddedSceneRenderer({ model }: SceneComponentProps<EmbeddedScene>) {
   );
 }
 
-function getStyles(theme: GrafanaTheme2) {
+const getStyles = (theme: GrafanaTheme2) => {
   return {
     container: css({
       flexGrow: 1,
@@ -72,13 +71,13 @@ function getStyles(theme: GrafanaTheme2) {
     body: css({
       flexGrow: 1,
       display: 'flex',
-      gap: '8px',
+      gap: theme.spacing(1),
     }),
     controls: css({
       display: 'flex',
-      gap: theme.spacing(1),
-      alignItems: 'center',
+      gap: theme.spacing(2),
+      alignItems: 'flex-end',
       flexWrap: 'wrap',
     }),
   };
-}
+};

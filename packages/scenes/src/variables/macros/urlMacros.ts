@@ -1,4 +1,4 @@
-import { locationService } from '@grafana/runtime';
+import { config, locationService } from '@grafana/runtime';
 import { SceneObject } from '../../core/types';
 import { FormatVariable } from '../interpolation/formatRegistry';
 import { CustomVariableValue } from '../types';
@@ -12,15 +12,16 @@ export class UrlMacro implements FormatVariable {
 
   public getValue(fieldPath?: string) {
     const location = locationService.getLocation();
+    const subUrl = config.appSubUrl ?? '';
 
     switch (fieldPath ?? '') {
       case 'params':
         return new UrlStateFormatter(location.search);
       case 'path':
-        return location.pathname;
+        return subUrl + location.pathname;
       case '':
       default:
-        return location.pathname + location.search;
+        return subUrl + location.pathname + location.search;
     }
   }
 

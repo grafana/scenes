@@ -14,6 +14,8 @@ import {
   compareDataFrameStructures,
   applyFieldOverrides,
   PluginType,
+  renderMarkdown,
+  PanelPluginDataSupport,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -30,28 +32,62 @@ import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
+import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
+import { UserActionEvent } from '../../core/events';
+import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
+import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
-  title: string;
-  description?: string;
   /**
    * This is usually a plugin id that references a core plugin or an external plugin. But this can also reference a
    * runtime registered PanelPlugin registered via function registerScenePanelPlugin.
    */
   pluginId: string;
+  title: string;
+  description?: string;
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
+  /**
+   * Only shows header on hover, absolutly positioned above the panel.
+   */
   hoverHeader?: boolean;
+  /**
+   * Offset hoverHeader position on the y axis
+   */
+  hoverHeaderOffset?: number;
+  /**
+   * Defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
+   * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
+   */
   menu?: VizPanelMenu;
+  /**
+   * Defines a menu that renders panel link.
+   **/
+  titleItems?: React.ReactNode | SceneObject | SceneObject[];
+  /**
+   * Add action to the top right panel header
+   */
   headerActions?: React.ReactNode | SceneObject | SceneObject[];
-  // internal state
-  pluginLoadError?: string;
-  pluginInstanceState?: any;
+  /**
+   * Mainly for advanced use cases that need custom handling of PanelContext callbacks.
+   */
+  extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
+  /**
+   * @internal
+   * Only for use from core to handle migration from old angular panels
+   **/
+  _UNSAFE_customMigrationHandler?: (panel: PanelModel, plugin: PanelPlugin) => void;
+  /** Internal */
+  _pluginLoadError?: string;
+  /** Internal */
+  _pluginInstanceState?: any;
 }
 
-export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>> {
+export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
+  VizPanelState<TOptions, TFieldConfig>
+> {
   public static Component = VizPanelRenderer;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -59,8 +95,8 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   });
 
   // Not part of state as this is not serializable
+  protected _panelContext?: PanelContext;
   private _plugin?: PanelPlugin;
-  private _panelContext?: PanelContext;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
   private _structureRev: number = 0;
@@ -77,70 +113,98 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     this.addActivationHandler(() => {
       this._onActivate();
     });
+
+    state.menu?.addActivationHandler(() => {
+      this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-menu-shown' }), true);
+    });
   }
 
   private _onActivate() {
     if (!this._plugin) {
       this._loadPlugin(this.state.pluginId);
     }
-
-    this.buildPanelContext();
   }
 
-  private _loadPlugin(pluginId: string) {
+  private async _loadPlugin(pluginId: string, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
-      this._pluginLoaded(plugin);
+      this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        importPanelPlugin(pluginId).then((result) => {
-          return this._pluginLoaded(result);
-        });
+        const result = await importPanelPlugin(pluginId);
+        this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
-        this.setState({ pluginLoadError: (err as Error).message });
+
+        if (err instanceof Error) {
+          this.setState({ _pluginLoadError: err.message });
+        }
       }
     }
   }
 
-  private _pluginLoaded(plugin: PanelPlugin) {
-    const { options, fieldConfig, title, pluginVersion } = this.state;
+  public getLegacyPanelId() {
+    const panelId = parseInt(this.state.key!.replace('panel-', ''), 10);
+    if (isNaN(panelId)) {
+      return 0;
+    }
+
+    return panelId;
+  }
+
+  private async _pluginLoaded(plugin: PanelPlugin, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
+    const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
       title,
       options,
       fieldConfig,
-      id: 1,
+      id: this.getLegacyPanelId(),
       type: plugin.meta.id,
       pluginVersion: pluginVersion,
     };
 
+    if (overwriteOptions) {
+      panel.options = overwriteOptions;
+    }
+
+    if (overwriteFieldConfig) {
+      panel.fieldConfig = overwriteFieldConfig;
+    }
+
     const currentVersion = this._getPluginVersion(plugin);
 
-    if (plugin.onPanelMigration) {
-      if (currentVersion !== this.state.pluginVersion) {
-        // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
-        panel.options = plugin.onPanelMigration(panel);
-      }
+    _UNSAFE_customMigrationHandler?.(panel, plugin);
+
+    if (plugin.onPanelMigration && currentVersion !== this.state.pluginVersion) {
+      // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
+      panel.options = await plugin.onPanelMigration(panel);
     }
 
     const withDefaults = getPanelOptionsWithDefaults({
       plugin,
       currentOptions: panel.options,
       currentFieldConfig: panel.fieldConfig,
-      isAfterPluginChange: false,
+      isAfterPluginChange: isAfterPluginChange ?? false,
     });
 
     this._plugin = plugin;
 
     this.setState({
-      options: withDefaults.options,
+      options: withDefaults.options as DeepPartial<TOptions>,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
+      pluginId: plugin.meta.id,
     });
+
+    // Non data panels needs to be re-rendered when time range change
+    if (plugin.meta.skipDataQuery) {
+      const sceneTimeRange = sceneGraph.getTimeRange(this);
+      this._subs.add(sceneTimeRange.subscribeToState(() => this.forceRender()));
+    }
   }
 
   private _getPluginVersion(plugin: PanelPlugin): string {
@@ -152,14 +216,12 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
   }
 
   public getPanelContext(): PanelContext {
-    if (!this._panelContext) {
-      this.buildPanelContext();
-    }
+    this._panelContext ??= this.buildPanelContext();
 
     return this._panelContext!;
   }
 
-  public onChangeTimeRange = (timeRange: AbsoluteTimeRange) => {
+  public onTimeRangeChange = (timeRange: AbsoluteTimeRange) => {
     const sceneTimeRange = sceneGraph.getTimeRange(this);
     sceneTimeRange.onTimeRangeChange({
       raw: {
@@ -171,61 +233,208 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     });
   };
 
-  public onOptionsChange = (options: TOptions) => {
-    this.setState({ options });
+  public getTimeRange = (data?: PanelData) => {
+    const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
+    const sceneTimeRange = sceneGraph.getTimeRange(this);
+    if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
+      return evaluateTimeRange(
+        sceneTimeRange.state.from,
+        sceneTimeRange.state.to,
+        sceneTimeRange.getTimeZone(),
+        sceneTimeRange.state.fiscalYearStartMonth,
+        sceneTimeRange.state.UNSAFE_nowDelay
+      );
+    }
+
+    const plugin = this.getPlugin();
+    if (plugin && !plugin.meta.skipDataQuery && data && data.timeRange) {
+      return data.timeRange;
+    }
+
+    return sceneTimeRange.state.value;
   };
 
-  public onFieldConfigChange = (fieldConfig: FieldConfigSource<TFieldConfig>) => {
-    this.setState({ fieldConfig });
+  public async changePluginType(pluginId: string, newOptions?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
+    const {
+      options: prevOptions,
+      fieldConfig: prevFieldConfig,
+      pluginId: prevPluginId,
+    } = this.state;
+
+    //clear field config cache to update it later
+    this._dataWithFieldConfig = undefined;
+
+    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, true);
+
+    const panel: PanelModel = {
+      title: this.state.title,
+      options: this.state.options,
+      fieldConfig: this.state.fieldConfig,
+      id: 1,
+      type: pluginId,
+    };
+
+    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React. 
+    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches. 
+    const updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
+
+    if (updatedOptions && !isEmpty(updatedOptions)) {
+      this.onOptionsChange(updatedOptions, true, true);
+    }
+  }
+
+  public onTitleChange = (title: string) => {
+    this.setState({ title });
+  };
+
+  public onDescriptionChange = (description: string) => {
+    this.setState({ description });
+  };
+
+  public onDisplayModeChange = (displayMode: 'default' | 'transparent') => {
+    this.setState({ displayMode });
+  };
+
+  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
+    const { fieldConfig, options } = this.state;
+
+    // When replace is true, we want to replace the entire options object. Default will be applied.
+    const nextOptions = replace
+      ? optionsUpdate
+      : mergeWith(cloneDeep(options), optionsUpdate, (objValue, srcValue, key, obj) => {
+          if (isArray(srcValue)) {
+            return srcValue;
+          }
+          // If customizer returns undefined, merging is handled by the method instead
+          // so we need to override the value in the object instead
+          if (objValue !== srcValue && typeof srcValue === 'undefined') {
+            obj[key] = srcValue;
+            return;
+          }
+          return;
+        });
+
+    const withDefaults = getPanelOptionsWithDefaults({
+      plugin: this._plugin!,
+      currentOptions: nextOptions,
+      currentFieldConfig: fieldConfig,
+      isAfterPluginChange: isAfterPluginChange,
+    });
+
+    this.setState({
+      options: withDefaults.options as DeepPartial<TOptions>,
+    });
+  };
+
+  public onFieldConfigChange = (fieldConfigUpdate: FieldConfigSource<DeepPartial<TFieldConfig>>, replace?: boolean) => {
+    const { fieldConfig, options } = this.state;
+
+    // When replace is true, we want to replace the entire field config. Default will be applied.
+    const nextFieldConfig = replace ? fieldConfigUpdate : merge(cloneDeep(fieldConfig), fieldConfigUpdate);
+
+    const withDefaults = getPanelOptionsWithDefaults({
+      plugin: this._plugin!,
+      currentOptions: options,
+      currentFieldConfig: nextFieldConfig,
+      isAfterPluginChange: false,
+    });
+
+    this._dataWithFieldConfig = undefined;
+    this.setState({ fieldConfig: withDefaults.fieldConfig });
   };
 
   public interpolate = ((value: string, scoped?: ScopedVars, format?: string | VariableCustomFormatterFn) => {
     return sceneGraph.interpolate(this, value, scoped, format);
   }) as InterpolateFunction;
 
+  public getDescription = () => {
+    this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-description-shown' }), true);
+
+    const { description } = this.state;
+    if (description) {
+      const markdown = this.interpolate(description);
+      return renderMarkdown(markdown);
+    }
+    return '';
+  };
+
+  public clearFieldConfigCache() {
+    this._dataWithFieldConfig = undefined;
+  }
+
   /**
    * Called from the react render path to apply the field config to the data provided by the data provider
    */
   public applyFieldConfig(rawData?: PanelData): PanelData {
-    const plugin = this._plugin!;
+    const plugin = this._plugin;
 
     if (!plugin || plugin.meta.skipDataQuery || !rawData) {
       // TODO setup time range subscription instead
       return emptyPanelData;
     }
 
-    const fieldConfigRegistry = plugin.fieldConfigRegistry;
-    const prevFrames = this._prevData?.series;
-    const newFrames = rawData?.series;
+    // If the data is the same as last time, we can skip the field config apply step and just return same result as last time
+    if (this._prevData === rawData && this._dataWithFieldConfig) {
+      return this._dataWithFieldConfig;
+    }
 
-    if (
-      rawData.structureRev == null &&
-      newFrames &&
-      prevFrames &&
-      !compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)
-    ) {
+    const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
+
+    const fieldConfigRegistry = plugin.fieldConfigRegistry;
+    const prevFrames = this._dataWithFieldConfig?.series ?? [];
+    const newFrames = applyFieldOverrides({
+      data: rawData.series,
+      fieldConfig: this.state.fieldConfig,
+      fieldConfigRegistry,
+      replaceVariables: this.interpolate,
+      theme: config.theme2,
+      timeZone: rawData.request?.timezone,
+    });
+
+    if (!compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)) {
       this._structureRev++;
     }
 
     this._dataWithFieldConfig = {
       ...rawData,
       structureRev: this._structureRev,
-      series: applyFieldOverrides({
-        data: newFrames,
-        fieldConfig: this.state.fieldConfig,
+      series: newFrames,
+    };
+
+    if (this._dataWithFieldConfig.annotations) {
+      this._dataWithFieldConfig.annotations = applyFieldOverrides({
+        data: this._dataWithFieldConfig.annotations,
+        fieldConfig: {
+          defaults: {},
+          overrides: [],
+        },
         fieldConfigRegistry,
         replaceVariables: this.interpolate,
         theme: config.theme2,
         timeZone: rawData.request?.timezone,
-      }),
-    };
+      });
+    }
 
+    if (!pluginDataSupport.alertStates) {
+      this._dataWithFieldConfig.alertState = undefined;
+    }
+
+    if (!pluginDataSupport.annotations) {
+      this._dataWithFieldConfig.annotations = undefined;
+    }
+
+    this._prevData = rawData;
     return this._dataWithFieldConfig;
   }
 
   public onCancelQuery = () => {
+    this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-cancel-query-clicked' }), true);
     const data = sceneGraph.getData(this);
     data.cancelQuery?.();
+  };
+
+  public onStatusMessageClick = () => {
+    this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-status-message-clicked' }), true);
   };
 
   /**
@@ -241,12 +450,20 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
     }
 
     this.onFieldConfigChange(
-      seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, this._dataWithFieldConfig.series)
+      seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, this._dataWithFieldConfig.series),
+      true
     );
   };
 
   private _onInstanceStateChange = (state: any) => {
-    this.setState({ pluginInstanceState: state });
+    if (this._panelContext) {
+      this._panelContext = {
+        ...this._panelContext,
+        instanceState: state,
+      };
+    }
+
+    this.setState({ _pluginInstanceState: state });
   };
 
   private _onToggleLegendSort = (sortKey: string) => {
@@ -272,41 +489,43 @@ export class VizPanel<TOptions = {}, TFieldConfig = {}> extends SceneObjectBase<
       sortBy = sortKey;
     }
 
-    this.onOptionsChange({
-      ...this.state.options,
-      legend: { ...legendOptions, sortBy, sortDesc },
-    } as TOptions);
+    this.onOptionsChange(
+      {
+        ...this.state.options,
+        legend: { ...legendOptions, sortBy, sortDesc },
+      } as TOptions,
+      true
+    );
   };
 
-  private buildPanelContext() {
+  private buildPanelContext(): PanelContext {
     const sync = getCursorSyncScope(this);
 
-    this._panelContext = {
-      // @ts-ignore Waits for core release
+    const context = {
       eventsScope: sync ? sync.getEventsScope() : '__global_',
       eventBus: sync ? sync.getEventsBus(this) : getAppEvents(),
-      app: CoreApp.Unknown, // TODO,
+      app: CoreApp.Unknown,
       sync: () => {
         if (sync) {
           return sync.state.sync;
         }
         return DashboardCursorSync.Off;
-      }, // TODO
+      },
       onSeriesColorChange: this._onSeriesColorChange,
       onToggleSeriesVisibility: this._onSeriesVisibilityChange,
       onToggleLegendSort: this._onToggleLegendSort,
       onInstanceStateChange: this._onInstanceStateChange,
-      onAnnotationCreate: () => {}, //this.onAnnotationCreate,
-      onAnnotationUpdate: () => {}, //this.onAnnotationUpdate,
-      onAnnotationDelete: () => {}, //this.onAnnotationDelete,
-      canAddAnnotations: () => false, //props.dashboard.canAddAnnotations.bind(props.dashboard),
-      canEditAnnotations: () => false, //props.dashboard.canEditAnnotations.bind(props.dashboard),
-      canDeleteAnnotations: () => false, // props.dashboard.canDeleteAnnotations.bind(props.dashboard),
     };
+
+    if (this.state.extendPanelContext) {
+      this.state.extendPanelContext(this, context);
+    }
+
+    return context;
   }
 }
 
-function getPanelPluginNotFound(id: string, silent?: boolean): PanelPlugin {
+function getPanelPluginNotFound(id: string): PanelPlugin {
   const plugin = new PanelPlugin(() => null);
 
   plugin.meta = {
@@ -331,5 +550,6 @@ function getPanelPluginNotFound(id: string, silent?: boolean): PanelPlugin {
       version: '',
     },
   };
+
   return plugin;
 }

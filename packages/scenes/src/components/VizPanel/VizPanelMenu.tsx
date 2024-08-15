@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PanelMenuItem } from '@grafana/data';
 import { Menu } from '@grafana/ui';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
+import { selectors } from '@grafana/e2e-selectors';
 
 interface VizPanelMenuState extends SceneObjectState {
   items?: PanelMenuItem[];
@@ -27,28 +28,42 @@ export class VizPanelMenu extends SceneObjectBase<VizPanelMenuState> {
 }
 
 function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
-  const { items } = model.useState();
+  const { items = [] } = model.useState();
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.focus();
+    }
+  }, []);
 
   const renderItems = (items: PanelMenuItem[]) => {
-    return items.map((item) =>
-      item.type === 'divider' ? (
-        <Menu.Divider key={item.text} />
-      ) : (
-        <Menu.Item
-          key={item.text}
-          label={item.text}
-          icon={item.iconClassName}
-          childItems={item.subMenu ? renderItems(item.subMenu) : undefined}
-          url={item.href}
-          onClick={item.onClick}
-          shortcut={item.shortcut}
-        />
-      )
-    );
+    return items.map((item) => {
+      switch (item.type) {
+        case 'divider':
+          return <Menu.Divider key={item.text} />;
+        case 'group':
+          return (
+            <Menu.Group key={item.text} label={item.text}>
+              {item.subMenu ? renderItems(item.subMenu) : undefined}
+            </Menu.Group>
+          );
+        default:
+          return (
+            <Menu.Item
+              key={item.text}
+              label={item.text}
+              icon={item.iconClassName}
+              childItems={item.subMenu ? renderItems(item.subMenu) : undefined}
+              url={item.href}
+              onClick={item.onClick}
+              shortcut={item.shortcut}
+              testId={selectors.components.Panels.Panel.menuItems(item.text)}
+            />
+          );
+      }
+    });
   };
-  if (!items) {
-    return null;
-  }
 
-  return <Menu>{renderItems(items)}</Menu>;
+  return <Menu ref={ref}>{renderItems(items)}</Menu>;
 }

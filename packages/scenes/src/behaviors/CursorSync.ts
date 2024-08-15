@@ -1,6 +1,6 @@
 import { BusEvent, BusEventHandler, BusEventType, EventBus, EventFilterOptions } from '@grafana/data';
 import { DashboardCursorSync } from '@grafana/schema';
-import { filter, Observable, Unsubscribable } from 'rxjs';
+import { Observable, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneObjectState } from '../core/types';
@@ -30,14 +30,15 @@ export class CursorSync extends SceneObjectBase<CursorSyncState> {
     return new PanelContextEventBus(this.parent, panel);
   };
 
-  public getEventsScope = () => {
+  public getEventsScope() {
     if (!this.parent) {
       throw new Error('EnableCursorSync cannot be used as a standalone scene object');
     }
+
     // Since EnableCursorSync is a behavior, it is not a parent to any object in the scene graph.
     // We need to get it's parent in order to provide correct EventBus context to the children.
-    return this.parent.state.key;
-  };
+    return this.state.key!;
+  }
 }
 
 // This serves as a shared EventsBus that is shared by children or CursorSync behavior.
@@ -45,7 +46,7 @@ class PanelContextEventBus implements EventBus {
   public constructor(private _source: SceneObject, private _eventsOrigin: SceneObject) {}
 
   public publish<T extends BusEvent>(event: T): void {
-    (event as any).origin = this._eventsOrigin;
+    (event as any).origin = this;
     this._eventsOrigin.publishEvent(event, true);
   }
 
@@ -58,7 +59,7 @@ class PanelContextEventBus implements EventBus {
       const sub = this._source.subscribeToEvent(eventType, handler);
 
       return () => sub.unsubscribe();
-    }).pipe(filter((event) => (event as any).origin !== this._eventsOrigin));
+    });
   }
 
   public subscribe<T extends BusEvent>(eventType: BusEventType<T>, handler: BusEventHandler<T>): Unsubscribable {

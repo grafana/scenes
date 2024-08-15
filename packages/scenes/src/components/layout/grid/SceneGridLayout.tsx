@@ -8,15 +8,22 @@ import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement } from './types';
+import { fitPanelsInHeight } from './utils';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
-   * Turn on or off dragging for all items. Indiviadual items can still disabled via isDraggable property
+   * Turn on or off dragging for all items. Individual items can still disabled via isDraggable property
    **/
   isDraggable?: boolean;
   /** Enable or disable item resizing */
   isResizable?: boolean;
   isLazy?: boolean;
+  /**
+   * Fit panels to height of the grid. This will scale down the panels vertically to fit available height.
+   * The row height is not changed, only the y position and height of the panels.
+   * UNSAFE: This feature is experimental and it might change in the future.
+   */
+  UNSAFE_fitPanels?: boolean;
   children: SceneGridItemLike[];
 }
 
@@ -24,6 +31,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   public static Component = SceneGridLayoutRenderer;
 
   private _skipOnLayoutChange = false;
+  private _oldLayout: ReactGridLayout.Layout[] = [];
+  private _loadOldLayout = false;
 
   public constructor(state: SceneGridLayoutState) {
     super({
@@ -113,11 +122,21 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     this.setState({});
   }
 
+  public ignoreLayoutChange(shouldIgnore: boolean) {
+    this._skipOnLayoutChange = shouldIgnore;
+  }
+
   public onLayoutChange = (layout: ReactGridLayout.Layout[]) => {
     if (this._skipOnLayoutChange) {
       // Layout has been updated by other RTL handler already
       this._skipOnLayoutChange = false;
       return;
+    }
+
+    // We replace with the old layout only if the current state is invalid
+    if (this._loadOldLayout) {
+      layout = [...this._oldLayout];
+      this._loadOldLayout = false;
     }
 
     for (const item of layout) {
@@ -176,7 +195,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 
   /**
-   *  We assume the layout array is storted according to y pos, and walk upwards until we find a row.
+   *  We assume the layout array is sorted according to y pos, and walk upwards until we find a row.
    *  If it is collapsed there is no row to add it to. The default is then to return the SceneGridLayout itself
    */
   private findGridItemSceneParent(layout: ReactGridLayout.Layout[], startAt: number): SceneGridRow | SceneGridLayout {
@@ -198,7 +217,34 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 
   /**
-   * This likely needs a slighltly different approach. Where we clone or deactivate or and re-activate the moved child
+   * Helper func to check if we are dropping a row in between panels of another row
+   */
+  private isRowDropValid(
+    gridLayout: ReactGridLayout.Layout[],
+    updatedItem: ReactGridLayout.Layout,
+    indexOfUpdatedItem: number
+  ): boolean {
+    // if the row is dropped at the end of the dashboard grid layout, we accept this valid state
+    if (gridLayout[gridLayout.length - 1].i === updatedItem.i) {
+      return true;
+    }
+
+    // if the next child after the updated item is a scene grid row, then we are either at the top
+    // of the dashboard, or between rows
+    // if it's not a grid row, but it's parent is the layout, it means we are not in between a
+    // rows children, so also valid state
+    const nextSceneChild = this.getSceneLayoutChild(gridLayout[indexOfUpdatedItem + 1].i);
+    if (nextSceneChild instanceof SceneGridRow) {
+      return true;
+    } else if (nextSceneChild.parent instanceof SceneGridLayout) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * This likely needs a slightly different approach. Where we clone or deactivate or and re-activate the moved child
    */
   public moveChildTo(child: SceneGridItemLike, target: SceneGridLayout | SceneGridRow) {
     const currentParent = child.parent!;
@@ -208,8 +254,9 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // Remove from current parent row
     if (currentParent instanceof SceneGridRow) {
-      const newRow = currentParent.clone({
-        children: currentParent.state.children.filter((c) => c.state.key !== child.state.key),
+      const newRow = currentParent.clone();
+      newRow.setState({
+        children: newRow.state.children.filter((c) => c.state.key !== child.state.key),
       });
 
       // new children with new row
@@ -217,7 +264,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
       // if target is also a row
       if (target instanceof SceneGridRow) {
-        const targetRow = target.clone({ children: [...target.state.children, newChild] });
+        const targetRow = target.clone();
+        targetRow.setState({ children: [...targetRow.state.children, newChild] });
         rootChildren = rootChildren.map((c) => (c === target ? targetRow : c));
       } else {
         // target is the main grid
@@ -228,7 +276,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
         // current parent is the main grid remove it from there
         rootChildren = rootChildren.filter((c) => c.state.key !== child.state.key);
         // Clone the target row and add the child
-        const targetRow = target.clone({ children: [...target.state.children, newChild] });
+        const targetRow = target.clone();
+        targetRow.setState({ children: [...targetRow.state.children, newChild] });
         // Replace row with new row
         rootChildren = rootChildren.map((c) => (c === target ? targetRow : c));
       }
@@ -237,10 +286,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     return rootChildren;
   }
 
+  public onDragStart: ReactGridLayout.ItemCallback = (gridLayout) => {
+    this._oldLayout = [...gridLayout];
+  };
+
   public onDragStop: ReactGridLayout.ItemCallback = (gridLayout, o, updatedItem) => {
     const sceneChild = this.getSceneLayoutChild(updatedItem.i)!;
 
-    // Need to resort the grid layout based on new position (needed to to find the new parent)
+    // Need to resort the grid layout based on new position (needed to find the new parent)
     gridLayout = sortGridLayout(gridLayout);
 
     // Update children positions if they have changed
@@ -259,8 +312,19 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // Update the parent if the child if it has moved to a row or back to the grid
     const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
-    const newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
+    let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
     let newChildren = this.state.children;
+
+    // if the child is a row and we are moving it under an uncollapsed row, keep the scene grid layout as parent
+    // and set the old layout flag if the state is invalid. We allow setting the children in an invalid state,
+    // as the layout will be updated in onLayoutChange and avoid flickering
+    if (sceneChild instanceof SceneGridRow && newParent instanceof SceneGridRow) {
+      if (!this.isRowDropValid(gridLayout, updatedItem, indexOfUpdatedItem)) {
+        this._loadOldLayout = true;
+      }
+
+      newParent = this;
+    }
 
     if (newParent !== sceneChild.parent) {
       newChildren = this.moveChildTo(sceneChild, newParent);
@@ -289,7 +353,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     return { i: child.state.key!, x, y, h, w, isResizable, isDraggable };
   }
 
-  public buildGridLayout(width: number): ReactGridLayout.Layout[] {
+  public buildGridLayout(width: number, height: number): ReactGridLayout.Layout[] {
     let cells: ReactGridLayout.Layout[] = [];
 
     for (const child of this.state.children) {
@@ -304,6 +368,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // Sort by position
     cells = sortGridLayout(cells);
+
+    if (this.state.UNSAFE_fitPanels) {
+      cells = fitPanelsInHeight(cells, height);
+    }
 
     if (width < 768) {
       // We should not persist the mobile layout
@@ -322,6 +390,12 @@ function isItemSizeEqual(a: SceneGridItemPlacement, b: SceneGridItemPlacement) {
 }
 
 function sortChildrenByPosition(children: SceneGridItemLike[]) {
+  children.forEach((child) => {
+    if (child instanceof SceneGridRow) {
+      child.setState({ children: sortChildrenByPosition(child.state.children) });
+    }
+  });
+
   return [...children].sort((a, b) => {
     return a.state.y! - b.state.y! || a.state.x! - b.state.x!;
   });

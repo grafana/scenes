@@ -20,6 +20,10 @@ export interface DataSourceVariableState extends MultiValueVariableState {
    * Filter data source instances based on name
    */
   regex: string;
+  /**
+   * For backwards compatability with old dashboards, will likely be removed
+   */
+  defaultOptionEnabled?: boolean;
 }
 
 export class DataSourceVariable extends MultiValueVariable<DataSourceVariableState> {
@@ -45,7 +49,7 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
       return of([]);
     }
 
-    const dataSourceTypes = this.getDataSourceTypes();
+    const dataSources = getDataSourceSrv().getList({ metrics: true, variables: false, pluginId: this.state.pluginId });
 
     let regex;
     if (this.state.regex) {
@@ -55,31 +59,25 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
 
     const options: VariableValueOption[] = [];
 
-    for (let i = 0; i < dataSourceTypes.length; i++) {
-      const source = dataSourceTypes[i];
-      // must match on type
-      if (source.meta.id !== this.state.pluginId) {
-        continue;
-      }
+    for (let i = 0; i < dataSources.length; i++) {
+      const source = dataSources[i];
 
       if (isValid(source, regex)) {
-        options.push({ label: source.name, value: source.name });
+        options.push({ label: source.name, value: source.uid });
       }
 
-      if (isDefault(source, regex)) {
+      if (this.state.defaultOptionEnabled && isDefault(source, regex)) {
         options.push({ label: 'default', value: 'default' });
       }
     }
 
     if (options.length === 0) {
-      options.push({ label: 'No data sources found', value: '' });
+      this.setState({ error: 'No data sources found' });
+    } else if (this.state.error) {
+      this.setState({ error: null });
     }
 
     return of(options);
-  }
-
-  private getDataSourceTypes(): DataSourceInstanceSettings[] {
-    return getDataSourceSrv().getList({ metrics: true, variables: false });
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {

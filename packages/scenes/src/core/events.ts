@@ -12,3 +12,17 @@ export interface SceneObjectStateChangedPayload<TState extends SceneObjectState 
 export class SceneObjectStateChangedEvent extends BusEventWithPayload<SceneObjectStateChangedPayload> {
   public static readonly type = 'scene-object-state-change';
 }
+
+type UserActionEventType =
+  | 'panel-description-shown'
+  | 'panel-status-message-clicked'
+  | 'panel-cancel-query-clicked'
+  | 'panel-menu-shown';
+
+interface UserActionEventPayload {
+  origin: SceneObject;
+  interaction: UserActionEventType;
+}
+export class UserActionEvent extends BusEventWithPayload<UserActionEventPayload> {
+  public static readonly type = 'scene-object-user-action';
+}

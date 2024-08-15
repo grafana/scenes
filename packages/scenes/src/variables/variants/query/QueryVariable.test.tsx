@@ -1,4 +1,5 @@
 import { lastValueFrom, of } from 'rxjs';
+import React from 'react';
 
 import {
   DataQueryRequest,
@@ -10,6 +11,7 @@ import {
   PanelData,
   PluginType,
   ScopedVars,
+  StandardVariableQuery,
   StandardVariableSupport,
   toDataFrame,
   toUtc,
@@ -20,18 +22,28 @@ import { SceneTimeRange } from '../../../core/SceneTimeRange';
 
 import { QueryVariable } from './QueryVariable';
 import { QueryRunner, RunnerArgs, setCreateQueryVariableRunnerFactory } from './createQueryVariableRunner';
+import { EmbeddedScene } from '../../../components/EmbeddedScene';
+import { SceneVariableSet } from '../../sets/SceneVariableSet';
+import { VariableValueSelectors } from '../../components/VariableValueSelectors';
+import { SceneCanvasText } from '../../../components/SceneCanvasText';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { setRunRequest } from '@grafana/runtime';
+import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 
 const runRequestMock = jest.fn().mockReturnValue(
   of<PanelData>({
     state: LoadingState.Done,
     series: [
       toDataFrame({
-        fields: [{ name: 'text', type: FieldType.string, values: ['A', 'AB', 'C'] }],
+        fields: [{ name: 'text', type: FieldType.string, values: ['val1', 'val2', 'val11'] }],
       }),
     ],
     timeRange: getDefaultTimeRange(),
   })
 );
+
+setRunRequest(runRequestMock);
 
 const getDataSourceMock = jest.fn();
 
@@ -83,7 +95,9 @@ class FakeQueryRunner implements QueryRunner {
   public constructor(private datasource: DataSourceApi, private _runRequest: jest.Mock) {}
 
   public getTarget(variable: QueryVariable) {
-    return (this.datasource.variables as StandardVariableSupport<DataSourceApi>).toDataQuery(variable.state.query);
+    return (this.datasource.variables as StandardVariableSupport<DataSourceApi>).toDataQuery(
+      variable.state.query as StandardVariableQuery
+    );
   }
   public runRequest(args: RunnerArgs, request: DataQueryRequest) {
     return this._runRequest(
@@ -96,25 +110,22 @@ class FakeQueryRunner implements QueryRunner {
 
 describe('QueryVariable', () => {
   describe('When empty query is provided', () => {
+    it('Should default to empty query', async () => {
+      const variable = new QueryVariable({ name: 'test' });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.query).toEqual('');
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+      expect(variable.state.options).toEqual([]);
+    });
+
     it('Should default to empty options and empty value', async () => {
       const variable = new QueryVariable({
         name: 'test',
         datasource: { uid: 'fake', type: 'fake' },
         query: '',
-      });
-
-      await lastValueFrom(variable.validateAndUpdate());
-
-      expect(variable.state.value).toEqual('');
-      expect(variable.state.text).toEqual('');
-      expect(variable.state.options).toEqual([]);
-    });
-  });
-
-  describe('When no data source is provided', () => {
-    it('Should default to empty options and empty value', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
       });
 
       await lastValueFrom(variable.validateAndUpdate());
@@ -151,9 +162,9 @@ describe('QueryVariable', () => {
       variable.validateAndUpdate().subscribe({
         next: () => {
           expect(variable.state.options).toEqual([
-            { label: 'A', value: 'A' },
-            { label: 'AB', value: 'AB' },
-            { label: 'C', value: 'C' },
+            { label: 'val1', value: 'val1' },
+            { label: 'val2', value: 'val2' },
+            { label: 'val11', value: 'val11' },
           ]);
           expect(variable.state.loading).toEqual(false);
           done();
@@ -175,23 +186,32 @@ describe('QueryVariable', () => {
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: variable, text: '__sceneObject' });
-      expect(getDataSourceCall[1].__sceneObject).toEqual({ value: variable, text: '__sceneObject' });
+      expect((runRequestCall[1].scopedVars.__sceneObject.value as SafeSerializableSceneObject).valueOf()).toEqual(
+        variable
+      );
+      expect((getDataSourceCall[1].__sceneObject.value as SafeSerializableSceneObject).valueOf()).toEqual(variable);
     });
 
     describe('when refresh on dashboard load set', () => {
-      it('Should issue variable query with default time range', async () => {
+      it('Should issue variable query with current time range', async () => {
         const variable = new QueryVariable({
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
         });
 
+        const scene = new EmbeddedScene({
+          $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+          $variables: new SceneVariableSet({ variables: [variable] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+        scene.activate();
+
         await lastValueFrom(variable.validateAndUpdate());
 
-        expect(runRequestMock).toBeCalledTimes(1);
         const call = runRequestMock.mock.calls[0];
-        expect(call[1].range).toEqual(getDefaultTimeRange());
+        expect(call[1].range.raw.from).toEqual('now-5m');
+        expect(call[1].range.raw.to).toEqual('now');
       });
 
       it('Should not issue variable query when the closest time range changes if refresh on dahboard load is set', async () => {
@@ -214,7 +234,7 @@ describe('QueryVariable', () => {
 
         // Uses default time range
         expect(call1[1].range.raw).toEqual({
-          from: 'now-6h',
+          from: 'now-1h',
           to: 'now',
         });
 
@@ -260,15 +280,135 @@ describe('QueryVariable', () => {
         name: 'test',
         datasource: { uid: 'fake-std', type: 'fake-std' },
         query: 'query',
-        regex: '/^A/',
+        regex: '/^val1/',
       });
 
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.state.options).toEqual([
-        { label: 'A', value: 'A' },
-        { label: 'AB', value: 'AB' },
+        { label: 'val1', value: 'val1' },
+        { label: 'val11', value: 'val11' },
       ]);
+    });
+  });
+
+  describe('When sort is provided', () => {
+    beforeEach(() => {
+      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+    });
+
+    it('should return options order by natural sort Desc', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: 8,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val11', value: 'val11' },
+      ]);
+    });
+
+    it('should return options order by natural sort Asc', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: 7,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val11', value: 'val11' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val1', value: 'val1' },
+      ]);
+    });
+
+    it('should return options order by alphabeticalAsc', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: 1,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val1', value: 'val1' },
+        { label: 'val11', value: 'val11' },
+        { label: 'val2', value: 'val2' },
+      ]);
+    });
+  });
+
+  describe('Query with __searchFilter', () => {
+    beforeEach(() => {
+      runRequestMock.mockClear();
+      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+    });
+
+    it('Should trigger new query and show new options', async () => {
+      const variable = new QueryVariable({
+        name: 'server',
+        datasource: null,
+        query: 'A.$__searchFilter',
+      });
+
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        controls: [new VariableValueSelectors({})],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      render(<scene.Component model={scene} />);
+
+      await act(() => new Promise((r) => setTimeout(r, 10)));
+
+      const select = await screen.findByRole('combobox');
+
+      await userEvent.click(select);
+      await userEvent.type(select, 'muu!');
+
+      // wait for debounce
+      await act(() => new Promise((r) => setTimeout(r, 500)));
+
+      expect(runRequestMock).toBeCalledTimes(2);
+      expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
+    });
+
+    it('Should not trigger new query whern __searchFilter is not present', async () => {
+      const variable = new QueryVariable({
+        name: 'server',
+        datasource: null,
+        query: 'A.*',
+      });
+
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        controls: [new VariableValueSelectors({})],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      render(<scene.Component model={scene} />);
+
+      await act(() => new Promise((r) => setTimeout(r, 10)));
+
+      const select = await screen.findByRole('combobox');
+      await userEvent.click(select);
+      await userEvent.type(select, 'muu!');
+
+      // wait for debounce
+      await new Promise((r) => setTimeout(r, 500));
+
+      expect(runRequestMock).toBeCalledTimes(1);
     });
   });
 });

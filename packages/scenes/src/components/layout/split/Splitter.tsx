@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { clamp, throttle } from 'lodash';
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import { useUniqueId } from '../grid/LazyLoader';
+import { useUniqueId } from '../LazyLoader';
 
 interface Props {
   handleSize?: number;
@@ -271,8 +271,20 @@ export function Splitter({
     }`;
   }, [maxDimProp, measurementProp, minDimProp]);
 
+  const onBlur = useCallback(() => {
+    // If focus is lost while keys are held, stop changing panel sizes
+    if (pressedKeys.current.size > 0) {
+      pressedKeys.current.clear();
+      dragStart.current = null;
+      onDragFinished?.(parseFloat(firstPaneRef.current!.style.flexGrow));
+    }
+  }, [onDragFinished]);
+
   const styles = useStyles2(getStyles);
   const id = useUniqueId();
+
+  const secondAvailable = kids.length === 2;
+  const visibilitySecond = secondAvailable ? 'visible' : 'hidden';
 
   return (
     <div
@@ -295,37 +307,43 @@ export function Splitter({
         {kids[0]}
       </div>
 
-      <div
-        ref={splitterRef}
-        style={{ [measurementProp]: `${handleSize}px` }}
-        className={cx(styles.handle, { [styles.handleHorizontal]: direction === 'column' })}
-        onPointerUp={onPointerUp}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onKeyDown={onKeyDown}
-        onKeyUp={onKeyUp}
-        onDoubleClick={onDoubleClick}
-        role="separator"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={50}
-        aria-controls={`start-panel-${id}`}
-        aria-label="Pane resize widget"
-        tabIndex={0}
-      ></div>
+      {kids[1] && (
+        <>
+          <div
+            ref={splitterRef}
+            style={{ [measurementProp]: `${handleSize}px` }}
+            className={cx(styles.handle, { [styles.handleHorizontal]: direction === 'column' })}
+            onPointerUp={onPointerUp}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onKeyDown={onKeyDown}
+            onKeyUp={onKeyUp}
+            onDoubleClick={onDoubleClick}
+            onBlur={onBlur}
+            role="separator"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={50}
+            aria-controls={`start-panel-${id}`}
+            aria-label="Pane resize widget"
+            tabIndex={0}
+          ></div>
 
-      <div
-        ref={secondPaneRef}
-        className={styles.panel}
-        style={{
-          flexGrow: initialSize === 'auto' ? 0.5 : clamp(1 - initialSize, 0, 1),
-          [minDimProp]: 'min-content',
-          ...secondaryPaneStyles,
-        }}
-        id={`end-panel-${id}`}
-      >
-        {kids[1]}
-      </div>
+          <div
+            ref={secondPaneRef}
+            className={styles.panel}
+            style={{
+              flexGrow: initialSize === 'auto' ? 0.5 : clamp(1 - initialSize, 0, 1),
+              [minDimProp]: 'min-content',
+              visibility: `${visibilitySecond}`,
+              ...secondaryPaneStyles,
+            }}
+            id={`end-panel-${id}`}
+          >
+            {kids[1]}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -400,7 +418,7 @@ function getStyles(theme: GrafanaTheme2) {
       flexGrow: 1,
       overflow: 'hidden',
     }),
-    panel: css({ display: 'flex', overflow: 'hidden', position: 'relative', flexBasis: 0 }),
+    panel: css({ display: 'flex', position: 'relative', flexBasis: 0 }),
   };
 }
 

@@ -3,11 +3,15 @@ import {
   EmbeddedScene,
   SceneAppPage,
   SceneAppPageState,
-  SceneDataLayers,
+  SceneControlsSpacer,
+  SceneDataLayerControls,
+  SceneDataLayerSet,
   SceneDataTransformer,
   SceneFlexItem,
   SceneFlexLayout,
   SceneQueryRunner,
+  SceneRefreshPicker,
+  SceneTimePicker,
   VizPanel,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
@@ -15,63 +19,60 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 
 export function getAnnotationsDemo(defaults: SceneAppPageState) {
   const globalAnnotations = new dataLayers.AnnotationsDataLayer({
-    queries: [
-      {
-        datasource: {
-          type: 'testdata',
-          uid: 'gdev-testdata',
-        },
-        enable: true,
-        iconColor: 'yellow',
-        name: 'New annotation',
-        target: {
-          // @ts-ignore
-          lines: 10,
-          refId: 'Anno',
-          scenarioId: 'annotations',
-        },
+    name: 'Global annotations',
+    query: {
+      datasource: {
+        type: 'testdata',
+        uid: 'gdev-testdata',
       },
-    ],
+      enable: true,
+      iconColor: 'yellow',
+      name: 'New annotation',
+      target: {
+        // @ts-ignore
+        lines: 10,
+        refId: 'Anno',
+        scenarioId: 'annotations',
+      },
+    },
   });
 
   const nestedAnnotationsDataLayer = new dataLayers.AnnotationsDataLayer({
-    queries: [
-      {
-        datasource: {
-          type: 'testdata',
-          uid: 'gdev-testdata',
-        },
-        enable: true,
-        iconColor: 'red',
-        name: 'New annotation',
-        target: {
-          // @ts-ignore
-          lines: 5,
-          refId: 'Anno',
-          scenarioId: 'annotations',
-        },
+    name: 'Nested annotations',
+    query: {
+      datasource: {
+        type: 'testdata',
+        uid: 'gdev-testdata',
       },
-    ],
+      enable: true,
+      iconColor: 'red',
+      name: 'New annotation',
+      target: {
+        // @ts-ignore
+        lines: 5,
+        refId: 'Anno',
+        scenarioId: 'annotations',
+      },
+    },
   });
 
   const independentAnnotations = new dataLayers.AnnotationsDataLayer({
-    queries: [
-      {
-        datasource: {
-          type: 'testdata',
-          uid: 'gdev-testdata',
-        },
-        enable: true,
-        iconColor: 'purple',
-        name: 'New annotation',
-        target: {
-          // @ts-ignore
-          lines: 3,
-          refId: 'Anno',
-          scenarioId: 'annotations',
-        },
+    name: 'Independent annotations',
+    query: {
+      datasource: {
+        type: 'testdata',
+        uid: 'gdev-testdata',
       },
-    ],
+      enable: true,
+      iconColor: 'purple',
+      name: 'New annotation',
+      target: {
+        // @ts-ignore
+        lines: 3,
+        refId: 'Anno',
+        scenarioId: 'annotations',
+      },
+    },
   });
 
   return new SceneAppPage({
@@ -80,8 +81,14 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
+        controls: [
+          new SceneDataLayerControls(),
+          new SceneControlsSpacer(),
+          new SceneTimePicker({}),
+          new SceneRefreshPicker({}),
+        ],
         key: 'Multiple annotations layers',
-        $data: new SceneDataLayers({
+        $data: new SceneDataLayerSet({
           layers: [globalAnnotations],
         }),
         body: new SceneFlexLayout({
@@ -98,19 +105,19 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                   }),
                 }),
                 new SceneFlexItem({
-                  $data: new SceneDataLayers({
-                    layers: [nestedAnnotationsDataLayer],
-                  }),
+                  $data: nestedAnnotationsDataLayer,
                   body: new VizPanel({
                     $data: getQueryRunnerWithRandomWalkQuery({}),
-                    title: 'Combined annotations, from SceneDataLayers only',
+                    title: 'Nested annotations',
+                    description: 'Uses a single data layer directly, not inside a SceneDataLayers',
                     pluginId: 'timeseries',
+                    headerActions: [new SceneDataLayerControls()],
                   }),
                 }),
                 new SceneFlexItem({
                   body: new VizPanel({
                     $data: new SceneQueryRunner({
-                      $data: new SceneDataLayers({
+                      $data: new SceneDataLayerSet({
                         layers: [independentAnnotations],
                       }),
                       queries: [
@@ -123,6 +130,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                     }),
                     title: 'Combined annotations, from global and SceneQueryRunner',
                     pluginId: 'timeseries',
+                    headerActions: [new SceneDataLayerControls()],
                   }),
                 }),
               ],
@@ -160,26 +168,25 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                   }),
                 }),
                 new SceneFlexItem({
-                  $data: new SceneDataLayers({
+                  $data: new SceneDataLayerSet({
                     layers: [
                       new dataLayers.AnnotationsDataLayer({
-                        queries: [
-                          {
-                            datasource: {
-                              type: 'testdata',
-                              uid: 'gdev-testdata',
-                            },
-                            enable: true,
-                            iconColor: 'green',
-                            name: 'New annotation',
-                            target: {
-                              // @ts-ignore
-                              lines: 4,
-                              refId: 'Anno',
-                              scenarioId: 'annotations',
-                            },
+                        name: 'Local annotations',
+                        query: {
+                          datasource: {
+                            type: 'testdata',
+                            uid: 'gdev-testdata',
                           },
-                        ],
+                          enable: true,
+                          iconColor: 'green',
+                          name: 'New annotation',
+                          target: {
+                            // @ts-ignore
+                            lines: 4,
+                            refId: 'Anno',
+                            scenarioId: 'annotations',
+                          },
+                        },
                       }),
                     ],
                   }),
@@ -209,6 +216,7 @@ export function getAnnotationsDemo(defaults: SceneAppPageState) {
                     }),
                     title: 'Transformed local data, global+local annotations',
                     pluginId: 'timeseries',
+                    headerActions: [new SceneDataLayerControls()],
                   }),
                 }),
               ],

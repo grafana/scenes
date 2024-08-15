@@ -27,23 +27,36 @@ const basicDemo = () =>
         ...getEmbeddedSceneDefaults(),
         key: 'Flex layout embedded scene',
         body: new SplitLayout({
+          initialSize: 0.7,
           direction: 'row',
-          primary: PanelBuilders.timeseries()
-            .setTitle('Dynamic height and width')
-            .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }))
-            .build(),
-          secondary: new SplitLayout({
-            ySizing: 'content',
-            direction: 'column',
-            primary: new SceneCanvasText({
-              text: 'Size to content',
-              fontSize: 20,
-              align: 'center',
-            }),
-            secondary: new SceneCanvasText({
-              text: 'Blah blah',
-              fontSize: 30,
-              align: 'center',
+          primary: new SceneFlexItem({
+            minWidth: 300,
+            body: PanelBuilders.timeseries()
+              .setTitle('Dynamic height and width')
+              .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }))
+              .build(),
+          }),
+
+          secondary: new SceneFlexItem({
+            minWidth: 300,
+            body: new SplitLayout({
+              ySizing: 'content',
+              direction: 'column',
+              primary: new SceneFlexItem({
+                minHeight: 200,
+                body: PanelBuilders.timeseries()
+                  .setTitle('Dynamic height and width')
+                  .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: true }))
+                  .build(),
+              }),
+              secondary: new SceneFlexItem({
+                minHeight: 200,
+                body: new SceneCanvasText({
+                  text: 'Blah blah',
+                  fontSize: 30,
+                  align: 'center',
+                }),
+              }),
             }),
           }),
         }),
@@ -134,7 +147,20 @@ const getDynamicSplitScene = () => {
                       })
                     )
                     .setHeaderActions(
-                      <IconButton name="x" onClick={() => splitter.setState({ secondary: defaultSecondary })} />
+                      <label>
+                        <IconButton
+                          name="trash-alt"
+                          type="button"
+                          onClick={() => splitter.setState({ secondary: undefined })}
+                          aria-label="remove right part"
+                        />
+                        <IconButton
+                          name="times"
+                          type="button"
+                          onClick={() => splitter.setState({ secondary: defaultSecondary })}
+                          aria-label="clear right part"
+                        />
+                      </label>
                     )
                     .build(),
                 }),

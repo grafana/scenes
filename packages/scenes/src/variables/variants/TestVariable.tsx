@@ -11,13 +11,15 @@ import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } f
 import { VariableRefresh } from '@grafana/data';
 import { getClosest } from '../../core/sceneGraph/utils';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { SceneQueryControllerEntry } from '../../behaviors/SceneQueryController';
 
 export interface TestVariableState extends MultiValueVariableState {
   query: string;
   delayMs?: number;
   issuedQuery?: string;
   refresh?: VariableRefresh;
-  optionsToReturn: VariableValueOption[];
+  throwError?: string;
+  optionsToReturn?: VariableValueOption[];
 }
 
 /**
@@ -27,12 +29,13 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
   private completeUpdate = new Subject<number>();
   public isGettingValues = true;
   public getValueOptionsCount = 0;
+  isLazy = false;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['query'],
   });
 
-  public constructor(initialState: Partial<TestVariableState>) {
+  public constructor(initialState: Partial<TestVariableState>, isLazy = false) {
     super({
       type: 'custom',
       name: 'Test',
@@ -41,9 +44,9 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       query: 'Query',
       options: [],
       refresh: VariableRefresh.onDashboardLoad,
-      optionsToReturn: [],
       ...initialState,
     });
+    this.isLazy = isLazy;
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
@@ -51,12 +54,32 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
 
     this.getValueOptionsCount += 1;
 
+    const queryController = sceneGraph.getQueryController(this);
+
     return new Observable<VariableValueOption[]>((observer) => {
+      const queryEntry: SceneQueryControllerEntry = {
+        type: 'variable',
+        origin: this,
+        cancel: () => observer.complete(),
+      };
+
+      if (queryController) {
+        queryController.queryStarted(queryEntry);
+      }
+
       this.setState({ loading: true });
+
+      if (this.state.throwError) {
+        throw new Error(this.state.throwError);
+      }
+
+      const interpolatedQuery = sceneGraph.interpolate(this, this.state.query);
+      const options = this.getOptions(interpolatedQuery);
 
       const sub = this.completeUpdate.subscribe({
         next: () => {
-          observer.next(this.issueQuery());
+          this.setState({ issuedQuery: interpolatedQuery, options, loading: false });
+          observer.next(options);
           observer.complete();
         },
       });
@@ -73,8 +96,15 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       return () => {
         sub.unsubscribe();
         window.clearTimeout(timeout);
-        this.setState({ loading: false });
         this.isGettingValues = false;
+
+        if (this.state.loading) {
+          this.setState({ loading: false });
+        }
+
+        if (queryController) {
+          queryController.queryCompleted(queryEntry);
+        }
       };
     });
   }
@@ -84,20 +114,8 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
     sceneVarSet?.cancel(this);
   }
 
-  private issueQuery() {
-    const interpolatedQuery = sceneGraph.interpolate(this, this.state.query);
-    const options = this.getOptions(interpolatedQuery);
-
-    this.setState({
-      issuedQuery: interpolatedQuery,
-      options,
-    });
-
-    return options;
-  }
-
   private getOptions(interpolatedQuery: string) {
-    if (this.state.optionsToReturn.length > 0) {
+    if (this.state.optionsToReturn) {
       return this.state.optionsToReturn;
     }
 

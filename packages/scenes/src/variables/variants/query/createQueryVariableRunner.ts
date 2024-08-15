@@ -1,18 +1,19 @@
 import { from, mergeMap, Observable, of } from 'rxjs';
 
 import {
-  DataQuery,
   DataQueryRequest,
   DataSourceApi,
   getDefaultTimeRange,
   LoadingState,
   PanelData,
+  StandardVariableQuery,
 } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
 import { hasCustomVariableSupport, hasLegacyVariableSupport, hasStandardVariableSupport } from './guards';
 
 import { QueryVariable } from './QueryVariable';
+import { DataQuery } from '@grafana/schema';
 
 export interface RunnerArgs {
   searchFilter?: string;
@@ -20,7 +21,7 @@ export interface RunnerArgs {
 }
 
 export interface QueryRunner {
-  getTarget: (variable: QueryVariable) => DataQuery;
+  getTarget: (variable: QueryVariable) => DataQuery | string;
   runRequest: (args: RunnerArgs, request: DataQueryRequest) => Observable<PanelData>;
 }
 
@@ -29,7 +30,7 @@ class StandardQueryRunner implements QueryRunner {
 
   public getTarget(variable: QueryVariable) {
     if (hasStandardVariableSupport(this.datasource)) {
-      return this.datasource.variables.toDataQuery(variable.state.query);
+      return this.datasource.variables.toDataQuery(ensureVariableQueryModelIsADataQuery(variable));
     }
 
     throw new Error("Couldn't create a target with supplied arguments.");
@@ -44,7 +45,7 @@ class StandardQueryRunner implements QueryRunner {
       return this._runRequest(this.datasource, request);
     }
 
-    return this._runRequest(this.datasource, request, this.datasource.variables.query);
+    return this._runRequest(this.datasource, request, this.datasource.variables.query.bind(this.datasource.variables));
   }
 }
 
@@ -59,7 +60,7 @@ class LegacyQueryRunner implements QueryRunner {
     throw new Error("Couldn't create a target with supplied arguments.");
   }
 
-  public runRequest({ variable }: RunnerArgs, request: DataQueryRequest) {
+  public runRequest({ variable, searchFilter }: RunnerArgs, request: DataQueryRequest) {
     if (!hasLegacyVariableSupport(this.datasource)) {
       return getEmptyMetricFindValueObservable();
     }
@@ -72,8 +73,7 @@ class LegacyQueryRunner implements QueryRunner {
           name: variable.state.name,
           type: variable.state.type,
         },
-        // TODO: add support for search filter
-        // searchFilter
+        searchFilter,
       })
     ).pipe(
       mergeMap((values) => {
@@ -107,7 +107,7 @@ class CustomQueryRunner implements QueryRunner {
     if (!this.datasource.variables.query) {
       return this._runRequest(this.datasource, request);
     }
-    return this._runRequest(this.datasource, request, this.datasource.variables.query);
+    return this._runRequest(this.datasource, request, this.datasource.variables.query.bind(this.datasource.variables));
   }
 }
 
@@ -138,4 +138,23 @@ export let createQueryVariableRunner = createQueryVariableRunnerFactory;
  */
 export function setCreateQueryVariableRunnerFactory(fn: (datasource: DataSourceApi) => QueryRunner) {
   createQueryVariableRunner = fn;
+}
+
+/**
+ * Fixes old legacy query string models and adds refId if missing
+ */
+function ensureVariableQueryModelIsADataQuery(variable: QueryVariable): StandardVariableQuery {
+  const query = variable.state.query ?? '';
+
+  // Turn into query object if it's just a string
+  if (typeof query === 'string') {
+    return { query, refId: `variable-${variable.state.name}` };
+  }
+
+  // Add potentially missing refId
+  if (query.refId == null) {
+    return { ...query, refId: `variable-${variable.state.name}` } as StandardVariableQuery;
+  }
+
+  return variable.state.query as StandardVariableQuery;
 }

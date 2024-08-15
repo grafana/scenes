@@ -1,106 +1,90 @@
 import React from 'react';
 
-import { GrafanaTheme2, VariableHide } from '@grafana/data';
-import { selectors } from '@grafana/e2e-selectors';
-import { Tooltip, useStyles2 } from '@grafana/ui';
+import { VariableHide } from '@grafana/data';
 
-import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { SceneObjectBase, useSceneObjectState } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { SceneComponentProps, SceneObject, SceneObjectState } from '../../core/types';
-import { SceneVariableState } from '../types';
+import { ControlsLayout, SceneComponentProps, SceneObjectState } from '../../core/types';
+import { SceneVariable, SceneVariableState } from '../types';
+import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
+import { selectors } from '@grafana/e2e-selectors';
 
-export class VariableValueSelectors extends SceneObjectBase<SceneObjectState> {
+export interface VariableValueSelectorsState extends SceneObjectState {
+  layout?: ControlsLayout;
+}
+
+export class VariableValueSelectors extends SceneObjectBase<VariableValueSelectorsState> {
   public static Component = VariableValueSelectorsRenderer;
 }
 
 function VariableValueSelectorsRenderer({ model }: SceneComponentProps<VariableValueSelectors>) {
   const variables = sceneGraph.getVariables(model)!.useState();
-  const styles = useStyles2(getStyles);
 
   return (
     <>
       {variables.variables.map((variable) => (
-        <VariableValueSelectWrapper key={variable.state.key} variable={variable} styles={styles} />
+        <VariableValueSelectWrapper key={variable.state.key} variable={variable} layout={model.state.layout} />
       ))}
     </>
   );
 }
 
-function VariableValueSelectWrapper({
-  variable,
-  styles,
-}: {
-  variable: SceneObject<SceneVariableState>;
-  styles: VariableLabelStyles;
-}) {
-  const state = variable.useState();
+interface VariableSelectProps {
+  layout?: ControlsLayout;
+  variable: SceneVariable;
+  /** To override hide from VariableValueSelectByName  */
+  showAlways?: boolean;
+  /** To provide an option to hide the label in the variable value selector */
+  hideLabel?: boolean;
+}
 
-  if (state.hide === VariableHide.hideVariable) {
+export function VariableValueSelectWrapper({ variable, layout, showAlways, hideLabel }: VariableSelectProps) {
+  const state = useSceneObjectState<SceneVariableState>(variable, { shouldActivateOrKeepAlive: true });
+
+  if (state.hide === VariableHide.hideVariable && !showAlways) {
     return null;
   }
 
+  if (layout === 'vertical') {
+    return (
+      <div className={verticalContainer} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
+        <VariableLabel variable={variable} layout={layout} hideLabel={hideLabel} />
+        <variable.Component model={variable} />
+      </div>
+    );
+  }
+
   return (
-    <div className={styles.container}>
-      <VariableLabel state={state} styles={styles} />
+    <div className={containerStyle} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
+      <VariableLabel variable={variable} hideLabel={hideLabel} />
       <variable.Component model={variable} />
     </div>
   );
 }
 
-function VariableLabel({ state, styles }: { state: SceneVariableState; styles: VariableLabelStyles }) {
-  if (state.hide === VariableHide.hideLabel) {
+function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
+  const { state } = variable;
+
+  if (variable.state.hide === VariableHide.hideLabel || hideLabel) {
     return null;
   }
 
   const elementId = `var-${state.key}`;
   const labelOrName = state.label ?? state.name;
 
-  if (state.description) {
-    return (
-      <Tooltip content={state.description} placement={'bottom'}>
-        <label
-          className={styles.variableLabel}
-          data-testid={selectors.pages.Dashboard.SubMenu.submenuItemLabels(labelOrName)}
-          htmlFor={elementId}
-        >
-          {labelOrName}
-        </label>
-      </Tooltip>
-    );
-  }
-
   return (
-    <label
-      className={styles.variableLabel}
-      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemLabels(labelOrName)}
+    <ControlsLabel
       htmlFor={elementId}
-    >
-      {labelOrName}
-    </label>
+      isLoading={state.loading}
+      onCancel={() => variable.onCancel?.()}
+      label={labelOrName}
+      error={state.error}
+      layout={layout}
+      description={state.description ?? undefined}
+    />
   );
 }
 
-const getStyles = (theme: GrafanaTheme2) => ({
-  container: css({
-    display: 'flex',
-  }),
-  variableLabel: css({
-    background: theme.isDark ? theme.colors.background.primary : theme.colors.background.secondary,
-    display: `flex`,
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    fontWeight: theme.typography.fontWeightMedium,
-    fontSize: theme.typography.bodySmall.fontSize,
-    height: theme.spacing(theme.components.height.md),
-    lineHeight: theme.spacing(theme.components.height.md),
-    borderRadius: theme.shape.borderRadius(1),
-    border: `1px solid ${theme.components.input.borderColor}`,
-    position: 'relative',
-    // To make the border line up with the input border
-    right: -1,
-    whiteSpace: 'nowrap',
-  }),
-});
-
-type VariableLabelStyles = ReturnType<typeof getStyles>;
+const containerStyle = css({ display: 'flex' });
+const verticalContainer = css({ display: 'flex', flexDirection: 'column' });

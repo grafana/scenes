@@ -38,6 +38,17 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
    * For special edge case senarios. For example local function that locally scoped variables can implement.
    **/
   isAncestorLoading?(): boolean;
+
+  /**
+   * Allows cancelling variable execution.
+   */
+  onCancel?(): void;
+
+  /**
+   * @experimental
+   * Indicates that a variable loads values lazily when user interacts with the variable dropdown.
+   */
+  isLazy?: boolean;
 }
 
 export type VariableValue = VariableValueSingle | VariableValueSingle[];
@@ -59,6 +70,7 @@ export interface ValidateAndUpdateResult {}
 export interface VariableValueOption {
   label: string;
   value: VariableValueSingle;
+  group?: string;
 }
 
 export interface SceneVariableSetState extends SceneObjectState {
@@ -88,9 +100,9 @@ export interface SceneVariableDependencyConfigLike {
   hasDependencyOn(name: string): boolean;
 
   /**
-   * Will be called when the VariableSet have completed an update process
+   * Will be called when the VariableSet have completed an update process or when a variable has changed value.
    **/
-  variableUpdatesCompleted(changedVariables: Set<SceneVariable>): void;
+  variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean): void;
 }
 
 /**

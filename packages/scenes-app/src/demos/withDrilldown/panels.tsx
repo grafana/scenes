@@ -69,7 +69,7 @@ export function getRoomsTemperatureTable() {
         .overrideLinks([
           {
             title: 'Go to room overview',
-            url: `${demoUrl('with-drilldowns')}/room/\${__value.text}/temperature`,
+            url: '${__url.path}/room/${__value.text}/temperature',
           },
         ])
         .overrideCustomFieldConfig('width', 250)

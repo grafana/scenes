@@ -1,12 +1,9 @@
-import { Observable, of, filter, take, mergeMap, catchError, throwError, from } from 'rxjs';
+import { Observable, of, filter, take, mergeMap, catchError, throwError, from, lastValueFrom } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
   CoreApp,
-  DataQuery,
   DataQueryRequest,
-  DataSourceRef,
-  getDefaultTimeRange,
   LoadingState,
   PanelData,
   ScopedVars,
@@ -15,7 +12,7 @@ import {
 } from '@grafana/data';
 
 import { sceneGraph } from '../../../core/sceneGraph';
-import { SceneComponentProps } from '../../../core/types';
+import { SceneComponentProps, SceneDataQuery } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
 import { renderSelectForVariable } from '../../components/VariableValueSelect';
 import { VariableValueOption } from '../../types';
@@ -25,14 +22,22 @@ import { createQueryVariableRunner } from './createQueryVariableRunner';
 import { metricNamesToVariableValues } from './utils';
 import { toMetricFindValues } from './toMetricFindValues';
 import { getDataSource } from '../../../utils/getDataSource';
+import { safeStringifyValue } from '../../utils';
+import { DataQuery, DataSourceRef } from '@grafana/schema';
+import { SEARCH_FILTER_VARIABLE } from '../../constants';
+import { debounce } from 'lodash';
+import { registerQueryWithController } from '../../../querying/registerQueryWithController';
+import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
   datasource: DataSourceRef | null;
-  query: any;
+  query: string | SceneDataQuery;
   regex: string;
   refresh: VariableRefresh;
   sort: VariableSort;
+  /** @internal Only for use inside core dashboards */
+  definition?: string;
 }
 
 export class QueryVariable extends MultiValueVariable<QueryVariableState> {
@@ -46,12 +51,12 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       name: '',
       value: '',
       text: '',
-      query: '',
       options: [],
       datasource: null,
       regex: '',
+      query: '',
       refresh: VariableRefresh.onDashboardLoad,
-      sort: VariableSort.alphabeticalAsc,
+      sort: VariableSort.disabled,
       ...initialState,
     });
   }
@@ -61,18 +66,24 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       return of([]);
     }
 
-    this.setState({ loading: true });
+    this.setState({ loading: true, error: null });
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: { text: '__sceneObject', value: this },
+        __sceneObject: new SafeSerializableSceneObject(this),
       })
     ).pipe(
       mergeMap((ds) => {
         const runner = createQueryVariableRunner(ds);
         const target = runner.getTarget(this);
-        const request = this.getRequest(target);
-        return runner.runRequest({ variable: this }, request).pipe(
+        const request = this.getRequest(target, args.searchFilter);
+
+        return runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request).pipe(
+          registerQueryWithController({
+            type: 'variable',
+            request: request,
+            origin: this,
+          }),
           filter((data) => data.state === LoadingState.Done || data.state === LoadingState.Error), // we only care about done or error for now
           take(1), // take the first result, using first caused a bug where it in some situations throw an uncaught error because of no results had been received yet
           mergeMap((data: PanelData) => {
@@ -100,20 +111,16 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     );
   }
 
-  private getRequest(target: DataQuery) {
-    // TODO: add support for search filter
-    // const { searchFilter } = this.state.searchFilter;
-    // const searchFilterScope = { searchFilter: { text: searchFilter, value: searchFilter } };
-    // const searchFilterAsVars = searchFilter ? searchFilterScope : {};
+  private getRequest(target: DataQuery | string, searchFilter?: string) {
     const scopedVars: ScopedVars = {
-      // ...searchFilterAsVars,
-      __sceneObject: { text: '__sceneObject', value: this },
+      __sceneObject: new SafeSerializableSceneObject(this),
     };
 
-    const range =
-      this.state.refresh === VariableRefresh.onTimeRangeChanged
-        ? sceneGraph.getTimeRange(this).state.value
-        : getDefaultTimeRange();
+    if (searchFilter) {
+      scopedVars.__searchFilter = { value: searchFilter, text: searchFilter };
+    }
+
+    const range = sceneGraph.getTimeRange(this).state.value;
 
     const request: DataQueryRequest = {
       app: CoreApp.Dashboard,
@@ -122,14 +129,34 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       range,
       interval: '',
       intervalMs: 0,
+      // @ts-ignore
       targets: [target],
       scopedVars,
       startTime: Date.now(),
     };
+
     return request;
   }
+
+  onSearchChange = (searchFilter: string) => {
+    if (!containsSearchFilter(this.state.query)) {
+      return;
+    }
+
+    this._updateOptionsBasedOnSearchFilter(searchFilter);
+  };
+
+  private _updateOptionsBasedOnSearchFilter = debounce(async (searchFilter: string) => {
+    const result = await lastValueFrom(this.getValueOptions({ searchFilter }));
+    this.setState({ options: result, loading: false });
+  }, 400);
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
     return renderSelectForVariable(model);
   };
+}
+
+function containsSearchFilter(query: string | DataQuery) {
+  const str = safeStringifyValue(query);
+  return str.indexOf(SEARCH_FILTER_VARIABLE) > -1;
 }

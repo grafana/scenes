@@ -1,5 +1,6 @@
 import { dateTimeFormat, urlUtil } from '@grafana/data';
 import { getTimeRange } from '../../core/sceneGraph/getTimeRange';
+import { getData } from '../../core/sceneGraph/sceneGraph';
 import { SceneObject } from '../../core/types';
 import { FormatVariable } from '../interpolation/formatRegistry';
 import { SkipFormattingValue } from './types';
@@ -72,10 +73,46 @@ export class TimezoneMacro implements FormatVariable {
 
   public getValue() {
     const timeRange = getTimeRange(this._sceneObject);
-    return timeRange.getTimeZone();
+    const timeZone = timeRange.getTimeZone();
+
+    if (timeZone === 'browser') {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+
+    return timeZone;
   }
 
   public getValueText?(): string {
     return this.getValue();
+  }
+}
+
+/**
+ * Handles $__interval and $__intervalMs expression.
+ */
+export class IntervalMacro implements FormatVariable {
+  public state: { name: string; type: string; match: string };
+  private _sceneObject: SceneObject;
+
+  public constructor(name: string, sceneObject: SceneObject, match: string) {
+    this.state = { name: name, type: 'time_macro', match: match };
+    this._sceneObject = sceneObject;
+  }
+
+  public getValue() {
+    const data = getData(this._sceneObject);
+
+    if (data) {
+      const request = data.state.data?.request;
+      if (!request) {
+        return this.state.match;
+      }
+      if (this.state.name === '__interval_ms') {
+        return request.intervalMs;
+      }
+      return request.interval;
+    }
+
+    return this.state.match;
   }
 }

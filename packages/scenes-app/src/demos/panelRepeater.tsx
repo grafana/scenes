@@ -1,3 +1,4 @@
+import { getFrameDisplayName } from '@grafana/data';
 import {
   EmbeddedScene,
   PanelBuilders,
@@ -9,7 +10,7 @@ import {
   SceneFlexLayout,
   SceneToolbarInput,
 } from '@grafana/scenes';
-import { BigValueGraphMode, LegendDisplayMode } from '@grafana/schema';
+import { BigValueGraphMode } from '@grafana/schema';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 
 export function getPanelRepeaterTest(defaults: SceneAppPageState) {
@@ -45,8 +46,8 @@ export function getPanelRepeaterTest(defaults: SceneAppPageState) {
                 children: [
                   new SceneFlexItem({
                     body: PanelBuilders.timeseries()
-                      .setTitle('aaa')
-                      .setOption('legend', { displayMode: LegendDisplayMode.Hidden })
+                      .setTitle(getFrameDisplayName(frame, frameIndex))
+                      .setOption('legend', { showLegend: false })
                       .build(),
                   }),
                   new SceneFlexItem({
@@ -65,6 +66,7 @@ export function getPanelRepeaterTest(defaults: SceneAppPageState) {
         controls: [
           new SceneToolbarInput({
             value: '2',
+            label: 'Series count',
             onChange: (newValue) => {
               queryRunner.setState({
                 queries: [

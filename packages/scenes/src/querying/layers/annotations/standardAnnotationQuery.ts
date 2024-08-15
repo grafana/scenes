@@ -15,8 +15,11 @@ import {
 
 import { getRunRequest } from '@grafana/runtime';
 import { shouldUseLegacyRunner, standardAnnotationSupport } from './standardAnnotationsSupport';
-import { Dashboard } from '@grafana/schema';
-import { SceneTimeRangeLike } from '../../../core/types';
+import { Dashboard, LoadingState } from '@grafana/schema';
+import { SceneObject, SceneTimeRangeLike } from '../../../core/types';
+import { getEnrichedDataRequest } from '../../getEnrichedDataRequest';
+import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
+
 let counter = 100;
 function getNextRequestId() {
   return 'AQ' + counter++;
@@ -27,11 +30,17 @@ export interface AnnotationQueryOptions {
   panel: PanelModel;
 }
 
+export interface AnnotationQueryResults {
+  state: LoadingState;
+  events: AnnotationEvent[];
+}
+
 export function executeAnnotationQuery(
   datasource: DataSourceApi,
   timeRange: SceneTimeRangeLike,
-  query: AnnotationQuery
-): Observable<AnnotationEvent[]> {
+  query: AnnotationQuery,
+  layer: SceneObject
+): Observable<AnnotationQueryResults> {
   // Check if we should use the old annotationQuery method
   if (datasource.annotationQuery && shouldUseLegacyRunner(datasource)) {
     console.warn('Using deprecated annotationQuery method, please upgrade your datasource');
@@ -42,7 +51,12 @@ export function executeAnnotationQuery(
         annotation: query,
         dashboard: {},
       })
-    ).pipe(map((events) => events));
+    ).pipe(
+      map((events) => ({
+        state: LoadingState.Done,
+        events,
+      }))
+    );
   }
 
   // Standard API for annotations support. Spread in datasource annotations support overrides
@@ -60,12 +74,18 @@ export function executeAnnotationQuery(
   // Data source query migrations
   const annotation = processor.prepareAnnotation!(annotationWithDefaults);
   if (!annotation) {
-    return of([]);
+    return of({
+      state: LoadingState.Done,
+      events: [],
+    });
   }
 
   const processedQuery = processor.prepareQuery!(annotation);
   if (!processedQuery) {
-    return of([]);
+    return of({
+      state: LoadingState.Done,
+      events: [],
+    });
   }
 
   // No more points than pixels
@@ -78,6 +98,7 @@ export function executeAnnotationQuery(
     __interval: { text: interval.interval, value: interval.interval },
     __interval_ms: { text: interval.intervalMs.toString(), value: interval.intervalMs },
     __annotation: { text: annotation.name, value: annotation },
+    __sceneObject: new SafeSerializableSceneObject(layer),
   };
 
   const queryRequest: DataQueryRequest = {
@@ -95,8 +116,7 @@ export function executeAnnotationQuery(
         refId: 'Anno',
       },
     ],
-    // TODO
-    //publicDashboardAccessToken: options.dashboard.meta.publicDashboardAccessToken,
+    ...getEnrichedDataRequest(layer),
   };
 
   const runRequest = getRunRequest();
@@ -105,8 +125,12 @@ export function executeAnnotationQuery(
     mergeMap((panelData) => {
       // Some annotations set the topic already
       const data = panelData?.series.length ? panelData.series : panelData.annotations;
+
       if (!data?.length) {
-        return of([]);
+        return of({
+          state: panelData.state,
+          events: [],
+        });
       }
 
       // Add data topic to each frame
@@ -117,7 +141,14 @@ export function executeAnnotationQuery(
         }
       });
 
-      return processor.processEvents!(annotation, data).pipe(map((events) => events ?? []));
+      return processor.processEvents!(annotation, data).pipe(
+        map((events) => {
+          return {
+            state: panelData.state,
+            events: events || [],
+          };
+        })
+      );
     })
   );
 }

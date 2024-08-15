@@ -11,6 +11,8 @@ import { SceneGridLayout } from './SceneGridLayout';
 import { GRID_COLUMN_COUNT } from './constants';
 import { SceneGridItemLike, SceneGridItemStateLike } from './types';
 import { sceneGraph } from '../../../core/sceneGraph';
+import { selectors } from '@grafana/e2e-selectors';
+import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
 
 export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
@@ -22,6 +24,10 @@ export interface SceneGridRowState extends SceneGridItemStateLike {
 
 export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   public static Component = SceneGridRowRenderer;
+
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    statePaths: ['title'],
+  });
 
   public constructor(state: Partial<SceneGridRowState>) {
     super({
@@ -70,16 +76,37 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
-  const { isCollapsible, isCollapsed, title, isDraggable, actions } = model.useState();
-  const layoutDragClass = model.getGridLayout().getDragClass();
+  const { isCollapsible, isCollapsed, title, actions, children } = model.useState();
+  const layout = model.getGridLayout();
+  const layoutDragClass = layout.getDragClass();
+  const isDraggable = layout.isDraggable();
+
+  const count = children ? children.length : 0;
+  const panels = count === 1 ? 'panel' : 'panels';
 
   return (
     <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
-      <button onClick={model.onCollapseToggle} className={styles.rowTitleButton}>
-        {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
-        <span className={styles.rowTitle}>{sceneGraph.interpolate(model, title, undefined, 'text')}</span>
-      </button>
-      {actions && <actions.Component model={actions} />}
+      <div className={styles.rowTitleAndActionsGroup}>
+        <button
+          onClick={model.onCollapseToggle}
+          className={styles.rowTitleButton}
+          aria-label={isCollapsed ? 'Expand row' : 'Collapse row'}
+          data-testid={selectors.components.DashboardRow.title(sceneGraph.interpolate(model, title, undefined, 'text'))}
+        >
+          {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
+          <span className={styles.rowTitle} role="heading">
+            {sceneGraph.interpolate(model, title, undefined, 'text')}
+          </span>
+        </button>
+        <span className={cx(styles.panelCount, isCollapsed && styles.panelCountCollapsed)}>
+          ({count} {panels})
+        </span>
+        {actions && (
+          <div className={styles.rowActions}>
+            <actions.Component model={actions} />
+          </div>
+        )}
+      </div>
       {isDraggable && isCollapsed && (
         <div className={cx(styles.dragHandle, layoutDragClass)}>
           <Icon name="draggabledots" />
@@ -89,7 +116,7 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
   );
 }
 
-const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
+export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
   return {
     row: css({
       width: '100%',
@@ -107,7 +134,6 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       gap: theme.spacing(1),
     }),
     rowCollapsed: css({
-      background: theme.colors.background.secondary,
       borderBottom: `1px solid ${theme.colors.border.weak}`,
     }),
     rowTitle: css({
@@ -121,6 +147,24 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       alignItems: 'center',
       flexGrow: 1,
     }),
+    rowTitleAndActionsGroup: css({
+      display: 'flex',
+
+      '&:hover, &:focus-within': {
+        '& > div': {
+          opacity: 1,
+        },
+      },
+    }),
+    rowActions: css({
+      display: 'flex',
+      opacity: 0,
+      transition: '200ms opacity ease-in 200ms',
+
+      '&:hover, &:focus-within': {
+        opacity: 1,
+      },
+    }),
     dragHandle: css({
       display: 'flex',
       padding: theme.spacing(0, 1),
@@ -131,6 +175,18 @@ const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       '&:hover': {
         color: theme.colors.text.primary,
       },
+    }),
+    panelCount: css({
+      paddingLeft: theme.spacing(2),
+      color: theme.colors.text.secondary,
+      fontStyle: 'italic',
+      fontSize: theme.typography.size.sm,
+      fontWeight: 'normal',
+      display: 'none',
+      lineHeight: '30px',
+    }),
+    panelCountCollapsed: css({
+      display: 'inline-block',
     }),
   };
 };

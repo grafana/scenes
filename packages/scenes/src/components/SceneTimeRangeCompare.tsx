@@ -1,13 +1,17 @@
+import { DataQueryRequest, DateTime, dateTime, FieldType, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
+import { config } from '@grafana/runtime';
+import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
-import { DateTime, dateTime, rangeUtil, TimeRange } from '@grafana/data';
-import { ButtonGroup, ButtonSelect, Checkbox, Icon, ToolbarButton } from '@grafana/ui';
-import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectState } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
-
-export interface TimeRangeCompareProvider {
-  getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
-}
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { SceneComponentProps, SceneDataQuery, SceneObjectState, SceneObjectUrlValues } from '../core/types';
+import { DataQueryExtended } from '../querying/SceneQueryRunner';
+import { ExtraQueryDescriptor, ExtraQueryDataProcessor, ExtraQueryProvider } from '../querying/ExtraQueryProvider';
+import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
+import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
+import { parseUrlParam } from '../utils/parseUrlParam';
+import { css } from '@emotion/css';
+import { of } from 'rxjs';
 
 interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
@@ -15,28 +19,30 @@ interface SceneTimeRangeCompareState extends SceneObjectState {
 }
 
 const PREVIOUS_PERIOD_VALUE = '__previousPeriod';
+const NO_PERIOD_VALUE = '__noPeriod';
 
 export const PREVIOUS_PERIOD_COMPARE_OPTION = {
   label: 'Previous period',
   value: PREVIOUS_PERIOD_VALUE,
 };
 
+export const NO_COMPARE_OPTION = {
+  label: 'No comparison',
+  value: NO_PERIOD_VALUE,
+};
+
 export const DEFAULT_COMPARE_OPTIONS = [
-  { label: '1 day before', value: '24h' },
-  { label: '3 days before', value: '3d' },
-  { label: '1 week before', value: '1w' },
-  { label: '2 weeks before', value: '2w' },
-  { label: '1 month before', value: '1M' },
-  { label: '3 months before', value: '3M' },
-  { label: '6 months before', value: '6M' },
-  { label: '1 year before', value: '1y' },
+  { label: 'Day before', value: '24h' },
+  { label: 'Week before', value: '1w' },
+  { label: 'Month before', value: '1M' },
 ];
 
 export class SceneTimeRangeCompare
   extends SceneObjectBase<SceneTimeRangeCompareState>
-  implements TimeRangeCompareProvider
+  implements ExtraQueryProvider<SceneTimeRangeCompareState>
 {
   static Component = SceneTimeRangeCompareRenderer;
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
 
   public constructor(state: Partial<SceneTimeRangeCompareState>) {
     super({ compareOptions: DEFAULT_COMPARE_OPTIONS, ...state });
@@ -71,18 +77,56 @@ export class SceneTimeRangeCompare
     });
 
     return [
+      NO_COMPARE_OPTION,
       PREVIOUS_PERIOD_COMPARE_OPTION,
       ...DEFAULT_COMPARE_OPTIONS.slice(matchIndex).map(({ label, value }) => ({ label, value })),
     ];
   };
 
   public onCompareWithChanged = (compareWith: string) => {
-    this.setState({ compareWith });
+    if (compareWith === NO_PERIOD_VALUE) {
+      this.onClearCompare();
+    } else {
+      this.setState({ compareWith });
+    }
   };
 
   public onClearCompare = () => {
     this.setState({ compareWith: undefined });
   };
+
+  // Get a time shifted request to compare with the primary request.
+  public getExtraQueries(request: DataQueryRequest): ExtraQueryDescriptor[] {
+    const extraQueries: ExtraQueryDescriptor[] = [];
+    const compareRange = this.getCompareTimeRange(request.range);
+    if (!compareRange) {
+      return extraQueries;
+    }
+
+    const targets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
+    if (targets.length) {
+      extraQueries.push({
+        req: {
+          ...request,
+          targets,
+          range: compareRange,
+        },
+        processor: timeShiftAlignmentProcessor,
+      });
+    }
+    return extraQueries;
+  }
+
+  // The query runner should rerun the comparison query if the compareWith value has changed and there are queries that haven't opted out of TWC
+  public shouldRerun(
+    prev: SceneTimeRangeCompareState,
+    next: SceneTimeRangeCompareState,
+    queries: SceneDataQuery[]
+  ): boolean {
+    return (
+      prev.compareWith !== next.compareWith && queries.find((query) => query.timeRangeCompare !== false) !== undefined
+    );
+  }
 
   public getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined {
     let compareFrom: DateTime;
@@ -109,17 +153,89 @@ export class SceneTimeRangeCompare
 
     return undefined;
   }
+
+  public getUrlState(): SceneObjectUrlValues {
+    return {
+      compareWith: this.state.compareWith,
+    };
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues) {
+    if (!values.compareWith) {
+      return;
+    }
+
+    const compareWith = parseUrlParam(values.compareWith);
+
+    if (compareWith) {
+      const compareOptions = this.getCompareOptions(sceneGraph.getTimeRange(this).state.value);
+
+      if (compareOptions.find(({ value }) => value === compareWith)) {
+        this.setState({
+          compareWith,
+        });
+      } else {
+        this.setState({
+          compareWith: '__previousPeriod',
+        });
+      }
+    }
+  }
 }
 
+// Processor function for use with time shifted comparison series.
+// This aligns the secondary series with the primary and adds custom
+// metadata and config to the secondary series' fields so that it is
+// rendered appropriately.
+const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary) => {
+  const diff = secondary.timeRange.from.diff(primary.timeRange.from);
+  secondary.series.forEach((series) => {
+    series.refId = getCompareSeriesRefId(series.refId || '');
+    series.meta = {
+      ...series.meta,
+      // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
+      timeCompare: {
+        diffMs: diff,
+        isTimeShiftQuery: true,
+      },
+    };
+    series.fields.forEach((field) => {
+      // Align compare series time stamps with reference series
+      if (field.type === FieldType.time) {
+        field.values = field.values.map((v) => {
+          return diff < 0 ? v - diff : v + diff;
+        });
+      }
+
+      field.config = {
+        ...field.config,
+        color: {
+          mode: 'fixed',
+          fixedColor: config.theme.palette.gray60,
+        },
+      };
+      return field;
+    });
+  });
+  return of(secondary);
+};
+
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
+  const styles = useStyles2(getStyles);
   const { compareWith, compareOptions } = model.useState();
-  const [enabled, setEnabled] = React.useState(false || Boolean(compareWith));
-  const value = compareOptions.find((o) => o.value === compareWith);
+
+  const [previousCompare, setPreviousCompare] = React.useState(compareWith);
+  const previousValue = compareOptions.find(({ value }) => value === previousCompare) ?? PREVIOUS_PERIOD_COMPARE_OPTION;
+
+  const value = compareOptions.find(({ value }) => value === compareWith);
+  const enabled = Boolean(value);
 
   const onClick = () => {
-    setEnabled(!enabled);
-    if (enabled && Boolean(compareWith)) {
+    if (enabled) {
+      setPreviousCompare(compareWith);
       model.onClearCompare();
+    } else if (!enabled) {
+      model.onCompareWithChanged(previousValue.value);
     }
   };
 
@@ -135,25 +251,35 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
         }}
       >
         <Checkbox label=" " value={enabled} onClick={onClick} />
-        Time frame comparison
+        Comparison
       </ToolbarButton>
 
       {enabled ? (
         <ButtonSelect
           variant="canvas"
           value={value}
-          options={enabled ? compareOptions : []}
+          options={compareOptions}
           onChange={(v) => {
             model.onCompareWithChanged(v.value!);
           }}
         />
       ) : (
-        <ToolbarButton
-          icon={<Icon name="angle-down" size="md" />}
-          style={{ cursor: !enabled ? 'not-allowed' : 'pointer' }}
-          variant="canvas"
-        />
+        <ToolbarButton className={styles.previewButton} disabled variant="canvas" isOpen={false}>
+          {previousValue.label}
+        </ToolbarButton>
       )}
     </ButtonGroup>
   );
+}
+
+function getStyles(theme: GrafanaTheme2) {
+  return {
+    previewButton: css({
+      '&:disabled': {
+        border: `1px solid ${theme.colors.secondary.border}`,
+        color: theme.colors.text.disabled,
+        opacity: 1,
+      },
+    }),
+  };
 }

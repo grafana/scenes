@@ -1,16 +1,17 @@
-import { DataTransformerConfig, PanelData, transformDataFrame } from '@grafana/data';
-import { map, ReplaySubject, Unsubscribable } from 'rxjs';
+import { DataTopic, DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
+import { toDataQueryError } from '@grafana/runtime';
+import { catchError, forkJoin, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { CustomTransformOperator, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
+import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
-import { SceneDataLayers } from './SceneDataLayers';
+import { SceneDataLayerSet } from './SceneDataLayerSet';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
    * Array of standard transformation configs and custom transform operators
    */
-  transformations: Array<DataTransformerConfig | CustomTransformOperator>;
+  transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
 }
 
 /**
@@ -23,7 +24,9 @@ export interface SceneDataTransformerState extends SceneDataState {
  */
 export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerState> implements SceneDataProvider {
   private _transformSub?: Unsubscribable;
-  private _results = new ReplaySubject<SceneDataProviderResult>();
+  private _results = new ReplaySubject<SceneDataProviderResult>(1);
+  private _prevDataFromSource?: PanelData;
+
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
    */
@@ -59,8 +62,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   private getSourceData(): SceneDataProvider {
     if (this.state.$data) {
-      if (this.state.$data instanceof SceneDataLayers) {
-        throw new Error('SceneDataLayers can not be used as data provider for SceneDataTransformer.');
+      if (this.state.$data instanceof SceneDataLayerSet) {
+        throw new Error('SceneDataLayerSet can not be used as data provider for SceneDataTransformer.');
       }
       return this.state.$data;
     }
@@ -88,7 +91,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public reprocessTransformations() {
-    this.transform(this.getSourceData().state.data);
+    this.transform(this.getSourceData().state.data, true);
   }
 
   public cancelQuery() {
@@ -99,13 +102,72 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     return this._results;
   }
 
-  private transform(data: PanelData | undefined) {
-    const transformations = this.state.transformations || [];
+  public clone(withState?: Partial<SceneDataTransformerState>) {
+    const clone = super.clone(withState);
 
-    if (transformations.length === 0 || !data) {
+    if (this._prevDataFromSource) {
+      clone['_prevDataFromSource'] = this._prevDataFromSource;
+    }
+
+    return clone;
+  }
+
+  private haveAlreadyTransformedData(data: PanelData) {
+    if (!this._prevDataFromSource) {
+      return false;
+    }
+
+    if (data === this._prevDataFromSource) {
+      return true;
+    }
+
+    const { series, annotations } = this._prevDataFromSource;
+
+    if (data.series === series && data.annotations === annotations) {
+      if (this.state.data && data.state !== this.state.data.state) {
+        this.setState({ data: { ...this.state.data, state: data.state } });
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  private transform(data: PanelData | undefined, force = false) {
+    if (this.state.transformations.length === 0 || !data) {
+      this._prevDataFromSource = data;
       this.setState({ data });
+
+      if (data) {
+        this._results.next({ origin: this, data });
+      }
       return;
     }
+
+    // Skip transform step if we have already transformed this data
+    if (!force && this.haveAlreadyTransformedData(data)) {
+      return;
+    }
+
+    const seriesTransformations = this.state.transformations
+      .filter((transformation) => {
+        if ('options' in transformation || 'topic' in transformation) {
+          return transformation.topic == null || transformation.topic === DataTopic.Series;
+        }
+
+        return true;
+      })
+      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
+
+    const annotationsTransformations = this.state.transformations
+      .filter((transformation) => {
+        if ('options' in transformation || 'topic' in transformation) {
+          return transformation.topic === DataTopic.Annotations;
+        }
+
+        return false;
+      })
+      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
 
     if (this._transformSub) {
       this._transformSub.unsubscribe();
@@ -117,11 +179,45 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       },
     };
 
-    this._transformSub = transformDataFrame(transformations, data.series, ctx)
-      .pipe(map((series) => ({ ...data, series })))
-      .subscribe((data) => {
-        this._results.next({ origin: this, data });
-        this.setState({ data });
+    let streams = [transformDataFrame(seriesTransformations, data.series, ctx)];
+
+    if (data.annotations && data.annotations.length > 0 && annotationsTransformations.length > 0) {
+      streams.push(transformDataFrame(annotationsTransformations, data.annotations ?? []));
+    }
+
+    this._transformSub = forkJoin(streams)
+      .pipe(
+        map((values) => {
+          const transformedSeries = values[0];
+          const transformedAnnotations = values[1];
+
+          return {
+            ...data,
+            series: transformedSeries,
+            annotations: transformedAnnotations ?? data.annotations,
+          };
+        }),
+        catchError((err) => {
+          console.error('Error transforming data: ', err);
+          const sourceErr = this.getSourceData().state.data?.errors || [];
+
+          const transformationError = toDataQueryError(err);
+          transformationError.message = `Error transforming data: ${transformationError.message}`;
+
+          const result: PanelData = {
+            ...data,
+            state: LoadingState.Error,
+            // Combine transformation error with upstream errors
+            errors: [...sourceErr, transformationError],
+          };
+
+          return of(result);
+        })
+      )
+      .subscribe((transformedData) => {
+        this.setState({ data: transformedData });
+        this._results.next({ origin: this, data: transformedData });
+        this._prevDataFromSource = data;
       });
   }
 }
