@@ -42,7 +42,7 @@ export function AdHocFiltersComboboxEditSwitch({
           }
         }}
         role="button"
-        aria-label="Edit filter"
+        aria-label={`Edit filter with key ${filter.key}`}
         tabIndex={0}
         ref={pillWrapperRef}
       >
@@ -64,7 +64,7 @@ export function AdHocFiltersComboboxEditSwitch({
           name="times"
           size="md"
           className={styles.removeButton}
-          tooltip="Remove filter"
+          tooltip={`Remove filter with key ${filter.key}`}
         />
       </div>
     );

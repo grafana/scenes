@@ -11,6 +11,8 @@ import {
   useRole,
   FloatingFocusManager,
   FloatingPortal,
+  offset,
+  UseFloatingOptions,
 } from '@floating-ui/react';
 import { getSelectStyles, useStyles2, useTheme2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
@@ -80,14 +82,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     }
   }, [model, isAlwaysWip]);
 
-  const filterToUse = filter || _wip;
-
-  const operatorIdentifier = `${filterToUse?.key ?? ''}-operator`;
-
-  const { refs, floatingStyles, context } = useFloating<HTMLInputElement>({
-    whileElementsMounted: autoUpdate,
-    open,
-    onOpenChange: (nextOpen, _, reason) => {
+  const onOpenChange = useCallback<NonNullable<UseFloatingOptions['onOpenChange']>>(
+    (nextOpen, _, reason) => {
       setOpen(nextOpen);
       // change from filter edit mode to filter view mode when clicked
       //   outside input or dropdown
@@ -96,20 +92,31 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         handleChangeViewMode?.();
       }
     },
+    [handleChangeViewMode, handleResetWip]
+  );
+
+  const filterToUse = filter || _wip;
+
+  const operatorIdentifier = `${filterToUse?.key ?? ''}-operator`;
+
+  const { refs, floatingStyles, context } = useFloating<HTMLInputElement>({
+    whileElementsMounted: autoUpdate,
+    open,
+    onOpenChange,
+    placement: 'bottom-start',
     middleware: [
+      offset(10),
       flip({ padding: 10 }),
       size({
-        apply({ rects, availableHeight, elements }) {
-          Object.assign(elements.floating.style, {
-            width: `${rects.reference.width}px`,
-            // limit the maxHeight of dropdown
-            maxHeight: `${availableHeight > 256 ? 256 : availableHeight}px`,
-          });
+        apply({ availableHeight, elements }) {
+          // limit the maxHeight of dropdown
+          elements.floating.style.maxHeight = `${availableHeight > 256 ? 256 : availableHeight}px`;
         },
         padding: 10,
       }),
     ],
   });
+  // console.log('render');
 
   const role = useRole(context, { role: 'listbox' });
   const dismiss = useDismiss(context, {
@@ -381,6 +388,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 style: {
                   ...floatingStyles,
                   overflowY: 'auto',
+                  zIndex: 1,
                 },
               })}
               className={styles.dropdownWrapper}
@@ -401,7 +409,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                         ref(node) {
                           listRef.current[index] = node;
                         },
-                        onClick() {
+                        onClick(event) {
+                          if (filterInputType !== 'value') {
+                            event.stopPropagation();
+                          }
                           model._updateFilter(filterToUse!, filterInputType, item);
                           setInputValue('');
 
