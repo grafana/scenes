@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getUrlSyncManager } from './UrlSyncManager';
 import { locationService } from '@grafana/runtime';
+import { writeSceneLog } from '../utils/writeSceneLog';
 
 export function useUrlSync(sceneRoot: SceneObject): boolean {
   const urlSyncManager = getUrlSyncManager();
@@ -21,7 +22,7 @@ export function useUrlSync(sceneRoot: SceneObject): boolean {
     const locationToHandle = latestLocation !== location ? latestLocation : location;
 
     if (latestLocation !== location) {
-      console.log('latestLocation different from location');
+      writeSceneLog('useUrlSync', 'latestLocation different from location')
     }
 
     urlSyncManager.handleNewLocation(locationToHandle);
