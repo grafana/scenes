@@ -2,12 +2,12 @@ import { ScopedVar } from '@grafana/data';
 import { SceneObject } from '../core/types';
 
 export class SafeSerializableSceneObject implements ScopedVar {
-  #value: SceneObject;
+  private _value: SceneObject;
 
   public text = '__sceneObject';
 
   public constructor(value: SceneObject) {
-    this.#value = value;
+    this._value = value;
   }
 
   public toString() {
@@ -15,7 +15,7 @@ export class SafeSerializableSceneObject implements ScopedVar {
   }
 
   public valueOf = () => {
-    return this.#value;
+    return this._value;
   };
 
   public get value() {
