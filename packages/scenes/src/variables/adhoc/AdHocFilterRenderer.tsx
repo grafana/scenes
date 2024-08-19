@@ -39,10 +39,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
 
-  const optionSearcher = useMemo(
-    () => getAdhocOptionSearcher(values),
-    [values]
-  );
+  const optionSearcher = useMemo(() => getAdhocOptionSearcher(values), [values]);
 
   const onValueInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
@@ -111,6 +108,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       disabled={model.state.readOnly}
       className={cx(styles.key, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
+      allowCustomValue={true}
       value={keyValue}
       placeholder={'Select label'}
       options={handleOptionGroups(keys)}
