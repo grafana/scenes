@@ -1,5 +1,5 @@
 import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
-import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest } from '@grafana/runtime';
+import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config } from '@grafana/runtime';
 import { act, getAllByRole, render, screen } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import React from 'react';
@@ -15,7 +15,14 @@ import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 
-describe('GroupByVariable', () => {
+// 11.1.2 - will use SafeSerializableSceneObject
+// 11.1.1 - will NOT use SafeSerializableSceneObject
+describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
+  // const cachedCongif = config;
+  beforeEach(() => {
+    config.buildInfo.version = v;
+  });
+
   it('should not resolve values from the data source if default options provided', async () => {
     const { variable, getTagKeysSpy } = setupTest({
       defaultOptions: [

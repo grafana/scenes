@@ -17,7 +17,7 @@ import {
 
 // TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
 // @ts-ignore
-import { getRunRequest, toDataQueryError, isExpressionReference } from '@grafana/runtime';
+import { getRunRequest, toDataQueryError, isExpressionReference, config } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -47,7 +47,7 @@ import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHoc
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
-import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
+import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
 
 let counter = 100;
 
@@ -114,7 +114,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
-  private _scopedVars = { __sceneObject: new SafeSerializableSceneObject(this) };
+  private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
 
