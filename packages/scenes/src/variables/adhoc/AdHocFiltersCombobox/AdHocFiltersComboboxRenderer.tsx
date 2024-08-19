@@ -2,9 +2,9 @@ import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 import React, { memo, useRef } from 'react';
-import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { AdHocFiltersComboboxEditSwitch } from './AdHocFiltersComboboxEditSwitch';
+import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({
   model,
@@ -28,7 +28,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         <AdHocFiltersComboboxEditSwitch key={index} filter={filter} model={model} />
       ))}
 
-      <AdHocCombobox model={model} isAlwaysWip ref={focusOnInputRef} />
+      <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnInputRef} />
     </div>
   );
 });

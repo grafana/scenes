@@ -218,7 +218,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                 new SceneFlexItem({
                   ySizing: 'content',
                   body: new SceneCanvasText({
-                    text: `Using AdHocFilterSet in manual mode allows you to use it as a normal variable. The query below is interpolated to ALERTS{$Filters}`,
+                    text: `Using AdHocFilterSet in manual mode allows you to use it as a normal variable. The query below is interpolated to ALERTS{}`,
                     fontSize: 14,
                   }),
                 }),

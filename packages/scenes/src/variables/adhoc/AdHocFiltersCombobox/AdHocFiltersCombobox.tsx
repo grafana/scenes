@@ -35,7 +35,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   parentRef
 ) {
   const [open, setOpen] = useState(false);
-
   const [options, setOptions] = useState<Array<SelectableValue<string>>>([]);
   const [optionsLoading, setOptionsLoading] = useState<boolean>(false);
   const [optionsError, setOptionsError] = useState<boolean>(false);
@@ -45,7 +44,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const styles = useStyles2(getStyles2);
 
   const listRef = useRef<Array<HTMLElement | null>>([]);
-  const { _wip } = model.useState();
 
   const handleResetWip = useCallback(() => {
     if (isAlwaysWip) {
@@ -68,9 +66,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     [handleChangeViewMode, handleResetWip]
   );
 
-  const filterToUse = filter || _wip;
-
-  const operatorIdentifier = `${filterToUse?.key ?? ''}-operator`;
+  const operatorIdentifier = `${filter?.key ?? ''}-operator`;
 
   const { refs, floatingStyles, context } = useFloating<HTMLInputElement>({
     whileElementsMounted: autoUpdate,
@@ -164,16 +160,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     });
   }, []);
 
-  // when combobox is in wip mode then check and add _wip if its missing
-  //    needed on first render and when _wip is reset on filter value commit
-  useEffect(() => {
-    if (isAlwaysWip && !_wip) {
-      model._addWip();
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_wip]);
-
   // when not in wip mode this is the point of switching from view to edit mode
   //    and in this case we default to 'value' input type and focus input
   useEffect(() => {
@@ -198,7 +184,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         } else if (inputType === 'operator') {
           options = model._getOperators();
         } else if (inputType === 'value') {
-          options = await model._getValuesFor(filterToUse!);
+          options = await model._getValuesFor(filter!);
         }
         setOptions(options);
       } catch (e) {
@@ -206,7 +192,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       }
       setOptionsLoading(false);
     },
-    [filterToUse, model]
+    [filter, model]
   );
 
   const handleBackspaceInput = useCallback(
@@ -259,7 +245,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           dropdownItem = { value: inputValue };
         }
 
-        model._updateFilter(filterToUse!, filterInputType, dropdownItem);
+        model._updateFilter(filter!, filterInputType, dropdownItem);
         setInputValue('');
         setActiveIndex(0);
 
@@ -277,7 +263,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeIndex, filterToUse, filterInputType, filteredDropDownItems, model]
+    [activeIndex, filter, filterInputType, filteredDropDownItems, model]
   );
 
   useEffect(() => {
@@ -296,10 +282,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   return (
     <div className={styles.comboboxWrapper}>
-      {filterToUse ? (
+      {filter ? (
         <div className={styles.pillWrapper}>
-          {filterToUse?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{filterToUse.key}</div> : null}
-          {filterToUse?.key && filterToUse?.operator && filterInputType !== 'operator' ? (
+          {filter?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{filter.key}</div> : null}
+          {filter?.key && filter?.operator && filterInputType !== 'operator' ? (
             <div
               className={cx(styles.basePill, styles.operatorPill, operatorIdentifier)}
               role="button"
@@ -319,14 +305,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 }
               }}
             >
-              {filterToUse.operator}
+              {filter.operator}
             </div>
           ) : null}
-          {filterToUse?.key &&
-          filterToUse?.operator &&
-          filterToUse?.value &&
-          !['operator', 'value'].includes(filterInputType) ? (
-            <div className={cx(styles.basePill, styles.valuePill)}>{filterToUse.value}</div>
+          {filter?.key && filter?.operator && filter?.value && !['operator', 'value'].includes(filterInputType) ? (
+            <div className={cx(styles.basePill, styles.valuePill)}>{filter.value}</div>
           ) : null}
         </div>
       ) : null}
@@ -339,8 +322,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           // dynamic placeholder to display operator and/or value in filter edit mode
           placeholder: !isAlwaysWip
             ? filterInputType === 'operator'
-              ? `${filterToUse![filterInputType]} ${filterToUse!.value || ''}`
-              : filterToUse![filterInputType]
+              ? `${filter![filterInputType]} ${filter!.value || ''}`
+              : filter![filterInputType]
             : 'Filter by label values',
           'aria-autocomplete': 'list',
           onKeyDown(event) {
@@ -405,7 +388,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                             if (filterInputType !== 'value') {
                               event.stopPropagation();
                             }
-                            model._updateFilter(filterToUse!, filterInputType, item);
+                            model._updateFilter(filter!, filterInputType, item);
                             setInputValue('');
 
                             if (filterInputType === 'key') {
@@ -434,7 +417,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                           listRef.current[filteredDropDownItems.length ? filteredDropDownItems.length + 1 : 0] = node;
                         },
                         onClick() {
-                          model._updateFilter(filterToUse!, filterInputType, { value: inputValue });
+                          model._updateFilter(filter!, filterInputType, { value: inputValue });
                           setInputValue('');
 
                           flushSyncInputType('key');
