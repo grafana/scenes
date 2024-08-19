@@ -9,32 +9,40 @@ import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVari
 export function AdHocFiltersComboboxEditSwitch({
   filter,
   model,
+  readOnly,
 }: {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
+  readOnly?: boolean;
 }) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
   const pillWrapperRef = useRef<HTMLDivElement>(null);
 
-  const handleChangeViewMode = useCallback((event?: React.MouseEvent) => {
-    event?.stopPropagation();
-    let viewMode = false;
-    flushSync(() => {
-      setViewMode((mode) => {
-        viewMode = mode;
-        return !mode;
+  const handleChangeViewMode = useCallback(
+    (event?: React.MouseEvent) => {
+      event?.stopPropagation();
+      if (readOnly) {
+        return;
+      }
+      let viewMode = false;
+      flushSync(() => {
+        setViewMode((mode) => {
+          viewMode = mode;
+          return !mode;
+        });
       });
-    });
-    if (!viewMode) {
-      pillWrapperRef.current?.focus();
-    }
-  }, []);
+      if (!viewMode) {
+        pillWrapperRef.current?.focus();
+      }
+    },
+    [readOnly]
+  );
 
   if (viewMode) {
     return (
       <div
-        className={styles.combinedFilterPill}
+        className={`${styles.combinedFilterPill} ${readOnly ? styles.readOnlyCombinedFilter : ''}`}
         onClick={handleChangeViewMode}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
@@ -49,23 +57,25 @@ export function AdHocFiltersComboboxEditSwitch({
         <span>
           {filter.key} {filter.operator} {filter.value}
         </span>
-        <IconButton
-          onClick={(e) => {
-            e.stopPropagation();
-            model._removeFilter(filter);
-          }}
-          onKeyDownCapture={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
+        {!readOnly ? (
+          <IconButton
+            onClick={(e) => {
               e.stopPropagation();
               model._removeFilter(filter);
-            }
-          }}
-          name="times"
-          size="md"
-          className={styles.removeButton}
-          tooltip={`Remove filter with key ${filter.key}`}
-        />
+            }}
+            onKeyDownCapture={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                model._removeFilter(filter);
+              }
+            }}
+            name="times"
+            size="md"
+            className={styles.removeButton}
+            tooltip={`Remove filter with key ${filter.key}`}
+          />
+        ) : null}
       </div>
     );
   }
@@ -91,6 +101,13 @@ const getStyles = (theme: GrafanaTheme2) => ({
 
     '&:hover': {
       background: theme.colors.action.hover,
+    },
+  }),
+  readOnlyCombinedFilter: css({
+    paddingRight: theme.spacing(1),
+    cursor: 'text',
+    '&:hover': {
+      background: theme.colors.action.selected,
     },
   }),
   removeButton: css({

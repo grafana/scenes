@@ -11,13 +11,13 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 }: {
   model: AdHocFiltersVariable;
 }) {
-  const { filters } = model.useState();
+  const { filters, readOnly } = model.useState();
   const styles = useStyles2(getStyles);
   const focusOnInputRef = useRef<() => void>();
 
   return (
     <div
-      className={styles.comboboxWrapper}
+      className={`${styles.comboboxWrapper} ${!readOnly ? styles.comboboxFocusOutline : ''}`}
       onClick={() => {
         focusOnInputRef.current?.();
       }}
@@ -25,10 +25,10 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
       {filters.map((filter, index) => (
-        <AdHocFiltersComboboxEditSwitch key={index} filter={filter} model={model} />
+        <AdHocFiltersComboboxEditSwitch key={index} filter={filter} model={model} readOnly={readOnly} />
       ))}
 
-      <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnInputRef} />
+      {!readOnly ? <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnInputRef} /> : null}
     </div>
   );
 });
@@ -47,7 +47,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
     paddingInline: theme.spacing(1),
     paddingBlock: theme.spacing(0.5),
     flexGrow: 1,
-
+  }),
+  comboboxFocusOutline: css({
     '&:focus-within': {
       outline: '2px dotted transparent',
       outlineOffset: '2px',
