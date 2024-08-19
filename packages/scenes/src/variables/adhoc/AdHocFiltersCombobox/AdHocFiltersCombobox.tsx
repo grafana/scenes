@@ -277,9 +277,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
         let dropdownItem = filteredDropDownItems[activeIndex];
 
-        // if we entering value and match no items in dropdown then allow
-        //   to allow to enter current input value
+        // if we entering value and match no items in dropdown then
+        //   allow to enter current input value
         if (filterInputType === 'value' && !filteredDropDownItems[activeIndex]) {
+          // prevent from adding empty value
+          if (!inputValue.trim()) {
+            return;
+          }
           dropdownItem = { value: inputValue };
         }
 
