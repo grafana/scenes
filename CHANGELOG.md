@@ -1,3 +1,16 @@
+# v5.9.1 (Mon Aug 19 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - PanelAttention: Fix delay [#867](https://github.com/grafana/scenes/pull/867) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
 # v5.9.0 (Fri Aug 16 2024)
 
 #### 🚀 Enhancement
