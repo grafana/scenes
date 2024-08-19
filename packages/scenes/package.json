@@ -45,10 +45,10 @@
     "uuid": "^9.0.0"
   },
   "peerDependencies": {
-    "@grafana/data": ">=10.4",
-    "@grafana/runtime": ">=10.4",
-    "@grafana/schema": ">=10.4",
-    "@grafana/ui": ">=10.4",
+    "@grafana/data": "*",
+    "@grafana/runtime": "*",
+    "@grafana/schema": "*",
+    "@grafana/ui": "*",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },
