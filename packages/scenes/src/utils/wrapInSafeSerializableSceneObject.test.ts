@@ -9,7 +9,7 @@ describe('shouldWrapInSafeSerializableSceneObject', () => {
       }
     );
     it.each(['10.4.7-123', '10.4.7', '10.4.8', '10.5.0'])(
-      'should return false for version higher than 10.4.7 version (%s)',
+      'should return true for version higher than 10.4.7 version (%s)',
       (version) => {
         expect(shouldWrapInSafeSerializableSceneObject(version)).toBe(true);
       }
