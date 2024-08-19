@@ -3617,10 +3617,10 @@ __metadata:
     typescript: "npm:5.4.3"
     uuid: "npm:^9.0.0"
   peerDependencies:
-    "@grafana/data": "*"
-    "@grafana/runtime": "*"
-    "@grafana/schema": "*"
-    "@grafana/ui": "*"
+    "@grafana/data": ">=10.4"
+    "@grafana/runtime": ">=10.4"
+    "@grafana/schema": ">=10.4"
+    "@grafana/ui": ">=10.4"
     react: ^18.0.0
     react-dom: ^18.0.0
   languageName: unknown
