@@ -27,6 +27,7 @@ import { DataQuery, DataSourceRef } from '@grafana/schema';
 import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
+import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -69,7 +70,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: { text: '__sceneObject', value: this },
+        __sceneObject: new SafeSerializableSceneObject(this),
       })
     ).pipe(
       mergeMap((ds) => {
@@ -112,7 +113,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
   private getRequest(target: DataQuery | string, searchFilter?: string) {
     const scopedVars: ScopedVars = {
-      __sceneObject: { text: '__sceneObject', value: this },
+      __sceneObject: new SafeSerializableSceneObject(this),
     };
 
     if (searchFilter) {

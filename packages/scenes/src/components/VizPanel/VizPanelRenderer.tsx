@@ -31,11 +31,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
 
-  const setPanelAttention = useCallback(
-    () => appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key })),
-    [model.state.key, appEvents]
+  const setPanelAttention = useCallback(() => {
+    appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+  }, [model.state.key, appEvents]);
+  const debouncedMouseMove = useMemo(
+    () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
+    [setPanelAttention]
   );
-  const debouncedMouseMove = useMemo(() => debounce(setPanelAttention, 100), [setPanelAttention]);
 
   const plugin = model.getPlugin();
 
@@ -189,7 +191,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           onOptionsChange={model.onOptionsChange}
                           onFieldConfigChange={model.onFieldConfigChange}
                           onChangeTimeRange={model.onTimeRangeChange}
-                          eventBus={appEvents}
+                          eventBus={context.eventBus}
                         />
                       )}
                     </PanelContextProvider>

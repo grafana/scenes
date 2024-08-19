@@ -16,6 +16,7 @@ import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyn
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
+import { SafeSerializableSceneObject } from '../../utils/SafeSerializableSceneObject';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
@@ -113,7 +114,7 @@ export class AdHocFiltersVariable
 {
   static Component = AdHocFiltersVariableRenderer;
 
-  private _scopedVars = { __sceneObject: { value: this } };
+  private _scopedVars = { __sceneObject: new SafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);

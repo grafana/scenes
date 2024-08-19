@@ -118,6 +118,7 @@ const runRequestMock = jest.fn().mockReturnValue(
 );
 
 jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
   getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
     return runRequestMock(ds, request);
   },

@@ -108,6 +108,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       disabled={model.state.readOnly}
       className={cx(styles.key, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
+      allowCustomValue={true}
       value={keyValue}
       placeholder={'Select label'}
       options={handleOptionGroups(keys)}
