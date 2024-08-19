@@ -2,14 +2,14 @@ import { shouldWrapInSafeSerializableSceneObject } from './wrapInSafeSerializabl
 
 describe('shouldWrapInSafeSerializableSceneObject', () => {
   describe('Grafana 10', () => {
-    it.each(['10.4.6-123', '10.4.6', '10.3.0', '10.2.0', '10.1.0'])(
-      'should return false for version lower than 10.4.7 version (%s)',
+    it.each(['10.4.7', '10.4.6-123', '10.4.6', '10.3.0', '10.2.0', '10.1.0'])(
+      'should return false for version lower than 10.4.8 version (%s)',
       (version) => {
         expect(shouldWrapInSafeSerializableSceneObject(version)).toBe(false);
       }
     );
-    it.each(['10.4.7-123', '10.4.7', '10.4.8', '10.5.0'])(
-      'should return true for version higher than 10.4.7 version (%s)',
+    it.each(['10.4.8-123', '10.4.8', '10.5.0'])(
+      'should return true for version higher than 10.4.8 version (%s)',
       (version) => {
         expect(shouldWrapInSafeSerializableSceneObject(version)).toBe(true);
       }
@@ -24,8 +24,8 @@ describe('shouldWrapInSafeSerializableSceneObject', () => {
           expect(shouldWrapInSafeSerializableSceneObject(version)).toBe(false);
         }
       );
-      it.each(['11.0.3-123', '11.0.3', '11.0.4'])(
-        'should return true for version higher than 11.0.3 version (%s)',
+      it.each(['11.0.4-123', '11.0.4', '11.0.5'])(
+        'should return true for version higher than 11.0.4 version (%s)',
         (version) => {
           expect(shouldWrapInSafeSerializableSceneObject(version)).toBe(true);
         }

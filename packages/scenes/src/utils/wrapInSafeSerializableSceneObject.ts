@@ -16,11 +16,11 @@ export function shouldWrapInSafeSerializableSceneObject(grafanaVersion: string):
   const patch = parseInt(match[3], 10);
 
   if (major === 11) {
-    return (minor === 0 && patch >= 3) || (minor === 1 && patch >= 2) || minor > 1;
+    return (minor === 0 && patch >= 4) || (minor === 1 && patch >= 2) || minor > 1;
   }
 
   if (major === 10) {
-    return (minor === 4 && patch >= 7) || minor >= 5;
+    return (minor === 4 && patch >= 8) || minor >= 5;
   }
 
   return major > 11; // Assuming versions greater than 11 are also supported.
