@@ -3,7 +3,6 @@ import {
   autoUpdate,
   size,
   flip,
-  useId,
   useDismiss,
   useFloating,
   useInteractions,
@@ -14,40 +13,13 @@ import {
   offset,
   UseFloatingOptions,
 } from '@floating-ui/react';
-import { getSelectStyles, useStyles2, useTheme2 } from '@grafana/ui';
+import { useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { flushSync } from 'react-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
-
-interface ItemProps {
-  children: React.ReactNode;
-  active: boolean;
-}
-
-// eslint-disable-next-line react/display-name
-const Item = forwardRef<HTMLDivElement, ItemProps & React.HTMLProps<HTMLDivElement>>(
-  ({ children, active, ...rest }, ref) => {
-    const theme = useTheme2();
-    const selectStyles = getSelectStyles(theme);
-    const id = useId();
-    return (
-      <div
-        ref={ref}
-        role="option"
-        id={id}
-        aria-selected={active}
-        className={cx(selectStyles.option, active && selectStyles.optionFocused)}
-        {...rest}
-      >
-        <div className={selectStyles.optionBody} data-testid={`data-testid ad hoc filter option value ${children}`}>
-          <span>{children}</span>
-        </div>
-      </div>
-    );
-  }
-);
+import { DropdownItem } from './DropdownItem';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -372,6 +344,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             : 'Filter by label values',
           'aria-autocomplete': 'list',
           onKeyDown(event) {
+            if (!open) {
+              setOpen(true);
+              return;
+            }
             if (filterInputType === 'operator') {
               handleShiftTabInput(event);
             }
@@ -419,7 +395,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                     return (
                       // key is included in getItemProps()
                       // eslint-disable-next-line react/jsx-key
-                      <Item
+                      <DropdownItem
                         {...getItemProps({
                           key: `${item.value!}-${index}`,
                           ref(node) {
@@ -447,11 +423,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                         active={activeIndex === index}
                       >
                         {item.label ?? item.value}
-                      </Item>
+                      </DropdownItem>
                     );
                   })}
                   {filterInputType === 'value' && inputValue ? (
-                    <Item
+                    <DropdownItem
                       {...getItemProps({
                         key: '__custom_value_list_item',
                         ref(node) {
@@ -470,7 +446,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                       active={activeIndex === (filteredDropDownItems.length ? filteredDropDownItems.length + 1 : 0)}
                     >
                       Use custom value: {inputValue}
-                    </Item>
+                    </DropdownItem>
                   ) : null}
                 </>
               )}
@@ -483,18 +459,18 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 });
 
 const LoadingOptionsPlaceholder = () => {
-  return <Item active={false}>Loading options...</Item>;
+  return <DropdownItem active={false}>Loading options...</DropdownItem>;
 };
 
 const NoOptionsPlaceholder = () => {
-  return <Item active={false}>No options found</Item>;
+  return <DropdownItem active={false}>No options found</DropdownItem>;
 };
 
 const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
   return (
-    <Item active={false} onClick={handleFetchOptions}>
+    <DropdownItem active={false} onClick={handleFetchOptions}>
       Error. Click to try again!
-    </Item>
+    </DropdownItem>
   );
 };
 
