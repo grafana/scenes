@@ -231,7 +231,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                         queries: [
                           {
                             refId: 'A',
-                            expr: 'ALERTS{$Filters}',
+                            expr: 'ALERTS',
                             format: 'table',
                             instant: true,
                           },

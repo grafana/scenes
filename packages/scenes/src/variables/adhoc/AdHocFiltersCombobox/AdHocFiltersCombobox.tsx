@@ -19,6 +19,7 @@ import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { flushSync } from 'react-dom';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface ItemProps {
   children: React.ReactNode;
@@ -110,13 +111,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       size({
         apply({ availableHeight, elements }) {
           // limit the maxHeight of dropdown
-          elements.floating.style.maxHeight = `${availableHeight > 256 ? 256 : availableHeight}px`;
+          elements.floating.style.maxHeight = `${availableHeight > 300 ? 300 : availableHeight}px`;
         },
         padding: 10,
       }),
     ],
   });
-  // console.log('render');
 
   const role = useRole(context, { role: 'listbox' });
   const dismiss = useDismiss(context, {
@@ -311,6 +311,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, filterInputType]);
 
+  const rowVirtualizer = useVirtualizer({
+    count: filteredDropDownItems.length,
+    getScrollElement: () => refs.floating.current,
+    estimateSize: () => 38,
+    overscan: 5,
+  });
+
   return (
     <div className={styles.comboboxWrapper}>
       {filterToUse ? (
@@ -401,38 +408,44 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 <NoOptionsPlaceholder />
               ) : (
                 <>
-                  {filteredDropDownItems.map((item, index) => (
-                    // eslint-disable-next-line react/jsx-key
-                    <Item
-                      {...getItemProps({
-                        key: item.value!,
-                        ref(node) {
-                          listRef.current[index] = node;
-                        },
-                        onClick(event) {
-                          if (filterInputType !== 'value') {
-                            event.stopPropagation();
-                          }
-                          model._updateFilter(filterToUse!, filterInputType, item);
-                          setInputValue('');
+                  {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                    const item = filteredDropDownItems[virtualItem.index];
+                    const index = virtualItem.index;
 
-                          if (filterInputType === 'key') {
-                            flushSyncInputType('operator');
-                          } else if (filterInputType === 'operator') {
-                            flushSyncInputType('value');
-                          } else if (filterInputType === 'value') {
-                            flushSyncInputType('key');
-                            handleChangeViewMode?.();
-                          }
+                    return (
+                      // key is included in getItemProps()
+                      // eslint-disable-next-line react/jsx-key
+                      <Item
+                        {...getItemProps({
+                          key: `${item.value!}-${index}`,
+                          ref(node) {
+                            listRef.current[index] = node;
+                          },
+                          onClick(event) {
+                            if (filterInputType !== 'value') {
+                              event.stopPropagation();
+                            }
+                            model._updateFilter(filterToUse!, filterInputType, item);
+                            setInputValue('');
 
-                          refs.domReference.current?.focus();
-                        },
-                      })}
-                      active={activeIndex === index}
-                    >
-                      {item.label ?? item.value}
-                    </Item>
-                  ))}
+                            if (filterInputType === 'key') {
+                              flushSyncInputType('operator');
+                            } else if (filterInputType === 'operator') {
+                              flushSyncInputType('value');
+                            } else if (filterInputType === 'value') {
+                              flushSyncInputType('key');
+                              handleChangeViewMode?.();
+                            }
+
+                            refs.domReference.current?.focus();
+                          },
+                        })}
+                        active={activeIndex === index}
+                      >
+                        {item.label ?? item.value}
+                      </Item>
+                    );
+                  })}
                   {filterInputType === 'value' && inputValue ? (
                     <Item
                       {...getItemProps({
