@@ -1,3 +1,24 @@
+# v5.10.0 (Mon Aug 19 2024)
+
+### Release Notes
+
+#### SafeSerializableSceneObject: Wrap only for supported Grafana version ([#854](https://github.com/grafana/scenes/pull/854))
+
+Brings a fix for [variables interpolation bug](https://github.com/grafana/scenes/issues/851) when apps using scenes 5.6.0+ were run in Grafana version lower than 11.2.0, 11.1.2, 11.0.4, 10.4.8.
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SafeSerializableSceneObject: Wrap only for supported Grafana version [#854](https://github.com/grafana/scenes/pull/854) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v5.9.1 (Mon Aug 19 2024)
 
 #### 🐛 Bug Fix
