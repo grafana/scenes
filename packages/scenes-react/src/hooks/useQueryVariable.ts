@@ -10,6 +10,8 @@ interface QueryVariableOptions {
   regex?: string;
 }
 
+// adds or updates a query variable in the scene and returns it or null if
+// the variable is not a QueryVariable
 export function useQueryVariable(options: QueryVariableOptions): QueryVariable | null {
   const scene = useSceneContext();
   let variable = sceneGraph.lookupVariable(options.name, scene);
@@ -35,6 +37,7 @@ export function useQueryVariable(options: QueryVariableOptions): QueryVariable |
       variable?.state.regex !== options.regex
     ) {
       variable?.setState({ datasource: { uid: options.datasource }, query: options.query, regex: options.regex });
+      variable?.refreshOptions();
     }
   }, [options, variable]);
 

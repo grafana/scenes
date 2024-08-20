@@ -7,15 +7,16 @@ import { VariableValueOption } from '@grafana/scenes';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 
 export function UseQueryVariableHookPage() {
-  const queryVar = useQueryVariable({ name: 'test', datasource: 'gdev-testdata', query: '*' });
+  const [regex, setRegex] = React.useState<string | undefined>(undefined);
+  const queryVar = useQueryVariable({ name: 'test', datasource: 'gdev-testdata', query: '*', regex });
   const options = queryVar?.useState()?.options;
 
   if (!options) {
    return <div>No variable options found</div>;
   }
 
-  const onUpdateQueryVar = () => {
-    queryVar?.setState({ regex: '/[ABC]/' });
+  const onUpdateQueryVarRegex = () => {
+    setRegex('/[ABC]/');
   };
 
   return (
@@ -27,7 +28,7 @@ export function UseQueryVariableHookPage() {
         <Stack direction="column" gap={2}>
           <div>Variable label: {options.map(val => val.label).join(',')}</div>
           <div>Variable value: {options.map(val => val.value).join(',')}</div>
-          <Button variant="secondary" onClick={onUpdateQueryVar}>
+          <Button variant="secondary" onClick={onUpdateQueryVarRegex}>
             Update query variable regex
           </Button>
         </Stack>
