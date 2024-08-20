@@ -164,6 +164,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onCancelQuery={model.onCancelQuery}
             // @ts-ignore
             onFocus={setPanelAttention}
+            onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
           >
             {(innerWidth, innerHeight) => (
@@ -188,7 +189,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           onOptionsChange={model.onOptionsChange}
                           onFieldConfigChange={model.onFieldConfigChange}
                           onChangeTimeRange={model.onTimeRangeChange}
-                          eventBus={appEvents}
+                          eventBus={context.eventBus}
                         />
                       )}
                     </PanelContextProvider>

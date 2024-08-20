@@ -2,6 +2,8 @@ import React, { ForwardRefExoticComponent, useImperativeHandle, useRef, useState
 import { useEffectOnce } from 'react-use';
 
 import { uniqueId } from 'lodash';
+import { css } from '@emotion/css';
+import { useStyles2 } from '@grafana/ui';
 
 export function useUniqueId(): string {
   const idRefLazy = useRef<string | undefined>(undefined);
@@ -23,8 +25,9 @@ export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
 }
 
 export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props>(
-  ({ children, onLoad, onChange, ...rest }, ref) => {
+  ({ children, onLoad, onChange, className, ...rest }, ref) => {
     const id = useUniqueId();
+    const { hideEmpty } = useStyles2(getStyles);
     const [loaded, setLoaded] = useState(false);
     const [isInView, setIsInView] = useState(false);
     const innerRef = useRef<HTMLDivElement>(null);
@@ -49,21 +52,37 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
       }
 
       return () => {
-        delete LazyLoader.callbacks[id];
         wrapperEl && LazyLoader.observer.unobserve(wrapperEl);
+        delete LazyLoader.callbacks[id];
         if (Object.keys(LazyLoader.callbacks).length === 0) {
           LazyLoader.observer.disconnect();
         }
       };
     });
 
+    // If the element was loaded, we add the `hideEmpty` class to potentially
+    // hide the LazyLoader if it does not have any children. This is the case
+    // when children have the `isHidden` property set.
+    // We always include the `className` class, as this is coming from the
+    // caller of the `LazyLoader` component.
+    const classes = `${loaded ? hideEmpty : ''} ${className}`;
     return (
-      <div id={id} ref={innerRef} {...rest}>
+      <div id={id} ref={innerRef} className={classes} {...rest}>
         {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
       </div>
     );
   }
 ) as LazyLoaderType;
+
+function getStyles() {
+  return {
+    hideEmpty: css({
+      '&:empty': {
+        display: 'none',
+      },
+    }),
+  };
+}
 
 LazyLoader.displayName = 'LazyLoader';
 LazyLoader.callbacks = {} as Record<string, (e: IntersectionObserverEntry) => void>;
@@ -71,7 +90,9 @@ LazyLoader.addCallback = (id: string, c: (e: IntersectionObserverEntry) => void)
 LazyLoader.observer = new IntersectionObserver(
   (entries) => {
     for (const entry of entries) {
-      LazyLoader.callbacks[entry.target.id](entry);
+      if (typeof LazyLoader.callbacks[entry.target.id] === 'function') {
+        LazyLoader.callbacks[entry.target.id](entry);
+      }
     }
   },
   { rootMargin: '100px' }

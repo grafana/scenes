@@ -37,6 +37,7 @@ import { getQueryControllerDemo } from './queryController';
 import { getDynamicDataLayersDemo } from './dynamicDataLayers';
 import { getInteropDemo } from './interopDemo';
 import { getUrlSyncTest } from './urlSyncTest';
+import { getMlDemo } from './ml';
 
 export interface DemoDescriptor {
   title: string;
@@ -83,5 +84,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Query controller demo', getPage: getQueryControllerDemo },
     { title: 'Interop with hooks and context', getPage: getInteropDemo },
     { title: 'Url sync test', getPage: getUrlSyncTest },
+    { title: 'Machine Learning', getPage: getMlDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

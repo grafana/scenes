@@ -29,6 +29,7 @@ import { SceneCanvasText } from '../../../components/SceneCanvasText';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setRunRequest } from '@grafana/runtime';
+import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 
 const runRequestMock = jest.fn().mockReturnValue(
   of<PanelData>({
@@ -109,6 +110,17 @@ class FakeQueryRunner implements QueryRunner {
 
 describe('QueryVariable', () => {
   describe('When empty query is provided', () => {
+    it('Should default to empty query', async () => {
+      const variable = new QueryVariable({ name: 'test' });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.query).toEqual('');
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+      expect(variable.state.options).toEqual([]);
+    });
+
     it('Should default to empty options and empty value', async () => {
       const variable = new QueryVariable({
         name: 'test',
@@ -174,8 +186,10 @@ describe('QueryVariable', () => {
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: variable, text: '__sceneObject' });
-      expect(getDataSourceCall[1].__sceneObject).toEqual({ value: variable, text: '__sceneObject' });
+      expect((runRequestCall[1].scopedVars.__sceneObject.value as SafeSerializableSceneObject).valueOf()).toEqual(
+        variable
+      );
+      expect((getDataSourceCall[1].__sceneObject.value as SafeSerializableSceneObject).valueOf()).toEqual(variable);
     });
 
     describe('when refresh on dashboard load set', () => {
