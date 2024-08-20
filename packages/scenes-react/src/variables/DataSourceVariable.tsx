@@ -54,7 +54,13 @@ export function DataSourceVariable({
       return;
     }
 
-    if (variable.state.pluginId ===  pluginId && variable.state.regex === regex && variable.state.label === label && variable.state.hide === hide && variable.state.includeAll === includeAll) {
+    if (
+      variable.state.pluginId ===  pluginId &&
+      variable.state.regex === regex &&
+      variable.state.label === label &&
+      variable.state.hide === hide &&
+      variable.state.includeAll === includeAll
+    ) {
       return;
     }
 
