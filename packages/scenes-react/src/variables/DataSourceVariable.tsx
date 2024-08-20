@@ -54,6 +54,10 @@ export function DataSourceVariable({
       return;
     }
 
+    if (variable.state.pluginId ===  pluginId && variable.state.regex === regex && variable.state.label === label && variable.state.hide === hide && variable.state.includeAll === includeAll) {
+      return;
+    }
+
     variable.setState({
       pluginId,
       regex,
@@ -63,8 +67,7 @@ export function DataSourceVariable({
     })
 
     variable.refreshOptions();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hide, includeAll, label, pluginId, regex, variable])
+  }, [hide, includeAll, label, pluginId, regex, variable, variableAdded])
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {
