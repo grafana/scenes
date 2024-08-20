@@ -3,6 +3,7 @@ import { QueryVariable as QueryVariableObject, SceneDataQuery } from '@grafana/s
 import { useSceneContext } from '../hooks/hooks';
 import { DataSourceRef, VariableRefresh, VariableSort } from '@grafana/schema';
 import { VariableProps } from './types';
+import { isEqual } from 'lodash';
 
 export interface QueryVariableProps extends VariableProps {
   query: string | SceneDataQuery;
@@ -61,6 +62,19 @@ export function QueryVariable({
       return;
     }
 
+    if (
+      isEqual(variable.state.query, query) &&
+      isEqual(variable.state.datasource, datasource) &&
+      variable.state.regex === regex &&
+      variable.state.label === label &&
+      variable.state.hide === hide &&
+      variable.state.includeAll === includeAll &&
+      variable.state.refresh === refresh &&
+      variable.state.sort === sort
+    ) {
+      return;
+    }
+
     variable.setState({
       label,
       query,
@@ -73,8 +87,7 @@ export function QueryVariable({
     });
 
     variable.refreshOptions();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [datasource, hide, includeAll, label, query, refresh, regex, sort, variable]);
+  }, [datasource, hide, includeAll, label, query, refresh, regex, sort, variable, variableAdded]);
  
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
