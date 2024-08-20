@@ -1,11 +1,12 @@
-import { QueryVariable, sceneGraph } from '@grafana/scenes';
+import { QueryVariable, SceneDataQuery, sceneGraph } from '@grafana/scenes';
 import { useSceneContext } from './hooks';
 import { useEffect } from 'react';
+import { isEqual } from 'lodash';
 
 interface QueryVariableOptions {
   name: string;
   datasource: string;
-  query: string;
+  query: string | SceneDataQuery;
   regex?: string;
 }
 
@@ -28,9 +29,11 @@ export function useQueryVariable(options: QueryVariableOptions): QueryVariable |
   }, [variable, scene]);
 
   useEffect(() => {
-    if (variable?.state.datasource?.uid !== options.datasource ||
-      variable?.state.query !== options.query ||
-      variable?.state.regex !== options.regex) {
+    if (
+      variable?.state.datasource?.uid !== options.datasource ||
+      !isEqual(variable?.state.query, options.query) ||
+      variable?.state.regex !== options.regex
+    ) {
       variable?.setState({ datasource: { uid: options.datasource }, query: options.query, regex: options.regex });
     }
   }, [options, variable]);
