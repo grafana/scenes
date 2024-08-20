@@ -18,7 +18,7 @@ import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { DataLayerControlSwitch } from '../SceneDataLayerControls';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
-import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
+import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
@@ -31,7 +31,7 @@ export class AnnotationsDataLayer
   static Component = AnnotationsDataLayerRenderer;
 
   private _scopedVars: ScopedVars = {
-    __sceneObject: new SafeSerializableSceneObject(this),
+    __sceneObject: wrapInSafeSerializableSceneObject(this),
   };
   private _timeRangeSub: Unsubscribable | undefined;
 

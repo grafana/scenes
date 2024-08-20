@@ -15,7 +15,7 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
-import { SafeSerializableSceneObject } from '../../utils/SafeSerializableSceneObject';
+import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
@@ -111,7 +111,7 @@ export class AdHocFiltersVariable
 {
   static Component = AdHocFiltersVariableRenderer;
 
-  private _scopedVars = { __sceneObject: new SafeSerializableSceneObject(this) };
+  private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
