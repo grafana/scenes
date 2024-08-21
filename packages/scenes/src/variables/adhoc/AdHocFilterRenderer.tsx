@@ -67,11 +67,13 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       // TODO remove expect-error when we're on the latest version of @grafana/data
       // @ts-expect-error
       update.values = undefined;
+      setUncommittedValue(null);
     // set values if operator has changed from single to multi
     } else if (isMultiValueOperator(newOperator) && !isMultiValueOperator(existingOperator) && filter.value) {
       // TODO remove expect-error when we're on the latest version of @grafana/data
       // @ts-expect-error
       update.values = [filter.value];
+      setUncommittedValue([filter.value]);
     }
     model._updateFilter(filter, update);
   }
