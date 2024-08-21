@@ -37,6 +37,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
   const [operatorWidth, setOperatorWidth] = useState<number | 'auto'>('auto')
+  // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
+  // TODO remove expect-error when we're on the latest version of @grafana/data
+  // @ts-expect-error
+  const [uncommittedValue, setUncommittedValue] = useState(filter.values ?? null);
   const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
@@ -79,27 +83,28 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
   const multiValueProps = {
     isMulti: true,
-    // TODO remove expect-error when we're on the latest version of @grafana/data
-    // @ts-expect-error
-    value: filter.values ?? null,
+    value: uncommittedValue,
     components: {
       Option: OptionWithCheckbox,
     },
     closeMenuOnSelect: false,
     openMenuOnFocus: false,
     onChange: (v: SelectableValue) => {
-      const updatedValue = v.map((option: SelectableValue<string>) => option.value).join('__gfp__');
-      model._updateFilter(filter, {
-        value: updatedValue,
-        // TODO remove expect-error when we're on the latest version of @grafana/data
-        // @ts-expect-error
-        values: v.map((option: SelectableValue<string>) => option.value),
-        valueLabels: v.map((option: SelectableValue<string>) => option.label),
-      });
+      setUncommittedValue(v);
       // clear input value when creating a new custom multi value
       if (v.some((value: SelectableValue) => value.__isNew__)) {
         setValueInputValue('');
       }
+    },
+    onBlur: () => {
+      const updatedValue = uncommittedValue.map((option: SelectableValue<string>) => option.value).join('__gfp__');
+      model._updateFilter(filter, {
+        value: updatedValue,
+        // TODO remove expect-error when we're on the latest version of @grafana/data
+        // @ts-expect-error
+        values: uncommittedValue.map((option: SelectableValue<string>) => option.value),
+        valueLabels: uncommittedValue.map((option: SelectableValue<string>) => option.label),
+      });
     }
   }
 
@@ -135,7 +140,6 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
       isOpen={isValuesOpen && !isValuesLoading}
       isLoading={isValuesLoading}
-      autoFocus={filter.key !== '' && filter.value === ''}
       openMenuOnFocus={true}
       onOpenMenu={async () => {
         setIsValuesLoading(true);
