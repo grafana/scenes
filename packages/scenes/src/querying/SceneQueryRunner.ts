@@ -17,7 +17,7 @@ import {
 
 // TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
 // @ts-ignore
-import { getRunRequest, toDataQueryError, isExpressionReference } from '@grafana/runtime';
+import { getRunRequest, toDataQueryError, isExpressionReference, config } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -47,7 +47,7 @@ import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHoc
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
-import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
+import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
 
 let counter = 100;
 
@@ -65,6 +65,11 @@ export interface QueryRunnerState extends SceneObjectState {
   maxDataPointsFromWidth?: boolean;
   cacheTimeout?: DataQueryRequest['cacheTimeout'];
   queryCachingTTL?: DataQueryRequest['queryCachingTTL'];
+  /**
+   * When set to auto (the default) query runner will issue queries on activate (when variable dependencies are ready) or when time range change.
+   * Set to manual to have full manual control over when queries are issued. Try not to set this. This is mainly useful for unit tests, or special edge case workflows.
+   */
+  runQueriesMode?: 'auto' | 'manual';
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
@@ -109,7 +114,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
-  private _scopedVars = { __sceneObject: new SafeSerializableSceneObject(this) };
+  private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
 
@@ -133,25 +138,27 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onActivate() {
-    const timeRange = sceneGraph.getTimeRange(this);
+    if (this.isQueryModeAuto()) {
+      const timeRange = sceneGraph.getTimeRange(this);
 
-    // Add subscriptions to any extra providers so that they rerun queries
-    // when their state changes and they should rerun.
-    const providers = this.getClosestExtraQueryProviders();
-    for (const provider of providers) {
-      this._subs.add(
-        provider.subscribeToState((n, p) => {
-          if (provider.shouldRerun(p, n, this.state.queries)) {
-            this.runQueries();
-          }
-        })
-      );
-    }
+      // Add subscriptions to any extra providers so that they rerun queries
+      // when their state changes and they should rerun.
+      const providers = this.getClosestExtraQueryProviders();
+      for (const provider of providers) {
+        this._subs.add(
+          provider.subscribeToState((n, p) => {
+            if (provider.shouldRerun(p, n, this.state.queries)) {
+              this.runQueries();
+            }
+          })
+        );
+      }
 
-    this.subscribeToTimeRangeChanges(timeRange);
+      this.subscribeToTimeRangeChanges(timeRange);
 
-    if (this.shouldRunQueriesOnActivate()) {
-      this.runQueries();
+      if (this.shouldRunQueriesOnActivate()) {
+        this.runQueries();
+      }
     }
 
     if (!this._dataLayersSub) {
@@ -248,7 +255,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * be called many times until all dependencies are in a non loading state.   *
    */
   private onVariableUpdatesCompleted() {
-    this.runQueries();
+    if (this.isQueryModeAuto()) {
+      this.runQueries();
+    }
   }
 
   /**
@@ -256,7 +265,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    */
   private onAnyVariableChanged(variable: SceneVariable) {
     // If this variable has already been detected this variable as a dependency onVariableUpdatesCompleted above will handle value changes
-    if (this._adhocFiltersVar === variable || this._groupByVar === variable) {
+    if (this._adhocFiltersVar === variable || this._groupByVar === variable || !this.isQueryModeAuto()) {
       return;
     }
 
@@ -375,7 +384,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
-    this.subscribeToTimeRangeChanges(timeRange);
+    if (this.isQueryModeAuto()) {
+      this.subscribeToTimeRangeChanges(timeRange);
+    }
+
     this.runWithTimeRange(timeRange);
   }
 
@@ -669,6 +681,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     this._variableDependency.setVariableNames(explicitDependencies);
+  }
+
+  private isQueryModeAuto(): boolean {
+    return (this.state.runQueriesMode ?? 'auto') === 'auto';
   }
 }
 

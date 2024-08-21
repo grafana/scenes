@@ -7,6 +7,7 @@ import { SceneVariableValueChangedEvent } from '../types';
 import { CustomAllValue } from '../variants/MultiValueVariable';
 import { TestVariable } from './TestVariable';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
+import { CustomVariable } from './CustomVariable';
 
 describe('MultiValueVariable', () => {
   describe('When validateAndUpdate is called', () => {
@@ -643,6 +644,22 @@ describe('MultiValueVariable', () => {
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.getValueText()).toEqual('A + B');
+    });
+
+    it('updateFromUrl should update value from label in the case of key/value custom variable', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        options: [],
+        value: '',
+        text: '',
+        query: 'A : 1,B : 2',
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: 'B' });
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual('2');
+      expect(variable.state.text).toEqual('B');
     });
 
     it('Can disable url sync', async () => {

@@ -1,3 +1,15 @@
+# v5.10.1 (Tue Aug 20 2024)
+
+#### 🐛 Bug Fix
+
+- Add query variable in react-scenes [#818](https://github.com/grafana/scenes/pull/818) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.6.2 (Wed Jul 24 2024)
 
 #### 🐛 Bug Fix
@@ -107,4 +119,4 @@
 
 ---
 
-Work in progress 
+Work in progress
