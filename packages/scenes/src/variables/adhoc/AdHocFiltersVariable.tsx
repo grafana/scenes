@@ -109,13 +109,13 @@ export type getTagValuesProvider = (
 
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
 
-export type operatorDefinition = {
+export type OperatorDefinition = {
   value: string;
   description?: string;
   isMulti?: Boolean;
 };
 
-const OPERATORS: operatorDefinition[] = [{
+const OPERATORS: OperatorDefinition[] = [{
   value: '=',
 }, {
   value: '!='
@@ -128,15 +128,15 @@ const OPERATORS: operatorDefinition[] = [{
   description: 'Is not one of. Use to exclude multiple values.',
   isMulti: true
 }, {
-  value: '<'
-}, {
-  value: '>'
-}, {
   value: '=~',
   description: 'Matches regex',
 }, {
   value: '!~',
   description: 'Does not match regex',
+}, {
+  value: '<'
+}, {
+  value: '>'
 }];
 
 export class AdHocFiltersVariable
