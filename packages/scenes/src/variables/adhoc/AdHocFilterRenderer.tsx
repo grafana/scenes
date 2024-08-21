@@ -77,7 +77,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     [optionSearcher, valueInputValue]
   );
 
-  const multiValueOptions = {
+  const multiValueProps = {
     isMulti: true,
     // TODO remove expect-error when we're on the latest version of @grafana/data
     // @ts-expect-error
@@ -86,6 +86,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       Option: OptionWithCheckbox,
     },
     closeMenuOnSelect: false,
+    openMenuOnFocus: false,
     onChange: (v: SelectableValue) => {
       const updatedValue = v.map((option: SelectableValue<string>) => option.value).join('__gfp__');
       model._updateFilter(filter, {
@@ -150,7 +151,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         setIsValuesOpen(false);
         setValueInputValue('');
       }}
-      {...(isMultiValue && multiValueOptions)}
+      {...(isMultiValue && multiValueProps)}
     />
   );
 
