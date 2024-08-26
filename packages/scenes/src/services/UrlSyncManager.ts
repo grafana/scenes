@@ -46,7 +46,10 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
     // Get current url state and update url to match
     const urlState = getUrlState(root);
-    locationService.partial(urlState, true);
+
+    if (isUrlStateDifferent(urlState, this._paramsCache.getParams())) {
+      locationService.partial(urlState, true);
+    }
   }
 
   public cleanUp(root: SceneObject) {
@@ -145,6 +148,16 @@ class UrlParamsCache {
 
     return this.#cache;
   }
+}
+
+function isUrlStateDifferent(sceneUrlState: SceneObjectUrlValues, currentParams: URLSearchParams) {
+  for (let key in sceneUrlState) {
+    if (!isUrlValueEqual(currentParams.getAll(key), sceneUrlState[key])) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 let urlSyncManager: UrlSyncManagerLike | undefined;
