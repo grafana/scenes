@@ -41,7 +41,12 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     this._urlKeyMapper.clear();
     this._lastLocation = locationService.getLocation();
 
+    // Sync current url with state
     this.handleNewObject(this._sceneRoot);
+
+    // Get current url state and update url to match
+    const urlState = getUrlState(root);
+    locationService.partial(urlState, true);
   }
 
   public cleanUp(root: SceneObject) {
@@ -107,8 +112,11 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       }
 
       if (Object.keys(mappedUpdated).length > 0) {
+        const shouldCreateHistoryEntry = changedObject.urlSync.shouldCreateHistoryEntry?.(newUrlState);
+        const shouldReplace = shouldCreateHistoryEntry !== true;
+
         writeSceneLog('UrlSyncManager', 'onStateChange updating URL');
-        locationService.partial(mappedUpdated, true);
+        locationService.partial(mappedUpdated, shouldReplace);
 
         /// Mark the location already handled
         this._lastLocation = locationService.getLocation();
