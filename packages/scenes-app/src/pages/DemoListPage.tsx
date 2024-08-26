@@ -29,6 +29,7 @@ function getDemoSceneApp() {
         title: 'Demos',
         key: 'SceneAppPage Demos',
         url: prefixRoute(ROUTES.Demos),
+        preserveUrlKeys: [],
         getScene: () => {
           return new EmbeddedScene({
             key: 'Demos EmbeddedScene',

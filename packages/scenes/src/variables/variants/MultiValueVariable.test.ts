@@ -7,6 +7,7 @@ import { SceneVariableValueChangedEvent } from '../types';
 import { CustomAllValue } from '../variants/MultiValueVariable';
 import { TestVariable } from './TestVariable';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
+import { CustomVariable } from './CustomVariable';
 
 describe('MultiValueVariable', () => {
   describe('When validateAndUpdate is called', () => {
@@ -44,6 +45,24 @@ describe('MultiValueVariable', () => {
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
+    });
+
+    it('Should pick first option whebn current value is All value but all value is not enabled', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        value: ALL_VARIABLE_VALUE,
+        text: ALL_VARIABLE_TEXT,
+        optionsToReturn: [
+          { label: 'B', value: 'B' },
+          { label: 'C', value: 'C' },
+        ],
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe('B');
     });
 
     it('Should keep current value if current value is valid', async () => {
@@ -220,6 +239,7 @@ describe('MultiValueVariable', () => {
           { label: 'A', value: '1' },
           { label: 'B', value: '2' },
         ],
+        includeAll: true,
         value: ALL_VARIABLE_VALUE,
         text: ALL_VARIABLE_TEXT,
         delayMs: 0,
@@ -624,6 +644,22 @@ describe('MultiValueVariable', () => {
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.getValueText()).toEqual('A + B');
+    });
+
+    it('updateFromUrl should update value from label in the case of key/value custom variable', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        options: [],
+        value: '',
+        text: '',
+        query: 'A : 1,B : 2',
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: 'B' });
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual('2');
+      expect(variable.state.text).toEqual('B');
     });
 
     it('Can disable url sync', async () => {

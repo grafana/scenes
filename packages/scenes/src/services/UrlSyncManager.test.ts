@@ -10,6 +10,7 @@ import { SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
 import { UrlSyncManager } from './UrlSyncManager';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
+import { updateUrlStateAndSyncState } from '../../utils/test/updateUrlStateAndSyncState';
 
 interface TestObjectState extends SceneObjectState {
   name: string;
@@ -44,10 +45,8 @@ class TestObj extends SceneObjectBase<TestObjectState> {
       this.setState({ optional: typeof values.optional === 'string' ? values.optional : undefined });
     }
 
-    if (values.hasOwnProperty('nested')) {
+    if (values.hasOwnProperty('nested') && !this.state.nested) {
       this.setState({ nested: new TestObj({ name: 'default name' }) });
-    } else if (this.state.nested) {
-      this.setState({ nested: undefined });
     }
   }
 }
@@ -134,23 +133,23 @@ describe('UrlSyncManager', () => {
       expect(obj.state.nested?.state.name).toEqual('nested name from initial url');
     });
 
-    // it('Should get url state from with objects created after initial sync', () => {
-    //   const obj = new TestObj({ name: 'test' });
-    //   scene = new SceneFlexLayout({
-    //     children: [],
-    //   });
+    it('Should update scene state from url for objects created after initial sync', () => {
+      scene = new SceneFlexLayout({ children: [] });
 
-    //   locationService.partial({ name: 'name-from-url' });
+      locationService.partial({ name: 'name-from-url' });
 
-    //   urlManager = new UrlSyncManager();
-    //   urlManager.initSync(scene);
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
 
-    //   deactivate = scene.activate();
+      deactivate = scene.activate();
 
-    //   scene.setState({ children: [new SceneFlexItem({ body: obj })] });
+      const obj = new TestObj({ name: 'test' });
+      urlManager.handleNewObject(obj);
 
-    //   expect(obj.state.name).toEqual('name-from-url');
-    // });
+      scene.setState({ children: [new SceneFlexItem({ body: obj })] });
+
+      expect(obj.state.name).toEqual('name-from-url');
+    });
   });
 
   describe('When url changes', () => {
@@ -167,29 +166,28 @@ describe('UrlSyncManager', () => {
       deactivate = scene.activate();
 
       // When non relevant key changes in url
-      locationService.partial({ someOtherProp: 'test2' });
+      updateUrlStateAndSyncState({ someOtherProp: 'test2' }, urlManager);
+
       // Should not affect state
       expect(obj.state).toBe(initialObjState);
 
       // When relevant key changes in url
-      locationService.partial({ name: 'test2' });
+      updateUrlStateAndSyncState({ name: 'test2' }, urlManager);
+
       // Should update state
       expect(obj.state.name).toBe('test2');
 
       // When relevant key is cleared
-      locationService.partial({ name: null });
-
-      // Should revert to initial state
-      // expect(obj.state.name).toBe('test');
+      updateUrlStateAndSyncState({ name: null }, urlManager);
 
       // When relevant key is set to current state
       const currentState = obj.state;
-      locationService.partial({ name: currentState.name });
+      updateUrlStateAndSyncState({ name: currentState.name }, urlManager);
       // Should not affect state (same instance)
       expect(obj.state).toBe(currentState);
     });
 
-    it('should ignore state update when path also changed', () => {
+    it('should ignore location update when handleNewLocation is not called', () => {
       const obj = new TestObj({ name: 'test' });
       scene = new SceneFlexLayout({
         children: [new SceneFlexItem({ body: obj })],
@@ -255,13 +253,50 @@ describe('UrlSyncManager', () => {
       });
 
       // When updating via url
-      locationService.partial({ ['from-2']: 'now-10s' });
+      updateUrlStateAndSyncState({ ['from-2']: 'now-10s' }, urlManager);
       // should find the correct object
       expect(innerTimeRange.state.from).toBe('now-10s');
       // should not update the first object
       expect(outerTimeRange.state.from).toBe('now-20m');
       // Should not cause another url update
       expect(locationUpdates.length).toBe(3);
+    });
+
+    it('should handle dynamically added objects that use same key', () => {
+      const outerTimeRange = new SceneTimeRange();
+      const layout = new SceneFlexLayout({ children: [] });
+
+      scene = new SceneFlexLayout({
+        children: [
+          new SceneFlexItem({
+            body: layout,
+          }),
+        ],
+        $timeRange: outerTimeRange,
+      });
+
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
+
+      deactivate = scene.activate();
+
+      outerTimeRange.setState({ from: 'now-20m' });
+
+      const dynamicallyAddedTimeRange = new SceneTimeRange();
+      layout.setState({ $timeRange: dynamicallyAddedTimeRange });
+
+      dynamicallyAddedTimeRange.setState({ from: 'now-5m' });
+
+      // Should use unique key based where it is in the scene
+      expect(locationService.getSearchObject()['from-2']).toBe('now-5m');
+
+      // Now set a new instance of the time range (making the prevous time range an orphan)
+      const dynamicallyAddedTimeRange2 = new SceneTimeRange();
+      layout.setState({ $timeRange: dynamicallyAddedTimeRange2 });
+
+      dynamicallyAddedTimeRange2.setState({ from: 'now-1s' });
+      // should still use same key
+      expect(locationService.getSearchObject()['from-2']).toBe('now-1s');
     });
   });
 
@@ -291,7 +326,8 @@ describe('UrlSyncManager', () => {
       expect(locationUpdates.length).toBe(1);
 
       // When updating via url
-      locationService.partial({ array: ['A', 'B', 'C'] });
+      updateUrlStateAndSyncState({ array: ['A', 'B', 'C'] }, urlManager);
+
       // Should update state
       expect(obj.state.array).toEqual(['A', 'B', 'C']);
     });
@@ -310,13 +346,13 @@ describe('UrlSyncManager', () => {
       deactivate = scene.activate();
 
       // When setting value via url
-      locationService.partial({ optional: 'handler' });
+      updateUrlStateAndSyncState({ optional: 'handler' }, urlManager);
 
       // Should update state
       expect(obj.state.optional).toBe('handler');
 
       // When updating via url and remove optional
-      locationService.partial({ optional: null });
+      updateUrlStateAndSyncState({ optional: null }, urlManager);
 
       // Should update state
       expect(obj.state.optional).toBe(undefined);
@@ -339,7 +375,7 @@ describe('UrlSyncManager', () => {
       expect(locationService.getSearchObject().optional).toEqual('handler');
 
       // When updating via url and remove optional
-      locationService.partial({ optional: null });
+      updateUrlStateAndSyncState({ optional: null }, urlManager);
 
       // Should update state
       expect(obj.state.optional).toBe(undefined);
@@ -396,7 +432,7 @@ describe('UrlSyncManager', () => {
       expect(locationService.getSearchObject().name).toEqual('B');
     });
 
-    it('cleanUp should unsub from state and history', () => {
+    it('cleanUp should unsub from state', () => {
       const obj1 = new TestObj({ name: 'A' });
       const scene1 = new SceneFlexLayout({
         children: [obj1],
@@ -415,7 +451,7 @@ describe('UrlSyncManager', () => {
       expect(locationService.getSearchObject().name).toBeUndefined();
 
       // When updating via url
-      locationService.partial({ name: 'Hello' });
+      updateUrlStateAndSyncState({ name: 'Hello' }, urlManager);
 
       // Should not update state
       expect(obj1.state.name).toBe('B');
@@ -446,6 +482,30 @@ describe('UrlSyncManager', () => {
       obj1.setState({ name: 'A' });
 
       expect(locationService.getLocation().search).toEqual('?name=A&name-2=A');
+    });
+  });
+
+  describe('When init sync root is not scene root', () => {
+    it('Should sync init root', async () => {
+      const scene = new TestObj({ 
+        name: 'scene-root',
+        nested: new TestObj({ 
+          name: 'url-sync-root',
+         })
+       });
+
+      urlManager = new UrlSyncManager();
+     
+      locationService.push(`/?name=test1`);
+      urlManager.initSync(scene.state.nested!);
+
+      deactivate = activateFullSceneTree(scene);      
+
+      // Only updated the nested scene (as it's the only part of scene tree that is synced)
+      expect(scene.state.nested?.state.name).toEqual('test1');
+      
+      // Unchanged
+      expect(scene.state.name).toEqual('scene-root');
     });
   });
 });

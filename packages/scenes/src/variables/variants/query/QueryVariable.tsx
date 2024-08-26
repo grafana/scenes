@@ -12,7 +12,7 @@ import {
 } from '@grafana/data';
 
 import { sceneGraph } from '../../../core/sceneGraph';
-import { SceneComponentProps } from '../../../core/types';
+import { SceneComponentProps, SceneDataQuery } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
 import { renderSelectForVariable } from '../../components/VariableValueSelect';
 import { VariableValueOption } from '../../types';
@@ -25,14 +25,14 @@ import { getDataSource } from '../../../utils/getDataSource';
 import { safeStringifyValue } from '../../utils';
 import { DataQuery, DataSourceRef } from '@grafana/schema';
 import { SEARCH_FILTER_VARIABLE } from '../../constants';
-import { DataQueryExtended } from '../../../querying/SceneQueryRunner';
 import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
+import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
   datasource: DataSourceRef | null;
-  query: string | DataQueryExtended;
+  query: string | SceneDataQuery;
   regex: string;
   refresh: VariableRefresh;
   sort: VariableSort;
@@ -54,7 +54,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       options: [],
       datasource: null,
       regex: '',
-      query: { refId: 'A' },
+      query: '',
       refresh: VariableRefresh.onDashboardLoad,
       sort: VariableSort.disabled,
       ...initialState,
@@ -70,7 +70,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: { text: '__sceneObject', value: this },
+        __sceneObject: wrapInSafeSerializableSceneObject(this),
       })
     ).pipe(
       mergeMap((ds) => {
@@ -113,7 +113,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
   private getRequest(target: DataQuery | string, searchFilter?: string) {
     const scopedVars: ScopedVars = {
-      __sceneObject: { text: '__sceneObject', value: this },
+      __sceneObject: wrapInSafeSerializableSceneObject(this),
     };
 
     if (searchFilter) {

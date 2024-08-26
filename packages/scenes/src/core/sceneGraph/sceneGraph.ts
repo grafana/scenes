@@ -9,6 +9,7 @@ import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 import { VariableInterpolation } from '@grafana/runtime';
+import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 
 /**
  * Get the closest node with variables
@@ -54,7 +55,7 @@ export function interpolate(
   value: string | undefined | null,
   scopedVars?: ScopedVars,
   format?: string | VariableCustomFormatterFn,
-  interpolations?: VariableInterpolation[],
+  interpolations?: VariableInterpolation[]
 ): string {
   if (value === '' || value == null) {
     return '';
@@ -75,6 +76,12 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   for (const name of sceneObject.variableDependency.getNames()) {
+    // This is for backwards compability. In the old architecture query variables could reference itself in a query without breaking.
+    if (sceneObject instanceof QueryVariable && sceneObject.state.name === name) {
+      console.warn('Query variable is referencing itself');
+      continue;
+    }
+
     const variable = lookupVariable(name, sceneObject);
     if (!variable) {
       continue;
@@ -121,6 +128,44 @@ function findObjectInternal(
   }
 
   return null;
+}
+
+/**
+ * Returns a scene object from the scene graph with the requested key.
+ *
+ * Throws error if no key-matching scene object found.
+ */
+export function findByKey(sceneObject: SceneObject, key: string) {
+  const found = findObject(sceneObject, (sceneToCheck) => {
+    return sceneToCheck.state.key === key;
+  });
+  if (!found) {
+    throw new Error('Unable to find scene with key ' + key);
+  }
+  return found;
+}
+
+/**
+ * Returns a scene object from the scene graph with the requested key and type.
+ *
+ * Throws error if no key-matching scene object found.
+ * Throws error if the given type does not match.
+ */
+export function findByKeyAndType<TargetType extends SceneObject>(
+  sceneObject: SceneObject,
+  key: string,
+  targetType: { new (...args: never[]): TargetType }
+) {
+  const found = findObject(sceneObject, (sceneToCheck) => {
+    return sceneToCheck.state.key === key;
+  });
+  if (!found) {
+    throw new Error('Unable to find scene with key ' + key);
+  }
+  if (!(found instanceof targetType)) {
+    throw new Error(`Found scene object with key ${key} does not match type ${targetType.name}`);
+  }
+  return found;
 }
 
 /**
@@ -187,7 +232,7 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
  */
 export function getAncestor<ParentType>(
   sceneObject: SceneObject,
-  ancestorType: { new(...args: never[]): ParentType }
+  ancestorType: { new (...args: never[]): ParentType }
 ): ParentType {
   let parent: SceneObject | undefined = sceneObject;
 

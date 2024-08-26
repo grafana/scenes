@@ -1,13 +1,21 @@
-import React from 'react';
 import { render } from '@testing-library/react';
-import { TestAnnotationsDataLayer } from '../../querying/layers/TestDataLayer';
-import { SceneDataLayerSet } from '../../querying/SceneDataLayerSet';
+import React from 'react';
+import { of } from 'rxjs';
+
+import { sceneGraph } from '.';
+import { hasVariableDependencyInLoadingState } from './sceneGraph';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
 import { SceneTimePicker } from '../../components/SceneTimePicker';
+import { TestAnnotationsDataLayer } from '../../querying/layers/TestDataLayer';
+import { SceneDataLayerSet } from '../../querying/SceneDataLayerSet';
+import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
+import { SceneVariableSet } from '../../variables/sets/SceneVariableSet';
+import { SceneVariable } from '../../variables/types';
+import { QueryVariable } from '../../variables/variants/query/QueryVariable';
+import { TestVariable } from '../../variables/variants/TestVariable';
 import { SceneDataNode } from '../SceneDataNode';
-import { sceneGraph } from '.';
 import { SceneObject } from '../types';
 
 describe('sceneGraph', () => {
@@ -206,6 +214,114 @@ describe('sceneGraph', () => {
       expect(() => {
         sceneGraph.getAncestor(innerObj, EmbeddedScene);
       }).toThrow();
+    });
+  });
+
+  describe('can find by key (and type)', () => {
+    const data = new SceneDataNode();
+    const item1 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A' }), $data: data });
+    const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
+    const timePicker = new SceneTimePicker({ key: 'time-picker' });
+
+    const scene = new EmbeddedScene({
+      controls: [timePicker],
+      body: new SceneFlexLayout({
+        children: [item1, item2],
+      }),
+    });
+
+    // from root
+    expect(sceneGraph.findByKey(scene, 'A')).toBe(item1);
+    // from sibling
+    expect(sceneGraph.findByKey(item2, 'A')).toBe(item1);
+    // from data
+    expect(sceneGraph.findByKey(data, 'A')).toBe(item1);
+    // from item deep in graph finding control
+    expect(sceneGraph.findByKey(item2, 'time-picker')).toBe(timePicker);
+    // By type
+    expect(sceneGraph.findByKeyAndType(scene, 'A', SceneFlexItem)).toBe(item1);
+    // By wrong type
+    expect(() => sceneGraph.findByKeyAndType(scene, 'A', SceneDataNode)).toThrow();
+    // By wrong key
+    expect(() => sceneGraph.findByKey(scene, 'NOT A KEY')).toThrow();
+    expect(() => sceneGraph.findByKeyAndType(scene, 'NOT A KEY', SceneFlexItem)).toThrow();
+  });
+
+  describe('hasVariableDependencyInLoadingState', () => {
+    const setupVariables = (variables: SceneVariable[]) => {
+      const data = new SceneDataNode();
+      const item1 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A' }), $data: data });
+      const item2 = new SceneFlexItem({ key: 'B', body: new SceneCanvasText({ text: 'B' }) });
+      const timePicker = new SceneTimePicker({ key: 'time-picker' });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables }),
+        controls: [timePicker],
+        body: new SceneFlexLayout({
+          children: [item1, item2],
+        }),
+      });
+
+      activateFullSceneTree(scene);
+
+      return scene;
+    };
+
+    it('should return false when there are no dependencies', () => {
+      const noDependencies = new TestVariable({
+        loading: false,
+        name: 'resolvedVar',
+        query: 'foo',
+      });
+      const scene = setupVariables([noDependencies]);
+
+      expect(hasVariableDependencyInLoadingState(scene)).toBe(false);
+    });
+
+    it('should return false when no variables are in the loading state', () => {
+      const resolvedVariable = new TestVariable({
+        name: 'resolvedVar',
+        query: 'foo',
+      });
+      const notLoadingDependecies = new TestVariable({
+        name: 'notLoadingDependecies',
+        query: '$resolvedVar',
+      });
+      setupVariables([resolvedVariable, notLoadingDependecies]);
+
+      resolvedVariable.signalUpdateCompleted();
+      notLoadingDependecies.signalUpdateCompleted();
+
+      expect(hasVariableDependencyInLoadingState(notLoadingDependecies)).toBe(false);
+    });
+
+    it('should return true when at least one variable is in the loading state', () => {
+      const loadingVariable = new TestVariable({
+        name: 'loadingVar',
+        query: 'foo',
+      });
+      const loadingDependecies = new TestVariable({
+        name: 'loadingDependecies',
+        query: '$loadingVar',
+      });
+
+      setupVariables([loadingVariable, loadingDependecies]);
+
+      expect(hasVariableDependencyInLoadingState(loadingDependecies)).toBe(true);
+    });
+
+    it.only('should return false if the variable is a QueryVariable and it is loading because is refering itself', () => {
+      const logSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const loadingVariable = new QueryVariable({
+        name: 'loadingVar',
+        query: '$loadingVar',
+      });
+      // Mocking the getValueOptions to avoid the actual request
+      jest.spyOn(loadingVariable, 'getValueOptions').mockImplementation(() => of([]));
+
+      setupVariables([loadingVariable]);
+
+      expect(hasVariableDependencyInLoadingState(loadingVariable)).toBe(false);
+      expect(logSpy).toHaveBeenCalledWith('Query variable is referencing itself');
     });
   });
 });

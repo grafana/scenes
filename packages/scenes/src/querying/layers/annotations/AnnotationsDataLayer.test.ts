@@ -9,6 +9,8 @@ import { TestVariable } from '../../../variables/variants/TestVariable';
 import { SceneDataLayerSet } from '../../SceneDataLayerSet';
 import { AnnotationsDataLayer } from './AnnotationsDataLayer';
 import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithRequestEnricher';
+import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
+import { config } from '@grafana/runtime';
 
 let mockedEvents: Array<Partial<Field>> = [];
 
@@ -63,6 +65,9 @@ jest.mock('@grafana/runtime', () => ({
   },
 
   config: {
+    buildInfo: {
+      version: '1.0.0',
+    },
     theme2: {
       visualization: {
         getColorByName: jest.fn().mockReturnValue('red'),
@@ -71,8 +76,11 @@ jest.mock('@grafana/runtime', () => ({
   },
 }));
 
-describe('AnnotationsDataLayer', () => {
+// 11.1.2 - will use SafeSerializableSceneObject
+// 11.1.1 - will NOT use SafeSerializableSceneObject
+describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
   beforeEach(() => {
+    config.buildInfo.version = v;
     runRequestMock.mockClear();
   });
 
@@ -221,7 +229,7 @@ describe('AnnotationsDataLayer', () => {
         const { scopedVars } = sentRequest!;
 
         expect(scopedVars['__sceneObject']).toBeDefined();
-        expect(scopedVars['__sceneObject']?.value).toBe(layer);
+        expect((scopedVars['__sceneObject']?.value as SafeSerializableSceneObject).valueOf()).toBe(layer);
         expect(Object.keys(scopedVars)).toMatchInlineSnapshot(`
           [
             "__interval",

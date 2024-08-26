@@ -7,11 +7,13 @@ import {
   BusEventType,
   DataFrame,
   DataQueryRequest,
+  DataSourceGetTagKeysOptions,
+  DataSourceGetTagValuesOptions,
   DataTransformContext,
   PanelData,
   TimeRange,
 } from '@grafana/data';
-import { DataTopic, TimeZone } from '@grafana/schema';
+import { DataQuery, DataTopic, TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
@@ -149,6 +151,18 @@ export interface SceneTimeRangeState extends SceneObjectState {
    * Override the now time by entering a time delay. Use this option to accommodate known delays in data aggregation to avoid null values.
    * */
   UNSAFE_nowDelay?: string;
+
+  refreshOnActivate?: {
+    /**
+     * When set, the time range will invalidate relative ranges after the specified interval has elapsed
+     */
+    afterMs?: number
+    /**
+     * When set, the time range will invalidate relative ranges after the specified percentage of the current interval has elapsed.
+     * If both invalidate values are set, the smaller value will be used for the given interval.
+     */
+    percent?: number
+  }
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
@@ -178,8 +192,19 @@ export interface DataRequestEnricher {
   enrichDataRequest(source: SceneObject): Partial<DataQueryRequest> | null;
 }
 
+export interface FiltersRequestEnricher {
+  // Return partial getTagKeys or getTagValues query request that will be merged with the original request provided by ad hoc or group by variable
+  enrichFiltersRequest(
+    source: SceneObject
+  ): Partial<DataSourceGetTagKeysOptions | DataSourceGetTagValuesOptions> | null;
+}
+
 export function isDataRequestEnricher(obj: any): obj is DataRequestEnricher {
   return 'enrichDataRequest' in obj;
+}
+
+export function isFiltersRequestEnricher(obj: any): obj is FiltersRequestEnricher {
+  return 'enrichFiltersRequest' in obj;
 }
 
 export type SceneObjectUrlValue = string | string[] | undefined | null;
@@ -243,4 +268,11 @@ export interface UseStateHookOptions {
    * @experimental
    */
   shouldActivateOrKeepAlive?: boolean;
+}
+
+export interface SceneDataQuery extends DataQuery {
+  [key: string]: any;
+
+  // Opt this query out of time window comparison
+  timeRangeCompare?: boolean;
 }

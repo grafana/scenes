@@ -9,44 +9,86 @@ import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
+import { getOptionSearcher } from './getOptionSearcher';
+
+const filterNoOp = () => true;
+
+export function toSelectableValue<T>(value: T, label?: string): SelectableValue<T> {
+  return {
+    value,
+    label: label ?? String(value),
+  };
+}
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key } = model.useState();
+  const { value, text, key, options, includeAll, isReadOnly } = model.useState();
+  const [inputValue, setInputValue] = useState('');
+  const [hasCustomValue, setHasCustomValue] = useState(false);
+  const selectValue = toSelectableValue(value, String(text));
 
-  const onInputChange = model.onSearchChange
-    ? (value: string, meta: InputActionMeta) => {
-        if (meta.action === 'input-change') {
-          model.onSearchChange!(value);
-        }
+  const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
+
+  const onInputChange = (value: string, { action }: InputActionMeta) => {
+    if (action === 'input-change') {
+      setInputValue(value);
+      if (model.onSearchChange) {
+        model.onSearchChange!(value);
       }
-    : undefined;
+      return value;
+    }
+
+    return value;
+  };
+
+  const filteredOptions = optionSearcher(inputValue);
+
+  const onOpenMenu = () => {
+    if (hasCustomValue) {
+      setInputValue(String(text));
+    }
+  };
+
+  const onCloseMenu = () => {
+    setInputValue('');
+  };
 
   return (
     <Select<VariableValue>
       id={key}
+      isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       placeholder="Select value"
       width="auto"
-      value={value}
+      disabled={isReadOnly}
+      value={selectValue}
+      inputValue={inputValue}
       allowCustomValue
       virtualized
+      filterOption={filterNoOp}
       tabSelectsValue={false}
       onInputChange={onInputChange}
-      options={model.getOptionsForSelect()}
+      onOpenMenu={onOpenMenu}
+      onCloseMenu={onCloseMenu}
+      options={filteredOptions}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
+
+        if (hasCustomValue !== newValue.__isNew__) {
+          setHasCustomValue(newValue.__isNew__);
+        }
       }}
     />
   );
 }
 
 export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key, maxVisibleValues, noValueOnClear } = model.useState();
+  const { value, options, key, maxVisibleValues, noValueOnClear, includeAll, isReadOnly } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
-  const options = model.getOptionsForSelect();
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
   const [inputValue, setInputValue] = useState('');
+
+  const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   // Detect value changes outside
   useEffect(() => {
@@ -71,6 +113,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
   };
 
   const placeholder = options.length > 0 ? 'Select value' : '';
+  const filteredOptions = optionSearcher(inputValue);
 
   return (
     <MultiSelect<VariableValueSingle>
@@ -78,13 +121,14 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       placeholder={placeholder}
       width="auto"
       inputValue={inputValue}
+      disabled={isReadOnly}
       value={uncommittedValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
       virtualized
       allowCustomValue
-      options={model.getOptionsForSelect()}
+      options={filteredOptions}
       closeMenuOnSelect={false}
       components={{ Option: OptionWithCheckbox }}
       isClearable={true}
@@ -93,6 +137,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       onBlur={() => {
         model.changeValueTo(uncommittedValue);
       }}
+      filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
@@ -136,16 +181,20 @@ export const OptionWithCheckbox = ({
       ref={innerRef}
       className={cx(selectStyles.option, isFocused && selectStyles.optionFocused)}
       {...rest}
-      aria-label="Select option"
-      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownOptionTexts(
-        data.label || String(data.value)
-      )}
+      // TODO: use below selector once we update grafana dependencies to ^11.1.0
+      // data-testid={selectors.components.Select.option}
+      data-testid="data-testid Select option"
       title={data.title}
     >
       <div className={optionStyles.checkbox}>
         <Checkbox value={isSelected} />
       </div>
-      <div className={selectStyles.optionBody}>
+      <div
+        className={selectStyles.optionBody}
+        data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownOptionTexts(
+          data.label ?? String(data.value)
+        )}
+      >
         <span>{children}</span>
       </div>
     </div>

@@ -8,9 +8,9 @@ import {
   SceneTimePicker,
   SceneTimeRange,
   VariableValueSelectors,
+  SceneDataQuery,
 } from '@grafana/scenes';
 import { DATASOURCE_REF } from '../constants';
-import { DataQueryExtended } from '@grafana/scenes/src/querying/SceneQueryRunner';
 
 export function getQueryRunnerWithRandomWalkQuery(
   overrides?: Partial<any>,
@@ -51,7 +51,7 @@ export function getRowWithText(text: string) {
   });
 }
 
-export function getPromQueryInstant(query: Partial<DataQueryExtended>): SceneQueryRunner {
+export function getPromQueryInstant(query: Partial<SceneDataQuery>): SceneQueryRunner {
   return new SceneQueryRunner({
     datasource: { uid: 'gdev-prometheus' },
     queries: [
@@ -66,7 +66,7 @@ export function getPromQueryInstant(query: Partial<DataQueryExtended>): SceneQue
   });
 }
 
-export function getPromQueryTimeSeries(query: Partial<DataQueryExtended>): SceneQueryRunner {
+export function getPromQueryTimeSeries(query: Partial<SceneDataQuery>): SceneQueryRunner {
   return new SceneQueryRunner({
     datasource: { uid: 'gdev-prometheus' },
     queries: [

@@ -2,7 +2,14 @@ import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariableValueChangedEvent } from '../types';
 import { AdHocFiltersVariable, AdHocFiltersVariableState } from './AdHocFiltersVariable';
-import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
+import {
+  DataSourceSrv,
+  config,
+  locationService,
+  setDataSourceSrv,
+  setRunRequest,
+  setTemplateSrv,
+} from '@grafana/runtime';
 import {
   AdHocVariableFilter,
   DataQueryRequest,
@@ -22,26 +29,35 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { select } from 'react-select-event';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
+import { TestContextProvider } from '../../../utils/test/TestContextProvider';
+import { FiltersRequestEnricher } from '../../core/types';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
 } as any;
 
-describe('AdHocFiltersVariable', () => {
+describe('templateSrv.getAdhocFilters patch ', () => {
+  it('calls original when scene object is not active', async () => {
+    const { unmount } = setup();
+    unmount();
+
+    const result = templateSrv.getAdhocFilters('name');
+    expect(result[0].key).toBe('origKey');
+  });
+});
+
+// 11.1.2 - will use SafeSerializableSceneObject
+// 11.1.1 - will NOT use SafeSerializableSceneObject
+describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
+  beforeEach(() => {
+    config.buildInfo.version = v;
+  });
   it('renders filters', async () => {
     setup();
     expect(screen.getByText('key1')).toBeInTheDocument();
     expect(screen.getByText('val1')).toBeInTheDocument();
     expect(screen.getByText('key2')).toBeInTheDocument();
     expect(screen.getByText('val2')).toBeInTheDocument();
-  });
-
-  it('templateSrv.getAdhocFilters patch calls original when scene object is not active', async () => {
-    const { unmount } = setup();
-    unmount();
-
-    const result = templateSrv.getAdhocFilters('name');
-    expect(result[0].key).toBe('origKey');
   });
 
   it('adds filter', async () => {
@@ -114,6 +130,132 @@ describe('AdHocFiltersVariable', () => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
+  // TODO enable once this repo is using @grafana/ui@11.1.0
+  it.skip('shows key groups and orders according to first occurence of a group item', async () => {
+    const { runRequest } = setup({
+      getTagKeysProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+            group: 'People',
+          },
+          {
+            text: 'Bar',
+            value: 'bar',
+          },
+          {
+            text: 'Cat',
+            value: 'cat',
+            group: 'Animals',
+          },
+          {
+            text: 'Bob',
+            value: 'bob',
+            group: 'People',
+          },
+          {
+            text: 'Dog',
+            value: 'dog',
+            group: 'Animals',
+          },
+          {
+            text: 'Foo',
+            value: 'foo',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.click(selects[0]);
+
+    // Check the group headers are visible
+    expect(screen.getByText('People')).toBeInTheDocument();
+    expect(screen.getByText('Animals')).toBeInTheDocument();
+
+    // Check the correct options exist
+    const options = screen.getAllByRole('option');
+    expect(options.length).toBe(6);
+    expect(options[0]).toHaveTextContent('Alice');
+    expect(options[1]).toHaveTextContent('Bob');
+    expect(options[2]).toHaveTextContent('Bar');
+    expect(options[3]).toHaveTextContent('Cat');
+    expect(options[4]).toHaveTextContent('Dog');
+    expect(options[5]).toHaveTextContent('Foo');
+  });
+
+  // TODO enable once this repo is using @grafana/ui@11.1.0
+  it.skip('shows value groups and orders according to first occurence of a group item', async () => {
+    const { runRequest } = setup({
+      getTagValuesProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+            group: 'People',
+          },
+          {
+            text: 'Bar',
+            value: 'bar',
+          },
+          {
+            text: 'Cat',
+            value: 'cat',
+            group: 'Animals',
+          },
+          {
+            text: 'Bob',
+            value: 'bob',
+            group: 'People',
+          },
+          {
+            text: 'Dog',
+            value: 'dog',
+            group: 'Animals',
+          },
+          {
+            text: 'Foo',
+            value: 'foo',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.click(selects[2]);
+
+    // Check the group headers are visible
+    expect(screen.getByText('People')).toBeInTheDocument();
+    expect(screen.getByText('Animals')).toBeInTheDocument();
+
+    // Check the correct options exist
+    const options = screen.getAllByRole('option');
+    expect(options.length).toBe(6);
+    expect(options[0]).toHaveTextContent('Alice');
+    expect(options[1]).toHaveTextContent('Bob');
+    expect(options[2]).toHaveTextContent('Bar');
+    expect(options[3]).toHaveTextContent('Cat');
+    expect(options[4]).toHaveTextContent('Dog');
+    expect(options[5]).toHaveTextContent('Foo');
+  });
+
   it('can set the same custom value again', async () => {
     const { filtersVar, runRequest } = setup();
 
@@ -131,6 +273,8 @@ describe('AdHocFiltersVariable', () => {
     expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
 
+    await userEvent.click(selects[2]);
+    await userEvent.clear(selects[2]);
     await userEvent.type(selects[2], 'myVeryCustomValue');
 
     expect(screen.getByText('Use custom value: myVeryCustomValue')).toBeInTheDocument();
@@ -231,6 +375,25 @@ describe('AdHocFiltersVariable', () => {
       });
     });
 
+    it('Should apply the filters request enricher to getTagKeys call', async () => {
+      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true }, () => ({
+        key: 'overwrittenKey',
+      }));
+
+      await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
+        filters: [],
+        queries: [
+          {
+            expr: 'my_metric{}',
+            refId: 'A',
+          },
+        ],
+        timeRange: timeRange.state.value,
+        key: 'overwrittenKey',
+      });
+    });
+
     it('Should collect and pass respective data source queries to getTagValues call', async () => {
       const { getTagValuesSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
 
@@ -254,6 +417,30 @@ describe('AdHocFiltersVariable', () => {
         timeRange: timeRange.state.value,
       });
     });
+
+    it('Should apply the filters request enricher to getTagValues call', async () => {
+      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true }, () => ({
+        key: 'overwrittenKey',
+      }));
+
+      const key = 'Key 3';
+      await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
+      await waitFor(() => select(selects[0], key, { container: document.body }));
+      await userEvent.click(selects[2]);
+
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
+        filters: [],
+        key: 'overwrittenKey',
+        queries: [
+          {
+            expr: 'my_metric{}',
+            refId: 'A',
+          },
+        ],
+        timeRange: timeRange.state.value,
+      });
+    });
   });
 
   it('url sync works', async () => {
@@ -268,7 +455,7 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
+      locationService.partial({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -293,7 +480,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      locationService.push('/?var-filters=');
+      locationService.partial({ 'var-filters': '' });
     });
 
     expect(filtersVar.state.filters.length).toBe(0);
@@ -313,7 +500,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup({ filters: [] });
 
     act(() => {
-      locationService.push('/?var-filters=key1|=|valUrl&var-filters=keyUrl|=~|urlVal');
+      locationService.partial({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
     });
 
     expect(filtersVar.state.filters.length).toEqual(2);
@@ -332,9 +519,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push(
-        '/?var-filters=newKey,New Key|=|newValue,New Value&var-filters=newKey2,New Key 2|=~|newValue2,New Value 2'
-      );
+      locationService.partial({
+        'var-filters': ['newKey,New Key|=|newValue,New Value', 'newKey2,New Key 2|=~|newValue2,New Value 2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -368,7 +555,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=newKey,New Key|=|newValue&var-filters=newKey2,New Key 2|=~|newValue2');
+      locationService.partial({
+        'var-filters': ['newKey,New Key|=|newValue', 'newKey2,New Key 2|=~|newValue2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -402,7 +591,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=newKey|=|newValue,New Value&var-filters=newKey2|=~|newValue2,New Value 2');
+      locationService.partial({
+        'var-filters': ['newKey|=|newValue,New Value', 'newKey2|=~|newValue2,New Value 2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -436,7 +627,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=newKey|=|newValue&var-filters=newKey2|=~|newValue2');
+      locationService.partial({
+        'var-filters': ['newKey|=|newValue', 'newKey2|=~|newValue2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -470,9 +663,12 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push(
-        '/?var-filters=new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value&var-filters=new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2'
-      );
+      locationService.partial({
+        'var-filters': [
+          'new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value',
+          'new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2',
+        ],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -506,7 +702,9 @@ describe('AdHocFiltersVariable', () => {
     );
 
     act(() => {
-      locationService.push('/?var-filters=newKey|=|newValue&var-filters=newKey2,newKey2|=~|newValue2,newValue2');
+      locationService.partial({
+        'var-filters': ['newKey|=|newValue', 'newKey2,newKey2|=~|newValue2,newValue2'],
+      });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -793,6 +991,18 @@ describe('AdHocFiltersVariable', () => {
 
       expect(variable.isActive).toBe(true);
     });
+    it('should render key, value and operator in vertical adhoc layout', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        filters: [{ key: 'key1', operator: '!=', value: 'val1' }],
+        layout: 'vertical',
+      });
+
+      render(<variable.Component model={variable} />);
+      expect(screen.getByText('!=')).toBeInTheDocument();
+      expect(screen.getByText('key1')).toBeInTheDocument();
+      expect(screen.getByText('val1')).toBeInTheDocument();
+    });
   });
 });
 
@@ -802,7 +1012,10 @@ const runRequestMock = {
 
 let runRequestSet = false;
 
-function setup(overrides?: Partial<AdHocFiltersVariableState>) {
+function setup(
+  overrides?: Partial<AdHocFiltersVariableState>,
+  filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest']
+) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
   setDataSourceSrv({
@@ -875,11 +1088,17 @@ function setup(overrides?: Partial<AdHocFiltersVariableState>) {
     }),
   });
 
+  if (filtersRequestEnricher) {
+    (scene as EmbeddedScene & FiltersRequestEnricher).enrichFiltersRequest = filtersRequestEnricher;
+  }
+
   locationService.push('/');
 
-  scene.initUrlSync();
-
-  const { unmount } = render(<scene.Component model={scene} />);
+  const { unmount } = render(
+    <TestContextProvider scene={scene}>
+      <scene.Component model={scene} />
+    </TestContextProvider>
+  );
 
   return { scene, filtersVar, unmount, runRequest: runRequestMock.fn, getTagKeysSpy, getTagValuesSpy, timeRange };
 }

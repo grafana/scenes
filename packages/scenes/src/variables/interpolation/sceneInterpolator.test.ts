@@ -59,6 +59,28 @@ describe('sceneInterpolator', () => {
 
       expect(sceneInterpolator(scene, '${test:regex}')).toBe('.*');
     });
+
+    it('It can contain a variable expression', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new TestVariable({
+              name: 'test',
+              value: ALL_VARIABLE_VALUE,
+              text: ALL_VARIABLE_TEXT,
+              allValue: '$other',
+            }),
+            new TestVariable({
+              name: 'other',
+              value: 'hello',
+              text: 'hello',
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${test}')).toBe('hello');
+    });
   });
 
   describe('Given an expression with fieldPath', () => {
@@ -271,5 +293,26 @@ describe('sceneInterpolator', () => {
       expect(interpolations[0].found).toEqual(false);
       expect(interpolations[0].value).toEqual('${namespace}');
     });
+  });
+
+  describe('Variable expression with variable name that exists on object prototype', () => {
+    it('Should return original expression', () => {
+      const str = '$toString = 1';
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, str, {})).toBe(str);
+      expect(sceneInterpolator(scene, str)).toBe(str);
+    });
+  });
+
+  it('should not try to interpolate and return value if it is not a string', () => {
+    const scene = new TestScene({});
+
+    expect(sceneInterpolator(scene, 123 as any)).toBe(123);
   });
 });

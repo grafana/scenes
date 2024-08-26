@@ -3,6 +3,7 @@ import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntim
 import { cloneSceneObjectState } from './core/sceneGraph/utils';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
+
 import { registerVariableMacro } from './variables/macros';
 import { renderPrometheusLabelFilters } from './variables/utils';
 import {
@@ -28,6 +29,11 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
+export {
+  type ExtraQueryDescriptor,
+  type ExtraQueryProvider,
+  type ExtraQueryDataProcessor,
+} from './querying/ExtraQueryProvider';
 export { SceneDataLayerSet, SceneDataLayerSetBase } from './querying/SceneDataLayerSet';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
@@ -52,7 +58,11 @@ export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
-export { MultiValueVariable } from './variables/variants/MultiValueVariable';
+export {
+  MultiValueVariable,
+  type MultiValueVariableState,
+  type VariableGetOptionsArgs,
+} from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
@@ -60,6 +70,8 @@ export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
 export { type UrlSyncManagerLike, UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
+export { useUrlSync } from './services/useUrlSync';
+export { UrlSyncContextProvider } from './services/UrlSyncContextProvider';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
@@ -69,7 +81,7 @@ export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
 export { SceneTimePicker } from './components/SceneTimePicker';
-export { SceneRefreshPicker } from './components/SceneRefreshPicker';
+export { SceneRefreshPicker, type SceneRefreshPickerState } from './components/SceneRefreshPicker';
 export { SceneTimeRangeTransformerBase } from './core/SceneTimeRangeTransformerBase';
 export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
@@ -104,8 +116,14 @@ export {
   FieldConfigBuilders,
   FieldConfigOverridesBuilder,
 } from './core/PanelBuilders';
+export { FieldConfigBuilder } from './core/PanelBuilders/FieldConfigBuilder';
 export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
+export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
+export { renderSelectForVariable } from './variables/components/VariableValueSelect';
+export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
+export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
+export { type VizConfig } from './core/PanelBuilders/types';
 
 export const sceneUtils = {
   getUrlWithAppState,
@@ -127,3 +145,5 @@ export const sceneUtils = {
   isTextBoxVariable,
   isGroupByVariable,
 };
+
+export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';

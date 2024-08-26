@@ -1,6 +1,8 @@
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getTimeRange } from './getTimeRange';
 import {
+  findByKey,
+  findByKeyAndType,
   findObject,
   findAllObjects,
   getData,
@@ -22,6 +24,8 @@ export const sceneGraph = {
   interpolate,
   lookupVariable,
   hasVariableDependencyInLoadingState,
+  findByKey,
+  findByKeyAndType,
   findObject,
   findAllObjects,
   getAncestor,

@@ -1,7 +1,7 @@
 import { ComponentType } from 'react';
 import { DataRequestEnricher, SceneObject, SceneObjectState } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
-import { IconName } from '@grafana/data';
+import { IconName, PageLayoutType } from '@grafana/data';
 
 export interface SceneRouteMatch<Params extends { [K in keyof Params]?: string } = {}> {
   params: Params;
@@ -66,6 +66,8 @@ export interface SceneAppPageState extends SceneObjectState {
    * to be rendered when url does not match current page exactly or any of tabs or drilldowns.
    */
   getFallbackPage?: () => SceneAppPageLike;
+
+  layout?: PageLayoutType
 }
 
 export interface SceneAppPageLike extends SceneObject<SceneAppPageState>, DataRequestEnricher {

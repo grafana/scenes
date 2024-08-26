@@ -8,6 +8,7 @@ import { SceneDebugger } from '../SceneDebugger/SceneDebugger';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getUrlWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
+import { useUrlSync } from '../../services/useUrlSync';
 
 export interface Props {
   page: SceneAppPageLike;
@@ -21,6 +22,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   const params = useAppQueryParams();
   const scene = page.getScene(routeProps.match);
   const isInitialized = containerState.initializedScene === scene;
+  const {layout} = page.state;
 
   useLayoutEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
@@ -29,12 +31,14 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     }
   }, [scene, containerPage, isInitialized]);
 
-  // Clear initializedScene when unmounting
   useEffect(() => {
+    // Clear initializedScene when unmounting
     return () => containerPage.setState({ initializedScene: undefined });
   }, [containerPage]);
 
-  if (!isInitialized) {
+  const urlSyncInitialized = useUrlSync(containerPage);
+
+  if (!isInitialized && !urlSyncInitialized) {
     return null;
   }
 
@@ -76,6 +80,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
 
   return (
     <PluginPage
+      layout={layout}
       pageNav={pageNav}
       actions={pageActions}
       renderTitle={containerState.renderTitle}

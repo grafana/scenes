@@ -1,7 +1,9 @@
-import React, { RefCallback } from 'react';
+import React, { RefCallback, useCallback, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
-import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider } from '@grafana/data';
+// @ts-ignore
+import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider, SetPanelAttentionEvent } from '@grafana/data';
+
 import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
@@ -10,6 +12,7 @@ import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '..
 
 import { VizPanel } from './VizPanel';
 import { css, cx } from '@emotion/css';
+import { debounce } from 'lodash';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -26,10 +29,21 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     description,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
+  const appEvents = useMemo(() => getAppEvents(), []);
+
+  const setPanelAttention = useCallback(() => {
+    appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+  }, [model.state.key, appEvents]);
+  const debouncedMouseMove = useMemo(
+    () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
+    [setPanelAttention]
+  );
+
   const plugin = model.getPlugin();
 
   const { dragClass, dragClassCancel } = getDragClasses(model);
   const dataObject = sceneGraph.getData(model);
+
   const rawData = dataObject.useState();
   const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
@@ -150,6 +164,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             padding={plugin.noPadding ? 'none' : 'md'}
             menu={panelMenu}
             onCancelQuery={model.onCancelQuery}
+            // @ts-ignore
+            onFocus={setPanelAttention}
+            onMouseEnter={setPanelAttention}
+            onMouseMove={debouncedMouseMove}
           >
             {(innerWidth, innerHeight) => (
               <>
@@ -173,7 +191,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           onOptionsChange={model.onOptionsChange}
                           onFieldConfigChange={model.onFieldConfigChange}
                           onChangeTimeRange={model.onTimeRangeChange}
-                          eventBus={getAppEvents()}
+                          eventBus={context.eventBus}
                         />
                       )}
                     </PanelContextProvider>

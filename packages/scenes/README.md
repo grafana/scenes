@@ -21,6 +21,8 @@
 - URL sync.
 - ... and more.
 
+For library documentation go to [https://grafana.com/developers/scenes](https://grafana.com/developers/scenes).
+
 ## Development
 
 To work on @grafana/scenes SDK, please follow the guides below.
