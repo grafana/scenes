@@ -13,7 +13,7 @@ import {
   offset,
   UseFloatingOptions,
 } from '@floating-ui/react';
-import { useStyles2 } from '@grafana/ui';
+import { Spinner, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
@@ -342,7 +342,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             handleEnterInput(event);
           },
         })}
-        className={styles.inputStyle}
+        className={`${styles.inputStyle} ${optionsLoading ? '' : styles.loadingInputPadding}`}
         onClick={(event) => {
           event.stopPropagation();
           setOpen(true);
@@ -352,6 +352,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           setOpen(true);
         }}
       />
+      {optionsLoading ? <Spinner className={styles.loadingIndicator} inline={true} /> : null}
       <FloatingPortal>
         {open && (
           <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss>
@@ -505,5 +506,12 @@ const getStyles2 = (theme: GrafanaTheme2) => ({
     '&:focus': {
       outline: 'none',
     },
+  }),
+  loadingIndicator: css({
+    color: theme.colors.text.secondary,
+    marginLeft: theme.spacing(0.5),
+  }),
+  loadingInputPadding: css({
+    paddingRight: theme.spacing(2.5),
   }),
 });
