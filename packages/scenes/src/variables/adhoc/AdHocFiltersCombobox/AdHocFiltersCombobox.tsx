@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   autoUpdate,
   size,
@@ -20,6 +20,7 @@ import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVari
 import { flushSync } from 'react-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { DropdownItem } from './DropdownItem';
+import { fuzzySearchOptions } from './fuzzySearchOptions';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -44,6 +45,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const styles = useStyles2(getStyles2);
 
   const listRef = useRef<Array<HTMLElement | null>>([]);
+
+  const optionsSearcher = useMemo(() => fuzzySearchOptions(options), [options]);
 
   const handleResetWip = useCallback(() => {
     if (isAlwaysWip) {
@@ -150,9 +153,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     setActiveIndex(0);
   }
 
-  const filteredDropDownItems = options.filter((item) =>
-    (item.label ?? item.value)?.toLocaleLowerCase().startsWith(inputValue.toLowerCase())
-  );
+  const filteredDropDownItems = optionsSearcher(inputValue);
 
   const flushSyncInputType = useCallback((inputType: AdHocInputType) => {
     flushSync(() => {
