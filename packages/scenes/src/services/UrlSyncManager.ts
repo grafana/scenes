@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
 import { getUrlState, isUrlValueEqual, syncStateFromUrl } from './utils';
 import { BusEventWithPayload } from '@grafana/data';
+import { useMemo } from 'react';
 
 export interface UrlSyncManagerLike {
   initSync(root: SceneObject): void;
@@ -28,7 +29,7 @@ export interface UrlSyncManagerOptions {
    * shouldCreateHistoryStep where they can control what changes
    * url changes should add a new browser history entry.
    */
-  createBrowserHistoryStep?: boolean;
+  createBrowserHistorySteps?: boolean;
 }
 
 /**
@@ -83,11 +84,13 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     // Sync current url with state
     this.handleNewObject(this._sceneRoot);
 
-    // Get current url state and update url to match
-    const urlState = getUrlState(root);
+    if (this._options.updateUrlOnInit) {
+      // Get current url state and update url to match
+      const urlState = getUrlState(root);
 
-    if (isUrlStateDifferent(urlState, this._paramsCache.getParams())) {
-      locationService.partial(urlState, true);
+      if (isUrlStateDifferent(urlState, this._paramsCache.getParams())) {
+        locationService.partial(urlState, true);
+      }
     }
   }
 
@@ -198,4 +201,18 @@ function isUrlStateDifferent(sceneUrlState: SceneObjectUrlValues, currentParams:
   }
 
   return false;
+}
+
+/**
+ * Creates a new memoized instance of the UrlSyncManager based on options
+ */
+export function useUrlSyncManager(options: UrlSyncManagerOptions): UrlSyncManagerLike {
+  return useMemo(
+    () =>
+      new UrlSyncManager({
+        updateUrlOnInit: options.updateUrlOnInit,
+        createBrowserHistorySteps: options.createBrowserHistorySteps,
+      }),
+    [options.updateUrlOnInit, options.createBrowserHistorySteps]
+  );
 }

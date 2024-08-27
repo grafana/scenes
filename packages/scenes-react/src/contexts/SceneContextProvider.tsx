@@ -1,11 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-  SceneTimeRangeState,
-  SceneTimeRange,
-  behaviors,
-  UrlSyncContextProvider,
-  getUrlSyncManager,
-} from '@grafana/scenes';
+import { SceneTimeRangeState, SceneTimeRange, behaviors, UrlSyncContextProvider } from '@grafana/scenes';
 
 import { SceneContextObject, SceneContextObjectState } from './SceneContextObject';
 
@@ -51,7 +45,6 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
     const childContext = new SceneContextObject(state);
 
     if (parentContext) {
-      getUrlSyncManager().handleNewObject(childContext);
       parentContext.addChildContext(childContext);
     }
 
