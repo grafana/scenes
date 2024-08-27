@@ -13,7 +13,7 @@ import {
   offset,
   UseFloatingOptions,
 } from '@floating-ui/react';
-import { Spinner, useStyles2 } from '@grafana/ui';
+import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
@@ -21,6 +21,7 @@ import { flushSync } from 'react-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { DropdownItem } from './DropdownItem';
 import { fuzzySearchOptions } from './fuzzySearchOptions';
+import { handleOptionGroups } from '../../utils';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -42,7 +43,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const [inputValue, setInputValue] = useState('');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [filterInputType, setInputType] = useState<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
-  const styles = useStyles2(getStyles2);
+  const styles = useStyles2(getStyles);
 
   const listRef = useRef<Array<HTMLElement | null>>([]);
 
@@ -153,7 +154,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     setActiveIndex(0);
   }
 
-  const filteredDropDownItems = optionsSearcher(inputValue);
+  const filteredDropDownItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(inputValue)));
 
   const flushSyncInputType = useCallback((inputType: AdHocInputType) => {
     flushSync(() => {
@@ -188,6 +189,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           options = await model._getValuesFor(filter!);
         }
         setOptions(options);
+        if (options[0].group) {
+          setActiveIndex(1);
+        }
       } catch (e) {
         setOptionsError(true);
       }
@@ -379,6 +383,21 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                     const item = filteredDropDownItems[virtualItem.index];
                     const index = virtualItem.index;
 
+                    if (item.options) {
+                      return (
+                        <div
+                          key={`${item.label}+${index}`}
+                          className={`${styles.optionGroupLabel} ${styles.groupTopBorder}`}
+                        >
+                          <Text weight="bold" variant="bodySmall" color="secondary">
+                            {item.label!}
+                          </Text>
+                        </div>
+                      );
+                    }
+                    const nextItem: SelectableValue<string> | undefined = filteredDropDownItems[virtualItem.index + 1];
+                    const shouldAddBottomBorder = nextItem && !nextItem.group && item.group;
+
                     return (
                       // key is included in getItemProps()
                       // eslint-disable-next-line react/jsx-key
@@ -408,6 +427,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                           },
                         })}
                         active={activeIndex === index}
+                        addGroupBottomBorder={shouldAddBottomBorder}
                       >
                         {item.label ?? item.value}
                       </DropdownItem>
@@ -461,7 +481,7 @@ const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: (
   );
 };
 
-const getStyles2 = (theme: GrafanaTheme2) => ({
+const getStyles = (theme: GrafanaTheme2) => ({
   comboboxWrapper: css({
     display: 'flex',
     flexWrap: 'nowrap',
@@ -514,4 +534,15 @@ const getStyles2 = (theme: GrafanaTheme2) => ({
   loadingInputPadding: css({
     paddingRight: theme.spacing(2.5),
   }),
+  optionGroupLabel: css({
+    padding: theme.spacing(1),
+  }),
+  groupTopBorder: css({
+    '&:not(:first-child)': {
+      borderTop: `1px solid ${theme.colors.border.weak}`,
+    },
+  }),
 });
+
+const flattenOptionGroups = (options: Array<SelectableValue<string>>) =>
+  options.flatMap<SelectableValue<string>>((option) => (option.options ? [option, ...option.options] : [option]));
