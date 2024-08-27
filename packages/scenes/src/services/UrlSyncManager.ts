@@ -12,9 +12,22 @@ import { getUrlState, isUrlValueEqual, syncStateFromUrl } from './utils';
 export interface UrlSyncManagerLike {
   initSync(root: SceneObject): void;
   cleanUp(root: SceneObject): void;
-  getUrlState(root: SceneObject): SceneObjectUrlValues;
   handleNewLocation(location: Location): void;
   handleNewObject(sceneObj: SceneObject): void;
+}
+
+export interface UrlSyncManagerOptions {
+  /**
+   * This will update the url to contain all scene url state
+   * when the scene is initialized.
+   */
+  updateUrlOnInit?: boolean;
+  /**
+   * This is only supported by some objects if they implement
+   * shouldCreateHistoryStep where they can control what changes
+   * url changes should add a new browser history entry.
+   */
+  createBrowserHistoryStep?: boolean;
 }
 
 export class UrlSyncManager implements UrlSyncManagerLike {
@@ -23,6 +36,11 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   private _stateSub: Unsubscribable | null = null;
   private _lastLocation: Location | undefined;
   private _paramsCache = new UrlParamsCache();
+  private _options: UrlSyncManagerOptions;
+
+  public constructor(_options: UrlSyncManagerOptions = {}) {
+    this._options = _options;
+  }
 
   /**
    * Updates the current scene state to match URL state.
@@ -115,7 +133,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       }
 
       if (Object.keys(mappedUpdated).length > 0) {
-        const shouldCreateHistoryEntry = changedObject.urlSync.shouldCreateHistoryEntry?.(newUrlState);
+        const shouldCreateHistoryEntry = changedObject.urlSync.shouldCreateHistoryStep?.(newUrlState);
         const shouldReplace = shouldCreateHistoryEntry !== true;
 
         writeSceneLog('UrlSyncManager', 'onStateChange updating URL');

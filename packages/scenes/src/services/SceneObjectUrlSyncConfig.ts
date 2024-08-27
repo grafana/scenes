@@ -27,7 +27,7 @@ export class SceneObjectUrlSyncConfig implements SceneObjectUrlSyncHandler {
     this._sceneObject.updateFromUrl(values);
   }
 
-  public shouldCreateHistoryEntry(values: SceneObjectUrlValues): boolean {
-    return this._sceneObject.shouldCreateHistoryEntry?.(values) ?? false;
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._sceneObject.shouldCreateHistoryStep?.(values) ?? false;
   }
 }

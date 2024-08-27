@@ -179,14 +179,14 @@ export function isSceneObject(obj: any): obj is SceneObject {
 export interface SceneObjectWithUrlSync extends SceneObject {
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
-  shouldCreateHistoryEntry?(values: SceneObjectUrlValues): boolean;
+  shouldCreateHistoryStep?(values: SceneObjectUrlValues): boolean;
 }
 
 export interface SceneObjectUrlSyncHandler {
   getKeys(): string[];
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
-  shouldCreateHistoryEntry?(values: SceneObjectUrlValues): boolean;
+  shouldCreateHistoryStep?(values: SceneObjectUrlValues): boolean;
 }
 
 export interface DataRequestEnricher {
