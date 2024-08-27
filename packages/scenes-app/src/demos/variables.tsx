@@ -253,7 +253,6 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                       }))
                     };
                   },
-                  supportsMultiValueOperators: true,
                 }),
               ],
             }),
