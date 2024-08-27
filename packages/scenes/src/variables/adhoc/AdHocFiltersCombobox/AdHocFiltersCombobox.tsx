@@ -285,7 +285,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     <div className={styles.comboboxWrapper}>
       {filter ? (
         <div className={styles.pillWrapper}>
-          {filter?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{filter.key}</div> : null}
+          {filter?.key ? (
+            <div className={cx(styles.basePill, styles.keyPill)}>{filter.keyLabel ?? filter.key}</div>
+          ) : null}
           {filter?.key && filter?.operator && filterInputType !== 'operator' ? (
             <div
               className={cx(styles.basePill, styles.operatorPill, operatorIdentifier)}
@@ -310,7 +312,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             </div>
           ) : null}
           {filter?.key && filter?.operator && filter?.value && !['operator', 'value'].includes(filterInputType) ? (
-            <div className={cx(styles.basePill, styles.valuePill)}>{filter.value}</div>
+            <div className={cx(styles.basePill, styles.valuePill)}>{filter.valueLabel ?? filter.value}</div>
           ) : null}
         </div>
       ) : null}
@@ -323,7 +325,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           // dynamic placeholder to display operator and/or value in filter edit mode
           placeholder: !isAlwaysWip
             ? filterInputType === 'operator'
-              ? `${filter![filterInputType]} ${filter!.value || ''}`
+              ? `${filter![filterInputType]} ${filter!.valueLabel || ''}`
               : filter![filterInputType]
             : 'Filter by label values',
           'aria-autocomplete': 'list',
@@ -418,7 +420,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                           listRef.current[filteredDropDownItems.length ? filteredDropDownItems.length + 1 : 0] = node;
                         },
                         onClick() {
-                          model._updateFilter(filter!, filterInputType, { value: inputValue });
+                          model._updateFilter(filter!, filterInputType, { value: inputValue, label: inputValue });
                           setInputValue('');
 
                           flushSyncInputType('key');

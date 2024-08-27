@@ -50,12 +50,12 @@ export function AdHocFiltersComboboxEditSwitch({
           }
         }}
         role="button"
-        aria-label={`Edit filter with key ${filter.key}`}
+        aria-label={`Edit filter with key ${filter.keyLabel ?? filter.key}`}
         tabIndex={0}
         ref={pillWrapperRef}
       >
         <span>
-          {filter.key} {filter.operator} {filter.value}
+          {filter.keyLabel ?? filter.key} {filter.operator} {filter.valueLabel ?? filter.value}
         </span>
         {!readOnly ? (
           <IconButton
@@ -73,7 +73,7 @@ export function AdHocFiltersComboboxEditSwitch({
             name="times"
             size="md"
             className={styles.removeButton}
-            tooltip={`Remove filter with key ${filter.key}`}
+            tooltip={`Remove filter with key ${filter.keyLabel ?? filter.key}`}
           />
         ) : null}
       </div>
