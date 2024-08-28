@@ -11,12 +11,19 @@ export const VIRTUAL_LIST_OVERSCAN = 5;
 export const VIRTUAL_LIST_ITEM_HEIGHT = 38;
 
 export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
-  const ufuzzy = new uFuzzy();
+  const ufuzzy = new uFuzzy({
+    alpha: '[=|>|<|!|~|a-z]',
+  });
   const haystack: string[] = [];
+  const limit = 10000;
 
   return (search: string) => {
     if (search === '') {
-      return options;
+      if (options.length > limit) {
+        return options.slice(0, limit);
+      } else {
+        return options;
+      }
     }
 
     if (haystack.length === 0) {
@@ -24,16 +31,22 @@ export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
         haystack.push(options[i].label || options[i].value!);
       }
     }
-
     const idxs = ufuzzy.filter(haystack, search);
     const filteredOptions: Array<SelectableValue<string>> = [];
 
     if (idxs) {
       for (let i = 0; i < idxs.length; i++) {
         filteredOptions.push(options[idxs[i]]);
-      }
 
+        if (filteredOptions.length > limit) {
+          return filteredOptions;
+        }
+      }
       return filteredOptions;
+    }
+
+    if (options.length > limit) {
+      return options.slice(0, limit);
     }
 
     return options;
