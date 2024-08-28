@@ -1,27 +1,23 @@
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import {
-  autoUpdate,
-  size,
-  flip,
-  useDismiss,
-  useFloating,
-  useInteractions,
-  useListNavigation,
-  useRole,
-  FloatingFocusManager,
-  FloatingPortal,
-  offset,
-  UseFloatingOptions,
-} from '@floating-ui/react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@floating-ui/react';
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
-import { flushSync } from 'react-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { DropdownItem } from './DropdownItem';
-import { fuzzySearchOptions } from './fuzzySearchOptions';
+import { DropdownItem, LoadingOptionsPlaceholder, NoOptionsPlaceholder, OptionsErrorPlaceholder } from './DropdownItem';
+import { flattenOptionGroups, flushSyncInputType, fuzzySearchOptions, setupDropdownAccessibility } from './utils';
 import { handleOptionGroups } from '../../utils';
+import { useFloatingInteractions } from './useFloatingInteractions';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -30,7 +26,7 @@ interface AdHocComboboxProps {
   handleChangeViewMode?: () => void;
 }
 
-type AdHocInputType = 'key' | 'operator' | 'value';
+export type AdHocInputType = 'key' | 'operator' | 'value';
 
 export const AdHocCombobox = forwardRef(function AdHocCombobox(
   { filter, model, isAlwaysWip, handleChangeViewMode }: AdHocComboboxProps,
@@ -46,9 +42,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const styles = useStyles2(getStyles);
 
   const listRef = useRef<Array<HTMLElement | null>>([]);
+  const disabledIndicesRef = useRef<number[]>([]);
 
   const optionsSearcher = useMemo(() => fuzzySearchOptions(options), [options]);
 
+  // reset wip filter. Used when navigating away with incomplete wip filer or when selecting wip filter value
   const handleResetWip = useCallback(() => {
     if (isAlwaysWip) {
       model._addWip();
@@ -70,109 +68,46 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     [handleChangeViewMode, handleResetWip]
   );
 
+  // used to identify operator element and prevent dismiss because it registers as outside click
   const operatorIdentifier = `${filter?.key ?? ''}-operator`;
 
-  const { refs, floatingStyles, context } = useFloating<HTMLInputElement>({
-    whileElementsMounted: autoUpdate,
+  const { refs, floatingStyles, context, getReferenceProps, getFloatingProps, getItemProps } = useFloatingInteractions({
     open,
     onOpenChange,
-    placement: 'bottom-start',
-    middleware: [
-      offset(10),
-      flip({ padding: 10 }),
-      size({
-        apply({ availableHeight, elements }) {
-          // limit the maxHeight of dropdown
-          elements.floating.style.maxHeight = `${availableHeight > 300 ? 300 : availableHeight}px`;
-        },
-        padding: 10,
-      }),
-    ],
-  });
-
-  const role = useRole(context, { role: 'listbox' });
-  const dismiss = useDismiss(context, {
-    // if outside click lands on operator pill, then ignore outside click
-    outsidePress: (event) => {
-      return !(event as unknown as React.MouseEvent<HTMLElement, MouseEvent>).currentTarget.classList.contains(
-        operatorIdentifier
-      );
-    },
-  });
-  const listNav = useListNavigation(context, {
-    listRef,
     activeIndex,
-    onNavigate: setActiveIndex,
-    virtual: true,
-    loop: true,
+    setActiveIndex,
+    operatorIdentifier,
+    listRef,
+    disabledIndicesRef,
   });
-
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([role, dismiss, listNav]);
 
   // pass ability to focus on input element back to parent
   useImperativeHandle(parentRef, () => () => refs.domReference.current?.focus(), [refs.domReference]);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
-    // // part of POC for seamless filter parser
-    // if (filterInputType === 'key') {
-    //   const lastChar = event.target.value.slice(-1);
-    //   if (['=', '!', '<', '>'].includes(lastChar)) {
-    //     const key = event.target.value.slice(0, -1);
-    //     const optionIndex = options.findIndex((option) => option.value === key);
-    //     if (optionIndex >= 0) {
-    //       model._updateFilter(filterToUse!, filterInputType, options[optionIndex]);
-    //       setInputValue(lastChar);
-    //     }
-    //     flushSync(() => {
-    //       setInputType('operator');
-    //     });
-    //     refs.domReference.current?.focus();
-    //     return;
-    //   }
-    // }
-    // if (filterInputType === 'operator') {
-    //   const lastChar = event.target.value.slice(-1);
-    //   if (/\w/.test(lastChar)) {
-    //     const operator = event.target.value.slice(0, -1);
-    //     if (!/\w/.test(operator)) {
-    //       const optionIndex = options.findIndex((option) => option.value === operator);
-    //       if (optionIndex >= 0) {
-    //         model._updateFilter(filterToUse!, filterInputType, options[optionIndex]);
-    //         setInputValue(lastChar);
-    //       }
-    //       flushSync(() => {
-    //         setInputType('value');
-    //       });
-    //       refs.domReference.current?.focus();
-    //       return;
-    //     }
-    //   }
-    // }
+    // part of POC for seamless filter parser
+    // filterAutoParser({ event, filterInputType, options, model, filter, setInputValue, setInputType, refs });
 
     const value = event.target.value;
     setInputValue(value);
     setActiveIndex(0);
   }
 
+  // operation order on fetched options:
+  //    fuzzy search -> extract into groups -> flatten group labels and options
   const filteredDropDownItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(inputValue)));
 
-  const flushSyncInputType = useCallback((inputType: AdHocInputType) => {
-    flushSync(() => {
-      setInputType(inputType);
+  // adding custom option this way so that virtualiser is aware of it and can scroll to
+  if (filterInputType === 'value' && inputValue) {
+    filteredDropDownItems.push({
+      value: inputValue,
+      label: inputValue,
+      isCustom: true,
     });
-  }, []);
+  }
 
-  // when not in wip mode this is the point of switching from view to edit mode
-  //    and in this case we default to 'value' input type and focus input
-  useEffect(() => {
-    if (!isAlwaysWip && refs.domReference.current) {
-      setInputType('value');
-      setInputValue('');
-
-      refs.domReference.current.focus();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // calculate width and populate listRef and disabledIndicesRef for arrow key navigation
+  const maxOptionWidth = setupDropdownAccessibility(filteredDropDownItems, listRef, disabledIndicesRef);
 
   const handleFetchOptions = useCallback(
     async (inputType: AdHocInputType) => {
@@ -188,6 +123,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         } else if (inputType === 'value') {
           options = await model._getValuesFor(filter!);
         }
+
         setOptions(options);
         if (options[0].group) {
           setActiveIndex(1);
@@ -199,6 +135,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     },
     [filter, model]
   );
+
+  const rowVirtualizer = useVirtualizer({
+    count: filteredDropDownItems.length,
+    getScrollElement: () => refs.floating.current,
+    estimateSize: () => 38,
+    overscan: 5,
+  });
+
+  //
+  // Keyboard interactions
+  //
 
   const handleBackspaceInput = useCallback(
     (event: React.KeyboardEvent) => {
@@ -255,11 +202,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         setActiveIndex(0);
 
         if (filterInputType === 'key') {
-          flushSyncInputType('operator');
+          flushSyncInputType('operator', setInputType);
         } else if (filterInputType === 'operator') {
-          flushSyncInputType('value');
+          flushSyncInputType('value', setInputType);
         } else if (filterInputType === 'value') {
-          flushSyncInputType('key');
+          flushSyncInputType('key', setInputType);
 
           handleChangeViewMode?.();
         }
@@ -271,27 +218,51 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     [activeIndex, filter, filterInputType, filteredDropDownItems, model]
   );
 
+  //
+  // Effects
+  //
+
   useEffect(() => {
+    // fetch options when dropdown is opened.
     if (open) {
       handleFetchOptions(filterInputType);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, filterInputType]);
 
-  const rowVirtualizer = useVirtualizer({
-    count: filteredDropDownItems.length,
-    getScrollElement: () => refs.floating.current,
-    estimateSize: () => 38,
-    overscan: 5,
-  });
+  // when not in wip mode this is the point of switching from view to edit mode
+  //    and in this case we default to 'value' input type and focus input
+  useEffect(() => {
+    if (!isAlwaysWip && refs.domReference.current) {
+      setInputType('value');
+      setInputValue('');
+
+      refs.domReference.current.focus();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useLayoutEffect(() => {
+    // this is needed to scroll virtual list to the position of currently selected
+    //    dropdown item when navigating with arrow up/down keys to end/start of list
+    if (
+      activeIndex !== null &&
+      rowVirtualizer.range &&
+      (activeIndex > rowVirtualizer.range?.endIndex || activeIndex < rowVirtualizer.range?.startIndex)
+    ) {
+      rowVirtualizer.scrollToIndex(activeIndex);
+    }
+  }, [activeIndex, rowVirtualizer]);
 
   return (
     <div className={styles.comboboxWrapper}>
       {filter ? (
         <div className={styles.pillWrapper}>
+          {/* Filter key pill render */}
           {filter?.key ? (
             <div className={cx(styles.basePill, styles.keyPill)}>{filter.keyLabel ?? filter.key}</div>
           ) : null}
+          {/* Filter operator pill render */}
           {filter?.key && filter?.operator && filterInputType !== 'operator' ? (
             <div
               className={cx(styles.basePill, styles.operatorPill, operatorIdentifier)}
@@ -300,14 +271,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               tabIndex={0}
               onClick={(event) => {
                 event.stopPropagation();
-                flushSyncInputType('operator');
+                flushSyncInputType('operator', setInputType);
 
                 refs.domReference.current?.focus();
               }}
               onKeyDown={(event) => {
                 handleShiftTabInput(event);
                 if (event.key === 'Enter') {
-                  flushSyncInputType('operator');
+                  flushSyncInputType('operator', setInputType);
                   refs.domReference.current?.focus();
                 }
               }}
@@ -315,6 +286,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               {filter.operator}
             </div>
           ) : null}
+
+          {/* Filter value pill render - currently is not possible to see, will be used with multi value */}
           {filter?.key && filter?.operator && filter?.value && !['operator', 'value'].includes(filterInputType) ? (
             <div className={cx(styles.basePill, styles.valuePill)}>{filter.valueLabel ?? filter.value}</div>
           ) : null}
@@ -359,35 +332,44 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       {optionsLoading ? <Spinner className={styles.loadingIndicator} inline={true} /> : null}
       <FloatingPortal>
         {open && (
-          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss>
+          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={false}>
             <div
-              {...getFloatingProps({
-                ref: refs.setFloating,
-                style: {
-                  ...floatingStyles,
-                  overflowY: 'auto',
-                  zIndex: 1,
-                },
-              })}
+              style={{
+                ...floatingStyles,
+                width: `${maxOptionWidth}px`,
+              }}
+              ref={refs.setFloating}
               className={styles.dropdownWrapper}
+              tabIndex={-1}
             >
-              {optionsLoading ? (
-                <LoadingOptionsPlaceholder />
-              ) : optionsError ? (
-                <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
-              ) : !filteredDropDownItems.length && filterInputType !== 'value' ? (
-                <NoOptionsPlaceholder />
-              ) : (
-                <>
-                  {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+              <div
+                style={{
+                  height: `${rowVirtualizer.getTotalSize() || 38}px`, // fallback to 38px for loading/error/no options placeholders
+                }}
+                {...getFloatingProps()}
+                tabIndex={-1}
+              >
+                {optionsLoading ? (
+                  <LoadingOptionsPlaceholder />
+                ) : optionsError ? (
+                  <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
+                ) : !filteredDropDownItems.length && filterInputType !== 'value' ? (
+                  <NoOptionsPlaceholder />
+                ) : (
+                  rowVirtualizer.getVirtualItems().map((virtualItem) => {
                     const item = filteredDropDownItems[virtualItem.index];
                     const index = virtualItem.index;
 
+                    // render group label
                     if (item.options) {
                       return (
                         <div
                           key={`${item.label}+${index}`}
                           className={`${styles.optionGroupLabel} ${styles.groupTopBorder}`}
+                          style={{
+                            height: `${virtualItem.size}px`,
+                            transform: `translateY(${virtualItem.start}px)`,
+                          }}
                         >
                           <Text weight="bold" variant="bodySmall" color="secondary">
                             {item.label!}
@@ -395,6 +377,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                         </div>
                       );
                     }
+
                     const nextItem: SelectableValue<string> | undefined = filteredDropDownItems[virtualItem.index + 1];
                     const shouldAddBottomBorder = nextItem && !nextItem.group && item.group;
 
@@ -415,11 +398,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                             setInputValue('');
 
                             if (filterInputType === 'key') {
-                              flushSyncInputType('operator');
+                              flushSyncInputType('operator', setInputType);
                             } else if (filterInputType === 'operator') {
-                              flushSyncInputType('value');
+                              flushSyncInputType('value', setInputType);
                             } else if (filterInputType === 'value') {
-                              flushSyncInputType('key');
+                              flushSyncInputType('key', setInputType);
                               handleChangeViewMode?.();
                             }
 
@@ -428,35 +411,20 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                         })}
                         active={activeIndex === index}
                         addGroupBottomBorder={shouldAddBottomBorder}
+                        // virtual item positioning and accessibility
+                        style={{
+                          height: `${virtualItem.size}px`,
+                          transform: `translateY(${virtualItem.start}px)`,
+                        }}
+                        aria-setsize={filteredDropDownItems.length}
+                        aria-posinset={virtualItem.index + 1}
                       >
-                        {item.label ?? item.value}
+                        {item.isCustom ? 'Use custom value: ' : ''} {item.label ?? item.value}
                       </DropdownItem>
                     );
-                  })}
-                  {filterInputType === 'value' && inputValue ? (
-                    <DropdownItem
-                      {...getItemProps({
-                        key: '__custom_value_list_item',
-                        ref(node) {
-                          listRef.current[filteredDropDownItems.length ? filteredDropDownItems.length + 1 : 0] = node;
-                        },
-                        onClick() {
-                          model._updateFilter(filter!, filterInputType, { value: inputValue, label: inputValue });
-                          setInputValue('');
-
-                          flushSyncInputType('key');
-
-                          handleChangeViewMode?.();
-                          refs.domReference.current?.focus();
-                        },
-                      })}
-                      active={activeIndex === (filteredDropDownItems.length ? filteredDropDownItems.length + 1 : 0)}
-                    >
-                      Use custom value: {inputValue}
-                    </DropdownItem>
-                  ) : null}
-                </>
-              )}
+                  })
+                )}
+              </div>
             </div>
           </FloatingFocusManager>
         )}
@@ -464,22 +432,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     </div>
   );
 });
-
-const LoadingOptionsPlaceholder = () => {
-  return <DropdownItem active={false}>Loading options...</DropdownItem>;
-};
-
-const NoOptionsPlaceholder = () => {
-  return <DropdownItem active={false}>No options found</DropdownItem>;
-};
-
-const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
-  return (
-    <DropdownItem active={false} onClick={handleFetchOptions}>
-      Error. Click to try again!
-    </DropdownItem>
-  );
-};
 
 const getStyles = (theme: GrafanaTheme2) => ({
   comboboxWrapper: css({
@@ -520,6 +472,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     backgroundColor: theme.colors.background.primary,
     color: theme.colors.text.primary,
     boxShadow: theme.shadows.z2,
+    overflowY: 'auto',
   }),
   inputStyle: css({
     paddingBlock: 0,
@@ -536,6 +489,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   optionGroupLabel: css({
     padding: theme.spacing(1),
+    position: 'absolute',
+    top: 0,
+    left: 0,
   }),
   groupTopBorder: css({
     '&:not(:first-child)': {
@@ -543,6 +499,3 @@ const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
 });
-
-const flattenOptionGroups = (options: Array<SelectableValue<string>>) =>
-  options.flatMap<SelectableValue<string>>((option) => (option.options ? [option, ...option.options] : [option]));

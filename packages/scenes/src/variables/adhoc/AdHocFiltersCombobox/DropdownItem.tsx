@@ -33,15 +33,17 @@ export const DropdownItem = forwardRef<HTMLDivElement, DropdownItemProps & React
 const getStyles = (theme: GrafanaTheme2) => ({
   option: css({
     label: 'grafana-select-option',
+    top: 0,
+    left: 0,
+    width: '100%',
+    position: 'absolute',
     padding: '8px',
-    position: 'relative',
     display: 'flex',
     alignItems: 'center',
     flexDirection: 'row',
     flexShrink: 0,
     whiteSpace: 'nowrap',
     cursor: 'pointer',
-
     '&:hover': {
       background: theme.colors.action.hover,
       '@media (forced-colors: active), (prefers-contrast: more)': {
@@ -67,3 +69,15 @@ const getStyles = (theme: GrafanaTheme2) => ({
     borderBottom: `1px solid ${theme.colors.border.weak}`,
   }),
 });
+
+export const LoadingOptionsPlaceholder = () => {
+  return <DropdownItem>Loading options...</DropdownItem>;
+};
+
+export const NoOptionsPlaceholder = () => {
+  return <DropdownItem>No options found</DropdownItem>;
+};
+
+export const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
+  return <DropdownItem onClick={handleFetchOptions}>Error. Click to try again!</DropdownItem>;
+};
