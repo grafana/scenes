@@ -3,6 +3,7 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 import { SceneRefreshPicker } from './SceneRefreshPicker';
 import { RefreshPicker } from '@grafana/ui';
+import { config } from '@grafana/runtime';
 
 jest.mock('@grafana/data', () => {
   const originalModule = jest.requireActual('@grafana/data');
@@ -22,6 +23,7 @@ function setupScene(refresh: string, intervals?: string[], autoEnabled?: boolean
   const calculateIntervalSpy = jest.fn(() => ({ interval: `${autoInterval / 1000}s`, intervalMs: autoInterval }));
 
   rangeUtil.calculateInterval = calculateIntervalSpy;
+
 
   const timeRange = new SceneTimeRange({});
   const refreshPicker = new SceneRefreshPicker({
@@ -166,6 +168,34 @@ describe('SceneRefreshPicker', () => {
     expect(dateTime(t4.from).diff(t3.from, 's')).toBe(12);
     expect(dateTime(t4.to).diff(t3.to, 's')).toBe(12);
   });
+
+  describe('min interval config', () => {
+    beforeAll(() => {
+      config.minRefreshInterval = '30s';
+    });
+    afterAll(() => {
+      config.minRefreshInterval = '';
+    });
+
+    it('does not include unallowed intervals', () => {
+      const { refreshPicker } = setupScene('5s', ['5s', '30s', '1m']);
+      expect(refreshPicker.state.intervals).not.toContain('5s');
+    });
+
+    it('does not set interval to unallowed interval', () => {
+      const { timeRange} = setupScene('5s', ['5s', '30s', '1m']);
+      const t1 = timeRange.state.value;
+      jest.advanceTimersByTime(10000);
+
+      expect(dateTime(t1.from)).toEqual(dateTime(timeRange.state.value.from));
+    });
+
+    it('sets the interval to the first interval in the list if updated with a bad interval from the url', () => {
+      const { refreshPicker } = setupScene('5s', ['5s', '30s', '1m']);
+      refreshPicker.updateFromUrl({ refresh: '5s' });
+      expect(refreshPicker.state.refresh).toBe('30s');
+    })
+  })
 
   describe('auto interval', () => {
     it('includes auto interval in options by default', () => {
