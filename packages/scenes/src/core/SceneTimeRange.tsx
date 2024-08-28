@@ -241,7 +241,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     this.setState(update);
   }
 
-  public shouldCreateHistoryEntry(values: SceneObjectUrlValues): boolean {
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
     return true;
   }
 }

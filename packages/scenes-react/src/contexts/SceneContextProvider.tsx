@@ -72,5 +72,9 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
   }
 
   // For root context we wrap the provider in a UrlSyncWrapper that handles the hook that updates state on location changes
-  return <UrlSyncContextProvider scene={childContext}>{innerProvider}</UrlSyncContextProvider>;
+  return (
+    <UrlSyncContextProvider scene={childContext} updateUrlOnInit={true} createBrowserHistorySteps={true}>
+      {innerProvider}
+    </UrlSyncContextProvider>
+  );
 }
