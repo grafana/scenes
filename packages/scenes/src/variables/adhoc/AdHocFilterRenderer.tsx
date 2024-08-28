@@ -40,7 +40,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   // TODO remove expect-error when we're on the latest version of @grafana/data
   // @ts-expect-error
-  const [uncommittedValue, setUncommittedValue] = useState(filter.values ?? null);
+  const [uncommittedValue, setUncommittedValue] = useState(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels[index])) : []);
   const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
