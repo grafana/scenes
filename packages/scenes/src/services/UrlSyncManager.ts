@@ -3,7 +3,7 @@ import { Location } from 'history';
 import { locationService } from '@grafana/runtime';
 
 import { SceneObjectStateChangedEvent } from '../core/events';
-import { SceneObject, SceneObjectUrlValues } from '../core/types';
+import { SceneObject, SceneObjectUrlValues, SceneUrlSyncOptions } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { Subscription } from 'rxjs';
 import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
@@ -16,20 +16,6 @@ export interface UrlSyncManagerLike {
   cleanUp(root: SceneObject): void;
   handleNewLocation(location: Location): void;
   handleNewObject(sceneObj: SceneObject): void;
-}
-
-export interface UrlSyncManagerOptions {
-  /**
-   * This will update the url to contain all scene url state
-   * when the scene is initialized.
-   */
-  updateUrlOnInit?: boolean;
-  /**
-   * This is only supported by some objects if they implement
-   * shouldCreateHistoryStep where they can control what changes
-   * url changes should add a new browser history entry.
-   */
-  createBrowserHistorySteps?: boolean;
 }
 
 /**
@@ -46,9 +32,9 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   private _subs: Subscription | undefined;
   private _lastLocation: Location | undefined;
   private _paramsCache = new UrlParamsCache();
-  private _options: UrlSyncManagerOptions;
+  private _options: SceneUrlSyncOptions;
 
-  public constructor(_options: UrlSyncManagerOptions = {}) {
+  public constructor(_options: SceneUrlSyncOptions = {}) {
     this._options = _options;
   }
 
@@ -206,7 +192,7 @@ function isUrlStateDifferent(sceneUrlState: SceneObjectUrlValues, currentParams:
 /**
  * Creates a new memoized instance of the UrlSyncManager based on options
  */
-export function useUrlSyncManager(options: UrlSyncManagerOptions): UrlSyncManagerLike {
+export function useUrlSyncManager(options: SceneUrlSyncOptions): UrlSyncManagerLike {
   return useMemo(
     () =>
       new UrlSyncManager({

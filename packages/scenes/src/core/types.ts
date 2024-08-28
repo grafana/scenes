@@ -278,3 +278,17 @@ export interface SceneDataQuery extends DataQuery {
   // Opt this query out of time window comparison
   timeRangeCompare?: boolean;
 }
+
+export interface SceneUrlSyncOptions {
+  /**
+   * This will update the url to contain all scene url state
+   * when the scene is initialized. Important for browser history "back" actions.
+   */
+  updateUrlOnInit?: boolean;
+  /**
+   * This is only supported by some objects if they implement
+   * shouldCreateHistoryStep where they can control what changes
+   * url changes should add a new browser history entry.
+   */
+  createBrowserHistorySteps?: boolean;
+}

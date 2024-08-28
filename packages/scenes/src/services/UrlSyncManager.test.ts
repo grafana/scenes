@@ -113,7 +113,7 @@ describe('UrlSyncManager', () => {
       obj.setState({ other: 'not synced' });
 
       // Should not update url
-      expect(locationUpdates.length).toBe(2);
+      expect(locationUpdates.length).toBe(1);
     });
   });
 
@@ -124,7 +124,7 @@ describe('UrlSyncManager', () => {
         children: [new SceneFlexItem({ body: obj })],
       });
 
-      urlManager = new UrlSyncManager();
+      urlManager = new UrlSyncManager({ updateUrlOnInit: true });
       urlManager.initSync(scene);
 
       expect(locationUpdates.length).toBe(1);
@@ -258,7 +258,7 @@ describe('UrlSyncManager', () => {
         $timeRange: outerTimeRange,
       });
 
-      urlManager = new UrlSyncManager();
+      urlManager = new UrlSyncManager({ updateUrlOnInit: true });
       urlManager.initSync(scene);
 
       deactivate = scene.activate();
@@ -355,7 +355,7 @@ describe('UrlSyncManager', () => {
       obj.setState({ other: 'not synced' });
 
       // Should not update url
-      expect(locationUpdates.length).toBe(2);
+      expect(locationUpdates.length).toBe(1);
 
       // When updating via url
       updateUrlStateAndSyncState({ array: ['A', 'B', 'C'] }, urlManager);
@@ -470,7 +470,7 @@ describe('UrlSyncManager', () => {
         children: [obj1],
       });
 
-      urlManager = new UrlSyncManager();
+      urlManager = new UrlSyncManager({ updateUrlOnInit: true });
       urlManager.initSync(scene1);
 
       deactivate = scene1.activate();

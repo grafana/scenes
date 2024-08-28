@@ -1,8 +1,7 @@
-import { SceneObject } from '../core/types';
-import { UrlSyncManagerOptions } from './UrlSyncManager';
+import { SceneObject, SceneUrlSyncOptions } from '../core/types';
 import { useUrlSync } from './useUrlSync';
 
-export interface UrlSyncContextProviderProps extends UrlSyncManagerOptions {
+export interface UrlSyncContextProviderProps extends SceneUrlSyncOptions {
   scene: SceneObject;
   children: React.ReactNode;
 }

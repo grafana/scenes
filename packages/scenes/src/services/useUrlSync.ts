@@ -1,11 +1,11 @@
-import { SceneObject } from '../core/types';
+import { SceneObject, SceneUrlSyncOptions } from '../core/types';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { locationService } from '@grafana/runtime';
 import { writeSceneLog } from '../utils/writeSceneLog';
-import { UrlSyncManagerOptions, useUrlSyncManager } from './UrlSyncManager';
+import { useUrlSyncManager } from './UrlSyncManager';
 
-export function useUrlSync(sceneRoot: SceneObject, options: UrlSyncManagerOptions = {}): boolean {
+export function useUrlSync(sceneRoot: SceneObject, options: SceneUrlSyncOptions = {}): boolean {
   const location = useLocation();
   const [isInitialized, setIsInitialized] = useState(false);
   const urlSyncManager = useUrlSyncManager(options);
