@@ -320,7 +320,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             handleEnterInput(event);
           },
         })}
-        className={`${styles.inputStyle} ${optionsLoading ? '' : styles.loadingInputPadding}`}
+        className={cx(styles.inputStyle, { [styles.loadingInputPadding]: optionsLoading })}
         onClick={(event) => {
           event.stopPropagation();
           setOpen(true);
@@ -366,7 +366,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                       return (
                         <div
                           key={`${item.label}+${index}`}
-                          className={`${styles.optionGroupLabel} ${styles.groupTopBorder}`}
+                          className={cx(styles.optionGroupLabel, styles.groupTopBorder)}
                           style={{
                             height: `${virtualItem.size}px`,
                             transform: `translateY(${virtualItem.start}px)`,

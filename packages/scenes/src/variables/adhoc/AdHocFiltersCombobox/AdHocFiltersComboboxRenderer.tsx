@@ -1,4 +1,4 @@
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 import React, { memo, useRef } from 'react';
@@ -17,7 +17,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   return (
     <div
-      className={`${styles.comboboxWrapper} ${!readOnly ? styles.comboboxFocusOutline : ''}`}
+      className={cx(styles.comboboxWrapper, { [styles.comboboxFocusOutline]: !readOnly })}
       onClick={() => {
         focusOnInputRef.current?.();
       }}

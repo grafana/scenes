@@ -1,4 +1,4 @@
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton } from '@grafana/ui';
 import React, { useState, useRef, useCallback } from 'react';
@@ -42,7 +42,7 @@ export function AdHocFilterPill({
   if (viewMode) {
     return (
       <div
-        className={cx(styles.combinedFilterPill, {[styles.readOnlyCombinedFilter] : readOnly})}
+        className={cx(styles.combinedFilterPill, { [styles.readOnlyCombinedFilter]: readOnly })}
         onClick={handleChangeViewMode}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
