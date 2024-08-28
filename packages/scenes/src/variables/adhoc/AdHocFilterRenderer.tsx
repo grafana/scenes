@@ -89,6 +89,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     components: {
       Option: OptionWithCheckbox,
     },
+    hideSelectedOptions: false,
     closeMenuOnSelect: false,
     openMenuOnFocus: false,
     onChange: (v: SelectableValue) => {
@@ -121,7 +122,6 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       width="auto"
       value={valueValue}
       filterOption={filterNoOp}
-      hideSelectedOptions={false}
       placeholder={'Select value'}
       options={filteredValueOptions}
       inputValue={valueInputValue}
