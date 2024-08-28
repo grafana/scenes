@@ -29,6 +29,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['refresh'] });
   private _intervalTimer: ReturnType<typeof setInterval> | undefined;
   private _autoTimeRangeListener: Unsubscribable | undefined;
+  private _autoRefreshBlocked: boolean = false;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
     super({
@@ -43,11 +44,21 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     this.addActivationHandler(() => {
       this.setupIntervalTimer();
 
+      const onVisibilityChange = () => {
+        if (this._autoRefreshBlocked && document.visibilityState === 'visible') {
+          this._autoRefreshBlocked = false;
+          this.onRefresh();
+        }
+      }
+
+      document.addEventListener('visibilitychange', onVisibilityChange);
+
       return () => {
         if (this._intervalTimer) {
           clearInterval(this._intervalTimer);
         }
 
+        document.removeEventListener('visibilitychange', onVisibilityChange);
         this._autoTimeRangeListener?.unsubscribe();
       };
     });
@@ -106,6 +117,10 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     return rangeUtil.calculateInterval(timeRange.state.value, resolution, this.state.autoMinInterval);
   };
 
+  private isTabVisible() {
+    return document.visibilityState === undefined || document.visibilityState === 'visible';
+  }
+
   private setupIntervalTimer = () => {
     const timeRange = sceneGraph.getTimeRange(this);
     const { refresh, intervals } = this.state;
@@ -143,7 +158,11 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     }
 
     this._intervalTimer = setInterval(() => {
-      timeRange.onRefresh();
+      if (this.isTabVisible()) {
+        timeRange.onRefresh();
+      } else {
+        this._autoRefreshBlocked = true;
+      }
     }, intervalMs);
   };
 }
