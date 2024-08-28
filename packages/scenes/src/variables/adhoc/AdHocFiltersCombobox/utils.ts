@@ -61,10 +61,12 @@ export const setupDropdownAccessibility = (
     if (options[i]?.options) {
       disabledIndices.push(i);
     }
-    const label = options[i].label ?? options[i].value ?? '';
+    let label = options[i].label ?? options[i].value ?? '';
 
     // rough widthEstimate
-    const widthEstimate = label?.length * VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER + VIRTUAL_LIST_PADDING * 2;
+    const widthEstimate =
+      (options[i].isCustom ? label.length + 18 : label.length) * VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER +
+      VIRTUAL_LIST_PADDING * 2;
     if (widthEstimate > maxOptionWidth) {
       maxOptionWidth = widthEstimate;
     }

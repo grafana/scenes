@@ -107,10 +107,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const filteredDropDownItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(inputValue)));
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
-  if (filterInputType === 'value' && inputValue) {
+  if (filterInputType !== 'operator' && inputValue) {
     filteredDropDownItems.push({
-      value: inputValue,
-      label: inputValue,
+      value: inputValue.trim(),
+      label: inputValue.trim(),
       isCustom: true,
     });
   }
@@ -134,7 +134,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         }
 
         setOptions(options);
-        if (options[0].group) {
+        if (options[0]?.group) {
           setActiveIndex(1);
         }
       } catch (e) {
@@ -188,25 +188,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent) => {
       if (event.key === 'Enter' && activeIndex != null) {
-        // dropDownItems[activeIndex] can be undefined if we entering custom value only
-        //  therefore adding a guard for other filterInputTypes
-        if (filterInputType !== 'value' && !filteredDropDownItems[activeIndex]) {
+        // safeguard for non existing items
+        if (!filteredDropDownItems[activeIndex]) {
           return;
         }
 
-        let dropdownItem = filteredDropDownItems[activeIndex];
-
-        // if we entering value and match no items in dropdown then
-        //   allow to enter current input value
-        if (filterInputType === 'value' && !filteredDropDownItems[activeIndex]) {
-          // prevent from adding empty value
-          if (!inputValue.trim()) {
-            return;
-          }
-          dropdownItem = { value: inputValue };
-        }
-
-        model._updateFilter(filter!, filterInputType, dropdownItem);
+        model._updateFilter(filter!, filterInputType, filteredDropDownItems[activeIndex]);
         setInputValue('');
         setActiveIndex(0);
 
@@ -363,7 +350,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                   <LoadingOptionsPlaceholder />
                 ) : optionsError ? (
                   <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
-                ) : !filteredDropDownItems.length && filterInputType !== 'value' ? (
+                ) : !filteredDropDownItems.length && (filterInputType === 'operator' || !inputValue) ? (
                   <NoOptionsPlaceholder />
                 ) : (
                   rowVirtualizer.getVirtualItems().map((virtualItem) => {
