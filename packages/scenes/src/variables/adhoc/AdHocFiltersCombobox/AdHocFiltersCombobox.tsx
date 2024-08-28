@@ -60,7 +60,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       setOpen(nextOpen);
       // change from filter edit mode to filter view mode when clicked
       //   outside input or dropdown
-      if (['outside-press', 'escape-key'].includes(reason || '')) {
+      if (reason && ['outside-press', 'escape-key'].includes(reason)) {
         handleResetWip();
         handleChangeViewMode?.();
       }
