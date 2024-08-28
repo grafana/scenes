@@ -34,13 +34,13 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [isValuesLoading, setIsValuesLoading] = useState(false);
   const [isKeysOpen, setIsKeysOpen] = useState(false);
   const [isValuesOpen, setIsValuesOpen] = useState(false);
+  const [isOperatorOpen, setIsOperatorOpen] = useState(false);
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
-  const [operatorWidth, setOperatorWidth] = useState<number | 'auto'>('auto')
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   // TODO remove expect-error when we're on the latest version of @grafana/data
   // @ts-expect-error
-  const [uncommittedValue, setUncommittedValue] = useState(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels[index])) : []);
+  const [uncommittedValue, setUncommittedValue] = useState(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []);
   const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
@@ -117,7 +117,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
       disabled={model.state.readOnly}
-      className={cx(styles.value, isKeysOpen ? styles.widthWhenOpen : undefined)}
+      className={cx(styles.value, isValuesOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
       value={valueValue}
       filterOption={filterNoOp}
@@ -204,6 +204,24 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     />
   );
 
+  const operatorSelect = (
+    <Select
+      className={cx(styles.operator, {
+        [styles.widthWhenOpen]: isOperatorOpen,
+      })}
+      value={filter.operator}
+      disabled={model.state.readOnly}
+      options={model._getOperators()}
+      onChange={onOperatorChange}
+      onOpenMenu={() => {
+        setIsOperatorOpen(true)
+      }}
+      onCloseMenu={() => {
+        setIsOperatorOpen(false)
+      }}
+    />
+  );
+
   if (model.state.layout === 'vertical') {
     if (filter.key) {
       const label = (
@@ -213,14 +231,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       return (
         <Field label={label} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
           <div className={styles.wrapper}>
-            <Select
-              className={styles.operator}
-              value={filter.operator}
-              disabled={model.state.readOnly}
-              options={model._getOperators()}
-              width="auto"
-              onChange={onOperatorChange}
-            />
+            {operatorSelect}
             {valueSelect}
           </div>
         </Field>
@@ -237,20 +248,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   return (
     <div className={styles.wrapper} data-testid={`AdHocFilter-${filter.key}`}>
       {keySelect}
-      <Select
-        className={styles.operator}
-        value={filter.operator}
-        disabled={model.state.readOnly}
-        options={model._getOperators()}
-        onChange={onOperatorChange}
-        width={operatorWidth}
-        onOpenMenu={() => {
-          setOperatorWidth(20)
-        }}
-        onCloseMenu={() => {
-          setOperatorWidth('auto')
-        }}
-      />
+      {operatorSelect}
       {valueSelect}
       <Button
         variant="secondary"
@@ -310,14 +308,18 @@ const getStyles = (theme: GrafanaTheme2) => ({
     minWidth: theme.spacing(16),
   }),
   value: css({
+    flexBasis: 'content',
     flexShrink: 1,
+    minWidth: '90px',
   }),
   key: css({
+    flexBasis: 'content',
     minWidth: '90px',
     flexShrink: 1,
   }),
   operator: css({
     flexShrink: 0,
+    flexBasis: 'content',
   }),
   removeButton: css({
     paddingLeft: theme.spacing(3 / 2),
