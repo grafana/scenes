@@ -42,7 +42,7 @@ export function AdHocFilterPill({
   if (viewMode) {
     return (
       <div
-        className={`${styles.combinedFilterPill} ${readOnly ? styles.readOnlyCombinedFilter : ''}`}
+        className={cx(styles.combinedFilterPill, {[styles.readOnlyCombinedFilter] : readOnly})}
         onClick={handleChangeViewMode}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
