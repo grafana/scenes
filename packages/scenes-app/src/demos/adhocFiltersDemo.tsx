@@ -203,7 +203,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
             $variables: new SceneVariableSet({
               variables: [
                 new AdHocFiltersVariable({
-                  name: 'no-button-text',
+                  name: 'ComboboxFilters',
                   label: 'Without add filter button text',
                   hide: VariableHide.hideLabel,
                   datasource: { uid: 'gdev-prometheus' },
