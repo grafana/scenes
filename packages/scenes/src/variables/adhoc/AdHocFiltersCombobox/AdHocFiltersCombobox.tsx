@@ -380,7 +380,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                     }
 
                     const nextItem: SelectableValue<string> | undefined = filteredDropDownItems[virtualItem.index + 1];
-                    const shouldAddBottomBorder = nextItem && !nextItem.group && item.group;
+                    const shouldAddBottomBorder = nextItem && !nextItem.group && !nextItem.options && item.group;
 
                     return (
                       // key is included in getItemProps()
@@ -493,6 +493,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     position: 'absolute',
     top: 0,
     left: 0,
+    width: '100%',
   }),
   groupTopBorder: css({
     '&:not(:first-child)': {
