@@ -99,9 +99,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       }
     },
     onBlur: () => {
-      const updatedValue = uncommittedValue.map((option: SelectableValue<string>) => option.value).join('__gfp__');
       model._updateFilter(filter, {
-        value: updatedValue,
+        value: uncommittedValue[0] ?? '',
         // TODO remove expect-error when we're on the latest version of @grafana/data
         // @ts-expect-error
         values: uncommittedValue.map((option: SelectableValue<string>) => option.value),
