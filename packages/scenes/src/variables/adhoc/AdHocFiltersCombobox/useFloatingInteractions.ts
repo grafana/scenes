@@ -56,9 +56,11 @@ export const useFloatingInteractions = ({
   const dismiss = useDismiss(context, {
     // if outside click lands on operator pill, then ignore outside click
     outsidePress: (event) => {
-      return !(event as unknown as React.MouseEvent<HTMLElement, MouseEvent>).currentTarget.classList.contains(
-        operatorIdentifier
-      );
+      // if outside click lands on operator pill, then ignore outside click
+      if (event.currentTarget instanceof HTMLElement && event.currentTarget.id === operatorIdentifier) {
+        return false;
+      }
+      return true;
     },
   });
   const listNav = useListNavigation(context, {

@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
@@ -48,6 +49,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const [filterInputType, setInputType] = useState<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
   const styles = useStyles2(getStyles);
 
+  // used to identify operator element and prevent dismiss because it registers as outside click
+  const operatorIdentifier = useId();
+
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const disabledIndicesRef = useRef<number[]>([]);
 
@@ -74,9 +78,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     },
     [handleChangeViewMode, handleResetWip]
   );
-
-  // used to identify operator element and prevent dismiss because it registers as outside click
-  const operatorIdentifier = `${filter?.key ?? ''}-operator`;
 
   const { refs, floatingStyles, context, getReferenceProps, getFloatingProps, getItemProps } = useFloatingInteractions({
     open,
@@ -273,6 +274,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           {/* Filter operator pill render */}
           {filter?.key && filter?.operator && filterInputType !== 'operator' ? (
             <div
+              id={operatorIdentifier}
               className={cx(styles.basePill, styles.operatorPill, operatorIdentifier)}
               role="button"
               aria-label="Edit filter operator"
