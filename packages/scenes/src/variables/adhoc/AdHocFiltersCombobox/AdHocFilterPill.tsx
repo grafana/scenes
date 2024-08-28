@@ -6,7 +6,7 @@ import { flushSync } from 'react-dom';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 
-export function AdHocFiltersComboboxEditSwitch({
+export function AdHocFilterPill({
   filter,
   model,
   readOnly,

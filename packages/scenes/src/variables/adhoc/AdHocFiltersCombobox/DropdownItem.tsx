@@ -79,5 +79,7 @@ export const NoOptionsPlaceholder = () => {
 };
 
 export const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
-  return <DropdownItem onClick={handleFetchOptions}>Error. Click to try again!</DropdownItem>;
+  return (
+    <DropdownItem onClick={handleFetchOptions}>An error has occurred fetching labels. Click to retry</DropdownItem>
+  );
 };

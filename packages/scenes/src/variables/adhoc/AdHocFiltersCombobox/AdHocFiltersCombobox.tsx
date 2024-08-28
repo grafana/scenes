@@ -82,6 +82,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   });
 
   // pass ability to focus on input element back to parent
+  //     parentRef is coming from AdHocFiltersComboboxRenderer
   useImperativeHandle(parentRef, () => () => refs.domReference.current?.focus(), [refs.domReference]);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -336,7 +337,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             <div
               style={{
                 ...floatingStyles,
-                width: `${maxOptionWidth}px`,
+                width: `${optionsError ? 366 : maxOptionWidth}px`,
               }}
               ref={refs.setFloating}
               className={styles.dropdownWrapper}

@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 import React, { memo, useRef } from 'react';
 import { AdHocFiltersVariable } from '../AdHocFiltersVariable';
-import { AdHocFiltersComboboxEditSwitch } from './AdHocFiltersComboboxEditSwitch';
+import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({
@@ -25,7 +25,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
       {filters.map((filter, index) => (
-        <AdHocFiltersComboboxEditSwitch key={index} filter={filter} model={model} readOnly={readOnly} />
+        <AdHocFilterPill key={index} filter={filter} model={model} readOnly={readOnly} />
       ))}
 
       {!readOnly ? <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnInputRef} /> : null}

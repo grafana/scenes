@@ -8,6 +8,9 @@ export const AdHocFiltersAlwaysWipCombobox = forwardRef(function AdHocFiltersAlw
   }: {
     model: AdHocFiltersVariable;
   },
+  // pass ability to focus on input element back to parent
+  //    parentRef is coming from AdHocFiltersComboboxRenderer
+  //    parentRef is mutated through useImperativeHandle in AdHocCombobox
   parentRef
 ) {
   const { _wip } = model.useState();
