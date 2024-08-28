@@ -5,6 +5,11 @@ import { AdHocInputType } from './AdHocFiltersCombobox';
 import { AdHocFiltersVariable, AdHocFilterWithLabels } from '../AdHocFiltersVariable';
 import { UseFloatingReturn } from '@floating-ui/react';
 
+const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
+const VIRTUAL_LIST_PADDING = 8;
+export const VIRTUAL_LIST_OVERSCAN = 5;
+export const VIRTUAL_LIST_ITEM_HEIGHT = 38;
+
 export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
   const ufuzzy = new uFuzzy();
   const haystack: string[] = [];
@@ -36,9 +41,6 @@ export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
 }
 export const flattenOptionGroups = (options: Array<SelectableValue<string>>) =>
   options.flatMap<SelectableValue<string>>((option) => (option.options ? [option, ...option.options] : [option]));
-
-const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
-const VIRTUAL_LIST_PADDING = 8;
 
 export const setupDropdownAccessibility = (
   options: Array<SelectableValue<string>>,

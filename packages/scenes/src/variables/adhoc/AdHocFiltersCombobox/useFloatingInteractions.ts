@@ -22,6 +22,8 @@ type useFloatingInteractionsProps = {
   disabledIndicesRef: React.MutableRefObject<number[]>;
 };
 
+const MAX_MENU_HEIGHT = 300;
+
 export const useFloatingInteractions = ({
   open,
   onOpenChange,
@@ -42,7 +44,7 @@ export const useFloatingInteractions = ({
       size({
         apply({ availableHeight, availableWidth, elements }) {
           // limit maxHeight and maxWidth of dropdown
-          elements.floating.style.maxHeight = `${availableHeight > 300 ? 300 : availableHeight}px`;
+          elements.floating.style.maxHeight = `${Math.min(MAX_MENU_HEIGHT, availableHeight)}px`;
           elements.floating.style.maxWidth = `${availableWidth}px`;
         },
         padding: 10,

@@ -6,11 +6,11 @@ import { AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 
-export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({
-  model,
-}: {
+interface Props {
   model: AdHocFiltersVariable;
-}) {
+}
+
+export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ model }: Props) {
   const { filters, readOnly } = model.useState();
   const styles = useStyles2(getStyles);
   const focusOnInputRef = useRef<() => void>();

@@ -6,15 +6,13 @@ import { flushSync } from 'react-dom';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 
-export function AdHocFilterPill({
-  filter,
-  model,
-  readOnly,
-}: {
+interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
   readOnly?: boolean;
-}) {
+}
+
+export function AdHocFilterPill({ filter, model, readOnly }: Props) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
   const pillWrapperRef = useRef<HTMLDivElement>(null);

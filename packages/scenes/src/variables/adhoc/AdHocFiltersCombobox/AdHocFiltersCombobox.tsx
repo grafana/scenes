@@ -15,7 +15,14 @@ import { css, cx } from '@emotion/css';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { DropdownItem, LoadingOptionsPlaceholder, NoOptionsPlaceholder, OptionsErrorPlaceholder } from './DropdownItem';
-import { flattenOptionGroups, flushSyncInputType, fuzzySearchOptions, setupDropdownAccessibility } from './utils';
+import {
+  flattenOptionGroups,
+  flushSyncInputType,
+  fuzzySearchOptions,
+  setupDropdownAccessibility,
+  VIRTUAL_LIST_ITEM_HEIGHT,
+  VIRTUAL_LIST_OVERSCAN,
+} from './utils';
 import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions } from './useFloatingInteractions';
 
@@ -140,8 +147,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const rowVirtualizer = useVirtualizer({
     count: filteredDropDownItems.length,
     getScrollElement: () => refs.floating.current,
-    estimateSize: () => 38,
-    overscan: 5,
+    estimateSize: () => VIRTUAL_LIST_ITEM_HEIGHT,
+    overscan: VIRTUAL_LIST_OVERSCAN,
   });
 
   //

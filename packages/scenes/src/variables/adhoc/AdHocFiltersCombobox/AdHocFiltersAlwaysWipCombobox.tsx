@@ -2,12 +2,12 @@ import React, { forwardRef, useLayoutEffect } from 'react';
 import { AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 
+interface Props {
+  model: AdHocFiltersVariable;
+}
+
 export const AdHocFiltersAlwaysWipCombobox = forwardRef(function AdHocFiltersAlwaysWipCombobox(
-  {
-    model,
-  }: {
-    model: AdHocFiltersVariable;
-  },
+  { model }: Props,
   // pass ability to focus on input element back to parent
   //    parentRef is coming from AdHocFiltersComboboxRenderer
   //    parentRef is mutated through useImperativeHandle in AdHocCombobox
