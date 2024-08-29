@@ -56,6 +56,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
       transitionTimingFunction: `cubic-bezier(0.19, 1, 0.22, 1)`,
       transitionDuration: '0.2s',
       transitionProperty: 'outline, outline-offset, box-shadow',
+      zIndex: 2,
     },
   }),
   filterIcon: css({
