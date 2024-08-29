@@ -177,12 +177,16 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
     // Only update if time range actually changed
     if (update.from !== this.state.from || update.to !== this.state.to) {
-      this.setState(update);
+      this._urlSync.performBrowserHistoryAction(() => {
+        this.setState(update);
+      });
     }
   };
 
   public onTimeZoneChange = (timeZone: TimeZone) => {
-    this.setState({ timeZone });
+    this._urlSync.performBrowserHistoryAction(() => {
+      this.setState({ timeZone });
+    });
   };
 
   public onRefresh = () => {
@@ -239,9 +243,5 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     );
 
     this.setState(update);
-  }
-
-  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
-    return true;
   }
 }
