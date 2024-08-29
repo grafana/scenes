@@ -9,6 +9,7 @@ const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
 const VIRTUAL_LIST_PADDING = 8;
 export const VIRTUAL_LIST_OVERSCAN = 5;
 export const VIRTUAL_LIST_ITEM_HEIGHT = 38;
+export const ERROR_STATE_DROPDOWN_WIDTH = 366;
 
 export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
   const ufuzzy = new uFuzzy();

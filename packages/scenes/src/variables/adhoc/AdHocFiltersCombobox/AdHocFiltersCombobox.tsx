@@ -17,6 +17,7 @@ import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVari
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { DropdownItem, LoadingOptionsPlaceholder, NoOptionsPlaceholder, OptionsErrorPlaceholder } from './DropdownItem';
 import {
+  ERROR_STATE_DROPDOWN_WIDTH,
   flattenOptionGroups,
   flushSyncInputType,
   fuzzySearchOptions,
@@ -333,7 +334,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             <div
               style={{
                 ...floatingStyles,
-                width: `${optionsError ? 366 : maxOptionWidth}px`,
+                width: `${optionsError ? ERROR_STATE_DROPDOWN_WIDTH : maxOptionWidth}px`,
               }}
               ref={refs.setFloating}
               className={styles.dropdownWrapper}
@@ -341,7 +342,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             >
               <div
                 style={{
-                  height: `${rowVirtualizer.getTotalSize() || 38}px`, // fallback to 38px for loading/error/no options placeholders
+                  height: `${rowVirtualizer.getTotalSize() || VIRTUAL_LIST_ITEM_HEIGHT}px`, // fallback to 38px for loading/error/no options placeholders
                 }}
                 {...getFloatingProps()}
                 tabIndex={-1}
@@ -470,6 +471,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.primary,
     boxShadow: theme.shadows.z2,
     overflowY: 'auto',
+    zIndex: theme.zIndex.dropdown,
   }),
   inputStyle: css({
     paddingBlock: 0,
