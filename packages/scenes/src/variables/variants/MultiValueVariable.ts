@@ -47,7 +47,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   extends SceneObjectBase<TState>
   implements SceneVariable<TState>
 {
-  protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
+  protected _urlSync: MultiValueUrlSyncHandler<TState> = new MultiValueUrlSyncHandler(this);
 
   /**
    * Set to true to skip next value validation to maintain the current value even it it's not among the options (ie valid values)
@@ -192,7 +192,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     // If the validation wants to fix the all value (All ==> $__all) then we should let that pass
     const isAllValueFix = stateUpdate.value === ALL_VARIABLE_VALUE && this.state.text === ALL_VARIABLE_TEXT;
 
-    if (this.skipNextValidation && stateUpdate.value !== this.state.value && stateUpdate.text !== this.state.text && !isAllValueFix) {
+    if (
+      this.skipNextValidation &&
+      stateUpdate.value !== this.state.value &&
+      stateUpdate.text !== this.state.text &&
+      !isAllValueFix
+    ) {
       stateUpdate.value = this.state.value;
       stateUpdate.text = this.state.text;
     }
@@ -242,7 +247,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   /**
    * Change the value and publish SceneVariableValueChangedEvent event.
    */
-  public changeValueTo(value: VariableValue, text?: VariableValue) {
+  public changeValueTo(value: VariableValue, text?: VariableValue, isUserAction = false) {
     // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
@@ -283,7 +288,18 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       return;
     }
 
-    this.setStateHelper({ value, text, loading: false });
+    const stateChangeAction = () => this.setStateHelper({ value, text, loading: false });
+
+    /**
+     * Because variable state changes can cause a whole chain of downstream state changes in other variables (that also cause URL update)
+     * Only some variable changes should add new history items to make sure the browser history contains valid URL states to go back to.
+     */
+    if (isUserAction) {
+      this._urlSync.performBrowserHistoryAction(stateChangeAction);
+    } else {
+      stateChangeAction();
+    }
+
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
   }
 
@@ -331,7 +347,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
   public refreshOptions() {
     this.getValueOptions({}).subscribe((options) => {
-        this.updateValueGivenNewOptions(options);
+      this.updateValueGivenNewOptions(options);
     });
   }
 
@@ -368,6 +384,8 @@ function findOptionMatchingCurrent(
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
   implements SceneObjectUrlSyncHandler
 {
+  private _nextChangeShouldAddHistoryStep = false;
+
   public constructor(private _sceneObject: MultiValueVariable<TState>) {}
 
   private getKey(): string {
@@ -427,6 +445,16 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
 
       this._sceneObject.changeValueTo(urlValue);
     }
+  }
+
+  public performBrowserHistoryAction(callback: () => void) {
+    this._nextChangeShouldAddHistoryStep = true;
+    callback();
+    this._nextChangeShouldAddHistoryStep = false;
+  }
+
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._nextChangeShouldAddHistoryStep;
   }
 }
 
