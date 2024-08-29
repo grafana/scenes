@@ -519,7 +519,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
 
       // Verify updating filter re-triggers query
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -577,7 +577,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       ]);
 
       // Verify updating filter re-triggers query
-      filtersVar._updateFilter(filtersVar.state.filters[1], 'value', { value: 'D' });
+      filtersVar._updateFilter(filtersVar.state.filters[1], { value: 'D' });
 
       await new Promise((r) => setTimeout(r, 1));
 

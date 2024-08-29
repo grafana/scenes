@@ -40,6 +40,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                   // Only want keys for this series
                   baseFilters: [{ key: '__name__', operator: '=', value: 'ALERTS', condition: '' }],
                   datasource: { uid: 'gdev-prometheus' },
+                  supportsMultiValueOperators: true,
                 }),
               ],
             }),
@@ -77,6 +78,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
             applyMode: 'manual',
             datasource: { uid: 'gdev-prometheus' },
             filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
+            supportsMultiValueOperators: true,
           });
 
           return new EmbeddedScene({
@@ -138,6 +140,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                   hide: VariableHide.hideLabel,
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'has no text', condition: '' }],
+                  supportsMultiValueOperators: true,
                 }),
                 new AdHocFiltersVariable({
                   name: 'button-text',
@@ -147,6 +150,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                   addFilterButtonText: 'Add a filter',
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'has text on add button', condition: '' }],
+                  supportsMultiValueOperators: true,
                 }),
 
                 new AdHocFiltersVariable({
@@ -157,6 +161,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                   addFilterButtonText: 'Filter',
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'also has text on add button', condition: '' }],
+                  supportsMultiValueOperators: true,
                 }),
               ],
             }),
