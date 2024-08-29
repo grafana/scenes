@@ -1,6 +1,5 @@
 import { SelectableValue } from '@grafana/data';
 import uFuzzy from '@leeoniya/ufuzzy';
-import { flushSync } from 'react-dom';
 import { AdHocInputType } from './AdHocFiltersCombobox';
 import { AdHocFiltersVariable, AdHocFilterWithLabels } from '../AdHocFiltersVariable';
 import { UseFloatingReturn } from '@floating-ui/react';
@@ -102,15 +101,6 @@ export const setupDropdownAccessibility = (
   return maxOptionWidth;
 };
 
-// used for updating inputType concurrently because other bunched updates depend on this being up to date
-export const flushSyncInputType = (
-  inputType: AdHocInputType,
-  setInputType: React.Dispatch<React.SetStateAction<AdHocInputType>>
-) =>
-  flushSync(() => {
-    setInputType(inputType);
-  });
-
 // WIP: POC for parsing key and operator values automatically
 export const filterAutoParser = ({
   event,
@@ -141,10 +131,7 @@ export const filterAutoParser = ({
         model._updateFilter(filter!, filterInputType, options[optionIndex]);
         setInputValue(lastChar);
       }
-      flushSync(() => {
-        setInputType('operator');
-      });
-      refs.domReference.current?.focus();
+      switchInputType('operator', setInputType, undefined, refs.domReference.current);
       return;
     }
   }
@@ -158,10 +145,7 @@ export const filterAutoParser = ({
           model._updateFilter(filter!, filterInputType, options[optionIndex]);
           setInputValue(lastChar);
         }
-        flushSync(() => {
-          setInputType('value');
-        });
-        refs.domReference.current?.focus();
+        switchInputType('value', setInputType, undefined, refs.domReference.current);
         return;
       }
     }
@@ -177,11 +161,25 @@ const nextInputTypeMap = {
 export const switchToNextInputType = (
   filterInputType: AdHocInputType,
   setInputType: React.Dispatch<React.SetStateAction<AdHocInputType>>,
-  handleChangeViewMode: (() => void) | undefined
-) => {
-  flushSyncInputType(nextInputTypeMap[filterInputType], setInputType);
+  handleChangeViewMode: (() => void) | undefined,
+  element: HTMLInputElement | null
+) =>
+  switchInputType(
+    nextInputTypeMap[filterInputType],
+    setInputType,
+    filterInputType === 'value' ? handleChangeViewMode : undefined,
+    element
+  );
 
-  if (filterInputType === 'value') {
-    handleChangeViewMode?.();
-  }
+export const switchInputType = (
+  filterInputType: AdHocInputType,
+  setInputType: React.Dispatch<React.SetStateAction<AdHocInputType>>,
+  handleChangeViewMode: (() => void) | undefined,
+  element: HTMLInputElement | null
+) => {
+  setInputType(filterInputType);
+
+  handleChangeViewMode?.();
+
+  setTimeout(() => element?.focus());
 };

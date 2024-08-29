@@ -2,7 +2,6 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton } from '@grafana/ui';
 import React, { useState, useRef, useCallback } from 'react';
-import { flushSync } from 'react-dom';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 
@@ -26,18 +25,16 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
       if (readOnly) {
         return;
       }
-      let viewMode = false;
-      flushSync(() => {
-        setViewMode((mode) => {
-          viewMode = mode;
-          return !mode;
-        });
+
+      setViewMode(!viewMode);
+
+      setTimeout(() => {
+        if (!viewMode) {
+          pillWrapperRef.current?.focus();
+        }
       });
-      if (!viewMode) {
-        pillWrapperRef.current?.focus();
-      }
     },
-    [readOnly]
+    [readOnly, viewMode]
   );
 
   if (viewMode) {
