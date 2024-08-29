@@ -317,7 +317,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             handleEnterInput(event);
           },
         })}
-        className={cx(styles.inputStyle, { [styles.loadingInputPadding]: optionsLoading })}
+        className={cx(styles.inputStyle, { [styles.loadingInputPadding]: !optionsLoading })}
         onClick={(event) => {
           event.stopPropagation();
           setOpen(true);
