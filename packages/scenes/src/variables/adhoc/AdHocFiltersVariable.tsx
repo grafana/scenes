@@ -19,9 +19,8 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
-  valueLabel?: string;
+  valueLabels?: string[];
 }
-
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
   addFilterButtonText?: string;
@@ -78,6 +77,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   expressionBuilder?: AdHocVariableExpressionBuilderFn;
 
   /**
+   * Whether the filter supports new multi-value operators like =| and !=|
+   */
+  supportsMultiValueOperators?: boolean;
+
+  /**
    * When querying the datasource for label names and values to determine keys and values
    * for this ad hoc filter, consider the queries in the scene and use them as a filter.
    * This queries filter can be used to ensure that only ad hoc filter options that would
@@ -104,6 +108,36 @@ export type getTagValuesProvider = (
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
+
+export type OperatorDefinition = {
+  value: string;
+  description?: string;
+  isMulti?: Boolean;
+};
+
+const OPERATORS: OperatorDefinition[] = [{
+  value: '=',
+}, {
+  value: '!='
+}, {
+  value: '=|',
+  description: 'Is one of. Use to filter on multiple values.',
+  isMulti: true,
+}, {
+  value: '!=|',
+  description: 'Is not one of. Use to exclude multiple values.',
+  isMulti: true
+}, {
+  value: '=~',
+  description: 'Matches regex',
+}, {
+  value: '!~',
+  description: 'Does not match regex',
+}, {
+  value: '<'
+}, {
+  value: '>'
+}];
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
@@ -153,39 +187,22 @@ export class AdHocFiltersVariable
 
   public _updateFilter(
     filter: AdHocFilterWithLabels,
-    prop: keyof AdHocFilterWithLabels,
-    { value, label }: SelectableValue<string | undefined | null>
+    update: Partial<AdHocFilterWithLabels>
   ) {
-    if (value == null) {
-      return;
-    }
-
     const { filters, _wip } = this.state;
-
-    const propLabelKey = `${prop}Label`;
 
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
-      if (prop === 'value') {
-        this.setState({ filters: [...filters, { ..._wip, [prop]: value, [propLabelKey]: label }], _wip: undefined });
+      if ('value' in update && update['value'] !== '') {
+        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
       } else {
-        this.setState({ _wip: { ...filter, [prop]: value, [propLabelKey]: label } });
+        this.setState({ _wip: { ...filter, ...update } });
       }
       return;
     }
 
     const updatedFilters = this.state.filters.map((f) => {
-      if (f === filter) {
-        const updatedFilter = { ...f, [prop]: value, [propLabelKey]: label };
-
-        // clear value if key has changed
-        if (prop === 'key' && filter[prop] !== value) {
-          updatedFilter.value = '';
-          updatedFilter.valueLabel = '';
-        }
-        return updatedFilter;
-      }
-      return f;
+      return f === filter ? { ...f, ...update } : f;
     });
 
     this.setState({ filters: updatedFilters });
@@ -293,14 +310,16 @@ export class AdHocFiltersVariable
 
   public _addWip() {
     this.setState({
-      _wip: { key: '', keyLabel: '', value: '', valueLabel: '', operator: '=', condition: '' },
+      _wip: { key: '', value: '', operator: '=', condition: '' },
     });
   }
 
   public _getOperators() {
-    return ['=', '!=', '<', '>', '=~', '!~'].map<SelectableValue<string>>((value) => ({
+    const filteredOperators = this.state.supportsMultiValueOperators ? OPERATORS : OPERATORS.filter((operator) => !operator.isMulti);
+    return filteredOperators.map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
+      description,
     }));
   }
 }
@@ -359,4 +378,12 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
   return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+}
+
+export function isMultiValueOperator(operatorValue: string): boolean {
+  const operator = OPERATORS.find((o) => o.value === operatorValue);
+  if (!operator) {
+    throw new Error('Unknown operator');
+  }
+  return Boolean(operator.isMulti);
 }
