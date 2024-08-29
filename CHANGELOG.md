@@ -1,3 +1,16 @@
+# v5.11.0 (Thu Aug 29 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilters: Add support for new `isOneOf` multi value operator [#868](https://github.com/grafana/scenes/pull/868) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v5.10.2 (Wed Aug 28 2024)
 
 #### 🐛 Bug Fix
