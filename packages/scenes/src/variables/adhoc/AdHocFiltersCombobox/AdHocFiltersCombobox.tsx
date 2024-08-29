@@ -20,6 +20,7 @@ import {
   ERROR_STATE_DROPDOWN_WIDTH,
   flattenOptionGroups,
   fuzzySearchOptions,
+  generateFilterUpdatePayload,
   setupDropdownAccessibility,
   switchInputType,
   switchToNextInputType,
@@ -195,7 +196,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           return;
         }
 
-        model._updateFilter(filter!, filterInputType, filteredDropDownItems[activeIndex]);
+        model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, filteredDropDownItems[activeIndex]));
         setInputValue('');
         setActiveIndex(0);
 
@@ -242,14 +243,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     }
   }, [activeIndex, rowVirtualizer]);
 
+  const keyLabel = filter?.keyLabel ?? filter?.key;
+  const valueLabel = filter?.valueLabels?.[0] ?? filter?.value;
+
   return (
     <div className={styles.comboboxWrapper}>
       {filter ? (
         <div className={styles.pillWrapper}>
           {/* Filter key pill render */}
-          {filter?.key ? (
-            <div className={cx(styles.basePill, styles.keyPill)}>{filter.keyLabel ?? filter.key}</div>
-          ) : null}
+          {filter?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{keyLabel}</div> : null}
           {/* Filter operator pill render */}
           {filter?.key && filter?.operator && filterInputType !== 'operator' ? (
             <div
@@ -275,7 +277,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
           {/* Filter value pill render - currently is not possible to see, will be used with multi value */}
           {filter?.key && filter?.operator && filter?.value && !['operator', 'value'].includes(filterInputType) ? (
-            <div className={cx(styles.basePill, styles.valuePill)}>{filter.valueLabel ?? filter.value}</div>
+            <div className={cx(styles.basePill, styles.valuePill)}>{valueLabel}</div>
           ) : null}
         </div>
       ) : null}
@@ -288,7 +290,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           // dynamic placeholder to display operator and/or value in filter edit mode
           placeholder: !isAlwaysWip
             ? filterInputType === 'operator'
-              ? `${filter![filterInputType]} ${filter!.valueLabel || ''}`
+              ? `${filter![filterInputType]} ${valueLabel}`
               : filter![filterInputType]
             : 'Filter by label values',
           'aria-autocomplete': 'list',
@@ -380,7 +382,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                             if (filterInputType !== 'value') {
                               event.stopPropagation();
                             }
-                            model._updateFilter(filter!, filterInputType, item);
+                            model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, item));
                             setInputValue('');
 
                             switchToNextInputType(

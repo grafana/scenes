@@ -18,7 +18,7 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
   const pillWrapperRef = useRef<HTMLDivElement>(null);
 
   const keyLabel = filter.keyLabel ?? filter.key;
-  const valueLabel = filter.valueLabel ?? filter.value;
+  const valueLabel = filter.valueLabels?.[0] ?? filter.value;
 
   const handleChangeViewMode = useCallback(
     (event?: React.MouseEvent) => {

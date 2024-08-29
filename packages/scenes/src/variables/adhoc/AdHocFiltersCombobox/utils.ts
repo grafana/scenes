@@ -128,7 +128,7 @@ export const filterAutoParser = ({
       const key = event.target.value.slice(0, -1);
       const optionIndex = options.findIndex((option) => option.value === key);
       if (optionIndex >= 0) {
-        model._updateFilter(filter!, filterInputType, options[optionIndex]);
+        model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, options[optionIndex]));
         setInputValue(lastChar);
       }
       switchInputType('operator', setInputType, undefined, refs.domReference.current);
@@ -142,7 +142,7 @@ export const filterAutoParser = ({
       if (!/\w/.test(operator)) {
         const optionIndex = options.findIndex((option) => option.value === operator);
         if (optionIndex >= 0) {
-          model._updateFilter(filter!, filterInputType, options[optionIndex]);
+          model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, options[optionIndex]));
           setInputValue(lastChar);
         }
         switchInputType('value', setInputType, undefined, refs.domReference.current);
@@ -182,4 +182,26 @@ export const switchInputType = (
   handleChangeViewMode?.();
 
   setTimeout(() => element?.focus());
+};
+
+export const generateFilterUpdatePayload = (
+  filterInputType: AdHocInputType,
+  item: SelectableValue<string>
+): Partial<AdHocFilterWithLabels> => {
+  if (filterInputType === 'key') {
+    return {
+      key: item.value,
+      keyLabel: item.label ? item.label : item.value,
+    };
+  }
+  if (filterInputType === 'value') {
+    return {
+      value: item.value,
+      valueLabels: [item.label ? item.label : item.value!],
+    };
+  }
+
+  return {
+    [filterInputType]: item.value,
+  };
 };

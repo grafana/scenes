@@ -355,7 +355,7 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
-  if (model.state.layout === 'combobox') {
+  if (!model.state.supportsMultiValueOperators && model.state.layout === 'combobox') {
     return <AdHocFiltersComboboxRenderer model={model} />;
   }
 
