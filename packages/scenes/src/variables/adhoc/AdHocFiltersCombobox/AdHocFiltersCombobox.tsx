@@ -104,7 +104,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   // operation order on fetched options:
   //    fuzzy search -> extract into groups -> flatten group labels and options
-  const filteredDropDownItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(inputValue)));
+  const filteredDropDownItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(inputValue, filterInputType)));
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
   if (filterInputType !== 'operator' && inputValue) {

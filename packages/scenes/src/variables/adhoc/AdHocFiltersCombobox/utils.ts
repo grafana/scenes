@@ -11,19 +11,30 @@ export const VIRTUAL_LIST_OVERSCAN = 5;
 export const VIRTUAL_LIST_ITEM_HEIGHT = 38;
 
 export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
-  const ufuzzy = new uFuzzy({
-    alpha: '[=|>|<|!|~|a-z]',
-  });
+  const ufuzzy = new uFuzzy();
   const haystack: string[] = [];
   const limit = 10000;
 
-  return (search: string) => {
+  return (search: string, filterInputType: AdHocInputType) => {
     if (search === '') {
       if (options.length > limit) {
         return options.slice(0, limit);
       } else {
         return options;
       }
+    }
+
+    if (filterInputType === 'operator') {
+      const filteredOperators = [];
+      for (let i = 0; i < options.length; i++) {
+        if ((options[i].label || options[i].value)?.includes(search)) {
+          filteredOperators.push(options[i]);
+          if (filteredOperators.length > limit) {
+            return filteredOperators;
+          }
+        }
+      }
+      return filteredOperators;
     }
 
     if (haystack.length === 0) {
