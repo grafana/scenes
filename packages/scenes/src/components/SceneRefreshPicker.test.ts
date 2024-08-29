@@ -65,6 +65,24 @@ describe('SceneRefreshPicker', () => {
     expect(dateTime(t2.to).diff(t1.to, 's')).toBe(5);
   });
 
+  it('does not update time range on provided interval if tab not visible', async () => {
+    const { timeRange } = setupScene('5s');
+
+    const onRefreshMock = jest.spyOn(timeRange, 'onRefresh');
+    const isTabVisibleMock = jest.spyOn(SceneRefreshPicker.prototype as any, 'isTabVisible');
+    isTabVisibleMock.mockReturnValue(false);
+
+    jest.advanceTimersByTime(5000);
+
+    expect(onRefreshMock).not.toHaveBeenCalled();
+
+    isTabVisibleMock.mockReturnValue(true);
+
+    jest.advanceTimersByTime(5000);
+
+    expect(onRefreshMock).toHaveBeenCalled();
+  });
+
   it('allows interval clearing', async () => {
     const { refreshPicker, timeRange } = setupScene('5s');
 
