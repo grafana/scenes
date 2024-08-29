@@ -19,9 +19,9 @@ import { DropdownItem, LoadingOptionsPlaceholder, NoOptionsPlaceholder, OptionsE
 import {
   ERROR_STATE_DROPDOWN_WIDTH,
   flattenOptionGroups,
-  flushSyncInputType,
   fuzzySearchOptions,
   setupDropdownAccessibility,
+  switchInputType,
   switchToNextInputType,
   VIRTUAL_LIST_ITEM_HEIGHT,
   VIRTUAL_LIST_OVERSCAN,
@@ -199,9 +199,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         setInputValue('');
         setActiveIndex(0);
 
-        switchToNextInputType(filterInputType, setInputType, handleChangeViewMode);
-
-        refs.domReference.current?.focus();
+        switchToNextInputType(filterInputType, setInputType, handleChangeViewMode, refs.domReference.current);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -223,11 +221,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // when not in wip mode this is the point of switching from view to edit mode
   //    and in this case we default to 'value' input type and focus input
   useEffect(() => {
-    if (!isAlwaysWip && refs.domReference.current) {
+    if (!isAlwaysWip) {
       setInputType('value');
       setInputValue('');
 
-      refs.domReference.current.focus();
+      refs.domReference.current?.focus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -262,15 +260,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               tabIndex={0}
               onClick={(event) => {
                 event.stopPropagation();
-                flushSyncInputType('operator', setInputType);
-
-                refs.domReference.current?.focus();
+                switchInputType('operator', setInputType, undefined, refs.domReference.current);
               }}
               onKeyDown={(event) => {
                 handleShiftTabInput(event);
                 if (event.key === 'Enter') {
-                  flushSyncInputType('operator', setInputType);
-                  refs.domReference.current?.focus();
+                  switchInputType('operator', setInputType, undefined, refs.domReference.current);
                 }
               }}
             >
@@ -388,9 +383,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                             model._updateFilter(filter!, filterInputType, item);
                             setInputValue('');
 
-                            switchToNextInputType(filterInputType, setInputType, handleChangeViewMode);
-
-                            refs.domReference.current?.focus();
+                            switchToNextInputType(
+                              filterInputType,
+                              setInputType,
+                              handleChangeViewMode,
+                              refs.domReference.current
+                            );
                           },
                         })}
                         active={activeIndex === index}
