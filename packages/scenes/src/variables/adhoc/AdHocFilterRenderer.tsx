@@ -40,7 +40,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   // TODO remove expect-error when we're on the latest version of @grafana/data
   // @ts-expect-error
-  const [uncommittedValue, setUncommittedValue] = useState(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []);
+  const [uncommittedValue, setUncommittedValue] = useState<SelectableValue>(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []);
   const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
@@ -61,19 +61,22 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
 
     const update: Partial<AdHocFilterWithLabels> = { operator: newOperator };
     // clear value if operator has changed from multi to single
-    if (!isMultiValueOperator(newOperator) && isMultiValueOperator(existingOperator)) {
+    if (isMultiValueOperator(existingOperator) && !isMultiValueOperator(newOperator)) {
       update.value = '';
       update.valueLabels = [''];
       // TODO remove expect-error when we're on the latest version of @grafana/data
       // @ts-expect-error
       update.values = undefined;
-      setUncommittedValue(null);
+      setUncommittedValue([]);
     // set values if operator has changed from single to multi
-    } else if (isMultiValueOperator(newOperator) && !isMultiValueOperator(existingOperator) && filter.value) {
+    } else if (!isMultiValueOperator(existingOperator) && isMultiValueOperator(newOperator) && filter.value) {
       // TODO remove expect-error when we're on the latest version of @grafana/data
       // @ts-expect-error
       update.values = [filter.value];
-      setUncommittedValue([filter.value]);
+      setUncommittedValue([{
+        value: filter.value,
+        label: filter.valueLabels?.[0] ?? filter.value,
+      }]);
     }
     model._updateFilter(filter, update);
   }
@@ -101,7 +104,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     },
     onBlur: () => {
       model._updateFilter(filter, {
-        value: uncommittedValue[0] ?? '',
+        value: uncommittedValue[0]?.value ?? '',
         // TODO remove expect-error when we're on the latest version of @grafana/data
         // @ts-expect-error
         values: uncommittedValue.map((option: SelectableValue<string>) => option.value),
@@ -172,13 +175,19 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       value={keyValue}
       placeholder={'Select label'}
       options={handleOptionGroups(keys)}
-      onChange={(v) => model._updateFilter(filter, {
-        key: v.value,
-        keyLabel: v.label,
-        // clear value if key has changed
-        value: '',
-        valueLabels: ['']
-      })}
+      onChange={(v) => {
+        model._updateFilter(filter, {
+          key: v.value,
+          keyLabel: v.label,
+          // clear value if key has changed
+          value: '',
+          valueLabels: [''],
+          // TODO remove expect-error when we're on the latest version of @grafana/data
+          // @ts-expect-error
+          values: undefined
+        })
+        setUncommittedValue([]);
+      }}
       autoFocus={filter.key === ''}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
       // see https://github.com/grafana/grafana/issues/63558
