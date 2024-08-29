@@ -148,9 +148,9 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       const shouldCreateHistoryEntry = changedObject.urlSync.shouldCreateHistoryStep?.(newUrlState);
       const shouldReplace = shouldCreateHistoryEntry !== true;
 
-      writeSceneLog('UrlSyncManager', 'onStateChange updating URL');
       locationService.partial(mappedUpdated, shouldReplace);
 
+      writeSceneLog('UrlSyncManager', 'onStateChange updating URL');
       /// Mark the location already handled
       this._lastLocation = locationService.getLocation();
     }
