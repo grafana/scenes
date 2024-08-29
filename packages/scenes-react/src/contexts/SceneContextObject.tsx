@@ -54,7 +54,7 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
   public addVariable(variable: SceneVariable) {
     let set = this.state.$variables as SceneVariableSet;
 
-    this.publishEvent(new NewSceneObjectAddedEvent(set), true);
+    this.publishEvent(new NewSceneObjectAddedEvent(variable), true);
 
     if (set) {
       set.setState({ variables: [...set.state.variables, variable] });
