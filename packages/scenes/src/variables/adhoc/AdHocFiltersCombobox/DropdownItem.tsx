@@ -37,7 +37,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     left: 0,
     width: '100%',
     position: 'absolute',
-    padding: '8px',
+    padding: theme.spacing(1),
     display: 'flex',
     alignItems: 'center',
     flexDirection: 'row',

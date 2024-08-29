@@ -22,6 +22,7 @@ import {
   flushSyncInputType,
   fuzzySearchOptions,
   setupDropdownAccessibility,
+  switchToNextInputType,
   VIRTUAL_LIST_ITEM_HEIGHT,
   VIRTUAL_LIST_OVERSCAN,
 } from './utils';
@@ -198,15 +199,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         setInputValue('');
         setActiveIndex(0);
 
-        if (filterInputType === 'key') {
-          flushSyncInputType('operator', setInputType);
-        } else if (filterInputType === 'operator') {
-          flushSyncInputType('value', setInputType);
-        } else if (filterInputType === 'value') {
-          flushSyncInputType('key', setInputType);
-
-          handleChangeViewMode?.();
-        }
+        switchToNextInputType(filterInputType, setInputType, handleChangeViewMode);
 
         refs.domReference.current?.focus();
       }
@@ -395,14 +388,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                             model._updateFilter(filter!, filterInputType, item);
                             setInputValue('');
 
-                            if (filterInputType === 'key') {
-                              flushSyncInputType('operator', setInputType);
-                            } else if (filterInputType === 'operator') {
-                              flushSyncInputType('value', setInputType);
-                            } else if (filterInputType === 'value') {
-                              flushSyncInputType('key', setInputType);
-                              handleChangeViewMode?.();
-                            }
+                            switchToNextInputType(filterInputType, setInputType, handleChangeViewMode);
 
                             refs.domReference.current?.focus();
                           },
@@ -450,7 +436,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.primary,
     overflow: 'hidden',
     whiteSpace: 'nowrap',
-    minHeight: '22px',
+    minHeight: theme.spacing(2.75),
     ...theme.typography.bodySmall,
     cursor: 'pointer',
   }),

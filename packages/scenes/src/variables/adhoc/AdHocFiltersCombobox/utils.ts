@@ -167,3 +167,21 @@ export const filterAutoParser = ({
     }
   }
 };
+
+const nextInputTypeMap = {
+  key: 'operator',
+  operator: 'value',
+  value: 'key',
+} as const;
+
+export const switchToNextInputType = (
+  filterInputType: AdHocInputType,
+  setInputType: React.Dispatch<React.SetStateAction<AdHocInputType>>,
+  handleChangeViewMode: (() => void) | undefined
+) => {
+  flushSyncInputType(nextInputTypeMap[filterInputType], setInputType);
+
+  if (filterInputType === 'value') {
+    handleChangeViewMode?.();
+  }
+};

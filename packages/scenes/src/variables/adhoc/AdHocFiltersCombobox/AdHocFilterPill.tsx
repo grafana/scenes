@@ -17,6 +17,9 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
   const [viewMode, setViewMode] = useState(true);
   const pillWrapperRef = useRef<HTMLDivElement>(null);
 
+  const keyLabel = filter.keyLabel ?? filter.key;
+  const valueLabel = filter.valueLabel ?? filter.value;
+
   const handleChangeViewMode = useCallback(
     (event?: React.MouseEvent) => {
       event?.stopPropagation();
@@ -48,12 +51,12 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
           }
         }}
         role="button"
-        aria-label={`Edit filter with key ${filter.keyLabel ?? filter.key}`}
+        aria-label={`Edit filter with key ${keyLabel}`}
         tabIndex={0}
         ref={pillWrapperRef}
       >
         <span>
-          {filter.keyLabel ?? filter.key} {filter.operator} {filter.valueLabel ?? filter.value}
+          {keyLabel} {filter.operator} {valueLabel}
         </span>
         {!readOnly ? (
           <IconButton
@@ -71,7 +74,7 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
             name="times"
             size="md"
             className={styles.removeButton}
-            tooltip={`Remove filter with key ${filter.keyLabel ?? filter.key}`}
+            tooltip={`Remove filter with key ${keyLabel}`}
           />
         ) : null}
       </div>
@@ -92,7 +95,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.primary,
     overflow: 'hidden',
     whiteSpace: 'nowrap',
-    minHeight: '22px',
+    minHeight: theme.spacing(2.75),
     ...theme.typography.bodySmall,
     fontWeight: theme.typography.fontWeightBold,
     cursor: 'pointer',
