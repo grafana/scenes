@@ -71,11 +71,11 @@ const getStyles = (theme: GrafanaTheme2) => ({
 });
 
 export const LoadingOptionsPlaceholder = () => {
-  return <DropdownItem>Loading options...</DropdownItem>;
+  return <DropdownItem onClick={(e) => e.stopPropagation()}>Loading options...</DropdownItem>;
 };
 
 export const NoOptionsPlaceholder = () => {
-  return <DropdownItem>No options found</DropdownItem>;
+  return <DropdownItem onClick={(e) => e.stopPropagation()}>No options found</DropdownItem>;
 };
 
 export const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
