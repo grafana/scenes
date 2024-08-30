@@ -1,8 +1,7 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton } from '@grafana/ui';
-import React, { useState, useRef, useCallback } from 'react';
-import { flushSync } from 'react-dom';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 
@@ -15,6 +14,7 @@ interface Props {
 export function AdHocFilterPill({ filter, model, readOnly }: Props) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
+  const [shouldFocus, setShouldFocus] = useState(false);
   const pillWrapperRef = useRef<HTMLDivElement>(null);
 
   const keyLabel = filter.keyLabel ?? filter.key;
@@ -26,19 +26,19 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
       if (readOnly) {
         return;
       }
-      let viewMode = false;
-      flushSync(() => {
-        setViewMode((mode) => {
-          viewMode = mode;
-          return !mode;
-        });
-      });
-      if (!viewMode) {
-        pillWrapperRef.current?.focus();
-      }
+
+      setShouldFocus(!viewMode);
+      setViewMode(!viewMode);
     },
-    [readOnly]
+    [readOnly, viewMode]
   );
+
+  useEffect(() => {
+    if (shouldFocus) {
+      pillWrapperRef.current?.focus();
+      setShouldFocus(false);
+    }
+  }, [shouldFocus]);
 
   if (viewMode) {
     return (
