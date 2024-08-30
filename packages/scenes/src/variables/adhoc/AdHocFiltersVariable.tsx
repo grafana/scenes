@@ -15,12 +15,16 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabels?: string[];
 }
+
+export type AdHocControlsLayout = ControlsLayout | 'combobox';
+
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
   addFilterButtonText?: string;
@@ -36,7 +40,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @experimental
    * Controls the layout and design of the label.
    */
-  layout?: ControlsLayout;
+  layout?: AdHocControlsLayout;
   /**
    * Defaults to automatic which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
    * In manual mode you either have to use the filters programmatically or as a variable inside query expressions.
@@ -115,29 +119,38 @@ export type OperatorDefinition = {
   isMulti?: Boolean;
 };
 
-const OPERATORS: OperatorDefinition[] = [{
-  value: '=',
-}, {
-  value: '!='
-}, {
-  value: '=|',
-  description: 'Is one of. Use to filter on multiple values.',
-  isMulti: true,
-}, {
-  value: '!=|',
-  description: 'Is not one of. Use to exclude multiple values.',
-  isMulti: true
-}, {
-  value: '=~',
-  description: 'Matches regex',
-}, {
-  value: '!~',
-  description: 'Does not match regex',
-}, {
-  value: '<'
-}, {
-  value: '>'
-}];
+const OPERATORS: OperatorDefinition[] = [
+  {
+    value: '=',
+  },
+  {
+    value: '!=',
+  },
+  {
+    value: '=|',
+    description: 'Is one of. Use to filter on multiple values.',
+    isMulti: true,
+  },
+  {
+    value: '!=|',
+    description: 'Is not one of. Use to exclude multiple values.',
+    isMulti: true,
+  },
+  {
+    value: '=~',
+    description: 'Matches regex',
+  },
+  {
+    value: '!~',
+    description: 'Does not match regex',
+  },
+  {
+    value: '<',
+  },
+  {
+    value: '>',
+  },
+];
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
@@ -185,10 +198,7 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
-  public _updateFilter(
-    filter: AdHocFilterWithLabels,
-    update: Partial<AdHocFilterWithLabels>
-  ) {
+  public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
     const { filters, _wip } = this.state;
 
     if (filter === _wip) {
@@ -215,6 +225,14 @@ export class AdHocFiltersVariable
     }
 
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
+  }
+
+  public _removeLastFilter() {
+    const filterToRemove = this.state.filters.at(-1);
+
+    if (filterToRemove) {
+      this._removeFilter(filterToRemove);
+    }
   }
 
   /**
@@ -315,7 +333,9 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const filteredOperators = this.state.supportsMultiValueOperators ? OPERATORS : OPERATORS.filter((operator) => !operator.isMulti);
+    const filteredOperators = this.state.supportsMultiValueOperators
+      ? OPERATORS
+      : OPERATORS.filter((operator) => !operator.isMulti);
     return filteredOperators.map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
@@ -334,6 +354,10 @@ function renderExpression(
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
+
+  if (!model.state.supportsMultiValueOperators && model.state.layout === 'combobox') {
+    return <AdHocFiltersComboboxRenderer model={model} />;
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -355,10 +379,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     alignItems: 'flex-end',
     columnGap: theme.spacing(2),
     rowGap: theme.spacing(1),
-  }),
-  filterIcon: css({
-    color: theme.colors.text.secondary,
-    paddingRight: theme.spacing(0.5),
   }),
 });
 
