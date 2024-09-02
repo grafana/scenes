@@ -1,3 +1,15 @@
+# v5.11.2 (Mon Sep 02 2024)
+
+#### 🐛 Bug Fix
+
+- Make SceneRefreshPicker respect config.minRefreshInterval [#877](https://github.com/grafana/scenes/pull/877) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v5.11.1 (Fri Aug 30 2024)
 
 #### 🐛 Bug Fix
