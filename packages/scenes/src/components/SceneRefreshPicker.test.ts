@@ -3,6 +3,7 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 import { SceneRefreshPicker } from './SceneRefreshPicker';
 import { RefreshPicker } from '@grafana/ui';
+import { config } from '@grafana/runtime';
 
 jest.mock('@grafana/data', () => {
   const originalModule = jest.requireActual('@grafana/data');
@@ -17,7 +18,13 @@ jest.mock('@grafana/data', () => {
   };
 });
 
-function setupScene(refresh: string, intervals?: string[], autoEnabled?: boolean, autoInterval = 20000) {
+function setupScene(
+  refresh: string,
+  intervals?: string[],
+  autoEnabled?: boolean,
+  autoInterval = 20000,
+  minRefreshInterval?: string
+) {
   // We need to mock this on every run otherwise we can't rely on the spy value
   const calculateIntervalSpy = jest.fn(() => ({ interval: `${autoInterval / 1000}s`, intervalMs: autoInterval }));
 
@@ -29,6 +36,7 @@ function setupScene(refresh: string, intervals?: string[], autoEnabled?: boolean
     refresh,
     intervals,
     autoMinInterval: '20s',
+    minRefreshInterval,
   });
 
   const scene = new SceneFlexLayout({
@@ -183,6 +191,45 @@ describe('SceneRefreshPicker', () => {
 
     expect(dateTime(t4.from).diff(t3.from, 's')).toBe(12);
     expect(dateTime(t4.to).diff(t3.to, 's')).toBe(12);
+  });
+
+  describe('min interval config', () => {
+    beforeAll(() => {
+      config.minRefreshInterval = '30s';
+    });
+    afterAll(() => {
+      config.minRefreshInterval = '';
+    });
+
+    it('does not include unallowed intervals', () => {
+      const { refreshPicker } = setupScene('5s', ['5s', '30s', '1m']);
+      expect(refreshPicker.state.intervals).not.toContain('5s');
+    });
+
+    it('does not set interval to unallowed interval', () => {
+      const { timeRange } = setupScene('5s', ['5s', '30s', '1m']);
+      const t1 = timeRange.state.value;
+      jest.advanceTimersByTime(10000);
+
+      expect(dateTime(t1.from)).toEqual(dateTime(timeRange.state.value.from));
+    });
+
+    it('sets the interval to the first interval in the list if updated with a bad interval from the url', () => {
+      const { refreshPicker } = setupScene('5s', ['5s', '30s', '1m']);
+      refreshPicker.updateFromUrl({ refresh: '5s' });
+      expect(refreshPicker.state.refresh).toBe('30s');
+    });
+
+    it('can let min config interval to be overriden', () => {
+      const { refreshPicker } = setupScene('5s', ['5s', '10s', '30s', '1m'], undefined, undefined, '10s');
+      expect(refreshPicker.state.intervals).not.toContain('5s');
+      expect(refreshPicker.state.intervals).toContain('10s');
+    });
+
+    it('can let min config interval to be overriden to 0', () => {
+      const { refreshPicker } = setupScene('5s', ['5s', '30s', '1m'], undefined, undefined, '0ms');
+      expect(refreshPicker.state.intervals).toContain('5s');
+    });
   });
 
   describe('auto interval', () => {
