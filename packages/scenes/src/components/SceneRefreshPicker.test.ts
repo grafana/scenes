@@ -18,12 +18,17 @@ jest.mock('@grafana/data', () => {
   };
 });
 
-function setupScene(refresh: string, intervals?: string[], autoEnabled?: boolean, autoInterval = 20000) {
+function setupScene(
+  refresh: string,
+  intervals?: string[],
+  autoEnabled?: boolean,
+  autoInterval = 20000,
+  minRefreshInterval?: string
+) {
   // We need to mock this on every run otherwise we can't rely on the spy value
   const calculateIntervalSpy = jest.fn(() => ({ interval: `${autoInterval / 1000}s`, intervalMs: autoInterval }));
 
   rangeUtil.calculateInterval = calculateIntervalSpy;
-
 
   const timeRange = new SceneTimeRange({});
   const refreshPicker = new SceneRefreshPicker({
@@ -31,6 +36,7 @@ function setupScene(refresh: string, intervals?: string[], autoEnabled?: boolean
     refresh,
     intervals,
     autoMinInterval: '20s',
+    minRefreshInterval,
   });
 
   const scene = new SceneFlexLayout({
@@ -183,7 +189,7 @@ describe('SceneRefreshPicker', () => {
     });
 
     it('does not set interval to unallowed interval', () => {
-      const { timeRange} = setupScene('5s', ['5s', '30s', '1m']);
+      const { timeRange } = setupScene('5s', ['5s', '30s', '1m']);
       const t1 = timeRange.state.value;
       jest.advanceTimersByTime(10000);
 
@@ -194,8 +200,19 @@ describe('SceneRefreshPicker', () => {
       const { refreshPicker } = setupScene('5s', ['5s', '30s', '1m']);
       refreshPicker.updateFromUrl({ refresh: '5s' });
       expect(refreshPicker.state.refresh).toBe('30s');
-    })
-  })
+    });
+
+    it('can let min config interval to be overriden', () => {
+      const { refreshPicker } = setupScene('5s', ['5s', '10s', '30s', '1m'], undefined, undefined, '10s');
+      expect(refreshPicker.state.intervals).not.toContain('5s');
+      expect(refreshPicker.state.intervals).toContain('10s');
+    });
+
+    it('can let min config interval to be overriden to 0', () => {
+      const { refreshPicker } = setupScene('5s', ['5s', '30s', '1m'], undefined, undefined, '0ms');
+      expect(refreshPicker.state.intervals).toContain('5s');
+    });
+  });
 
   describe('auto interval', () => {
     it('includes auto interval in options by default', () => {
