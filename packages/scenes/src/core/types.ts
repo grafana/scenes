@@ -156,13 +156,13 @@ export interface SceneTimeRangeState extends SceneObjectState {
     /**
      * When set, the time range will invalidate relative ranges after the specified interval has elapsed
      */
-    afterMs?: number
+    afterMs?: number;
     /**
      * When set, the time range will invalidate relative ranges after the specified percentage of the current interval has elapsed.
      * If both invalidate values are set, the smaller value will be used for the given interval.
      */
-    percent?: number
-  }
+    percent?: number;
+  };
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {

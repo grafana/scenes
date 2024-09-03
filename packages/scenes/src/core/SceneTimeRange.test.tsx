@@ -74,6 +74,36 @@ describe('SceneTimeRange', () => {
     expect(timeRange.state.value.from.valueOf()).toEqual(1609495200000);
   });
 
+  it('updateFromUrl with time and time window using ms', () => {
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+    timeRange.urlSync?.updateFromUrl({
+      from: '2021-01-01T10:00:00.000Z',
+      to: '2021-02-03T01:20:00.000Z',
+      time: '1500000000000', // 2017-07-14T02:40:00.000Z
+      'time.window': '10000', // 10s
+    });
+
+    // 2017-07-14T02:40:00.000Z - 5s
+    expect(timeRange.state.from).toEqual('2017-07-14T02:39:55.000Z');
+    // 2017-07-14T02:40:00.000Z + 5s
+    expect(timeRange.state.to).toEqual('2017-07-14T02:40:05.000Z');
+  });
+
+  it('updateFromUrl with time and time window using ISO', () => {
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+    timeRange.urlSync?.updateFromUrl({
+      from: '2021-01-01T10:00:00.000Z',
+      to: '2021-02-03T01:20:00.000Z',
+      time: '2017-07-14T02:40:00.000Z', // 2017-07-14T02:40:00.000Z
+      'time.window': '10000', // 10s
+    });
+
+    // 2017-07-14T02:40:00.000Z - 5s
+    expect(timeRange.state.from).toEqual('2017-07-14T02:39:55.000Z');
+    // 2017-07-14T02:40:00.000Z + 5s
+    expect(timeRange.state.to).toEqual('2017-07-14T02:40:05.000Z');
+  });
+
   it('should not update state when time range is not changed', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
     const stateSpy = jest.spyOn(timeRange, 'setState');
