@@ -8,7 +8,7 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
-import { config, RefreshEvent } from '@grafana/runtime';
+import { config, locationService, RefreshEvent } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
@@ -200,13 +200,15 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   public getUrlState() {
+    const params = locationService.getSearchObject();
     const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to };
 
     if (this.state.timeZone) {
       urlValues.timezone = this.state.timeZone;
     }
 
-    if (urlValues.from && urlValues.to) {
+    // Clear time and time.window once they are converted to from and to
+    if (params.time && params['time.window']) {
       urlValues.time = null;
       urlValues['time.window'] = null;
     }
@@ -217,19 +219,15 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   public updateFromUrl(values: SceneObjectUrlValues) {
     const update: Partial<SceneTimeRangeState> = {};
 
-    let from = values.from;
-    let to = values.to;
+    let from = parseUrlParam(values.from);
+    let to = parseUrlParam(values.to);
 
     if (values.time && values['time.window']) {
       const time = Array.isArray(values.time) ? values.time[0] : values.time;
       const timeWindow = Array.isArray(values['time.window']) ? values['time.window'][0] : values['time.window'];
       const timeRange = getTimeWindow(time, timeWindow);
-
       from = timeRange.from;
       to = timeRange.to;
-    } else {
-      from = parseUrlParam(values.from);
-      to = parseUrlParam(values.to);
     }
 
     if (!from && !to) {
@@ -266,11 +264,13 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
  * @param timeWindow - time window in ms or interval string
  */
 function getTimeWindow(time: string, timeWindow: string) {
-  const valueTime = parseInt(time, 10);
+  // Parse the time, assuming it could be an ISO string or a number in milliseconds
+  const valueTime = isNaN(Date.parse(time)) ? parseInt(time, 10) : Date.parse(time);
+
   let timeWindowMs;
 
   if (timeWindow.match(/^\d+$/) && parseInt(timeWindow, 10)) {
-    // when time window specified in ms
+    // when time window is specified in ms
     timeWindowMs = parseInt(timeWindow, 10);
   } else {
     timeWindowMs = rangeUtil.intervalToMs(timeWindow);
