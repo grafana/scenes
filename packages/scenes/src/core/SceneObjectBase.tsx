@@ -270,6 +270,13 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * make sure to call the returned function when the source scene object is deactivated.
    */
   public activate(): CancelActivationHandler {
+    // If parent is not active, activate parent first
+    let parentDeactivate: CancelActivationHandler | undefined;
+    if (this.parent && !this.parent.isActive) {
+      parentDeactivate = this.parent.activate();
+      console.log('activing parent');
+    }
+
     if (!this.isActive) {
       this._internalActivate();
     }
@@ -279,6 +286,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     let called = false;
 
     return () => {
+      if (parentDeactivate) {
+        parentDeactivate();
+      }
+
       this._refCount--;
 
       if (called) {
