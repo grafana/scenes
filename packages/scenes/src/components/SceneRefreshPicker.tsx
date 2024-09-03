@@ -159,13 +159,13 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   let tooltip: string | undefined;
   let width: string | undefined;
 
-  // if (isRunning) {
-  //   tooltip = 'Cancel all queries';
+  if (isRunning) {
+    tooltip = 'Cancel all queries';
 
-  //   if (withText) {
-  //     text = 'Cancel';
-  //   }
-  // }
+    if (withText) {
+      text = 'Cancel';
+    }
+  }
 
   if (withText) {
     width = '96px';

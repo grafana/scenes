@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { Observable, catchError, from, map } from 'rxjs';
 import { LoadingState } from '@grafana/schema';
 import { sceneGraph } from '../core/sceneGraph';
 import { QueryResultWithState, SceneQueryControllerEntry } from '../behaviors/types';
@@ -45,4 +45,31 @@ export function registerQueryWithController<T extends QueryResultWithState>(entr
       };
     });
   };
+}
+
+// Wraps an arbitrary Promise in an observble that emits Promise state
+export function wrapPromiseInStateObservable(promise: Promise<any>): Observable<QueryResultWithState> {
+  console.log('wrapPromiseInStateObservable', promise);
+  return new Observable<QueryResultWithState>((observer) => {
+    // Emit 'loading' state initially
+    observer.next({ state: LoadingState.Loading });
+
+    // Convert the promise to an observable
+    const promiseObservable = from(promise);
+
+    // Subscribe to the promise observable
+    promiseObservable
+      .pipe(
+        map(() => ({ state: LoadingState.Done })),
+
+        catchError(() => {
+          observer.next({ state: LoadingState.Error });
+          return [];
+        })
+      )
+      .subscribe({
+        next: (result) => observer.next(result),
+        complete: () => observer.complete(),
+      });
+  });
 }

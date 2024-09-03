@@ -13,18 +13,22 @@ export interface SceneQueryControllerEntry {
   cancel?: () => void;
 }
 
-export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts';
+export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts' | 'plugin';
 
 export interface SceneInteractionProfileEvent {
   origin: string;
   duration: number;
   networkDuration: number;
+  jsHeapSizeLimit: number;
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
   crumbs: string[];
   // add more granular data,i.e. network times? slow frames?
 }
 
 export interface SceneQueryStateControllerState extends SceneObjectState {
   isRunning: boolean;
+  enableProfiling?: boolean;
   onProfileComplete?(event: SceneInteractionProfileEvent): void;
 }
 

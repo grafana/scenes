@@ -52,6 +52,7 @@ export class SceneRenderProfiler {
     } else {
       const slowFrames = processRecordedSpans(this.#recordedTrailingSpans);
       const slowFramesTime = slowFrames.reduce((acc, val) => acc + val, 0);
+
       writeSceneLog(
         this.constructor.name,
         'Profile tail recorded, slow frames duration:',
@@ -62,22 +63,19 @@ export class SceneRenderProfiler {
 
       this.#recordedTrailingSpans = [];
 
-      // Using performance api to calculate sum of all network requests time starting at performance.now() -profileDuration - slowFramesTime
-      // const entries = performance.getEntriesByType('resource');
-
-      const n = performance.now();
-
       const profileDuration = measurementStartTs - profileStartTs;
+
       writeSceneLog(
         this.constructor.name,
         'Stoped recording, total measured time (network included):',
         profileDuration + slowFramesTime
       );
       this.#trailAnimationFrameId = null;
-      performance.measure('DashboardInteraction tail', {
-        start: measurementStartTs,
-        end: measurementStartTs + n,
-      });
+
+      // performance.measure('DashboardInteraction tail', {
+      //   start: measurementStartTs,
+      //   end: measurementStartTs + n,
+      // });
 
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
 
@@ -94,6 +92,12 @@ export class SceneRenderProfiler {
           crumbs: this.#profileInProgress!.crumbs,
           duration: profileDuration + slowFramesTime,
           networkDuration,
+          // @ts-ignore
+          jsHeapSizeLimit: performance.memory ? performance.memory.jsHeapSizeLimit : 0,
+          // @ts-ignore
+          usedJSHeapSize: performance.memory ? performance.memory.usedJSHeapSize : 0,
+          // @ts-ignore
+          totalJSHeapSize: performance.memory ? performance.memory.totalJSHeapSize : 0,
         });
       }
       // @ts-ignore
@@ -109,6 +113,7 @@ export class SceneRenderProfiler {
 
   public tryCompletingProfile() {
     writeSceneLog(this.constructor.name, 'Trying to complete profile', this.#profileInProgress);
+
     if (this.queryController.runningQueriesCount() === 0 && this.#profileInProgress) {
       writeSceneLog(this.constructor.name, 'All queries completed, stopping profile');
       this.recordProfileTail(performance.now(), this.#profileStartTs!);
@@ -145,7 +150,7 @@ function processRecordedSpans(spans: number[]) {
 
 function captureNetwork(startTs: number, endTs: number) {
   const entries = performance.getEntriesByType('resource');
-  performance.clearResourceTimings();
+  // performance.clearResourceTimings();
   const networkEntries = entries.filter((entry) => entry.startTime >= startTs && entry.startTime <= endTs);
   for (const entry of networkEntries) {
     performance.measure('Network entry ' + entry.name, {

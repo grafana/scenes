@@ -15,7 +15,6 @@ import { config } from '@grafana/runtime';
 let mockedEvents: Array<Partial<Field>> = [];
 
 const getDataSourceMock = jest.fn().mockReturnValue({
-  // getRef: () => ({ uid: 'test' }),
   annotations: {
     prepareAnnotation: (q: AnnotationQuery) => q,
     prepareQuery: (q: AnnotationQuery) => q,
@@ -130,7 +129,6 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
   });
 
   describe('variables support', () => {
-    beforeEach(() => {});
     describe('When query is using variable that is still loading', () => {
       it('Should not executed query on activate', async () => {
         const variable = new TestVariable({ name: 'A', value: '1' });

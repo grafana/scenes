@@ -34,6 +34,9 @@ export class SceneQueryController
     return this.#running.size;
   };
   public startProfile(source: SceneObject) {
+    if (!this.state.enableProfiling) {
+      return;
+    }
     this.profiler.startProfile(source.constructor.name);
   }
 
@@ -67,10 +70,10 @@ export class SceneQueryController
     (window as any).__grafanaRunningQueryCount = ((window as any).__grafanaRunningQueryCount ?? 0) + dir;
 
     // console.log('\tRunning queries:', (window as any).__grafanaRunningQueryCount);
-    if (dir === 1) {
+    if (dir === 1 && this.state.enableProfiling) {
       if (entry) {
-        // Collect profile crumbs, variables, annotations and queries
-        this.profiler.addCrumb(entry.origin.constructor.name);
+        // Collect profile crumbs, variables, annotations, queries and plugins
+        this.profiler.addCrumb(`${entry.origin.constructor.name}/${entry.type}`);
       }
       if (this.profiler.isTailRecording()) {
         writeSceneLog(this.constructor.name, 'New query started, cancelling tail recording');
@@ -78,15 +81,17 @@ export class SceneQueryController
       }
     }
 
-    // Delegate to next frame to check if all queries are completed
-    // This is to account for scenarios when there's "yet another" query that's started
-    if (this.#tryCompleteProfileFrameId) {
-      cancelAnimationFrame(this.#tryCompleteProfileFrameId);
-    }
+    if (this.state.enableProfiling) {
+      // Delegate to next frame to check if all queries are completed
+      // This is to account for scenarios when there's "yet another" query that's started
+      if (this.#tryCompleteProfileFrameId) {
+        cancelAnimationFrame(this.#tryCompleteProfileFrameId);
+      }
 
-    this.#tryCompleteProfileFrameId = requestAnimationFrame(() => {
-      this.profiler.tryCompletingProfile();
-    });
+      this.#tryCompleteProfileFrameId = requestAnimationFrame(() => {
+        this.profiler.tryCompletingProfile();
+      });
+    }
   }
 
   public cancelAll() {
