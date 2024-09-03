@@ -1,3 +1,16 @@
+# v5.12.0 (Tue Sep 03 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimeRange: Support initialize time range with time and time.window [#886](https://github.com/grafana/scenes/pull/886) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v5.11.2 (Mon Sep 02 2024)
 
 #### 🐛 Bug Fix
