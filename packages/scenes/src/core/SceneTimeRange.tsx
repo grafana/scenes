@@ -1,4 +1,4 @@
-import { getTimeZone, rangeUtil, setWeekStart, TimeRange } from '@grafana/data';
+import { getTimeZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -11,7 +11,7 @@ import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 import { config, RefreshEvent } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone'] });
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
 
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
     const from = state.from ?? 'now-6h';
@@ -201,27 +201,45 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public getUrlState() {
     const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to };
+
     if (this.state.timeZone) {
       urlValues.timezone = this.state.timeZone;
+    }
+
+    if (urlValues.from && urlValues.to) {
+      urlValues.time = null;
+      urlValues['time.window'] = null;
     }
 
     return urlValues;
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
-    // ignore if both are missing
-    if (!values.to && !values.from) {
-      return;
+    const update: Partial<SceneTimeRangeState> = {};
+
+    let from = values.from;
+    let to = values.to;
+
+    if (values.time && values['time.window']) {
+      const time = Array.isArray(values.time) ? values.time[0] : values.time;
+      const timeWindow = Array.isArray(values['time.window']) ? values['time.window'][0] : values['time.window'];
+      const timeRange = getTimeWindow(time, timeWindow);
+
+      from = timeRange.from;
+      to = timeRange.to;
+    } else {
+      from = parseUrlParam(values.from);
+      to = parseUrlParam(values.to);
     }
 
-    const update: Partial<SceneTimeRangeState> = {};
-    const from = parseUrlParam(values.from);
+    if (!from && !to) {
+      return;
+    }
 
     if (from) {
       update.from = from;
     }
 
-    const to = parseUrlParam(values.to);
     if (to) {
       update.to = to;
     }
@@ -240,4 +258,26 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
     this.setState(update);
   }
+}
+
+/**
+ * Calculates the duration of the time range from time-time.window/2 to time+time.window/2. Both be specified in ms. For example ?time=1500000000000&time.window=10000 results in a 10-second time range from 1499999995000 to 1500000005000`.
+ * @param time - time in ms
+ * @param timeWindow - time window in ms or interval string
+ */
+function getTimeWindow(time: string, timeWindow: string) {
+  const valueTime = parseInt(time, 10);
+  let timeWindowMs;
+
+  if (timeWindow.match(/^\d+$/) && parseInt(timeWindow, 10)) {
+    // when time window specified in ms
+    timeWindowMs = parseInt(timeWindow, 10);
+  } else {
+    timeWindowMs = rangeUtil.intervalToMs(timeWindow);
+  }
+
+  return {
+    from: toUtc(valueTime - timeWindowMs / 2).toISOString(),
+    to: toUtc(valueTime + timeWindowMs / 2).toISOString(),
+  };
 }
