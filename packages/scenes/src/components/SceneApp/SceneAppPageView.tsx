@@ -1,6 +1,6 @@
 import { NavModelItem, UrlQueryMap } from '@grafana/data';
 import { PluginPage } from '@grafana/runtime';
-import React, { useEffect, useLayoutEffect } from 'react';
+import React, { useContext, useEffect, useLayoutEffect } from 'react';
 
 import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
@@ -9,10 +9,10 @@ import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getUrlWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
 import { useUrlSync } from '../../services/useUrlSync';
+import { SceneAppContext } from './SceneApp';
 
 export interface Props {
   page: SceneAppPageLike;
-  //   activeTab?: SceneAppPageLike;
   routeProps: RouteComponentProps;
 }
 
@@ -21,8 +21,9 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   const containerState = containerPage.useState();
   const params = useAppQueryParams();
   const scene = page.getScene(routeProps.match);
+  const appContext = useContext(SceneAppContext);
   const isInitialized = containerState.initializedScene === scene;
-  const {layout} = page.state;
+  const { layout } = page.state;
 
   useLayoutEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
@@ -36,7 +37,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     return () => containerPage.setState({ initializedScene: undefined });
   }, [containerPage]);
 
-  const urlSyncInitialized = useUrlSync(containerPage);
+  const urlSyncInitialized = useUrlSync(containerPage, appContext?.state.urlSyncOptions);
 
   if (!isInitialized && !urlSyncInitialized) {
     return null;
