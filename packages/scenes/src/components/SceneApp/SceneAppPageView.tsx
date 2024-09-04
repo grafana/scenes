@@ -13,7 +13,6 @@ import { SceneAppContext } from './SceneApp';
 
 export interface Props {
   page: SceneAppPageLike;
-  //   activeTab?: SceneAppPageLike;
   routeProps: RouteComponentProps;
 }
 
