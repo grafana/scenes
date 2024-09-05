@@ -214,6 +214,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'has no text', condition: '' }],
                   layout: 'combobox',
+                  supportsMultiValueOperators: true,
                 }),
               ],
             }),

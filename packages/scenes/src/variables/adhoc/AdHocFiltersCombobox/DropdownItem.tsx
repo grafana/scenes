@@ -1,16 +1,18 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { useStyles2 } from '@grafana/ui';
+import { Button, Checkbox, useStyles2 } from '@grafana/ui';
 import React, { forwardRef, useId } from 'react';
 
 interface DropdownItemProps {
   children: React.ReactNode;
   active?: boolean;
   addGroupBottomBorder?: boolean;
+  isMultiValueEdit?: boolean;
+  checked?: boolean;
 }
 
 export const DropdownItem = forwardRef<HTMLDivElement, DropdownItemProps & React.HTMLProps<HTMLDivElement>>(
-  function DropdownItem({ children, active, addGroupBottomBorder, ...rest }, ref) {
+  function DropdownItem({ children, active, addGroupBottomBorder, isMultiValueEdit, checked, ...rest }, ref) {
     const styles = useStyles2(getStyles);
     const id = useId();
     return (
@@ -23,7 +25,10 @@ export const DropdownItem = forwardRef<HTMLDivElement, DropdownItemProps & React
         {...rest}
       >
         <div className={styles.optionBody} data-testid={`data-testid ad hoc filter option value ${children}`}>
-          <span>{children}</span>
+          <span>
+            {isMultiValueEdit ? <Checkbox tabIndex={-1} checked={checked} className={styles.checkbox} /> : null}
+            {children}
+          </span>
         </div>
       </div>
     );
@@ -68,6 +73,22 @@ const getStyles = (theme: GrafanaTheme2) => ({
   groupBottomBorder: css({
     borderBottom: `1px solid ${theme.colors.border.weak}`,
   }),
+  checkbox: css({
+    paddingRight: theme.spacing(0.5),
+  }),
+  multiValueApply: css({
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    display: 'flex',
+  }),
+  dropdownWrapper: css({
+    backgroundColor: theme.colors.background.primary,
+    color: theme.colors.text.primary,
+    boxShadow: theme.shadows.z2,
+    overflowY: 'auto',
+    zIndex: theme.zIndex.dropdown,
+  }),
 });
 
 export const LoadingOptionsPlaceholder = () => {
@@ -81,5 +102,30 @@ export const NoOptionsPlaceholder = () => {
 export const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
   return (
     <DropdownItem onClick={handleFetchOptions}>An error has occurred fetching labels. Click to retry</DropdownItem>
+  );
+};
+
+interface MultiValueApplyButtonProps {
+  onClick: () => void;
+  floatingElement: HTMLElement | null;
+  maxOptionWidth: number;
+}
+
+export const MultiValueApplyButton = ({ onClick, floatingElement, maxOptionWidth }: MultiValueApplyButtonProps) => {
+  const styles = useStyles2(getStyles);
+
+  const floatingElementRect = floatingElement?.getBoundingClientRect();
+  return (
+    <div
+      className={cx(styles.dropdownWrapper, styles.multiValueApply)}
+      style={{
+        width: `${maxOptionWidth}px`,
+        transform: `translate(${floatingElementRect?.left}px,${floatingElementRect?.bottom}px)`,
+      }}
+    >
+      <Button onClick={onClick} fill="text" fullWidth tabIndex={-1}>
+        Apply
+      </Button>
+    </div>
   );
 };

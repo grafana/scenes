@@ -17,7 +17,7 @@ type useFloatingInteractionsProps = {
   onOpenChange: UseFloatingOptions['onOpenChange'];
   activeIndex: UseListNavigationProps['activeIndex'];
   setActiveIndex: UseListNavigationProps['onNavigate'];
-  operatorIdentifier: string;
+  outsidePressIdsToIgnore: string[];
   listRef: React.MutableRefObject<Array<HTMLElement | null>>;
   disabledIndicesRef: React.MutableRefObject<number[]>;
 };
@@ -29,7 +29,7 @@ export const useFloatingInteractions = ({
   onOpenChange,
   activeIndex,
   setActiveIndex,
-  operatorIdentifier,
+  outsidePressIdsToIgnore,
   listRef,
   disabledIndicesRef,
 }: useFloatingInteractionsProps) => {
@@ -56,8 +56,13 @@ export const useFloatingInteractions = ({
   const dismiss = useDismiss(context, {
     // if outside click lands on operator pill, then ignore outside click
     outsidePress: (event) => {
-      // if outside click lands on operator pill, then ignore outside click
-      if (event.currentTarget instanceof HTMLElement && event.currentTarget.id === operatorIdentifier) {
+      const target = (event.currentTarget || event.target) as HTMLElement | null;
+      let idToCompare = target?.id || '';
+      if (target?.nodeName === 'path') {
+        idToCompare = target.parentElement?.id || '';
+      }
+
+      if (outsidePressIdsToIgnore.includes(idToCompare)) {
         return false;
       }
       return true;

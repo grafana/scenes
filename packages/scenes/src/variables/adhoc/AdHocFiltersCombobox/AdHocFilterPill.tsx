@@ -18,7 +18,8 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
   const pillWrapperRef = useRef<HTMLDivElement>(null);
 
   const keyLabel = filter.keyLabel ?? filter.key;
-  const valueLabel = filter.valueLabels?.[0] ?? filter.value;
+  //@ts-expect-error
+  const valueLabel = filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
 
   const handleChangeViewMode = useCallback(
     (event?: React.MouseEvent) => {
@@ -55,7 +56,7 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
         tabIndex={0}
         ref={pillWrapperRef}
       >
-        <span>
+        <span className={styles.pillText}>
           {keyLabel} {filter.operator} {valueLabel}
         </span>
         {!readOnly ? (
@@ -117,5 +118,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       color: theme.colors.text.primary,
     },
+  }),
+  pillText: css({
+    whiteSpace: 'break-spaces',
   }),
 });

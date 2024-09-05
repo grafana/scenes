@@ -8,6 +8,7 @@ const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
 const VIRTUAL_LIST_PADDING = 8;
 export const VIRTUAL_LIST_OVERSCAN = 5;
 export const VIRTUAL_LIST_ITEM_HEIGHT = 38;
+export const VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION = 60;
 export const ERROR_STATE_DROPDOWN_WIDTH = 366;
 
 export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
@@ -86,6 +87,9 @@ export const setupDropdownAccessibility = (
       disabledIndices.push(i);
     }
     let label = options[i].label ?? options[i].value ?? '';
+    if (label.length < (options[i].description?.length || 0)) {
+      label = options[i].description!;
+    }
 
     // rough widthEstimate
     const widthEstimate =
