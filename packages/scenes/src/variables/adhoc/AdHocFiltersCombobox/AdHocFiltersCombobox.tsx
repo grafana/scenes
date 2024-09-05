@@ -545,6 +545,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 event.stopPropagation();
                               }
                               if (isMultiValueEdit) {
+                                event.preventDefault();
                                 event.stopPropagation();
                                 handleLocalMultiValueChange(item);
                                 refs.domReference.current?.focus();
