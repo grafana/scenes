@@ -123,12 +123,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     });
   }, []);
 
-  const handleRemoveMultiValue = useCallback(
-    (item: SelectableValue<string>) =>
-      setFilterMultiValues((selected) => selected.filter((option) => option.value !== item.value)),
-    []
-  );
-
   const onOpenChange = useCallback<NonNullable<UseFloatingOptions['onOpenChange']>>(
     (nextOpen, _, reason) => {
       setOpen(nextOpen);
@@ -182,6 +176,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     setInputValue(value);
     setActiveIndex(0);
   }
+
+  const handleRemoveMultiValue = useCallback(
+    (item: SelectableValue<string>) => {
+      setFilterMultiValues((selected) => selected.filter((option) => option.value !== item.value));
+      setTimeout(() => refs.domReference.current?.focus());
+    },
+    [refs.domReference]
+  );
 
   // operation order on fetched options:
   //    fuzzy search -> extract into groups -> flatten group labels and options

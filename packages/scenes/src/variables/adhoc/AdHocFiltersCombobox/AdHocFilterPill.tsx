@@ -9,9 +9,10 @@ interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
   readOnly?: boolean;
+  focusOnInputRef?: () => void;
 }
 
-export function AdHocFilterPill({ filter, model, readOnly }: Props) {
+export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Props) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
   const [shouldFocus, setShouldFocus] = useState(false);
@@ -65,12 +66,14 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
             onClick={(e) => {
               e.stopPropagation();
               model._removeFilter(filter);
+              setTimeout(() => focusOnInputRef?.());
             }}
             onKeyDownCapture={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
                 model._removeFilter(filter);
+                setTimeout(() => focusOnInputRef?.());
               }
             }}
             name="times"
