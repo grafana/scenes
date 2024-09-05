@@ -39,6 +39,12 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   protected _variableDependency: SceneVariableDependencyConfigLike | undefined;
   protected _urlSync: SceneObjectUrlSyncHandler | undefined;
 
+  /**
+   * @experimental feature to support rendering a child scene object without it's parent being rendered.
+   * This flag will make it so that the parent is activated (if it's inactive) when this object is activated.
+   */
+  public _UNSAFE_PARENT_ACTIVATION = false;
+
   public constructor(state: TState) {
     if (!state.key) {
       state.key = uuidv4();
@@ -270,6 +276,12 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * make sure to call the returned function when the source scene object is deactivated.
    */
   public activate(): CancelActivationHandler {
+    // If parent is not active, activate parent first
+    let parentDeactivate: CancelActivationHandler | undefined;
+    if (this.parent && !this.parent.isActive && this._UNSAFE_PARENT_ACTIVATION) {
+      parentDeactivate = this.parent.activate();
+    }
+
     if (!this.isActive) {
       this._internalActivate();
     }
@@ -279,6 +291,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
     let called = false;
 
     return () => {
+      if (parentDeactivate) {
+        parentDeactivate();
+      }
+
       this._refCount--;
 
       if (called) {
