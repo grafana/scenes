@@ -1,3 +1,44 @@
+# v5.13.0 (Wed Sep 04 2024)
+
+### Release Notes
+
+#### UrlSync: Support browser history steps, remove singleton ([#878](https://github.com/grafana/scenes/pull/878))
+
+getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider. 
+If you called getUrlSyncManager().getUrlState that util function is available via the exported object sceneUtils.
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - UrlSync: Support browser history steps, remove singleton [#878](https://github.com/grafana/scenes/pull/878) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - chore: export SceneDataTransformerState [#888](https://github.com/grafana/scenes/pull/888) ([@jewbetcha](https://github.com/jewbetcha))
+
+#### Authors: 2
+
+- Coleman Rollins ([@jewbetcha](https://github.com/jewbetcha))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.12.0 (Tue Sep 03 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimeRange: Support initialize time range with time and time.window [#886](https://github.com/grafana/scenes/pull/886) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v5.11.2 (Mon Sep 02 2024)
 
 #### 🐛 Bug Fix
