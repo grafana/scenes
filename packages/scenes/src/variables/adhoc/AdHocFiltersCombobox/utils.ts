@@ -214,3 +214,24 @@ export const generateFilterUpdatePayload = (
     [filterInputType]: item.value,
   };
 };
+
+const INPUT_PLACEHOLDER = 'Filter by label values';
+
+export const generatePlaceholder = (
+  filter: AdHocFilterWithLabels,
+  filterInputType: AdHocInputType,
+  isMultiValueEdit: boolean,
+  isAlwaysWip?: boolean
+) => {
+  if (filterInputType === 'key') {
+    return INPUT_PLACEHOLDER;
+  }
+  if (filterInputType === 'value') {
+    if (isMultiValueEdit) {
+      return INPUT_PLACEHOLDER;
+    }
+    return filter.valueLabels?.[0] || '';
+  }
+
+  return filter[filterInputType] && !isAlwaysWip ? `${filter[filterInputType]}` : INPUT_PLACEHOLDER;
+};

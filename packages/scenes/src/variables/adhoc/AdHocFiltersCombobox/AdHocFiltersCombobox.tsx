@@ -27,6 +27,7 @@ import {
   flattenOptionGroups,
   fuzzySearchOptions,
   generateFilterUpdatePayload,
+  generatePlaceholder,
   setupDropdownAccessibility,
   switchInputType,
   switchToNextInputType,
@@ -61,6 +62,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // control multi values with local state in order to commit all values at once and avoid _wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
   const [_, setForceRefresh] = useState({});
+
+  const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
   const multiValueOperators = useMemo(
     () => OPERATORS.reduce<string[]>((acc, operator) => (operator.isMulti ? [...acc, operator.value!] : acc), []),
@@ -398,7 +401,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }, [activeIndex, rowVirtualizer]);
 
   const keyLabel = filter?.keyLabel ?? filter?.key;
-  const valueLabel = filter?.valueLabels?.[0] ?? filter?.value;
 
   return (
     <div className={styles.comboboxWrapper}>
@@ -429,6 +431,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             </div>
           ) : null}
 
+          <div ref={multiValuePillWrapperRef}></div>
           {isMultiValueEdit
             ? filterMultiValues.map((item, i) => (
                 <MultiValuePill
@@ -448,11 +451,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           onChange,
           value: inputValue,
           // dynamic placeholder to display operator and/or value in filter edit mode
-          placeholder: !isAlwaysWip
-            ? filterInputType === 'operator'
-              ? `${filter![filterInputType]} ${valueLabel}`
-              : filter![filterInputType]
-            : 'Filter by label values',
+          placeholder: generatePlaceholder(filter!, filterInputType, isMultiValueEdit, isAlwaysWip),
           'aria-autocomplete': 'list',
           onKeyDown(event) {
             if (!open) {
@@ -487,6 +486,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 style={{
                   ...floatingStyles,
                   width: `${optionsError ? ERROR_STATE_DROPDOWN_WIDTH : maxOptionWidth}px`,
+                  transform: isMultiValueEdit
+                    ? `translate(${multiValuePillWrapperRef.current?.getBoundingClientRect().left || 0}px, ${
+                        (refs.domReference.current?.getBoundingClientRect().bottom || 0) + 10
+                      }px )`
+                    : floatingStyles.transform,
                 }}
                 ref={refs.setFloating}
                 className={styles.dropdownWrapper}
