@@ -58,11 +58,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [filterInputType, setInputType] = useState<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
   const styles = useStyles2(getStyles);
+  // control multi values with local state in order to commit all values at once and avoid _wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
   const [_, setForceRefresh] = useState({});
 
   const multiValueOperators = useMemo(
-    () => OPERATORS.reduce<string[]>((acc, operator) => (operator.isMulti ? [...acc, operator.value] : acc), []),
+    () => OPERATORS.reduce<string[]>((acc, operator) => (operator.isMulti ? [...acc, operator.value!] : acc), []),
     []
   );
 
@@ -86,8 +87,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     }
   }, [model, isAlwaysWip]);
 
-  const handleMultiValueUpdate = useCallback(
-    (model: AdHocFiltersVariable, filter: AdHocFilterWithLabels, filterMultiValues: Array<SelectableValue<string>>) => {
+  const handleMultiValueFilterCommit = useCallback(
+    (
+      model: AdHocFiltersVariable,
+      filter: AdHocFilterWithLabels,
+      filterMultiValues: Array<SelectableValue<string>>,
+      preventFocus?: boolean
+    ) => {
       if (filterMultiValues.length) {
         const valueLabels: string[] = [];
         const values: string[] = [];
@@ -100,13 +106,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         model._updateFilter(filter!, { valueLabels, values, value: values[0] });
         setFilterMultiValues([]);
       }
-      setTimeout(() => refs.domReference.current?.focus());
+      if (!preventFocus) {
+        setTimeout(() => refs.domReference.current?.focus());
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
-  const handleAddMultiValue = useCallback((selectedItem: SelectableValue<string>) => {
+  const handleLocalMultiValueChange = useCallback((selectedItem: SelectableValue<string>) => {
     setFilterMultiValues((items) => {
       if (items.some((item) => item.value === selectedItem.value)) {
         return items.filter((item) => item.value !== selectedItem.value);
@@ -129,15 +137,25 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       if (reason && ['outside-press', 'escape-key'].includes(reason)) {
         if (isMultiValueEdit) {
-          handleMultiValueUpdate(model, filter!, filterMultiValues);
+          // commit multi value filter values on escape and click-away
+          handleMultiValueFilterCommit(model, filter!, filterMultiValues);
         }
         handleResetWip();
         handleChangeViewMode?.();
       }
     },
-    [filter, filterMultiValues, handleChangeViewMode, handleMultiValueUpdate, handleResetWip, isMultiValueEdit, model]
+    [
+      filter,
+      filterMultiValues,
+      handleChangeViewMode,
+      handleMultiValueFilterCommit,
+      handleResetWip,
+      isMultiValueEdit,
+      model,
+    ]
   );
 
+  // generate ids from multi values in order to prevent outside click based on those ids
   const outsidePressIdsToIgnore = useMemo(() => {
     return [operatorIdentifier, ...filterMultiValues.map((item, i) => `${item.value}-${i}`)];
   }, [operatorIdentifier, filterMultiValues]);
@@ -245,8 +263,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       //  this is needed because useDismiss only reacts to mousedown
       if (event.key === 'Tab' && !event.shiftKey) {
         if (multiValueEdit) {
+          // commit multi value filter values on tab away
           event.preventDefault();
-          handleMultiValueUpdate(model, filter!, filterMultiValues);
+          handleMultiValueFilterCommit(model, filter!, filterMultiValues);
           refs.domReference.current?.focus();
         }
 
@@ -254,16 +273,31 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         handleResetWip();
       }
     },
-    [filter, filterMultiValues, handleChangeViewMode, handleMultiValueUpdate, handleResetWip, model, refs.domReference]
+    [
+      filter,
+      filterMultiValues,
+      handleChangeViewMode,
+      handleMultiValueFilterCommit,
+      handleResetWip,
+      model,
+      refs.domReference,
+    ]
   );
 
-  const handleShiftTabInput = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === 'Tab' && event.shiftKey) {
-      handleChangeViewMode?.();
-      handleResetWip();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const handleShiftTabInput = useCallback(
+    (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
+      if (event.key === 'Tab' && event.shiftKey) {
+        if (multiValueEdit) {
+          // commit multi value filter values on shift tab away
+          event.preventDefault();
+          handleMultiValueFilterCommit(model, filter!, filterMultiValues, true);
+        }
+        handleChangeViewMode?.();
+        handleResetWip();
+      }
+    },
+    [filter, filterMultiValues, handleChangeViewMode, handleMultiValueFilterCommit, handleResetWip, model]
+  );
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
@@ -275,7 +309,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         const selectedItem = filteredDropDownItems[activeIndex];
 
         if (multiValueEdit) {
-          handleAddMultiValue(selectedItem);
+          handleLocalMultiValueChange(selectedItem);
         } else {
           model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, selectedItem));
 
@@ -291,7 +325,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       filter,
       filterInputType,
       filteredDropDownItems,
-      handleAddMultiValue,
+      handleLocalMultiValueChange,
       handleChangeViewMode,
       model,
       refs.domReference,
@@ -332,6 +366,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           ],
           []
         );
+        // populate filter multi values to local state on pill edit enter
         setFilterMultiValues(multiValueOptions);
       }
 
@@ -382,7 +417,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 switchInputType('operator', setInputType, undefined, refs.domReference.current);
               }}
               onKeyDown={(event) => {
-                handleShiftTabInput(event);
+                handleShiftTabInput(event, hasMultiValueOperator);
                 if (event.key === 'Enter') {
                   switchInputType('operator', setInputType, undefined, refs.domReference.current);
                 }
@@ -511,7 +546,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                               }
                               if (isMultiValueEdit) {
                                 event.stopPropagation();
-                                handleAddMultiValue(item);
+                                handleLocalMultiValueChange(item);
                                 refs.domReference.current?.focus();
                               } else {
                                 model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, item));
@@ -550,7 +585,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               </div>
               {isMultiValueEdit && !optionsLoading && !optionsError && filteredDropDownItems.length ? (
                 <MultiValueApplyButton
-                  onClick={() => handleMultiValueUpdate(model, filter!, filterMultiValues)}
+                  onClick={() => handleMultiValueFilterCommit(model, filter!, filterMultiValues)}
                   floatingElement={refs.floating.current}
                   maxOptionWidth={maxOptionWidth}
                 />
