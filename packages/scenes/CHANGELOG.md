@@ -1,3 +1,15 @@
+# v5.14.0 (Thu Sep 05 2024)
+
+#### 🚀 Enhancement
+
+- SceneObjectBase: Support rendering a child out of context [#887](https://github.com/grafana/scenes/pull/887) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.13.0 (Wed Sep 04 2024)
 
 ### Release Notes
