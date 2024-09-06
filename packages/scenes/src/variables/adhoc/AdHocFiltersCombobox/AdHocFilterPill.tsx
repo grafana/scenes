@@ -124,6 +124,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
   pillText: css({
-    whiteSpace: 'break-spaces',
+    maxWidth: '200px',
+    width: '100%',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
   }),
 });
