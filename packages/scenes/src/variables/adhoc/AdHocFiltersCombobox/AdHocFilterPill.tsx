@@ -1,6 +1,6 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { useStyles2, IconButton } from '@grafana/ui';
+import { useStyles2, IconButton, Tooltip } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
@@ -58,9 +58,15 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
         tabIndex={0}
         ref={pillWrapperRef}
       >
-        <span className={styles.pillText}>
-          {keyLabel} {filter.operator} {valueLabel}
-        </span>
+        <Tooltip
+          show={valueLabel.length < 20 ? false : undefined}
+          content={<div className={styles.tooltipText}>{valueLabel}</div>}
+          placement="top"
+        >
+          <span className={styles.pillText}>
+            {keyLabel} {filter.operator} {valueLabel}
+          </span>
+        </Tooltip>
         {!readOnly ? (
           <IconButton
             onClick={(e) => {
@@ -128,5 +134,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
     width: '100%',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
+  }),
+  tooltipText: css({
+    textAlign: 'center',
   }),
 });
