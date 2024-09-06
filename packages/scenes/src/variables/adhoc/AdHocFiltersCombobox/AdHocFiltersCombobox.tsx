@@ -592,7 +592,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               </div>
               {isMultiValueEdit && !optionsLoading && !optionsError && filteredDropDownItems.length ? (
                 <MultiValueApplyButton
-                  onClick={() => handleMultiValueFilterCommit(model, filter!, filterMultiValues)}
+                  onApply={() => {
+                    handleMultiValueFilterCommit(model, filter!, filterMultiValues);
+                  }}
                   floatingElement={refs.floating.current}
                   maxOptionWidth={maxOptionWidth}
                 />

@@ -76,18 +76,18 @@ const getStyles = (theme: GrafanaTheme2) => ({
   checkbox: css({
     paddingRight: theme.spacing(0.5),
   }),
-  multiValueApply: css({
+  multiValueApplyWrapper: css({
     position: 'absolute',
     top: 0,
     left: 0,
     display: 'flex',
-  }),
-  dropdownWrapper: css({
     backgroundColor: theme.colors.background.primary,
     color: theme.colors.text.primary,
     boxShadow: theme.shadows.z2,
     overflowY: 'auto',
     zIndex: theme.zIndex.dropdown,
+    gap: theme.spacing(1.5),
+    padding: `${theme.spacing(1.5)} ${theme.spacing(1)}`,
   }),
 });
 
@@ -106,24 +106,24 @@ export const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOpt
 };
 
 interface MultiValueApplyButtonProps {
-  onClick: () => void;
+  onApply: () => void;
   floatingElement: HTMLElement | null;
   maxOptionWidth: number;
 }
 
-export const MultiValueApplyButton = ({ onClick, floatingElement, maxOptionWidth }: MultiValueApplyButtonProps) => {
+export const MultiValueApplyButton = ({ onApply, floatingElement, maxOptionWidth }: MultiValueApplyButtonProps) => {
   const styles = useStyles2(getStyles);
 
   const floatingElementRect = floatingElement?.getBoundingClientRect();
   return (
     <div
-      className={cx(styles.dropdownWrapper, styles.multiValueApply)}
+      className={styles.multiValueApplyWrapper}
       style={{
         width: `${maxOptionWidth}px`,
         transform: `translate(${floatingElementRect?.left}px,${floatingElementRect?.bottom}px)`,
       }}
     >
-      <Button onClick={onClick} fill="text" fullWidth tabIndex={-1}>
+      <Button onClick={onApply} size="sm" tabIndex={-1}>
         Apply
       </Button>
     </div>
