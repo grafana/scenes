@@ -180,6 +180,7 @@ interface SelectMenuOptionProps<T> {
   innerRef: RefCallback<HTMLDivElement>;
   renderOptionLabel?: (value: SelectableValue<T>) => JSX.Element;
   data: SelectableValue<T>;
+  indeterminate: boolean; 
 }
 
 export const OptionWithCheckbox = ({
@@ -189,6 +190,7 @@ export const OptionWithCheckbox = ({
   innerRef,
   isFocused,
   isSelected,
+  indeterminate,
   renderOptionLabel,
 }: React.PropsWithChildren<SelectMenuOptionProps<unknown>>) => {
   // We are removing onMouseMove and onMouseOver from innerProps because they cause the whole
@@ -210,7 +212,7 @@ export const OptionWithCheckbox = ({
       title={data.title}
     >
       <div className={optionStyles.checkbox}>
-        <Checkbox value={isSelected} />
+        <Checkbox indeterminate={indeterminate} value={isSelected} />
       </div>
       <div
         className={selectStyles.optionBody}
