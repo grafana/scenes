@@ -44,6 +44,11 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
   }, [shouldFocus]);
 
   if (viewMode) {
+    const pillText = (
+      <span className={styles.pillText}>
+        {keyLabel} {filter.operator} {valueLabel}
+      </span>
+    );
     return (
       <div
         className={cx(styles.combinedFilterPill, { [styles.readOnlyCombinedFilter]: readOnly })}
@@ -58,15 +63,14 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
         tabIndex={0}
         ref={pillWrapperRef}
       >
-        <Tooltip
-          show={valueLabel.length < 20 ? false : undefined}
-          content={<div className={styles.tooltipText}>{valueLabel}</div>}
-          placement="top"
-        >
-          <span className={styles.pillText}>
-            {keyLabel} {filter.operator} {valueLabel}
-          </span>
-        </Tooltip>
+        {valueLabel.length < 20 ? (
+          pillText
+        ) : (
+          <Tooltip content={<div className={styles.tooltipText}>{valueLabel}</div>} placement="top">
+            {pillText}
+          </Tooltip>
+        )}
+
         {!readOnly ? (
           <IconButton
             onClick={(e) => {
