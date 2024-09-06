@@ -228,7 +228,7 @@ export const generatePlaceholder = (
   }
   if (filterInputType === 'value') {
     if (isMultiValueEdit) {
-      return INPUT_PLACEHOLDER;
+      return 'Edit values';
     }
     return filter.valueLabels?.[0] || '';
   }
