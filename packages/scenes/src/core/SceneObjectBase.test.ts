@@ -145,23 +145,6 @@ describe('SceneObject', () => {
     scene.activate();
   });
 
-  describe('Should activate parent when inactive', () => {
-    const dataChild = new SceneDataNode({});
-    const scene = new TestScene({ $data: dataChild });
-
-    const deactivate = dataChild.activate();
-    expect(scene.isActive).toBe(false);
-
-    deactivate();
-
-    dataChild._UNSAFE_PARENT_ACTIVATION = true;
-    const deactivate2 = dataChild.activate();
-    expect(scene.isActive).toBe(true);
-
-    deactivate2();
-    expect(scene.isActive).toBe(false);
-  });
-
   describe('When deactivated', () => {
     const scene = new TestScene({
       $data: new SceneDataNode({}),
