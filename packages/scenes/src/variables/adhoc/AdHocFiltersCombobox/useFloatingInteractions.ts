@@ -56,14 +56,16 @@ export const useFloatingInteractions = ({
   const dismiss = useDismiss(context, {
     // if outside click lands on operator pill, then ignore outside click
     outsidePress: (event) => {
-      const target = (event.currentTarget || event.target) as HTMLElement | null;
-      let idToCompare = target?.id || '';
-      if (target?.nodeName === 'path') {
-        idToCompare = target.parentElement?.id || '';
-      }
+      if (event.currentTarget instanceof Element) {
+        const target = event.currentTarget;
+        let idToCompare = target.id;
+        if (target.nodeName === 'path') {
+          idToCompare = target.parentElement?.id || '';
+        }
 
-      if (outsidePressIdsToIgnore.includes(idToCompare)) {
-        return false;
+        if (outsidePressIdsToIgnore.includes(idToCompare)) {
+          return false;
+        }
       }
       return true;
     },

@@ -545,7 +545,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                             ref(node) {
                               listRef.current[index] = node;
                             },
-                            // ref: rowVirtualizer.measureElement,
                             onClick(event) {
                               if (filterInputType !== 'value') {
                                 event.stopPropagation();
