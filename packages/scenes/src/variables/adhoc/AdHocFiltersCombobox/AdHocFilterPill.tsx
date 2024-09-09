@@ -1,6 +1,6 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { useStyles2, IconButton } from '@grafana/ui';
+import { useStyles2, IconButton, Tooltip } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
@@ -9,16 +9,19 @@ interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
   readOnly?: boolean;
+  focusOnInputRef?: () => void;
 }
 
-export function AdHocFilterPill({ filter, model, readOnly }: Props) {
+export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Props) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
   const [shouldFocus, setShouldFocus] = useState(false);
   const pillWrapperRef = useRef<HTMLDivElement>(null);
 
   const keyLabel = filter.keyLabel ?? filter.key;
-  const valueLabel = filter.valueLabels?.[0] ?? filter.value;
+  // TODO remove when we're on the latest version of @grafana/data
+  //@ts-expect-error
+  const valueLabel = filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
 
   const handleChangeViewMode = useCallback(
     (event?: React.MouseEvent) => {
@@ -41,6 +44,11 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
   }, [shouldFocus]);
 
   if (viewMode) {
+    const pillText = (
+      <span className={styles.pillText}>
+        {keyLabel} {filter.operator} {valueLabel}
+      </span>
+    );
     return (
       <div
         className={cx(styles.combinedFilterPill, { [styles.readOnlyCombinedFilter]: readOnly })}
@@ -55,20 +63,27 @@ export function AdHocFilterPill({ filter, model, readOnly }: Props) {
         tabIndex={0}
         ref={pillWrapperRef}
       >
-        <span>
-          {keyLabel} {filter.operator} {valueLabel}
-        </span>
+        {valueLabel.length < 20 ? (
+          pillText
+        ) : (
+          <Tooltip content={<div className={styles.tooltipText}>{valueLabel}</div>} placement="top">
+            {pillText}
+          </Tooltip>
+        )}
+
         {!readOnly ? (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
               model._removeFilter(filter);
+              setTimeout(() => focusOnInputRef?.());
             }}
             onKeyDownCapture={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
                 model._removeFilter(filter);
+                setTimeout(() => focusOnInputRef?.());
               }
             }}
             name="times"
@@ -117,5 +132,14 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       color: theme.colors.text.primary,
     },
+  }),
+  pillText: css({
+    maxWidth: '200px',
+    width: '100%',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+  }),
+  tooltipText: css({
+    textAlign: 'center',
   }),
 });

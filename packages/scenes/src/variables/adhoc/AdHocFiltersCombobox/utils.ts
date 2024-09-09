@@ -5,9 +5,11 @@ import { AdHocFiltersVariable, AdHocFilterWithLabels } from '../AdHocFiltersVari
 import { UseFloatingReturn } from '@floating-ui/react';
 
 const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
+const VIRTUAL_LIST_DESCRIPTION_WIDTH_ESTIMATE_MULTIPLIER = 6;
 const VIRTUAL_LIST_PADDING = 8;
 export const VIRTUAL_LIST_OVERSCAN = 5;
 export const VIRTUAL_LIST_ITEM_HEIGHT = 38;
+export const VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION = 60;
 export const ERROR_STATE_DROPDOWN_WIDTH = 366;
 
 export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
@@ -86,11 +88,18 @@ export const setupDropdownAccessibility = (
       disabledIndices.push(i);
     }
     let label = options[i].label ?? options[i].value ?? '';
+    let multiplierToUse = VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER;
+    if (
+      label.length * VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER <
+      (options[i].description?.length || 0) * VIRTUAL_LIST_DESCRIPTION_WIDTH_ESTIMATE_MULTIPLIER
+    ) {
+      label = options[i].description!;
+      multiplierToUse = VIRTUAL_LIST_DESCRIPTION_WIDTH_ESTIMATE_MULTIPLIER;
+    }
 
     // rough widthEstimate
     const widthEstimate =
-      (options[i].isCustom ? label.length + 18 : label.length) * VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER +
-      VIRTUAL_LIST_PADDING * 2;
+      (options[i].isCustom ? label.length + 18 : label.length) * multiplierToUse + VIRTUAL_LIST_PADDING * 2;
     if (widthEstimate > maxOptionWidth) {
       maxOptionWidth = widthEstimate;
     }
@@ -204,4 +213,25 @@ export const generateFilterUpdatePayload = (
   return {
     [filterInputType]: item.value,
   };
+};
+
+const INPUT_PLACEHOLDER = 'Filter by label values';
+
+export const generatePlaceholder = (
+  filter: AdHocFilterWithLabels,
+  filterInputType: AdHocInputType,
+  isMultiValueEdit: boolean,
+  isAlwaysWip?: boolean
+) => {
+  if (filterInputType === 'key') {
+    return INPUT_PLACEHOLDER;
+  }
+  if (filterInputType === 'value') {
+    if (isMultiValueEdit) {
+      return 'Edit values';
+    }
+    return filter.valueLabels?.[0] || '';
+  }
+
+  return filter[filterInputType] && !isAlwaysWip ? `${filter[filterInputType]}` : INPUT_PLACEHOLDER;
 };

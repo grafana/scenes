@@ -25,7 +25,13 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
       {filters.map((filter, index) => (
-        <AdHocFilterPill key={index} filter={filter} model={model} readOnly={readOnly} />
+        <AdHocFilterPill
+          key={index}
+          filter={filter}
+          model={model}
+          readOnly={readOnly}
+          focusOnInputRef={focusOnInputRef.current}
+        />
       ))}
 
       {!readOnly ? <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnInputRef} /> : null}
