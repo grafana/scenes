@@ -150,7 +150,7 @@ function processRecordedSpans(spans: number[]) {
 
 function captureNetwork(startTs: number, endTs: number) {
   const entries = performance.getEntriesByType('resource');
-  // performance.clearResourceTimings();
+  performance.clearResourceTimings();
   const networkEntries = entries.filter((entry) => entry.startTime >= startTs && entry.startTime <= endTs);
   for (const entry of networkEntries) {
     performance.measure('Network entry ' + entry.name, {
