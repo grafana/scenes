@@ -1,3 +1,15 @@
+# v5.14.3 (Wed Sep 11 2024)
+
+#### 🐛 Bug Fix
+
+- SceneObjectBase: add clearParent [#892](https://github.com/grafana/scenes/pull/892) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.14.2 (Mon Sep 09 2024)
 
 #### 🐛 Bug Fix
