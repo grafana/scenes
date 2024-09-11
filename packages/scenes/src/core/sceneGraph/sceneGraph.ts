@@ -10,6 +10,7 @@ import { getClosest } from './utils';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 import { VariableInterpolation } from '@grafana/runtime';
 import { QueryVariable } from '../../variables/variants/query/QueryVariable';
+import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
 
 /**
  * Get the closest node with variables
@@ -263,6 +264,23 @@ export function getQueryController(sceneObject: SceneObject): SceneQueryControll
           return behavior;
         }
       }
+    }
+    parent = parent.parent;
+  }
+
+  return undefined;
+}
+
+/**
+ * Returns the closest SceneObject that has a state property with the
+ * name urlSyncManager that is of type UrlSyncManager
+ */
+export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike | undefined {
+  let parent: SceneObject | undefined = sceneObject;
+
+  while (parent) {
+    if ('urlSyncManager' in parent.state) {
+      return parent.state.urlSyncManager as UrlSyncManagerLike;
     }
     parent = parent.parent;
   }

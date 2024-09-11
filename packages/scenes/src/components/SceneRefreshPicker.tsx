@@ -12,16 +12,24 @@ import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'];
 
 export interface SceneRefreshPickerState extends SceneObjectState {
-  // Refresh interval, e.g. 5s, 1m, 2h
+  /**
+   * Refresh interval, e.g. 5s, 1m, 2h
+   */
   refresh: string;
   autoEnabled?: boolean;
   autoMinInterval?: string;
   autoValue?: string;
-  // List of allowed refresh intervals, e.g. ['5s', '1m']
+  /**
+   * List of allowed refresh intervals, e.g. ['5s', '1m']
+   */
   intervals?: string[];
   isOnCanvas?: boolean;
   primary?: boolean;
   withText?: boolean;
+  /**
+   * Overrides the default minRefreshInterval from the grafana config. Can be set to "0s" to remove the minimum refresh interval.
+   */
+  minRefreshInterval?: string;
 }
 
 export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState> {
@@ -29,25 +37,41 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['refresh'] });
   private _intervalTimer: ReturnType<typeof setInterval> | undefined;
   private _autoTimeRangeListener: Unsubscribable | undefined;
+  private _autoRefreshBlocked: boolean = false;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
+    const filterDissalowedIntervals = (i: string) => {
+      const minInterval = state.minRefreshInterval ?? config.minRefreshInterval;
+      return minInterval ? rangeUtil.intervalToMs(i) >= rangeUtil.intervalToMs(minInterval) : true;
+    };
+
     super({
       refresh: '',
       ...state,
       autoValue: undefined,
       autoEnabled: state.autoEnabled ?? true,
       autoMinInterval: state.autoMinInterval ?? config.minRefreshInterval,
-      intervals: state.intervals ?? DEFAULT_INTERVALS,
+      intervals: (state.intervals ?? DEFAULT_INTERVALS).filter(filterDissalowedIntervals),
     });
 
     this.addActivationHandler(() => {
       this.setupIntervalTimer();
+
+      const onVisibilityChange = () => {
+        if (this._autoRefreshBlocked && document.visibilityState === 'visible') {
+          this._autoRefreshBlocked = false;
+          this.onRefresh();
+        }
+      }
+
+      document.addEventListener('visibilitychange', onVisibilityChange);
 
       return () => {
         if (this._intervalTimer) {
           clearInterval(this._intervalTimer);
         }
 
+        document.removeEventListener('visibilitychange', onVisibilityChange);
         this._autoTimeRangeListener?.unsubscribe();
       };
     });
@@ -82,12 +106,20 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
+    const { intervals } = this.state;
     const refresh = values.refresh;
 
     if (refresh && typeof refresh === 'string') {
-      this.setState({
-        refresh,
-      });
+      if (intervals?.includes(refresh)) {
+        this.setState({
+          refresh,
+        });
+      } else {
+        this.setState({
+          // Default to the first refresh interval if the interval from the URL is not allowed, just like in the old architecture.
+          refresh: intervals ? intervals[0] : undefined,
+        });
+      }
     }
   }
 
@@ -105,6 +137,10 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     const resolution = window?.innerWidth ?? 2000;
     return rangeUtil.calculateInterval(timeRange.state.value, resolution, this.state.autoMinInterval);
   };
+
+  private isTabVisible() {
+    return document.visibilityState === undefined || document.visibilityState === 'visible';
+  }
 
   private setupIntervalTimer = () => {
     const timeRange = sceneGraph.getTimeRange(this);
@@ -143,7 +179,11 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     }
 
     this._intervalTimer = setInterval(() => {
-      timeRange.onRefresh();
+      if (this.isTabVisible()) {
+        timeRange.onRefresh();
+      } else {
+        this._autoRefreshBlocked = true;
+      }
     }, intervalMs);
   };
 }

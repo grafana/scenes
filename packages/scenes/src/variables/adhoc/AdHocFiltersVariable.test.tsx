@@ -447,7 +447,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['newValue'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -463,7 +463,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'key1',
       operator: '=',
       value: 'valUrl',
-      valueLabel: 'valUrl',
+      valueLabels: ['valUrl'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -471,7 +471,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'keyUrl',
       operator: '=~',
       value: 'urlVal',
-      valueLabel: 'urlVal',
+      valueLabels: ['urlVal'],
       condition: '',
     });
   });
@@ -510,8 +510,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['New Value'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -529,7 +529,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'New Key',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'New Value',
+      valueLabels: ['New Value'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -537,7 +537,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'New Key 2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'New Value 2',
+      valueLabels: ['New Value 2'],
       condition: '',
     });
   });
@@ -546,8 +546,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -565,7 +565,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'New Key',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'newValue',
+      valueLabels: ['newValue'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -573,7 +573,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'New Key 2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'newValue2',
+      valueLabels: ['newValue2'],
       condition: '',
     });
   });
@@ -582,8 +582,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['New Value'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -601,7 +601,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'newKey',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'New Value',
+      valueLabels: ['New Value'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -609,7 +609,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'newKey2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'New Value 2',
+      valueLabels: ['New Value 2'],
       condition: '',
     });
   });
@@ -618,8 +618,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -637,7 +637,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'newKey',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'newValue',
+      valueLabels: ['newValue'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -645,7 +645,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'newKey2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'newValue2',
+      valueLabels: ['newValue2'],
       condition: '',
     });
   });
@@ -654,8 +654,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'new,Key', label: 'New,Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'new,Value', label: 'New,Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'new,Key', keyLabel: 'New,Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'new,Value', valueLabels: ['New,Value'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -676,7 +676,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'New,Key',
       operator: '=',
       value: 'new,Value',
-      valueLabel: 'New,Value',
+      valueLabels: ['New,Value'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -684,7 +684,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'New,Key,2',
       operator: '=~',
       value: 'new,Value,2',
-      valueLabel: 'New,Value,2',
+      valueLabels: ['New,Value,2'],
       condition: '',
     });
   });
@@ -693,8 +693,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['newValue'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -712,7 +712,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'newKey',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'newValue',
+      valueLabels: ['newValue'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -720,7 +720,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'newKey2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'newValue2',
+      valueLabels: ['newValue2'],
       condition: '',
     });
   });
@@ -729,8 +729,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: '', label: '' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: '', valueLabels: [''] });
     });
 
     expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
