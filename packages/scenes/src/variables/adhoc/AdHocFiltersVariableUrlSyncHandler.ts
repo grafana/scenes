@@ -1,5 +1,5 @@
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } from '../../core/types';
-import { AdHocFiltersVariable, AdHocFilterWithLabels, isFilterComplete } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFilterWithLabels, isFilterComplete, isMultiValueOperator } from './AdHocFiltersVariable';
 import { escapeUrlPipeDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
@@ -47,11 +47,20 @@ function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLab
 }
 
 function toArray(filter: AdHocFilterWithLabels): string[] {
-  return [
+  const result = [
     toUrlCommaDelimitedString(filter.key, filter.keyLabel),
     filter.operator,
-    toUrlCommaDelimitedString(filter.value, filter.valueLabel),
   ];
+  if (isMultiValueOperator(filter.operator)) {
+    // TODO remove expect-error when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    filter.values.forEach((value, index) => {
+      result.push(toUrlCommaDelimitedString(value, filter.valueLabels?.[index]));
+    });
+  } else {
+    result.push(toUrlCommaDelimitedString(filter.value, filter.valueLabels?.[0]));
+  }
+  return result;
 }
 
 function toFilter(urlValue: string | number | boolean | undefined | null): AdHocFilterWithLabels | null {
@@ -59,7 +68,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [key, keyLabel, operator, _operatorLabel, value, valueLabel] = urlValue
+  const [key, keyLabel, operator, _operatorLabel, ...values] = urlValue
     .split('|')
     .reduce<string[]>((acc, v) => {
       const [key, label] = v.split(',');
@@ -74,8 +83,11 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     key,
     keyLabel,
     operator,
-    value,
-    valueLabel,
+    value: values[0],
+    // TODO remove expect-error when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
+    valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
   };
 }

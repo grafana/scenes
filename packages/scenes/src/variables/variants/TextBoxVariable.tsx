@@ -44,13 +44,11 @@ export class TextBoxVariable
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
-    const update: Partial<TextBoxVariableState> = {};
     const val = values[this.getKey()];
-    if (typeof val === 'string') {
-      update.value = val;
-    }
 
-    this.setState(update);
+    if (typeof val === 'string') {
+      this.setValue(val);
+    }
   }
 
   public static Component = ({ model }: SceneComponentProps<TextBoxVariable>) => {

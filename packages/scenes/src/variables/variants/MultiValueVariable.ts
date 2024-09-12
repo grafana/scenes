@@ -192,7 +192,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     // If the validation wants to fix the all value (All ==> $__all) then we should let that pass
     const isAllValueFix = stateUpdate.value === ALL_VARIABLE_VALUE && this.state.text === ALL_VARIABLE_TEXT;
 
-    if (this.skipNextValidation && stateUpdate.value !== this.state.value && !isAllValueFix) {
+    if (this.skipNextValidation && stateUpdate.value !== this.state.value && stateUpdate.text !== this.state.text && !isAllValueFix) {
       stateUpdate.value = this.state.value;
       stateUpdate.text = this.state.text;
     }
@@ -327,6 +327,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     return options;
+  }
+
+  public refreshOptions() {
+    this.getValueOptions({}).subscribe((options) => {
+        this.updateValueGivenNewOptions(options);
+    });
   }
 
   /**

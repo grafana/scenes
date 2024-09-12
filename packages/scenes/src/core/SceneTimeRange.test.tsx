@@ -11,11 +11,6 @@ jest.mock('@grafana/data', () => ({
   setWeekStart: jest.fn(),
 }));
 
-jest.mock('@grafana/runtime', () => ({
-  ...jest.requireActual('@grafana/runtime'),
-  RefreshEvent: jest.fn(() => ({ type: 'refresh-event' })),
-}));
-
 config.bootData = { user: { weekStart: 'monday' } } as any;
 
 function simulateDelay(newDateString: string, scene: EmbeddedScene) {
@@ -24,10 +19,6 @@ function simulateDelay(newDateString: string, scene: EmbeddedScene) {
 }
 
 describe('SceneTimeRange', () => {
-  beforeEach(() => {
-    jest.mocked(RefreshEvent).mockClear();
-  });
-
   it('when created should evaluate time range', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
     expect(timeRange.state.value.raw.from).toBe('now-1h');
@@ -44,9 +35,15 @@ describe('SceneTimeRange', () => {
 
   it('when time range refreshed should trigger refresh event', async () => {
     const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now' });
-    expect(RefreshEvent).not.toHaveBeenCalled();
+    const spy = jest.spyOn(timeRange, 'publishEvent');
+
     timeRange.onRefresh();
-    expect(RefreshEvent).toHaveBeenCalled();
+
+    expect(spy).toHaveBeenCalledTimes(2);
+    // The first call is a set state event, the second is the refresh event
+    expect(spy.mock.calls[1][0]).toBeInstanceOf(RefreshEvent);
+    expect(spy.mock.calls[1][1]).toBe(true);
+    expect(spy).toHaveBeenCalledWith(expect.any(RefreshEvent), true);
   });
 
   it('toUrlValues with relative range', () => {
@@ -75,6 +72,36 @@ describe('SceneTimeRange', () => {
 
     expect(timeRange.state.from).toEqual('2021-01-01T10:00:00.000Z');
     expect(timeRange.state.value.from.valueOf()).toEqual(1609495200000);
+  });
+
+  it('updateFromUrl with time and time window using ms', () => {
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+    timeRange.urlSync?.updateFromUrl({
+      from: '2021-01-01T10:00:00.000Z',
+      to: '2021-02-03T01:20:00.000Z',
+      time: '1500000000000', // 2017-07-14T02:40:00.000Z
+      'time.window': '10000', // 10s
+    });
+
+    // 2017-07-14T02:40:00.000Z - 5s
+    expect(timeRange.state.from).toEqual('2017-07-14T02:39:55.000Z');
+    // 2017-07-14T02:40:00.000Z + 5s
+    expect(timeRange.state.to).toEqual('2017-07-14T02:40:05.000Z');
+  });
+
+  it('updateFromUrl with time and time window using ISO', () => {
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+    timeRange.urlSync?.updateFromUrl({
+      from: '2021-01-01T10:00:00.000Z',
+      to: '2021-02-03T01:20:00.000Z',
+      time: '2017-07-14T02:40:00.000Z', // 2017-07-14T02:40:00.000Z
+      'time.window': '10000', // 10s
+    });
+
+    // 2017-07-14T02:40:00.000Z - 5s
+    expect(timeRange.state.from).toEqual('2017-07-14T02:39:55.000Z');
+    // 2017-07-14T02:40:00.000Z + 5s
+    expect(timeRange.state.to).toEqual('2017-07-14T02:40:05.000Z');
   });
 
   it('should not update state when time range is not changed', () => {
@@ -240,78 +267,83 @@ describe('SceneTimeRange', () => {
     });
 
     it('should NOT invalidate stale time range that does not meet refresh threshold', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {}});
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {} });
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
-        body: new SceneReactObject({
-        })
-      })
+        body: new SceneReactObject({}),
+      });
 
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
       simulateDelay(mockedHourLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-    })
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
+    });
 
     it('should invalidate stale time range by default', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now'});
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now' });
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
-        body: new SceneReactObject({
-        })
-      })
+        body: new SceneReactObject({}),
+      });
 
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
       simulateDelay(mockedHourLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedHourLater)
-    })
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedHourLater);
+    });
 
     it('should NOT invalidate stale time range before refresh duration has elapsed', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 101} });
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: { afterMs: 101 } });
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
-        body: new SceneReactObject({})
-      })
+        body: new SceneReactObject({}),
+      });
 
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
       simulateDelay(mocked100MsLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-    })
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
+    });
 
     it('should NOT invalidate stale time range with percent when refresh threshold is not met', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 60000, percent: 10}});
+      const timeRange = new SceneTimeRange({
+        from: 'now-30s',
+        to: 'now',
+        refreshOnActivate: { afterMs: 60000, percent: 10 },
+      });
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
-        body: new SceneReactObject({})
-      })
+        body: new SceneReactObject({}),
+      });
 
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
       simulateDelay(mocked100MsLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
-    })
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
+    });
 
     it('should invalidate stale time range when refresh threshold is met', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 100} });
+      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: { afterMs: 100 } });
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
-        body: new SceneReactObject({
-        })
-      })
+        body: new SceneReactObject({}),
+      });
 
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
       simulateDelay(mocked100MsLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked100MsLater)
-    })
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked100MsLater);
+    });
 
     it('should invalidate stale time range when either refresh threshold is met', () => {
-      const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', refreshOnActivate: {afterMs: 60000, percent: 10}});
+      const timeRange = new SceneTimeRange({
+        from: 'now-30s',
+        to: 'now',
+        refreshOnActivate: { afterMs: 60000, percent: 10 },
+      });
       const scene = new EmbeddedScene({
         $timeRange: timeRange,
-        body: new SceneReactObject({})
-      })
+        body: new SceneReactObject({}),
+      });
 
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow)
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
       simulateDelay(mocked10sLater, scene);
-      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked10sLater)
-    })
-  })
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked10sLater);
+    });
+  });
 });

@@ -131,6 +131,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     this.setState({});
   }
 
+  public ignoreLayoutChange(shouldIgnore: boolean) {
+    this._skipOnLayoutChange = shouldIgnore;
+  }
+
   public onLayoutChange = (layout: ReactGridLayout.Layout[]) => {
     if (this._skipOnLayoutChange) {
       // Layout has been updated by other RTL handler already

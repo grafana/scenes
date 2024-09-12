@@ -45,14 +45,26 @@ export function renderPrometheusLabelFilters(filters: AdHocVariableFilter[]) {
 
 function renderFilter(filter: AdHocVariableFilter) {
   let value = '';
+  let operator = filter.operator;
 
-  if (filter.operator === '=~' || filter.operator === '!~¨') {
+  // map "one of" operator to regex
+  if (operator === '=|') {
+    operator = '=~'
+    // TODO remove when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
+  } else if (operator === '!=|') {
+    operator = '!~'
+    // TODO remove when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
+  } else if (operator === '=~' || operator === '!~') {
     value = escapeLabelValueInRegexSelector(filter.value);
   } else {
     value = escapeLabelValueInExactSelector(filter.value);
   }
 
-  return `${filter.key}${filter.operator}"${value}"`;
+  return `${filter.key}${operator}"${value}"`;
 }
 
 // based on the openmetrics-documentation, the 3 symbols we have to handle are:

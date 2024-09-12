@@ -37,7 +37,7 @@ export {
 export { SceneDataLayerSet, SceneDataLayerSetBase } from './querying/SceneDataLayerSet';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
-export { SceneDataTransformer } from './querying/SceneDataTransformer';
+export { SceneDataTransformer, type SceneDataTransformerState } from './querying/SceneDataTransformer';
 export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
 export type {
@@ -69,7 +69,7 @@ export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
-export { type UrlSyncManagerLike, UrlSyncManager, getUrlSyncManager } from './services/UrlSyncManager';
+export { type UrlSyncManagerLike, UrlSyncManager, NewSceneObjectAddedEvent } from './services/UrlSyncManager';
 export { useUrlSync } from './services/useUrlSync';
 export { UrlSyncContextProvider } from './services/UrlSyncContextProvider';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';

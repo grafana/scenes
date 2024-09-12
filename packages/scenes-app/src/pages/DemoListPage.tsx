@@ -24,6 +24,10 @@ import { css } from '@emotion/css';
 function getDemoSceneApp() {
   return new SceneApp({
     name: 'scenes-demos-app',
+    urlSyncOptions: {
+      updateUrlOnInit: true,
+      createBrowserHistorySteps: true,
+    },
     pages: [
       new SceneAppPage({
         title: 'Demos',

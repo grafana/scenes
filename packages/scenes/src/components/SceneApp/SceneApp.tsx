@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createContext } from 'react';
 import { Route, Switch } from 'react-router-dom';
 
 import { DataRequestEnricher, SceneComponentProps } from '../../core/types';
@@ -20,19 +20,23 @@ export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequ
     const { pages } = model.useState();
 
     return (
-      <Switch>
-        {pages.map((page) => (
-          <Route
-            key={page.state.url}
-            exact={false}
-            path={page.state.url}
-            render={(props) => renderSceneComponentWithRouteProps(page, props)}
-          ></Route>
-        ))}
-      </Switch>
+      <SceneAppContext.Provider value={model}>
+        <Switch>
+          {pages.map((page) => (
+            <Route
+              key={page.state.url}
+              exact={false}
+              path={page.state.url}
+              render={(props) => renderSceneComponentWithRouteProps(page, props)}
+            ></Route>
+          ))}
+        </Switch>
+      </SceneAppContext.Provider>
     );
   };
 }
+
+export const SceneAppContext = createContext<SceneApp | null>(null);
 
 const sceneAppCache = new Map<object, SceneApp>();
 
