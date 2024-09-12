@@ -1,17 +1,18 @@
-import React, { RefCallback, useEffect, useRef } from 'react';
+import React, { RefCallback, useCallback, useEffect, useRef } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import { SceneComponentProps } from '../../../core/types';
 import { GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
 import { LazyLoader } from '../LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
-import { useStyles2 } from '@grafana/ui';
+import { Input, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useMeasure } from 'react-use';
+import { ControlsLabel } from '../../../utils/ControlsLabel';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
-  const { children, isLazy, isDraggable, isResizable } = model.useState();
+  const { children, isLazy, isDraggable, isResizable, showPanelSearch } = model.useState();
   const [outerDivRef, { width, height }] = useMeasure();
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -82,9 +83,72 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
       ref={outerDivRef as RefCallback<HTMLDivElement>}
       style={{ flex: '1 1 auto', position: 'relative', zIndex: 1, width: '100%' }}
     >
+      {showPanelSearch && <PanelSearchControls model={model} />}
       {renderGrid(width, height)}
     </div>
   );
+}
+
+interface PanelSearchProps {
+  model: SceneGridLayout;
+}
+
+function PanelSearchControls({ model }: PanelSearchProps) {
+  const { searchString, panelsPerRow } = model.useState();
+  const styles = useStyles2(getPanelSearchStyles);
+
+  const onSearchStringChange = useCallback(
+    (e: React.FormEvent<HTMLInputElement>) => {
+      model.setState({ searchString: e.currentTarget.value });
+    },
+    [model]
+  );
+
+  const onPanelsPerRowChange = useCallback(
+    (e: React.FormEvent<HTMLInputElement>) => {
+      model.setState({ panelsPerRow: Number.parseInt(e.currentTarget.value, 10) });
+    },
+    [model]
+  );
+
+  return (
+    <div className={styles.wrapper}>
+      <div id="panel-search" className={styles.input}>
+        <ControlsLabel isLoading={false} label="Panel search" htmlFor="panel-search-input" />
+        <Input
+          id="panel-search-input"
+          label="Search"
+          placeholder="Enter value"
+          value={searchString}
+          onChange={onSearchStringChange}
+        />
+      </div>
+      <div id="panels-per-row" className={styles.input}>
+        <ControlsLabel isLoading={false} label="Panels per row" htmlFor="panels-per-row-input" />
+        <Input
+          id="panels-per-row-input"
+          type="number"
+          placeholder="Enter value"
+          label="Panels per row"
+          value={panelsPerRow}
+          onChange={onPanelsPerRowChange}
+        />
+      </div>
+    </div>
+  );
+}
+
+function getPanelSearchStyles(theme: GrafanaTheme2) {
+  return {
+    wrapper: css({
+      display: 'flex',
+      gap: theme.spacing(1),
+      marginBottom: theme.spacing(1),
+    }),
+    input: css({
+      display: 'flex',
+    })
+  }
 }
 
 interface GridItemWrapperProps extends React.HTMLAttributes<HTMLDivElement> {

@@ -9,8 +9,6 @@ import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement } from './types';
 import { fitPanelsInHeight } from './utils';
-import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
-import { lookupVariable } from '../../../variables/lookupVariable';
 import { interpolate } from '../../../core/sceneGraph/sceneGraph';
 
 interface SceneGridLayoutState extends SceneObjectState {
@@ -21,6 +19,12 @@ interface SceneGridLayoutState extends SceneObjectState {
   /** Enable or disable item resizing */
   isResizable?: boolean;
   isLazy?: boolean;
+
+  /** Panel search */
+  showPanelSearch?: boolean;
+  searchString?: string;
+  panelsPerRow?: number;
+
   /**
    * Fit panels to height of the grid. This will scale down the panels vertically to fit available height.
    * The row height is not changed, only the y position and height of the panels.
@@ -38,10 +42,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   private _loadOldLayout = false;
 
   private savedLayout: SceneGridItemLike[] | undefined = undefined;
-
-  protected _variableDependency = new VariableDependencyConfig(this, {
-    variableNames: ['systemPanelFilterVar', 'systemDynamicRowSizeVar'],
-  });
 
   public constructor(state: SceneGridLayoutState) {
     super({
@@ -364,26 +364,24 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
   public buildGridLayout(width: number, height: number): ReactGridLayout.Layout[] {
     let cells: ReactGridLayout.Layout[] = [];
-    const systemPanelFilter = lookupVariable('systemPanelFilterVar', this);
-    const systemDynamicRowSize = lookupVariable('systemDynamicRowSizeVar', this);
-    const panelFilterValue = systemPanelFilter?.getValue()?.toString();
-    const rowSizeVal = systemDynamicRowSize?.getValue()?.valueOf();
-    const rowSizeParsed = typeof rowSizeVal === 'string' ? Number.parseInt(rowSizeVal, 10) : rowSizeVal;
+    const searchString = this.state.searchString;
+    const panelsPerRow = this.state.panelsPerRow;
 
     let children = this.state.children;
-    if ((panelFilterValue && panelFilterValue !== '') || (rowSizeParsed && Number.isInteger(rowSizeParsed))) {
+    if ((searchString && searchString !== '') || (panelsPerRow && Number.isInteger(panelsPerRow))) {
       if (this.savedLayout === undefined) {
         this.savedLayout = this.state.children.map((v) => v.clone());
       }
 
-      const panelFilterInterpolated = interpolate(this, panelFilterValue).toLowerCase();
+      const panelFilterInterpolated = interpolate(this, searchString).toLowerCase();
       const filteredChildren = this.state.children.filter(
         (v) =>
           typeof (v.state as any).body?.state?.title === 'string' &&
           (v.state as any).body.state.title.toLowerCase().includes(panelFilterInterpolated)
       );
       this._skipOnLayoutChange = true;
-      const rowSize = typeof rowSizeParsed === 'number' && Number.isInteger(rowSizeParsed) && rowSizeParsed > 0 ? rowSizeParsed : 2;
+      const rowSize =
+        typeof panelsPerRow === 'number' && Number.isInteger(panelsPerRow) && panelsPerRow > 0 ? panelsPerRow : 2;
       const panelWidth = GRID_COLUMN_COUNT / rowSize;
       const panelHeight = 5;
       return filteredChildren.map((child, i) => ({
@@ -395,7 +393,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
         isResizable: false,
         isDraggable: false,
       }));
-    } else if ((!panelFilterValue || panelFilterValue === '') && (!rowSizeVal || rowSizeVal === '')) {
+    } else if ((!searchString || searchString === '') && !panelsPerRow) {
       if (this.savedLayout) {
         children = this.savedLayout;
         this.savedLayout = undefined;
