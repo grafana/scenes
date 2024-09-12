@@ -403,7 +403,8 @@ export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
 export function isMultiValueOperator(operatorValue: string): boolean {
   const operator = OPERATORS.find((o) => o.value === operatorValue);
   if (!operator) {
-    throw new Error('Unknown operator');
+    // default to false if operator is not found
+    return false;
   }
   return Boolean(operator.isMulti);
 }
