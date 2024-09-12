@@ -122,18 +122,20 @@ export type OperatorDefinition = {
 export const OPERATORS: OperatorDefinition[] = [
   {
     value: '=',
+    description: 'Equals',
   },
   {
     value: '!=',
+    description: 'Not equal',
   },
   {
     value: '=|',
-    description: 'Is one of. Use to filter on multiple values.',
+    description: 'One of. Use to filter on multiple values.',
     isMulti: true,
   },
   {
     value: '!=|',
-    description: 'Is not one of. Use to exclude multiple values.',
+    description: 'Not one of. Use to exclude multiple values.',
     isMulti: true,
   },
   {
@@ -146,9 +148,11 @@ export const OPERATORS: OperatorDefinition[] = [
   },
   {
     value: '<',
+    description: 'Less than',
   },
   {
     value: '>',
+    description: 'Greater than',
   },
 ];
 
