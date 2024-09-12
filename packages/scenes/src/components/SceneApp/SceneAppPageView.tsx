@@ -1,4 +1,5 @@
 import { NavModelItem, UrlQueryMap } from '@grafana/data';
+// @ts-ignore
 import { PluginPage, useLocationService } from '@grafana/runtime';
 import React, { useContext, useEffect, useLayoutEffect } from 'react';
 

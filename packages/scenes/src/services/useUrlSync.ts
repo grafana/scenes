@@ -1,13 +1,14 @@
 import { SceneObject, SceneUrlSyncOptions } from '../core/types';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+// @ts-ignore
 import { useLocationService } from '@grafana/runtime';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { useUrlSyncManager } from './UrlSyncManager';
 
 export function useUrlSync(sceneRoot: SceneObject, options: SceneUrlSyncOptions = {}): boolean {
   const location = useLocation();
-  const locationService = useLocationService()
+  const locationService = useLocationService();
   const [isInitialized, setIsInitialized] = useState(false);
   const urlSyncManager = useUrlSyncManager(options, locationService);
 
