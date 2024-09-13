@@ -82,7 +82,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    */
   private updateValueGivenNewOptions(options: VariableValueOption[]) {
     // Remember current value and text
-    const { value: currentValue, text: currentText } = this.state;
+    const { value: currentValue, text: currentText, options: oldOptions } = this.state;
 
     const stateUpdate = this.getStateUpdateGivenNewOptions(options, currentValue, currentText);
 
@@ -92,7 +92,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     this.setStateHelper(stateUpdate);
 
     // Publish value changed event only if value changed
-    if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
+    if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || (this.hasAllValue() && !isEqual(options, oldOptions))) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
