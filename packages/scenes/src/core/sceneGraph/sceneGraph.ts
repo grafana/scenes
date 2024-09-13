@@ -9,6 +9,7 @@ import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { VariableInterpolation } from '@grafana/runtime';
 import { QueryVariable } from '../../variables/variants/query/QueryVariable';
+import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
 
 /**
  * Get the closest node with variables
@@ -225,14 +226,15 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
   return collected;
 }
 
+interface SceneType<T> extends Function {
+  new (...args: never[]): T;
+}
+
 /**
  * A utility function to find the closest ancestor of a given type. This function expects
  * to find it and will throw an error if it does not.
  */
-export function getAncestor<ParentType>(
-  sceneObject: SceneObject,
-  ancestorType: { new (...args: never[]): ParentType }
-): ParentType {
+export function getAncestor<ParentType>(sceneObject: SceneObject, ancestorType: SceneType<ParentType>): ParentType {
   let parent: SceneObject | undefined = sceneObject;
 
   while (parent) {
@@ -247,4 +249,33 @@ export function getAncestor<ParentType>(
   }
 
   return parent as ParentType;
+}
+
+/**
+ * This will search down the full scene graph, looking for objects that match the provided descendentType type.
+ */
+export function findDescendents<T extends SceneObject>(scene: SceneObject, descendentType: SceneType<T>) {
+  function isDescendentType(scene: SceneObject): scene is T {
+    return scene instanceof descendentType;
+  }
+
+  const targetScenes = findAllObjects(scene, isDescendentType);
+  return targetScenes.filter(isDescendentType);
+}
+
+/**
+ * Returns the closest SceneObject that has a state property with the
+ * name urlSyncManager that is of type UrlSyncManager
+ */
+export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike | undefined {
+  let parent: SceneObject | undefined = sceneObject;
+
+  while (parent) {
+    if ('urlSyncManager' in parent.state) {
+      return parent.state.urlSyncManager as UrlSyncManagerLike;
+    }
+    parent = parent.parent;
+  }
+
+  return undefined;
 }

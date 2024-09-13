@@ -38,6 +38,7 @@ import { getDynamicDataLayersDemo } from './dynamicDataLayers';
 import { getInteropDemo } from './interopDemo';
 import { getUrlSyncTest } from './urlSyncTest';
 import { getMlDemo } from './ml';
+import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 
 export interface DemoDescriptor {
   title: string;
@@ -85,5 +86,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Interop with hooks and context', getPage: getInteropDemo },
     { title: 'Url sync test', getPage: getUrlSyncTest },
     { title: 'Machine Learning', getPage: getMlDemo },
+    { title: 'Events on the Scene Graph', getPage: getSceneGraphEventsDemo },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

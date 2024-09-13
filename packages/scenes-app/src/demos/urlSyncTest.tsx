@@ -18,10 +18,10 @@ import {
   SceneTimeRange,
   SceneVariableSet,
   VariableValueSelectors,
-  getUrlSyncManager,
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 import { Button, Stack } from '@grafana/ui';
+import { NewSceneObjectAddedEvent } from '@grafana/scenes/src/services/UrlSyncManager';
 
 export function getUrlSyncTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -102,7 +102,7 @@ class DynamicSubScene extends SceneObjectBase<DynamicSubSceneState> {
 
   private addScene() {
     const scene = buildNewSubScene();
-    getUrlSyncManager().handleNewObject(scene);
+    this.publishEvent(new NewSceneObjectAddedEvent(scene), true);
     this.setState({ scene });
   }
 
