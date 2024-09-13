@@ -227,13 +227,17 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
   return collected;
 }
 
+interface SceneType<T> extends Function {
+  new (...args: never[]): T;
+}
+
 /**
  * A utility function to find the closest ancestor of a given type. This function expects
  * to find it and will throw an error if it does not.
  */
 export function getAncestor<ParentType>(
   sceneObject: SceneObject,
-  ancestorType: { new (...args: never[]): ParentType }
+  ancestorType: SceneType<ParentType>
 ): ParentType {
   let parent: SceneObject | undefined = sceneObject;
 
@@ -249,6 +253,18 @@ export function getAncestor<ParentType>(
   }
 
   return parent as ParentType;
+}
+
+/**
+ * This will search down the full scene graph, looking for objects that match the provided descendentType type.
+ */
+export function findDescendents<T extends SceneObject>(scene: SceneObject, descendentType: SceneType<T>) {
+  function isDescendentType(scene: SceneObject): scene is T {
+    return scene instanceof descendentType;
+  }
+
+  const targetScenes = findAllObjects(scene, isDescendentType);
+  return targetScenes.filter(isDescendentType);
 }
 
 /**
