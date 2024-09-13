@@ -24,6 +24,7 @@ import { SeriesVisibilityChangeMode } from '@grafana/ui';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { act, render, screen } from '@testing-library/react';
 import { RefreshEvent } from '@grafana/runtime';
+import { SceneDeactivationHandler } from '../../core/types';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -289,6 +290,7 @@ describe('VizPanel', () => {
 
   describe('When changing plugin', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+    let deactivate: SceneDeactivationHandler;
 
     beforeEach(async () => {
       panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
@@ -300,7 +302,11 @@ describe('VizPanel', () => {
       });
 
       pluginToLoad = getTestPlugin1();
-      panel.activate();
+      deactivate = panel.activate();
+    });
+
+    afterEach(() => {
+      deactivate();
     });
 
     it('Should successfully change from one viz type to another', async () => {
@@ -364,6 +370,18 @@ describe('VizPanel', () => {
 
       expect(panel.state.options.showThresholds).toBe(true);
       expect(panel.state.options.option2).toBe('hello');
+    });
+
+    it('Should detect plugin change on activation', async () => {
+      pluginToLoad = getTestPlugin2();
+      deactivate();
+
+      panel.setState({ pluginId: pluginToLoad.meta.id });
+      deactivate = panel.activate();
+
+      await Promise.resolve();
+
+      expect(panel.getPlugin()).toBe(pluginToLoad);
     });
   });
 
