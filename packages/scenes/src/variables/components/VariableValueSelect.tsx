@@ -1,12 +1,11 @@
 import { isArray } from 'lodash';
 import React, { RefCallback, useEffect, useMemo, useState } from 'react';
-
-//@ts-ignore
 import {
   Checkbox,
   InputActionMeta,
   MultiSelect,
   Select,
+  //@ts-ignore
   ToggleAllState,
   getSelectStyles,
   useStyles2,
