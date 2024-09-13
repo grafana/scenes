@@ -1,3 +1,19 @@
+# v5.14.4 (Fri Sep 13 2024)
+
+#### 🐛 Bug Fix
+
+- Fix pipeline [#904](https://github.com/grafana/scenes/pull/904) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes`
+  - MultiValueVariabe: Change when value changed event is published [#896](https://github.com/grafana/scenes/pull/896) ([@mdvictor](https://github.com/mdvictor))
+  - Demo: Demonstrate event traversal through scene graph [#848](https://github.com/grafana/scenes/pull/848) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 2
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.14.3 (Wed Sep 11 2024)
 
 #### 🐛 Bug Fix
