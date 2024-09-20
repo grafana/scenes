@@ -20,14 +20,12 @@ export class LocalValueVariable
   extends SceneObjectBase<LocalValueVariableState>
   implements SceneVariable<LocalValueVariableState>
 {
-  public constructor(initialState: Omit<Partial<LocalValueVariableState>, 'isMulti' | 'includeAll'>) {
+  public constructor(initialState: Partial<LocalValueVariableState>) {
     super({
       type: 'system',
       value: '',
       text: '',
       name: '',
-      isMulti: true,
-      includeAll: true,
       ...initialState,
       skipUrlSync: true,
     });
