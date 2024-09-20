@@ -7,12 +7,12 @@ import {
 } from '@grafana/scenes';
 import { Observable } from 'rxjs';
 
-export interface DataProxyProviderState extends SceneDataState {
+export interface DataProviderSharerState extends SceneDataState {
   source: SceneObjectRef<SceneDataProvider>;
 }
 
-export class DataProxyProvider extends SceneObjectBase<DataProxyProviderState> implements SceneDataProvider {
-  public constructor(state: DataProxyProviderState) {
+export class DataProviderSharer extends SceneObjectBase<DataProviderSharerState> implements SceneDataProvider {
+  public constructor(state: DataProviderSharerState) {
     super({
       source: state.source,
       data: state.source.resolve().state.data,
