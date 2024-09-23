@@ -1,6 +1,5 @@
 import { NavModelItem, UrlQueryMap } from '@grafana/data';
-// @ts-ignore
-import { PluginPage, useLocationService, locationService as locationServiceRuntime } from '@grafana/runtime';
+import { PluginPage } from '@grafana/runtime';
 import React, { useContext, useEffect, useLayoutEffect } from 'react';
 
 import { RouteComponentProps } from 'react-router-dom';
@@ -11,6 +10,7 @@ import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getUrlWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
 import { useUrlSync } from '../../services/useUrlSync';
 import { SceneAppContext } from './SceneApp';
+import { useLocationServiceSafe } from '../../utils/utils';
 
 export interface Props {
   page: SceneAppPageLike;
@@ -25,11 +25,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   const appContext = useContext(SceneAppContext);
   const isInitialized = containerState.initializedScene === scene;
   const { layout } = page.state;
-
-  // As we this is basically a version/feature check for grafana/runtime this 'if' should be stable (ie for one instance
-  // of grafana this will always be true or false) so it should be safe to ignore the hook rule here
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const locationService = useLocationService ? useLocationService() : locationServiceRuntime;
+  const locationService = useLocationServiceSafe();
 
   useLayoutEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.

@@ -1,17 +1,13 @@
 import { SceneObject, SceneUrlSyncOptions } from '../core/types';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-// @ts-ignore
-import { locationService as locationServiceRuntime, useLocationService } from '@grafana/runtime';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { useUrlSyncManager } from './UrlSyncManager';
+import { useLocationServiceSafe } from '../utils/utils';
 
 export function useUrlSync(sceneRoot: SceneObject, options: SceneUrlSyncOptions = {}): boolean {
   const location = useLocation();
-  // As we this is basically a version/feature check for grafana/runtime this 'if' should be stable (ie for one instance
-  // of grafana this will always be true or false) so it should be safe to ignore the hook rule here
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const locationService = useLocationService ? useLocationService() : locationServiceRuntime;
+  const locationService = useLocationServiceSafe();
   const [isInitialized, setIsInitialized] = useState(false);
   const urlSyncManager = useUrlSyncManager(options, locationService);
 
