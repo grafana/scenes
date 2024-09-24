@@ -1,6 +1,6 @@
 import {
   CustomTransformerDefinition,
-  DataProviderSharer,
+  DataProviderProxy,
   SceneDataProvider,
   SceneDataTransformer,
 } from '@grafana/scenes';
@@ -23,7 +23,7 @@ export function useDataTransformer(options: UseDataTransformerOptions) {
   if (!dataTransformer) {
     dataTransformer = new SceneDataTransformer({
       key: key,
-      $data: new DataProviderSharer({ source: options.data.getRef() }),
+      $data: new DataProviderProxy({ source: options.data.getRef() }),
       transformations: options.transformations,
     });
   }

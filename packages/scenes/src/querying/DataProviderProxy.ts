@@ -1,17 +1,13 @@
-import {
-  SceneObjectBase,
-  SceneObjectRef,
-  SceneDataProvider,
-  SceneDataProviderResult,
-  SceneDataState,
-} from '@grafana/scenes';
 import { Observable } from 'rxjs';
+import { SceneObjectBase } from '../core/SceneObjectBase';
+import { SceneObjectRef } from '../core/SceneObjectRef';
+import { SceneDataState, SceneDataProvider, SceneDataProviderResult } from '../core/types';
 
 export interface DataProviderSharerState extends SceneDataState {
   source: SceneObjectRef<SceneDataProvider>;
 }
 
-export class DataProviderSharer extends SceneObjectBase<DataProviderSharerState> implements SceneDataProvider {
+export class DataProviderProxy extends SceneObjectBase<DataProviderSharerState> implements SceneDataProvider {
   public constructor(state: DataProviderSharerState) {
     super({
       source: state.source,

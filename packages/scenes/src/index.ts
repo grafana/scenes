@@ -29,7 +29,7 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
-export { DataProviderSharer } from './querying/DataProviderSharer';
+export { DataProviderProxy } from './querying/DataProviderProxy';
 export {
   type ExtraQueryDescriptor,
   type ExtraQueryProvider,
