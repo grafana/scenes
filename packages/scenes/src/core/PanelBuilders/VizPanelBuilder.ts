@@ -1,5 +1,5 @@
 import { VizPanel, VizPanelState } from '../../components/VizPanel/VizPanel';
-import { DeepPartial } from '../types';
+import { DeepPartial, SceneObject } from '../types';
 import { FieldConfigBuilder } from './FieldConfigBuilder';
 import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
 import { PanelOptionsBuilder } from './PanelOptionsBuilder';
@@ -34,6 +34,11 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    */
   public setTitle(title: VizPanelState['title']): this {
     this._state.title = title;
+    return this;
+  }
+
+  public setTitleItems(titleItems: React.ReactNode | SceneObject | SceneObject[]): this {
+    this._state.titleItems = titleItems
     return this;
   }
 

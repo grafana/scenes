@@ -88,6 +88,7 @@ export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneByVariableRepeater } from './components/SceneByVariableRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';
+export {TimeSeriesLimitSeriesTitleItemScene} from './components/LimitSeriesTitleItem'
 export {
   SceneFlexLayout,
   SceneFlexItem,
