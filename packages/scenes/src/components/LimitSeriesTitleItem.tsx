@@ -1,6 +1,6 @@
 import { Button, Icon, Tooltip, useStyles2 } from '@grafana/ui';
 import React from 'react';
-import { DataFrame, GrafanaTheme2, LoadingState, PanelData } from '@grafana/data';
+import { DataFrame, GrafanaTheme2, LoadingState } from '@grafana/data';
 import { css } from '@emotion/css';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { map, Observable } from 'rxjs';
