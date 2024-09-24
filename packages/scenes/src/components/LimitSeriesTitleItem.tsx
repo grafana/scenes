@@ -31,7 +31,7 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
     const $data = panel.state.$data;
 
     // @todo how to fix scene object already has parent
-    // Cloning breaks desired functionality
+    // Cloning breaks query subscriptions
     const transformer = new SceneDataTransformer({
       $data: $data,
       transformations: [() => limitFramesTransformation(this.state.seriesLimit)],
@@ -135,3 +135,12 @@ const getStyles = (theme: GrafanaTheme2) => ({
     fontSize: theme.typography.bodySmall.fontSize,
   }),
 });
+
+/**
+ * Usage:
+ * PanelBuilders.timeseries()
+ * .setData($data)
+ * .setTitleItems([new TimeSeriesLimitSeriesTitleItemScene({
+ *    seriesLimit: 10,
+ *  })])
+ */
