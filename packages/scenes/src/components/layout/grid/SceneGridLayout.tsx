@@ -374,11 +374,13 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       }
 
       const panelFilterInterpolated = interpolate(this, searchString).toLowerCase();
-      const filteredChildren = this.state.children.filter(
-        (v) =>
+      const filteredChildren = this.state.children.filter((v) => {
+        const panelTitleInterpolated = interpolate(v, (v.state as any).body?.state?.title).toLowerCase();
+        return (
           typeof (v.state as any).body?.state?.title === 'string' &&
-          (v.state as any).body.state.title.toLowerCase().includes(panelFilterInterpolated)
-      );
+          panelTitleInterpolated.includes(panelFilterInterpolated)
+        );
+      });
       this._skipOnLayoutChange = true;
       const rowSize =
         typeof panelsPerRow === 'number' && Number.isInteger(panelsPerRow) && panelsPerRow > 0 ? panelsPerRow : 2;
