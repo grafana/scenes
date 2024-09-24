@@ -62,7 +62,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
           this._autoRefreshBlocked = false;
           this.onRefresh();
         }
-      }
+      };
 
       document.addEventListener('visibilitychange', onVisibilityChange);
 
@@ -79,6 +79,9 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 
   public onRefresh = () => {
     const queryController = sceneGraph.getQueryController(this);
+
+    queryController?.startProfile(this);
+
     if (queryController?.state.isRunning) {
       queryController.cancelAll();
       return;
@@ -216,7 +219,9 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       tooltip={tooltip}
       width={width}
       text={text}
-      onRefresh={model.onRefresh}
+      onRefresh={() => {
+        model.onRefresh();
+      }}
       primary={primary}
       onIntervalChanged={model.onIntervalChanged}
       isLoading={isRunning}

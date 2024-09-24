@@ -1,8 +1,16 @@
 import { isArray } from 'lodash';
 import React, { RefCallback, useEffect, useMemo, useState } from 'react';
-
-//@ts-ignore
-import { Checkbox, InputActionMeta, MultiSelect, Select, ToggleAllState, getSelectStyles, useStyles2, useTheme2 } from '@grafana/ui';
+import {
+  Checkbox,
+  InputActionMeta,
+  MultiSelect,
+  Select,
+  //@ts-ignore
+  ToggleAllState,
+  getSelectStyles,
+  useStyles2,
+  useTheme2,
+} from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
@@ -11,10 +19,11 @@ import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
+import { sceneGraph } from '../../core/sceneGraph';
 
 const filterNoOp = () => true;
 
-const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== '$__all'
+const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== '$__all';
 
 const determineToggleAllState = (
   selectedValues: Array<SelectableValue<VariableValueSingle>>,
@@ -44,7 +53,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
   const selectValue = toSelectableValue(value, String(text));
-
+  const queryController = sceneGraph.getQueryController(model);
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
@@ -91,6 +100,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
+        queryController?.startProfile(model);
 
         if (hasCustomValue !== newValue.__isNew__) {
           setHasCustomValue(newValue.__isNew__);
@@ -106,6 +116,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
   const [inputValue, setInputValue] = useState('');
+  const queryController = sceneGraph.getQueryController(model);
 
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
@@ -161,6 +172,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(uncommittedValue);
+        queryController?.startProfile(model);
       }}
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
@@ -182,7 +194,7 @@ interface SelectMenuOptionProps<T> {
   innerRef: RefCallback<HTMLDivElement>;
   renderOptionLabel?: (value: SelectableValue<T>) => JSX.Element;
   data: SelectableValue<T>;
-  indeterminate: boolean; 
+  indeterminate: boolean;
 }
 
 export const OptionWithCheckbox = ({
