@@ -5,8 +5,8 @@ import {
   VizPanelState,
   VizConfig,
   SceneQueryRunner,
+  DataProviderProxy,
 } from '@grafana/scenes';
-import { DataProxyProvider } from '../DataProxyProvider';
 import { usePrevious } from 'react-use';
 import { getPanelOptionsWithDefaults } from '@grafana/data';
 import { writeSceneLog } from '../utils';
@@ -96,7 +96,7 @@ export function VizPanel(props: VizPanelProps) {
  */
 function getDataProviderForVizPanel(data: SceneDataProvider | undefined): SceneDataProvider | undefined {
   if (data instanceof SceneQueryRunner) {
-    return new DataProxyProvider({ source: data.getRef() });
+    return new DataProviderProxy({ source: data.getRef() });
   }
   return data;
 }
