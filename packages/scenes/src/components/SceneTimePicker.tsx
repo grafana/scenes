@@ -75,6 +75,8 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
+      // @ts-ignore TODO remove after grafana/ui update to 11.2.0
+      weekStart={timeRangeState.weekStart}
     />
   );
 }
