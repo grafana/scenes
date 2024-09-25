@@ -1,3 +1,16 @@
+# v5.16.0 (Wed Sep 25 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimePicker: Implement recently used absolute time ranges view [#915](https://github.com/grafana/scenes/pull/915) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v5.15.1 (Wed Sep 25 2024)
 
 #### 🐛 Bug Fix
