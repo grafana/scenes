@@ -1,4 +1,4 @@
-import { getTimeZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
+import { getTimeZone, rangeUtil, TimeRange, toUtc } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -8,7 +8,7 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
-import { config, locationService, RefreshEvent } from '@grafana/runtime';
+import { locationService, RefreshEvent } from '@grafana/runtime';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
@@ -53,20 +53,9 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       }
     }
 
-    if (this.state.weekStart) {
-      setWeekStart(this.state.weekStart);
-    }
-
     if (rangeUtil.isRelativeTimeRange(this.state.value.raw)) {
       this.refreshIfStale();
     }
-
-    // Deactivation handler that restore weekStart if it was changed
-    return () => {
-      if (this.state.weekStart) {
-        setWeekStart(config.bootData.user.weekStart);
-      }
-    };
   }
 
   private refreshIfStale() {

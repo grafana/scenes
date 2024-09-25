@@ -1,17 +1,14 @@
-import { toUtc, setWeekStart, dateMath } from '@grafana/data';
+import { toUtc, dateMath } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
-import { config, RefreshEvent } from '@grafana/runtime';
+import { RefreshEvent } from '@grafana/runtime';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneReactObject } from '../components/SceneReactObject';
 
 jest.mock('@grafana/data', () => ({
   ...jest.requireActual('@grafana/data'),
-  setWeekStart: jest.fn(),
 }));
-
-config.bootData = { user: { weekStart: 'monday' } } as any;
 
 function simulateDelay(newDateString: string, scene: EmbeddedScene) {
   jest.setSystemTime(new Date(newDateString));
@@ -52,15 +49,6 @@ describe('SceneTimeRange', () => {
       from: 'now-1h',
       to: 'now',
     });
-  });
-
-  it('When weekStart i set should call on activation', () => {
-    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', weekStart: 'saturday' });
-    const deactivate = timeRange.activate();
-    expect(setWeekStart).toHaveBeenCalledWith('saturday');
-
-    deactivate();
-    expect(setWeekStart).toHaveBeenCalledWith('monday');
   });
 
   it('updateFromUrl with ISO time', () => {
