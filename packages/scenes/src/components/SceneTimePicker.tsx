@@ -141,7 +141,7 @@ export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRang
   };
 }
 
-const HISTORY_LOCAL_STORAGE_KEY = 'grafana.scenes.dashboard.timepicker.history';
+const HISTORY_LOCAL_STORAGE_KEY = 'grafana.dashboard.timepicker.history';
 
 // Simplified object to store in local storage
 interface TimePickerHistoryItem {
