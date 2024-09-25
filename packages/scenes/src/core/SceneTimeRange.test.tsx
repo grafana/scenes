@@ -111,6 +111,19 @@ describe('SceneTimeRange', () => {
     expect(stateSpy).toBeCalledTimes(1);
   });
 
+  it('should not allow invalid date values', () => {
+    const invalidDate = 'now)';
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: invalidDate });
+    expect(timeRange.state.value.raw.to).toBe('now');
+  });
+
+  it('should not allow invalid date values when updating from URL', () => {
+    let invalidDate = 'now)';
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+    timeRange.urlSync?.updateFromUrl({ to: invalidDate });
+    expect(timeRange.state.value.raw.to).toBe('now');
+  });
+
   describe('time zones', () => {
     describe('when time zone is not specified', () => {
       it('should return default time zone', () => {
