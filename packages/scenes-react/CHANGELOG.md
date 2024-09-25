@@ -1,3 +1,16 @@
+# v5.15.0 (Wed Sep 25 2024)
+
+#### 🐛 Bug Fix
+
+- DataProviderProxy: Rename and fix imports [#911](https://github.com/grafana/scenes/pull/911) ([@torkelo](https://github.com/torkelo))
+- DataProvideSharer: Add and export DataProviderSharer [#903](https://github.com/grafana/scenes/pull/903) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.13.0 (Wed Sep 04 2024)
 
 ### Release Notes
