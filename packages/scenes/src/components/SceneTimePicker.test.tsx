@@ -1,6 +1,9 @@
-import { dateTime, toUtc } from '@grafana/data';
-import { screen, render } from '@testing-library/react';
 import React from 'react';
+import { screen, render } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+import { dateTime, toUtc } from '@grafana/data';
+import { Components } from '@grafana/e2e-selectors';
 
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneTimeRangeState } from '../core/types';
@@ -77,6 +80,39 @@ describe('SceneTimePicker', () => {
     expect(dateTime(t2.from).diff(t1.from, 'h')).toBe(-6);
   });
 
+  it('should show placeholder if there is no history in local storage', async () => {
+    const { scene } = setupScene({
+      from: 'now-12h',
+      to: 'now',
+    });
+
+    render(<scene.Component model={scene} />);
+    await userEvent.click(screen.getByTestId(Components.TimePicker.openButton));
+    expect(screen.getByText(/it looks like you haven't used this time picker before/i)).toBeInTheDocument();
+  });
+
+  it('should add new absolute time range to list', async () => {
+    const { scene } = setupScene({
+      from: 'now-12h',
+      to: 'now',
+    });
+
+    render(<scene.Component model={scene} />);
+    await userEvent.click(screen.getByTestId(Components.TimePicker.openButton));
+
+    const fromField = screen.getByTestId(Components.TimePicker.fromField);
+    await userEvent.clear(fromField);
+    await userEvent.type(fromField, '2024-09-04 00:00:00');
+
+    const toField = screen.getByTestId(Components.TimePicker.toField);
+    await userEvent.clear(toField);
+    await userEvent.type(toField, '2024-09-14 23:59:59');
+
+    const applyButton = screen.getByTestId(Components.TimePicker.applyTimeRange);
+    await userEvent.click(applyButton);
+
+    expect(screen.getByText('2024-09-04 00:00:00 to 2024-09-14 23:59:59')).toBeInTheDocument();
+  });
 
   it('correctly calculates absolute time range', () => {
     jest.useFakeTimers();
