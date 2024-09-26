@@ -50,6 +50,7 @@ export const useFloatingInteractions = ({
         padding: 10,
       }),
     ],
+    strategy: 'fixed',
   });
 
   const role = useRole(context, { role: 'listbox' });

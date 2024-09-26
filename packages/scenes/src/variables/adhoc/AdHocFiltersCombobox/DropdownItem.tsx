@@ -77,7 +77,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     paddingRight: theme.spacing(0.5),
   }),
   multiValueApplyWrapper: css({
-    position: 'absolute',
+    position: 'fixed',
     top: 0,
     left: 0,
     display: 'flex',
