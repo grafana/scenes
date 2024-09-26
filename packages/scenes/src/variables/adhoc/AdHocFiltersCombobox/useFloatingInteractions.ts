@@ -22,7 +22,7 @@ type useFloatingInteractionsProps = {
   disabledIndicesRef: React.MutableRefObject<number[]>;
 };
 
-const MAX_MENU_HEIGHT = 300;
+export const MAX_MENU_HEIGHT = 300;
 
 export const useFloatingInteractions = ({
   open,
