@@ -193,6 +193,31 @@ describe('SceneRefreshPicker', () => {
     expect(dateTime(t4.to).diff(t3.to, 's')).toBe(12);
   });
 
+  describe('Url sync', () => {
+    it('Should not return url state when refresh is empty string', () => {
+      const { refreshPicker } = setupScene('');
+      expect(refreshPicker.getUrlState()).toEqual({ refresh: undefined });
+    });
+
+    it('Should not return url state when refresh is boolean', () => {
+      // @ts-ignore
+      const { refreshPicker } = setupScene(false);
+      expect(refreshPicker.getUrlState()).toEqual({ refresh: undefined });
+    });
+
+    it('Should not return url state when refresh is interval string', () => {
+      // @ts-ignore
+      const { refreshPicker } = setupScene('11s');
+      expect(refreshPicker.getUrlState()).toEqual({ refresh: '11s' });
+    });
+
+    it('Should not update url with invalid refresh', () => {
+      const { refreshPicker } = setupScene('');
+      refreshPicker.updateFromUrl({ refresh: 'true' });
+      expect(refreshPicker.state.refresh).toEqual('');
+    });
+  });
+
   describe('min interval config', () => {
     beforeAll(() => {
       config.minRefreshInterval = '30s';
