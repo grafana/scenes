@@ -1,13 +1,15 @@
-import { useEffect, useId } from 'react';
+import { useEffect } from 'react';
 import { SceneDataQuery, SceneQueryRunner } from '@grafana/scenes';
 import { DataSourceRef } from '@grafana/schema';
 import { isEqual } from 'lodash';
-import { useSceneContext } from './hooks';
+import { CacheKey } from '../caching/SceneObjectCache';
+import { useSceneObject } from './useSceneObject';
 
 export interface UseQueryOptions {
   queries: SceneDataQuery[];
   maxDataPoints?: number;
   datasource?: DataSourceRef;
+  cacheKey?: CacheKey;
 }
 
 /**
@@ -18,21 +20,17 @@ export interface UseQueryOptions {
  * const { data } = query.useState();
  */
 export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
-  const scene = useSceneContext();
-  const key = useId();
-
-  let queryRunner = scene.findByKey<SceneQueryRunner>(key);
-
-  if (!queryRunner) {
-    queryRunner = new SceneQueryRunner({
-      key: key,
-      queries: options.queries,
-      maxDataPoints: options.maxDataPoints,
-      datasource: options.datasource,
-    });
-  }
-
-  useEffect(() => scene.addToScene(queryRunner), [queryRunner, scene]);
+  const queryRunner = useSceneObject({
+    factory: (key) =>
+      new SceneQueryRunner({
+        key: key,
+        queries: options.queries,
+        maxDataPoints: options.maxDataPoints,
+        datasource: options.datasource,
+      }),
+    objectConstructor: SceneQueryRunner,
+    cacheKey: options.cacheKey,
+  });
 
   // Update queries when they change
   useEffect(() => {
