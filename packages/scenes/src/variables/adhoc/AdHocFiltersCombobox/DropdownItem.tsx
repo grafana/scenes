@@ -77,7 +77,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     paddingRight: theme.spacing(0.5),
   }),
   multiValueApplyWrapper: css({
-    position: 'absolute',
+    position: 'fixed',
     top: 0,
     left: 0,
     display: 'flex',
@@ -109,9 +109,10 @@ interface MultiValueApplyButtonProps {
   onApply: () => void;
   floatingElement: HTMLElement | null;
   maxOptionWidth: number;
+  menuHeight: number;
 }
 
-export const MultiValueApplyButton = ({ onApply, floatingElement, maxOptionWidth }: MultiValueApplyButtonProps) => {
+export const MultiValueApplyButton = ({ onApply, floatingElement, maxOptionWidth, menuHeight }: MultiValueApplyButtonProps) => {
   const styles = useStyles2(getStyles);
 
   const floatingElementRect = floatingElement?.getBoundingClientRect();
@@ -120,7 +121,7 @@ export const MultiValueApplyButton = ({ onApply, floatingElement, maxOptionWidth
       className={styles.multiValueApplyWrapper}
       style={{
         width: `${maxOptionWidth}px`,
-        transform: `translate(${floatingElementRect?.left}px,${floatingElementRect?.bottom}px)`,
+        transform: `translate(${floatingElementRect?.left}px,${floatingElementRect ? floatingElementRect.top + menuHeight : 0}px)`,
       }}
     >
       <Button onClick={onApply} size="sm" tabIndex={-1}>
