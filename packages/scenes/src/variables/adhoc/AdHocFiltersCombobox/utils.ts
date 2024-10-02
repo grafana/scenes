@@ -111,55 +111,63 @@ export const setupDropdownAccessibility = (
 };
 
 // WIP: POC for parsing key and operator values automatically
-export const filterAutoParser = ({
-  event,
-  filterInputType,
-  options,
-  model,
-  filter,
-  setInputValue,
-  setInputType,
-  refs,
-}: {
-  event: React.ChangeEvent<HTMLInputElement>;
-  filterInputType: AdHocInputType;
-  options: Array<SelectableValue<string>>;
-  model: AdHocFiltersVariable;
-  filter: AdHocFilterWithLabels | undefined;
-  setInputValue: (value: React.SetStateAction<string>) => void;
-  setInputType: (value: React.SetStateAction<AdHocInputType>) => void;
-  refs: UseFloatingReturn<HTMLInputElement>['refs'];
-}) => {
-  // // part of POC for seamless filter parser
-  if (filterInputType === 'key') {
-    const lastChar = event.target.value.slice(-1);
-    if (['=', '!', '<', '>'].includes(lastChar)) {
-      const key = event.target.value.slice(0, -1);
-      const optionIndex = options.findIndex((option) => option.value === key);
-      if (optionIndex >= 0) {
-        model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, options[optionIndex]));
-        setInputValue(lastChar);
-      }
-      switchInputType('operator', setInputType, undefined, refs.domReference.current);
-      return;
-    }
-  }
-  if (filterInputType === 'operator') {
-    const lastChar = event.target.value.slice(-1);
-    if (/\w/.test(lastChar)) {
-      const operator = event.target.value.slice(0, -1);
-      if (!/\w/.test(operator)) {
-        const optionIndex = options.findIndex((option) => option.value === operator);
-        if (optionIndex >= 0) {
-          model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, options[optionIndex]));
-          setInputValue(lastChar);
-        }
-        switchInputType('value', setInputType, undefined, refs.domReference.current);
-        return;
-      }
-    }
-  }
-};
+// export const filterAutoParser = ({
+//   event,
+//   filterInputType,
+//   options,
+//   model,
+//   filter,
+//   setInputValue,
+//   setInputType,
+//   refs,
+//   multiValueOperators,
+// }: {
+//   event: React.ChangeEvent<HTMLInputElement>;
+//   filterInputType: AdHocInputType;
+//   options: Array<SelectableValue<string>>;
+//   model: AdHocFiltersVariable;
+//   filter: AdHocFilterWithLabels | undefined;
+//   setInputValue: (value: React.SetStateAction<string>) => void;
+//   setInputType: (value: React.SetStateAction<AdHocInputType>) => void;
+//   refs: UseFloatingReturn<HTMLInputElement>['refs'];
+//   multiValueOperators: string[];
+// }) => {
+//   // // part of POC for seamless filter parser
+//   if (filterInputType === 'key') {
+//     const lastChar = event.target.value.slice(-1);
+//     if (['=', '!', '<', '>'].includes(lastChar)) {
+//       const key = event.target.value.slice(0, -1);
+//       const optionIndex = options.findIndex((option) => option.value === key);
+//       if (optionIndex >= 0) {
+//         model._updateFilter(
+//           filter!,
+//           generateFilterUpdatePayload(filterInputType, options[optionIndex], filter!, multiValueOperators)
+//         );
+//         setInputValue(lastChar);
+//       }
+//       switchInputType('operator', setInputType, undefined, refs.domReference.current);
+//       return;
+//     }
+//   }
+//   if (filterInputType === 'operator') {
+//     const lastChar = event.target.value.slice(-1);
+//     if (/\w/.test(lastChar)) {
+//       const operator = event.target.value.slice(0, -1);
+//       if (!/\w/.test(operator)) {
+//         const optionIndex = options.findIndex((option) => option.value === operator);
+//         if (optionIndex >= 0) {
+//           model._updateFilter(
+//             filter!,
+//             generateFilterUpdatePayload(filterInputType, options[optionIndex], filter!, multiValueOperators)
+//           );
+//           setInputValue(lastChar);
+//         }
+//         switchInputType('value', setInputType, undefined, refs.domReference.current);
+//         return;
+//       }
+//     }
+//   }
+// };
 
 const nextInputTypeMap = {
   key: 'operator',
@@ -193,10 +201,19 @@ export const switchInputType = (
   setTimeout(() => element?.focus());
 };
 
-export const generateFilterUpdatePayload = (
-  filterInputType: AdHocInputType,
-  item: SelectableValue<string>
-): Partial<AdHocFilterWithLabels> => {
+export const generateFilterUpdatePayload = ({
+  filterInputType,
+  item,
+  filter,
+  multiValueOperators,
+  setFilterMultiValues,
+}: {
+  filterInputType: AdHocInputType;
+  item: SelectableValue<string>;
+  filter: AdHocFilterWithLabels;
+  multiValueOperators: string[];
+  setFilterMultiValues: (value: React.SetStateAction<Array<SelectableValue<string>>>) => void;
+}): Partial<AdHocFilterWithLabels> => {
   if (filterInputType === 'key') {
     return {
       key: item.value,
@@ -210,6 +227,49 @@ export const generateFilterUpdatePayload = (
     };
   }
 
+  if (filterInputType === 'operator') {
+    // handle values/valueLabels when switching from multi to single value operator
+    if (multiValueOperators.includes(filter.operator) && !multiValueOperators.includes(item.value!)) {
+      // reset local multi values state
+      setFilterMultiValues([]);
+      // update operator and reset values and valueLabels
+      return {
+        operator: item.value,
+        // TODO remove when we're on the latest version of @grafana/data
+        //@ts-expect-error
+        valueLabels: [filter.valueLabels?.[0] || filter.values?.[0] || filter.value],
+        //@ts-expect-error
+        values: undefined,
+      };
+    }
+
+    // handle values/valueLabels when switching from single to multi value operator
+    if (multiValueOperators.includes(item.value!) && !multiValueOperators.includes(filter.operator)) {
+      //@ts-expect-error
+      const valueLabels = [filter.valueLabels?.[0] || filter.values?.[0] || filter.value];
+      const values = [filter.value];
+
+      // populate local multi values state
+      if (values[0]) {
+        setFilterMultiValues([
+          {
+            value: values[0],
+            label: valueLabels?.[0] ?? values[0],
+          },
+        ]);
+      }
+
+      // update operator and default values and valueLabels
+      return {
+        operator: item.value,
+        valueLabels: valueLabels,
+        //@ts-expect-error
+        values: values,
+      };
+    }
+  }
+
+  // default operator update of same multi/single type
   return {
     [filterInputType]: item.value,
   };
