@@ -27,6 +27,8 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
    */
   getValue(fieldPath?: string): VariableValue | undefined | null;
 
+  getValueForUrl?(fieldPath?: string): VariableValue | undefined | null;
+
   /**
    * Should return the value display text, used by the "text" formatter
    * Example: ${podId:text}

@@ -5,7 +5,7 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
-import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
+import { dataFromResponse, escapeUrlPipeDelimiters, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError, toUrlCommaDelimitedString } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
@@ -200,6 +200,16 @@ export class AdHocFiltersVariable
 
   public getValue(): VariableValue | undefined {
     return this.state.filterExpression;
+  }
+
+  public getValueForUrl(): VariableValue | undefined {
+    const filters = this.state.filters;
+
+    if (filters.length === 0) {
+      return '';
+    }
+
+    return filters.filter(isFilterComplete).map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'));
   }
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
@@ -411,4 +421,21 @@ export function isMultiValueOperator(operatorValue: string): boolean {
     return false;
   }
   return Boolean(operator.isMulti);
+}
+
+function toArray(filter: AdHocFilterWithLabels): string[] {
+  const result = [
+    toUrlCommaDelimitedString(filter.key, filter.keyLabel),
+    filter.operator,
+  ];
+  if (isMultiValueOperator(filter.operator)) {
+    // TODO remove expect-error when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    filter.values.forEach((value, index) => {
+      result.push(toUrlCommaDelimitedString(value, filter.valueLabels?.[index]));
+    });
+  } else {
+    result.push(toUrlCommaDelimitedString(filter.value, filter.valueLabels?.[0]));
+  }
+  return result;
 }

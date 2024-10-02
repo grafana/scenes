@@ -24,6 +24,7 @@ export interface FormatVariable {
   };
 
   getValue(fieldPath?: string): VariableValue | undefined | null;
+  getValueForUrl?(fieldPath?: string): VariableValue | undefined | null;
   getValueText?(fieldPath?: string): string;
 }
 
@@ -280,6 +281,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       description:
         'Format variables as URL parameters. Example in multi-variable scenario A + B + C => var-foo=A&var-foo=B&var-foo=C.',
       formatter: (value, _args, variable) => {
+        if (variable.getValueForUrl) {
+          value = variable.getValueForUrl() ?? '';
+        }
+
         if (Array.isArray(value)) {
           return value.map((v) => formatQueryParameter(variable.state.name, v)).join('&');
         }
