@@ -1,8 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import uFuzzy from '@leeoniya/ufuzzy';
 import { AdHocInputType } from './AdHocFiltersCombobox';
-import { AdHocFiltersVariable, AdHocFilterWithLabels } from '../AdHocFiltersVariable';
-import { UseFloatingReturn } from '@floating-ui/react';
+import { AdHocFilterWithLabels } from '../AdHocFiltersVariable';
 
 const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
 const VIRTUAL_LIST_DESCRIPTION_WIDTH_ESTIMATE_MULTIPLIER = 6;
