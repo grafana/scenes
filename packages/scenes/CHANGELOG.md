@@ -1,3 +1,15 @@
+# v5.16.3 (Thu Oct 03 2024)
+
+#### 🐛 Bug Fix
+
+- Refresh: Improve / harden refresh url sync [#923](https://github.com/grafana/scenes/pull/923) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.16.2 (Tue Oct 01 2024)
 
 #### 🐛 Bug Fix
