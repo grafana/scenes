@@ -4,7 +4,6 @@ import {
   VizPanel as VizPanelObject,
   VizPanelState,
   VizConfig,
-  SceneQueryRunner,
   DataProviderProxy,
   SceneDataNode,
 } from '@grafana/scenes';
