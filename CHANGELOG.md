@@ -1,3 +1,16 @@
+# v5.18.0 (Fri Oct 04 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Emit RefreshEvent on annotation enable/disable [#930](https://github.com/grafana/scenes/pull/930) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.17.0 (Fri Oct 04 2024)
 
 #### 🚀 Enhancement
