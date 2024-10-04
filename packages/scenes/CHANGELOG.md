@@ -1,3 +1,15 @@
+# v5.17.0 (Fri Oct 04 2024)
+
+#### 🚀 Enhancement
+
+- Annotations: Include templateSrv.getVariables with dashboard object in legacy annotation queries [#929](https://github.com/grafana/scenes/pull/929) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v5.16.3 (Thu Oct 03 2024)
 
 #### 🐛 Bug Fix
