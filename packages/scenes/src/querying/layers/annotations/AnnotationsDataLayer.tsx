@@ -19,6 +19,7 @@ import { DataLayerControlSwitch } from '../SceneDataLayerControls';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
+import { RefreshEvent } from '@grafana/runtime';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
@@ -46,6 +47,8 @@ export class AnnotationsDataLayer
   }
 
   public onEnable(): void {
+    this.publishEvent(new RefreshEvent(), true);
+    
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._timeRangeSub = timeRange.subscribeToState(() => {
@@ -54,6 +57,8 @@ export class AnnotationsDataLayer
   }
 
   public onDisable(): void {
+    this.publishEvent(new RefreshEvent(), true);
+
     this._timeRangeSub?.unsubscribe();
   }
 
