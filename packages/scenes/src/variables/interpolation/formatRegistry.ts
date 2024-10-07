@@ -1,10 +1,11 @@
 import { isArray, map, replace } from 'lodash';
 
-import { dateTime, Registry, RegistryItem, textUtil, escapeRegex } from '@grafana/data';
+import { dateTime, Registry, RegistryItem, textUtil, escapeRegex, urlUtil } from '@grafana/data';
 import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { VariableValue, VariableValueSingle } from '../types';
 import { ALL_VARIABLE_VALUE } from '../constants';
+import { SceneObjectUrlSyncHandler } from '../../core/types';
 
 export interface FormatRegistryItem extends RegistryItem {
   formatter(value: VariableValue, args: string[], variable: FormatVariable): string;
@@ -25,6 +26,7 @@ export interface FormatVariable {
 
   getValue(fieldPath?: string): VariableValue | undefined | null;
   getValueText?(fieldPath?: string): string;
+  urlSync?: SceneObjectUrlSyncHandler;
 }
 
 export const formatRegistry = new Registry<FormatRegistryItem>(() => {
@@ -280,9 +282,15 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       description:
         'Format variables as URL parameters. Example in multi-variable scenario A + B + C => var-foo=A&var-foo=B&var-foo=C.',
       formatter: (value, _args, variable) => {
+        if (variable.urlSync) {
+          const urlParam = variable.urlSync.getUrlState();
+          return urlUtil.toUrlParams(urlParam);
+        }
+
         if (Array.isArray(value)) {
           return value.map((v) => formatQueryParameter(variable.state.name, v)).join('&');
         }
+
         return formatQueryParameter(variable.state.name, value);
       },
     },
