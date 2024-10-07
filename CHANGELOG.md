@@ -1,3 +1,17 @@
+# v5.18.1 (Mon Oct 07 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`
+  - VizPanel: Fixes issue with viz panel when passing it SceneDataTransformer [#928](https://github.com/grafana/scenes/pull/928) ([@torkelo](https://github.com/torkelo) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.18.0 (Fri Oct 04 2024)
 
 #### 🚀 Enhancement
