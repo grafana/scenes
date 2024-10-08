@@ -26,6 +26,11 @@ export function parseUrlParam(value: SceneObjectUrlValue): string | null {
     if (utcValue.isValid()) {
       return utcValue.toISOString();
     }
+  } else if (value.length === 19) {
+    const utcValue = toUtc(value, 'YYYY-MM-DD HH:mm:ss');
+    if (utcValue.isValid()) {
+      return utcValue.toISOString();
+    }
   } else if (value.length === 24) {
     const utcValue = toUtc(value);
     return utcValue.toISOString();
