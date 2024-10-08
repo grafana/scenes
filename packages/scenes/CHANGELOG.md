@@ -1,3 +1,15 @@
+# v5.18.3 (Tue Oct 08 2024)
+
+#### 🐛 Bug Fix
+
+- Add checks for valid dates before saving calculating values [#914](https://github.com/grafana/scenes/pull/914) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 1
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
 # v5.18.2 (Mon Oct 07 2024)
 
 #### 🐛 Bug Fix
