@@ -42,7 +42,12 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   public constructor(state: Partial<SceneRefreshPickerState>) {
     const filterDissalowedIntervals = (i: string) => {
       const minInterval = state.minRefreshInterval ?? config.minRefreshInterval;
-      return minInterval ? rangeUtil.intervalToMs(i) >= rangeUtil.intervalToMs(minInterval) : true;
+      try {
+        return minInterval ? rangeUtil.intervalToMs(i) >= rangeUtil.intervalToMs(minInterval) : true;
+      } catch (e) {
+        // Unable to parse interval
+        return false;
+      }
     };
 
     super({
