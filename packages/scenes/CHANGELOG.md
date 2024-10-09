@@ -1,3 +1,15 @@
+# v5.19.0 (Wed Oct 09 2024)
+
+#### 🚀 Enhancement
+
+- PanelBuilders: Mixin function to share config [#932](https://github.com/grafana/scenes/pull/932) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.18.3 (Tue Oct 08 2024)
 
 #### 🐛 Bug Fix
