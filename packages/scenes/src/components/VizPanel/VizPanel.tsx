@@ -83,6 +83,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   _pluginLoadError?: string;
   /** Internal */
   _pluginInstanceState?: any;
+  _renderCounter?: number;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
@@ -107,6 +108,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       fieldConfig: { defaults: {}, overrides: [] },
       title: 'Title',
       pluginId: 'timeseries',
+      _renderCounter: 0,
       ...state,
     });
 
@@ -323,6 +325,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     this.setState({
       options: withDefaults.options as DeepPartial<TOptions>,
+      _renderCounter: (this.state._renderCounter ?? 0) + 1,
     });
   };
 
