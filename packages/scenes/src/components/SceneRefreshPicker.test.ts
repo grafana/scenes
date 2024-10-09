@@ -255,6 +255,11 @@ describe('SceneRefreshPicker', () => {
       const { refreshPicker } = setupScene('5s', ['5s', '30s', '1m'], undefined, undefined, '0ms');
       expect(refreshPicker.state.intervals).toContain('5s');
     });
+
+    it('does not crash if refresh interval is set to empty string', () => {
+      const { refreshPicker } = setupScene('5s', [''], undefined, undefined, '10s');
+      expect(refreshPicker.state.intervals).toEqual([]);
+    });
   });
 
   describe('auto interval', () => {
