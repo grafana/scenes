@@ -240,6 +240,15 @@ describe('VizPanelBuilder', () => {
         }
       `);
     });
+
+    it('allows mixin function', () => {
+      const mixin = (builder: ReturnType<typeof getTestBuilder>) => {
+        builder.setOption('numeric', 2);
+      };
+
+      const p1 = getTestBuilder().applyMixin(mixin).build();
+      expect(p1.state.options.numeric).toEqual(2);
+    });
   });
 
   describe('overrides', () => {
