@@ -1,3 +1,16 @@
+# v5.19.1 (Wed Oct 09 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix a crash when refresh interval set to empty string [#933](https://github.com/grafana/scenes/pull/933) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v5.19.0 (Wed Oct 09 2024)
 
 #### 🚀 Enhancement
