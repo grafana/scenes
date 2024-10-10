@@ -1,3 +1,15 @@
+# v5.20.0 (Thu Oct 10 2024)
+
+#### 🚀 Enhancement
+
+- VizPanel: Fix issue where changing panel options wouldn't cause re-render [#934](https://github.com/grafana/scenes/pull/934) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v5.19.1 (Wed Oct 09 2024)
 
 #### 🐛 Bug Fix
