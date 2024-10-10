@@ -28,18 +28,22 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
 
   private onActivate() {
     const panel = sceneGraph.getAncestor(this, VizPanel);
-    const $data = panel.state.$data;
 
-    // @todo how to fix scene object already has parent
-    // Cloning breaks query subscriptions
+    // Clone the data provider
+    const $data = panel.state.$data?.clone();
+
+    // Create data transformer
     const transformer = new SceneDataTransformer({
       $data: $data,
       transformations: [() => limitFramesTransformation(this.state.seriesLimit)],
     });
+
+    // Attach data transformer to VizPanel
     panel.setState({
       $data: transformer,
     })
 
+    // Subscribe to data changes and update the series counts
     this._subs.add(
       panel.subscribeToState(() => {
         const $data = sceneGraph.getData(this);

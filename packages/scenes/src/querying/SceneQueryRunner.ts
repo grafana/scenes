@@ -502,6 +502,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     clone['_variableValueRecorder'] = this._variableValueRecorder.cloneAndRecordCurrentValuesForSceneObject(this);
     clone['_containerWidth'] = this._containerWidth;
+    // @todo what are the implications of copying the ReplaySubject reference?
+    clone['_results'] = this._results
     clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
 
     return clone;
