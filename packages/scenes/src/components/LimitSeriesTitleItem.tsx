@@ -9,8 +9,6 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
 import { VizPanel } from './VizPanel/VizPanel';
 
-export const MAX_NUMBER_OF_TIME_SERIES = 20;
-
 export interface TimeSeriesLimitSeriesTitleItemSceneState extends SceneObjectState {
   showAllSeries?: boolean;
   currentSeriesCount?: number;
@@ -20,9 +18,7 @@ export interface TimeSeriesLimitSeriesTitleItemSceneState extends SceneObjectSta
 
 export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSeriesLimitSeriesTitleItemSceneState> {
   public constructor(state: TimeSeriesLimitSeriesTitleItemSceneState) {
-    super({
-      ...state
-    });
+    super(state);
     this.addActivationHandler(this.onActivate.bind(this));
   }
 
@@ -58,6 +54,9 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
     );
   }
 
+  /**
+   * Removes the default series limit and renders all series in the viz
+   */
   public toggleShowAllSeries () {
     const $data = sceneGraph.getData(this);
     if($data instanceof SceneDataTransformer){
@@ -101,7 +100,7 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
         </span>
         <Tooltip
           content={
-            'Rendering too many series in a single panel may impact performance and make data harder to read. Consider adding more filters.'
+            'Rendering too many series in a single panel may impact performance and make data harder to read.'
           }
         >
           <Button variant="secondary" size="sm" onClick={() => model.toggleShowAllSeries()}>
@@ -113,7 +112,7 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
   };
 }
 
-export function limitFramesTransformation(limit: number) {
+function limitFramesTransformation(limit: number) {
   return (source: Observable<DataFrame[]>) => {
     return source.pipe(
       map((frames) => {
@@ -145,6 +144,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
  * PanelBuilders.timeseries()
  * .setData($data)
  * .setTitleItems([new TimeSeriesLimitSeriesTitleItemScene({
- *    seriesLimit: 10,
+ *    seriesLimit: 10, // limits the default number of series that are rendered in the viz
  *  })])
  */
