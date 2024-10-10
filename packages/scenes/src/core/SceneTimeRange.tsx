@@ -1,4 +1,4 @@
-import { getTimeZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
+import { getTimeZone, rangeUtil, TimeRange, toUtc } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -8,14 +8,16 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
-import { config, locationService, RefreshEvent } from '@grafana/runtime';
+import { locationService, RefreshEvent } from '@grafana/runtime';
+import { isValid } from '../utils/date';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
 
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
-    const from = state.from ?? 'now-6h';
-    const to = state.to ?? 'now';
+    const from = state.from && isValid(state.from) ? state.from : 'now-6h';
+    const to = state.to && isValid(state.to) ? state.to : 'now';
+
     const timeZone = state.timeZone;
     const value = evaluateTimeRange(
       from,
@@ -53,20 +55,9 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       }
     }
 
-    if (this.state.weekStart) {
-      setWeekStart(this.state.weekStart);
-    }
-
     if (rangeUtil.isRelativeTimeRange(this.state.value.raw)) {
       this.refreshIfStale();
     }
-
-    // Deactivation handler that restore weekStart if it was changed
-    return () => {
-      if (this.state.weekStart) {
-        setWeekStart(config.bootData.user.weekStart);
-      }
-    };
   }
 
   private refreshIfStale() {
@@ -149,27 +140,22 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeRangeChange = (timeRange: TimeRange) => {
     const update: Partial<SceneTimeRangeState> = {};
-    const updateToEval: Partial<SceneTimeRangeState> = {};
 
     if (typeof timeRange.raw.from === 'string') {
       update.from = timeRange.raw.from;
-      updateToEval.from = timeRange.raw.from;
     } else {
       update.from = timeRange.raw.from.toISOString();
-      updateToEval.from = timeRange.raw.from.toISOString(true);
     }
 
     if (typeof timeRange.raw.to === 'string') {
       update.to = timeRange.raw.to;
-      updateToEval.to = timeRange.raw.to;
     } else {
       update.to = timeRange.raw.to.toISOString();
-      updateToEval.to = timeRange.raw.to.toISOString(true);
     }
 
     update.value = evaluateTimeRange(
-      updateToEval.from,
-      updateToEval.to,
+      update.from,
+      update.to,
       this.getTimeZone(),
       this.state.fiscalYearStartMonth,
       this.state.UNSAFE_nowDelay
@@ -230,19 +216,24 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       const time = Array.isArray(values.time) ? values.time[0] : values.time;
       const timeWindow = Array.isArray(values['time.window']) ? values['time.window'][0] : values['time.window'];
       const timeRange = getTimeWindow(time, timeWindow);
-      from = timeRange.from;
-      to = timeRange.to;
+      if (timeRange.from && isValid(timeRange.from)) {
+        from = timeRange.from;
+      }
+
+      if (timeRange.to && isValid(timeRange.to)) {
+        to = timeRange.to;
+      }
     }
 
     if (!from && !to) {
       return;
     }
 
-    if (from) {
+    if (from && isValid(from)) {
       update.from = from;
     }
 
-    if (to) {
+    if (to && isValid(to)) {
       update.to = to;
     }
 

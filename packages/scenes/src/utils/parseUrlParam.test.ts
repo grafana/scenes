@@ -30,4 +30,8 @@ describe('parseUrlParam', () => {
   it('should parse epoch', () => {
     expect(parseUrlParam('1693559700000')).toMatchInlineSnapshot(`"2023-09-01T09:15:00.000Z"`);
   });
+
+  it('should parse human readable date', () => {
+    expect(parseUrlParam('2024-09-30 00:00:00')).toMatchInlineSnapshot(`"2024-09-30T00:00:00.000Z"`);
+  });
 });

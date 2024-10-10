@@ -221,6 +221,14 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   }
 
   /**
+   * Makes it possible to shared config between different builders
+   */
+  public applyMixin(mixin: (builder: this) => void): this {
+    mixin(this);
+    return this;
+  }
+
+  /**
    * Build the panel.
    */
   public build() {
