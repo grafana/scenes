@@ -316,7 +316,16 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
         } else {
-          model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, selectedItem));
+          model._updateFilter(
+            filter!,
+            generateFilterUpdatePayload({
+              filterInputType,
+              item: selectedItem,
+              filter: filter!,
+              multiValueOperators,
+              setFilterMultiValues,
+            })
+          );
 
           switchToNextInputType(filterInputType, setInputType, handleChangeViewMode, refs.domReference.current);
           setActiveIndex(0);
@@ -331,6 +340,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       filterInputType,
       filteredDropDownItems,
       handleLocalMultiValueChange,
+      multiValueOperators,
       handleChangeViewMode,
       model,
       refs.domReference,
@@ -555,7 +565,16 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 handleLocalMultiValueChange(item);
                                 refs.domReference.current?.focus();
                               } else {
-                                model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, item));
+                                model._updateFilter(
+                                  filter!,
+                                  generateFilterUpdatePayload({
+                                    filterInputType,
+                                    item,
+                                    filter: filter!,
+                                    multiValueOperators,
+                                    setFilterMultiValues,
+                                  })
+                                );
                                 setInputValue('');
 
                                 switchToNextInputType(
