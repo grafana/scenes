@@ -5,6 +5,7 @@ import {
   SceneAppPageState,
   SceneCSSGridItem,
   SceneCSSGridLayout,
+  VizPanelExploreButton,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './utils';
 import { Button, Select } from '@grafana/ui';
@@ -51,6 +52,13 @@ export function getPanelHeaderActions(defaults: SceneAppPageState) {
                 .setHeaderActions(
                   <Select options={[{ label: 'Option 1', value: '1' }]} onChange={() => {}} value="1" />
                 )
+                .build(),
+            }),
+            new SceneCSSGridItem({
+              body: PanelBuilders.timeseries()
+                .setTitle('Panel with explore button')
+                .setData(getQueryRunnerWithRandomWalkQuery())
+                .setHeaderActions(new VizPanelExploreButton())
                 .build(),
             }),
           ],
