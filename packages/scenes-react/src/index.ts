@@ -15,4 +15,5 @@ export { useVariableValue } from './hooks/useVariableValue';
 export { AnnotationLayer } from './components/AnnotationLayer';
 export { EmbeddedSceneWithContext } from './interoperability/EmbeddedSceneWithContext';
 export { VizGridLayout } from './components/VizGridLayout';
+export { SceneContextObject } from './contexts/SceneContextObject';
 export * from './hooks/hooks';
