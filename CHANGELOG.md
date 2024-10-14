@@ -1,3 +1,16 @@
+# v5.20.1 (Mon Oct 14 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`
+  - SceneContextObject: Export context object [#925](https://github.com/grafana/scenes/pull/925) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.20.0 (Thu Oct 10 2024)
 
 #### 🚀 Enhancement
