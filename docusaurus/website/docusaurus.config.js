@@ -2,7 +2,6 @@
 // Note: type annotations allow type checking and IDEs autocompletion
 
 const {
-  customFields,
   generalConfig,
   plugins,
   presetsDocs,
@@ -21,7 +20,7 @@ const config = {
   ...generalConfig,
   url: 'https://grafana.com/',
   baseUrl: 'developers/scenes/',
-  plugins: [],
+  plugins,
   presets: [
     [
       'classic',
