@@ -25,18 +25,13 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
-      
-      - name: Make docs the homepage of this subsite
-        run: |
-          rm -f ./docusaurus/website/src/pages/index.tsx
-          sed -i 's/title: Set up Scenes/title: Set up Scenes\nslug:\ \//g' ./docusaurus/docs/getting-started.md
           
       - name: Build documentation website
         env:
           GTAG_CONTAINER_ID: ${{ secrets.GTAG_CONTAINER_ID }}
         run: |
           cd ./docusaurus/website
-          yarn docs:build -- --config docusaurus.config.devportal.js
+          yarn docs:build:dev
         
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
