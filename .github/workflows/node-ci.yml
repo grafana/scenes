@@ -21,9 +21,6 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
-        with:
-          cache-node-modules: false              
-          cache-install-state: false
 
       - name: Test library
         run: yarn test
