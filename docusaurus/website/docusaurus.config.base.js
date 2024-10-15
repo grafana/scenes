@@ -42,17 +42,6 @@ const generalConfig = {
 
 const plugins = [
   [
-    './plugins/docusaurus-custom-webpack-plugin',
-    {
-      resolve: {
-        alias: {
-          '@snippets': path.resolve(__dirname, '..', 'docs', 'snippets'),
-          '@shared': path.resolve(__dirname, '..', 'docs', 'shared'),
-        },
-      },
-    },
-  ],
-  [
     'docusaurus-lunr-search',
     {
       disableVersioning: true,
