@@ -30,7 +30,6 @@ jobs:
         env:
           GTAG_CONTAINER_ID: ${{ secrets.GTAG_CONTAINER_ID }}
         run: |
-          cd ./docusaurus/website
           yarn docs:build:dev
         
       - id: 'auth'
