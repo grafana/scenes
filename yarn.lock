@@ -3627,6 +3627,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@docusaurus/tsconfig@npm:^3.0.1":
+  version: 3.5.2
+  resolution: "@docusaurus/tsconfig@npm:3.5.2"
+  checksum: 10/808a17eaf422ae9a948c6558dd1e92d4700b067ead3a63a84049c6845bf94f84e311cd0e4d517047fe9ea057efe393bb22c2d5c92d727d06c9f895e971f2c3ea
+  languageName: node
+  linkType: hard
+
 "@docusaurus/types@npm:2.4.0":
   version: 2.4.0
   resolution: "@docusaurus/types@npm:2.4.0"
@@ -7328,13 +7335,6 @@ __metadata:
   version: 0.2.0
   resolution: "@trysound/sax@npm:0.2.0"
   checksum: 10/7379713eca480ac0d9b6c7b063e06b00a7eac57092354556c81027066eb65b61ea141a69d0cc2e15d32e05b2834d4c9c2184793a5e36bbf5daf05ee5676af18c
-  languageName: node
-  linkType: hard
-
-"@tsconfig/docusaurus@npm:^1.0.5":
-  version: 1.0.7
-  resolution: "@tsconfig/docusaurus@npm:1.0.7"
-  checksum: 10/8f5b14005d90b2008f10daf03a5edec86d2a7603e5641c579ea936a5c2d165a8c3007a72254fc4c2adb0554d73062f52bb97b30ff818f01c9215957822f3c4db
   languageName: node
   linkType: hard
 
@@ -29494,11 +29494,11 @@ __metadata:
     "@docusaurus/core": "npm:^3.0.1"
     "@docusaurus/module-type-aliases": "npm:2.4.0"
     "@docusaurus/preset-classic": "npm:^3.0.1"
+    "@docusaurus/tsconfig": "npm:^3.0.1"
     "@grafana/scenes": "workspace:*"
     "@grafana/scenes-react": "workspace:*"
     "@iconscout/unicons": "npm:^4.0.8"
     "@mdx-js/react": "npm:^3.0.0"
-    "@tsconfig/docusaurus": "npm:^1.0.5"
     clsx: "npm:^1.2.1"
     docusaurus-lunr-search: "npm:^3.3.1"
     prism-react-renderer: "npm:^2.1.0"
