@@ -1,6 +1,7 @@
 ---
 id: getting-started
 title: Set up Scenes
+slug: /
 ---
 
 This topic describes how to install Scenes and create your first "Hello World" scene.

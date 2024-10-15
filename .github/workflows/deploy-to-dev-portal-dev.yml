@@ -25,28 +25,18 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
-      
-        #mac: sed -i '' 's/title: Set up Scenes/title: Set up Scenes\nslug:\ \//g' ./docusaurus/docs/getting-started.md
-        #linux: sed -i 's/title: Set up Scenes/title: Set up Scenes\nslug:\ \//g' ./docusaurus/docs/getting-started.md
-      - name: Make docs the homepage of this subsite
-        run: |
-          rm -f ./docusaurus/website/src/pages/index.tsx
-          sed -i 's/title: Set up Scenes/title: Set up Scenes\nslug:\ \//g' ./docusaurus/docs/getting-started.md
           
       - name: Build documentation website
-        env:
-          GTAG_CONTAINER_ID: ${{ secrets.GTAG_CONTAINER_ID }}
-        run: |
-          cd ./docusaurus/website
-          yarn docs:build --config docusaurus.config.devportal.js
+        run: yarn docs:build:dev
         
       - id: 'auth'
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY_DEV }}
-      - name: Deploy to Developer Portal Bucket
-        uses: google-github-actions/upload-cloud-storage@v1
-        with:
-          path: './docusaurus/website/build/'
-          destination: 'staging-developer-portal/scenes'
-          parent: false
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+    
+      - name: 'Deploy to Developer Portal Bucket'
+        run: |
+          gsutil -m rsync -r -d -c ./docusaurus/website/build/ gs://staging-developer-portal/scenes
