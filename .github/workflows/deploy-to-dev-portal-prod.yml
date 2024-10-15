@@ -39,4 +39,4 @@ jobs:
       
       - name: 'Deploy to Developer Portal Bucket'
         run: |
-          gsutil -m rsync -r -d -c -n ./docusaurus/website/build/ gs://grafana-developer-portal/scenes
+          gsutil -m rsync -r -d -c ./docusaurus/website/build/ gs://grafana-developer-portal/scenes
