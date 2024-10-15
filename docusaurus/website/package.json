@@ -20,7 +20,6 @@
     "@docusaurus/preset-classic": "^3.0.1",
     "@grafana/scenes": "workspace:*",
     "@grafana/scenes-react": "workspace:*",
-    "@iconscout/unicons": "^4.0.8",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^1.2.1",
     "docusaurus-lunr-search": "^3.3.1",
