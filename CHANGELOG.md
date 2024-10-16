@@ -1,3 +1,16 @@
+# v5.20.2 (Wed Oct 16 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - TimeRange: Fix timezone not being sync with url [#939](https://github.com/grafana/scenes/pull/939) ([@axelavargas](https://github.com/axelavargas))
+
+#### Authors: 1
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
 # v5.20.1 (Mon Oct 14 2024)
 
 #### 🐛 Bug Fix
