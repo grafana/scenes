@@ -211,7 +211,6 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
     let from = parseUrlParam(values.from);
     let to = parseUrlParam(values.to);
-    let timeZone = values.timezone;
 
     if (values.time && values['time.window']) {
       const time = Array.isArray(values.time) ? values.time[0] : values.time;
@@ -224,10 +223,6 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       if (timeRange.to && isValid(timeRange.to)) {
         to = timeRange.to;
       }
-    }
-
-    if (!from && !to && !timeZone) {
-      return;
     }
 
     if (from && isValid(from)) {
@@ -250,7 +245,10 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       this.state.UNSAFE_nowDelay
     );
 
-    this.setState(update);
+    if (Object.keys(update).length === 0) {
+      return;
+    }
+    return this.setState(update);
   }
 }
 
