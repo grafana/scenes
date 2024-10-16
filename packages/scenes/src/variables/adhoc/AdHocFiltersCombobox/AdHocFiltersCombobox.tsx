@@ -36,7 +36,7 @@ import {
   VIRTUAL_LIST_OVERSCAN,
 } from './utils';
 import { handleOptionGroups } from '../../utils';
-import { useFloatingInteractions } from './useFloatingInteractions';
+import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -596,6 +596,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                   }}
                   floatingElement={refs.floating.current}
                   maxOptionWidth={maxOptionWidth}
+                  menuHeight={Math.min(rowVirtualizer.getTotalSize(), MAX_MENU_HEIGHT)}
                 />
               ) : null}
             </>

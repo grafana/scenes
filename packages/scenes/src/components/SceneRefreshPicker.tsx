@@ -42,7 +42,12 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   public constructor(state: Partial<SceneRefreshPickerState>) {
     const filterDissalowedIntervals = (i: string) => {
       const minInterval = state.minRefreshInterval ?? config.minRefreshInterval;
-      return minInterval ? rangeUtil.intervalToMs(i) >= rangeUtil.intervalToMs(minInterval) : true;
+      try {
+        return minInterval ? rangeUtil.intervalToMs(i) >= rangeUtil.intervalToMs(minInterval) : true;
+      } catch (e) {
+        // Unable to parse interval
+        return false;
+      }
     };
 
     super({
@@ -62,7 +67,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
           this._autoRefreshBlocked = false;
           this.onRefresh();
         }
-      }
+      };
 
       document.addEventListener('visibilitychange', onVisibilityChange);
 
@@ -100,20 +105,22 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   };
 
   public getUrlState() {
-    return {
-      refresh: this.state.refresh,
-    };
+    let refresh: string | undefined = this.state.refresh;
+
+    if (typeof refresh !== 'string' || refresh.length === 0) {
+      refresh = undefined;
+    }
+
+    return { refresh };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
     const { intervals } = this.state;
-    const refresh = values.refresh;
+    let refresh = values.refresh;
 
-    if (refresh && typeof refresh === 'string') {
+    if (typeof refresh === 'string' && isIntervalString(refresh)) {
       if (intervals?.includes(refresh)) {
-        this.setState({
-          refresh,
-        });
+        this.setState({ refresh });
       } else {
         this.setState({
           // Default to the first refresh interval if the interval from the URL is not allowed, just like in the old architecture.
@@ -232,4 +239,13 @@ function useQueryControllerState(model: SceneObject): boolean {
   }
 
   return queryController.useState().isRunning;
+}
+
+function isIntervalString(str: string): boolean {
+  try {
+    const res = rangeUtil.describeInterval(str);
+    return res.count > 0;
+  } catch {
+    return false;
+  }
 }

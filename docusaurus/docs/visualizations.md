@@ -216,6 +216,17 @@ const scene = new EmbeddedScene({
 
 This built panel is now ready to be used in a scene.
 
+### Extract common visualization config to a mixin function 
+
+```ts
+function latencyGraphMixin(builder: ReturnType<typeof PanelBuilders["timeseries"]>) {
+  builder.setMin(0);
+  builder.setOption('legend', { showLegend: false: true })
+}
+
+const panel = PanelBuilders.timeseries().applyMixin(latencyGraphMixin).setData(...)
+```
+
 ## Custom visualizations
 
 If you want to determine how data is visualized in your Grafana app plugin, you can do so in two ways. You always have the option to create a custom `SceneObject`, but you won't get the `PanelChrome` with loading state and other features

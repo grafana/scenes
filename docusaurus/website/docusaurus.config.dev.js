@@ -12,13 +12,13 @@ const {
   themeConfigColorMode,
 } = require('./docusaurus.config.base');
 
-const devPortalHome = 'https://grafana.com/developers';
+const devPortalHome = 'https://grafana-dev.com/developers';
 const [docsFooterLinks, ...otherFooterLinks] = themeConfigFooter.links;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   ...generalConfig,
-  url: 'https://grafana.com/',
+  url: 'https://grafana-dev.com/',
   baseUrl: 'developers/scenes/',
   plugins,
   presets: [

@@ -13,7 +13,7 @@ import {
   ScopedVars,
 } from '@grafana/data';
 
-import { getRunRequest } from '@grafana/runtime';
+import { getRunRequest, getTemplateSrv } from '@grafana/runtime';
 import { shouldUseLegacyRunner, standardAnnotationSupport } from './standardAnnotationsSupport';
 import { Dashboard, LoadingState } from '@grafana/schema';
 import { SceneObject, SceneTimeRangeLike } from '../../../core/types';
@@ -49,7 +49,9 @@ export function executeAnnotationQuery(
         range: timeRange.state.value,
         rangeRaw: timeRange.state.value.raw,
         annotation: query,
-        dashboard: {},
+        dashboard: {
+          getVariables: getTemplateSrv().getVariables
+        },
       })
     ).pipe(
       map((events) => ({
