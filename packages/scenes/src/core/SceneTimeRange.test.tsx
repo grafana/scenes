@@ -166,6 +166,14 @@ describe('SceneTimeRange', () => {
         scene.activate();
         expect(innerTimeRange.getTimeZone()).toEqual('Europe/Berlin');
       });
+
+      it('should update time zone when updating from URL', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'utc' });
+        timeRange.urlSync?.updateFromUrl({ from: 'now-1h', to: 'now', timezone: 'America/New_York' });
+        expect(timeRange.getTimeZone()).toBe('America/New_York');
+        timeRange.urlSync?.updateFromUrl({ from: 'now-1h', to: 'now', timezone: 'utc' });
+        expect(timeRange.getTimeZone()).toBe('utc');
+      });
     });
   });
 

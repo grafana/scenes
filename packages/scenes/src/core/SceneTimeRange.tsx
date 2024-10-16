@@ -225,10 +225,6 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       }
     }
 
-    if (!from && !to) {
-      return;
-    }
-
     if (from && isValid(from)) {
       update.from = from;
     }
@@ -241,6 +237,10 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.timeZone = values.timezone !== '' ? values.timezone : undefined;
     }
 
+    if (Object.keys(update).length === 0) {
+      return;
+    }
+
     update.value = evaluateTimeRange(
       update.from ?? this.state.from,
       update.to ?? this.state.to,
@@ -249,7 +249,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       this.state.UNSAFE_nowDelay
     );
 
-    this.setState(update);
+    return this.setState(update);
   }
 }
 
