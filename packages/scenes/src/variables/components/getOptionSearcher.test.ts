@@ -24,8 +24,8 @@ describe('getOptionSearcher', () => {
     const optionSearcher = getOptionSearcher(options, false);
 
     expect(optionSearcher('est')).toEqual([
-      { label: 'Test', value: '1' },
       { label: 'estimate', value: '2' },
+      { label: 'Test', value: '1' },
     ]);
   });
 });
