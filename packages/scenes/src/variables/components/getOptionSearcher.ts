@@ -30,12 +30,17 @@ export function getOptionSearcher(
       }
     }
 
-    const idxs = ufuzzy.filter(haystack, search);
+    const [idxs, info, order] = ufuzzy.search(haystack, search);
     const filteredOptions: VariableValueOption[] = [];
 
     if (idxs) {
       for (let i = 0; i < idxs.length; i++) {
-        filteredOptions.push(allOptions[idxs[i]]);
+        if (info && order) {
+          const idx = order[i];
+          filteredOptions.push(allOptions[idxs[idx]]);
+        } else {
+          filteredOptions.push(allOptions[idxs[i]]);
+        }
 
         if (filteredOptions.length > limit) {
           return filteredOptions;

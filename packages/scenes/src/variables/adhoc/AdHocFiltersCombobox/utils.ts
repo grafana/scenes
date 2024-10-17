@@ -44,12 +44,17 @@ export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
         haystack.push(options[i].label || options[i].value!);
       }
     }
-    const idxs = ufuzzy.filter(haystack, search);
+    const [idxs, info, order] = ufuzzy.search(haystack, search);
     const filteredOptions: Array<SelectableValue<string>> = [];
 
     if (idxs) {
       for (let i = 0; i < idxs.length; i++) {
-        filteredOptions.push(options[idxs[i]]);
+        if (info && order) {
+          const idx = order[i];
+          filteredOptions.push(options[idxs[idx]]);
+        } else {
+          filteredOptions.push(options[idxs[i]]);
+        }
 
         if (filteredOptions.length > limit) {
           return filteredOptions;
