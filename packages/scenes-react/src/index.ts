@@ -11,6 +11,7 @@ export { DataSourceVariable } from './variables/DataSourceVariable';
 export { QueryVariable } from './variables/QueryVariable';
 export { Breadcrumb, BreadcrumbContext, BreadcrumbProvider } from './contexts/BreadcrumbContext';
 export { useVariableValues } from './hooks/useVariableValues';
+export { useQueryVariable } from './hooks/useQueryVariable';
 export { useVariableValue } from './hooks/useVariableValue';
 export { AnnotationLayer } from './components/AnnotationLayer';
 export { EmbeddedSceneWithContext } from './interoperability/EmbeddedSceneWithContext';
