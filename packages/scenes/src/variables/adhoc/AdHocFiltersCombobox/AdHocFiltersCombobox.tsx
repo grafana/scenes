@@ -13,7 +13,7 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Button, Icon, Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, OPERATORS } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, isMultiValueOperator } from '../AdHocFiltersVariable';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
@@ -65,12 +65,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
-  const multiValueOperators = useMemo(
-    () => OPERATORS.reduce<string[]>((acc, operator) => (operator.isMulti ? [...acc, operator.value!] : acc), []),
-    []
-  );
-
-  const hasMultiValueOperator = multiValueOperators.includes(filter?.operator || '');
+  const hasMultiValueOperator = isMultiValueOperator(filter?.operator || '');
   const isMultiValueEdit = hasMultiValueOperator && filterInputType === 'value';
 
   // used to identify operator element and prevent dismiss because it registers as outside click
@@ -316,7 +311,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
         } else {
-          model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, selectedItem));
+          model._updateFilter(
+            filter!,
+            generateFilterUpdatePayload({
+              filterInputType,
+              item: selectedItem,
+              filter: filter!,
+              setFilterMultiValues,
+            })
+          );
 
           switchToNextInputType(filterInputType, setInputType, handleChangeViewMode, refs.domReference.current);
           setActiveIndex(0);
@@ -555,7 +558,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 handleLocalMultiValueChange(item);
                                 refs.domReference.current?.focus();
                               } else {
-                                model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, item));
+                                model._updateFilter(
+                                  filter!,
+                                  generateFilterUpdatePayload({
+                                    filterInputType,
+                                    item,
+                                    filter: filter!,
+                                    setFilterMultiValues,
+                                  })
+                                );
                                 setInputValue('');
 
                                 switchToNextInputType(
