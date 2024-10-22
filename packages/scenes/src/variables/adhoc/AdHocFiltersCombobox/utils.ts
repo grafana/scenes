@@ -1,7 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import uFuzzy from '@leeoniya/ufuzzy';
 import { AdHocInputType } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, isMultiValueOperator } from '../AdHocFiltersVariable';
 
 const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
 const VIRTUAL_LIST_DESCRIPTION_WIDTH_ESTIMATE_MULTIPLIER = 6;
@@ -204,13 +204,11 @@ export const generateFilterUpdatePayload = ({
   filterInputType,
   item,
   filter,
-  multiValueOperators,
   setFilterMultiValues,
 }: {
   filterInputType: AdHocInputType;
   item: SelectableValue<string>;
   filter: AdHocFilterWithLabels;
-  multiValueOperators: string[];
   setFilterMultiValues: (value: React.SetStateAction<Array<SelectableValue<string>>>) => void;
 }): Partial<AdHocFilterWithLabels> => {
   if (filterInputType === 'key') {
@@ -228,7 +226,7 @@ export const generateFilterUpdatePayload = ({
 
   if (filterInputType === 'operator') {
     // handle values/valueLabels when switching from multi to single value operator
-    if (multiValueOperators.includes(filter.operator) && !multiValueOperators.includes(item.value!)) {
+    if (isMultiValueOperator(filter.operator) && !isMultiValueOperator(item.value!)) {
       // reset local multi values state
       setFilterMultiValues([]);
       // update operator and reset values and valueLabels
@@ -243,7 +241,8 @@ export const generateFilterUpdatePayload = ({
     }
 
     // handle values/valueLabels when switching from single to multi value operator
-    if (multiValueOperators.includes(item.value!) && !multiValueOperators.includes(filter.operator)) {
+    if (isMultiValueOperator(item.value!) && !isMultiValueOperator(filter.operator)) {
+      // TODO remove when we're on the latest version of @grafana/data
       //@ts-expect-error
       const valueLabels = [filter.valueLabels?.[0] || filter.values?.[0] || filter.value];
       const values = [filter.value];

@@ -13,7 +13,7 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Button, Icon, Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, OPERATORS } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, isMultiValueOperator } from '../AdHocFiltersVariable';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
@@ -65,12 +65,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
-  const multiValueOperators = useMemo(
-    () => OPERATORS.reduce<string[]>((acc, operator) => (operator.isMulti ? [...acc, operator.value!] : acc), []),
-    []
-  );
-
-  const hasMultiValueOperator = multiValueOperators.includes(filter?.operator || '');
+  const hasMultiValueOperator = isMultiValueOperator(filter?.operator || '');
   const isMultiValueEdit = hasMultiValueOperator && filterInputType === 'value';
 
   // used to identify operator element and prevent dismiss because it registers as outside click
@@ -322,7 +317,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               filterInputType,
               item: selectedItem,
               filter: filter!,
-              multiValueOperators,
               setFilterMultiValues,
             })
           );
@@ -340,7 +334,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       filterInputType,
       filteredDropDownItems,
       handleLocalMultiValueChange,
-      multiValueOperators,
       handleChangeViewMode,
       model,
       refs.domReference,
@@ -571,7 +564,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                     filterInputType,
                                     item,
                                     filter: filter!,
-                                    multiValueOperators,
                                     setFilterMultiValues,
                                   })
                                 );
