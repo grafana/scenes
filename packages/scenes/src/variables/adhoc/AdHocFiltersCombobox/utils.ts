@@ -109,65 +109,6 @@ export const setupDropdownAccessibility = (
   return maxOptionWidth;
 };
 
-// WIP: POC for parsing key and operator values automatically
-// export const filterAutoParser = ({
-//   event,
-//   filterInputType,
-//   options,
-//   model,
-//   filter,
-//   setInputValue,
-//   setInputType,
-//   refs,
-//   multiValueOperators,
-// }: {
-//   event: React.ChangeEvent<HTMLInputElement>;
-//   filterInputType: AdHocInputType;
-//   options: Array<SelectableValue<string>>;
-//   model: AdHocFiltersVariable;
-//   filter: AdHocFilterWithLabels | undefined;
-//   setInputValue: (value: React.SetStateAction<string>) => void;
-//   setInputType: (value: React.SetStateAction<AdHocInputType>) => void;
-//   refs: UseFloatingReturn<HTMLInputElement>['refs'];
-//   multiValueOperators: string[];
-// }) => {
-//   // // part of POC for seamless filter parser
-//   if (filterInputType === 'key') {
-//     const lastChar = event.target.value.slice(-1);
-//     if (['=', '!', '<', '>'].includes(lastChar)) {
-//       const key = event.target.value.slice(0, -1);
-//       const optionIndex = options.findIndex((option) => option.value === key);
-//       if (optionIndex >= 0) {
-//         model._updateFilter(
-//           filter!,
-//           generateFilterUpdatePayload(filterInputType, options[optionIndex], filter!, multiValueOperators)
-//         );
-//         setInputValue(lastChar);
-//       }
-//       switchInputType('operator', setInputType, undefined, refs.domReference.current);
-//       return;
-//     }
-//   }
-//   if (filterInputType === 'operator') {
-//     const lastChar = event.target.value.slice(-1);
-//     if (/\w/.test(lastChar)) {
-//       const operator = event.target.value.slice(0, -1);
-//       if (!/\w/.test(operator)) {
-//         const optionIndex = options.findIndex((option) => option.value === operator);
-//         if (optionIndex >= 0) {
-//           model._updateFilter(
-//             filter!,
-//             generateFilterUpdatePayload(filterInputType, options[optionIndex], filter!, multiValueOperators)
-//           );
-//           setInputValue(lastChar);
-//         }
-//         switchInputType('value', setInputType, undefined, refs.domReference.current);
-//         return;
-//       }
-//     }
-//   }
-// };
-
 const nextInputTypeMap = {
   key: 'operator',
   operator: 'value',
