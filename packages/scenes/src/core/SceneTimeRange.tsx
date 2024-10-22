@@ -9,13 +9,15 @@ import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 import { locationService, RefreshEvent } from '@grafana/runtime';
+import { isValid } from '../utils/date';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
 
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
-    const from = state.from ?? 'now-6h';
-    const to = state.to ?? 'now';
+    const from = state.from && isValid(state.from) ? state.from : 'now-6h';
+    const to = state.to && isValid(state.to) ? state.to : 'now';
+
     const timeZone = state.timeZone;
     const value = evaluateTimeRange(
       from,
@@ -214,24 +216,29 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       const time = Array.isArray(values.time) ? values.time[0] : values.time;
       const timeWindow = Array.isArray(values['time.window']) ? values['time.window'][0] : values['time.window'];
       const timeRange = getTimeWindow(time, timeWindow);
-      from = timeRange.from;
-      to = timeRange.to;
+      if (timeRange.from && isValid(timeRange.from)) {
+        from = timeRange.from;
+      }
+
+      if (timeRange.to && isValid(timeRange.to)) {
+        to = timeRange.to;
+      }
     }
 
-    if (!from && !to) {
-      return;
-    }
-
-    if (from) {
+    if (from && isValid(from)) {
       update.from = from;
     }
 
-    if (to) {
+    if (to && isValid(to)) {
       update.to = to;
     }
 
     if (typeof values.timezone === 'string') {
       update.timeZone = values.timezone !== '' ? values.timezone : undefined;
+    }
+
+    if (Object.keys(update).length === 0) {
+      return;
     }
 
     update.value = evaluateTimeRange(
@@ -242,7 +249,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       this.state.UNSAFE_nowDelay
     );
 
-    this.setState(update);
+    return this.setState(update);
   }
 }
 

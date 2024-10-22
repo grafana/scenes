@@ -45,7 +45,7 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene);
-    expect(urlVars.getValue().formatter()).toBe('var-cluster=All');
+    expect(urlVars.getValue().formatter()).toBe('var-cluster=$__all');
   });
 
   it('Should handle variable with all value', () => {
@@ -64,7 +64,7 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene);
-    expect(urlVars.getValue().formatter()).toBe('var-cluster=%24__all');
+    expect(urlVars.getValue().formatter()).toBe('var-cluster=$__all');
   });
 
   it('Should ignore variables with skipUrlSync', () => {
