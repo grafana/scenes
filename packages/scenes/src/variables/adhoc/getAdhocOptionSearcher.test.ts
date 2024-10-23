@@ -15,8 +15,8 @@ describe('getAdhocOptionSearcher', () => {
     const optionSearcher = getAdhocOptionSearcher(options);
 
     expect(optionSearcher('est')).toEqual([
-      { label: 'Test', value: '1' },
       { label: 'estimate', value: '2' },
+      { label: 'Test', value: '1' },
     ]);
   });
 
@@ -29,8 +29,8 @@ describe('getAdhocOptionSearcher', () => {
     const optionSearcher = getAdhocOptionSearcher(options);
 
     expect(optionSearcher('est')).toEqual([
-      { label: 'Test', value: '1', foo: 'foo', group: 'group1' },
       { label: 'estimate', value: '2' },
+      { label: 'Test', value: '1', foo: 'foo', group: 'group1' },
     ]);
   });
 });
