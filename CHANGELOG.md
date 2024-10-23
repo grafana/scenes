@@ -1,3 +1,16 @@
+# v5.20.4 (Wed Oct 23 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - feat: sort adhoc filter options using ufuzzy [#941](https://github.com/grafana/scenes/pull/941) ([@sd2k](https://github.com/sd2k))
+
+#### Authors: 1
+
+- Ben Sully ([@sd2k](https://github.com/sd2k))
+
+---
+
 # v5.20.3 (Tue Oct 22 2024)
 
 #### 🐛 Bug Fix
