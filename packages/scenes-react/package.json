@@ -37,12 +37,12 @@
     "url": "https://github.com/grafana/scenes/issues"
   },
   "dependencies": {
-    "@grafana/e2e-selectors": "^11.0.0",
     "@grafana/scenes": "workspace:*",
     "react-use": "17.4.0"
   },
   "peerDependencies": {
     "@grafana/data": "^11.0.0",
+    "@grafana/e2e-selectors": "^11.0.0",
     "@grafana/runtime": "^11.0.0",
     "@grafana/schema": "^11.0.0",
     "@grafana/ui": "^11.0.0",
