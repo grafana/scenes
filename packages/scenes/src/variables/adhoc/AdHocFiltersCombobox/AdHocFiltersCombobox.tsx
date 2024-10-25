@@ -43,12 +43,13 @@ interface AdHocComboboxProps {
   isAlwaysWip?: boolean;
   model: AdHocFiltersVariable;
   handleChangeViewMode?: () => void;
+  focusOnWipInputRef?: () => void;
 }
 
 export type AdHocInputType = 'key' | 'operator' | 'value';
 
 export const AdHocCombobox = forwardRef(function AdHocCombobox(
-  { filter, model, isAlwaysWip, handleChangeViewMode }: AdHocComboboxProps,
+  { filter, model, isAlwaysWip, handleChangeViewMode, focusOnWipInputRef }: AdHocComboboxProps,
   parentRef
 ) {
   const [open, setOpen] = useState(false);
@@ -241,20 +242,44 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const handleBackspaceInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit: boolean) => {
       if (event.key === 'Backspace' && !inputValue) {
-        if (multiValueEdit) {
-          setFilterMultiValues((items) => {
-            const updated = [...items];
-            updated.splice(-1, 1);
+        if (filterInputType === 'value') {
+          if (multiValueEdit) {
+            if (filterMultiValues.length) {
+              setFilterMultiValues((items) => {
+                const updated = [...items];
+                updated.splice(-1, 1);
 
-            return updated;
-          });
-        } else if (filterInputType === 'key') {
-          model._removeLastFilter();
-          handleFetchOptions(filterInputType);
+                return updated;
+              });
+              return;
+            }
+          }
+          setInputType('operator');
+          return;
+        }
+
+        // focus back on alway wip input when you delete first filter with backspace
+        if (model.state.filters[0] === filter) {
+          focusOnWipInputRef?.();
+        }
+
+        model._handleComboboxBackspace(filter!);
+
+        if (isAlwaysWip) {
+          handleResetWip();
         }
       }
     },
-    [inputValue, filterInputType, model, handleFetchOptions]
+    [
+      inputValue,
+      filterInputType,
+      model,
+      filter,
+      isAlwaysWip,
+      filterMultiValues.length,
+      handleResetWip,
+      focusOnWipInputRef,
+    ]
   );
 
   const handleTabInput = useCallback(

@@ -9,10 +9,10 @@ interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
   readOnly?: boolean;
-  focusOnInputRef?: () => void;
+  focusOnWipInputRef?: () => void;
 }
 
-export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Props) {
+export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }: Props) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
   const [shouldFocus, setShouldFocus] = useState(false);
@@ -42,6 +42,15 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
       setShouldFocus(false);
     }
   }, [shouldFocus]);
+
+  // set viewMode to false when filter.forceEdit is defined
+  useEffect(() => {
+    if (filter.forceEdit && viewMode) {
+      setViewMode(false);
+      // immediately set forceEdit back to undefined as a clean up
+      model._updateFilter(filter, { forceEdit: undefined });
+    }
+  }, [filter, model, viewMode]);
 
   if (viewMode) {
     const pillText = (
@@ -76,14 +85,14 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
             onClick={(e) => {
               e.stopPropagation();
               model._removeFilter(filter);
-              setTimeout(() => focusOnInputRef?.());
+              setTimeout(() => focusOnWipInputRef?.());
             }}
             onKeyDownCapture={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
                 model._removeFilter(filter);
-                setTimeout(() => focusOnInputRef?.());
+                setTimeout(() => focusOnWipInputRef?.());
               }
             }}
             name="times"
@@ -96,7 +105,14 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
     );
   }
 
-  return <AdHocCombobox filter={filter} model={model} handleChangeViewMode={handleChangeViewMode} />;
+  return (
+    <AdHocCombobox
+      filter={filter}
+      model={model}
+      handleChangeViewMode={handleChangeViewMode}
+      focusOnWipInputRef={focusOnWipInputRef}
+    />
+  );
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
