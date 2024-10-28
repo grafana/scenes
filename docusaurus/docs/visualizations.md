@@ -44,7 +44,7 @@ in a typical dashboard panel when you view the **JSON** tab in the panel inspect
 
 ## Menu
 
-The menu property of type VizPanelMenu is optionl, when set it defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is rendered. So the best way to add dynamic menu actions and links is by adding them in a [behavior](./advanced-behaviors.md) attached to the menu.
+The menu property of type VizPanelMenu is optional, when set it defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is rendered. So the best way to add dynamic menu actions and links is by adding them in a [behavior](./advanced-behaviors.md) attached to the menu.
 
 ```ts
 new VizPanel({
