@@ -20,6 +20,8 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
 ): TState {
   const clonedState = { ...sceneState };
 
+  Object.assign(clonedState, withState);
+
   // Clone any SceneItems in state
   for (const key in clonedState) {
     const propValue = clonedState[key];
@@ -28,7 +30,8 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
     }
 
     if (propValue instanceof SceneObjectRef) {
-      throw new Error('Cannot clone a SceneObject with a SceneObjectRef in state');
+      console.warn('Cloning object with SceneObjectRef');
+      continue;
     }
 
     // Clone scene objects in arrays
@@ -44,8 +47,6 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
       clonedState[key] = newArray;
     }
   }
-
-  Object.assign(clonedState, withState);
 
   return clonedState;
 }
