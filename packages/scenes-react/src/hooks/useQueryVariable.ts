@@ -10,8 +10,26 @@ interface QueryVariableOptions {
   regex?: string;
 }
 
-// adds or updates a query variable in the scene and returns it or null if
-// the variable is not a QueryVariable
+/**
+ * A custom hook that creates or updates a `QueryVariable` in the scene context.
+ * 
+ * @param {QueryVariableOptions} options - Options for configuring the `QueryVariable`.
+ * @returns {QueryVariable | null} The `QueryVariable` instance or `null`.
+ * 
+ * @example
+ * // Usage example
+ * const variable = useQueryVariable({
+ *   name: "myQueryVariable",
+ *   datasource: "gdev-testdata",
+ *   query: "*",
+ *   regex: ".*someFilter.*"
+ * });
+ * 
+ * // Returns a QueryVariable instance or null if not a valid QueryVariable
+ * if (variable) {
+ *   console.log("Variable added to the scene:", variable);
+ * }
+ */
 export function useQueryVariable(options: QueryVariableOptions): QueryVariable | null {
   const scene = useSceneContext();
   let variable = sceneGraph.lookupVariable(options.name, scene);
