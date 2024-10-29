@@ -39,9 +39,13 @@ export function syncStateFromSearchParams(root: SceneObject, urlParams: URLSearc
   syncStateFromUrl(root, urlParams, urlKeyMapper);
 }
 
-export function syncStateFromUrl(root: SceneObject, urlParams: URLSearchParams, urlKeyMapper: UniqueUrlKeyMapper) {
-  if (!root.parent) {
-    // If top level object we need to sync here
+export function syncStateFromUrl(
+  root: SceneObject,
+  urlParams: URLSearchParams,
+  urlKeyMapper: UniqueUrlKeyMapper,
+  onlyChildren?: boolean
+) {
+  if (!onlyChildren) {
     syncUrlStateToObject(root, urlParams, urlKeyMapper);
   }
 
@@ -50,7 +54,7 @@ export function syncStateFromUrl(root: SceneObject, urlParams: URLSearchParams, 
     syncUrlStateToObject(child, urlParams, urlKeyMapper);
   });
 
-  root.forEachChild((child) => syncStateFromUrl(child, urlParams, urlKeyMapper));
+  root.forEachChild((child) => syncStateFromUrl(child, urlParams, urlKeyMapper, true));
 }
 
 function syncUrlStateToObject(sceneObject: SceneObject, urlParams: URLSearchParams, urlKeyMapper: UniqueUrlKeyMapper) {

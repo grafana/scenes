@@ -20,6 +20,7 @@ export interface TestVariableState extends MultiValueVariableState {
   refresh?: VariableRefresh;
   throwError?: string;
   optionsToReturn?: VariableValueOption[];
+  updateOptions?: boolean;
 }
 
 /**
@@ -44,6 +45,7 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       query: 'Query',
       options: [],
       refresh: VariableRefresh.onDashboardLoad,
+      updateOptions: true,
       ...initialState,
     });
     this.isLazy = isLazy;
@@ -78,7 +80,13 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
 
       const sub = this.completeUpdate.subscribe({
         next: () => {
-          this.setState({ issuedQuery: interpolatedQuery, options, loading: false });
+          const newState: Partial<TestVariableState> = { issuedQuery: interpolatedQuery, loading: false };
+
+          if (this.state.updateOptions) {
+            newState.options = options;
+          }
+
+          this.setState(newState);
           observer.next(options);
           observer.complete();
         },

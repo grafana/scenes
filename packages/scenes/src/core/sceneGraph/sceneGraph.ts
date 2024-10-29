@@ -9,6 +9,8 @@ import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 import { VariableInterpolation } from '@grafana/runtime';
+import { QueryVariable } from '../../variables/variants/query/QueryVariable';
+import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
 
 /**
  * Get the closest node with variables
@@ -54,7 +56,7 @@ export function interpolate(
   value: string | undefined | null,
   scopedVars?: ScopedVars,
   format?: string | VariableCustomFormatterFn,
-  interpolations?: VariableInterpolation[],
+  interpolations?: VariableInterpolation[]
 ): string {
   if (value === '' || value == null) {
     return '';
@@ -75,6 +77,12 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   for (const name of sceneObject.variableDependency.getNames()) {
+    // This is for backwards compability. In the old architecture query variables could reference itself in a query without breaking.
+    if (sceneObject instanceof QueryVariable && sceneObject.state.name === name) {
+      console.warn('Query variable is referencing itself');
+      continue;
+    }
+
     const variable = lookupVariable(name, sceneObject);
     if (!variable) {
       continue;
@@ -125,7 +133,7 @@ function findObjectInternal(
 
 /**
  * Returns a scene object from the scene graph with the requested key.
- * 
+ *
  * Throws error if no key-matching scene object found.
  */
 export function findByKey(sceneObject: SceneObject, key: string) {
@@ -140,11 +148,15 @@ export function findByKey(sceneObject: SceneObject, key: string) {
 
 /**
  * Returns a scene object from the scene graph with the requested key and type.
- * 
+ *
  * Throws error if no key-matching scene object found.
  * Throws error if the given type does not match.
  */
-export function findByKeyAndType<TargetType extends SceneObject>(sceneObject: SceneObject, key: string, targetType: { new(...args: never[]): TargetType }) {
+export function findByKeyAndType<TargetType extends SceneObject>(
+  sceneObject: SceneObject,
+  key: string,
+  targetType: { new (...args: never[]): TargetType }
+) {
   const found = findObject(sceneObject, (sceneToCheck) => {
     return sceneToCheck.state.key === key;
   });
@@ -152,11 +164,10 @@ export function findByKeyAndType<TargetType extends SceneObject>(sceneObject: Sc
     throw new Error('Unable to find scene with key ' + key);
   }
   if (!(found instanceof targetType)) {
-    throw new Error(`Found scene object with key ${key} does not match type ${targetType.name}`) 
+    throw new Error(`Found scene object with key ${key} does not match type ${targetType.name}`);
   }
   return found;
 }
-
 
 /**
  * This will search the full scene graph, starting with the scene node passed in, then walking up the parent chain. *
@@ -216,13 +227,17 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
   return collected;
 }
 
+interface SceneType<T> extends Function {
+  new (...args: never[]): T;
+}
+
 /**
  * A utility function to find the closest ancestor of a given type. This function expects
  * to find it and will throw an error if it does not.
  */
 export function getAncestor<ParentType>(
   sceneObject: SceneObject,
-  ancestorType: { new(...args: never[]): ParentType }
+  ancestorType: SceneType<ParentType>
 ): ParentType {
   let parent: SceneObject | undefined = sceneObject;
 
@@ -241,6 +256,18 @@ export function getAncestor<ParentType>(
 }
 
 /**
+ * This will search down the full scene graph, looking for objects that match the provided descendentType type.
+ */
+export function findDescendents<T extends SceneObject>(scene: SceneObject, descendentType: SceneType<T>) {
+  function isDescendentType(scene: SceneObject): scene is T {
+    return scene instanceof descendentType;
+  }
+
+  const targetScenes = findAllObjects(scene, isDescendentType);
+  return targetScenes.filter(isDescendentType);
+}
+
+/**
  * Returns the closest query controller undefined if none found
  */
 export function getQueryController(sceneObject: SceneObject): SceneQueryControllerLike | undefined {
@@ -253,6 +280,23 @@ export function getQueryController(sceneObject: SceneObject): SceneQueryControll
           return behavior;
         }
       }
+    }
+    parent = parent.parent;
+  }
+
+  return undefined;
+}
+
+/**
+ * Returns the closest SceneObject that has a state property with the
+ * name urlSyncManager that is of type UrlSyncManager
+ */
+export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike | undefined {
+  let parent: SceneObject | undefined = sceneObject;
+
+  while (parent) {
+    if ('urlSyncManager' in parent.state) {
+      return parent.state.urlSyncManager as UrlSyncManagerLike;
     }
     parent = parent.parent;
   }

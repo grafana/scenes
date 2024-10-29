@@ -4,7 +4,7 @@ import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
+import { SceneComponentProps, SceneDataQuery, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { DataQueryExtended } from '../querying/SceneQueryRunner';
 import { ExtraQueryDescriptor, ExtraQueryDataProcessor, ExtraQueryProvider } from '../querying/ExtraQueryProvider';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -39,8 +39,8 @@ export const DEFAULT_COMPARE_OPTIONS = [
 
 export class SceneTimeRangeCompare
   extends SceneObjectBase<SceneTimeRangeCompareState>
-  implements ExtraQueryProvider<SceneTimeRangeCompareState> {
-
+  implements ExtraQueryProvider<SceneTimeRangeCompareState>
+{
   static Component = SceneTimeRangeCompareRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
 
@@ -117,9 +117,15 @@ export class SceneTimeRangeCompare
     return extraQueries;
   }
 
-  // The query runner should rerun the comparison query if the compareWith value has changed.
-  public shouldRerun(prev: SceneTimeRangeCompareState, next: SceneTimeRangeCompareState): boolean {
-    return prev.compareWith !== next.compareWith;
+  // The query runner should rerun the comparison query if the compareWith value has changed and there are queries that haven't opted out of TWC
+  public shouldRerun(
+    prev: SceneTimeRangeCompareState,
+    next: SceneTimeRangeCompareState,
+    queries: SceneDataQuery[]
+  ): boolean {
+    return (
+      prev.compareWith !== next.compareWith && queries.find((query) => query.timeRangeCompare !== false) !== undefined
+    );
   }
 
   public getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined {
@@ -212,7 +218,7 @@ const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary
     });
   });
   return of(secondary);
-}
+};
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
   const styles = useStyles2(getStyles);

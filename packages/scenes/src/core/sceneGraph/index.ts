@@ -12,7 +12,9 @@ import {
   hasVariableDependencyInLoadingState,
   interpolate,
   getAncestor,
+  findDescendents,
   getQueryController,
+  getUrlSyncManager,
 } from './sceneGraph';
 
 export const sceneGraph = {
@@ -29,5 +31,7 @@ export const sceneGraph = {
   findObject,
   findAllObjects,
   getAncestor,
+  findDescendents,
   getQueryController,
+  getUrlSyncManager,
 };

@@ -10,6 +10,8 @@ export interface UseQueryOptions {
   maxDataPoints?: number;
   datasource?: DataSourceRef;
   cacheKey?: CacheKey;
+  liveStreaming?: boolean;
+  maxDataPointsFromWidth?: boolean;
 }
 
 /**
@@ -27,6 +29,8 @@ export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
         queries: options.queries,
         maxDataPoints: options.maxDataPoints,
         datasource: options.datasource,
+        liveStreaming: options.liveStreaming,
+        maxDataPointsFromWidth: options.maxDataPointsFromWidth,
       }),
     objectConstructor: SceneQueryRunner,
     cacheKey: options.cacheKey,

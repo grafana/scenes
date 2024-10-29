@@ -98,6 +98,14 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   }
 
   /**
+   * Sometimes you want to move one instance to another parent.
+   * This is a way to do that without getting the console warning.
+   */
+  public clearParent() {
+    this._parent = undefined;
+  }
+
+  /**
    * Subscribe to the scene state subject
    **/
   public subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable {

@@ -1,0 +1,44 @@
+name: Test docs build
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            docs:
+              - '.github/workflows/deploy-to-developer-portal-dev.yml'
+              - '.github/workflows/deploy-to-developer-portal-prod.yml'
+              - '.github/workflows/test-build.yml'
+              - 'docusaurus/**'
+              - 'package-lock.json'
+
+  build-docs:
+    needs: changes
+    if: ${{ needs.changes.outputs.docs == 'true' }}
+    runs-on: ubuntu-latest    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4        
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'yarn'
+      - name: Install dependencies
+        uses: ./.github/actions/yarn-nm-install
+            
+      - name: Build documentation website (Dev Portal)
+        run: yarn docs:build

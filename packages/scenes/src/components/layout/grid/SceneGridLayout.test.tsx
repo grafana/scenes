@@ -10,13 +10,10 @@ import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';
 import * as utils from './utils';
 
-// Mocking AutoSizer to allow testing of the SceneGridLayout component rendering
-jest.mock(
-  'react-virtualized-auto-sizer',
-  () =>
-    ({ children }: { children: (args: { width: number; height: number }) => React.ReactNode }) =>
-      children({ height: 600, width: 600 })
-);
+jest.mock('react-use', () => ({
+  ...jest.requireActual('react-use'),
+  useMeasure: () => [() => {}, { width: 800, height: 600 }],
+}));
 
 jest.mock('./utils', () => ({
   ...jest.requireActual('./utils'),

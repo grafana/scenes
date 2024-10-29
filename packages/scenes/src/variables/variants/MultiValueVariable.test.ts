@@ -7,6 +7,7 @@ import { SceneVariableValueChangedEvent } from '../types';
 import { CustomAllValue } from '../variants/MultiValueVariable';
 import { TestVariable } from './TestVariable';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
+import { CustomVariable } from './CustomVariable';
 
 describe('MultiValueVariable', () => {
   describe('When validateAndUpdate is called', () => {
@@ -230,7 +231,33 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toEqual([ALL_VARIABLE_TEXT]);
     });
 
-    it('Should handle $__all value and send change event even when value is still $__all', async () => {
+    it('Should handle $__all value and send change event when value is still $__all, but options change', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        includeAll: true,
+        value: ALL_VARIABLE_VALUE,
+        text: ALL_VARIABLE_TEXT,
+        delayMs: 0,
+        updateOptions: false, // don't update options in TestVar, MultiVar will update it anyway
+      });
+
+      let changeEvent: SceneVariableValueChangedEvent | undefined;
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (evt) => (changeEvent = evt));
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
+      expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
+      expect(variable.state.options).toEqual(variable.state.optionsToReturn);
+      expect(changeEvent).toBeDefined();
+    });
+
+    it('Should handle $__all value and not send change event when value is still $__all, but options are the same', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
@@ -252,7 +279,7 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
       expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
       expect(variable.state.options).toEqual(variable.state.optionsToReturn);
-      expect(changeEvent).toBeDefined();
+      expect(changeEvent).not.toBeDefined();
     });
 
     it('Should default to $__all even when no options are returned', async () => {
@@ -643,6 +670,22 @@ describe('MultiValueVariable', () => {
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.getValueText()).toEqual('A + B');
+    });
+
+    it('updateFromUrl should update value from label in the case of key/value custom variable', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        options: [],
+        value: '',
+        text: '',
+        query: 'A : 1,B : 2',
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: 'B' });
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual('2');
+      expect(variable.state.text).toEqual('B');
     });
 
     it('Can disable url sync', async () => {

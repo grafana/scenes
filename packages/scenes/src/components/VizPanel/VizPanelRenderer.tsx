@@ -27,15 +27,18 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     headerActions,
     titleItems,
     description,
+    _renderCounter = 0,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
 
-  const setPanelAttention = useCallback(
-    () => appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key })),
-    [model.state.key, appEvents]
+  const setPanelAttention = useCallback(() => {
+    appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+  }, [model.state.key, appEvents]);
+  const debouncedMouseMove = useMemo(
+    () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
+    [setPanelAttention]
   );
-  const debouncedMouseMove = useMemo(() => debounce(setPanelAttention, 100), [setPanelAttention]);
 
   const plugin = model.getPlugin();
 
@@ -164,6 +167,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onCancelQuery={model.onCancelQuery}
             // @ts-ignore
             onFocus={setPanelAttention}
+            onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
           >
             {(innerWidth, innerHeight) => (
@@ -183,12 +187,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           transparent={false}
                           width={innerWidth}
                           height={innerHeight}
-                          renderCounter={0}
+                          renderCounter={_renderCounter}
                           replaceVariables={model.interpolate}
                           onOptionsChange={model.onOptionsChange}
                           onFieldConfigChange={model.onFieldConfigChange}
                           onChangeTimeRange={model.onTimeRangeChange}
-                          eventBus={appEvents}
+                          eventBus={context.eventBus}
                         />
                       )}
                     </PanelContextProvider>

@@ -19,7 +19,7 @@ import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLa
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TestVariable } from '../variables/variants/TestVariable';
 import { TestScene } from '../variables/TestScene';
-import { RuntimeDataSource, registerRuntimeDataSource } from './RuntimeDataSource';
+import { RuntimeDataSource, registerRuntimeDataSource, runtimeDataSources } from './RuntimeDataSource';
 import { DataQuery } from '@grafana/schema';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneCanvasText } from '../components/SceneCanvasText';
@@ -36,6 +36,8 @@ import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
+import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
+import { config } from '@grafana/runtime';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -116,6 +118,7 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
 let sentRequest: DataQueryRequest | undefined;
 
 jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
   getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
     sentRequest = request;
     return runRequestMock(ds, request);
@@ -130,6 +133,9 @@ jest.mock('@grafana/runtime', () => ({
     getAdhocFilters: jest.fn(),
   }),
   config: {
+    buildInfo: {
+      version: '1.0.0',
+    },
     theme: {
       palette: {
         gray60: '#666666',
@@ -138,9 +144,13 @@ jest.mock('@grafana/runtime', () => ({
   },
 }));
 
-describe('SceneQueryRunner', () => {
+// 11.1.2 - will use SafeSerializableSceneObject
+// 11.1.1 - will NOT use SafeSerializableSceneObject
+describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
   let deactivationHandlers: SceneDeactivationHandler[] = [];
-
+  beforeEach(() => {
+    config.buildInfo.version = v;
+  });
   afterEach(() => {
     runRequestMock.mockClear();
     getDataSourceMock.mockClear();
@@ -172,40 +182,7 @@ describe('SceneQueryRunner', () => {
           "__interval_ms",
         ]
       `);
-      expect(request).toMatchInlineSnapshot(`
-        {
-          "app": "scenes",
-          "cacheTimeout": "30",
-          "interval": "30s",
-          "intervalMs": 30000,
-          "liveStreaming": undefined,
-          "maxDataPoints": 500,
-          "queryCachingTTL": 300000,
-          "range": {
-            "from": "2023-07-11T02:18:08.000Z",
-            "raw": {
-              "from": "now-6h",
-              "to": "now",
-            },
-            "to": "2023-07-11T08:18:08.000Z",
-          },
-          "rangeRaw": {
-            "from": "now-6h",
-            "to": "now",
-          },
-          "requestId": "SQR100",
-          "startTime": 1689063488000,
-          "targets": [
-            {
-              "datasource": {
-                "uid": "test-uid",
-              },
-              "refId": "A",
-            },
-          ],
-          "timezone": "browser",
-        }
-      `);
+      expect(request).toMatchSnapshot();
     });
   });
 
@@ -271,6 +248,191 @@ describe('SceneQueryRunner', () => {
     });
   });
 
+  describe('when runQueriesMode is set to manual', () => {
+    it('should not run queries on activate', async () => {
+      const queryRunner = new SceneQueryRunner({
+        runQueriesMode: 'manual',
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data).toBeUndefined();
+    });
+
+    it('should run queries when calling runQueries', async () => {
+      const $timeRange = new SceneTimeRange();
+      const queryRunner = new SceneQueryRunner({
+        runQueriesMode: 'manual',
+        queries: [{ refId: 'A' }],
+        $timeRange
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      queryRunner.runQueries()
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(queryRunner.state.data?.series).toHaveLength(1);
+
+    });
+
+    it('should not subscribe to time range when calling runQueries', async () => {
+      const $timeRange = new SceneTimeRange();
+      const queryRunner = new SceneQueryRunner({
+        runQueriesMode: 'manual',
+        queries: [{ refId: 'A' }],
+        $timeRange
+      });
+
+      queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      // Run the query manually
+      queryRunner.runQueries()
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(queryRunner.state.data?.series[0].refId).toBe('A')
+
+      queryRunner.setState({
+        queries: [{ refId: 'B' }],
+        $timeRange
+      })
+
+      $timeRange.onRefresh()
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+      expect(queryRunner.state.data?.series[0].refId).toBe('A')
+
+      queryRunner.runQueries()
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      expect(queryRunner.state.data?.request?.targets[0].refId).toBe('B')
+    });
+
+    it('should not run queries on timerange change', async () => {
+      const $timeRange = new SceneTimeRange();
+      const queryRunner = new SceneQueryRunner({
+        runQueriesMode: 'manual',
+        queries: [{ refId: 'A' }],
+        $timeRange
+      });
+
+      queryRunner.activate();
+      $timeRange.onRefresh()
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data).toBeUndefined();
+    });
+
+    it('should not execute query on variable update', async () => {
+      const variable = new TestVariable({ name: 'A', value: '', query: 'A.*' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+        runQueriesMode: 'manual'
+      });
+
+      const timeRange = new SceneTimeRange();
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: timeRange,
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+      // should execute query when variable completes update
+      variable.signalUpdateCompleted();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(queryRunner.state.data).toBeUndefined();
+
+      variable.changeValueTo('AB');
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(0);
+    });
+
+    it('should not execute query on adhoc/groupby variable update', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+        runQueriesMode: 'manual'
+      });
+
+      const scene = new EmbeddedScene({ $data: queryRunner, body: new SceneCanvasText({ text: 'hello' }) });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [],
+      });
+
+      scene.setState({ $variables: new SceneVariableSet({ variables: [filtersVar] }) });
+      deactivationHandlers.push(filtersVar.activate());
+
+      filtersVar.setState({ filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }] });
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data).toBeUndefined();
+    });
+
+    it('should not execute query on container width change if maxDataPointsFromWidth is not set', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        runQueriesMode: 'manual',
+      });
+
+      queryRunner.activate();
+      queryRunner.setContainerWidth(100);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data).toBeUndefined();
+    });
+
+    it('should execute query on container width change if maxDataPointsFromWidth is set', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        runQueriesMode: 'manual',
+        maxDataPointsFromWidth: true
+      });
+
+      queryRunner.activate();
+      queryRunner.setContainerWidth(100);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(queryRunner.state.data?.series).toHaveLength(1);
+    });
+  })
+
   describe('when activated and got no data', () => {
     it('should run queries', async () => {
       const queryRunner = new SceneQueryRunner({
@@ -316,11 +478,17 @@ describe('SceneQueryRunner', () => {
 
       await new Promise((r) => setTimeout(r, 1));
 
+      expect(1).toBe(1);
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      expect(runRequestCall[1].scopedVars.__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
-      expect(getDataSourceCall[1].__sceneObject).toEqual({ value: queryRunner, text: '__sceneObject' });
+      expect((runRequestCall[1].scopedVars.__sceneObject.value as SafeSerializableSceneObject).valueOf()).toBe(
+        queryRunner
+      );
+      expect(runRequestCall[1].scopedVars.__sceneObject.text).toBe('__sceneObject');
+
+      expect((getDataSourceCall[1].__sceneObject.value as SafeSerializableSceneObject).valueOf()).toBe(queryRunner);
+      expect(getDataSourceCall[1].__sceneObject.text).toBe('__sceneObject');
     });
 
     it('should pass adhoc filters via request object', async () => {
@@ -351,7 +519,7 @@ describe('SceneQueryRunner', () => {
       expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
 
       // Verify updating filter re-triggers query
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -409,7 +577,7 @@ describe('SceneQueryRunner', () => {
       ]);
 
       // Verify updating filter re-triggers query
-      filtersVar._updateFilter(filtersVar.state.filters[1], 'value', { value: 'D' });
+      filtersVar._updateFilter(filtersVar.state.filters[1], { value: 'D' });
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -482,7 +650,7 @@ describe('SceneQueryRunner', () => {
 
       expect(queryRunner.state.data).toBeUndefined();
 
-      activateFullSceneTree(scene);
+      deactivationHandlers.push(activateFullSceneTree(scene));
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -636,6 +804,28 @@ describe('SceneQueryRunner', () => {
       expect(runRequestMock.mock.calls.length).toBe(0);
     });
 
+    it('Should produce valid PanelData when a variable is loading', async () => {
+      const variable = new TestVariable({ name: 'A', value: '1' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe('Loading');
+      expect(queryRunner.state.data?.timeRange).toBeDefined();
+      expect(queryRunner.state.data?.series).toBeDefined();
+    });
+
     it('Should not executed query on activate even when maxDataPointsFromWidth is true', async () => {
       const variable = new TestVariable({ name: 'A', value: '1' });
       const queryRunner = new SceneQueryRunner({
@@ -694,7 +884,6 @@ describe('SceneQueryRunner', () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A', query: '$A' }],
       });
-
       const timeRange = new SceneTimeRange();
 
       const scene = new SceneFlexLayout({
@@ -1024,6 +1213,25 @@ describe('SceneQueryRunner', () => {
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
       expect(getDataSourceCall[0]).toEqual({ uid: 'Muuu' });
     });
+
+    it('Should interpolate a variable when used in query options', async () => {
+      const variable = new TestVariable({ name: 'A', value: '1h' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        minInterval: '${A}',
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest).toBeDefined();
+      const { scopedVars } = sentRequest!;
+
+      expect(scopedVars.__interval?.text).toBe('1h');
+      expect(scopedVars.__interval?.value).toBe('1h');
+    });
   });
 
   describe('Supporting custom runtime data source', () => {
@@ -1040,6 +1248,8 @@ describe('SceneQueryRunner', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(queryRunner.state.data?.series[0].fields[0].values.get(0)).toBe(123);
+
+      runtimeDataSources.clear();
     });
   });
 
@@ -1309,6 +1519,45 @@ describe('SceneQueryRunner', () => {
 
       scene.activate();
       comparer.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+    });
+
+    test('should not re-run queries if time window comparison changed when all queries have opted out', async () => {
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [
+          { refId: 'A', timeRangeCompare: false },
+          { refId: 'B', timeRangeCompare: false },
+        ],
+      });
+
+      const comparer = new SceneTimeRangeCompare({
+        compareWith: '7d',
+      });
+
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [comparer],
+        body: new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'A' }) })],
+        }),
+      });
+
+      scene.activate();
+      comparer.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+
+      comparer.setState({ compareWith: '1d' });
+
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(1);

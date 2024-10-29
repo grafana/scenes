@@ -1,7 +1,8 @@
 import { isArray } from 'lodash';
 import React, { RefCallback, useEffect, useMemo, useState } from 'react';
 
-import { Checkbox, InputActionMeta, MultiSelect, Select, getSelectStyles, useStyles2, useTheme2 } from '@grafana/ui';
+//@ts-ignore
+import { Checkbox, InputActionMeta, MultiSelect, Select, ToggleAllState, getSelectStyles, useStyles2, useTheme2 } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
@@ -12,6 +13,24 @@ import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
 
 const filterNoOp = () => true;
+
+const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== '$__all'
+
+const determineToggleAllState = (
+  selectedValues: Array<SelectableValue<VariableValueSingle>>,
+  options: Array<SelectableValue<VariableValueSingle>>
+) => {
+  if (selectedValues.length === options.filter(filterAll).length) {
+    return ToggleAllState.allSelected;
+  } else if (
+    selectedValues.length === 0 ||
+    (selectedValues.length === 1 && selectedValues[0] && selectedValues[0].value === '$__all')
+  ) {
+    return ToggleAllState.noneSelected;
+  } else {
+    return ToggleAllState.indeterminate;
+  }
+};
 
 export function toSelectableValue<T>(value: T, label?: string): SelectableValue<T> {
   return {
@@ -128,6 +147,12 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       tabSelectsValue={false}
       virtualized
       allowCustomValue
+      //@ts-ignore
+      toggleAllOptions={{
+        enabled: true,
+        optionsFilter: filterAll,
+        determineToggleAllState: determineToggleAllState,
+      }}
       options={filteredOptions}
       closeMenuOnSelect={false}
       components={{ Option: OptionWithCheckbox }}
@@ -157,6 +182,7 @@ interface SelectMenuOptionProps<T> {
   innerRef: RefCallback<HTMLDivElement>;
   renderOptionLabel?: (value: SelectableValue<T>) => JSX.Element;
   data: SelectableValue<T>;
+  indeterminate: boolean; 
 }
 
 export const OptionWithCheckbox = ({
@@ -166,6 +192,7 @@ export const OptionWithCheckbox = ({
   innerRef,
   isFocused,
   isSelected,
+  indeterminate,
   renderOptionLabel,
 }: React.PropsWithChildren<SelectMenuOptionProps<unknown>>) => {
   // We are removing onMouseMove and onMouseOver from innerProps because they cause the whole
@@ -181,11 +208,13 @@ export const OptionWithCheckbox = ({
       ref={innerRef}
       className={cx(selectStyles.option, isFocused && selectStyles.optionFocused)}
       {...rest}
-      data-testid={selectors.components.Select.option}
+      // TODO: use below selector once we update grafana dependencies to ^11.1.0
+      // data-testid={selectors.components.Select.option}
+      data-testid="data-testid Select option"
       title={data.title}
     >
       <div className={optionStyles.checkbox}>
-        <Checkbox value={isSelected} />
+        <Checkbox indeterminate={indeterminate} value={isSelected} />
       </div>
       <div
         className={selectStyles.optionBody}

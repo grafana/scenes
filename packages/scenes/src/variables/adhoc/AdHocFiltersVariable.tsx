@@ -1,10 +1,11 @@
 import React from 'react';
-import { AdHocVariableFilter, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
+// @ts-expect-error Remove when 11.1.x is released
+import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
-import { getQueriesForVariables, renderPrometheusLabelFilters } from '../utils';
+import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
@@ -14,11 +15,15 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
+import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
-  valueLabel?: string;
+  valueLabels?: string[];
 }
+
+export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
@@ -35,7 +40,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @experimental
    * Controls the layout and design of the label.
    */
-  layout?: ControlsLayout;
+  layout?: AdHocControlsLayout;
   /**
    * Defaults to automatic which means filters will automatically be applied to all queries with the same data source as this AdHocFilterSet.
    * In manual mode you either have to use the filters programmatically or as a variable inside query expressions.
@@ -76,6 +81,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   expressionBuilder?: AdHocVariableExpressionBuilderFn;
 
   /**
+   * Whether the filter supports new multi-value operators like =| and !=|
+   */
+  supportsMultiValueOperators?: boolean;
+
+  /**
    * When querying the datasource for label names and values to determine keys and values
    * for this ad hoc filter, consider the queries in the scene and use them as a filter.
    * This queries filter can be used to ensure that only ad hoc filter options that would
@@ -94,14 +104,57 @@ export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
   currentKey: string | null
-) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type getTagValuesProvider = (
   variable: AdHocFiltersVariable,
   filter: AdHocFilterWithLabels
-) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
+
+export type OperatorDefinition = {
+  value: string;
+  description?: string;
+  isMulti?: Boolean;
+};
+
+export const OPERATORS: OperatorDefinition[] = [
+  {
+    value: '=',
+    description: 'Equals',
+  },
+  {
+    value: '!=',
+    description: 'Not equal',
+  },
+  {
+    value: '=|',
+    description: 'One of. Use to filter on multiple values.',
+    isMulti: true,
+  },
+  {
+    value: '!=|',
+    description: 'Not one of. Use to exclude multiple values.',
+    isMulti: true,
+  },
+  {
+    value: '=~',
+    description: 'Matches regex',
+  },
+  {
+    value: '!~',
+    description: 'Does not match regex',
+  },
+  {
+    value: '<',
+    description: 'Less than',
+  },
+  {
+    value: '>',
+    description: 'Greater than',
+  },
+];
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
@@ -109,7 +162,7 @@ export class AdHocFiltersVariable
 {
   static Component = AdHocFiltersVariableRenderer;
 
-  private _scopedVars = { __sceneObject: { value: this } };
+  private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
@@ -149,41 +202,21 @@ export class AdHocFiltersVariable
     return this.state.filterExpression;
   }
 
-  public _updateFilter(
-    filter: AdHocFilterWithLabels,
-    prop: keyof AdHocFilterWithLabels,
-    { value, label }: SelectableValue<string | undefined | null>
-  ) {
-    if (value == null) {
-      return;
-    }
-
+  public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
     const { filters, _wip } = this.state;
-
-    const propLabelKey = `${prop}Label`;
 
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
-      if (prop === 'value') {
-        this.setState({ filters: [...filters, { ..._wip, [prop]: value, [propLabelKey]: label }], _wip: undefined });
+      if ('value' in update && update['value'] !== '') {
+        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
       } else {
-        this.setState({ _wip: { ...filter, [prop]: value, [propLabelKey]: label } });
+        this.setState({ _wip: { ...filter, ...update } });
       }
       return;
     }
 
     const updatedFilters = this.state.filters.map((f) => {
-      if (f === filter) {
-        const updatedFilter = { ...f, [prop]: value, [propLabelKey]: label };
-
-        // clear value if key has changed
-        if (prop === 'key' && filter[prop] !== value) {
-          updatedFilter.value = '';
-          updatedFilter.valueLabel = '';
-        }
-        return updatedFilter;
-      }
-      return f;
+      return f === filter ? { ...f, ...update } : f;
     });
 
     this.setState({ filters: updatedFilters });
@@ -198,6 +231,14 @@ export class AdHocFiltersVariable
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
   }
 
+  public _removeLastFilter() {
+    const filterToRemove = this.state.filters.at(-1);
+
+    if (filterToRemove) {
+      this._removeFilter(filterToRemove);
+    }
+  }
+
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
@@ -205,7 +246,7 @@ export class AdHocFiltersVariable
     const override = await this.state.getTagKeysProvider?.(this, currentKey);
 
     if (override && override.replace) {
-      return override.values.map(toSelectableValue);
+      return dataFromResponse(override.values).map(toSelectableValue);
     }
 
     if (this.state.defaultKeys) {
@@ -220,14 +261,26 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
-    let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
+    const response = await ds.getTagKeys({
+      filters: otherFilters,
+      queries,
+      timeRange,
+      ...getEnrichedFiltersRequest(this),
+    });
 
+    if (responseHasError(response)) {
+      // @ts-expect-error Remove when 11.1.x is released
+      this.setState({ error: response.error.message });
+    }
+
+    let keys = dataFromResponse(response);
     if (override) {
-      keys = keys.concat(override.values);
+      keys = keys.concat(dataFromResponse(override.values));
     }
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
     if (tagKeyRegexFilter) {
+      // @ts-expect-error Remove when 11.1.x is released
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
@@ -241,7 +294,7 @@ export class AdHocFiltersVariable
     const override = await this.state.getTagValuesProvider?.(this, filter);
 
     if (override && override.replace) {
-      return handleOptionGroups(override.values);
+      return dataFromResponse(override.values).map(toSelectableValue);
     }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
@@ -256,7 +309,7 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
-    let values = await ds.getTagValues({
+    const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
       timeRange, // @ts-expect-error TODO: remove this once 11.1.x is released
@@ -264,23 +317,33 @@ export class AdHocFiltersVariable
       ...getEnrichedFiltersRequest(this),
     });
 
-    if (override) {
-      values = values.concat(override.values);
+    if (responseHasError(response)) {
+      // @ts-expect-error Remove when 11.1.x is released
+      this.setState({ error: response.error.message });
     }
 
-    return handleOptionGroups(values);
+    let values = dataFromResponse(response);
+    if (override) {
+      values = values.concat(dataFromResponse(override.values));
+    }
+
+    return values.map(toSelectableValue);
   }
 
   public _addWip() {
     this.setState({
-      _wip: { key: '', keyLabel: '', value: '', valueLabel: '', operator: '=', condition: '' },
+      _wip: { key: '', value: '', operator: '=', condition: '' },
     });
   }
 
   public _getOperators() {
-    return ['=', '!=', '<', '>', '=~', '!~'].map<SelectableValue<string>>((value) => ({
+    const filteredOperators = this.state.supportsMultiValueOperators
+      ? OPERATORS
+      : OPERATORS.filter((operator) => !operator.isMulti);
+    return filteredOperators.map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
+      description,
     }));
   }
 }
@@ -295,6 +358,10 @@ function renderExpression(
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
+
+  if (model.state.layout === 'combobox') {
+    return <AdHocFiltersComboboxRenderer model={model} />;
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -317,45 +384,31 @@ const getStyles = (theme: GrafanaTheme2) => ({
     columnGap: theme.spacing(2),
     rowGap: theme.spacing(1),
   }),
-  filterIcon: css({
-    color: theme.colors.text.secondary,
-    paddingRight: theme.spacing(0.5),
-  }),
 });
 
-export function toSelectableValue({ text, value }: MetricFindValue): SelectableValue<string> {
-  return {
+export function toSelectableValue(input: MetricFindValue): SelectableValue<string> {
+  const { text, value } = input;
+  const result: SelectableValue<string> = {
     label: text,
     value: String(value ?? text),
   };
+
+  if ('group' in input) {
+    result.group = input.group;
+  }
+
+  return result;
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
   return filter.key !== '' && filter.operator !== '' && filter.value !== '';
 }
 
-// Maps MetricFindValues to SelectableValues and collects them by group
-function handleOptionGroups(values: MetricFindValue[]): Array<SelectableValue<string>> {
-  const result: Array<SelectableValue<string>> = [];
-  const groupedResults = new Map<string, Array<SelectableValue<string>>>();
-
-  for (const value of values) {
-    // @ts-expect-error TODO: remove this once 11.1.x is released
-    const groupLabel = value.group;
-    if (groupLabel) {
-      let group = groupedResults.get(groupLabel);
-
-      if (!group) {
-        group = [];
-        groupedResults.set(groupLabel, group);
-        result.push({ label: groupLabel, options: group });
-      }
-
-      group.push(toSelectableValue(value));
-    } else {
-      result.push(toSelectableValue(value));
-    }
+export function isMultiValueOperator(operatorValue: string): boolean {
+  const operator = OPERATORS.find((o) => o.value === operatorValue);
+  if (!operator) {
+    // default to false if operator is not found
+    return false;
   }
-
-  return result;
+  return Boolean(operator.isMulti);
 }

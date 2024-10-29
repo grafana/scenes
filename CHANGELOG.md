@@ -1,3 +1,944 @@
+# v5.20.4 (Wed Oct 23 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - feat: sort adhoc filter options using ufuzzy [#941](https://github.com/grafana/scenes/pull/941) ([@sd2k](https://github.com/sd2k))
+
+#### Authors: 1
+
+- Ben Sully ([@sd2k](https://github.com/sd2k))
+
+---
+
+# v5.20.3 (Tue Oct 22 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersCombobox: adjust combobox filter values when switching between multi and single operators [#927](https://github.com/grafana/scenes/pull/927) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v5.20.2 (Wed Oct 16 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - TimeRange: Fix timezone not being sync with url [#939](https://github.com/grafana/scenes/pull/939) ([@axelavargas](https://github.com/axelavargas))
+
+#### Authors: 1
+
+- Alexa V ([@axelavargas](https://github.com/axelavargas))
+
+---
+
+# v5.20.1 (Mon Oct 14 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`
+  - SceneContextObject: Export context object [#925](https://github.com/grafana/scenes/pull/925) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.20.0 (Thu Oct 10 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Fix issue where changing panel options wouldn't cause re-render [#934](https://github.com/grafana/scenes/pull/934) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v5.19.1 (Wed Oct 09 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix a crash when refresh interval set to empty string [#933](https://github.com/grafana/scenes/pull/933) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v5.19.0 (Wed Oct 09 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - PanelBuilders: Mixin function to share config [#932](https://github.com/grafana/scenes/pull/932) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.18.3 (Tue Oct 08 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add checks for valid dates before saving calculating values [#914](https://github.com/grafana/scenes/pull/914) ([@javiruiz01](https://github.com/javiruiz01))
+
+#### Authors: 1
+
+- Javier Ruiz ([@javiruiz01](https://github.com/javiruiz01))
+
+---
+
+# v5.18.2 (Mon Oct 07 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Interpolation: Fixes queryparam variable format when used with adhoc filter variable [#931](https://github.com/grafana/scenes/pull/931) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.18.1 (Mon Oct 07 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`
+  - VizPanel: Fixes issue with viz panel when passing it SceneDataTransformer [#928](https://github.com/grafana/scenes/pull/928) ([@torkelo](https://github.com/torkelo) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.18.0 (Fri Oct 04 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Emit RefreshEvent on annotation enable/disable [#930](https://github.com/grafana/scenes/pull/930) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.17.0 (Fri Oct 04 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Annotations: Include templateSrv.getVariables with dashboard object in legacy annotation queries [#929](https://github.com/grafana/scenes/pull/929) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v5.16.3 (Thu Oct 03 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Refresh: Improve / harden refresh url sync [#923](https://github.com/grafana/scenes/pull/923) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.16.2 (Tue Oct 01 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Combobox: Fix "Apply" button positioning when scrolling [#918](https://github.com/grafana/scenes/pull/918) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v5.16.1 (Mon Sep 30 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - useQueryRunner: Add more option props [#924](https://github.com/grafana/scenes/pull/924) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - Fix row title styling for large titles [#920](https://github.com/grafana/scenes/pull/920) ([@mdvictor](https://github.com/mdvictor))
+  - Fix showing all value in datalinks when linking to another db and including vars [#919](https://github.com/grafana/scenes/pull/919) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.16.0 (Wed Sep 25 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimePicker: Implement recently used absolute time ranges view [#915](https://github.com/grafana/scenes/pull/915) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v5.15.1 (Wed Sep 25 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimeRange: Fixes inconsistent representation of time range [#907](https://github.com/grafana/scenes/pull/907) ([@torkelo](https://github.com/torkelo))
+  - Use locationService from context in UrlSyncManager [#899](https://github.com/grafana/scenes/pull/899) ([@aocenas](https://github.com/aocenas))
+
+#### Authors: 2
+
+- Andrej Ocenas ([@aocenas](https://github.com/aocenas))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.15.0 (Wed Sep 25 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimeRange: Use new weekStart prop on TimeRangePicker [#910](https://github.com/grafana/scenes/pull/910) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- fix: docs builds in CI [#829](https://github.com/grafana/scenes/pull/829) ([@sd2k](https://github.com/sd2k))
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - DataProviderProxy: Rename and fix imports [#911](https://github.com/grafana/scenes/pull/911) ([@torkelo](https://github.com/torkelo))
+  - DataProvideSharer: Add and export DataProviderSharer [#903](https://github.com/grafana/scenes/pull/903) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Ben Sully ([@sd2k](https://github.com/sd2k))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.14.7 (Fri Sep 13 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocVariable: Don't throw when operator is not found [#898](https://github.com/grafana/scenes/pull/898) ([@ashharrison90](https://github.com/ashharrison90))
+  - Adhoc filters: Add descriptions for all operators [#901](https://github.com/grafana/scenes/pull/901) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v5.14.4 (Fri Sep 13 2024)
+
+#### 🐛 Bug Fix
+
+- Fix pipeline [#904](https://github.com/grafana/scenes/pull/904) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes`
+  - Add toggle all option to variable value select [#876](https://github.com/grafana/scenes/pull/876) ([@oscarkilhed](https://github.com/oscarkilhed))
+  - Include isMulti and includeAll in LocalValueVariable [#900](https://github.com/grafana/scenes/pull/900) ([@oscarkilhed](https://github.com/oscarkilhed))
+  - MultiValueVariabe: Change when value changed event is published [#896](https://github.com/grafana/scenes/pull/896) ([@mdvictor](https://github.com/mdvictor))
+  - Demo: Demonstrate event traversal through scene graph [#848](https://github.com/grafana/scenes/pull/848) ([@darrenjaneczek](https://github.com/darrenjaneczek))
+
+#### Authors: 3
+
+- Darren Janeczek ([@darrenjaneczek](https://github.com/darrenjaneczek))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.14.3 (Wed Sep 11 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneObjectBase: add clearParent [#892](https://github.com/grafana/scenes/pull/892) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.14.2 (Mon Sep 09 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters - multi value support in new filters UI [#889](https://github.com/grafana/scenes/pull/889) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov) [@ashharrison90](https://github.com/ashharrison90))
+  - Revert "SceneObjectBase: Support rendering a child out of context" [#891](https://github.com/grafana/scenes/pull/891) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.14.1 (Thu Sep 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - TextBoxVariable: fixes issues with TextBox variable when being updated by URL [#890](https://github.com/grafana/scenes/pull/890) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.14.0 (Thu Sep 05 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneObjectBase: Support rendering a child out of context [#887](https://github.com/grafana/scenes/pull/887) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.13.0 (Wed Sep 04 2024)
+
+### Release Notes
+
+#### UrlSync: Support browser history steps, remove singleton ([#878](https://github.com/grafana/scenes/pull/878))
+
+getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider. 
+If you called getUrlSyncManager().getUrlState that util function is available via the exported object sceneUtils.
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - UrlSync: Support browser history steps, remove singleton [#878](https://github.com/grafana/scenes/pull/878) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - chore: export SceneDataTransformerState [#888](https://github.com/grafana/scenes/pull/888) ([@jewbetcha](https://github.com/jewbetcha))
+
+#### Authors: 2
+
+- Coleman Rollins ([@jewbetcha](https://github.com/jewbetcha))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.12.0 (Tue Sep 03 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimeRange: Support initialize time range with time and time.window [#886](https://github.com/grafana/scenes/pull/886) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.11.2 (Mon Sep 02 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Make SceneRefreshPicker respect config.minRefreshInterval [#877](https://github.com/grafana/scenes/pull/877) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v5.11.1 (Fri Aug 30 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable - new ad hoc filters UI [#830](https://github.com/grafana/scenes/pull/830) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov) [@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v5.11.0 (Thu Aug 29 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilters: Add support for new `isOneOf` multi value operator [#868](https://github.com/grafana/scenes/pull/868) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v5.10.2 (Wed Aug 28 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Allow auto refresh only if tab is visible [#879](https://github.com/grafana/scenes/pull/879) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes-react`
+  - ScenesReact: Add datasource variable [#820](https://github.com/grafana/scenes/pull/820) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.10.1 (Tue Aug 20 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - MultiValueVariable: Fix issue where url update would not take options into account [#874](https://github.com/grafana/scenes/pull/874) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes-react`
+  - Add query variable in react-scenes [#818](https://github.com/grafana/scenes/pull/818) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.10.0 (Mon Aug 19 2024)
+
+### Release Notes
+
+#### SafeSerializableSceneObject: Wrap only for supported Grafana version ([#854](https://github.com/grafana/scenes/pull/854))
+
+Brings a fix for [variables interpolation bug](https://github.com/grafana/scenes/issues/851) when apps using scenes 5.6.0+ were run in Grafana version lower than 11.2.0, 11.1.2, 11.0.4, 10.4.8.
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SafeSerializableSceneObject: Wrap only for supported Grafana version [#854](https://github.com/grafana/scenes/pull/854) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v5.9.1 (Mon Aug 19 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - PanelAttention: Fix delay [#867](https://github.com/grafana/scenes/pull/867) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
+# v5.9.0 (Fri Aug 16 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Manual control over query execution [#334](https://github.com/grafana/scenes/pull/334) ([@torkelo](https://github.com/torkelo) [@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.8.0 (Thu Aug 15 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneGridLayout: Change to useMeasure and non absolute div wrapper [#872](https://github.com/grafana/scenes/pull/872) ([@torkelo](https://github.com/torkelo) [@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.7.5 (Wed Aug 14 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Possibility to refresh variable options based on state changes [#827](https://github.com/grafana/scenes/pull/827) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.7.4 (Fri Aug 09 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add backwards compatibility for query variables referencing themselves [#861](https://github.com/grafana/scenes/pull/861) ([@oscarkilhed](https://github.com/oscarkilhed) [@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 2
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v5.7.3 (Thu Aug 01 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Support custom filter keys [#857](https://github.com/grafana/scenes/pull/857) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.7.2 (Wed Jul 31 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: React to RefreshEvent for non-data changes [#852](https://github.com/grafana/scenes/pull/852) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.7.1 (Wed Jul 31 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneVariableSet: Update all variables in case of error [#850](https://github.com/grafana/scenes/pull/850) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v5.7.0 (Mon Jul 29 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Allow setting _skipOnLayoutChange in SceneGridLayout [#849](https://github.com/grafana/scenes/pull/849) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v5.6.2 (Wed Jul 24 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SafeSerializableSceneObject: Make sure valueOf is bound to the instance [#844](https://github.com/grafana/scenes/pull/844) ([@dprokop](https://github.com/dprokop))
+- `@grafana/scenes-react`
+  - ScenesReact: Add useVariableValue for single values [#821](https://github.com/grafana/scenes/pull/821) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.6.1 (Mon Jul 22 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimeRange: Allow time range refresh on activation [#835](https://github.com/grafana/scenes/pull/835) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v5.6.0 (Fri Jul 19 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Wrap __sceneObject scoped var in an serialisable wrapper [#828](https://github.com/grafana/scenes/pull/828) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v5.5.1 (Thu Jul 18 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add triggering RefreshEvent on time range refresh [#838](https://github.com/grafana/scenes/pull/838) ([@asimonok](https://github.com/asimonok))
+
+#### Authors: 1
+
+- Alex Simonok ([@asimonok](https://github.com/asimonok))
+
+---
+
+# v5.5.0 (Thu Jul 18 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Scenes: Move change panel plugin logic in VizPanel [#836](https://github.com/grafana/scenes/pull/836) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.4.1 (Thu Jul 18 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - QueryVariable: Query is empty string by default [#837](https://github.com/grafana/scenes/pull/837) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+  - fix(lazyloader): fix trying to run inexistent callbacks [#833](https://github.com/grafana/scenes/pull/833) ([@svennergr](https://github.com/svennergr))
+
+#### Authors: 2
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+
+---
+
+# v5.4.0 (Tue Jul 16 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Adhoc filters/Group by: Support groups [#816](https://github.com/grafana/scenes/pull/816) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v5.3.9 (Tue Jul 16 2024)
+
+#### 🐛 Bug Fix
+
+- Add Machine Learning section to docs & example page to demo app [#787](https://github.com/grafana/scenes/pull/787) ([@sd2k](https://github.com/sd2k))
+- `@grafana/scenes`
+  - Add variable dependency config to SceneGridRow [#832](https://github.com/grafana/scenes/pull/832) ([@kaydelaney](https://github.com/kaydelaney))
+  - VizPanelRenderer: Set attention with onMouseEnter [#831](https://github.com/grafana/scenes/pull/831) ([@tskarhed](https://github.com/tskarhed))
+  - LazyLoader: add use of `useStyles2` and improve name [#825](https://github.com/grafana/scenes/pull/825) ([@svennergr](https://github.com/svennergr))
+
+#### Authors: 4
+
+- Ben Sully ([@sd2k](https://github.com/sd2k))
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
+# v5.3.8 (Wed Jul 10 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - LazyLoader: Hide wrapper if child is hidden [#823](https://github.com/grafana/scenes/pull/823) ([@svennergr](https://github.com/svennergr))
+- `@grafana/scenes-react`
+  - Add more props + tests to CustomVariable [#817](https://github.com/grafana/scenes/pull/817) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.3.7 (Thu Jul 04 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Dependencies: Bump grafana packages to v11 [#802](https://github.com/grafana/scenes/pull/802) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v5.3.6 (Wed Jul 03 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Adhoc filters: Fix regression with displaying groups [#815](https://github.com/grafana/scenes/pull/815) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v5.3.5 (Wed Jul 03 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Revert "SceneRefreshPicker: Fixes url state issue (#784)" [#814](https://github.com/grafana/scenes/pull/814) ([@dprokop](https://github.com/dprokop))
+- `@grafana/scenes-react`
+  - React scenes: Annotations support [#782](https://github.com/grafana/scenes/pull/782) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.3.4 (Tue Jul 02 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Revert "VizPanel: Load plugin prefered default options when activating" [#812](https://github.com/grafana/scenes/pull/812) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.3.3 (Tue Jul 02 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix variable interpolation in query options interval [#810](https://github.com/grafana/scenes/pull/810) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.3.2 (Thu Jun 27 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Load plugin prefered default options when activating [#806](https://github.com/grafana/scenes/pull/806) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.3.1 (Wed Jun 26 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Allow to adapt color palette after plugin change [#805](https://github.com/grafana/scenes/pull/805) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+  - TimeRangeCompare: Do not re-run queries if all have opted out of comparison [#799](https://github.com/grafana/scenes/pull/799) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.3.0 (Mon Jun 24 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Add `toAbsolute` method to SceneTimePicker [#800](https://github.com/grafana/scenes/pull/800) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v5.2.1 (Fri Jun 21 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Clear options value when the option is undefined [#801](https://github.com/grafana/scenes/pull/801) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v5.2.0 (Thu Jun 20 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneAppPage: add PageLayoutType 'layout' prop [#798](https://github.com/grafana/scenes/pull/798) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v5.1.2 (Wed Jun 19 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Scenes: Return value if not string in interpolator [#796](https://github.com/grafana/scenes/pull/796) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.1.1 (Wed Jun 19 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VariableValueSelect: Hardcode flaky Select option e2e-selector [#797](https://github.com/grafana/scenes/pull/797) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v5.1.0 (Fri Jun 14 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Add support for new getTagKeys/getTagValues interface [#790](https://github.com/grafana/scenes/pull/790) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - ScenesReact: Use new react components and hooks from inside existing EmbeddedScenes [#777](https://github.com/grafana/scenes/pull/777) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.0.3 (Thu Jun 13 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Data layers: Don't run layer on activation if disabled [#795](https://github.com/grafana/scenes/pull/795) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v5.0.2 (Thu Jun 13 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - UrlSync: Remove console.log left in prev PR [#794](https://github.com/grafana/scenes/pull/794) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.0.1 (Thu Jun 13 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - UrlSync: Fixes issue with recent url sync change [#793](https://github.com/grafana/scenes/pull/793) ([@torkelo](https://github.com/torkelo))
+  - SceneQueryRunner: When waiting for a variable to load, and PanelData is undefined, we should create a valid PanelData object. [#791](https://github.com/grafana/scenes/pull/791) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 2
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.0.0 (Wed Jun 12 2024)
 
 #### 💥 Breaking Change

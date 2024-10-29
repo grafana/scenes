@@ -1,6 +1,7 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
-import { AdHocVariableFilter } from '@grafana/data';
+// @ts-expect-error Remove when 11.1.x is released
+import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
@@ -44,14 +45,26 @@ export function renderPrometheusLabelFilters(filters: AdHocVariableFilter[]) {
 
 function renderFilter(filter: AdHocVariableFilter) {
   let value = '';
+  let operator = filter.operator;
 
-  if (filter.operator === '=~' || filter.operator === '!~¨') {
+  // map "one of" operator to regex
+  if (operator === '=|') {
+    operator = '=~'
+    // TODO remove when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
+  } else if (operator === '!=|') {
+    operator = '!~'
+    // TODO remove when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
+  } else if (operator === '=~' || operator === '!~') {
     value = escapeLabelValueInRegexSelector(filter.value);
   } else {
     value = escapeLabelValueInExactSelector(filter.value);
   }
 
-  return `${filter.key}${filter.operator}"${value}"`;
+  return `${filter.key}${operator}"${value}"`;
 }
 
 // based on the openmetrics-documentation, the 3 symbols we have to handle are:
@@ -172,4 +185,37 @@ export function toUrlCommaDelimitedString(key: string, label?: string): string {
   }
 
   return [key, label].map(escapeUrlCommaDelimiters).join(',');
+}
+
+export function dataFromResponse(response: GetTagResponse | MetricFindValue[]) {
+  return Array.isArray(response) ? response : response.data;
+}
+
+export function responseHasError(response: GetTagResponse | MetricFindValue[]): response is GetTagResponse & { error: DataQueryError } {
+  return !Array.isArray(response) && Boolean(response.error);
+}
+
+// Collect a flat list of SelectableValues with a `group` property into a hierarchical list with groups
+export function handleOptionGroups(values: SelectableValue[]): Array<SelectableValue<string>> {
+  const result: Array<SelectableValue<string>> = [];
+  const groupedResults = new Map<string, Array<SelectableValue<string>>>();
+
+  for (const value of values) {
+    const groupLabel = value.group;
+    if (groupLabel) {
+      let group = groupedResults.get(groupLabel);
+
+      if (!group) {
+        group = [];
+        groupedResults.set(groupLabel, group);
+        result.push({ label: groupLabel, options: group });
+      }
+
+      group.push(value);
+    } else {
+      result.push(value);
+    }
+  }
+
+  return result;
 }

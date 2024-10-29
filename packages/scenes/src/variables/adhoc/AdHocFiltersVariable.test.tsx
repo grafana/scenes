@@ -2,7 +2,14 @@ import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariableValueChangedEvent } from '../types';
 import { AdHocFiltersVariable, AdHocFiltersVariableState } from './AdHocFiltersVariable';
-import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
+import {
+  DataSourceSrv,
+  config,
+  locationService,
+  setDataSourceSrv,
+  setRunRequest,
+  setTemplateSrv,
+} from '@grafana/runtime';
 import {
   AdHocVariableFilter,
   DataQueryRequest,
@@ -29,21 +36,28 @@ const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
 } as any;
 
-describe('AdHocFiltersVariable', () => {
+describe('templateSrv.getAdhocFilters patch ', () => {
+  it('calls original when scene object is not active', async () => {
+    const { unmount } = setup();
+    unmount();
+
+    const result = templateSrv.getAdhocFilters('name');
+    expect(result[0].key).toBe('origKey');
+  });
+});
+
+// 11.1.2 - will use SafeSerializableSceneObject
+// 11.1.1 - will NOT use SafeSerializableSceneObject
+describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
+  beforeEach(() => {
+    config.buildInfo.version = v;
+  });
   it('renders filters', async () => {
     setup();
     expect(screen.getByText('key1')).toBeInTheDocument();
     expect(screen.getByText('val1')).toBeInTheDocument();
     expect(screen.getByText('key2')).toBeInTheDocument();
     expect(screen.getByText('val2')).toBeInTheDocument();
-  });
-
-  it('templateSrv.getAdhocFilters patch calls original when scene object is not active', async () => {
-    const { unmount } = setup();
-    unmount();
-
-    const result = templateSrv.getAdhocFilters('name');
-    expect(result[0].key).toBe('origKey');
   });
 
   it('adds filter', async () => {
@@ -117,7 +131,70 @@ describe('AdHocFiltersVariable', () => {
   });
 
   // TODO enable once this repo is using @grafana/ui@11.1.0
-  it.skip('shows groups and orders according to first occurence of a group item', async () => {
+  it.skip('shows key groups and orders according to first occurence of a group item', async () => {
+    const { runRequest } = setup({
+      getTagKeysProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+            group: 'People',
+          },
+          {
+            text: 'Bar',
+            value: 'bar',
+          },
+          {
+            text: 'Cat',
+            value: 'cat',
+            group: 'Animals',
+          },
+          {
+            text: 'Bob',
+            value: 'bob',
+            group: 'People',
+          },
+          {
+            text: 'Dog',
+            value: 'dog',
+            group: 'Animals',
+          },
+          {
+            text: 'Foo',
+            value: 'foo',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.click(selects[0]);
+
+    // Check the group headers are visible
+    expect(screen.getByText('People')).toBeInTheDocument();
+    expect(screen.getByText('Animals')).toBeInTheDocument();
+
+    // Check the correct options exist
+    const options = screen.getAllByRole('option');
+    expect(options.length).toBe(6);
+    expect(options[0]).toHaveTextContent('Alice');
+    expect(options[1]).toHaveTextContent('Bob');
+    expect(options[2]).toHaveTextContent('Bar');
+    expect(options[3]).toHaveTextContent('Cat');
+    expect(options[4]).toHaveTextContent('Dog');
+    expect(options[5]).toHaveTextContent('Foo');
+  });
+
+  // TODO enable once this repo is using @grafana/ui@11.1.0
+  it.skip('shows value groups and orders according to first occurence of a group item', async () => {
     const { runRequest } = setup({
       getTagValuesProvider: async () => ({
         replace: true,
@@ -370,7 +447,7 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['newValue'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -386,7 +463,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'key1',
       operator: '=',
       value: 'valUrl',
-      valueLabel: 'valUrl',
+      valueLabels: ['valUrl'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -394,7 +471,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'keyUrl',
       operator: '=~',
       value: 'urlVal',
-      valueLabel: 'urlVal',
+      valueLabels: ['urlVal'],
       condition: '',
     });
   });
@@ -433,8 +510,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['New Value'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -452,7 +529,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'New Key',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'New Value',
+      valueLabels: ['New Value'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -460,7 +537,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'New Key 2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'New Value 2',
+      valueLabels: ['New Value 2'],
       condition: '',
     });
   });
@@ -469,8 +546,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'New Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -488,7 +565,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'New Key',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'newValue',
+      valueLabels: ['newValue'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -496,7 +573,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'New Key 2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'newValue2',
+      valueLabels: ['newValue2'],
       condition: '',
     });
   });
@@ -505,8 +582,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'New Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['New Value'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -524,7 +601,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'newKey',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'New Value',
+      valueLabels: ['New Value'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -532,7 +609,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'newKey2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'New Value 2',
+      valueLabels: ['New Value 2'],
       condition: '',
     });
   });
@@ -541,8 +618,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -560,7 +637,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'newKey',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'newValue',
+      valueLabels: ['newValue'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -568,7 +645,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'newKey2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'newValue2',
+      valueLabels: ['newValue2'],
       condition: '',
     });
   });
@@ -577,8 +654,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'new,Key', label: 'New,Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'new,Value', label: 'New,Value' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'new,Key', keyLabel: 'New,Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'new,Value', valueLabels: ['New,Value'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -599,7 +676,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'New,Key',
       operator: '=',
       value: 'new,Value',
-      valueLabel: 'New,Value',
+      valueLabels: ['New,Value'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -607,7 +684,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'New,Key,2',
       operator: '=~',
       value: 'new,Value,2',
-      valueLabel: 'New,Value,2',
+      valueLabels: ['New,Value,2'],
       condition: '',
     });
   });
@@ -616,8 +693,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: 'newValue', label: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['newValue'] });
     });
 
     expect(locationService.getLocation().search).toBe(
@@ -635,7 +712,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'newKey',
       operator: '=',
       value: 'newValue',
-      valueLabel: 'newValue',
+      valueLabels: ['newValue'],
       condition: '',
     });
     expect(filtersVar.state.filters[1]).toEqual({
@@ -643,7 +720,7 @@ describe('AdHocFiltersVariable', () => {
       keyLabel: 'newKey2',
       operator: '=~',
       value: 'newValue2',
-      valueLabel: 'newValue2',
+      valueLabels: ['newValue2'],
       condition: '',
     });
   });
@@ -652,8 +729,8 @@ describe('AdHocFiltersVariable', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'key', { value: 'newKey', label: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], 'value', { value: '', label: '' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: '', valueLabels: [''] });
     });
 
     expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
