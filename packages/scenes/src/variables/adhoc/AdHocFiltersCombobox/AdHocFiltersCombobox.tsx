@@ -42,7 +42,7 @@ interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
   isAlwaysWip?: boolean;
   model: AdHocFiltersVariable;
-  handleChangeViewMode?: () => void;
+  handleChangeViewMode?: (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => void;
   focusOnWipInputRef?: () => void;
 }
 
@@ -76,6 +76,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const disabledIndicesRef = useRef<number[]>([]);
 
   const optionsSearcher = useMemo(() => fuzzySearchOptions(options), [options]);
+
+  const isLastFilter = useMemo(() => {
+    if (isAlwaysWip) {
+      return false;
+    }
+
+    if (model.state.filters.at(-1) === filter) {
+      return true;
+    }
+    return false;
+  }, [filter, isAlwaysWip, model.state.filters]);
 
   // reset wip filter. Used when navigating away with incomplete wip filer or when selecting wip filter value
   const handleResetWip = useCallback(() => {
@@ -346,8 +357,18 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             })
           );
 
-          switchToNextInputType(filterInputType, setInputType, handleChangeViewMode, refs.domReference.current);
+          switchToNextInputType(
+            filterInputType,
+            setInputType,
+            handleChangeViewMode,
+            refs.domReference.current,
+            // preventing focus on filter pill only when last filter for better backspace experience
+            isLastFilter ? false : undefined
+          );
           setActiveIndex(null);
+          if (isLastFilter) {
+            focusOnWipInputRef?.();
+          }
         }
 
         setInputValue('');
@@ -355,13 +376,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     },
     [
       activeIndex,
-      filter,
-      filterInputType,
       filteredDropDownItems,
       handleLocalMultiValueChange,
-      handleChangeViewMode,
       model,
+      filter,
+      filterInputType,
+      handleChangeViewMode,
       refs.domReference,
+      isLastFilter,
+      focusOnWipInputRef,
     ]
   );
 
@@ -598,7 +621,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                   filterInputType,
                                   setInputType,
                                   handleChangeViewMode,
-                                  refs.domReference.current
+                                  refs.domReference.current,
+                                  // explicitly preventing focus on filter pill due to a11y error
+                                  false
                                 );
                               }
                             },

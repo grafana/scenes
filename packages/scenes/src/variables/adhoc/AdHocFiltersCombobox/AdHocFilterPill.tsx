@@ -15,7 +15,7 @@ interface Props {
 export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }: Props) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
-  const [shouldFocus, setShouldFocus] = useState(false);
+  const [shouldFocusOnPillWrapper, setShouldFocusOnPillWrapper] = useState(false);
   const pillWrapperRef = useRef<HTMLDivElement>(null);
 
   const keyLabel = filter.keyLabel ?? filter.key;
@@ -24,24 +24,24 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
   const valueLabel = filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
 
   const handleChangeViewMode = useCallback(
-    (event?: React.MouseEvent) => {
+    (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => {
       event?.stopPropagation();
       if (readOnly) {
         return;
       }
 
-      setShouldFocus(!viewMode);
+      setShouldFocusOnPillWrapper(shouldFocusOnPillWrapperOverride ?? !viewMode);
       setViewMode(!viewMode);
     },
     [readOnly, viewMode]
   );
 
   useEffect(() => {
-    if (shouldFocus) {
+    if (shouldFocusOnPillWrapper) {
       pillWrapperRef.current?.focus();
-      setShouldFocus(false);
+      setShouldFocusOnPillWrapper(false);
     }
-  }, [shouldFocus]);
+  }, [shouldFocusOnPillWrapper]);
 
   // set viewMode to false when filter.forceEdit is defined
   useEffect(() => {
