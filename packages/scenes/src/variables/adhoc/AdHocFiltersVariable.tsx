@@ -99,7 +99,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   _wip?: AdHocFilterWithLabels;
 }
 
-export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[], sceneRef?: AdHocFiltersVariable) => string;
+export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[], sceneRef: AdHocFiltersVariable) => string;
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
