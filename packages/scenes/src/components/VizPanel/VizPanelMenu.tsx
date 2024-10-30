@@ -39,6 +39,13 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
 
   const renderItems = (items: PanelMenuItem[]) => {
     return items.map((item) => {
+      // @ts-ignore
+      const Component: () => React.ReactElement | null = item.component;
+
+      if (Component) {
+        return <Component key={item.text} />;
+      }
+
       switch (item.type) {
         case 'divider':
           return <Menu.Divider key={item.text} />;
