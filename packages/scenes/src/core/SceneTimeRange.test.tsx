@@ -48,6 +48,7 @@ describe('SceneTimeRange', () => {
     expect(timeRange.urlSync?.getUrlState()).toEqual({
       from: 'now-1h',
       to: 'now',
+      timezone: 'browser',
     });
   });
 
@@ -56,6 +57,7 @@ describe('SceneTimeRange', () => {
     timeRange.urlSync?.updateFromUrl({
       from: '2021-01-01T10:00:00.000Z',
       to: '2021-02-03T01:20:00.000Z',
+      timezone: 'browser',
     });
 
     expect(timeRange.state.from).toEqual('2021-01-01T10:00:00.000Z');
