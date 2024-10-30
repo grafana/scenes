@@ -243,13 +243,13 @@ export class AdHocFiltersVariable
 
   public _handleComboboxBackspace(filter: AdHocFilterWithLabels) {
     if (this.state.filters.length) {
-      // default filter to forceEdit to last filter (when triggering from wip filter)
+      // default forceEdit last filter (when triggering from wip filter)
       let filterToForceIndex = this.state.filters.length - 1;
 
-      // adjust index if backspace triggered from non wip filter
+      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
+      //  to avoid triggering forceEdit logic
       if (filter !== this.state._wip) {
-        const filterIndex = this.state.filters.findIndex((f) => f === filter);
-        filterToForceIndex = filterIndex - 1;
+        filterToForceIndex = -1;
       }
 
       // const filterToForceEditExists = !!this.state.filters[filterToForceIndex];

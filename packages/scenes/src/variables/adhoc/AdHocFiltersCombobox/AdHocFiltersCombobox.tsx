@@ -260,10 +260,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           return;
         }
 
-        // focus back on alway wip input when you delete first filter with backspace
-        if (model.state.filters[0] === filter) {
-          focusOnWipInputRef?.();
-        }
+        // focus back on alway wip input when you delete filter with backspace
+        focusOnWipInputRef?.();
 
         model._handleComboboxBackspace(filter!);
 
