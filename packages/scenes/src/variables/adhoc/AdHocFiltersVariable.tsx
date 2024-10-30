@@ -99,7 +99,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   _wip?: AdHocFilterWithLabels;
 }
 
-export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
+export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[], sceneRef?: AdHocFiltersVariable) => string;
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
@@ -174,20 +174,28 @@ export class AdHocFiltersVariable
       filters: [],
       datasource: null,
       applyMode: 'auto',
-      filterExpression: state.filterExpression ?? renderExpression(state.expressionBuilder, state.filters),
+      filterExpression: state.filterExpression,
       ...state,
     });
 
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
     }
+
+    this.addActivationHandler(this.onActivate.bind(this));
+  }
+
+  protected onActivate() {
+    this.setState({
+      filterExpression: this.state.filterExpression ?? renderExpression(this.state.expressionBuilder, this.state.filters, this)
+    })
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
 
     if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {
-      update.filterExpression = renderExpression(this.state.expressionBuilder, update.filters);
+      update.filterExpression = renderExpression(this.state.expressionBuilder, update.filters, this);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
     }
 
@@ -350,9 +358,10 @@ export class AdHocFiltersVariable
 
 function renderExpression(
   builder: AdHocVariableExpressionBuilderFn | undefined,
-  filters: AdHocFilterWithLabels[] | undefined
+  filters: AdHocFilterWithLabels[] | undefined,
+  scene: AdHocFiltersVariable
 ) {
-  return (builder ?? renderPrometheusLabelFilters)(filters ?? []);
+  return (builder ?? renderPrometheusLabelFilters)(filters ?? [], scene);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
