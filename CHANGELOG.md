@@ -1,3 +1,22 @@
+# v5.21.0 (Tue Oct 29 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneObject: Improve cloning logic [#944](https://github.com/grafana/scenes/pull/944) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`
+  - ScenesReact: Add useQueryVariable hook [#822](https://github.com/grafana/scenes/pull/822) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.20.4 (Wed Oct 23 2024)
 
 #### 🐛 Bug Fix

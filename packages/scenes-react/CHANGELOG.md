@@ -1,3 +1,15 @@
+# v5.21.0 (Tue Oct 29 2024)
+
+#### 🐛 Bug Fix
+
+- ScenesReact: Add useQueryVariable hook [#822](https://github.com/grafana/scenes/pull/822) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.20.1 (Mon Oct 14 2024)
 
 #### 🐛 Bug Fix

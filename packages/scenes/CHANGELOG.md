@@ -1,3 +1,15 @@
+# v5.21.0 (Tue Oct 29 2024)
+
+#### 🚀 Enhancement
+
+- SceneObject: Improve cloning logic [#944](https://github.com/grafana/scenes/pull/944) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.20.4 (Wed Oct 23 2024)
 
 #### 🐛 Bug Fix
