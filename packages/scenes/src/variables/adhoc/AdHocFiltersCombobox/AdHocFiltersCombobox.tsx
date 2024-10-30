@@ -218,6 +218,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         setOptions(options);
         if (options[0]?.group) {
           setActiveIndex(1);
+        } else {
+          setActiveIndex(0);
         }
       } catch (e) {
         setOptionsError(true);
@@ -347,7 +349,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           );
 
           switchToNextInputType(filterInputType, setInputType, handleChangeViewMode, refs.domReference.current);
-          setActiveIndex(0);
+          setActiveIndex(null);
         }
 
         setInputValue('');
