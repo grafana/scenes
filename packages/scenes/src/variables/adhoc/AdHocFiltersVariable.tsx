@@ -252,7 +252,6 @@ export class AdHocFiltersVariable
         filterToForceIndex = -1;
       }
 
-      // const filterToForceEditExists = !!this.state.filters[filterToForceIndex];
       this.setState({
         filters: this.state.filters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
           // adjust forceEdit of preceding filter

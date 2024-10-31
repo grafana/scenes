@@ -179,9 +179,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   useImperativeHandle(parentRef, () => () => refs.domReference.current?.focus(), [refs.domReference]);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
-    // part of POC for seamless filter parser
-    // filterAutoParser({ event, filterInputType, options, model, filter, setInputValue, setInputType, refs });
-
     const value = event.target.value;
     setInputValue(value);
     setActiveIndex(0);
