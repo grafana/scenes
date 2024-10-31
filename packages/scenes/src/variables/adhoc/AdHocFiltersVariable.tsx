@@ -81,6 +81,13 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   expressionBuilder?: AdHocVariableExpressionBuilderFn;
 
   /**
+   * When set, the filterExpression will not be created until after activation, and the expressionBuilder function
+   * will be passed a reference to this AdHocFiltersVariable scene object.
+   * This enables scene application context to influence how a particular filter expression is built.
+   */
+  buildExpressionOnActivate?: boolean
+
+  /**
    * Whether the filter supports new multi-value operators like =| and !=|
    */
   supportsMultiValueOperators?: boolean;
@@ -99,7 +106,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   _wip?: AdHocFilterWithLabels;
 }
 
-export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[], sceneRef: AdHocFiltersVariable) => string;
+export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[], sceneRef?: AdHocFiltersVariable) => string;
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
@@ -167,14 +174,17 @@ export class AdHocFiltersVariable
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
+
   public constructor(state: Partial<AdHocFiltersVariableState>) {
+
+    const initialFilterExpression = !state.buildExpressionOnActivate ? renderExpression(state.expressionBuilder, state.filters) : undefined
     super({
       type: 'adhoc',
       name: state.name ?? 'Filters',
       filters: [],
       datasource: null,
       applyMode: 'auto',
-      filterExpression: state.filterExpression,
+      filterExpression: state.filterExpression ?? initialFilterExpression,
       ...state,
     });
 
@@ -182,13 +192,7 @@ export class AdHocFiltersVariable
       patchGetAdhocFilters(this);
     }
 
-    this.addActivationHandler(this.onActivate.bind(this));
-  }
-
-  protected onActivate() {
-    this.setState({
-      filterExpression: this.state.filterExpression ?? renderExpression(this.state.expressionBuilder, this.state.filters, this)
-    })
+    this.addActivationHandler(() => this.onActivate());
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
@@ -354,12 +358,20 @@ export class AdHocFiltersVariable
       description,
     }));
   }
+
+  private onActivate() {
+    if(this.state.buildExpressionOnActivate){
+      this.setState({
+        filterExpression: this.state.filterExpression ?? renderExpression(this.state.expressionBuilder, this.state.filters, this)
+      })
+    }
+  }
 }
 
 function renderExpression(
   builder: AdHocVariableExpressionBuilderFn | undefined,
   filters: AdHocFilterWithLabels[] | undefined,
-  scene: AdHocFiltersVariable
+  scene?: AdHocFiltersVariable
 ) {
   return (builder ?? renderPrometheusLabelFilters)(filters ?? [], scene);
 }

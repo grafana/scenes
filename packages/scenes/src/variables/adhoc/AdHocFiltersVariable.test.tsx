@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariableValueChangedEvent } from '../types';
-import { AdHocFiltersVariable, AdHocFiltersVariableState } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import {
   DataSourceSrv,
   config,
@@ -30,7 +30,7 @@ import { select } from 'react-select-event';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
-import { FiltersRequestEnricher } from '../../core/types';
+import { FiltersRequestEnricher, SceneObject } from '../../core/types';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -927,6 +927,54 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       variable.activate();
 
       expect(evtHandler).not.toHaveBeenCalled();
+    });
+
+    it('Should update filterExpression state if expression builder is defined', () => {
+      const filters: AdHocFilterWithLabels[] =  [{ key: 'key1', operator: '=', value: 'val1' }];
+      const variable = new AdHocFiltersVariable({
+        applyMode: 'manual',
+        datasource: { uid: 'hello' },
+        filters,
+        expressionBuilder: () => 'test'
+      });
+
+      expect(variable.state.filterExpression).toEqual('test')
+
+      const evtHandler = jest.fn();
+      variable.subscribeToState(evtHandler);
+      expect(evtHandler).not.toHaveBeenCalled();
+    });
+
+    it('filterExpression should only be defined after activation if `buildExpressionOnActivate` is set', () => {
+      const expressionBuilderFn = jest.fn()
+      const filterExpression = '__test__'
+      const adHocFilters: AdHocFilterWithLabels[] =  [{ key: 'key1', operator: '=', value: 'val1' }];
+
+      const expressionBuilder = (filters: AdHocFilterWithLabels[], scene?: SceneObject) => {
+        expressionBuilderFn(filters, scene)
+        expect(filters).toEqual(adHocFilters)
+        expect(scene).not.toEqual(undefined)
+        return filterExpression
+      }
+
+      const variable = new AdHocFiltersVariable({
+        applyMode: 'manual',
+        datasource: { uid: 'hello' },
+        filters: adHocFilters,
+        layout: 'combobox',
+        expressionBuilder,
+        buildExpressionOnActivate: true,
+        supportsMultiValueOperators: true,
+      });
+
+      // Before activation the expressionBuilder should not be called
+      expect(variable.state.filterExpression).toBe(undefined)
+      expect(expressionBuilderFn).toHaveBeenCalledTimes(0)
+
+      variable.activate()
+
+      expect(variable.state.filterExpression).toBe(filterExpression)
+      expect(expressionBuilderFn).toHaveBeenCalledWith(adHocFilters, variable)
     });
 
     it('Should not publish event on activation', () => {
