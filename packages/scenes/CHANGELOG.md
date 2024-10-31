@@ -1,3 +1,17 @@
+# v5.21.1 (Thu Oct 31 2024)
+
+#### 🐛 Bug Fix
+
+- AdHocFilterCombobox: Improve backspace functionality to delete filter key, operator and values separately [#942](https://github.com/grafana/scenes/pull/942) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- VariableValueInput: Set max width [#948](https://github.com/grafana/scenes/pull/948) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
 # v5.21.0 (Tue Oct 29 2024)
 
 #### 🚀 Enhancement
