@@ -3,7 +3,7 @@ import React from 'react';
 import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
-import { ControlsLayout, SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
+import { ControlsLayout, SceneComponentProps } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
 import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
@@ -18,7 +18,7 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
-export interface AdHocFilterWithLabels<T = SceneObjectUrlValues> extends AdHocVariableFilter {
+export interface AdHocFilterWithLabels<T = Record<string, string>> extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabels?: string[];
   meta?: T
