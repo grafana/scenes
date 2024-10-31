@@ -176,7 +176,6 @@ export class AdHocFiltersVariable
 
 
   public constructor(state: Partial<AdHocFiltersVariableState>) {
-
     const initialFilterExpression = !state.buildExpressionOnActivate ? renderExpression(state.expressionBuilder, state.filters) : undefined
     super({
       type: 'adhoc',
