@@ -256,7 +256,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return sceneTimeRange.state.value;
   };
 
-  public async changePluginType(pluginId: string, newOptions?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
+  public async changePluginType(pluginId: string, newOptions?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource, refreshConfigs = true) {
     const {
       options: prevOptions,
       fieldConfig: prevFieldConfig,
@@ -266,7 +266,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     //clear field config cache to update it later
     this._dataWithFieldConfig = undefined;
 
-    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, true);
+    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, refreshConfigs);
 
     const panel: PanelModel = {
       title: this.state.title,
