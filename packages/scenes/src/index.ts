@@ -126,6 +126,7 @@ export { renderSelectForVariable } from './variables/components/VariableValueSel
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
 export { type VizConfig } from './core/PanelBuilders/types';
+export { type AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable'
 
 export const sceneUtils = {
   getUrlWithAppState,
