@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariableValueChangedEvent } from '../types';
-import { AdHocFiltersVariable, AdHocFiltersVariableState } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import {
   DataSourceSrv,
   config,
@@ -859,6 +859,26 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const keys = await filtersVar._getKeys(null);
     expect(keys).toEqual([]);
   });
+
+  describe('filter meta', () => {
+    it('Consumers can add custom meta to filter state', () => {
+      const expressionBuilder = (filters: AdHocFilterWithLabels[]) => {
+        return filters.filter(f => !f.meta?.exclude).map((filter) => `${filter.key}${filter.operator}"${filter.value}"`).join(' && ');
+      };
+
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        expressionBuilder: expressionBuilder,
+        filters: [
+          { key: 'key1', operator: '=', value: 'val1', meta: {'exclude': 'y'} },
+          { key: 'key2', operator: '=~', value: '[val2]' },
+        ],
+      });
+
+      expect(variable.getValue()).toBe(`key2=~"[val2]"`);
+    })
+  })
 
   describe('variable expression / value', () => {
     it('By default renders a prometheus / loki compatible label filter', () => {
