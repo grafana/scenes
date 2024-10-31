@@ -21,6 +21,7 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 export interface AdHocFilterWithLabels<T = Record<string, string>> extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabels?: string[];
+  // Consumer defined custom filter metadata, not currently persisted in URL state
   meta?: T
   // this is used to externally trigger edit mode in combobox filter UI
   forceEdit?: boolean;
