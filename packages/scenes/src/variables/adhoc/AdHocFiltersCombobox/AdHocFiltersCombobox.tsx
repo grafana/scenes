@@ -13,7 +13,7 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Button, Icon, Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, OPERATORS } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, isMultiValueOperator } from '../AdHocFiltersVariable';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
@@ -42,13 +42,14 @@ interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
   isAlwaysWip?: boolean;
   model: AdHocFiltersVariable;
-  handleChangeViewMode?: () => void;
+  handleChangeViewMode?: (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => void;
+  focusOnWipInputRef?: () => void;
 }
 
 export type AdHocInputType = 'key' | 'operator' | 'value';
 
 export const AdHocCombobox = forwardRef(function AdHocCombobox(
-  { filter, model, isAlwaysWip, handleChangeViewMode }: AdHocComboboxProps,
+  { filter, model, isAlwaysWip, handleChangeViewMode, focusOnWipInputRef }: AdHocComboboxProps,
   parentRef
 ) {
   const [open, setOpen] = useState(false);
@@ -65,12 +66,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
-  const multiValueOperators = useMemo(
-    () => OPERATORS.reduce<string[]>((acc, operator) => (operator.isMulti ? [...acc, operator.value!] : acc), []),
-    []
-  );
-
-  const hasMultiValueOperator = multiValueOperators.includes(filter?.operator || '');
+  const hasMultiValueOperator = isMultiValueOperator(filter?.operator || '');
   const isMultiValueEdit = hasMultiValueOperator && filterInputType === 'value';
 
   // used to identify operator element and prevent dismiss because it registers as outside click
@@ -80,6 +76,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const disabledIndicesRef = useRef<number[]>([]);
 
   const optionsSearcher = useMemo(() => fuzzySearchOptions(options), [options]);
+
+  const isLastFilter = useMemo(() => {
+    if (isAlwaysWip) {
+      return false;
+    }
+
+    if (model.state.filters.at(-1) === filter) {
+      return true;
+    }
+    return false;
+  }, [filter, isAlwaysWip, model.state.filters]);
 
   // reset wip filter. Used when navigating away with incomplete wip filer or when selecting wip filter value
   const handleResetWip = useCallback(() => {
@@ -172,9 +179,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   useImperativeHandle(parentRef, () => () => refs.domReference.current?.focus(), [refs.domReference]);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
-    // part of POC for seamless filter parser
-    // filterAutoParser({ event, filterInputType, options, model, filter, setInputValue, setInputType, refs });
-
     const value = event.target.value;
     setInputValue(value);
     setActiveIndex(0);
@@ -222,6 +226,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         setOptions(options);
         if (options[0]?.group) {
           setActiveIndex(1);
+        } else {
+          setActiveIndex(0);
         }
       } catch (e) {
         setOptionsError(true);
@@ -246,20 +252,42 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const handleBackspaceInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit: boolean) => {
       if (event.key === 'Backspace' && !inputValue) {
-        if (multiValueEdit) {
-          setFilterMultiValues((items) => {
-            const updated = [...items];
-            updated.splice(-1, 1);
+        if (filterInputType === 'value') {
+          if (multiValueEdit) {
+            if (filterMultiValues.length) {
+              setFilterMultiValues((items) => {
+                const updated = [...items];
+                updated.splice(-1, 1);
 
-            return updated;
-          });
-        } else if (filterInputType === 'key') {
-          model._removeLastFilter();
-          handleFetchOptions(filterInputType);
+                return updated;
+              });
+              return;
+            }
+          }
+          setInputType('operator');
+          return;
+        }
+
+        // focus back on alway wip input when you delete filter with backspace
+        focusOnWipInputRef?.();
+
+        model._handleComboboxBackspace(filter!);
+
+        if (isAlwaysWip) {
+          handleResetWip();
         }
       }
     },
-    [inputValue, filterInputType, model, handleFetchOptions]
+    [
+      inputValue,
+      filterInputType,
+      model,
+      filter,
+      isAlwaysWip,
+      filterMultiValues.length,
+      handleResetWip,
+      focusOnWipInputRef,
+    ]
   );
 
   const handleTabInput = useCallback(
@@ -316,10 +344,28 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
         } else {
-          model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, selectedItem));
+          model._updateFilter(
+            filter!,
+            generateFilterUpdatePayload({
+              filterInputType,
+              item: selectedItem,
+              filter: filter!,
+              setFilterMultiValues,
+            })
+          );
 
-          switchToNextInputType(filterInputType, setInputType, handleChangeViewMode, refs.domReference.current);
-          setActiveIndex(0);
+          switchToNextInputType(
+            filterInputType,
+            setInputType,
+            handleChangeViewMode,
+            refs.domReference.current,
+            // preventing focus on filter pill only when last filter for better backspace experience
+            isLastFilter ? false : undefined
+          );
+          setActiveIndex(null);
+          if (isLastFilter) {
+            focusOnWipInputRef?.();
+          }
         }
 
         setInputValue('');
@@ -327,13 +373,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     },
     [
       activeIndex,
-      filter,
-      filterInputType,
       filteredDropDownItems,
       handleLocalMultiValueChange,
-      handleChangeViewMode,
       model,
+      filter,
+      filterInputType,
+      handleChangeViewMode,
       refs.domReference,
+      isLastFilter,
+      focusOnWipInputRef,
     ]
   );
 
@@ -555,14 +603,24 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 handleLocalMultiValueChange(item);
                                 refs.domReference.current?.focus();
                               } else {
-                                model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, item));
+                                model._updateFilter(
+                                  filter!,
+                                  generateFilterUpdatePayload({
+                                    filterInputType,
+                                    item,
+                                    filter: filter!,
+                                    setFilterMultiValues,
+                                  })
+                                );
                                 setInputValue('');
 
                                 switchToNextInputType(
                                   filterInputType,
                                   setInputType,
                                   handleChangeViewMode,
-                                  refs.domReference.current
+                                  refs.domReference.current,
+                                  // explicitly preventing focus on filter pill due to a11y error
+                                  false
                                 );
                               }
                             },

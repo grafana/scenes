@@ -23,12 +23,17 @@ export function getAdhocOptionSearcher(
       }
     }
 
-    const idxs = ufuzzy.filter(haystack, search);
+    const [idxs, info, order] = ufuzzy.search(haystack, search);
     const filteredOptions: SelectableValue[] = [];
 
     if (idxs) {
       for (let i = 0; i < idxs.length; i++) {
-        filteredOptions.push(options[idxs[i]]);
+        if (info && order) {
+          const idx = order[i];
+          filteredOptions.push(options[idxs[idx]]);
+        } else {
+          filteredOptions.push(options[idxs[i]]);
+        }
 
         if (filteredOptions.length > limit) {
           return filteredOptions;

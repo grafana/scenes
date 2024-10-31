@@ -13,28 +13,31 @@ interface Props {
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ model }: Props) {
   const { filters, readOnly } = model.useState();
   const styles = useStyles2(getStyles);
-  const focusOnInputRef = useRef<() => void>();
+
+  // ref that focuses on the always wip filter input
+  // defined in the combobox component via useImperativeHandle
+  const focusOnWipInputRef = useRef<() => void>();
 
   return (
     <div
       className={cx(styles.comboboxWrapper, { [styles.comboboxFocusOutline]: !readOnly })}
       onClick={() => {
-        focusOnInputRef.current?.();
+        focusOnWipInputRef.current?.();
       }}
     >
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
       {filters.map((filter, index) => (
         <AdHocFilterPill
-          key={index}
+          key={`${index}-${filter.key}`}
           filter={filter}
           model={model}
           readOnly={readOnly}
-          focusOnInputRef={focusOnInputRef.current}
+          focusOnWipInputRef={focusOnWipInputRef.current}
         />
       ))}
 
-      {!readOnly ? <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnInputRef} /> : null}
+      {!readOnly ? <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnWipInputRef} /> : null}
     </div>
   );
 });
