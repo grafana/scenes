@@ -1,3 +1,15 @@
+# v5.21.2 (Fri Nov 01 2024)
+
+#### 🐛 Bug Fix
+
+- Don't run migration when changing panel plugin [#952](https://github.com/grafana/scenes/pull/952) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v5.21.1 (Thu Oct 31 2024)
 
 #### 🐛 Bug Fix
