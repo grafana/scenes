@@ -266,7 +266,9 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     //clear field config cache to update it later
     this._dataWithFieldConfig = undefined;
 
-    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, true);
+    // If state.pluginId is already the correct plugin we don't treat this as plain user panel type change
+    const isAfterPluginChange = this.state.pluginId !== pluginId; 
+    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, isAfterPluginChange);
 
     const panel: PanelModel = {
       title: this.state.title,
