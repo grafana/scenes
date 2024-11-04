@@ -90,6 +90,14 @@ describe('SceneObject', () => {
       const clone = scene.clone({ name: 'new name' });
       expect(clone.state.name).toBe('new name');
     });
+
+    it('Can clone with state and that state should not be cloned', () => {
+      const nested = new TestScene({ name: 'nested' });
+      const scene = new TestScene({ name: 'test', nested });
+
+      const clone = scene.clone({ nested });
+      expect(clone.state.nested).toBe(nested);
+    });
   });
 
   it('SceneObject should have parent when added to container', () => {
