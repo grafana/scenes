@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react';
 import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@floating-ui/react';
-import { Button, Icon, Spinner, Text, useStyles2 } from '@grafana/ui';
+import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { AdHocFilterWithLabels, AdHocFiltersVariable, isMultiValueOperator } from '../AdHocFiltersVariable';
@@ -37,6 +37,7 @@ import {
 } from './utils';
 import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
+import { MultiValuePill } from './MultiValuePill';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -681,75 +682,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   );
 });
 
-interface MultiValuePillProps {
-  item: SelectableValue<string>;
-  handleRemoveMultiValue: (item: SelectableValue<string>) => void;
-  index: number;
-  handleEditMultiValuePill: (value: SelectableValue<string>) => void;
-}
-const MultiValuePill = ({ item, handleRemoveMultiValue, index, handleEditMultiValuePill }: MultiValuePillProps) => {
-  const styles = useStyles2(getStyles);
-
-  const editMultiValuePill = useCallback(
-    (e: React.SyntheticEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      handleEditMultiValuePill(item);
-    },
-    [handleEditMultiValuePill, item]
-  );
-
-  const editMultiValuePillWithKeyboard = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        handleEditMultiValuePill(item);
-      }
-    },
-    [handleEditMultiValuePill, item]
-  );
-
-  const removePillHandler = useCallback(
-    (e: React.SyntheticEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      handleRemoveMultiValue(item);
-    },
-    [handleRemoveMultiValue, item]
-  );
-
-  const removePillHandlerWithKeyboard = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        removePillHandler(e);
-      }
-    },
-    [removePillHandler]
-  );
-
-  return (
-    <div
-      className={cx(styles.basePill, styles.valuePill)}
-      onClick={editMultiValuePill}
-      onKeyDownCapture={editMultiValuePillWithKeyboard}
-      tabIndex={0}
-      id={`${item.value}-${index}`}
-    >
-      {item.label ?? item.value}
-      <Button
-        onClick={removePillHandler}
-        onKeyDownCapture={removePillHandlerWithKeyboard}
-        fill="text"
-        size="sm"
-        variant="secondary"
-        className={styles.removeButton}
-        tooltip={`Remove filter value - ${item.label ?? item.value}`}
-      >
-        <Icon name="times" size="md" id={`${item.value}-${index}-close-icon`} />
-      </Button>
-    </div>
-  );
-};
-
 const getStyles = (theme: GrafanaTheme2) => ({
   comboboxWrapper: css({
     display: 'flex',
@@ -781,10 +713,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       background: theme.colors.action.hover,
     },
-  }),
-  valuePill: css({
-    background: theme.colors.action.selected,
-    padding: theme.spacing(0.125, 0, 0.125, 1),
   }),
   dropdownWrapper: css({
     backgroundColor: theme.colors.background.primary,
@@ -818,24 +746,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
       borderTop: `1px solid ${theme.colors.border.weak}`,
     },
   }),
-  removeButton: css({
-    marginInline: theme.spacing(0.5),
-    height: '100%',
-    padding: 0,
-    cursor: 'pointer',
-    '&:hover': {
-      color: theme.colors.text.primary,
-    },
-  }),
   descriptionText: css({
     ...theme.typography.bodySmall,
     color: theme.colors.text.secondary,
     paddingTop: theme.spacing(0.5),
-  }),
-  multiValueApply: css({
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    display: 'flex',
   }),
 });
