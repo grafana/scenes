@@ -191,11 +191,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public getUrlState() {
     const params = locationService.getSearchObject();
-    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to };
-
-    if (this.state.timeZone) {
-      urlValues.timezone = this.state.timeZone;
-    }
+    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to, timezone: this.getTimeZone() };
 
     // Clear time and time.window once they are converted to from and to
     if (params.time && params['time.window']) {
