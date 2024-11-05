@@ -1,3 +1,16 @@
+# v5.22.2 (Tue Nov 05 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimeRange: Fix passing timezone URL parameter [#947](https://github.com/grafana/scenes/pull/947) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v5.22.1 (Mon Nov 04 2024)
 
 #### 🐛 Bug Fix
