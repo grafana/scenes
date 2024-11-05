@@ -17,6 +17,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
   const [viewMode, setViewMode] = useState(true);
   const [shouldFocusOnPillWrapper, setShouldFocusOnPillWrapper] = useState(false);
   const pillWrapperRef = useRef<HTMLDivElement>(null);
+  const [populateInputOnEdit, setPopulateInputOnEdit] = useState(false);
 
   const keyLabel = filter.keyLabel ?? filter.key;
   // TODO remove when we're on the latest version of @grafana/data
@@ -52,6 +53,15 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     }
   }, [filter, model, viewMode]);
 
+  // reset populateInputOnEdit when pill goes into view mode
+  useEffect(() => {
+    if (populateInputOnEdit && viewMode) {
+      setPopulateInputOnEdit(false);
+    }
+    // excluding populateInputOnEdit dependency because we only care to reset it on viewMode change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]);
+
   if (viewMode) {
     const pillText = (
       <span className={styles.pillText}>
@@ -61,9 +71,14 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     return (
       <div
         className={cx(styles.combinedFilterPill, { [styles.readOnlyCombinedFilter]: readOnly })}
-        onClick={handleChangeViewMode}
+        onClick={(e) => {
+          e.stopPropagation();
+          setPopulateInputOnEdit(true);
+          handleChangeViewMode();
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
+            setPopulateInputOnEdit(true);
             handleChangeViewMode();
           }
         }}
@@ -111,6 +126,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
       model={model}
       handleChangeViewMode={handleChangeViewMode}
       focusOnWipInputRef={focusOnWipInputRef}
+      populateInputOnEdit={populateInputOnEdit}
     />
   );
 }

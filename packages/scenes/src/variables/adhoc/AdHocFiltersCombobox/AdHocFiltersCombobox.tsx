@@ -28,6 +28,7 @@ import {
   fuzzySearchOptions,
   generateFilterUpdatePayload,
   generatePlaceholder,
+  populateInputValueOnInputTypeSwitch,
   setupDropdownAccessibility,
   switchInputType,
   switchToNextInputType,
@@ -45,19 +46,20 @@ interface AdHocComboboxProps {
   model: AdHocFiltersVariable;
   handleChangeViewMode?: (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => void;
   focusOnWipInputRef?: () => void;
+  populateInputOnEdit?: boolean;
 }
 
 export type AdHocInputType = 'key' | 'operator' | 'value';
 
 export const AdHocCombobox = forwardRef(function AdHocCombobox(
-  { filter, model, isAlwaysWip, handleChangeViewMode, focusOnWipInputRef }: AdHocComboboxProps,
+  { filter, model, isAlwaysWip, handleChangeViewMode, focusOnWipInputRef, populateInputOnEdit }: AdHocComboboxProps,
   parentRef
 ) {
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<Array<SelectableValue<string>>>([]);
   const [optionsLoading, setOptionsLoading] = useState<boolean>(false);
   const [optionsError, setOptionsError] = useState<boolean>(false);
-  const [inputValue, setInputValue] = useState(!isAlwaysWip ? filter?.value || '' : '');
+  const [inputValue, setInputValue] = useState('');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [filterInputType, setInputType] = useState<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
   const styles = useStyles2(getStyles);
@@ -350,6 +352,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
+          setInputValue('');
         } else {
           model._updateFilter(
             filter!,
@@ -360,6 +363,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               setFilterMultiValues,
             })
           );
+
+          populateInputValueOnInputTypeSwitch({
+            populateInputOnEdit,
+            item: selectedItem,
+            filterInputType,
+            setInputValue,
+            filter,
+          });
 
           switchToNextInputType(
             filterInputType,
@@ -374,8 +385,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             focusOnWipInputRef?.();
           }
         }
-
-        setInputValue('');
       }
     },
     [
@@ -385,6 +394,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       model,
       filter,
       filterInputType,
+      populateInputOnEdit,
       handleChangeViewMode,
       refs.domReference,
       isLastFilter,
@@ -435,7 +445,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         );
         // populate filter multi values to local state on pill edit enter
         setFilterMultiValues(multiValueOptions);
-        setInputValue('');
+      }
+
+      // populate input when selecting pill for edit
+      //   this avoids populating input during delete with backspace
+      if (!hasMultiValueOperator && populateInputOnEdit) {
+        setInputValue(filter?.value || '');
       }
 
       refs.domReference.current?.focus();
@@ -481,11 +496,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               tabIndex={0}
               onClick={(event) => {
                 event.stopPropagation();
+                setInputValue('');
                 switchInputType('operator', setInputType, undefined, refs.domReference.current);
               }}
               onKeyDown={(event) => {
                 handleShiftTabInput(event, hasMultiValueOperator);
                 if (event.key === 'Enter') {
+                  setInputValue('');
                   switchInputType('operator', setInputType, undefined, refs.domReference.current);
                 }
               }}
@@ -629,7 +646,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                     setFilterMultiValues,
                                   })
                                 );
-                                setInputValue('');
+
+                                populateInputValueOnInputTypeSwitch({
+                                  populateInputOnEdit,
+                                  item,
+                                  filterInputType,
+                                  setInputValue,
+                                  filter,
+                                });
 
                                 switchToNextInputType(
                                   filterInputType,

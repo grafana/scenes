@@ -242,3 +242,23 @@ export const generatePlaceholder = (
 
   return filter[filterInputType] && !isAlwaysWip ? `${filter[filterInputType]}` : INPUT_PLACEHOLDER;
 };
+
+export const populateInputValueOnInputTypeSwitch = ({
+  populateInputOnEdit,
+  item,
+  filterInputType,
+  setInputValue,
+  filter,
+}: {
+  populateInputOnEdit: boolean | undefined;
+  item: SelectableValue<string>;
+  filterInputType: AdHocInputType;
+  setInputValue: (value: React.SetStateAction<string>) => void;
+  filter: AdHocFilterWithLabels | undefined;
+}) => {
+  if (populateInputOnEdit && !isMultiValueOperator(item.value || '') && nextInputTypeMap[filterInputType] === 'value') {
+    setInputValue(filter?.value || '');
+  } else {
+    setInputValue('');
+  }
+};
