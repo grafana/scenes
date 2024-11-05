@@ -56,7 +56,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const [options, setOptions] = useState<Array<SelectableValue<string>>>([]);
   const [optionsLoading, setOptionsLoading] = useState<boolean>(false);
   const [optionsError, setOptionsError] = useState<boolean>(false);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState(!isAlwaysWip ? filter?.value || '' : '');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [filterInputType, setInputType] = useState<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
   const styles = useStyles2(getStyles);
@@ -161,7 +161,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   // generate ids from multi values in order to prevent outside click based on those ids
   const outsidePressIdsToIgnore = useMemo(() => {
-    return [operatorIdentifier, ...filterMultiValues.map((item, i) => `${item.value}-${i}`)];
+    return [
+      operatorIdentifier,
+      ...filterMultiValues.reduce<string[]>(
+        (acc, item, i) => [...acc, `${item.value}-${i}`, `${item.value}-${i}-close-icon`],
+        []
+      ),
+    ];
   }, [operatorIdentifier, filterMultiValues]);
 
   const { refs, floatingStyles, context, getReferenceProps, getFloatingProps, getItemProps } = useFloatingInteractions({
@@ -385,6 +391,16 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     ]
   );
 
+  const handleEditMultiValuePill = useCallback(
+    (value: SelectableValue<string>) => {
+      const valueLabel = value.label || value.value!;
+      setFilterMultiValues((prev) => prev.filter((item) => item.value !== value.value));
+      setInputValue(valueLabel);
+      refs.domReference.current?.focus();
+    },
+    [refs.domReference]
+  );
+
   //
   // Effects
   //
@@ -401,9 +417,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   //    and in this case we default to 'value' input type and focus input
   useEffect(() => {
     if (!isAlwaysWip) {
-      setInputType('value');
-      setInputValue('');
-
       // TODO remove when we're on the latest version of @grafana/data
       //@ts-expect-error
       if (hasMultiValueOperator && filter?.values?.length) {
@@ -421,6 +434,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         );
         // populate filter multi values to local state on pill edit enter
         setFilterMultiValues(multiValueOptions);
+        setInputValue('');
       }
 
       refs.domReference.current?.focus();
@@ -487,6 +501,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                   item={item}
                   index={i}
                   handleRemoveMultiValue={handleRemoveMultiValue}
+                  handleEditMultiValuePill={handleEditMultiValuePill}
                 />
               ))
             : null}
@@ -601,6 +616,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 event.preventDefault();
                                 event.stopPropagation();
                                 handleLocalMultiValueChange(item);
+                                setInputValue('');
                                 refs.domReference.current?.focus();
                               } else {
                                 model._updateFilter(
@@ -669,33 +685,66 @@ interface MultiValuePillProps {
   item: SelectableValue<string>;
   handleRemoveMultiValue: (item: SelectableValue<string>) => void;
   index: number;
+  handleEditMultiValuePill: (value: SelectableValue<string>) => void;
 }
-const MultiValuePill = ({ item, handleRemoveMultiValue, index }: MultiValuePillProps) => {
+const MultiValuePill = ({ item, handleRemoveMultiValue, index, handleEditMultiValuePill }: MultiValuePillProps) => {
   const styles = useStyles2(getStyles);
 
+  const editMultiValuePill = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      handleEditMultiValuePill(item);
+    },
+    [handleEditMultiValuePill, item]
+  );
+
+  const editMultiValuePillWithKeyboard = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleEditMultiValuePill(item);
+      }
+    },
+    [handleEditMultiValuePill, item]
+  );
+
+  const removePillHandler = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      handleRemoveMultiValue(item);
+    },
+    [handleRemoveMultiValue, item]
+  );
+
+  const removePillHandlerWithKeyboard = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        removePillHandler(e);
+      }
+    },
+    [removePillHandler]
+  );
+
   return (
-    <div className={cx(styles.basePill, styles.valuePill)}>
-      <span> {item.label ?? item.value}</span>
+    <div
+      className={cx(styles.basePill, styles.valuePill)}
+      onClick={editMultiValuePill}
+      onKeyDownCapture={editMultiValuePillWithKeyboard}
+      tabIndex={0}
+      id={`${item.value}-${index}`}
+    >
+      {item.label ?? item.value}
       <Button
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          handleRemoveMultiValue(item);
-        }}
-        onKeyDownCapture={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
-            handleRemoveMultiValue(item);
-          }
-        }}
+        onClick={removePillHandler}
+        onKeyDownCapture={removePillHandlerWithKeyboard}
         fill="text"
         size="sm"
         variant="secondary"
         className={styles.removeButton}
         tooltip={`Remove filter value - ${item.label ?? item.value}`}
       >
-        <Icon name="times" size="md" id={`${item.value}-${index}`} />
+        <Icon name="times" size="md" id={`${item.value}-${index}-close-icon`} />
       </Button>
     </div>
   );
