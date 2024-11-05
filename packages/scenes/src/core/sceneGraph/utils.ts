@@ -24,6 +24,11 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
 
   // Clone any SceneItems in state
   for (const key in clonedState) {
+    // Do not clone if was part of withState
+    if (withState && withState[key] !== undefined) {
+      continue;
+    }
+
     const propValue = clonedState[key];
     if (propValue instanceof SceneObjectBase) {
       clonedState[key] = propValue.clone();
