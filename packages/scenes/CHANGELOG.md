@@ -1,3 +1,15 @@
+# v5.23.0 (Tue Nov 05 2024)
+
+#### 🚀 Enhancement
+
+- VizPanel: Adjust forceRender logic [#954](https://github.com/grafana/scenes/pull/954) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v5.22.2 (Tue Nov 05 2024)
 
 #### 🐛 Bug Fix

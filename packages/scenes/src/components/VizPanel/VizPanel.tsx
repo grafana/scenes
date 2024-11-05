@@ -127,6 +127,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
   }
 
+  public forceRender(): void {
+    // Incrementing the render counter means VizRepeater and its children will also re-render
+    this.setState({ _renderCounter: (this.state._renderCounter ?? 0) + 1});
+  }
+
   private async _loadPlugin(pluginId: string, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
     const plugin = loadPanelPluginSync(pluginId);
 
