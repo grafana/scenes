@@ -130,8 +130,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
-  // TODO enable once this repo is using @grafana/ui@11.1.0
-  it.skip('shows key groups and orders according to first occurence of a group item', async () => {
+  it('shows key groups and orders according to first occurence of a group item', async () => {
     const { runRequest } = setup({
       getTagKeysProvider: async () => ({
         replace: true,
@@ -193,8 +192,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(options[5]).toHaveTextContent('Foo');
   });
 
-  // TODO enable once this repo is using @grafana/ui@11.1.0
-  it.skip('shows value groups and orders according to first occurence of a group item', async () => {
+  it('shows value groups and orders according to first occurence of a group item', async () => {
     const { runRequest } = setup({
       getTagValuesProvider: async () => ({
         replace: true,
