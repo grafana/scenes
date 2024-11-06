@@ -123,25 +123,28 @@ const nextInputTypeMap = {
 export const switchToNextInputType = (
   filterInputType: AdHocInputType,
   setInputType: React.Dispatch<React.SetStateAction<AdHocInputType>>,
-  handleChangeViewMode: (() => void) | undefined,
-  element: HTMLInputElement | null
+  handleChangeViewMode: ((event?: React.MouseEvent, shouldFocusOnFilterPill?: boolean) => void) | undefined,
+  element: HTMLInputElement | null,
+  shouldFocusOnPillWrapperOverride?: boolean
 ) =>
   switchInputType(
     nextInputTypeMap[filterInputType],
     setInputType,
     filterInputType === 'value' ? handleChangeViewMode : undefined,
-    element
+    element,
+    shouldFocusOnPillWrapperOverride
   );
 
 export const switchInputType = (
   filterInputType: AdHocInputType,
   setInputType: React.Dispatch<React.SetStateAction<AdHocInputType>>,
-  handleChangeViewMode?: () => void,
-  element?: HTMLInputElement | null
+  handleChangeViewMode?: (event?: React.MouseEvent, shouldFocusOnFilterPill?: boolean) => void,
+  element?: HTMLInputElement | null,
+  shouldFocusOnPillWrapperOverride?: boolean
 ) => {
   setInputType(filterInputType);
 
-  handleChangeViewMode?.();
+  handleChangeViewMode?.(undefined, shouldFocusOnPillWrapperOverride);
 
   setTimeout(() => element?.focus());
 };
@@ -238,4 +241,24 @@ export const generatePlaceholder = (
   }
 
   return filter[filterInputType] && !isAlwaysWip ? `${filter[filterInputType]}` : INPUT_PLACEHOLDER;
+};
+
+export const populateInputValueOnInputTypeSwitch = ({
+  populateInputOnEdit,
+  item,
+  filterInputType,
+  setInputValue,
+  filter,
+}: {
+  populateInputOnEdit: boolean | undefined;
+  item: SelectableValue<string>;
+  filterInputType: AdHocInputType;
+  setInputValue: (value: React.SetStateAction<string>) => void;
+  filter: AdHocFilterWithLabels | undefined;
+}) => {
+  if (populateInputOnEdit && !isMultiValueOperator(item.value || '') && nextInputTypeMap[filterInputType] === 'value') {
+    setInputValue(filter?.value || '');
+  } else {
+    setInputValue('');
+  }
 };

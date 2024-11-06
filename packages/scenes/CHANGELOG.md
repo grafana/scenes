@@ -1,3 +1,101 @@
+# v5.23.1 (Wed Nov 06 2024)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersCombobox - Pre-fill filter combobox value on edit [#955](https://github.com/grafana/scenes/pull/955) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v5.23.0 (Tue Nov 05 2024)
+
+#### 🚀 Enhancement
+
+- VizPanel: Adjust forceRender logic [#954](https://github.com/grafana/scenes/pull/954) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v5.22.2 (Tue Nov 05 2024)
+
+#### 🐛 Bug Fix
+
+- SceneTimeRange: Fix passing timezone URL parameter [#947](https://github.com/grafana/scenes/pull/947) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v5.22.1 (Mon Nov 04 2024)
+
+#### 🐛 Bug Fix
+
+- SceneObject: Cloning with state fix [#953](https://github.com/grafana/scenes/pull/953) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.22.0 (Mon Nov 04 2024)
+
+#### 🚀 Enhancement
+
+- VizPanel: Do not refresh color mode on `changePluginType` if plugin is the same [#950](https://github.com/grafana/scenes/pull/950) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v5.21.2 (Fri Nov 01 2024)
+
+#### 🐛 Bug Fix
+
+- Don't run migration when changing panel plugin [#952](https://github.com/grafana/scenes/pull/952) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v5.21.1 (Thu Oct 31 2024)
+
+#### 🐛 Bug Fix
+
+- AdHocFilterCombobox: Improve backspace functionality to delete filter key, operator and values separately [#942](https://github.com/grafana/scenes/pull/942) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- VariableValueInput: Set max width [#948](https://github.com/grafana/scenes/pull/948) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
+# v5.21.0 (Tue Oct 29 2024)
+
+#### 🚀 Enhancement
+
+- SceneObject: Improve cloning logic [#944](https://github.com/grafana/scenes/pull/944) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.20.4 (Wed Oct 23 2024)
 
 #### 🐛 Bug Fix

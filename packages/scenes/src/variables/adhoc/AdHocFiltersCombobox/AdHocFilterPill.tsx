@@ -9,14 +9,15 @@ interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
   readOnly?: boolean;
-  focusOnInputRef?: () => void;
+  focusOnWipInputRef?: () => void;
 }
 
-export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Props) {
+export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }: Props) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
-  const [shouldFocus, setShouldFocus] = useState(false);
+  const [shouldFocusOnPillWrapper, setShouldFocusOnPillWrapper] = useState(false);
   const pillWrapperRef = useRef<HTMLDivElement>(null);
+  const [populateInputOnEdit, setPopulateInputOnEdit] = useState(false);
 
   const keyLabel = filter.keyLabel ?? filter.key;
   // TODO remove when we're on the latest version of @grafana/data
@@ -24,24 +25,40 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
   const valueLabel = filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
 
   const handleChangeViewMode = useCallback(
-    (event?: React.MouseEvent) => {
+    (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => {
       event?.stopPropagation();
       if (readOnly) {
         return;
       }
 
-      setShouldFocus(!viewMode);
+      setShouldFocusOnPillWrapper(shouldFocusOnPillWrapperOverride ?? !viewMode);
       setViewMode(!viewMode);
     },
     [readOnly, viewMode]
   );
 
   useEffect(() => {
-    if (shouldFocus) {
+    if (shouldFocusOnPillWrapper) {
       pillWrapperRef.current?.focus();
-      setShouldFocus(false);
+      setShouldFocusOnPillWrapper(false);
     }
-  }, [shouldFocus]);
+  }, [shouldFocusOnPillWrapper]);
+
+  // set viewMode to false when filter.forceEdit is defined
+  useEffect(() => {
+    if (filter.forceEdit && viewMode) {
+      setViewMode(false);
+      // immediately set forceEdit back to undefined as a clean up
+      model._updateFilter(filter, { forceEdit: undefined });
+    }
+  }, [filter, model, viewMode]);
+
+  // reset populateInputOnEdit when pill goes into view mode
+  useEffect(() => {
+    if (viewMode) {
+      setPopulateInputOnEdit((prevValue) => (prevValue ? false : prevValue));
+    }
+  }, [viewMode]);
 
   if (viewMode) {
     const pillText = (
@@ -52,9 +69,14 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
     return (
       <div
         className={cx(styles.combinedFilterPill, { [styles.readOnlyCombinedFilter]: readOnly })}
-        onClick={handleChangeViewMode}
+        onClick={(e) => {
+          e.stopPropagation();
+          setPopulateInputOnEdit(true);
+          handleChangeViewMode();
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
+            setPopulateInputOnEdit(true);
             handleChangeViewMode();
           }
         }}
@@ -76,14 +98,14 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
             onClick={(e) => {
               e.stopPropagation();
               model._removeFilter(filter);
-              setTimeout(() => focusOnInputRef?.());
+              setTimeout(() => focusOnWipInputRef?.());
             }}
             onKeyDownCapture={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
                 model._removeFilter(filter);
-                setTimeout(() => focusOnInputRef?.());
+                setTimeout(() => focusOnWipInputRef?.());
               }
             }}
             name="times"
@@ -96,7 +118,15 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }: Pr
     );
   }
 
-  return <AdHocCombobox filter={filter} model={model} handleChangeViewMode={handleChangeViewMode} />;
+  return (
+    <AdHocCombobox
+      filter={filter}
+      model={model}
+      handleChangeViewMode={handleChangeViewMode}
+      focusOnWipInputRef={focusOnWipInputRef}
+      populateInputOnEdit={populateInputOnEdit}
+    />
+  );
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
