@@ -8,6 +8,8 @@ export interface UseQueryOptions {
   queries: SceneDataQuery[];
   maxDataPoints?: number;
   datasource?: DataSourceRef;
+  liveStreaming?: boolean;
+  maxDataPointsFromWidth?: boolean;
 }
 
 /**
@@ -29,6 +31,8 @@ export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
       queries: options.queries,
       maxDataPoints: options.maxDataPoints,
       datasource: options.datasource,
+      liveStreaming: options.liveStreaming,
+      maxDataPointsFromWidth: options.maxDataPointsFromWidth,
     });
   }
 

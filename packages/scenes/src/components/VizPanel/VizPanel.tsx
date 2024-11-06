@@ -84,6 +84,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   _pluginLoadError?: string;
   /** Internal */
   _pluginInstanceState?: any;
+  _renderCounter?: number;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
@@ -108,6 +109,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       fieldConfig: { defaults: {}, overrides: [] },
       title: 'Title',
       pluginId: 'timeseries',
+      _renderCounter: 0,
       ...state,
     });
 
@@ -126,12 +128,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
   }
 
-  private async _loadPlugin(
-    pluginId: string,
-    overwriteOptions?: DeepPartial<{}>,
-    overwriteFieldConfig?: FieldConfigSource,
-    isAfterPluginChange?: boolean
-  ) {
+  public forceRender(): void {
+    // Incrementing the render counter means VizRepeater and its children will also re-render
+    this.setState({ _renderCounter: (this.state._renderCounter ?? 0) + 1});
+  }
+
+  private async _loadPlugin(pluginId: string, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
@@ -199,7 +201,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    if (plugin.onPanelMigration && currentVersion !== this.state.pluginVersion) {
+    if (plugin.onPanelMigration && currentVersion !== pluginVersion && !isAfterPluginChange) {
       // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
       panel.options = await plugin.onPanelMigration(panel);
     }
@@ -280,7 +282,9 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     //clear field config cache to update it later
     this._dataWithFieldConfig = undefined;
 
-    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, true);
+    // If state.pluginId is already the correct plugin we don't treat this as plain user panel type change
+    const isAfterPluginChange = this.state.pluginId !== pluginId; 
+    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, isAfterPluginChange);
 
     const panel: PanelModel = {
       title: this.state.title,
@@ -339,6 +343,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     this.setState({
       options: withDefaults.options as DeepPartial<TOptions>,
+      _renderCounter: (this.state._renderCounter ?? 0) + 1,
     });
   };
 

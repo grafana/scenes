@@ -1,14 +1,15 @@
 import { SceneObject, SceneUrlSyncOptions } from '../core/types';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { locationService } from '@grafana/runtime';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { useUrlSyncManager } from './UrlSyncManager';
+import { useLocationServiceSafe } from '../utils/utils';
 
 export function useUrlSync(sceneRoot: SceneObject, options: SceneUrlSyncOptions = {}): boolean {
   const location = useLocation();
+  const locationService = useLocationServiceSafe();
   const [isInitialized, setIsInitialized] = useState(false);
-  const urlSyncManager = useUrlSyncManager(options);
+  const urlSyncManager = useUrlSyncManager(options, locationService);
 
   useEffect(() => {
     urlSyncManager.initSync(sceneRoot);
@@ -26,7 +27,7 @@ export function useUrlSync(sceneRoot: SceneObject, options: SceneUrlSyncOptions 
     }
 
     urlSyncManager.handleNewLocation(locationToHandle);
-  }, [sceneRoot, urlSyncManager, location]);
+  }, [sceneRoot, urlSyncManager, location, locationService]);
 
   return isInitialized;
 }

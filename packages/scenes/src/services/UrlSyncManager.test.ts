@@ -270,8 +270,10 @@ describe('UrlSyncManager', () => {
       expect(locationService.getSearchObject()).toEqual({
         from: 'now-6h',
         ['from-2']: 'now-10m',
+        timezone: 'browser',
         to: 'now',
         ['to-2']: 'now',
+        ['timezone-2']: 'browser',
       });
 
       outerTimeRange.setState({ from: 'now-20m' });
@@ -280,8 +282,10 @@ describe('UrlSyncManager', () => {
       expect(locationService.getSearchObject()).toEqual({
         from: 'now-20m',
         to: 'now',
+        timezone: 'browser',
         ['from-2']: 'now-10m',
         ['to-2']: 'now',
+        ['timezone-2']: 'browser',
       });
 
       // When updating via url

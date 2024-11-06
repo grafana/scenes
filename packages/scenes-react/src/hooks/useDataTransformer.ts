@@ -1,9 +1,13 @@
-import { CustomTransformerDefinition, SceneDataProvider, SceneDataTransformer } from "@grafana/scenes"
-import { useSceneContext } from "./hooks";
-import { useEffect, useId } from "react";
-import { isEqual } from "lodash";
-import { DataTransformerConfig } from "@grafana/schema";
-import { DataProxyProvider } from "../DataProxyProvider";
+import {
+  CustomTransformerDefinition,
+  DataProviderProxy,
+  SceneDataProvider,
+  SceneDataTransformer,
+} from '@grafana/scenes';
+import { useSceneContext } from './hooks';
+import { useEffect, useId } from 'react';
+import { isEqual } from 'lodash';
+import { DataTransformerConfig } from '@grafana/schema';
 
 export interface UseDataTransformerOptions {
   transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
@@ -19,7 +23,7 @@ export function useDataTransformer(options: UseDataTransformerOptions) {
   if (!dataTransformer) {
     dataTransformer = new SceneDataTransformer({
       key: key,
-      $data: new DataProxyProvider({ source: options.data.getRef() }),
+      $data: new DataProviderProxy({ source: options.data.getRef() }),
       transformations: options.transformations,
     });
   }

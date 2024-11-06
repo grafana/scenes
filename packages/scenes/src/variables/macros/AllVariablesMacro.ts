@@ -3,6 +3,8 @@ import { isCustomVariableValue, SceneVariable } from '../types';
 import { formatRegistry, FormatVariable } from '../interpolation/formatRegistry';
 import { SkipFormattingValue } from './types';
 import { VariableFormatID } from '@grafana/schema';
+import { MultiValueVariable } from '../variants/MultiValueVariable';
+import { ALL_VARIABLE_VALUE } from '../constants';
 
 export class AllVariablesMacro implements FormatVariable {
   public state: { name: string; type: string };
@@ -20,6 +22,12 @@ export class AllVariablesMacro implements FormatVariable {
 
     for (const name of Object.keys(allVars)) {
       const variable = allVars[name];
+
+      if (variable instanceof MultiValueVariable && variable.hasAllValue() && !variable.state.allValue) {
+        params.push(format.formatter(ALL_VARIABLE_VALUE, [], variable))
+        continue;
+      }
+
       const value = variable.getValue();
 
       if (!value) {

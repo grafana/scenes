@@ -31,6 +31,7 @@
     "packages:publish": "lerna exec --no-private -- npm publish",
     "docs": "yarn workspace website run start --port 8080",
     "docs:build": "yarn turbo build --filter=website",
+    "docs:build:dev": "yarn turbo build:dev --filter=website",
     "build": "yarn turbo build --filter=!website",
     "test:scenes": "yarn workspace @grafana/scenes test --watch",
     "test:scenes-react": "yarn workspace @grafana/scenes-react test --watch",

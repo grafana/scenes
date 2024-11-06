@@ -27,6 +27,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     headerActions,
     titleItems,
     description,
+    _renderCounter = 0,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
@@ -186,7 +187,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           transparent={false}
                           width={innerWidth}
                           height={innerHeight}
-                          renderCounter={0}
+                          renderCounter={_renderCounter}
                           replaceVariables={model.interpolate}
                           onOptionsChange={model.onOptionsChange}
                           onFieldConfigChange={model.onFieldConfigChange}
