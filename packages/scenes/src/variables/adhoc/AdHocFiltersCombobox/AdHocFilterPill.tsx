@@ -55,11 +55,9 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
 
   // reset populateInputOnEdit when pill goes into view mode
   useEffect(() => {
-    if (populateInputOnEdit && viewMode) {
-      setPopulateInputOnEdit(false);
+    if (viewMode) {
+      setPopulateInputOnEdit((prevValue) => (prevValue ? false : prevValue));
     }
-    // excluding populateInputOnEdit dependency because we only care to reset it on viewMode change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode]);
 
   if (viewMode) {
