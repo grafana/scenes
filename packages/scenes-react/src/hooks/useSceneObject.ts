@@ -24,17 +24,15 @@ export function useSceneObject<T extends SceneObject>(options: UseSceneObjectPro
   if (!obj && cacheKeyHash) {
     obj = cache.get<T>(cacheKeyHash);
 
-    if (obj) {
-      if (obj.parent !== scene) {
-        // Before clearing parent make sure the object is not already in the scene
-        if (sceneGraph.findObject(scene, (sceneObj) => sceneObj === obj)) {
-          console.error('A scene object cache key matched an object that is already in the scene');
-          obj = undefined;
-          // Setting this to undefined so that we later do not add/overwrite the object that is already in the scene
-          cacheKeyHash = undefined;
-        } else {
-          obj.clearParent();
-        }
+    if (obj && obj.parent !== scene) {
+      // Before clearing parent make sure the object is not already in the scene
+      if (sceneGraph.findObject(scene, (sceneObj) => sceneObj === obj)) {
+        console.error('A scene object cache key matched an object that is already in the scene');
+        obj = undefined;
+        // Setting this to undefined so that we later do not add/overwrite the object that is already in the scene
+        cacheKeyHash = undefined;
+      } else {
+        obj.clearParent();
       }
     }
   }
