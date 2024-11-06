@@ -10,7 +10,7 @@ import React, {
   useState,
 } from 'react';
 import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@floating-ui/react';
-import { Button, Icon, Spinner, Text, useStyles2 } from '@grafana/ui';
+import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { AdHocFilterWithLabels, AdHocFiltersVariable, isMultiValueOperator } from '../AdHocFiltersVariable';
@@ -28,6 +28,7 @@ import {
   fuzzySearchOptions,
   generateFilterUpdatePayload,
   generatePlaceholder,
+  populateInputValueOnInputTypeSwitch,
   setupDropdownAccessibility,
   switchInputType,
   switchToNextInputType,
@@ -37,6 +38,7 @@ import {
 } from './utils';
 import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
+import { MultiValuePill } from './MultiValuePill';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -44,12 +46,13 @@ interface AdHocComboboxProps {
   model: AdHocFiltersVariable;
   handleChangeViewMode?: (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => void;
   focusOnWipInputRef?: () => void;
+  populateInputOnEdit?: boolean;
 }
 
 export type AdHocInputType = 'key' | 'operator' | 'value';
 
 export const AdHocCombobox = forwardRef(function AdHocCombobox(
-  { filter, model, isAlwaysWip, handleChangeViewMode, focusOnWipInputRef }: AdHocComboboxProps,
+  { filter, model, isAlwaysWip, handleChangeViewMode, focusOnWipInputRef, populateInputOnEdit }: AdHocComboboxProps,
   parentRef
 ) {
   const [open, setOpen] = useState(false);
@@ -161,7 +164,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   // generate ids from multi values in order to prevent outside click based on those ids
   const outsidePressIdsToIgnore = useMemo(() => {
-    return [operatorIdentifier, ...filterMultiValues.map((item, i) => `${item.value}-${i}`)];
+    return [
+      operatorIdentifier,
+      ...filterMultiValues.reduce<string[]>(
+        (acc, item, i) => [...acc, `${item.value}-${i}`, `${item.value}-${i}-close-icon`],
+        []
+      ),
+    ];
   }, [operatorIdentifier, filterMultiValues]);
 
   const { refs, floatingStyles, context, getReferenceProps, getFloatingProps, getItemProps } = useFloatingInteractions({
@@ -343,6 +352,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
+          setInputValue('');
         } else {
           model._updateFilter(
             filter!,
@@ -353,6 +363,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               setFilterMultiValues,
             })
           );
+
+          populateInputValueOnInputTypeSwitch({
+            populateInputOnEdit,
+            item: selectedItem,
+            filterInputType,
+            setInputValue,
+            filter,
+          });
 
           switchToNextInputType(
             filterInputType,
@@ -367,8 +385,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             focusOnWipInputRef?.();
           }
         }
-
-        setInputValue('');
       }
     },
     [
@@ -378,11 +394,22 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       model,
       filter,
       filterInputType,
+      populateInputOnEdit,
       handleChangeViewMode,
       refs.domReference,
       isLastFilter,
       focusOnWipInputRef,
     ]
+  );
+
+  const handleEditMultiValuePill = useCallback(
+    (value: SelectableValue<string>) => {
+      const valueLabel = value.label || value.value!;
+      setFilterMultiValues((prev) => prev.filter((item) => item.value !== value.value));
+      setInputValue(valueLabel);
+      refs.domReference.current?.focus();
+    },
+    [refs.domReference]
   );
 
   //
@@ -401,9 +428,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   //    and in this case we default to 'value' input type and focus input
   useEffect(() => {
     if (!isAlwaysWip) {
-      setInputType('value');
-      setInputValue('');
-
       // TODO remove when we're on the latest version of @grafana/data
       //@ts-expect-error
       if (hasMultiValueOperator && filter?.values?.length) {
@@ -421,6 +445,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         );
         // populate filter multi values to local state on pill edit enter
         setFilterMultiValues(multiValueOptions);
+      }
+
+      // populate input when selecting pill for edit
+      //   this avoids populating input during delete with backspace
+      if (!hasMultiValueOperator && populateInputOnEdit) {
+        setInputValue(filter?.value || '');
       }
 
       refs.domReference.current?.focus();
@@ -466,11 +496,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               tabIndex={0}
               onClick={(event) => {
                 event.stopPropagation();
+                setInputValue('');
                 switchInputType('operator', setInputType, undefined, refs.domReference.current);
               }}
               onKeyDown={(event) => {
                 handleShiftTabInput(event, hasMultiValueOperator);
                 if (event.key === 'Enter') {
+                  setInputValue('');
                   switchInputType('operator', setInputType, undefined, refs.domReference.current);
                 }
               }}
@@ -487,6 +519,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                   item={item}
                   index={i}
                   handleRemoveMultiValue={handleRemoveMultiValue}
+                  handleEditMultiValuePill={handleEditMultiValuePill}
                 />
               ))
             : null}
@@ -601,6 +634,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 event.preventDefault();
                                 event.stopPropagation();
                                 handleLocalMultiValueChange(item);
+                                setInputValue('');
                                 refs.domReference.current?.focus();
                               } else {
                                 model._updateFilter(
@@ -612,7 +646,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                     setFilterMultiValues,
                                   })
                                 );
-                                setInputValue('');
+
+                                populateInputValueOnInputTypeSwitch({
+                                  populateInputOnEdit,
+                                  item,
+                                  filterInputType,
+                                  setInputValue,
+                                  filter,
+                                });
 
                                 switchToNextInputType(
                                   filterInputType,
@@ -665,42 +706,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   );
 });
 
-interface MultiValuePillProps {
-  item: SelectableValue<string>;
-  handleRemoveMultiValue: (item: SelectableValue<string>) => void;
-  index: number;
-}
-const MultiValuePill = ({ item, handleRemoveMultiValue, index }: MultiValuePillProps) => {
-  const styles = useStyles2(getStyles);
-
-  return (
-    <div className={cx(styles.basePill, styles.valuePill)}>
-      <span> {item.label ?? item.value}</span>
-      <Button
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          handleRemoveMultiValue(item);
-        }}
-        onKeyDownCapture={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
-            handleRemoveMultiValue(item);
-          }
-        }}
-        fill="text"
-        size="sm"
-        variant="secondary"
-        className={styles.removeButton}
-        tooltip={`Remove filter value - ${item.label ?? item.value}`}
-      >
-        <Icon name="times" size="md" id={`${item.value}-${index}`} />
-      </Button>
-    </div>
-  );
-};
-
 const getStyles = (theme: GrafanaTheme2) => ({
   comboboxWrapper: css({
     display: 'flex',
@@ -732,10 +737,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       background: theme.colors.action.hover,
     },
-  }),
-  valuePill: css({
-    background: theme.colors.action.selected,
-    padding: theme.spacing(0.125, 0, 0.125, 1),
   }),
   dropdownWrapper: css({
     backgroundColor: theme.colors.background.primary,
@@ -769,24 +770,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
       borderTop: `1px solid ${theme.colors.border.weak}`,
     },
   }),
-  removeButton: css({
-    marginInline: theme.spacing(0.5),
-    height: '100%',
-    padding: 0,
-    cursor: 'pointer',
-    '&:hover': {
-      color: theme.colors.text.primary,
-    },
-  }),
   descriptionText: css({
     ...theme.typography.bodySmall,
     color: theme.colors.text.secondary,
     paddingTop: theme.spacing(0.5),
-  }),
-  multiValueApply: css({
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    display: 'flex',
   }),
 });
