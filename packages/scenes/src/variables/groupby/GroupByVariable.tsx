@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-// @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, DataSourceApi, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
@@ -93,7 +92,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         this.state.defaultOptions.map((o) => ({
           label: o.text,
           value: String(o.value),
-          // @ts-expect-error Remove when we update to @grafana/data > 11.1.0
           group: o.group,
         }))
       );
@@ -116,7 +114,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
           map((response) => dataFromResponse(response)),
           take(1),
           mergeMap((data) => {
-            // @ts-expect-error Remove when 11.1.x is released
             const a: VariableValueOption[] = data.map((i) => {
               return {
                 label: i.text,
@@ -184,7 +181,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       ...getEnrichedFiltersRequest(this),
     });
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 
@@ -195,7 +191,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
     if (tagKeyRegexFilter) {
-      // @ts-expect-error Remove when 11.1.x is released
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
