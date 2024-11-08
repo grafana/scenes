@@ -554,7 +554,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           setOpen(true);
         }}
         onFocus={() => {
-          setActiveIndex(0);
           setOpen(true);
         }}
       />

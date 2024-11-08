@@ -1026,11 +1026,19 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       setup({
         getTagKeysProvider: async () => ({
           replace: true,
-          values: [{ text: 'key1', value: 'key1' }, { text: 'key2', value: 'key2' }, { text: 'key3', value: 'key3' }],
+          values: [
+            { text: 'key1', value: 'key1' },
+            { text: 'key2', value: 'key2' },
+            { text: 'key3', value: 'key3' },
+          ],
         }),
         getTagValuesProvider: async () => ({
           replace: true,
-          values: [{ text: 'val1', value: 'val1' }, { text: 'val2', value: 'val2' }, { text: 'val3', value: 'val3' }],
+          values: [
+            { text: 'val1', value: 'val1' },
+            { text: 'val2', value: 'val2' },
+            { text: 'val3', value: 'val3' },
+          ],
         }),
         layout: 'combobox',
       });
@@ -1129,7 +1137,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(screen.getByRole('option', { name: 'val2' })).toBeInTheDocument();
 
       await userEvent.type(screen.getByRole('combobox'), '{backspace}');
-      await userEvent.keyboard('{arrowdown}{arrowdown}{arrowdown}');
+      await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
 
       // input should be refocused
@@ -1184,7 +1192,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('can add a new filter by selecting key, operator and value with the keyboard', async () => {
       await userEvent.click(screen.getByRole('combobox'));
       // TODO for some reason this needs an extra arrowdown
-      await userEvent.keyboard('{arrowdown}{arrowdown}{arrowdown}')
+      await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
 
       // input should be refocused
@@ -1208,7 +1216,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'val1' })).toBeInTheDocument();
 
-      await userEvent.keyboard('{arrowdown}{arrowdown}')
+      await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
 
       // input should be refocused
@@ -1220,7 +1228,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
     });
-  })
+  });
 });
 
 const runRequestMock = {
