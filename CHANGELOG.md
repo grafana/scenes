@@ -1,3 +1,17 @@
+# v5.23.4 (Fri Nov 08 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - New filters UI: adds some basic unit tests [#958](https://github.com/grafana/scenes/pull/958) ([@ashharrison90](https://github.com/ashharrison90) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v5.23.3 (Fri Nov 08 2024)
 
 #### 🐛 Bug Fix
