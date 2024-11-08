@@ -1,3 +1,17 @@
+# v5.23.3 (Fri Nov 08 2024)
+
+#### 🐛 Bug Fix
+
+- VariableLabel: change variable label check to OR instead of ?? [#963](https://github.com/grafana/scenes/pull/963) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- GroupByVariable: Support custom filter keys [#865](https://github.com/grafana/scenes/pull/865) ([@andreaalopez](https://github.com/andreaalopez))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Andrea Lopez ([@andreaalopez](https://github.com/andreaalopez))
+
+---
+
 # v5.23.2 (Fri Nov 08 2024)
 
 #### 🐛 Bug Fix
