@@ -264,6 +264,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       id={key}
       placeholder={'Select value'}
       width="auto"
+      allowCustomValue={true}
       inputValue={inputValue}
       value={uncommittedValue}
       noMultiValueWrap={true}
