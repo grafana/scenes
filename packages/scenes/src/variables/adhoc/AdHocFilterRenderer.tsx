@@ -116,7 +116,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueSelect = (
     <Select
       virtualized
-      allowCustomValue
+      allowCustomValue={model.state.allowCustomValue ?? true}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
@@ -171,7 +171,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       disabled={model.state.readOnly}
       className={cx(styles.key, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
-      allowCustomValue={true}
+      allowCustomValue={model.state.allowCustomValue ?? true}
       value={keyValue}
       placeholder={'Select label'}
       options={handleOptionGroups(keys)}

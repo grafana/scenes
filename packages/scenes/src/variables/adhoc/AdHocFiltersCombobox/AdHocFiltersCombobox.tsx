@@ -66,6 +66,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // control multi values with local state in order to commit all values at once and avoid _wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
   const [_, setForceRefresh] = useState({});
+  const allowCustomValue = model.state.allowCustomValue ?? true;
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -206,7 +207,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const filteredDropDownItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(inputValue, filterInputType)));
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
-  if (filterInputType !== 'operator' && inputValue) {
+  if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
     filteredDropDownItems.push({
       value: inputValue.trim(),
       label: inputValue.trim(),
