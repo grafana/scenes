@@ -1,3 +1,19 @@
+# v5.23.2 (Fri Nov 08 2024)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Saved default all value with non multi select fix [#959](https://github.com/grafana/scenes/pull/959) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - ScenesReact: Cache SceneQueryRunners and other scene object by a key / hashing string [#788](https://github.com/grafana/scenes/pull/788) ([@torkelo](https://github.com/torkelo) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.23.1 (Wed Nov 06 2024)
 
 #### 🐛 Bug Fix
