@@ -93,7 +93,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         this.state.defaultOptions.map((o) => ({
           label: o.text,
           value: String(o.value),
-          // @ts-expect-error Remove when we update to @grafana/data > 11.1.0
           group: o.group,
         }))
       );

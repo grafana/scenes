@@ -348,7 +348,7 @@ export class AdHocFiltersVariable
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
-      timeRange, // @ts-expect-error TODO: remove this once 11.1.x is released
+      timeRange,
       queries,
       ...getEnrichedFiltersRequest(this),
     });

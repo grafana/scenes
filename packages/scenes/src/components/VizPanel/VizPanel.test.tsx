@@ -714,6 +714,15 @@ describe('VizPanel', () => {
     beforeEach(() => {
       panelRenderCount = 0;
       panelProps = undefined;
+
+      global.ResizeObserver = class {
+        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+        observe() {}
+        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+        unobserve() {}
+        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+        disconnect() {}
+      };
     });
 
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;

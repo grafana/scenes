@@ -33,7 +33,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const appEvents = useMemo(() => getAppEvents(), []);
 
   const setPanelAttention = useCallback(() => {
-    appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+    if (model.state.key) {
+      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+    }
   }, [model.state.key, appEvents]);
   const debouncedMouseMove = useMemo(
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
@@ -167,7 +169,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onCancelQuery={model.onCancelQuery}
             // @ts-ignore
             onFocus={setPanelAttention}
-            onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
           >
             {(innerWidth, innerHeight) => (
