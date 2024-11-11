@@ -346,6 +346,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
       if (event.key === 'Enter' && activeIndex != null) {
         // safeguard for non existing items
+        // note: custom item is added to filteredDropDownItems if allowed
         if (!filteredDropDownItems[activeIndex]) {
           return;
         }
@@ -589,7 +590,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                     <LoadingOptionsPlaceholder />
                   ) : optionsError ? (
                     <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
-                  ) : !filteredDropDownItems.length && (filterInputType === 'operator' || !inputValue) ? (
+                  ) : !filteredDropDownItems.length &&
+                    (!allowCustomValue || filterInputType === 'operator' || !inputValue) ? (
                     <NoOptionsPlaceholder />
                   ) : (
                     rowVirtualizer.getVirtualItems().map((virtualItem) => {
