@@ -1,11 +1,12 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
-import { SceneComponentProps, sceneGraph, SceneObjectBase, SceneObjectState } from '@grafana/scenes';
 import { LinkButton } from '@grafana/ui';
 import { DataQuery } from '@grafana/schema';
-import { getDataSourceSrv } from '@grafana/runtime';
-import { ScopedVars } from '@grafana/data';
 import { useAsync } from 'react-use';
+import { SceneComponentProps, SceneObjectState } from '../../core/types';
+import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { sceneGraph } from '../../core/sceneGraph';
+import { getExploreURL } from '../../utils/explore';
 
 export interface ExploreButtonOptions {
   // Callback to hook in tracking / analytics
@@ -32,55 +33,21 @@ function VizPanelExploreButtonComponent({ model }: SceneComponentProps<VizPanelE
 
   const { data } = sceneGraph.getData(model).useState();
 
-  const targets = useMemo(() => data?.request?.targets ?? [], [data]);
-
   const { from, to } = sceneGraph.getTimeRange(model).useState();
 
-  const { value: interpolatedQueries } = useAsync(async () => {
-    const scopedVars: ScopedVars = {
-      __sceneObject: { text: '__sceneObject', value: model },
-    };
-    return (
-      await Promise.allSettled(
-        targets.map(async (q) => {
-          const queryDs = await getDataSourceSrv().get(q.datasource);
-          return queryDs.interpolateVariablesInQueries?.([q], scopedVars ?? {})[0] || q;
-        })
-      )
-    )
-      .filter((promise): promise is PromiseFulfilledResult<DataQuery> => promise.status === 'fulfilled')
-      .map((q) => q.value)
-      .map((q) => options.transform?.(q) ?? q);
-  }, [targets, model]);
+  const { value: exploreLink } = useAsync(
+    async () => (data ? getExploreURL(data, model, { from, to }, options.transform) : ''),
+    [data, model, from, to]
+  );
 
-  const left = useMemo(() => {
-    const queries: DataQuery[] = interpolatedQueries ?? [];
-
-    const datasource = queries.find((query) => !!query.datasource?.uid)?.datasource?.uid;
-
-    if (queries?.length && datasource && from && to) {
-      return encodeURIComponent(
-        JSON.stringify({
-          datasource,
-          queries,
-          range: {
-            from,
-            to,
-          },
-        })
-      );
-    }
-    return '';
-  }, [interpolatedQueries, from, to]);
-
-  if (left) {
+  if (exploreLink) {
     return (
       <LinkButton
         key="explore"
         icon="compass"
         size="sm"
         variant="secondary"
-        href={`/explore?left=${left}`}
+        href={exploreLink}
         onClick={options.onClick}
       >
         Explore
