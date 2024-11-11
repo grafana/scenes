@@ -4372,7 +4372,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/data@npm:11.3.0, @grafana/data@npm:^11.1.0":
+"@grafana/data@npm:11.3.0":
   version: 11.3.0
   resolution: "@grafana/data@npm:11.3.0"
   dependencies:
@@ -4407,7 +4407,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/e2e-selectors@npm:11.3.0, @grafana/e2e-selectors@npm:^11.1.0":
+"@grafana/e2e-selectors@npm:11.0.0, @grafana/e2e-selectors@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "@grafana/e2e-selectors@npm:11.0.0"
+  dependencies:
+    "@grafana/tsconfig": "npm:^1.3.0-rc1"
+    tslib: "npm:2.6.2"
+    typescript: "npm:5.3.3"
+  checksum: 10/0e327c5afc342bca9be46b0b3fb7b55d69e8b7b6e9912be3255ce52abcb8832265246a0e6b2f877112a752b6e44f6f7edf5c4d2a32b5edc84800d19c880dfc6c
+  languageName: node
+  linkType: hard
+
+"@grafana/e2e-selectors@npm:11.3.0":
   version: 11.3.0
   resolution: "@grafana/e2e-selectors@npm:11.3.0"
   dependencies:
@@ -4426,17 +4437,6 @@ __metadata:
     tslib: "npm:2.4.0"
     typescript: "npm:4.8.2"
   checksum: 10/91def78fe66d59155eadd391f4966723d30e387fe1a58d46c59026ad45a362f6d3608048d578ecd505efc1ff8e003ee18f6df45148b654b3b8b6d822b8bbb4f8
-  languageName: node
-  linkType: hard
-
-"@grafana/e2e-selectors@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "@grafana/e2e-selectors@npm:11.0.0"
-  dependencies:
-    "@grafana/tsconfig": "npm:^1.3.0-rc1"
-    tslib: "npm:2.6.2"
-    typescript: "npm:5.3.3"
-  checksum: 10/0e327c5afc342bca9be46b0b3fb7b55d69e8b7b6e9912be3255ce52abcb8832265246a0e6b2f877112a752b6e44f6f7edf5c4d2a32b5edc84800d19c880dfc6c
   languageName: node
   linkType: hard
 
@@ -4527,7 +4527,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/runtime@npm:^11.1.0":
+"@grafana/runtime@npm:11.3.0":
   version: 11.3.0
   resolution: "@grafana/runtime@npm:11.3.0"
   dependencies:
@@ -4571,7 +4571,7 @@ __metadata:
   dependencies:
     "@emotion/css": "npm:11.10.5"
     "@emotion/react": "npm:11.10.5"
-    "@grafana/e2e-selectors": "npm:^11.1.0"
+    "@grafana/e2e-selectors": "npm:11.3.0"
     "@grafana/eslint-config": "npm:5.1.0"
     "@grafana/scenes": "workspace:*"
     "@grafana/tsconfig": "npm:^1.3.0-rc1"
@@ -4625,10 +4625,10 @@ __metadata:
     tslib: "npm:2.6.2"
     typescript: "npm:5.4.3"
   peerDependencies:
-    "@grafana/data": ^11.1.0
-    "@grafana/runtime": ^11.1.0
-    "@grafana/schema": ^11.1.0
-    "@grafana/ui": ^11.1.0
+    "@grafana/data": 11.3.0
+    "@grafana/runtime": 11.3.0
+    "@grafana/schema": 11.3.0
+    "@grafana/ui": 11.3.0
     react: ^18.0.0
     react-dom: ^18.0.0
   languageName: unknown
@@ -4706,7 +4706,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@grafana/schema@npm:11.3.0, @grafana/schema@npm:^11.1.0":
+"@grafana/schema@npm:11.3.0":
   version: 11.3.0
   resolution: "@grafana/schema@npm:11.3.0"
   dependencies:
@@ -4736,7 +4736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/ui@npm:11.3.0, @grafana/ui@npm:^11.1.0":
+"@grafana/ui@npm:11.3.0":
   version: 11.3.0
   resolution: "@grafana/ui@npm:11.3.0"
   dependencies:
@@ -6691,10 +6691,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@remix-run/router@npm:1.20.0":
-  version: 1.20.0
-  resolution: "@remix-run/router@npm:1.20.0"
-  checksum: 10/e1d2420db94a1855b97f1784898d0ae389cf3b77129b8f419e51d4833b77ca2c92ac09e2cb558015324d64580a138fd6faa31e52fcc3ba90e3cc382a1a324d4a
+"@remix-run/router@npm:1.21.0":
+  version: 1.21.0
+  resolution: "@remix-run/router@npm:1.21.0"
+  checksum: 10/cf0fb69d19c1b79095ff67c59cea89086f3982a9a54c8a993818a60fc76e0ebab5a8db647c1a96a662729fad8e806ddd0a96622adf473f5a9f0b99998b2dbad4
   languageName: node
   linkType: hard
 
@@ -7175,14 +7175,14 @@ __metadata:
   linkType: hard
 
 "@tanstack/react-virtual@npm:^3.5.1":
-  version: 3.10.8
-  resolution: "@tanstack/react-virtual@npm:3.10.8"
+  version: 3.10.9
+  resolution: "@tanstack/react-virtual@npm:3.10.9"
   dependencies:
-    "@tanstack/virtual-core": "npm:3.10.8"
+    "@tanstack/virtual-core": "npm:3.10.9"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 10/40a5d6089908096634fec2aa0cd646ca47c044c745e1b0d190ecbf9905ad2e6266ccd56c2550ed92f47349954dc11eb6930beac1354441ce7c98af81c5454d3f
+  checksum: 10/a6c90118d0b084aedf0a2b02bc718df5cc1e594fb60d1dededf8a393d3e519e574e2ba67bb7adcaf8b4d6b206f6a10b37166f006bc7e50ad566475323d545b8c
   languageName: node
   linkType: hard
 
@@ -7198,10 +7198,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/virtual-core@npm:3.10.8":
-  version: 3.10.8
-  resolution: "@tanstack/virtual-core@npm:3.10.8"
-  checksum: 10/047e95fa72a0d341c0da8468799c176fd448481432f976a4780911bb4a2256aa4788d828f79fad78d127fe859b785189c13ca0fea10c560bf14d8ab8cb2c7790
+"@tanstack/virtual-core@npm:3.10.9":
+  version: 3.10.9
+  resolution: "@tanstack/virtual-core@npm:3.10.9"
+  checksum: 10/15140fc41c728ed08486eba4c9caadbdb3c594f02d3b55fddca63813bc32e8cde64faf6ca6385f9815aeeedbc441dd8c9590aca4319c16a91f39b1937ef4eac7
   languageName: node
   linkType: hard
 
@@ -24133,17 +24133,17 @@ __metadata:
   linkType: hard
 
 "react-router-dom-v5-compat@npm:^6.26.1":
-  version: 6.27.0
-  resolution: "react-router-dom-v5-compat@npm:6.27.0"
+  version: 6.28.0
+  resolution: "react-router-dom-v5-compat@npm:6.28.0"
   dependencies:
-    "@remix-run/router": "npm:1.20.0"
+    "@remix-run/router": "npm:1.21.0"
     history: "npm:^5.3.0"
-    react-router: "npm:6.27.0"
+    react-router: "npm:6.28.0"
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
     react-router-dom: 4 || 5
-  checksum: 10/dd966aaa3b583a2e7e4aa62a45a7d30f9783d391beafc1ee11c0d68c15f18d01b82d8ad65d97655f8b2a8609813d9265d01ab117274a33e09a858a9bb5c035ce
+  checksum: 10/d3221bf660851e8ca4a13050fcaf17f3d510296baf5d56c710d114a7b3b05ee6249db7b6fb3cae649e9f78eea23b341fdeae12649f4651cde4b8670d7904b520
   languageName: node
   linkType: hard
 
@@ -24183,14 +24183,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:6.27.0":
-  version: 6.27.0
-  resolution: "react-router@npm:6.27.0"
+"react-router@npm:6.28.0":
+  version: 6.28.0
+  resolution: "react-router@npm:6.28.0"
   dependencies:
-    "@remix-run/router": "npm:1.20.0"
+    "@remix-run/router": "npm:1.21.0"
   peerDependencies:
     react: ">=16.8"
-  checksum: 10/352e3af2075cdccf9d114b7e06d94a1b46a2147ba9d6e8643787a92464f5fd9ead950252a98d551f99f21860288bcf3a4f088cb5f46b28d1274a4e2ba24cc0f9
+  checksum: 10/f021a644513144884a567d9c2dcc432e8e3233f931378c219c5a3b5b842340f0faca86225a708bafca1e9010965afe1a7dada28aef5b7b6138c885c0552d9a7d
   languageName: node
   linkType: hard
 
@@ -25431,17 +25431,17 @@ __metadata:
   dependencies:
     "@babel/core": "npm:^7.16.7"
     "@emotion/css": "npm:^11.1.3"
-    "@grafana/data": "npm:^11.1.0"
+    "@grafana/data": "npm:11.3.0"
     "@grafana/e2e": "npm:9.2.1"
-    "@grafana/e2e-selectors": "npm:^11.1.0"
+    "@grafana/e2e-selectors": "npm:11.0.0"
     "@grafana/eslint-config": "npm:5.0.0"
-    "@grafana/runtime": "npm:^11.1.0"
+    "@grafana/runtime": "npm:11.3.0"
     "@grafana/scenes": "workspace:*"
     "@grafana/scenes-ml": "npm:^0.2.0"
     "@grafana/scenes-react": "workspace:*"
-    "@grafana/schema": "npm:^11.1.0"
+    "@grafana/schema": "npm:11.3.0"
     "@grafana/tsconfig": "npm:1.3.0-rc1"
-    "@grafana/ui": "npm:^11.1.0"
+    "@grafana/ui": "npm:11.3.0"
     "@swc/core": "npm:^1.2.144"
     "@swc/helpers": "npm:^0.3.6"
     "@swc/jest": "npm:^0.2.36"

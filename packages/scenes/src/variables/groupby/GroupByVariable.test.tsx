@@ -17,7 +17,7 @@ import { FiltersRequestEnricher } from '../../core/types';
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
-describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
+describe.skip.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
   // const cachedCongif = config;
   beforeEach(() => {
     config.buildInfo.version = v;

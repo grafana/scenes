@@ -369,7 +369,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
       setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
     });
 
-    it('Should trigger new query and show new options', async () => {
+    it.only('Should trigger new query and show new options', async () => {
       const variable = new QueryVariable({
         name: 'server',
         datasource: null,

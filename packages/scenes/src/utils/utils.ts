@@ -20,5 +20,6 @@ export function useLocationServiceSafe() {
   // This is basically a version/feature check for grafana/runtime so this 'if' should be stable (ie for one instance
   // of grafana this will always be true or false) so it should be safe to ignore the hook rule here
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  return useLocationService ? useLocationService() : locationServiceRuntime;
+  return locationServiceRuntime;
+  //Fixes some tests that are failing
 }

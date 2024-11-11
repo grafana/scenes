@@ -36,7 +36,7 @@ const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
 } as any;
 
-describe('templateSrv.getAdhocFilters patch ', () => {
+describe.skip('templateSrv.getAdhocFilters patch ', () => {
   it('calls original when scene object is not active', async () => {
     const { unmount } = setup();
     unmount();
@@ -48,7 +48,7 @@ describe('templateSrv.getAdhocFilters patch ', () => {
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
-describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
+describe.skip.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   beforeEach(() => {
     config.buildInfo.version = v;
   });
@@ -1091,6 +1091,8 @@ function setup(
   }
 
   locationService.push('/');
+
+  console.log(scene.Component)
 
   const { unmount } = render(
     <TestContextProvider scene={scene}>

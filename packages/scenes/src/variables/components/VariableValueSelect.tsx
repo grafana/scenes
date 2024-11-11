@@ -1,7 +1,5 @@
 import { isArray } from 'lodash';
 import React, { RefCallback, useEffect, useMemo, useState } from 'react';
-
-//@ts-ignore
 import { Checkbox, InputActionMeta, MultiSelect, Select, ToggleAllState, getSelectStyles, useStyles2, useTheme2 } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
