@@ -7,6 +7,7 @@ import { SceneComponentProps, SceneObjectState } from '../../core/types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
 import { getExploreURL } from '../../utils/explore';
+import { useReturnToPrevious } from '@grafana/runtime';
 
 export interface ExploreButtonOptions {
   // Callback to hook in tracking / analytics
@@ -14,6 +15,12 @@ export interface ExploreButtonOptions {
 
   // Callback to modify interpolated query before passing it to explore
   transform?: (query: DataQuery) => DataQuery;
+
+  // Title and href for the return to previous button
+  returnToPrevious?: {
+    title: string;
+    href?: string;
+  };
 }
 
 interface ExploreButtonState extends SceneObjectState {
@@ -40,6 +47,8 @@ function VizPanelExploreButtonComponent({ model }: SceneComponentProps<VizPanelE
     [data, model, from, to]
   );
 
+  const returnToPrevious = useReturnToPrevious();
+
   if (exploreLink) {
     return (
       <LinkButton
@@ -48,7 +57,12 @@ function VizPanelExploreButtonComponent({ model }: SceneComponentProps<VizPanelE
         size="sm"
         variant="secondary"
         href={exploreLink}
-        onClick={options.onClick}
+        onClick={() => {
+          if (options.returnToPrevious) {
+            returnToPrevious(options.returnToPrevious.title, options.returnToPrevious.href);
+          }
+          options.onClick?.();
+        }}
       >
         Explore
       </LinkButton>
