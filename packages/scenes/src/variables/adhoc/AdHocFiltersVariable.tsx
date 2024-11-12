@@ -96,6 +96,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   useQueriesAsFilterForOptions?: boolean;
 
   /**
+   * Flag that decides whether custom values can be added to the filter
+   */
+  allowCustomValue?: boolean;
+
+  /**
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;

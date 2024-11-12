@@ -16,6 +16,7 @@ describe('VariableValueSelect', () => {
       name: 'test',
       query: 'A,B,C',
       isMulti: true,
+      allowCustomValue: true,
       value: [],
       text: '',
       options: [
@@ -128,5 +129,42 @@ describe('VariableValueSelect', () => {
     await userEvent.click(inputElement);
     const options = screen.getAllByRole('option');
     expect(options).toHaveLength(3);
+  });
+
+  it('should render custom values in VariableValueSelect component', async () => {
+    render(<VariableValueSelect model={model} />);
+    const variableValueSelectElement = screen.getByTestId(
+      selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
+    );
+    const inputElement = variableValueSelectElement.querySelector('input');
+    expect(inputElement).toBeInTheDocument();
+    if (!inputElement) {
+      return;
+    }
+
+    //type custom value in input
+    await userEvent.type(inputElement, 'custom value');
+    let options = screen.getAllByRole('option');
+    //expect custom value to be the only value added to options
+    expect(options).toHaveLength(1);
+  });
+
+  it('should not render custom values when allowCustomValue is false in VariableValueSelect component', async () => {
+    model.setState({ allowCustomValue: false });
+
+    render(<VariableValueSelect model={model} />);
+    const variableValueSelectElement = screen.getByTestId(
+      selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
+    );
+    const inputElement = variableValueSelectElement.querySelector('input');
+    expect(inputElement).toBeInTheDocument();
+    if (!inputElement) {
+      return;
+    }
+
+    //expect no options now since we are typing a value that isn't in the list of options and also we can't add custom values
+    await userEvent.type(inputElement, 'custom value');
+    const options = screen.queryAllByRole('option');
+    expect(options).toHaveLength(0);
   });
 });
