@@ -519,6 +519,23 @@ describe('SceneVariableList', () => {
       expect(B.state.loading).toBe(false);
       expect(C.state.loading).toBe(false);
     });
+
+    it('Should notify scene objects that use time macros', () => {
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      const scene = new TestObjectWithVariableDependency({
+        $variables: new SceneVariableSet({ variables: [] }),
+        $timeRange: timeRange,
+        title: '${__from}',
+      });
+
+      scene.activate();
+
+      expect(scene.state.didSomethingCount).toBe(0);
+
+      timeRange.setState({ from: 'now-2h', to: 'now' });
+
+      expect(scene.state.didSomethingCount).toBe(1);
+    });
   });
 
   describe('isVariableLoadingOrWaitingToUpdate', () => {

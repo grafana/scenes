@@ -268,7 +268,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       const queryRunner = new SceneQueryRunner({
         runQueriesMode: 'manual',
         queries: [{ refId: 'A' }],
-        $timeRange
+        $timeRange,
       });
 
       queryRunner.activate();
@@ -277,13 +277,12 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       expect(queryRunner.state.data).toBeUndefined();
 
-      queryRunner.runQueries()
+      queryRunner.runQueries();
 
       await new Promise((r) => setTimeout(r, 1));
 
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
       expect(queryRunner.state.data?.series).toHaveLength(1);
-
     });
 
     it('should not subscribe to time range when calling runQueries', async () => {
@@ -291,7 +290,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       const queryRunner = new SceneQueryRunner({
         runQueriesMode: 'manual',
         queries: [{ refId: 'A' }],
-        $timeRange
+        $timeRange,
       });
 
       queryRunner.activate();
@@ -300,29 +299,29 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(queryRunner.state.data).toBeUndefined();
 
       // Run the query manually
-      queryRunner.runQueries()
+      queryRunner.runQueries();
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(1);
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
-      expect(queryRunner.state.data?.series[0].refId).toBe('A')
+      expect(queryRunner.state.data?.series[0].refId).toBe('A');
 
       queryRunner.setState({
         queries: [{ refId: 'B' }],
-        $timeRange
-      })
+        $timeRange,
+      });
 
-      $timeRange.onRefresh()
+      $timeRange.onRefresh();
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(1);
-      expect(queryRunner.state.data?.series[0].refId).toBe('A')
+      expect(queryRunner.state.data?.series[0].refId).toBe('A');
 
-      queryRunner.runQueries()
+      queryRunner.runQueries();
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock.mock.calls.length).toEqual(2);
-      expect(queryRunner.state.data?.request?.targets[0].refId).toBe('B')
+      expect(queryRunner.state.data?.request?.targets[0].refId).toBe('B');
     });
 
     it('should not run queries on timerange change', async () => {
@@ -330,11 +329,11 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       const queryRunner = new SceneQueryRunner({
         runQueriesMode: 'manual',
         queries: [{ refId: 'A' }],
-        $timeRange
+        $timeRange,
       });
 
       queryRunner.activate();
-      $timeRange.onRefresh()
+      $timeRange.onRefresh();
 
       await new Promise((r) => setTimeout(r, 1));
 
@@ -345,7 +344,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       const variable = new TestVariable({ name: 'A', value: '', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A', query: '$A' }],
-        runQueriesMode: 'manual'
+        runQueriesMode: 'manual',
       });
 
       const timeRange = new SceneTimeRange();
@@ -374,7 +373,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
         queries: [{ refId: 'A' }],
-        runQueriesMode: 'manual'
+        runQueriesMode: 'manual',
       });
 
       const scene = new EmbeddedScene({ $data: queryRunner, body: new SceneCanvasText({ text: 'hello' }) });
@@ -420,7 +419,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         queries: [{ refId: 'A' }],
         $timeRange: new SceneTimeRange(),
         runQueriesMode: 'manual',
-        maxDataPointsFromWidth: true
+        maxDataPointsFromWidth: true,
       });
 
       queryRunner.activate();
@@ -431,7 +430,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
       expect(queryRunner.state.data?.series).toHaveLength(1);
     });
-  })
+  });
 
   describe('when activated and got no data', () => {
     it('should run queries', async () => {
@@ -902,6 +901,33 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       variable.changeValueTo('AB');
 
       await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(2);
+    });
+
+    it('Should not execute query twice when time range changes and the query is using a time macro', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$__from' }],
+      });
+
+      const timeRange = new SceneTimeRange();
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [] }),
+        $timeRange: timeRange,
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      timeRange.onRefresh();
+
+      await new Promise((r) => setTimeout(r, 2));
 
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
