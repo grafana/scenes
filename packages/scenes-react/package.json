@@ -39,7 +39,7 @@
   "dependencies": {
     "@grafana/scenes": "workspace:*",
     "lru-cache": "^10.2.2",
-    "react-use": "17.4.0"
+    "react-use": "^17.4.0"
   },
   "peerDependencies": {
     "@grafana/data": "^11.0.0",
