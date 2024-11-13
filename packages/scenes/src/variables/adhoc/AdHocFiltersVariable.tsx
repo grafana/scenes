@@ -1,5 +1,4 @@
 import React from 'react';
-// @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
@@ -305,7 +304,6 @@ export class AdHocFiltersVariable
     });
 
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 
@@ -316,7 +314,6 @@ export class AdHocFiltersVariable
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
     if (tagKeyRegexFilter) {
-      // @ts-expect-error Remove when 11.1.x is released
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
@@ -354,7 +351,6 @@ export class AdHocFiltersVariable
     });
 
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 

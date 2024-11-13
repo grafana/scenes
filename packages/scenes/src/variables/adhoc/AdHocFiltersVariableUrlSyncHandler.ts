@@ -84,8 +84,6 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     keyLabel,
     operator,
     value: values[0],
-    // TODO remove expect-error when we're on the latest version of @grafana/data
-    // @ts-expect-error
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
