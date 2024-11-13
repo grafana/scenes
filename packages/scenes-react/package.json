@@ -37,16 +37,16 @@
     "url": "https://github.com/grafana/scenes/issues"
   },
   "dependencies": {
-    "@grafana/e2e-selectors": "^11.3.0",
+    "@grafana/e2e-selectors": "^11.0.0",
     "@grafana/scenes": "workspace:*",
     "lru-cache": "^10.2.2",
     "react-use": "17.4.0"
   },
   "peerDependencies": {
-    "@grafana/data": ">=10.4",
-    "@grafana/runtime": ">=10.4",
-    "@grafana/schema": ">=10.4",
-    "@grafana/ui": ">=10.4",
+    "@grafana/data": "^11.0.0",
+    "@grafana/runtime": "^11.0.0",
+    "@grafana/schema": "^11.0.0",
+    "@grafana/ui": ">^11.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },
