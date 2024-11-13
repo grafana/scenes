@@ -21,14 +21,5 @@ export function useLocationServiceSafe() {
   // of grafana this will always be true or false) so it should be safe to ignore the hook rule here
   // eslint-disable-next-line react-hooks/rules-of-hooks
 
-  if (useLocationService) {
-    try {
-      // eslint-disable-next-line react-hooks/rules-of
-      return useLocationService();
-    } catch (e) {
-      return locationServiceRuntime;
-    }
-  }
-
-  return locationServiceRuntime;
+  return useLocationService ? useLocationService() : locationServiceRuntime;
 }
