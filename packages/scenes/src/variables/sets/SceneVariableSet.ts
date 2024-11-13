@@ -56,8 +56,8 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     );
 
     this._subs.add(
-      timeRange.subscribeToState((state) => {
-        this._refreshTimeRangeBasedVariables(state);
+      timeRange.subscribeToState(() => {
+        this._refreshTimeRangeBasedVariables();
       })
     );
 
@@ -82,25 +82,13 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   /**
    * Add all variables that depend on the changed variable to the update queue
    */
-  private _refreshTimeRangeBasedVariables(state: SceneTimeRangeState) {
+  private _refreshTimeRangeBasedVariables() {
     for (const variable of this.state.variables) {
       if ('refresh' in variable.state && variable.state.refresh === VariableRefresh.onTimeRangeChanged) {
         this._variablesToUpdate.add(variable);
       }
     }
-
-    this._notifySceneObjectsOfTimeRangeChange(state);
     this._updateNextBatch();
-  }
-
-  /**
-   * This will notify scene objects that that depend on time range macros
-   */
-  private _notifySceneObjectsOfTimeRangeChange(state: SceneTimeRangeState) {
-    const from = new ConstantVariable({ name: '__from', value: state.from });
-    const to = new ConstantVariable({ name: '__to', value: state.from });
-    this._traverseSceneAndNotify(this.parent!, from, true);
-    this._traverseSceneAndNotify(this.parent!, to, true);
   }
 
   /**

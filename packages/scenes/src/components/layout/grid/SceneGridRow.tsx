@@ -27,6 +27,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['title'],
+    handleTimeMacros: true,
   });
 
   public constructor(state: Partial<SceneGridRowState>) {
