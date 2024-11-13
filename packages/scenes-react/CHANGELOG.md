@@ -1,3 +1,15 @@
+# v5.25.0 (Wed Nov 13 2024)
+
+#### 🚀 Enhancement
+
+- Chore: Relax dependencies and move e2e-selectors to peerDeps [#940](https://github.com/grafana/scenes/pull/940) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v5.23.2 (Fri Nov 08 2024)
 
 #### 🐛 Bug Fix

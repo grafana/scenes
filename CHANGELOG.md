@@ -1,3 +1,35 @@
+# v5.25.0 (Wed Nov 13 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Chore: Relax dependencies and move e2e-selectors to peerDeps [#940](https://github.com/grafana/scenes/pull/940) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v5.24.0 (Tue Nov 12 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Add new `allowCustomValue` flag to MultiVariables [#956](https://github.com/grafana/scenes/pull/956) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add VizPanelExploreButton scene object [#804](https://github.com/grafana/scenes/pull/804) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.23.4 (Fri Nov 08 2024)
 
 #### 🐛 Bug Fix
