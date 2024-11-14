@@ -3,7 +3,7 @@ import { Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObject, SceneTimeRangeState } from '../../core/types';
+import { SceneObject } from '../../core/types';
 import { writeSceneLog } from '../../utils/writeSceneLog';
 import {
   SceneVariable,
@@ -13,7 +13,6 @@ import {
   SceneVariableValueChangedEvent,
 } from '../types';
 import { VariableValueRecorder } from '../VariableValueRecorder';
-import { ConstantVariable } from '../variants/ConstantVariable';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that have changed in since the activation or since the first manual value change */
