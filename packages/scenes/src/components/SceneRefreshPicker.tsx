@@ -234,6 +234,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
 
 function useQueryControllerState(model: SceneObject): boolean {
   const queryController = sceneGraph.getQueryController(model);
+  console.log('got query controller', queryController !== undefined);
   if (!queryController) {
     return false;
   }

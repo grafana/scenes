@@ -48,6 +48,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
       parentContext.addChildContext(childContext);
     }
 
+    console.log('activating context');
     const deactivate = childContext.activate();
     setChildContext(childContext);
 

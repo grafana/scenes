@@ -1,4 +1,4 @@
-import React, { useEffect, useId } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { useSceneContext } from '../hooks/hooks';
 import { SceneRefreshPicker, SceneRefreshPickerState } from '@grafana/scenes';
 import { usePrevious } from 'react-use';
@@ -12,6 +12,7 @@ export function RefreshPicker(props: Props) {
   const scene = useSceneContext();
   const key = useId();
   const prevProps = usePrevious(props);
+  const [isAdded, setIsAdded] = useState<boolean>();
 
   let picker = scene.findByKey<SceneRefreshPicker>(key);
 
@@ -22,7 +23,10 @@ export function RefreshPicker(props: Props) {
     });
   }
 
-  useEffect(() => scene.addToScene(picker), [picker, scene]);
+  useEffect(() => {
+    scene.addToScene(picker);
+    setIsAdded(true);
+  }, [picker, scene]);
 
   // Update options
   useEffect(() => {
@@ -42,6 +46,10 @@ export function RefreshPicker(props: Props) {
 
     picker.setState(stateUpdate);
   }, [picker, props, prevProps]);
+
+  if (!isAdded) {
+    return false;
+  }
 
   return <picker.Component model={picker} />;
 }
