@@ -372,6 +372,12 @@ describe('SceneObject', () => {
       });
     });
   });
+
+  describe('rendering', () => {
+    it('Should render should activate object', () => {
+      const scene = new TestScene({ name: 'nested' });
+    });
+  });
 });
 
 describe('useSceneObjectState', () => {

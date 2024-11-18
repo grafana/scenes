@@ -61,6 +61,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** True when there is a React component mounted for this Object */
   readonly isActive: boolean;
 
+  /** Controls if activation blocks rendering */
+  readonly renderBeforeActivation: boolean;
+
   /** SceneObject parent */
   readonly parent?: SceneObject;
 
@@ -79,7 +82,7 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** Publish an event and optionally bubble it up the scene */
   publishEvent(event: BusEvent, bubble?: boolean): void;
 
-  /** Utility hook that wraps useObservable. Used by React components to subscribes to state changes */
+  /** Utility hook that wraps useObservableS. Used by React components to subscribes to state changes */
   useState(): TState;
 
   /** How to modify state */
