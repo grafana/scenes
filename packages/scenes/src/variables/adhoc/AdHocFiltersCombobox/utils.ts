@@ -47,18 +47,16 @@ export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
     const filteredOptions: Array<SelectableValue<string>> = [];
 
     if (idxs) {
-      for (let i = 0; i < idxs.length; i++) {
-        if (info && order) {
-          const idx = order[i];
-          filteredOptions.push(options[idxs[idx]]);
-        } else {
+      if (info && order) {
+        for (let i = 0; i < order.length && i < limit; i++) {
+          filteredOptions.push(options[info.idx[order[i]]]);
+        }
+      } else {
+        for (let i = 0; i < idxs.length && i < limit; i++) {
           filteredOptions.push(options[idxs[i]]);
         }
-
-        if (filteredOptions.length > limit) {
-          return filteredOptions;
-        }
       }
+
       return filteredOptions;
     }
 

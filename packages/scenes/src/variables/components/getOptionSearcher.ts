@@ -34,16 +34,13 @@ export function getOptionSearcher(
     const filteredOptions: VariableValueOption[] = [];
 
     if (idxs) {
-      for (let i = 0; i < idxs.length; i++) {
-        if (info && order) {
-          const idx = order[i];
-          filteredOptions.push(allOptions[idxs[idx]]);
-        } else {
-          filteredOptions.push(allOptions[idxs[i]]);
+      if (info && order) {
+        for (let i = 0; i < order.length && i < limit; i++) {
+          filteredOptions.push(allOptions[info.idx[order[i]]]);
         }
-
-        if (filteredOptions.length > limit) {
-          return filteredOptions;
+      } else {
+        for (let i = 0; i < idxs.length && i < limit; i++) {
+          filteredOptions.push(allOptions[idxs[i]]);
         }
       }
 
