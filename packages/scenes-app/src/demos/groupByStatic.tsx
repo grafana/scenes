@@ -10,7 +10,6 @@ import {
   SceneVariableSet,
   VariableValueSelectors,
   GroupByVariable,
-  SceneRefreshPicker,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults } from './utils';
 
