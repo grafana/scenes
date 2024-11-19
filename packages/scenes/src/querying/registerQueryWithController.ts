@@ -2,6 +2,7 @@ import { Observable, catchError, from, map } from 'rxjs';
 import { LoadingState } from '@grafana/schema';
 import { sceneGraph } from '../core/sceneGraph';
 import { QueryResultWithState, SceneQueryControllerEntry } from '../behaviors/types';
+import { writeSceneLog } from '../utils/writeSceneLog';
 
 /**
  * Will look for a scene object with a behavior that is a SceneQueryController and register the query with it.
@@ -49,7 +50,6 @@ export function registerQueryWithController<T extends QueryResultWithState>(entr
 
 // Wraps an arbitrary Promise in an observble that emits Promise state
 export function wrapPromiseInStateObservable(promise: Promise<any>): Observable<QueryResultWithState> {
-  console.log('wrapPromiseInStateObservable', promise);
   return new Observable<QueryResultWithState>((observer) => {
     // Emit 'loading' state initially
     observer.next({ state: LoadingState.Loading });
