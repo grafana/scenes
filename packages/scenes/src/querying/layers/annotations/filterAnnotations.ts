@@ -1,6 +1,8 @@
 import { DataFrame, Field } from '@grafana/data';
 import { DataLayerFilter } from '../../../core/types';
 
+const GLOBAL_ANNOTATION_ID = 0;
+
 // Provided SceneDataLayerProviderResult is an array of DataFrames.
 export function filterAnnotations(data: DataFrame[], filters: DataLayerFilter) {
   if (!Array.isArray(data) || data.length === 0) {
@@ -26,15 +28,15 @@ export function filterAnnotations(data: DataFrame[], filters: DataLayerFilter) {
       if (sourceField) {
         // Here we are filtering Grafana annotations that were added to a particular panel.
         if (panelIdField && sourceField.values[index].type === 'dashboard') {
-          matching = panelIdField.values[index] === filters.panelId;
+          matching = [filters.panelId, GLOBAL_ANNOTATION_ID].includes(panelIdField.values[index]);
         }
 
         const sourceFilter = sourceField.values[index].filter;
 
         // Here we are filtering based on annotation filter definition.
-        // Those fitlers are: Show annotation in selected panels, Exclude annotation from selected panels.
+        // Those filters are: Show annotation in selected panels, Exclude annotation from selected panels.
         if (sourceFilter) {
-          const includes = (sourceFilter.ids ?? []).includes(filters.panelId);
+          const includes = ([...(sourceFilter.ids ?? []), GLOBAL_ANNOTATION_ID]).includes(filters.panelId);
           if (sourceFilter.exclude) {
             if (includes) {
               matching = false;
@@ -82,5 +84,6 @@ export function filterAnnotations(data: DataFrame[], filters: DataLayerFilter) {
     });
     frameIdx++;
   }
+
   return processed;
 }
