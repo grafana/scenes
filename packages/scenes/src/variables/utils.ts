@@ -6,6 +6,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
+import uFuzzy from '@leeoniya/ufuzzy';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -49,12 +50,12 @@ function renderFilter(filter: AdHocVariableFilter) {
 
   // map "one of" operator to regex
   if (operator === '=|') {
-    operator = '=~'
+    operator = '=~';
     // TODO remove when we're on the latest version of @grafana/data
     // @ts-expect-error
     value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
   } else if (operator === '!=|') {
-    operator = '!~'
+    operator = '!~';
     // TODO remove when we're on the latest version of @grafana/data
     // @ts-expect-error
     value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
@@ -191,7 +192,9 @@ export function dataFromResponse(response: GetTagResponse | MetricFindValue[]) {
   return Array.isArray(response) ? response : response.data;
 }
 
-export function responseHasError(response: GetTagResponse | MetricFindValue[]): response is GetTagResponse & { error: DataQueryError } {
+export function responseHasError(
+  response: GetTagResponse | MetricFindValue[]
+): response is GetTagResponse & { error: DataQueryError } {
   return !Array.isArray(response) && Boolean(response.error);
 }
 
@@ -218,4 +221,35 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
   }
 
   return result;
+}
+
+// returns matched indices by quality
+export function getFuzzySearcher(haystack: string[], limit = 10_000) {
+  const ufuzzy = new uFuzzy();
+
+  const FIRST = Array.from({ length: Math.min(limit, haystack.length) }, (_, i) => i);
+
+  return (search: string): number[] => {
+    if (search === '') {
+      return FIRST;
+    }
+
+    const [idxs, info, order] = ufuzzy.search(haystack, search);
+
+    if (idxs) {
+      if (info && order) {
+        const outIdxs = Array(Math.min(order.length, limit));
+
+        for (let i = 0; i < outIdxs.length; i++) {
+          outIdxs[i] = info.idx[order[i]];
+        }
+
+        return outIdxs;
+      }
+
+      return idxs.slice(0, limit);
+    }
+
+    return [];
+  };
 }
