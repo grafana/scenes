@@ -223,12 +223,12 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
   return result;
 }
 
-// returns matched indices by quality
 export function getFuzzySearcher(haystack: string[], limit = 10_000) {
   const ufuzzy = new uFuzzy();
 
   const FIRST = Array.from({ length: Math.min(limit, haystack.length) }, (_, i) => i);
 
+  // returns matched indices by quality
   return (search: string): number[] => {
     if (search === '') {
       return FIRST;
