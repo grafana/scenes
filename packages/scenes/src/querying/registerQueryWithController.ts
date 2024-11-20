@@ -2,7 +2,6 @@ import { Observable, catchError, from, map } from 'rxjs';
 import { LoadingState } from '@grafana/schema';
 import { sceneGraph } from '../core/sceneGraph';
 import { QueryResultWithState, SceneQueryControllerEntry } from '../behaviors/types';
-import { writeSceneLog } from '../utils/writeSceneLog';
 
 /**
  * Will look for a scene object with a behavior that is a SceneQueryController and register the query with it.

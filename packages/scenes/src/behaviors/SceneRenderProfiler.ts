@@ -138,8 +138,8 @@ export class SceneRenderProfiler {
   }
 }
 
-function processRecordedSpans(spans: number[]) {
-  // identifie last span in spans that's bigger than 50
+export function processRecordedSpans(spans: number[]) {
+  // identify last span in spans that's bigger than SPAN_THRESHOLD
   for (let i = spans.length - 1; i >= 0; i--) {
     if (spans[i] > SPAN_THRESHOLD) {
       return spans.slice(0, i + 1);
@@ -163,7 +163,7 @@ function captureNetwork(startTs: number, endTs: number) {
 }
 
 // Will calculate total time spent on Network
-function calculateNetworkTime(requests: PerformanceResourceTiming[]): number {
+export function calculateNetworkTime(requests: PerformanceResourceTiming[]): number {
   if (requests.length === 0) {
     return 0;
   }
