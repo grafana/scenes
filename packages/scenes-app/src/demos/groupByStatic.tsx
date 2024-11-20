@@ -28,16 +28,16 @@ export function getGroupByStatic(defaults: SceneAppPageState) {
               datasource: { uid: 'gdev-prometheus' },
               defaultOptions: [
                 {
-                  text: 'foo',
-                  value: 'foo',
+                  text: 'instance',
+                  value: 'instance',
                 },
                 {
-                  text: 'bar',
-                  value: 'bar',
+                  text: 'job',
+                  value: 'job',
                 },
                 {
-                  text: 'baz',
-                  value: 'baz',
+                  text: 'alertname',
+                  value: 'alertname',
                 },
               ],
             }),
@@ -64,7 +64,7 @@ export function getGroupByStatic(defaults: SceneAppPageState) {
                     queries: [
                       {
                         refId: 'A',
-                        expr: 'ALERTS',
+                        expr: 'count(ALERTS)',
                         format: 'table',
                         instant: true,
                       },
