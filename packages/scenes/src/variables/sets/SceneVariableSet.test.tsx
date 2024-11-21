@@ -629,7 +629,7 @@ describe('SceneVariableList', () => {
 
       scene.activate();
 
-      expect(A.state.error).toBe('Danger!');
+      expect(A.state.error).toStrictEqual(new Error('Danger!'));
     });
 
     it('Should complete updating chained variables in case of error in all variables', () => {
@@ -665,11 +665,11 @@ describe('SceneVariableList', () => {
       scene.activate();
 
       expect(A.state.loading).toBe(false);
-      expect(A.state.error).toBe('Error in A');
+      expect(A.state.error).toStrictEqual(new Error('Error in A'));
       expect(B.state.loading).toBe(false);
-      expect(B.state.error).toBe('Error in B');
+      expect(B.state.error).toStrictEqual(new Error('Error in B'));
       expect(C.state.loading).toBe(false);
-      expect(C.state.error).toBe('Error in C');
+      expect(C.state.error).toStrictEqual(new Error('Error in C'));
     });
     it('Should complete updating chained variables in case of error in the first variable', () => {
       const A = new TestVariable({
@@ -702,7 +702,7 @@ describe('SceneVariableList', () => {
       scene.activate();
 
       expect(A.state.loading).toBe(false);
-      expect(A.state.error).toBe('Error in A');
+      expect(A.state.error).toStrictEqual(new Error('Error in A'));
 
       B.signalUpdateCompleted();
       expect(B.state.loading).toBe(false);
@@ -750,7 +750,7 @@ describe('SceneVariableList', () => {
 
       expect(B.state.loading).toBe(false);
       expect(B.state.value).toBe('');
-      expect(B.state.error).toBe('Error in B');
+      expect(B.state.error).toStrictEqual(new Error('Error in B'));
 
       C.signalUpdateCompleted();
       expect(C.state.loading).toBe(false);
