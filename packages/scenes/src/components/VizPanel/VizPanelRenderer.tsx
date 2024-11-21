@@ -157,6 +157,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             width={width}
             height={height}
             displayMode={displayMode}
+            //@ts-expect-error Remove when 11.4 is released: https://github.com/grafana/grafana/pull/96868
             showMenuOnHover={showMenuOnHover}
             hoverHeader={hoverHeader}
             hoverHeaderOffset={hoverHeaderOffset}
