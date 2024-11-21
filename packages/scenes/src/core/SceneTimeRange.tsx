@@ -191,11 +191,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public getUrlState() {
     const params = locationService.getSearchObject();
-    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to };
-
-    if (this.state.timeZone) {
-      urlValues.timezone = this.state.timeZone;
-    }
+    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to, timezone: this.getTimeZone() };
 
     // Clear time and time.window once they are converted to from and to
     if (params.time && params['time.window']) {
@@ -225,10 +221,6 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       }
     }
 
-    if (!from && !to) {
-      return;
-    }
-
     if (from && isValid(from)) {
       update.from = from;
     }
@@ -241,6 +233,10 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.timeZone = values.timezone !== '' ? values.timezone : undefined;
     }
 
+    if (Object.keys(update).length === 0) {
+      return;
+    }
+
     update.value = evaluateTimeRange(
       update.from ?? this.state.from,
       update.to ?? this.state.to,
@@ -249,7 +245,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       this.state.UNSAFE_nowDelay
     );
 
-    this.setState(update);
+    return this.setState(update);
   }
 }
 

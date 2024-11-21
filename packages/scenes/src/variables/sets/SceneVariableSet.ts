@@ -87,7 +87,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         this._variablesToUpdate.add(variable);
       }
     }
-
     this._updateNextBatch();
   }
 

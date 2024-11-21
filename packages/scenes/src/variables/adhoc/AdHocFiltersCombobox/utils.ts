@@ -1,8 +1,7 @@
 import { SelectableValue } from '@grafana/data';
-import uFuzzy from '@leeoniya/ufuzzy';
 import { AdHocInputType } from './AdHocFiltersCombobox';
-import { AdHocFiltersVariable, AdHocFilterWithLabels } from '../AdHocFiltersVariable';
-import { UseFloatingReturn } from '@floating-ui/react';
+import { AdHocFilterWithLabels, isMultiValueOperator } from '../AdHocFiltersVariable';
+import { getFuzzySearcher } from '../../utils';
 
 const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
 const VIRTUAL_LIST_DESCRIPTION_WIDTH_ESTIMATE_MULTIPLIER = 6;
@@ -13,56 +12,16 @@ export const VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION = 60;
 export const ERROR_STATE_DROPDOWN_WIDTH = 366;
 
 export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
-  const ufuzzy = new uFuzzy();
-  const haystack: string[] = [];
-  const limit = 10000;
+  const haystack = options.map((o) => o.label ?? o.value!);
+  const fuzzySearch = getFuzzySearcher(haystack);
 
   return (search: string, filterInputType: AdHocInputType) => {
-    if (search === '') {
-      if (options.length > limit) {
-        return options.slice(0, limit);
-      } else {
-        return options;
-      }
+    if (filterInputType === 'operator' && search !== '') {
+      // uFuzzy can only match non-alphanum chars if quoted
+      search = `"${search}"`;
     }
 
-    if (filterInputType === 'operator') {
-      const filteredOperators = [];
-      for (let i = 0; i < options.length; i++) {
-        if ((options[i].label || options[i].value)?.includes(search)) {
-          filteredOperators.push(options[i]);
-          if (filteredOperators.length > limit) {
-            return filteredOperators;
-          }
-        }
-      }
-      return filteredOperators;
-    }
-
-    if (haystack.length === 0) {
-      for (let i = 0; i < options.length; i++) {
-        haystack.push(options[i].label || options[i].value!);
-      }
-    }
-    const idxs = ufuzzy.filter(haystack, search);
-    const filteredOptions: Array<SelectableValue<string>> = [];
-
-    if (idxs) {
-      for (let i = 0; i < idxs.length; i++) {
-        filteredOptions.push(options[idxs[i]]);
-
-        if (filteredOptions.length > limit) {
-          return filteredOptions;
-        }
-      }
-      return filteredOptions;
-    }
-
-    if (options.length > limit) {
-      return options.slice(0, limit);
-    }
-
-    return options;
+    return fuzzySearch(search).map((i) => options[i]);
   };
 }
 export const flattenOptionGroups = (options: Array<SelectableValue<string>>) =>
@@ -110,57 +69,6 @@ export const setupDropdownAccessibility = (
   return maxOptionWidth;
 };
 
-// WIP: POC for parsing key and operator values automatically
-export const filterAutoParser = ({
-  event,
-  filterInputType,
-  options,
-  model,
-  filter,
-  setInputValue,
-  setInputType,
-  refs,
-}: {
-  event: React.ChangeEvent<HTMLInputElement>;
-  filterInputType: AdHocInputType;
-  options: Array<SelectableValue<string>>;
-  model: AdHocFiltersVariable;
-  filter: AdHocFilterWithLabels | undefined;
-  setInputValue: (value: React.SetStateAction<string>) => void;
-  setInputType: (value: React.SetStateAction<AdHocInputType>) => void;
-  refs: UseFloatingReturn<HTMLInputElement>['refs'];
-}) => {
-  // // part of POC for seamless filter parser
-  if (filterInputType === 'key') {
-    const lastChar = event.target.value.slice(-1);
-    if (['=', '!', '<', '>'].includes(lastChar)) {
-      const key = event.target.value.slice(0, -1);
-      const optionIndex = options.findIndex((option) => option.value === key);
-      if (optionIndex >= 0) {
-        model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, options[optionIndex]));
-        setInputValue(lastChar);
-      }
-      switchInputType('operator', setInputType, undefined, refs.domReference.current);
-      return;
-    }
-  }
-  if (filterInputType === 'operator') {
-    const lastChar = event.target.value.slice(-1);
-    if (/\w/.test(lastChar)) {
-      const operator = event.target.value.slice(0, -1);
-      if (!/\w/.test(operator)) {
-        const optionIndex = options.findIndex((option) => option.value === operator);
-        if (optionIndex >= 0) {
-          model._updateFilter(filter!, generateFilterUpdatePayload(filterInputType, options[optionIndex]));
-          setInputValue(lastChar);
-        }
-        switchInputType('value', setInputType, undefined, refs.domReference.current);
-        return;
-      }
-    }
-  }
-};
-
 const nextInputTypeMap = {
   key: 'operator',
   operator: 'value',
@@ -170,33 +78,43 @@ const nextInputTypeMap = {
 export const switchToNextInputType = (
   filterInputType: AdHocInputType,
   setInputType: React.Dispatch<React.SetStateAction<AdHocInputType>>,
-  handleChangeViewMode: (() => void) | undefined,
-  element: HTMLInputElement | null
+  handleChangeViewMode: ((event?: React.MouseEvent, shouldFocusOnFilterPill?: boolean) => void) | undefined,
+  element: HTMLInputElement | null,
+  shouldFocusOnPillWrapperOverride?: boolean
 ) =>
   switchInputType(
     nextInputTypeMap[filterInputType],
     setInputType,
     filterInputType === 'value' ? handleChangeViewMode : undefined,
-    element
+    element,
+    shouldFocusOnPillWrapperOverride
   );
 
 export const switchInputType = (
   filterInputType: AdHocInputType,
   setInputType: React.Dispatch<React.SetStateAction<AdHocInputType>>,
-  handleChangeViewMode?: () => void,
-  element?: HTMLInputElement | null
+  handleChangeViewMode?: (event?: React.MouseEvent, shouldFocusOnFilterPill?: boolean) => void,
+  element?: HTMLInputElement | null,
+  shouldFocusOnPillWrapperOverride?: boolean
 ) => {
   setInputType(filterInputType);
 
-  handleChangeViewMode?.();
+  handleChangeViewMode?.(undefined, shouldFocusOnPillWrapperOverride);
 
   setTimeout(() => element?.focus());
 };
 
-export const generateFilterUpdatePayload = (
-  filterInputType: AdHocInputType,
-  item: SelectableValue<string>
-): Partial<AdHocFilterWithLabels> => {
+export const generateFilterUpdatePayload = ({
+  filterInputType,
+  item,
+  filter,
+  setFilterMultiValues,
+}: {
+  filterInputType: AdHocInputType;
+  item: SelectableValue<string>;
+  filter: AdHocFilterWithLabels;
+  setFilterMultiValues: (value: React.SetStateAction<Array<SelectableValue<string>>>) => void;
+}): Partial<AdHocFilterWithLabels> => {
   if (filterInputType === 'key') {
     return {
       key: item.value,
@@ -210,6 +128,50 @@ export const generateFilterUpdatePayload = (
     };
   }
 
+  if (filterInputType === 'operator') {
+    // handle values/valueLabels when switching from multi to single value operator
+    if (isMultiValueOperator(filter.operator) && !isMultiValueOperator(item.value!)) {
+      // reset local multi values state
+      setFilterMultiValues([]);
+      // update operator and reset values and valueLabels
+      return {
+        operator: item.value,
+        // TODO remove when we're on the latest version of @grafana/data
+        //@ts-expect-error
+        valueLabels: [filter.valueLabels?.[0] || filter.values?.[0] || filter.value],
+        //@ts-expect-error
+        values: undefined,
+      };
+    }
+
+    // handle values/valueLabels when switching from single to multi value operator
+    if (isMultiValueOperator(item.value!) && !isMultiValueOperator(filter.operator)) {
+      // TODO remove when we're on the latest version of @grafana/data
+      //@ts-expect-error
+      const valueLabels = [filter.valueLabels?.[0] || filter.values?.[0] || filter.value];
+      const values = [filter.value];
+
+      // populate local multi values state
+      if (values[0]) {
+        setFilterMultiValues([
+          {
+            value: values[0],
+            label: valueLabels?.[0] ?? values[0],
+          },
+        ]);
+      }
+
+      // update operator and default values and valueLabels
+      return {
+        operator: item.value,
+        valueLabels: valueLabels,
+        //@ts-expect-error
+        values: values,
+      };
+    }
+  }
+
+  // default operator update of same multi/single type
   return {
     [filterInputType]: item.value,
   };
@@ -234,4 +196,24 @@ export const generatePlaceholder = (
   }
 
   return filter[filterInputType] && !isAlwaysWip ? `${filter[filterInputType]}` : INPUT_PLACEHOLDER;
+};
+
+export const populateInputValueOnInputTypeSwitch = ({
+  populateInputOnEdit,
+  item,
+  filterInputType,
+  setInputValue,
+  filter,
+}: {
+  populateInputOnEdit: boolean | undefined;
+  item: SelectableValue<string>;
+  filterInputType: AdHocInputType;
+  setInputValue: (value: React.SetStateAction<string>) => void;
+  filter: AdHocFilterWithLabels | undefined;
+}) => {
+  if (populateInputOnEdit && !isMultiValueOperator(item.value || '') && nextInputTypeMap[filterInputType] === 'value') {
+    setInputValue(filter?.value || '');
+  } else {
+    setInputValue('');
+  }
 };

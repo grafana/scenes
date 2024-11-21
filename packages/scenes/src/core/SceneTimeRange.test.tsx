@@ -48,6 +48,7 @@ describe('SceneTimeRange', () => {
     expect(timeRange.urlSync?.getUrlState()).toEqual({
       from: 'now-1h',
       to: 'now',
+      timezone: 'browser',
     });
   });
 
@@ -56,6 +57,7 @@ describe('SceneTimeRange', () => {
     timeRange.urlSync?.updateFromUrl({
       from: '2021-01-01T10:00:00.000Z',
       to: '2021-02-03T01:20:00.000Z',
+      timezone: 'browser',
     });
 
     expect(timeRange.state.from).toEqual('2021-01-01T10:00:00.000Z');
@@ -165,6 +167,14 @@ describe('SceneTimeRange', () => {
         });
         scene.activate();
         expect(innerTimeRange.getTimeZone()).toEqual('Europe/Berlin');
+      });
+
+      it('should update time zone when updating from URL', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'utc' });
+        timeRange.urlSync?.updateFromUrl({ from: 'now-1h', to: 'now', timezone: 'America/New_York' });
+        expect(timeRange.getTimeZone()).toBe('America/New_York');
+        timeRange.urlSync?.updateFromUrl({ from: 'now-1h', to: 'now', timezone: 'utc' });
+        expect(timeRange.getTimeZone()).toBe('utc');
       });
     });
   });

@@ -21,6 +21,8 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabels?: string[];
+  // this is used to externally trigger edit mode in combobox filter UI
+  forceEdit?: boolean;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -92,6 +94,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * impact the current queries are presented to the user.
    */
   useQueriesAsFilterForOptions?: boolean;
+
+  /**
+   * Flag that decides whether custom values can be added to the filter
+   */
+  allowCustomValue?: boolean;
 
   /**
    * @internal state of the new filter being added
@@ -236,6 +243,40 @@ export class AdHocFiltersVariable
 
     if (filterToRemove) {
       this._removeFilter(filterToRemove);
+    }
+  }
+
+  public _handleComboboxBackspace(filter: AdHocFilterWithLabels) {
+    if (this.state.filters.length) {
+      // default forceEdit last filter (when triggering from wip filter)
+      let filterToForceIndex = this.state.filters.length - 1;
+
+      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
+      //  to avoid triggering forceEdit logic
+      if (filter !== this.state._wip) {
+        filterToForceIndex = -1;
+      }
+
+      this.setState({
+        filters: this.state.filters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
+          // adjust forceEdit of preceding filter
+          if (index === filterToForceIndex) {
+            return [
+              ...acc,
+              {
+                ...f,
+                forceEdit: true,
+              },
+            ];
+          }
+          // remove current filter
+          if (f === filter) {
+            return acc;
+          }
+
+          return [...acc, f];
+        }, []),
+      });
     }
   }
 

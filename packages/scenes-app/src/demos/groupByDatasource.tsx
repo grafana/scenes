@@ -50,7 +50,7 @@ export function getGroupByDatasource(defaults: SceneAppPageState) {
                     queries: [
                       {
                         refId: 'A',
-                        expr: 'ALERTS',
+                        expr: 'count(ALERTS)',
                         format: 'table',
                         instant: true,
                       },
