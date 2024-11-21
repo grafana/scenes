@@ -58,6 +58,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   hoverHeaderOffset?: number;
   /**
+   * Only shows vizPanelMenu on hover if true, otherwise the menu is always visible in the header
+   */
+  showMenuOnHover?: boolean
+  /**
    * Defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
    * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
    */

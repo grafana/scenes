@@ -22,6 +22,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     _pluginLoadError,
     displayMode,
     hoverHeader,
+    showMenuOnHover,
     hoverHeaderOffset,
     menu,
     headerActions,
@@ -156,6 +157,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             width={width}
             height={height}
             displayMode={displayMode}
+            showMenuOnHover={showMenuOnHover}
             hoverHeader={hoverHeader}
             hoverHeaderOffset={hoverHeaderOffset}
             titleItems={titleItemsElement}
