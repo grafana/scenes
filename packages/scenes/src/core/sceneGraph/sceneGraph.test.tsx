@@ -219,7 +219,6 @@ describe('sceneGraph', () => {
   });
 
   describe('findDescendent', () => {
-
     class TestSceneObj extends SceneObjectBase<SceneObjectState & {children?: SceneObject[]}> {}
     class TargetSceneObj extends TestSceneObj {}
     class TargetSceneObjNope extends TestSceneObj {}
@@ -251,11 +250,10 @@ describe('sceneGraph', () => {
       expect(descendent?.state.key).toEqual('1-target');
     })
 
-    it('Can find return undefined without error', () => {
+    it('Can return undefined without error', () => {
       const descendent = sceneGraph.findDescendent(root, TargetSceneObjNope);
       expect(descendent).toBeUndefined();
     })
-
   })
 
   describe('findDescendents', () => {

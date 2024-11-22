@@ -2,7 +2,6 @@ import { MappingType, ThresholdsMode } from '@grafana/schema';
 import { PanelBuilders } from './index';
 import { VizPanelBuilder } from './VizPanelBuilder';
 import { TimeSeriesLimitSeriesTitleItemScene } from '../../components/LimitSeriesTitleItem';
-import { SceneObjectBase } from '../SceneObjectBase';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 
