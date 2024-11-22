@@ -1,20 +1,21 @@
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getTimeRange } from './getTimeRange';
 import {
+  findAllObjects,
   findByKey,
   findByKeyAndType,
-  findObject,
-  findAllObjects,
-  getData,
-  getLayout,
-  getVariables,
-  getDataLayers,
-  hasVariableDependencyInLoadingState,
-  interpolate,
-  getAncestor,
+  findDescendent,
   findDescendents,
+  findObject,
+  getAncestor,
+  getData,
+  getDataLayers,
+  getLayout,
   getQueryController,
   getUrlSyncManager,
+  getVariables,
+  hasVariableDependencyInLoadingState,
+  interpolate,
 } from './sceneGraph';
 
 export const sceneGraph = {
@@ -34,4 +35,5 @@ export const sceneGraph = {
   findDescendents,
   getQueryController,
   getUrlSyncManager,
+  findDescendent,
 };

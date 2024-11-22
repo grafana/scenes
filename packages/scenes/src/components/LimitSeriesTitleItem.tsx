@@ -1,6 +1,6 @@
 import { Button, Icon, Tooltip, useStyles2 } from '@grafana/ui';
 import React from 'react';
-import { DataFrame, GrafanaTheme2, LoadingState } from '@grafana/data';
+import { DataFrame, GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { map, Observable } from 'rxjs';
@@ -8,11 +8,12 @@ import { SceneComponentProps, SceneObjectState } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
 import { VizPanel } from './VizPanel/VizPanel';
+import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 
 export interface TimeSeriesLimitSeriesTitleItemSceneState extends SceneObjectState {
   showAllSeries?: boolean;
   currentSeriesCount?: number;
-  previousSeriesCount?: number
+  totalSeriesCount?: number
   seriesLimit: number
 }
 
@@ -25,29 +26,17 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
   private onActivate() {
     const panel = sceneGraph.getAncestor(this, VizPanel);
 
-    // Clone the data provider
-    const $data = panel.state.$data?.clone();
-
-    // Create data transformer
-    const transformer = new SceneDataTransformer({
-      $data: $data,
-      transformations: [() => limitFramesTransformation(this.state.seriesLimit)],
-    });
-
-    // Attach data transformer to VizPanel
-    panel.setState({
-      $data: transformer,
-    })
+    const $transformedData = sceneGraph.getData(panel);
 
     // Subscribe to data changes and update the series counts
     this._subs.add(
-      panel.subscribeToState(() => {
-        const $data = sceneGraph.getData(this);
+      $transformedData.subscribeToState((transformedDataState) => {
+        const untransformedQueryRunner = sceneGraph.findDescendent(panel, SceneQueryRunner)
 
-        if ($data.state.data?.series.length !== this.state.currentSeriesCount) {
+        if (untransformedQueryRunner && untransformedQueryRunner.state.data?.series.length !== this.state.currentSeriesCount) {
           this.setState({
-            currentSeriesCount: $data.state.data?.series.length,
-            previousSeriesCount: $data.state.$data?.state.data?.series.length
+            currentSeriesCount: transformedDataState.data?.series.length,
+            totalSeriesCount: untransformedQueryRunner.state.data?.series.length
           });
         }
       })
@@ -70,22 +59,17 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
     }
   }
   public static Component = ({ model }: SceneComponentProps<TimeSeriesLimitSeriesTitleItemScene>) => {
-    const { showAllSeries, currentSeriesCount, seriesLimit } = model.useState();
-    const $data = sceneGraph.getData(model);
-    const { data } = $data.useState();
+    const { showAllSeries, currentSeriesCount, seriesLimit, totalSeriesCount,  } = model.useState();
     const styles = useStyles2(getStyles);
 
     if (
-      !($data instanceof SceneDataTransformer) ||
+      totalSeriesCount === undefined ||
       showAllSeries ||
-      data?.state !== LoadingState.Done ||
       !currentSeriesCount ||
-      data.series.length < seriesLimit
+      totalSeriesCount < seriesLimit
     ) {
       return null;
     }
-
-    const totalLength = model.state.previousSeriesCount;
 
     return (
       <div className={styles.timeSeriesDisclaimer}>
@@ -98,13 +82,9 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
             />
           </>
         </span>
-        <Tooltip
-          content={
-            'Rendering too many series in a single panel may impact performance and make data harder to read.'
-          }
-        >
+        <Tooltip content={'Rendering too many series in a single panel may impact performance and make data harder to read.'}>
           <Button variant="secondary" size="sm" onClick={() => model.toggleShowAllSeries()}>
-            <>Show all {totalLength}</>
+            <>Show all {totalSeriesCount}</>
           </Button>
         </Tooltip>
       </div>
@@ -112,7 +92,7 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
   };
 }
 
-function limitFramesTransformation(limit: number) {
+export function limitFramesTransformation(limit: number) {
   return (source: Observable<DataFrame[]>) => {
     return source.pipe(
       map((frames) => {

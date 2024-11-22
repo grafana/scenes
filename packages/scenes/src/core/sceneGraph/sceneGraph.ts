@@ -4,7 +4,13 @@ import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/d
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
 
-import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
+import {
+  isDataLayer,
+  SceneDataLayerProvider,
+  SceneDataProvider,
+  SceneLayout,
+  SceneObject,
+} from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
@@ -191,6 +197,15 @@ export function findAllObjects(scene: SceneObject, check: (obj: SceneObject) => 
   });
 
   return found;
+}
+
+export function findDescendent<T extends SceneObject>(scene: SceneObject, descendentType: SceneType<T>) {
+  function isDescendentType(scene: SceneObject): scene is T {
+    return scene instanceof descendentType;
+  }
+
+  const targetScenes = findAllObjects(scene, isDescendentType);
+  return targetScenes.find(isDescendentType);
 }
 
 /**

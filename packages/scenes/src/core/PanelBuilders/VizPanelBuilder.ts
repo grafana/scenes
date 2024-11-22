@@ -4,6 +4,8 @@ import { FieldConfigBuilder } from './FieldConfigBuilder';
 import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
 import { PanelOptionsBuilder } from './PanelOptionsBuilder';
 import { StandardFieldConfig, StandardFieldConfigInterface } from './types';
+import { limitFramesTransformation, TimeSeriesLimitSeriesTitleItemScene } from '../../components/LimitSeriesTitleItem';
+import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 
 export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   implements StandardFieldConfigInterface<StandardFieldConfig, VizPanelBuilder<TOptions, TFieldConfig>, 'set'>
@@ -232,6 +234,8 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    * Build the panel.
    */
   public build() {
+    this.limitPanelSeries();
+
     const panel = new VizPanel<TOptions, TFieldConfig>({
       ...this._state,
       options: this._panelOptionsBuilder.build(),
@@ -239,5 +243,38 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
     });
 
     return panel;
+  }
+
+  /**
+   * If titleItems contains TimeSeriesLimitSeriesTitleItemScene, replace queryProvider with SceneDataTransformer and limit the number of series initially rendered
+   */
+  private limitPanelSeries() {
+    const limitSeriesTitleItem = this.getLimitSeriesTitleItem()
+
+    if (limitSeriesTitleItem && limitSeriesTitleItem.state.seriesLimit) {
+      this.setData(new SceneDataTransformer({
+        $data: this._state.$data,
+        transformations: [() => limitFramesTransformation(limitSeriesTitleItem.state.seriesLimit)],
+      }))
+    }
+  }
+
+  /**
+   * Gets titleItem of type TimeSeriesLimitSeriesTitleItemScene, if existing
+   */
+  private getLimitSeriesTitleItem() {
+    if (this._state.titleItems) {
+      if (Array.isArray(this._state.titleItems)) {
+        for (const titleItem of this._state.titleItems) {
+          if (titleItem instanceof TimeSeriesLimitSeriesTitleItemScene) {
+            return titleItem;
+          }
+        }
+      } else if (this._state.titleItems instanceof TimeSeriesLimitSeriesTitleItemScene) {
+        return this._state.titleItems;
+      }
+    }
+
+    return undefined
   }
 }
