@@ -27,12 +27,11 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
     const panel = sceneGraph.getAncestor(this, VizPanel);
 
     const $transformedData = sceneGraph.getData(panel);
+    const untransformedQueryRunner = sceneGraph.findDescendent(panel, SceneQueryRunner)
 
     // Subscribe to data changes and update the series counts
     this._subs.add(
       $transformedData.subscribeToState((transformedDataState) => {
-        const untransformedQueryRunner = sceneGraph.findDescendent(panel, SceneQueryRunner)
-
         if (untransformedQueryRunner && untransformedQueryRunner.state.data?.series.length !== this.state.currentSeriesCount) {
           this.setState({
             currentSeriesCount: transformedDataState.data?.series.length,
