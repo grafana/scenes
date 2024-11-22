@@ -210,8 +210,16 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 }
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, maxVisibleValues, noValueOnClear, options, includeAll, allowCustomValue } =
-    model.useState();
+  const {
+    value,
+    text,
+    key,
+    maxVisibleValues,
+    noValueOnClear,
+    options,
+    includeAll,
+    allowCustomValue = true,
+  } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
@@ -265,7 +273,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       id={key}
       placeholder={'Select value'}
       width="auto"
-      allowCustomValue={allowCustomValue ?? true}
+      allowCustomValue={allowCustomValue}
       inputValue={inputValue}
       value={uncommittedValue}
       noMultiValueWrap={true}
