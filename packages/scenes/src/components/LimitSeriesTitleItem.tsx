@@ -123,6 +123,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
  * PanelBuilders.timeseries()
  * .setData($data)
  * .setTitleItems([new TimeSeriesLimitSeriesTitleItemScene({
- *    seriesLimit: 10, // limits the default number of series that are rendered in the viz
+ *    seriesLimit: 20, // limits the default number of series that are rendered in the viz
  *  })])
  */
