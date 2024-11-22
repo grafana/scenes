@@ -7,6 +7,8 @@ export { VizPanel } from './components/VizPanel';
 export { RefreshPicker } from './components/RefreshPicker';
 export { DataLayerControl } from './components/DataLayerControl';
 export { CustomVariable } from './variables/CustomVariable';
+export { GroupByVariable } from './variables/GroupByVariable';
+export { AdHocFiltersVariable } from './variables/AdHocFiltersVariable';
 export { DataSourceVariable } from './variables/DataSourceVariable';
 export { QueryVariable } from './variables/QueryVariable';
 export { Breadcrumb, BreadcrumbContext, BreadcrumbProvider } from './contexts/BreadcrumbContext';
