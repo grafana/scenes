@@ -12,10 +12,17 @@ import { SceneComponentProps, SceneObjectState } from '../core/types';
 export interface SceneTimePickerState extends SceneObjectState {
   hidePicker?: boolean;
   isOnCanvas?: boolean;
+  quickRanges?: string[];
 }
 
 export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
   public static Component = SceneTimePickerRenderer;
+
+  public constructor(state: { quickRanges?: [string] }) {
+    super({
+      quickRanges: state.quickRanges,
+    });
+  }
 
   public onZoom = () => {
     const timeRange = sceneGraph.getTimeRange(this);
@@ -66,6 +73,8 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
     deserializer: deserializeHistory,
   });
 
+  console.log(model.state.quickRanges);
+
   if (hidePicker) {
     return null;
   }
@@ -91,6 +100,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       // @ts-ignore TODO remove after grafana/ui update to 11.2.0
       weekStart={timeRangeState.weekStart}
       history={timeRangeHistory}
+      quickRanges={model.state.quickRanges}
     />
   );
 }
