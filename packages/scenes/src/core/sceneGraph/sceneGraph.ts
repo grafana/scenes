@@ -4,13 +4,7 @@ import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/d
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
 import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
 
-import {
-  isDataLayer,
-  SceneDataLayerProvider,
-  SceneDataProvider,
-  SceneLayout,
-  SceneObject,
-} from '../types';
+import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
