@@ -218,6 +218,46 @@ describe('sceneGraph', () => {
     });
   });
 
+  describe('findDescendent', () => {
+
+    class TestSceneObj extends SceneObjectBase<SceneObjectState & {children?: SceneObject[]}> {}
+    class TargetSceneObj extends TestSceneObj {}
+    class TargetSceneObjNope extends TestSceneObj {}
+
+    const root = new TestSceneObj({
+      children: [
+        new TestSceneObj({key: '1-target'}),
+        new TestSceneObj({key: '2-target', children: [
+            new TestSceneObj({key: '2-1-target'}),
+            new TestSceneObj({key: '2-2'}),
+          ]}),
+        new TestSceneObj({key: '3', children: [
+            new TestSceneObj({key: '3-1-target'}),
+            new TestSceneObj({key: '3-2'}),
+            new TargetSceneObj({key: '3-3-target'}),
+          ]}),
+      ]
+    })
+
+    it('Can find descendent', () => {
+      const descendent = sceneGraph.findDescendent(root, TargetSceneObj);
+      expect(descendent).toBeDefined();
+      expect(descendent?.state.key).toEqual('3-3-target');
+    })
+
+    it('Can find first descendent', () => {
+      const descendent = sceneGraph.findDescendent(root, TestSceneObj);
+      expect(descendent).toBeDefined();
+      expect(descendent?.state.key).toEqual('1-target');
+    })
+
+    it('Can find return undefined without error', () => {
+      const descendent = sceneGraph.findDescendent(root, TargetSceneObjNope);
+      expect(descendent).toBeUndefined();
+    })
+
+  })
+
   describe('findDescendents', () => {
     
     class TestSceneObj extends SceneObjectBase<SceneObjectState & {children?: SceneObject[]}> {   
@@ -379,7 +419,7 @@ describe('sceneGraph', () => {
       expect(hasVariableDependencyInLoadingState(loadingDependecies)).toBe(true);
     });
 
-    it.only('should return false if the variable is a QueryVariable and it is loading because is refering itself', () => {
+    it('should return false if the variable is a QueryVariable and it is loading because is refering itself', () => {
       const logSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const loadingVariable = new QueryVariable({
         name: 'loadingVar',

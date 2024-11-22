@@ -249,13 +249,15 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    * If titleItems contains TimeSeriesLimitSeriesTitleItemScene, replace queryProvider with SceneDataTransformer and limit the number of series initially rendered
    */
   private limitPanelSeries() {
-    const limitSeriesTitleItem = this.getLimitSeriesTitleItem()
+    if(this._state.$data){
+      const limitSeriesTitleItem = this.getLimitSeriesTitleItem()
 
-    if (limitSeriesTitleItem && limitSeriesTitleItem.state.seriesLimit) {
-      this.setData(new SceneDataTransformer({
-        $data: this._state.$data,
-        transformations: [() => limitFramesTransformation(limitSeriesTitleItem.state.seriesLimit)],
-      }))
+      if (limitSeriesTitleItem && limitSeriesTitleItem.state.seriesLimit) {
+        this.setData(new SceneDataTransformer({
+          $data: this._state.$data,
+          transformations: [() => limitFramesTransformation(limitSeriesTitleItem.state.seriesLimit)],
+        }))
+      }
     }
   }
 
