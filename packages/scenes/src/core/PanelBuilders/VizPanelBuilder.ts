@@ -63,10 +63,10 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
 
   /**
    * Set if VizPanelMenu "kebab" icon is shown on panel hover for desktop devices. Set as false to always show menu icon.
-   * @param showMenuOnHover
+   * @param showMenuAlways
    */
-  public setShowMenuOnHover(showMenuOnHover: VizPanelState['showMenuOnHover']): this {
-    this._state.showMenuOnHover = showMenuOnHover;
+  public setShowMenuAlways(showMenuAlways: VizPanelState['showMenuAlways']): this {
+    this._state.showMenuAlways = showMenuAlways;
     return this
   }
 
