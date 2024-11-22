@@ -17,6 +17,16 @@ export interface TimeSeriesLimitSeriesTitleItemSceneState extends SceneObjectSta
   seriesLimit: number
 }
 
+/**
+ * PanelBuilder titleItems component that will limit the default number of series rendered
+ *
+ * Usage:
+ * PanelBuilders.timeseries()
+ * .setData($data)
+ * .setTitleItems([new TimeSeriesLimitSeriesTitleItemScene({
+ *    seriesLimit: 20, // limits the default number of series that are rendered in the viz
+ *  })])
+ */
 export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSeriesLimitSeriesTitleItemSceneState> {
   public constructor(state: TimeSeriesLimitSeriesTitleItemSceneState) {
     super(state);
@@ -45,7 +55,7 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
   /**
    * Removes the default series limit and renders all series in the viz
    */
-  public toggleShowAllSeries () {
+  public showAllSeries () {
     const $data = sceneGraph.getData(this);
     if($data instanceof SceneDataTransformer){
       $data.setState({
@@ -82,7 +92,7 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
           </>
         </span>
         <Tooltip content={'Rendering too many series in a single panel may impact performance and make data harder to read.'}>
-          <Button variant="secondary" size="sm" onClick={() => model.toggleShowAllSeries()}>
+          <Button variant="secondary" size="sm" onClick={() => model.showAllSeries()}>
             <>Show all {totalSeriesCount}</>
           </Button>
         </Tooltip>
@@ -101,7 +111,6 @@ export function limitFramesTransformation(limit: number) {
   };
 }
 
-
 const getStyles = (theme: GrafanaTheme2) => ({
   timeSeriesDisclaimer: css({
     label: 'time-series-disclaimer',
@@ -117,12 +126,3 @@ const getStyles = (theme: GrafanaTheme2) => ({
     fontSize: theme.typography.bodySmall.fontSize,
   }),
 });
-
-/**
- * Usage:
- * PanelBuilders.timeseries()
- * .setData($data)
- * .setTitleItems([new TimeSeriesLimitSeriesTitleItemScene({
- *    seriesLimit: 20, // limits the default number of series that are rendered in the viz
- *  })])
- */

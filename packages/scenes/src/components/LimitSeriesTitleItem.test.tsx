@@ -124,23 +124,23 @@ describe('LimitSeriesTitleItem', () => {
     expect($sceneQueryRunner?.state.data?.series).toMatchObject(getDataFrame())
     expect($sceneDataTransformer?.state.data?.series).toMatchObject(getDataFrame().slice(0, 5))
 
-    timeSeriesLimit.toggleShowAllSeries()
+    timeSeriesLimit.showAllSeries()
     expect($sceneDataTransformer?.state.data?.series).toMatchObject(getDataFrame())
   })
 });
 
 function getDataFrame(): DataFrame[] {
   return [
-    toDataFrame({ state: null, refId: 'A', datapoints: [[100, 1], [400, 2], [500, 3]]}),
-    toDataFrame({state: null, refId: 'B', datapoints: [[100, 1], [400, 2], [500, 3]]}),
-    toDataFrame({state: null, refId: 'C', datapoints: [[100, 1], [400, 2], [500, 3]]}),
-    toDataFrame({state: null, refId: 'D', datapoints: [[100, 1], [400, 2], [500, 3]]}),
-    toDataFrame({state: null, refId: 'E', datapoints: [[100, 1], [400, 2], [500, 3]]}),
-    toDataFrame({state: null, refId: 'F', datapoints: [[100, 1], [400, 2], [500, 3]]}),
-    toDataFrame({state: null, refId: 'G', datapoints: [[100, 1], [400, 2], [500, 3]]}),
-    toDataFrame({state: null, refId: 'H', datapoints: [[100, 1], [400, 2], [500, 3]]}),
-    toDataFrame({state: null, refId: 'I', datapoints: [[100, 1], [400, 2], [500, 3]]}),
-    toDataFrame({state: null, refId: 'J', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'A', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'B', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'C', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'D', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'E', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'F', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'G', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'H', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'I', datapoints: [[100, 1], [400, 2], [500, 3]]}),
+    toDataFrame({refId: 'J', datapoints: [[100, 1], [400, 2], [500, 3]]}),
   ]
 }
 
