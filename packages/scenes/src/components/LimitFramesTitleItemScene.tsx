@@ -42,7 +42,8 @@ export class LimitFramesTitleItemScene extends SceneObjectBase<LimitFramesTitleI
     const $transformedData = $transformedDataArray[0] as SceneDataTransformer | undefined;
 
     if($transformedData){
-      const $untransformedDataProvider: SceneDataProvider | undefined = sceneGraph.findDescendent($transformedData, SceneDataTransformer) ?? sceneGraph.findDescendent(panel, SceneQueryRunner)
+      const $untransformedDataProviders = sceneGraph.findAllObjects($transformedData, (scene) => scene instanceof SceneDataTransformer || scene instanceof SceneQueryRunner)
+      const $untransformedDataProvider = $untransformedDataProviders[0] as SceneDataProvider | undefined
 
       // Subscribe to data changes and update the frame counts
       this._subs.add(
