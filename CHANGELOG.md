@@ -1,3 +1,20 @@
+# v5.26.0 (Mon Nov 25 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Add `allowCustomValue` flag to `GroupByVariable` [#974](https://github.com/grafana/scenes/pull/974) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- SceneApp: Change queries in groupBy demos [#971](https://github.com/grafana/scenes/pull/971) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.25.1 (Wed Nov 20 2024)
 
 #### 🐛 Bug Fix
