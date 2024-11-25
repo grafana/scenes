@@ -4,7 +4,7 @@ import { FieldConfigBuilder } from './FieldConfigBuilder';
 import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
 import { PanelOptionsBuilder } from './PanelOptionsBuilder';
 import { StandardFieldConfig, StandardFieldConfigInterface } from './types';
-import { limitFramesTransformation, TimeSeriesLimitSeriesTitleItemScene } from '../../components/LimitSeriesTitleItem';
+import { limitFramesTransformation, LimitFramesTitleItemScene } from '../../components/LimitFramesTitleItemScene';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 
 export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
@@ -234,7 +234,7 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    * Build the panel.
    */
   public build() {
-    this.limitPanelSeries();
+    this.limitFrames();
 
     const panel = new VizPanel<TOptions, TFieldConfig>({
       ...this._state,
@@ -248,15 +248,20 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   /**
    * If titleItems contains TimeSeriesLimitSeriesTitleItemScene, replace queryProvider with SceneDataTransformer and limit the number of series initially rendered
    */
-  private limitPanelSeries() {
+  private limitFrames() {
     if(this._state.$data){
       const limitSeriesTitleItem = this.getLimitSeriesTitleItem()
 
-      if (limitSeriesTitleItem && limitSeriesTitleItem.state.seriesLimit) {
-        this.setData(new SceneDataTransformer({
-          $data: this._state.$data,
-          transformations: [() => limitFramesTransformation(limitSeriesTitleItem.state.seriesLimit)],
-        }))
+      if (limitSeriesTitleItem && limitSeriesTitleItem.state.frameLimit) {
+        if(this._state.$data instanceof SceneDataTransformer){
+
+        }else {
+          this.setData(new SceneDataTransformer({
+            $data: this._state.$data,
+            transformations: [() => limitFramesTransformation(limitSeriesTitleItem.state.frameLimit)],
+          }))
+        }
+
       }
     }
   }
@@ -268,11 +273,11 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
     if (this._state.titleItems) {
       if (Array.isArray(this._state.titleItems)) {
         for (const titleItem of this._state.titleItems) {
-          if (titleItem instanceof TimeSeriesLimitSeriesTitleItemScene) {
+          if (titleItem instanceof LimitFramesTitleItemScene) {
             return titleItem;
           }
         }
-      } else if (this._state.titleItems instanceof TimeSeriesLimitSeriesTitleItemScene) {
+      } else if (this._state.titleItems instanceof LimitFramesTitleItemScene) {
         return this._state.titleItems;
       }
     }

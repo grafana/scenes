@@ -10,11 +10,11 @@ import { SceneDataTransformer } from '../querying/SceneDataTransformer';
 import { VizPanel } from './VizPanel/VizPanel';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 
-export interface TimeSeriesLimitSeriesTitleItemSceneState extends SceneObjectState {
-  showAllSeries?: boolean;
-  currentSeriesCount?: number;
-  totalSeriesCount?: number
-  seriesLimit: number
+export interface LimitFramesTitleItemSceneState extends SceneObjectState {
+  showAllFrames?: boolean;
+  currentFrameCount?: number;
+  totalFrameCount?: number
+  frameLimit: number
 }
 
 /**
@@ -23,12 +23,12 @@ export interface TimeSeriesLimitSeriesTitleItemSceneState extends SceneObjectSta
  * Usage:
  * PanelBuilders.timeseries()
  * .setData($data)
- * .setTitleItems([new TimeSeriesLimitSeriesTitleItemScene({
- *    seriesLimit: 20, // limits the default number of series that are rendered in the viz
+ * .setTitleItems([new LimitFramesTitleItemScene({
+ *    frameLimit: 20, // limits the default number of series that are rendered in the viz
  *  })])
  */
-export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSeriesLimitSeriesTitleItemSceneState> {
-  public constructor(state: TimeSeriesLimitSeriesTitleItemSceneState) {
+export class LimitFramesTitleItemScene extends SceneObjectBase<LimitFramesTitleItemSceneState> {
+  public constructor(state: LimitFramesTitleItemSceneState) {
     super(state);
     this.addActivationHandler(this.onActivate.bind(this));
   }
@@ -42,10 +42,10 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
     // Subscribe to data changes and update the series counts
     this._subs.add(
       $transformedData.subscribeToState((transformedDataState) => {
-        if (untransformedQueryRunner && untransformedQueryRunner.state.data?.series.length !== this.state.currentSeriesCount) {
+        if (untransformedQueryRunner && untransformedQueryRunner.state.data?.series.length !== this.state.currentFrameCount) {
           this.setState({
-            currentSeriesCount: transformedDataState.data?.series.length,
-            totalSeriesCount: untransformedQueryRunner.state.data?.series.length
+            currentFrameCount: transformedDataState.data?.series.length,
+            totalFrameCount: untransformedQueryRunner.state.data?.series.length
           });
         }
       })
@@ -62,20 +62,20 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
         transformations: [],
       });
       this.setState({
-        showAllSeries: true,
+        showAllFrames: true,
       });
       $data.reprocessTransformations();
     }
   }
-  public static Component = ({ model }: SceneComponentProps<TimeSeriesLimitSeriesTitleItemScene>) => {
-    const { showAllSeries, currentSeriesCount, seriesLimit, totalSeriesCount,  } = model.useState();
+  public static Component = ({ model }: SceneComponentProps<LimitFramesTitleItemScene>) => {
+    const { showAllFrames, currentFrameCount, frameLimit, totalFrameCount,  } = model.useState();
     const styles = useStyles2(getStyles);
 
     if (
-      totalSeriesCount === undefined ||
-      showAllSeries ||
-      !currentSeriesCount ||
-      totalSeriesCount < seriesLimit
+      totalFrameCount === undefined ||
+      showAllFrames ||
+      !currentFrameCount ||
+      totalFrameCount < frameLimit
     ) {
       return null;
     }
@@ -85,7 +85,7 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
         <span className={styles.warningMessage}>
           <>
             <Icon
-              title={`Showing only ${model.state.seriesLimit} series`}
+              title={`Showing only ${model.state.frameLimit} series`}
               name="exclamation-triangle"
               aria-hidden="true"
             />
@@ -93,7 +93,7 @@ export class TimeSeriesLimitSeriesTitleItemScene extends SceneObjectBase<TimeSer
         </span>
         <Tooltip content={'Rendering too many series in a single panel may impact performance and make data harder to read.'}>
           <Button variant="secondary" size="sm" onClick={() => model.showAllSeries()}>
-            <>Show all {totalSeriesCount}</>
+            <>Show all {totalFrameCount}</>
           </Button>
         </Tooltip>
       </div>

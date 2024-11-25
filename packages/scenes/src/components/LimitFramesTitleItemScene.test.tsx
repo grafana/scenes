@@ -1,5 +1,5 @@
 import { PanelBuilders } from '../core/PanelBuilders';
-import { TimeSeriesLimitSeriesTitleItemScene } from './LimitSeriesTitleItem';
+import { LimitFramesTitleItemScene } from './LimitFramesTitleItemScene';
 import {
   DataFrame,
   DataQueryRequest,
@@ -52,14 +52,14 @@ jest.mock('@grafana/runtime', () => ({
   }),
 }));
 
-describe('LimitSeriesTitleItem', () => {
-  it('Should not limit results with fewer or equal series count then seriesLimit', async() => {
+describe('LimitFramesTitleItemScene', () => {
+  it('Should not limit results with fewer or equal frame count then frameLimit', async() => {
     const scene = PanelBuilders.timeseries()
         .setData(new SceneQueryRunner({
           datasource: { uid: 'uid' },
           queries: [{ refId: 'A' }]
         }))
-        .setTitleItems(new TimeSeriesLimitSeriesTitleItemScene({seriesLimit: 10}))
+        .setTitleItems(new LimitFramesTitleItemScene({frameLimit: 10}))
         .build();
 
     scene.activate();
@@ -81,13 +81,13 @@ describe('LimitSeriesTitleItem', () => {
     expect($sceneDataTransformer?.state.data?.series).toMatchObject(getDataFrame())
   })
 
-  it('Should limit results with fewer series then seriesLimit', async() => {
+  it('Should limit results with fewer frames then frameLimit', async() => {
     const scene = PanelBuilders.timeseries()
         .setData(new SceneQueryRunner({
           datasource: { uid: 'uid' },
           queries: [{ refId: 'A' }]
         }))
-        .setTitleItems(new TimeSeriesLimitSeriesTitleItemScene({seriesLimit: 5}))
+        .setTitleItems(new LimitFramesTitleItemScene({frameLimit: 5}))
         .build();
 
     scene.activate();
@@ -106,10 +106,10 @@ describe('LimitSeriesTitleItem', () => {
         datasource: { uid: 'uid' },
         queries: [{ refId: 'A' }]
       }))
-      .setTitleItems(new TimeSeriesLimitSeriesTitleItemScene({seriesLimit: 5}))
+      .setTitleItems(new LimitFramesTitleItemScene({frameLimit: 5}))
       .build();
 
-    const timeSeriesLimit = scene.state.titleItems as TimeSeriesLimitSeriesTitleItemScene;
+    const timeSeriesLimit = scene.state.titleItems as LimitFramesTitleItemScene;
 
     scene.activate();
     timeSeriesLimit.activate()
@@ -118,7 +118,7 @@ describe('LimitSeriesTitleItem', () => {
     const $sceneDataTransformer = sceneGraph.getData(scene)
     const $sceneQueryRunner = sceneGraph.findDescendent(scene, SceneQueryRunner)
 
-    expect(timeSeriesLimit).toBeInstanceOf(TimeSeriesLimitSeriesTitleItemScene)
+    expect(timeSeriesLimit).toBeInstanceOf(LimitFramesTitleItemScene)
     expect(timeSeriesLimit.isActive).toEqual(true)
 
     expect($sceneQueryRunner?.state.data?.series).toMatchObject(getDataFrame())

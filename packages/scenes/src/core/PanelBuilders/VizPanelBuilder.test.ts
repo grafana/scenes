@@ -1,7 +1,7 @@
 import { MappingType, ThresholdsMode } from '@grafana/schema';
 import { PanelBuilders } from './index';
 import { VizPanelBuilder } from './VizPanelBuilder';
-import { TimeSeriesLimitSeriesTitleItemScene } from '../../components/LimitSeriesTitleItem';
+import { LimitFramesTitleItemScene } from '../../components/LimitFramesTitleItemScene';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 
@@ -255,11 +255,11 @@ describe('VizPanelBuilder', () => {
 
     it('TimeSeriesLimitSeriesTitleItemScene title item wont transform panel without query provider', () => {
       const builder = getTestBuilder();
-      builder.setTitleItems(new TimeSeriesLimitSeriesTitleItemScene({seriesLimit: 10}))
+      builder.setTitleItems(new LimitFramesTitleItemScene({frameLimit: 10}))
       const built = builder.build()
-      const builtTitleItems = built.state.titleItems as TimeSeriesLimitSeriesTitleItemScene
-      expect(builtTitleItems).toBeInstanceOf(TimeSeriesLimitSeriesTitleItemScene)
-      expect(builtTitleItems?.state.seriesLimit).toEqual(10)
+      const builtTitleItems = built.state.titleItems as LimitFramesTitleItemScene
+      expect(builtTitleItems).toBeInstanceOf(LimitFramesTitleItemScene)
+      expect(builtTitleItems?.state.frameLimit).toEqual(10)
 
       // If there's no query runner, we shouldn't be adding a SceneDataTransformer
       expect(built.state.$data).toBe(undefined)
@@ -267,7 +267,7 @@ describe('VizPanelBuilder', () => {
 
     it('TimeSeriesLimitSeriesTitleItemScene title items transforms panel with query runner', () => {
       const builder = getTestBuilder();
-      builder.setTitleItems([new TimeSeriesLimitSeriesTitleItemScene({seriesLimit: 10})])
+      builder.setTitleItems([new LimitFramesTitleItemScene({frameLimit: 10})])
       builder.setData(new SceneQueryRunner({
         datasource: { uid: 'uid' },
         queries: [],
@@ -275,9 +275,9 @@ describe('VizPanelBuilder', () => {
       expect(builder['_state'].$data).toBeInstanceOf(SceneQueryRunner)
       const built = builder.build()
       //@ts-ignore
-      const builtTitleItems = built.state.titleItems[0] as TimeSeriesLimitSeriesTitleItemScene
-      expect(builtTitleItems).toBeInstanceOf(TimeSeriesLimitSeriesTitleItemScene)
-      expect(builtTitleItems?.state.seriesLimit).toEqual(10)
+      const builtTitleItems = built.state.titleItems[0] as LimitFramesTitleItemScene
+      expect(builtTitleItems).toBeInstanceOf(LimitFramesTitleItemScene)
+      expect(builtTitleItems?.state.frameLimit).toEqual(10)
       // If there is a query runner, we will replace it with a SceneDataTransformer
       expect(built.state.$data).toBeInstanceOf(SceneDataTransformer)
     })
