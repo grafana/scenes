@@ -100,12 +100,39 @@ describe('LimitFramesTitleItemScene', () => {
     expect($sceneDataTransformer?.state.data?.series).toMatchObject(getDataFrame().slice(0, 5))
   })
 
+  it('Should limit results with nested SceneDataTransformer', async() => {
+    const scene = PanelBuilders.timeseries()
+      .setData(new SceneDataTransformer({
+          transformations: [],
+          $data: new SceneQueryRunner({
+            datasource: { uid: 'uid' },
+            queries: [{ refId: 'A' }],
+          }),
+        },
+      ))
+      .setTitleItems(new LimitFramesTitleItemScene({frameLimit: 5}))
+      .build();
+
+    scene.activate();
+    await new Promise((r) => setTimeout(r, 1));
+
+    const $sceneDataTransformer = sceneGraph.getData(scene)
+    const $sceneQueryRunner = sceneGraph.findDescendent(scene, SceneQueryRunner)
+
+    expect($sceneQueryRunner?.state.data?.series).toMatchObject(getDataFrame())
+    expect($sceneDataTransformer?.state.data?.series).toMatchObject(getDataFrame().slice(0, 5))
+  })
+
   it('toggleShowAllSeries should remove limit', async() => {
     const scene = PanelBuilders.timeseries()
-      .setData(new SceneQueryRunner({
-        datasource: { uid: 'uid' },
-        queries: [{ refId: 'A' }]
-      }))
+      .setData(new SceneDataTransformer({
+          transformations: [],
+          $data: new SceneQueryRunner({
+            datasource: { uid: 'uid' },
+            queries: [{ refId: 'A' }],
+          }),
+        },
+      ))
       .setTitleItems(new LimitFramesTitleItemScene({frameLimit: 5}))
       .build();
 

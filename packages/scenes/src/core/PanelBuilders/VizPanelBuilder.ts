@@ -4,7 +4,11 @@ import { FieldConfigBuilder } from './FieldConfigBuilder';
 import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
 import { PanelOptionsBuilder } from './PanelOptionsBuilder';
 import { StandardFieldConfig, StandardFieldConfigInterface } from './types';
-import { limitFramesTransformation, LimitFramesTitleItemScene } from '../../components/LimitFramesTitleItemScene';
+import {
+  limitFramesTransformation,
+  LimitFramesTitleItemScene,
+  LIMIT_FRAMES_TITLE_ITEM_TRANSFORMATION_KEY,
+} from '../../components/LimitFramesTitleItemScene';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 
 export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
@@ -253,15 +257,11 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
       const limitSeriesTitleItem = this.getLimitSeriesTitleItem()
 
       if (limitSeriesTitleItem && limitSeriesTitleItem.state.frameLimit) {
-        if(this._state.$data instanceof SceneDataTransformer){
-
-        }else {
-          this.setData(new SceneDataTransformer({
-            $data: this._state.$data,
-            transformations: [() => limitFramesTransformation(limitSeriesTitleItem.state.frameLimit)],
-          }))
-        }
-
+        this.setData(new SceneDataTransformer({
+          key: LIMIT_FRAMES_TITLE_ITEM_TRANSFORMATION_KEY,
+          $data: this._state.$data,
+          transformations: [() => limitFramesTransformation(limitSeriesTitleItem.state.frameLimit)],
+        }))
       }
     }
   }

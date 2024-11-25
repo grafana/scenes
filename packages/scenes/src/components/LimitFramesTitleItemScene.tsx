@@ -4,7 +4,7 @@ import { DataFrame, GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { map, Observable } from 'rxjs';
-import { SceneComponentProps, SceneObjectState } from '../core/types';
+import { SceneComponentProps, SceneDataProvider, SceneObjectState } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
 import { VizPanel } from './VizPanel/VizPanel';
@@ -16,6 +16,8 @@ export interface LimitFramesTitleItemSceneState extends SceneObjectState {
   totalFrameCount?: number
   frameLimit: number
 }
+
+export const LIMIT_FRAMES_TITLE_ITEM_TRANSFORMATION_KEY = 'limit_frames_title_item_transformation'
 
 /**
  * PanelBuilder titleItems component that will limit the default number of series rendered
@@ -36,20 +38,24 @@ export class LimitFramesTitleItemScene extends SceneObjectBase<LimitFramesTitleI
   private onActivate() {
     const panel = sceneGraph.getAncestor(this, VizPanel);
 
-    const $transformedData = sceneGraph.getData(panel);
-    const untransformedQueryRunner = sceneGraph.findDescendent(panel, SceneQueryRunner)
+    const $transformedDataArray = sceneGraph.findAllObjects(panel, (scene) => scene.state.key === LIMIT_FRAMES_TITLE_ITEM_TRANSFORMATION_KEY)
+    const $transformedData = $transformedDataArray[0] as SceneDataTransformer | undefined;
 
-    // Subscribe to data changes and update the series counts
-    this._subs.add(
-      $transformedData.subscribeToState((transformedDataState) => {
-        if (untransformedQueryRunner && untransformedQueryRunner.state.data?.series.length !== this.state.currentFrameCount) {
-          this.setState({
-            currentFrameCount: transformedDataState.data?.series.length,
-            totalFrameCount: untransformedQueryRunner.state.data?.series.length
-          });
-        }
-      })
-    );
+    if($transformedData){
+      const $untransformedDataProvider: SceneDataProvider | undefined = sceneGraph.findDescendent($transformedData, SceneDataTransformer) ?? sceneGraph.findDescendent(panel, SceneQueryRunner)
+
+      // Subscribe to data changes and update the frame counts
+      this._subs.add(
+        $transformedData.subscribeToState((transformedDataState) => {
+          if ($untransformedDataProvider && $untransformedDataProvider.state.data?.series.length !== this.state.currentFrameCount) {
+            this.setState({
+              currentFrameCount: transformedDataState.data?.series.length,
+              totalFrameCount: $untransformedDataProvider.state.data?.series.length
+            });
+          }
+        })
+      );
+    }
   }
 
   /**
