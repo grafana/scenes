@@ -34,6 +34,7 @@ export function getUrlSyncTest(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'First',
         url: `${defaults.url}/first`,
+        routePath: 'first',
         getScene: () => {
           return new EmbeddedScene({
             controls: [new VariableValueSelectors({})],
@@ -57,6 +58,7 @@ export function getUrlSyncTest(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Second',
         url: `${defaults.url}/manual`,
+        routePath: 'manual',
         getScene: () => {
           return new EmbeddedScene({
             controls: [new VariableValueSelectors({})],
