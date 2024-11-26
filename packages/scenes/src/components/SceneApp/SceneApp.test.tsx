@@ -1,7 +1,6 @@
 import { NavModelItem } from '@grafana/data';
-import { locationService, PluginPageProps } from '@grafana/runtime';
+import { locationService, PluginPage } from '@grafana/runtime';
 import { screen, render } from '@testing-library/react';
-import { createMemoryHistory } from 'history';
 import React from 'react';
 import { renderAppInsideRouterWithStartingUrl } from '../../../utils/test/utils';
 import { SceneObject } from '../../core/types';
@@ -13,17 +12,8 @@ import { SceneAppPage } from './SceneAppPage';
 import { SceneRouteMatch } from './types';
 import { SceneReactObject } from '../SceneReactObject';
 
-let history = createMemoryHistory();
-let pluginPageProps: PluginPageProps | undefined;
-
-jest.mock('@grafana/runtime', () => ({
-  ...jest.requireActual('@grafana/runtime'),
-  PluginPage: function PluginPageMock(props: PluginPageProps) {
-    pluginPageProps = props;
-    return <div>{props.children}</div>;
-  },
-}));
-
+// Mock lives in ./__mocks__/@grafana/runtime.js
+jest.mock('@grafana/runtime');
 jest.mock('../../utils/utils', () => ({
   ...jest.requireActual('../../utils/utils'),
   useLocationServiceSafe: () => locationService,
@@ -34,6 +24,7 @@ describe('SceneApp', () => {
 
   beforeEach(() => {
     console.error = jest.fn();
+    jest.mocked(PluginPage).mockClear();
   });
 
   afterEach(() => {
@@ -47,6 +38,7 @@ describe('SceneApp', () => {
         new SceneAppPage({
           title: 'Test',
           url: '/test',
+          routePath: 'test/*',
           getScene: () => {
             return page1Scene;
           },
@@ -55,7 +47,7 @@ describe('SceneApp', () => {
     });
 
     expect(() => render(<app.Component model={app} />)).toThrowErrorMatchingInlineSnapshot(
-      `"Invariant failed: You should not use <Switch> outside a <Router>"`
+      `"useRoutes() may be used only in the context of a <Router> component."`
     );
   });
 
@@ -70,6 +62,7 @@ describe('SceneApp', () => {
         new SceneAppPage({
           title: 'Test',
           url: '/test',
+          routePath: 'test/*',
           getScene: () => {
             return page1Scene;
           },
@@ -77,6 +70,7 @@ describe('SceneApp', () => {
         new SceneAppPage({
           title: 'Test',
           url: '/test1',
+          routePath: 'test1/*',
           getScene: () => {
             return page2Scene;
           },
@@ -84,7 +78,7 @@ describe('SceneApp', () => {
       ],
     });
 
-    beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test'));
+    beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test'));
 
     it('should render correct page on mount', async () => {
       expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
@@ -92,7 +86,7 @@ describe('SceneApp', () => {
     });
 
     it('Can navigate to other page', async () => {
-      history.push('/test1');
+      locationService.push('/test1');
 
       expect(await screen.findByTestId(p2Object.state.key!)).toBeInTheDocument();
       expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
@@ -110,17 +104,20 @@ describe('SceneApp', () => {
         new SceneAppPage({
           title: 'Container page',
           url: '/test',
+          routePath: 'test/*',
           tabs: [
             new SceneAppPage({
               title: 'Tab1',
               titleIcon: 'grafana',
               tabSuffix: () => <strong>tab1 suffix</strong>,
               url: '/test/tab1',
+              routePath: 'tab1/*',
               getScene: () => setupScene(t1Object, 'tab1-scene'),
             }),
             new SceneAppPage({
               title: 'Tab2',
               url: '/test/tab2',
+              routePath: 'tab2/*',
               getScene: () => setupScene(t2Object, 'tab2-scene'),
             }),
           ],
@@ -128,15 +125,18 @@ describe('SceneApp', () => {
         new SceneAppPage({
           title: 'Test',
           url: '/test1',
+          routePath: 'test1/*',
           getScene: () => setupScene(p2Object),
         }),
       ],
     });
 
-    beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test'));
+    beforeEach(() => {
+      renderAppInsideRouterWithStartingUrl(app, '/test');
+    });
 
     it('should render correct breadcrumbs', async () => {
-      expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Container page']);
+      expect(flattenPageNav(jest.mocked(PluginPage).mock.calls[0][0].pageNav!)).toEqual(['Container page']);
     });
 
     it('Inner embedded scene should be active and connected to containerPage', async () => {
@@ -145,8 +145,11 @@ describe('SceneApp', () => {
     });
 
     it('should render tab title with icon and suffix', async () => {
-      expect(pluginPageProps?.pageNav?.children?.[0].icon).toEqual('grafana');
-      const suffix = pluginPageProps?.pageNav?.children?.[0].tabSuffix;
+      const pageNav = jest.mocked(PluginPage).mock.calls[0][0].pageNav!;
+
+      expect(pageNav?.children?.[0].icon).toEqual('grafana');
+      expect(pageNav?.children?.[0].icon).toEqual('grafana');
+      const suffix = pageNav?.children?.[0].tabSuffix;
       expect((suffix as any)()).toEqual(<strong>tab1 suffix</strong>);
     });
 
@@ -157,12 +160,12 @@ describe('SceneApp', () => {
     });
 
     it('Render first tab with its own url', async () => {
-      history.push('/test/tab1');
+      locationService.push('/test/tab1');
       expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
     });
 
     it('Can render second tab', async () => {
-      history.push('/test/tab2');
+      locationService.push('/test/tab2');
 
       expect(await screen.findByTestId(t2Object.state.key!)).toBeInTheDocument();
       expect(screen.queryByTestId(p2Object.state.key!)).not.toBeInTheDocument();
@@ -186,12 +189,13 @@ describe('SceneApp', () => {
             key: 'top-level-page',
             title: 'Top level page',
             url: '/test-drilldown',
+            routePath: 'test-drilldown/*',
             getScene: () => {
               return page1Scene;
             },
             drilldowns: [
               {
-                routePath: '/test-drilldown/:id',
+                routePath: ':id/*',
                 getPage: (match: SceneRouteMatch<{ id: string }>, parent) => {
                   return new SceneAppPage({
                     key: 'drilldown-page',
@@ -207,12 +211,12 @@ describe('SceneApp', () => {
         ],
       });
 
-      beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test-drilldown'));
+      beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test-drilldown'));
 
       it('should render a drilldown page', async () => {
         expect(screen.queryByTestId(p1Object.state.key!)).toBeInTheDocument();
 
-        history.push('/test-drilldown/some-id');
+        locationService.push('/test-drilldown/some-id');
 
         expect(await screen.findByText('some-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
@@ -222,9 +226,12 @@ describe('SceneApp', () => {
         expect((window as any).__grafanaSceneContext.parent.state.key).toBe('drilldown-page');
 
         // Verify pageNav is correct
-        expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Drilldown some-id', 'Top level page']);
+        expect(flattenPageNav(jest.mocked(PluginPage).mock.calls[1][0].pageNav!)).toEqual([
+          'Drilldown some-id',
+          'Top level page',
+        ]);
 
-        history.push('/test-drilldown/some-other-id');
+        locationService.push('/test-drilldown/some-other-id');
 
         expect(await screen.findByText('some-other-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
@@ -236,7 +243,7 @@ describe('SceneApp', () => {
       });
 
       it('When url does not match any drilldown sub page show fallback route', async () => {
-        history.push('/test-drilldown/some-id/does-not-exist');
+        locationService.push('/test-drilldown/some-id/does-not-exist');
         expect(await screen.findByTestId('default-fallback-content')).toBeInTheDocument();
       });
 
@@ -250,10 +257,12 @@ describe('SceneApp', () => {
             new SceneAppPage({
               title: 'Top level page',
               url: '/main',
+              routePath: 'main/*',
               tabs: [
                 new SceneAppPage({
                   title: 'Tab ',
                   url: '/main/tab',
+                  routePath: 'tab/*',
                   getScene: () => {
                     return page1Scene;
                   },
@@ -261,7 +270,7 @@ describe('SceneApp', () => {
               ],
               drilldowns: [
                 {
-                  routePath: '/main/drilldown/:id',
+                  routePath: 'drilldown/:id/*',
                   getPage: (match: SceneRouteMatch<{ id: string }>, parent) => {
                     return new SceneAppPage({
                       title: `Drilldown ${match.params.id}`,
@@ -276,14 +285,17 @@ describe('SceneApp', () => {
           ],
         });
 
-        beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/main/drilldown/10'));
+        beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/main/drilldown/10'));
 
         it('should render a drilldown page', async () => {
           expect(await screen.findByText('10 drilldown!')).toBeInTheDocument();
           expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
 
           // Verify pageNav is correct
-          expect(flattenPageNav(pluginPageProps?.pageNav!)).toEqual(['Drilldown 10', 'Top level page']);
+          expect(flattenPageNav(jest.mocked(PluginPage).mock.calls[1][0].pageNav!)).toEqual([
+            'Drilldown 10',
+            'Top level page',
+          ]);
         });
       });
     });
@@ -300,16 +312,18 @@ describe('SceneApp', () => {
           new SceneAppPage({
             title: 'Container page',
             url: '/test',
+            routePath: 'test/*',
             tabs: [
               new SceneAppPage({
                 title: 'Tab ',
                 url: '/test/tab',
+                routePath: 'tab/*',
                 getScene: () => {
                   return tab1Scene;
                 },
                 drilldowns: [
                   {
-                    routePath: '/test/tab/:id',
+                    routePath: 'tab/:id/*',
                     getPage: (match: SceneRouteMatch<{ id: string }>) => {
                       drillDownScenesGenerated++;
 
@@ -327,24 +341,24 @@ describe('SceneApp', () => {
         ],
       });
 
-      beforeEach(() => renderAppInsideRouterWithStartingUrl(history, app, '/test/tab'));
+      beforeEach(() => renderAppInsideRouterWithStartingUrl(app, '/test/tab'));
 
       it('should render a drilldown that is part of tab page', async () => {
         expect(screen.queryByTestId(t1Object.state.key!)).toBeInTheDocument();
 
-        history.push('/test/tab/some-id');
+        locationService.push('/test/tab/some-id');
 
         expect(await screen.findByText('some-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
 
-        history.push('/test/tab/some-other-id');
+        locationService.push('/test/tab/some-other-id');
 
         expect(await screen.findByText('some-other-id drilldown!')).toBeInTheDocument();
         expect(screen.queryByTestId(p1Object.state.key!)).not.toBeInTheDocument();
         expect(screen.queryByText('some-id drilldown!')).not.toBeInTheDocument();
 
         // go back to the first drilldown
-        history.push('/test/tab/some-id');
+        locationService.push('/test/tab/some-id');
         expect(await screen.findByText('some-id drilldown!')).toBeInTheDocument();
 
         // Verify that drilldown page was cached (getPage should not have been called again)
@@ -352,7 +366,7 @@ describe('SceneApp', () => {
       });
 
       it('When url does not match any drilldown sub page show fallback route', async () => {
-        history.push('/test/tab/drilldown-id/does-not-exist');
+        locationService.push('/test/tab/drilldown-id/does-not-exist');
         expect(await screen.findByTestId('default-fallback-content')).toBeInTheDocument();
       });
     });
@@ -365,6 +379,7 @@ describe('SceneApp', () => {
           new SceneAppPage({
             title: 'Test',
             url: '/test',
+            routePath: 'test/*',
             getScene: () => {
               return page1Scene;
             },
@@ -372,6 +387,7 @@ describe('SceneApp', () => {
               return new SceneAppPage({
                 title: 'Loading',
                 url: '',
+                routePath: '*',
                 getScene: () =>
                   new EmbeddedScene({
                     body: new SceneReactObject({
@@ -385,9 +401,11 @@ describe('SceneApp', () => {
       });
 
       it('should render custom fallback page if url does not match', async () => {
-        renderAppInsideRouterWithStartingUrl(history, app, '/test');
+        renderAppInsideRouterWithStartingUrl(app, '/test');
         expect(await screen.findByTestId(page1Obj.state.key!)).toBeInTheDocument();
-        history.push('/test/does-not-exist');
+
+        locationService.push('/test/does-not-exist');
+
         expect(await screen.findByTestId('custom-fallback-content')).toBeInTheDocument();
       });
     });

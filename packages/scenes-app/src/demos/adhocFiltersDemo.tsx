@@ -27,6 +27,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Apply mode auto',
         url: `${defaults.url}/auto`,
+        routePath: `auto`,
         getScene: () => {
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),
@@ -70,6 +71,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Apply mode manual',
         url: `${defaults.url}/manual`,
+        routePath: `manual`,
         getScene: () => {
           const filtersVar = new AdHocFiltersVariable({
             applyMode: 'manual',
@@ -125,6 +127,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Vertical Variants',
         url: `${defaults.url}/vertical`,
+        routePath: `vertical`,
         getScene: () => {
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),
@@ -198,6 +201,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
       }),
       new SceneAppPage({
         title: 'New Filters UI',
+        routePath: `new-filters`,
         url: `${defaults.url}/new-filters`,
         getScene: () => {
           return new EmbeddedScene({

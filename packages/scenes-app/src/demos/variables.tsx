@@ -33,6 +33,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Async and chained',
         url: `${defaults.url}/query`,
+        routePath: 'query',
         getScene: () => {
           return new EmbeddedScene({
             controls: [new VariableValueSelectors({})],
@@ -115,6 +116,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Data source and textbox',
         url: `${defaults.url}/ds`,
+        routePath: 'ds',
         getScene: () => {
           return new EmbeddedScene({
             controls: [new VariableValueSelectors({})],
@@ -157,6 +159,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Search filter',
         url: `${defaults.url}/search`,
+        routePath: 'search',
         getScene: () => {
           return new EmbeddedScene({
             controls: [new VariableValueSelectors({})],
@@ -190,6 +193,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Many variable options',
         url: `${defaults.url}/many-values`,
+        routePath: 'many-values',
         getScene: () => {
           return new EmbeddedScene({
             controls: [new VariableValueSelectors({})],
@@ -223,6 +227,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Many adhoc variable values',
         url: `${defaults.url}/many-adhoc-values`,
+        routePath: 'many-adhoc-values',
         getScene: () => {
           return new EmbeddedScene({
             controls: [new VariableValueSelectors({})],

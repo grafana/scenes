@@ -33,7 +33,8 @@ function getDemoSceneApp() {
       new SceneAppPage({
         title: 'Demos',
         key: 'SceneAppPage Demos',
-        url: prefixRoute(ROUTES.Demos),
+        url: `${prefixRoute(ROUTES.Demos)}`,
+        routePath: '*',
         preserveUrlKeys: [],
         getScene: () => {
           return new EmbeddedScene({
@@ -43,7 +44,7 @@ function getDemoSceneApp() {
         },
         drilldowns: [
           {
-            routePath: `${demoUrl(':demo')}`,
+            routePath: `:demo/*`,
             getPage: (routeMatch, parent) => {
               const demos = getDemos();
               const demoSlug = decodeURIComponent(routeMatch.params.demo);
@@ -59,6 +60,7 @@ function getDemoSceneApp() {
                   <DemoSubTitle text={demoInfo.description} getSourceCodeModule={demoInfo.getSourceCodeModule} />
                 ),
                 url: `${demoUrl(slugify(demoInfo.title))}`,
+                routePath: `${slugify(demoInfo.title)}/*`,
                 getParentPage: () => parent,
               });
             },

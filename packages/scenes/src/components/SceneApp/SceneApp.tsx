@@ -1,10 +1,9 @@
 import React, { createContext } from 'react';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 
 import { DataRequestEnricher, SceneComponentProps } from '../../core/types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneAppState } from './types';
-import { renderSceneComponentWithRouteProps } from './utils';
 
 /**
  * Responsible for top level pages routing
@@ -21,16 +20,11 @@ export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequ
 
     return (
       <SceneAppContext.Provider value={model}>
-        <Switch>
+        <Routes>
           {pages.map((page) => (
-            <Route
-              key={page.state.url}
-              exact={false}
-              path={page.state.url}
-              render={(props) => renderSceneComponentWithRouteProps(page, props)}
-            ></Route>
+            <Route key={page.state.url} path={page.state.routePath} element={<page.Component model={page} />} />
           ))}
-        </Switch>
+        </Routes>
       </SceneAppContext.Provider>
     );
   };
