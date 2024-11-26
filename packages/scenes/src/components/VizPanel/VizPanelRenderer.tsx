@@ -22,6 +22,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     _pluginLoadError,
     displayMode,
     hoverHeader,
+    showMenuAlways,
     hoverHeaderOffset,
     menu,
     headerActions,
@@ -156,6 +157,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             width={width}
             height={height}
             displayMode={displayMode}
+            //@ts-expect-error Remove when 11.4 is released: https://github.com/grafana/grafana/pull/96868
+            showMenuAlways={showMenuAlways}
             hoverHeader={hoverHeader}
             hoverHeaderOffset={hoverHeaderOffset}
             titleItems={titleItemsElement}
