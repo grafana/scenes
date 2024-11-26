@@ -238,7 +238,9 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    * Build the panel.
    */
   public build() {
-    this.limitFrames();
+    if(this._state.$data) {
+      this.limitFramesIfLimitSceneExists();
+    }
 
     const panel = new VizPanel<TOptions, TFieldConfig>({
       ...this._state,
@@ -252,7 +254,7 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   /**
    * If titleItems contains TimeSeriesLimitSeriesTitleItemScene, replace queryProvider with SceneDataTransformer and limit the number of series initially rendered
    */
-  private limitFrames() {
+  private limitFramesIfLimitSceneExists() {
     if(this._state.$data){
       const limitSeriesTitleItem = this.getLimitSeriesTitleItem()
 
