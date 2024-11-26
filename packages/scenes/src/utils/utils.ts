@@ -1,8 +1,5 @@
 import { SceneObject, SceneObjectState } from '../core/types';
-import { locationService as locationServiceRuntime } from '@grafana/runtime';
-// @ts-ignore
-// eslint-disable-next-line no-duplicate-imports
-import { useLocationService } from '@grafana/runtime';
+import { locationService as locationServiceRuntime, useLocationService } from '@grafana/runtime';
 
 /**
  *  This function works around the problem of Contravariance of the SceneObject.setState function
