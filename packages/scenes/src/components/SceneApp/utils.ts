@@ -1,8 +1,9 @@
 import React from 'react';
-import { RouteComponentProps, useLocation } from 'react-router-dom';
+import { matchPath, useLocation, useParams } from 'react-router-dom';
 import { UrlQueryMap, locationUtil, urlUtil } from '@grafana/data';
 import { locationSearchToObject } from '@grafana/runtime';
 import { SceneObject } from '../../core/types';
+import { SceneRouteMatch } from './types';
 
 export function useAppQueryParams(): UrlQueryMap {
   const location = useLocation();
@@ -32,7 +33,29 @@ export function getUrlWithAppState(path: string, searchObject: UrlQueryMap, pres
   return urlUtil.renderUrl(locationUtil.assureBaseUrl(path), paramsCopy);
 }
 
-export function renderSceneComponentWithRouteProps(sceneObject: SceneObject, routeProps: RouteComponentProps) {
+export function renderSceneComponent(sceneObject: SceneObject) {
   // @ts-ignore
-  return React.createElement(sceneObject.Component, { model: sceneObject, routeProps: routeProps });
+  return React.createElement(sceneObject.Component, { model: sceneObject });
 }
+
+export function useSceneRouteMatch(path: string) {
+  const params = useParams();
+  const location = useLocation();
+  const isExact = matchPath(
+    {
+      path,
+      caseSensitive: false,
+      end: true,
+    },
+    location.pathname
+  );
+
+  const match: SceneRouteMatch = {
+    params,
+    isExact: isExact !== null,
+    path: location.pathname,
+    url: location.pathname,
+  };
+
+  return match;
+};

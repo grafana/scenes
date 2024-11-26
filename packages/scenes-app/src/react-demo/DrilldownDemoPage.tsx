@@ -4,7 +4,7 @@ import React from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
 import { DemoVizLayout, urlBase } from './utils';
-import { Route, Switch, useParams } from 'react-router-dom';
+import { Route, Routes, useParams } from 'react-router-dom';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 
 export function DrilldownDemoPage() {
@@ -15,10 +15,10 @@ export function DrilldownDemoPage() {
   return (
     <BreadcrumbProvider>
       <Breadcrumb text="Drilldown demo" path={`${urlBase}/drilldown`} />
-      <Switch>
-        <Route path={`${urlBase}/drilldown`} component={DrilldownHome} exact />
-        <Route path={`${urlBase}/drilldown/lib/:lib`} component={DrilldownLibraryPage} />
-      </Switch>
+      <Routes>
+        <Route path={`${urlBase}/drilldown`} element={<DrilldownHome />} />
+        <Route path={`${urlBase}/drilldown/lib/:lib`} element={<DrilldownLibraryPage />} />
+      </Routes>
     </BreadcrumbProvider>
   );
 }
