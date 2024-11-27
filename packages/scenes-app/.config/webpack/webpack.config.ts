@@ -47,6 +47,7 @@ const config = (env): Configuration => ({
     'react-redux',
     'redux',
     'rxjs',
+    'react-router',
     'd3',
     'angular',
     '@grafana/ui',
