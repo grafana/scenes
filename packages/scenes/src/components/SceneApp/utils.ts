@@ -33,11 +33,6 @@ export function getUrlWithAppState(path: string, searchObject: UrlQueryMap, pres
   return urlUtil.renderUrl(locationUtil.assureBaseUrl(path), paramsCopy);
 }
 
-export function renderSceneComponent(sceneObject: SceneObject) {
-  // @ts-ignore
-  return React.createElement(sceneObject.Component, { model: sceneObject });
-}
-
 export function useSceneRouteMatch(path: string) {
   const params = useParams();
   const location = useLocation();
@@ -58,4 +53,4 @@ export function useSceneRouteMatch(path: string) {
   };
 
   return match;
-};
+}

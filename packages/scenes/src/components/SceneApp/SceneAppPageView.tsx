@@ -6,7 +6,7 @@ import { SceneObject } from '../../core/types';
 import { SceneDebugger } from '../SceneDebugger/SceneDebugger';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
-import { getUrlWithAppState, renderSceneComponent, useAppQueryParams, useSceneRouteMatch } from './utils';
+import { getUrlWithAppState, useAppQueryParams, useSceneRouteMatch } from './utils';
 import { useUrlSync } from '../../services/useUrlSync';
 import { SceneAppContext } from './SceneApp';
 import { useLocationServiceSafe } from '../../utils/utils';
@@ -133,6 +133,6 @@ export interface SceneAppDrilldownViewRenderProps {
 
 export function SceneAppDrilldownViewRender({ drilldown, parent }: SceneAppDrilldownViewRenderProps) {
   const routeMatch = useSceneRouteMatch(drilldown.routePath!);
-
-  return renderSceneComponent(parent.getDrilldownPage(drilldown, routeMatch));
+  const page = parent.getDrilldownPage(drilldown, routeMatch);
+  return <page.Component model={page} />;
 }

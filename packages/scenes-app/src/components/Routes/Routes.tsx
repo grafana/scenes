@@ -8,8 +8,8 @@ import { ReactDemoPage } from '../../react-demo/Home';
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path={ROUTES.Demos} Component={DemoListPage} />
-      <Route path={ROUTES.GrafanaMonitoring} Component={GrafanaMonitoringApp} />
+      <Route path={`${ROUTES.Demos}/*`} Component={DemoListPage} />
+      <Route path={`${ROUTES.GrafanaMonitoring}/*`} Component={GrafanaMonitoringApp} />
       <Route path={`${ROUTES.ReactDemo}/*`} Component={ReactDemoPage} />
       {/* <Redirect to={prefixRoute(ROUTES.Demos)} /> */}
     </Routes>

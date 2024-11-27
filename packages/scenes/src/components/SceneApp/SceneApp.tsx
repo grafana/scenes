@@ -4,7 +4,6 @@ import { Route, Routes } from 'react-router-dom';
 import { DataRequestEnricher, SceneComponentProps } from '../../core/types';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneAppState } from './types';
-import { renderSceneComponent } from './utils';
 
 /**
  * Responsible for top level pages routing
@@ -23,7 +22,7 @@ export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequ
       <SceneAppContext.Provider value={model}>
         <Routes>
           {pages.map((page) => (
-            <Route key={page.state.url} path={`${page.state.url}/*`} Component={() => renderSceneComponent(page)} />
+            <Route key={page.state.url} path={page.state.routePath} element={<page.Component model={page} />} />
           ))}
         </Routes>
       </SceneAppContext.Provider>

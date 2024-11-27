@@ -32,7 +32,8 @@ function getDemoSceneApp() {
       new SceneAppPage({
         title: 'Demos',
         key: 'SceneAppPage Demos',
-        url: prefixRoute(ROUTES.Demos),
+        url: `${prefixRoute(ROUTES.Demos)}`,
+        routePath: '*',
         preserveUrlKeys: [],
         getScene: () => {
           return new EmbeddedScene({
@@ -42,7 +43,7 @@ function getDemoSceneApp() {
         },
         drilldowns: [
           {
-            routePath: `${demoUrl(':demo')}`,
+            routePath: `:demo/*`,
             getPage: (routeMatch, parent) => {
               const demos = getDemos();
               const demoSlug = decodeURIComponent(routeMatch.params.demo);
@@ -54,7 +55,8 @@ function getDemoSceneApp() {
 
               return demoInfo.getPage({
                 title: demoInfo.title,
-                url: `${demoUrl(slugify(demoInfo.title))}`,
+                url: `${prefixRoute(ROUTES.Demos)}/${demoSlug}`,
+                routePath: `${slugify(demoInfo.title)}/*`,
                 getParentPage: () => parent,
               });
             },
@@ -67,8 +69,7 @@ function getDemoSceneApp() {
 
 export const DemoListPage = () => {
   const scene = useSceneApp(getDemoSceneApp);
-  return <div>HEllko</div>;
-  //return <scene.Component model={scene} />;
+  return <scene.Component model={scene} />;
 };
 
 export interface DemoListState extends SceneObjectState {
