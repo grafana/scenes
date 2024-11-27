@@ -216,6 +216,14 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   }
 
   /**
+   * Sets the default series limit for the panel.
+   */
+  public setSeriesLimit(seriesLimit: VizPanelState['seriesLimit']): this {
+    this._state.seriesLimit = seriesLimit
+    return this;
+  }
+
+  /**
    * Makes it possible to shared config between different builders
    */
   public applyMixin(mixin: (builder: this) => void): this {
