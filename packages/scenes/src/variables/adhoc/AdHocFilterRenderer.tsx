@@ -38,8 +38,6 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
-  // TODO remove expect-error when we're on the latest version of @grafana/data
-  // @ts-expect-error
   const [uncommittedValue, setUncommittedValue] = useState<SelectableValue>(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []);
   const isMultiValue = isMultiValueOperator(filter.operator);
 
@@ -64,14 +62,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     if (isMultiValueOperator(existingOperator) && !isMultiValueOperator(newOperator)) {
       update.value = '';
       update.valueLabels = [''];
-      // TODO remove expect-error when we're on the latest version of @grafana/data
-      // @ts-expect-error
       update.values = undefined;
       setUncommittedValue([]);
     // set values if operator has changed from single to multi
     } else if (!isMultiValueOperator(existingOperator) && isMultiValueOperator(newOperator) && filter.value) {
-      // TODO remove expect-error when we're on the latest version of @grafana/data
-      // @ts-expect-error
       update.values = [filter.value];
       setUncommittedValue([{
         value: filter.value,
@@ -106,7 +100,6 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       model._updateFilter(filter, {
         value: uncommittedValue[0]?.value ?? '',
         // TODO remove expect-error when we're on the latest version of @grafana/data
-        // @ts-expect-error
         values: uncommittedValue.map((option: SelectableValue<string>) => option.value),
         valueLabels: uncommittedValue.map((option: SelectableValue<string>) => option.label),
       });
@@ -182,8 +175,6 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
           // clear value if key has changed
           value: '',
           valueLabels: [''],
-          // TODO remove expect-error when we're on the latest version of @grafana/data
-          // @ts-expect-error
           values: undefined
         })
         setUncommittedValue([]);

@@ -115,8 +115,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           valueLabels.push(item.label ?? item.value!);
           values.push(item.value!);
         });
-        // TODO remove when we're on the latest version of @grafana/data
-        //@ts-expect-error
         model._updateFilter(filter!, { valueLabels, values, value: values[0] });
         setFilterMultiValues([]);
       }
@@ -430,11 +428,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   //    and in this case we default to 'value' input type and focus input
   useEffect(() => {
     if (!isAlwaysWip) {
-      // TODO remove when we're on the latest version of @grafana/data
-      //@ts-expect-error
       if (hasMultiValueOperator && filter?.values?.length) {
-        // TODO remove when we're on the latest version of @grafana/data
-        //@ts-expect-error
         const multiValueOptions = (filter.values as string[]).reduce<Array<SelectableValue<string>>>(
           (acc, value, i) => [
             ...acc,

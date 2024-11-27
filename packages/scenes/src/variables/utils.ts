@@ -1,6 +1,5 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
-// @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
