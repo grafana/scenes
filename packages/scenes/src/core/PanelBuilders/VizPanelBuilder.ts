@@ -215,6 +215,9 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
     return this;
   }
 
+  /**
+   * Sets the default series limit for the panel.
+   */
   public setSeriesLimit(seriesLimit: VizPanelState['seriesLimit']): this {
     this._state.seriesLimit = seriesLimit
     return this;
