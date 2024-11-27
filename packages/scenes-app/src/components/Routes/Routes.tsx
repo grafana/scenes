@@ -9,15 +9,9 @@ import { ReactDemoPage } from '../../react-demo/Home';
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path={prefixRoute(`${ROUTES.Demos}`)}>
-        <DemoListPage />
-      </Route>
-      <Route path={prefixRoute(`${ROUTES.GrafanaMonitoring}`)}>
-        <GrafanaMonitoringApp />
-      </Route>
-      <Route path={prefixRoute(`${ROUTES.ReactDemo}`)}>
-        <ReactDemoPage />
-      </Route>
+      <Route path={prefixRoute(`${ROUTES.Demos}`)} Component={DemoListPage} />
+      <Route path={prefixRoute(`${ROUTES.GrafanaMonitoring}`)} Component={GrafanaMonitoringApp} />
+      <Route path={prefixRoute(`${ROUTES.ReactDemo}`)} Component={ReactDemoPage} />
       {/* <Redirect to={prefixRoute(ROUTES.Demos)} /> */}
     </Routes>
   );
