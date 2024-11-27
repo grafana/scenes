@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { prefixRoute } from '../../utils/utils.routing';
 import { ROUTES } from '../../constants';
 import { DemoListPage } from '../../pages/DemoListPage';
 import GrafanaMonitoringApp from '../../monitoring-app/GrafanaMonitoringApp';
@@ -11,7 +10,7 @@ export function AppRoutes() {
     <Routes>
       <Route path={ROUTES.Demos} Component={DemoListPage} />
       <Route path={ROUTES.GrafanaMonitoring} Component={GrafanaMonitoringApp} />
-      <Route path={ROUTES.ReactDemo} Component={ReactDemoPage} />
+      <Route path={`${ROUTES.ReactDemo}/*`} Component={ReactDemoPage} />
       {/* <Redirect to={prefixRoute(ROUTES.Demos)} /> */}
     </Routes>
   );

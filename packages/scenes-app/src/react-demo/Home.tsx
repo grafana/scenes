@@ -22,18 +22,18 @@ export function ReactDemoPage() {
     <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }} withQueryController>
       <CustomVariable name="env" query="dev, test, prod" initialValue="dev">
         <Routes>
-          <Route path={`${urlBase}`} element={<HomePage />} />
-          <Route path={`${urlBase}/repeat-by-variable`} element={<RepeatByVariablePage />} />
-          <Route path={`${urlBase}/repeat-by-series`} element={<RepeatBySeriesPage />} />
-          <Route path={`${urlBase}/dynamic-queries`} element={<DynamicQueriesPage />} />
-          <Route path={`${urlBase}/dynamic-viz`} element={<DynamicVisualiationPage />} />
-          <Route path={`${urlBase}/dynamic-vars`} element={<DynamicVariablesPage />} />
-          <Route path={`${urlBase}/nested-context`} element={<NestedContextsPage />} />
-          <Route path={`${urlBase}/interpolation-hook`} element={<InterpolationHookPage />} />
-          <Route path={`${urlBase}/query-var-hook`} element={<UseQueryVariableHookPage />} />
-          <Route path={`${urlBase}/drilldown`} element={<DrilldownDemoPage />} />
-          <Route path={`${urlBase}/annotations`} element={<AnnotationDemoPage />} />
-          <Route path={`${urlBase}/transformations`} element={<TransformationsDemoPage />} />
+          <Route path="" Component={HomePage} />
+          <Route path={`/repeat-by-variable`} Component={RepeatByVariablePage} />
+          <Route path={`/repeat-by-series`} Component={RepeatBySeriesPage} />
+          <Route path={`/dynamic-queries`} Component={DynamicQueriesPage} />
+          <Route path={`/dynamic-viz`} Component={DynamicVisualiationPage} />
+          <Route path={`/dynamic-vars`} Component={DynamicVariablesPage} />
+          <Route path={`/nested-context`} Component={NestedContextsPage} />
+          <Route path={`/interpolation-hook`} Component={InterpolationHookPage} />
+          <Route path={`/query-var-hook`} Component={UseQueryVariableHookPage} />
+          <Route path={`/drilldown/*`} Component={DrilldownDemoPage} />
+          <Route path={`/annotations`} Component={AnnotationDemoPage} />
+          <Route path={`/transformations`} Component={TransformationsDemoPage} />
         </Routes>
       </CustomVariable>
     </SceneContextProvider>

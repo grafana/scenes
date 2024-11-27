@@ -16,8 +16,8 @@ export function DrilldownDemoPage() {
     <BreadcrumbProvider>
       <Breadcrumb text="Drilldown demo" path={`${urlBase}/drilldown`} />
       <Routes>
-        <Route path={`${urlBase}/drilldown`} element={<DrilldownHome />} />
-        <Route path={`${urlBase}/drilldown/lib/:lib`} element={<DrilldownLibraryPage />} />
+        <Route path={''} element={<DrilldownHome />} />
+        <Route path={`lib/:lib`} element={<DrilldownLibraryPage />} />
       </Routes>
     </BreadcrumbProvider>
   );

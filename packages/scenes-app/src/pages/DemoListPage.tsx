@@ -67,7 +67,8 @@ function getDemoSceneApp() {
 
 export const DemoListPage = () => {
   const scene = useSceneApp(getDemoSceneApp);
-  return <scene.Component model={scene} />;
+  return <div>HEllko</div>;
+  //return <scene.Component model={scene} />;
 };
 
 export interface DemoListState extends SceneObjectState {
