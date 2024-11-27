@@ -1,8 +1,6 @@
-import React from 'react';
 import { matchPath, useLocation, useParams } from 'react-router-dom';
 import { UrlQueryMap, locationUtil, urlUtil } from '@grafana/data';
 import { locationSearchToObject } from '@grafana/runtime';
-import { SceneObject } from '../../core/types';
 import { SceneRouteMatch } from './types';
 
 export function useAppQueryParams(): UrlQueryMap {
