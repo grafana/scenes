@@ -215,6 +215,11 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
     return this;
   }
 
+  public setSeriesLimit(seriesLimit: VizPanelState['seriesLimit']): this {
+    this._state.seriesLimit = seriesLimit
+    return this;
+  }
+
   /**
    * Makes it possible to shared config between different builders
    */
