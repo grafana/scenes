@@ -219,45 +219,45 @@ describe('sceneGraph', () => {
   });
 
   describe('findDescendents', () => {
-    
-    class TestSceneObj extends SceneObjectBase<SceneObjectState & {children?: SceneObject[]}> {   
-    }
-    class TargetSceneObj extends TestSceneObj {   
-    }
+    class TestSceneObj extends SceneObjectBase<SceneObjectState & { children?: SceneObject[] }> {}
+    class TargetSceneObj extends TestSceneObj {}
 
     const root = new TestSceneObj({
       children: [
-        new TargetSceneObj({key: '1-target'}),
-        new TargetSceneObj({key: '2-target', children: [
-          new TargetSceneObj({key: '2-1-target'}),
-          new TestSceneObj({key: '2-2'}),
-        ]}),
-        new TestSceneObj({key: '3', children: [
-          new TargetSceneObj({key: '3-1-target'}),
-          new TestSceneObj({key: '3-2'}),
-          new TargetSceneObj({key: '3-3-target'}),
-        ]}),
-      ]
-    })
-    
-    it('Can find all descendents', ()=>{
+        new TargetSceneObj({ key: '1-target' }),
+        new TargetSceneObj({
+          key: '2-target',
+          children: [new TargetSceneObj({ key: '2-1-target' }), new TestSceneObj({ key: '2-2' })],
+        }),
+        new TestSceneObj({
+          key: '3',
+          children: [
+            new TargetSceneObj({ key: '3-1-target' }),
+            new TestSceneObj({ key: '3-2' }),
+            new TargetSceneObj({ key: '3-3-target' }),
+          ],
+        }),
+      ],
+    });
+
+    it('Can find all descendents', () => {
       const descendents = sceneGraph.findDescendents(root, TargetSceneObj);
 
       // Only the descendents of the starting point with the target type should be present
       expect(descendents.length).toBe(5);
-      expect(descendents.find((s => s.state.key === '1-target'))).toBeDefined();
-      expect(descendents.find((s => s.state.key === '2-target'))).toBeDefined();
-      expect(descendents.find((s => s.state.key === '2-1-target'))).toBeDefined();
-      expect(descendents.find((s => s.state.key === '3-1-target'))).toBeDefined();
-      expect(descendents.find((s => s.state.key === '3-3-target'))).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '1-target')).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '2-target')).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '2-1-target')).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '3-1-target')).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '3-3-target')).toBeDefined();
       // Not targets should not be present
-      expect(descendents.find((s => s.state.key === '2-2'))).toBeUndefined();
-      expect(descendents.find((s => s.state.key === '3-2'))).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '2-2')).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '3-2')).toBeUndefined();
       // Starting point scene object should not be present
-      expect(descendents.find((s => s === root))).toBeUndefined();
-    })
+      expect(descendents.find((s) => s === root)).toBeUndefined();
+    });
 
-    it('Will only find descendents', ()=>{
+    it('Will only find descendents', () => {
       const target2 = root.state.children?.[1];
 
       expect(target2).toBeDefined();
@@ -269,23 +269,23 @@ describe('sceneGraph', () => {
       expect(target2.state.key).toBe('2-target');
 
       const descendents = sceneGraph.findDescendents(target2, TargetSceneObj);
-      
+
       // Only the descendents of the starting point with the target type should be present
       expect(descendents.length).toBe(1);
-      expect(descendents.find((s => s.state.key === '2-1-target'))).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '2-1-target')).toBeDefined();
       // Parents and siblings of parents should not be present
-      expect(descendents.find((s => s.state.key === '1-target'))).toBeUndefined();
-      expect(descendents.find((s => s.state.key === '2-target'))).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '1-target')).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '2-target')).toBeUndefined();
       // Cousins should not be present
-      expect(descendents.find((s => s.state.key === '3-1-target'))).toBeUndefined();
-      expect(descendents.find((s => s.state.key === '3-3-target'))).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '3-1-target')).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '3-3-target')).toBeUndefined();
       // Not targets should not be present
-      expect(descendents.find((s => s.state.key === '2-2'))).toBeUndefined();
-      expect(descendents.find((s => s.state.key === '3-2'))).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '2-2')).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '3-2')).toBeUndefined();
       // Starting point scene object should not be present
-      expect(descendents.find((s => s === target2))).toBeUndefined();
-    })
-  })
+      expect(descendents.find((s) => s === target2)).toBeUndefined();
+    });
+  });
 
   describe('can find by key (and type)', () => {
     const data = new SceneDataNode();

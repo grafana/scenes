@@ -36,6 +36,7 @@ import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
+import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -145,7 +146,16 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        const result = await importPanelPlugin(pluginId);
+        const panelPromise = importPanelPlugin(pluginId);
+
+        const queryControler = sceneGraph.getQueryController(this);
+        if (queryControler && queryControler.state.enableProfiling) {
+          wrapPromiseInStateObservable(panelPromise)
+            .pipe(registerQueryWithController({ type: 'plugin', origin: this }))
+            .subscribe(() => {});
+        }
+
+        const result = await panelPromise;
         this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
@@ -166,7 +176,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return panelId;
   }
 
-  private async _pluginLoaded(plugin: PanelPlugin, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
+  private async _pluginLoaded(
+    plugin: PanelPlugin,
+    overwriteOptions?: DeepPartial<{}>,
+    overwriteFieldConfig?: FieldConfigSource,
+    isAfterPluginChange?: boolean
+  ) {
     const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
@@ -266,11 +281,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   public async changePluginType(pluginId: string, newOptions?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
-    const {
-      options: prevOptions,
-      fieldConfig: prevFieldConfig,
-      pluginId: prevPluginId,
-    } = this.state;
+    const { options: prevOptions, fieldConfig: prevFieldConfig, pluginId: prevPluginId } = this.state;
 
     //clear field config cache to update it later
     this._dataWithFieldConfig = undefined;
@@ -287,8 +298,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       type: pluginId,
     };
 
-    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React. 
-    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches. 
+    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React.
+    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches.
     const updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
 
     if (updatedOptions && !isEmpty(updatedOptions)) {

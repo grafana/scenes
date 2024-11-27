@@ -37,7 +37,7 @@ jest.mock('@grafana/runtime', () => ({
 
 const DataSourceVariableClass = jest.requireActual('@grafana/scenes').DataSourceVariable;
 
-describe('DatasourceVariable', () => {  
+describe('DatasourceVariable', () => {
   beforeEach(() => {
     jest.spyOn(DataSourceVariableClass.prototype, 'getValueOptions').mockImplementation(() => of([]));
   });
@@ -64,7 +64,7 @@ describe('DatasourceVariable', () => {
 
     const { rerender } = render(
       <TestContextProvider value={scene}>
-        <DataSourceVariable name="dsVar" pluginId="grafana-testdata-datasource" label='test1'>
+        <DataSourceVariable name="dsVar" pluginId="grafana-testdata-datasource" label="test1">
           <VariableControl name="dsVar" />
         </DataSourceVariable>
       </TestContextProvider>
@@ -78,7 +78,7 @@ describe('DatasourceVariable', () => {
 
     rerender(
       <TestContextProvider value={scene}>
-        <DataSourceVariable name="dsVar" pluginId="grafana-testdata-datasource" label='test2'>
+        <DataSourceVariable name="dsVar" pluginId="grafana-testdata-datasource" label="test2">
           <VariableControl name="dsVar" />
         </DataSourceVariable>
       </TestContextProvider>
@@ -87,5 +87,5 @@ describe('DatasourceVariable', () => {
     expect(variable).toBeDefined();
     expect(variable.state.label).toBe('test2');
     expect(screen.getByText('test2')).toBeInTheDocument();
-  })
+  });
 });
