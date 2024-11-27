@@ -1,3 +1,16 @@
+# v5.27.0 (Wed Nov 27 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneObject: Render before activation [#968](https://github.com/grafana/scenes/pull/968) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.26.1 (Wed Nov 27 2024)
 
 #### 🐛 Bug Fix
