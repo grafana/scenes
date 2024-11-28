@@ -9,10 +9,10 @@ export function evaluateTimeRange(
   delay?: string
 ): TimeRange {
   const hasDelay = delay && to === 'now';
-
+  const now = Date.now();
   return {
-    from: dateMath.parse(from, false, timeZone, fiscalYearStartMonth)!,
-    to: dateMath.parse(hasDelay ? 'now-' + delay : to, true, timeZone, fiscalYearStartMonth)!,
+    from: dateMath.parse(from, false, timeZone, fiscalYearStartMonth, now)!,
+    to: dateMath.parse(hasDelay ? 'now-' + delay : to, true, timeZone, fiscalYearStartMonth, now)!,
     raw: {
       from: from,
       to: to,
