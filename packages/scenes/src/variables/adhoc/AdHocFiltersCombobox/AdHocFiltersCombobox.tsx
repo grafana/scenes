@@ -78,6 +78,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const disabledIndicesRef = useRef<number[]>([]);
+  const filterInputTypeRef = useRef<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
 
   const optionsSearcher = useMemo(() => fuzzySearchOptions(options), [options]);
 
@@ -222,6 +223,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       setOptionsLoading(true);
       setOptions([]);
       let options: Array<SelectableValue<string>> = [];
+
       try {
         if (inputType === 'key') {
           options = await model._getKeys(null);
@@ -231,6 +233,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           options = await model._getValuesFor(filter!);
         }
 
+        // if input type changed before fetch completed then abort updating options
+        //   this can cause race condition and return incorrect options when input type changed
+        if (filterInputTypeRef.current !== inputType) {
+          return;
+        }
         setOptions(options);
         if (options[0]?.group) {
           setActiveIndex(1);
@@ -461,6 +468,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       setTimeout(() => setForceRefresh({}));
     }
   }, [filterMultiValues, isMultiValueEdit]);
+
+  // synch filterInputTypeRef with filterInputType state
+  useLayoutEffect(() => {
+    if (filterInputTypeRef.current) {
+      filterInputTypeRef.current = filterInputType;
+    }
+  }, [filterInputType]);
 
   useLayoutEffect(() => {
     // this is needed to scroll virtual list to the position of currently selected
