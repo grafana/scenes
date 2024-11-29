@@ -20,7 +20,7 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
   name: string;
-  /** Determines whether the component allows multiple selections (MultiSelect) or a single selection (Select). Defaults to true for MultiSelect. */
+  /** Determines whether the component uses MultiSelect or Select. Defaults to true for MultiSelect. */
   isMultiSelect?: boolean;
   /** The visible keys to group on */
   // TODO review this type and name (naming is hard)
