@@ -1,3 +1,15 @@
+# v5.28.1 (Fri Nov 29 2024)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersCombobox: Prevent updating combobox options when input type changed during fetch [#982](https://github.com/grafana/scenes/pull/982) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v5.28.0 (Fri Nov 29 2024)
 
 #### 🚀 Enhancement
