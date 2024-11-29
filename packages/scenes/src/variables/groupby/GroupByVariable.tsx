@@ -20,6 +20,8 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
   name: string;
+  /** Determines if user can select several options*/
+  isMulti: boolean;
   /** Determines whether the component uses MultiSelect or Select. Defaults to true for MultiSelect. */
   isMultiSelect?: boolean;
   /** The visible keys to group on */
@@ -213,6 +215,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     value,
     text,
     key,
+    isMulti,
     isMultiSelect = true,
     maxVisibleValues,
     noValueOnClear,
@@ -331,6 +334,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       isClearable={true}
       hideSelectedOptions={false}
       noValueOnClear={true}
+      isMulti={isMulti}
       isLoading={isFetchingOptions}
       onInputChange={onInputChange}
       onChange={(newValue, action) => {
@@ -341,11 +345,16 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
           }
           return;
         }
-        if (newValue?.value) {
+
+        if (isMulti === false && newValue?.value) {
           setUncommittedValue([newValue]);
           model.changeValueTo(newValue.value, newValue.label);
+        } else if (isMulti && Array.isArray(newValue)) {
+          setUncommittedValue(newValue);
+          model.changeValueTo(newValue.map(v => v.value), newValue.map(v => v.label));
         }
       }}
+
       onOpenMenu={async () => {
         setIsFetchingOptions(true);
         await lastValueFrom(model.validateAndUpdate());
