@@ -1,3 +1,15 @@
+# v5.28.0 (Fri Nov 29 2024)
+
+#### 🐛 Bug Fix
+
+- Chore: Bump grafana dependencies [#965](https://github.com/grafana/scenes/pull/965) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.25.0 (Wed Nov 13 2024)
 
 #### 🚀 Enhancement
