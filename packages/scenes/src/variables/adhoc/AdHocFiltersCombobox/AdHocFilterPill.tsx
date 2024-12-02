@@ -69,12 +69,16 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         className={cx(styles.combinedFilterPill, { [styles.readOnlyCombinedFilter]: readOnly })}
         onClick={(e) => {
           e.stopPropagation();
-          setPopulateInputOnEdit(true);
+          if(model.state.populateInputOnEdit) {
+            setPopulateInputOnEdit(true);
+          }
           handleChangeViewMode();
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
-            setPopulateInputOnEdit(true);
+            if(model.state.populateInputOnEdit) {
+              setPopulateInputOnEdit(true);
+            }
             handleChangeViewMode();
           }
         }}

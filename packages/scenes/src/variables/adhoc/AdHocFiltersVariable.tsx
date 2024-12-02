@@ -95,6 +95,12 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   useQueriesAsFilterForOptions?: boolean;
 
   /**
+   * Populates the filter pill with the existing value.
+   * If true, this will hide any results from getTagValuesProvider that don't match the existing value until the user deletes the existing value.
+   */
+  populateInputOnEdit?: boolean
+
+  /**
    * Flag that decides whether custom values can be added to the filter
    */
   allowCustomValue?: boolean;
