@@ -7,7 +7,6 @@ import { selectors } from '@grafana/e2e-selectors';
 import { CustomVariable } from '../variants/CustomVariable';
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import userEvent from '@testing-library/user-event';
-import { TestVariable } from '../variants/TestVariable';
 
 describe('VariableValueSelect', () => {
   let model: MultiValueVariable<MultiValueVariableState>;
