@@ -45,6 +45,10 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
+    if (this.state.options) {
+      return of(this.state.options);
+    }
+    
     if (!this.state.pluginId) {
       return of([]);
     }
