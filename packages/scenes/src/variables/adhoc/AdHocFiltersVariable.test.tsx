@@ -1005,6 +1005,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
 
   describe('using new combobox layout - populateInputOnEdit', () => {
+    // needed for floating-ui to correctly calculate the position of the dropdown
     beforeAll(() => {
       const mockGetBoundingClientRect = jest.fn(() => ({
         width: 120,
@@ -1019,6 +1020,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         value: mockGetBoundingClientRect,
       });
     });
+
     beforeEach(() => {
       setup({
         populateInputOnEdit: true,
