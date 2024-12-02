@@ -1003,8 +1003,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
-  describe('using new combobox layout', () => {
-    // needed for floating-ui to correctly calculate the position of the dropdown
+
+  describe('using new combobox layout - populateInputOnEdit', () => {
     beforeAll(() => {
       const mockGetBoundingClientRect = jest.fn(() => ({
         width: 120,
@@ -1019,9 +1019,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         value: mockGetBoundingClientRect,
       });
     });
-
     beforeEach(() => {
       setup({
+        populateInputOnEdit: true,
         getTagKeysProvider: async () => ({
           replace: true,
           values: [
@@ -1040,48 +1040,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         }),
         layout: 'combobox',
       });
-    });
-
-    it('displays the existing filters', async () => {
-      expect(await screen.findByText('key1 = val1')).toBeInTheDocument();
-      expect(await screen.findByText('key2 = val2')).toBeInTheDocument();
-    });
-
-    it('focusing the input opens the key dropdown', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
-
-      // check the key dropdown is open
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: 'key2' })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: 'key3' })).toBeInTheDocument();
-    });
-
-    it('can remove a filter by clicking the remove button on a chip', async () => {
-      await userEvent.click(screen.getByRole('button', { name: 'Remove filter with key key1' }));
-
-      // check the filter has been removed without affecting the other
-      expect(screen.queryByText('key1 = val1')).not.toBeInTheDocument();
-      expect(screen.getByText('key2 = val2')).toBeInTheDocument();
-
-      // check focus has reverted back to the input
-      expect(screen.getByRole('combobox')).toHaveFocus();
-    });
-
-    it('can remove a filter with the keyboard', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
-
-      // remove second filter
-      await userEvent.keyboard('{shift>}{tab}{/shift}');
-      expect(screen.getByRole('button', { name: 'Remove filter with key key2' })).toHaveFocus();
-      await userEvent.keyboard('{enter}');
-
-      // check the filter has been removed without affecting the other
-      expect(screen.queryByText('key2 = val2')).not.toBeInTheDocument();
-      expect(screen.getByText('key1 = val1')).toBeInTheDocument();
-
-      // check focus has reverted back to the input
-      expect(screen.getByRole('combobox')).toHaveFocus();
     });
 
     it('can edit filters by clicking the chip', async () => {
@@ -1148,6 +1106,103 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
       // other untouched filter should still be there as well
       expect(screen.getByText('key1 = val1')).toBeInTheDocument();
+    });
+  })
+
+  describe('using new combobox layout', () => {
+    // needed for floating-ui to correctly calculate the position of the dropdown
+    beforeAll(() => {
+      const mockGetBoundingClientRect = jest.fn(() => ({
+        width: 120,
+        height: 120,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+      }));
+
+      Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
+        value: mockGetBoundingClientRect,
+      });
+    });
+
+    beforeEach(() => {
+      setup({
+        getTagKeysProvider: async () => ({
+          replace: true,
+          values: [
+            { text: 'key1', value: 'key1' },
+            { text: 'key2', value: 'key2' },
+            { text: 'key3', value: 'key3' },
+          ],
+        }),
+        getTagValuesProvider: async () => ({
+          replace: true,
+          values: [
+            { text: 'val1', value: 'val1' },
+            { text: 'val2', value: 'val2' },
+            { text: 'val3', value: 'val3' },
+          ],
+        }),
+        layout: 'combobox',
+      });
+    });
+
+    it('displays the existing filters', async () => {
+      expect(await screen.findByText('key1 = val1')).toBeInTheDocument();
+      expect(await screen.findByText('key2 = val2')).toBeInTheDocument();
+    });
+
+    it('focusing the input opens the key dropdown', async () => {
+      await userEvent.click(screen.getByRole('combobox'));
+
+      // check the key dropdown is open
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'key2' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'key3' })).toBeInTheDocument();
+    });
+
+    it('will show values from getTagValuesProvider when clicking on a chip', async () => {
+      // Click on combobox pill
+      await userEvent.click(screen.getByRole('button', { name: 'Edit filter with key key2' }));
+
+      // Results from getTagValuesProvider should be rendered on the screen
+      const options = screen.getAllByRole('option')
+      expect(options[0].textContent).toEqual(' val1')
+      expect(options[1].textContent).toEqual(' val2')
+      expect(options[2].textContent).toEqual(' val3')
+
+      // Change the key2 value to value3
+      await userEvent.click(screen.getByRole('option', {name: 'val3'}))
+      expect(screen.getByLabelText('Edit filter with key key2').textContent).toContain('key2 = val3')
+    });
+
+    it('can remove a filter by clicking the remove button on a chip', async () => {
+      await userEvent.click(screen.getByRole('button', { name: 'Remove filter with key key1' }));
+
+      // check the filter has been removed without affecting the other
+      expect(screen.queryByText('key1 = val1')).not.toBeInTheDocument();
+      expect(screen.getByText('key2 = val2')).toBeInTheDocument();
+
+      // check focus has reverted back to the input
+      expect(screen.getByRole('combobox')).toHaveFocus();
+    });
+
+    it('can remove a filter with the keyboard', async () => {
+      await userEvent.click(screen.getByRole('combobox'));
+
+      // remove second filter
+      await userEvent.keyboard('{shift>}{tab}{/shift}');
+      expect(screen.getByRole('button', { name: 'Remove filter with key key2' })).toHaveFocus();
+      await userEvent.keyboard('{enter}');
+
+      // check the filter has been removed without affecting the other
+      expect(screen.queryByText('key2 = val2')).not.toBeInTheDocument();
+      expect(screen.getByText('key1 = val1')).toBeInTheDocument();
+
+      // check focus has reverted back to the input
+      expect(screen.getByRole('combobox')).toHaveFocus();
     });
 
     it('can add a new filter by selecting key, operator and value', async () => {
