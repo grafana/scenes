@@ -7,6 +7,7 @@ import { selectors } from '@grafana/e2e-selectors';
 import { CustomVariable } from '../variants/CustomVariable';
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import userEvent from '@testing-library/user-event';
+import { TestVariable } from '../variants/TestVariable';
 
 describe('VariableValueSelect', () => {
   let model: MultiValueVariable<MultiValueVariableState>;
@@ -80,6 +81,7 @@ describe('VariableValueSelect', () => {
     expect(variableValueSelectElement).toBeInTheDocument();
     expect(inputElement).toBeDisabled();
   });
+
   it('should render VariableValueSelect component with disabled value', async () => {
     const model = new CustomVariable({
       name: 'test',
