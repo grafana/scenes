@@ -243,8 +243,8 @@ describe('VizPanelBuilder', () => {
 
     it('allows series limit to be set', () => {
       const p1 = getTestBuilder().setSeriesLimit(10).build();
-      expect(p1.state.seriesLimit).toEqual(10)
-    })
+      expect(p1.state.seriesLimit).toEqual(10);
+    });
 
     it('allows mixin function', () => {
       const mixin = (builder: ReturnType<typeof getTestBuilder>) => {

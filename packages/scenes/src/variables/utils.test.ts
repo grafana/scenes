@@ -185,7 +185,7 @@ describe('getFuzzySearcher orders by match quality with case-sensitivity', () =>
       'container_namespace',
       'Namespace',
       'client_k8s_namespace_name',
-      'foobar'
+      'foobar',
     ];
 
     const searcher = getFuzzySearcher(haystack);

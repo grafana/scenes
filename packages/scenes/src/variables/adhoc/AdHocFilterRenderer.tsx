@@ -38,7 +38,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
-  const [uncommittedValue, setUncommittedValue] = useState<SelectableValue>(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []);
+  const [uncommittedValue, setUncommittedValue] = useState<SelectableValue>(
+    filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []
+  );
   const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
@@ -64,16 +66,18 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       update.valueLabels = [''];
       update.values = undefined;
       setUncommittedValue([]);
-    // set values if operator has changed from single to multi
+      // set values if operator has changed from single to multi
     } else if (!isMultiValueOperator(existingOperator) && isMultiValueOperator(newOperator) && filter.value) {
       update.values = [filter.value];
-      setUncommittedValue([{
-        value: filter.value,
-        label: filter.valueLabels?.[0] ?? filter.value,
-      }]);
+      setUncommittedValue([
+        {
+          value: filter.value,
+          label: filter.valueLabels?.[0] ?? filter.value,
+        },
+      ]);
     }
     model._updateFilter(filter, update);
-  }
+  };
 
   const filteredValueOptions = useMemo(
     () => handleOptionGroups(optionSearcher(valueInputValue)),
@@ -103,8 +107,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         values: uncommittedValue.map((option: SelectableValue<string>) => option.value),
         valueLabels: uncommittedValue.map((option: SelectableValue<string>) => option.label),
       });
-    }
-  }
+    },
+  };
 
   const valueSelect = (
     <Select
@@ -125,7 +129,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       onChange={(v) => {
         model._updateFilter(filter, {
           value: v.value,
-          valueLabels: v.label ? [v.label] : [v.value]
+          valueLabels: v.label ? [v.label] : [v.value],
         });
 
         if (valueHasCustomValue !== v.__isNew__) {
@@ -175,8 +179,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
           // clear value if key has changed
           value: '',
           valueLabels: [''],
-          values: undefined
-        })
+          values: undefined,
+        });
         setUncommittedValue([]);
       }}
       autoFocus={filter.key === ''}
@@ -214,10 +218,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       options={model._getOperators()}
       onChange={onOperatorChange}
       onOpenMenu={() => {
-        setIsOperatorOpen(true)
+        setIsOperatorOpen(true);
       }}
       onCloseMenu={() => {
-        setIsOperatorOpen(false)
+        setIsOperatorOpen(false);
       }}
     />
   );

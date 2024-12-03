@@ -1,10 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { useQueryRunner } from './useQueryRunner';
-import {
-  DataSourceApi,
-  DataQueryRequest,
-  toDataFrame,
-} from '@grafana/data';
+import { DataSourceApi, DataQueryRequest, toDataFrame } from '@grafana/data';
 import { getHookContextWrapper, runRequestMock } from '../utils/testUtils';
 import { of } from 'rxjs';
 

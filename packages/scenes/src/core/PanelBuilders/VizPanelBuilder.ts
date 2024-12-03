@@ -67,7 +67,7 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    */
   public setShowMenuAlways(showMenuAlways: VizPanelState['showMenuAlways']): this {
     this._state.showMenuAlways = showMenuAlways;
-    return this
+    return this;
   }
 
   /**
@@ -228,7 +228,7 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    * Sets the default series limit for the panel.
    */
   public setSeriesLimit(seriesLimit: VizPanelState['seriesLimit']): this {
-    this._state.seriesLimit = seriesLimit
+    this._state.seriesLimit = seriesLimit;
     return this;
   }
 

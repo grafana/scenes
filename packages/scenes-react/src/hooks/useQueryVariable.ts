@@ -12,10 +12,10 @@ interface QueryVariableOptions {
 
 /**
  * A custom hook that creates or updates a `QueryVariable` in the scene context.
- * 
+ *
  * @param {QueryVariableOptions} options - Options for configuring the `QueryVariable`.
  * @returns {QueryVariable | null} The `QueryVariable` instance or `null`.
- * 
+ *
  * @example
  * // Usage example
  * const variable = useQueryVariable({
@@ -24,7 +24,7 @@ interface QueryVariableOptions {
  *   query: "*",
  *   regex: ".*someFilter.*"
  * });
- * 
+ *
  * // Returns a QueryVariable instance or null if not a valid QueryVariable
  * if (variable) {
  *   console.log("Variable added to the scene:", variable);
@@ -35,7 +35,12 @@ export function useQueryVariable(options: QueryVariableOptions): QueryVariable |
   let variable = sceneGraph.lookupVariable(options.name, scene);
 
   if (!variable) {
-    variable = new QueryVariable({ name: options.name, datasource: { uid: options.datasource }, query: options.query, regex: options.regex });
+    variable = new QueryVariable({
+      name: options.name,
+      datasource: { uid: options.datasource },
+      query: options.query,
+      regex: options.regex,
+    });
   }
 
   if (!(variable instanceof QueryVariable)) {
@@ -44,7 +49,7 @@ export function useQueryVariable(options: QueryVariableOptions): QueryVariable |
 
   useEffect(() => {
     if (variable) {
-      scene.addVariable(variable)
+      scene.addVariable(variable);
     }
   }, [variable, scene]);
 

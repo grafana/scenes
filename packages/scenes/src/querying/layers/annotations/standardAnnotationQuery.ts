@@ -50,7 +50,7 @@ export function executeAnnotationQuery(
         rangeRaw: timeRange.state.value.raw,
         annotation: query,
         dashboard: {
-          getVariables: getTemplateSrv().getVariables
+          getVariables: getTemplateSrv().getVariables,
         },
       })
     ).pipe(

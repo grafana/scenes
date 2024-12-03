@@ -12,7 +12,7 @@ export function UseQueryVariableHookPage() {
   const options = queryVar?.useState()?.options;
 
   if (!options) {
-   return <div>No variable options found</div>;
+    return <div>No variable options found</div>;
   }
 
   const onUpdateQueryVarRegex = () => {
@@ -26,18 +26,18 @@ export function UseQueryVariableHookPage() {
     >
       <Stack direction="column">
         <Stack direction="column" gap={2}>
-          <div>Variable label: {options.map(val => val.label).join(',')}</div>
-          <div>Variable value: {options.map(val => val.value).join(',')}</div>
+          <div>Variable label: {options.map((val) => val.label).join(',')}</div>
+          <div>Variable value: {options.map((val) => val.value).join(',')}</div>
           <Button variant="secondary" onClick={onUpdateQueryVarRegex}>
             Update query variable regex
           </Button>
         </Stack>
       </Stack>
       <DemoVizLayout>
-      {options.map((option: VariableValueOption) => (
-        <PlainGraphWithRandomWalk key={option.label} title={`${option.value} Panel`} />
-      ))}
-    </DemoVizLayout>
+        {options.map((option: VariableValueOption) => (
+          <PlainGraphWithRandomWalk key={option.label} title={`${option.value} Panel`} />
+        ))}
+      </DemoVizLayout>
     </PageWrapper>
   );
 }
