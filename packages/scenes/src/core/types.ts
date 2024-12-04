@@ -312,6 +312,5 @@ export interface ReactContextsHandler {
   getContextsList(): ReactContextsHandlerEntry[];
   getContext<T = any>(ctx: React.Context<T>): T | undefined;
   subscribeToContext<T = any>(ctx: React.Context<T>, cb: (newCtxValue: T, prevCtxValue: T) => void): Unsubscribable;
-  useContext<T = any>(ctx: React.Context<T>): T | undefined;
   updateContext<T = any>(ctx: React.Context<T>, ctxValue: T): void;
 }
