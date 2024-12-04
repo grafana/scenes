@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Context } from 'react';
 import { MonoTypeOperatorFunction, Observable, Unsubscribable } from 'rxjs';
 
 import {
@@ -74,6 +74,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
 
   /** This abstraction declares URL sync dependencies of a scene object. **/
   readonly urlSync?: SceneObjectUrlSyncHandler;
+
+  /** The React contexts to which this object subscribes */
+  readonly reactContexts?: ReactContextsHandler;
 
   /** Subscribe to state changes */
   subscribeToState(handler: SceneStateChangedHandler<TState>): Unsubscribable;
@@ -302,4 +305,16 @@ export interface SceneUrlSyncOptions {
    * url changes should add a new browser history entry.
    */
   createBrowserHistorySteps?: boolean;
+}
+
+export interface ReactContextsHandlerEntry<T = any> {
+  context: Context<T>;
+}
+
+export interface ReactContextsHandler {
+  getContextsList(): ReactContextsHandlerEntry[];
+  getContext<T = any>(ctx: React.Context<T>): T | undefined;
+  subscribeToContext<T = any>(ctx: React.Context<T>, cb: (newCtxValue: T, prevCtxValue: T) => void): Unsubscribable;
+  useContext<T = any>(ctx: React.Context<T>): T | undefined;
+  updateContext<T = any>(ctx: React.Context<T>, ctxValue: T): void;
 }

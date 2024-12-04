@@ -21,6 +21,7 @@ import { SceneObjectStateChangedEvent } from './events';
 import { cloneSceneObject } from './sceneGraph/utils';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
+import { ReactContexts } from './ReactContexts';
 
 export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState>
   implements SceneObject<TState>
@@ -39,6 +40,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
   protected _variableDependency: SceneVariableDependencyConfigLike | undefined;
   protected _urlSync: SceneObjectUrlSyncHandler | undefined;
+  protected _reactContexts: ReactContexts | undefined;
 
   public constructor(state: TState) {
     if (!state.key) {
@@ -78,6 +80,11 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /** Returns url sync config */
   public get urlSync(): SceneObjectUrlSyncHandler | undefined {
     return this._urlSync;
+  }
+
+  /** Returns React contexts handler */
+  public get reactContexts(): ReactContexts | undefined {
+    return this._reactContexts;
   }
 
   /**

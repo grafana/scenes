@@ -32,6 +32,7 @@ export { SceneObjectBase, useSceneObjectState } from './core/SceneObjectBase';
 export { SceneDataNode } from './core/SceneDataNode';
 export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
+export { ReactContexts } from './core/ReactContexts';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
 export { DataProviderProxy } from './querying/DataProviderProxy';
