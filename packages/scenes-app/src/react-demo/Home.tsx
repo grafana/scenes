@@ -13,7 +13,9 @@ import { InterpolationHookPage } from './InterpolationHookPage';
 import { RepeatBySeriesPage } from './RepeatBySeriesPage';
 import { DemoVizLayout, urlBase } from './utils';
 import { DrilldownDemoPage } from './DrilldownDemoPage';
+import { AnnotationDemoPage } from './AnnotationsDemoPage';
 import { TransformationsDemoPage } from './TransformationsDemoPage';
+import { UseQueryVariableHookPage } from './UseQueryVariableHookPage';
 
 export function ReactDemoPage() {
   return (
@@ -28,7 +30,9 @@ export function ReactDemoPage() {
           <Route path={`${urlBase}/dynamic-vars`} component={DynamicVariablesPage} />
           <Route path={`${urlBase}/nested-context`} component={NestedContextsPage} />
           <Route path={`${urlBase}/interpolation-hook`} component={InterpolationHookPage} />
+          <Route path={`${urlBase}/query-var-hook`} component={UseQueryVariableHookPage} />
           <Route path={`${urlBase}/drilldown`} component={DrilldownDemoPage} />
+          <Route path={`${urlBase}/annotations`} component={AnnotationDemoPage} />
           <Route path={`${urlBase}/transformations`} component={TransformationsDemoPage} />
         </Switch>
       </CustomVariable>
@@ -51,7 +55,9 @@ function HomePage() {
         <TextLink href={`${urlBase}/dynamic-vars`}>Dynamic variables</TextLink>
         <TextLink href={`${urlBase}/nested-context`}>Nested contexts</TextLink>
         <TextLink href={`${urlBase}/interpolation-hook`}>Interpolation hook</TextLink>
+        <TextLink href={`${urlBase}/query-var-hook`}>Query variable hook</TextLink>
         <TextLink href={`${urlBase}/drilldown`}>Drilldown demo</TextLink>
+        <TextLink href={`${urlBase}/annotations`}>Annotations demo page</TextLink>
         <TextLink href={`${urlBase}/drilldown?from=now-5m&to=now&var-env=prod`}>
           Link with time range and variables
         </TextLink>

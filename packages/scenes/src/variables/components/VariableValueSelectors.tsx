@@ -71,7 +71,7 @@ function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
   }
 
   const elementId = `var-${state.key}`;
-  const labelOrName = state.label ?? state.name;
+  const labelOrName = state.label || state.name;
 
   return (
     <ControlsLabel

@@ -6,6 +6,7 @@ interface SceneObjectUrlSyncConfigOptions {
 
 export class SceneObjectUrlSyncConfig implements SceneObjectUrlSyncHandler {
   private _keys: string[] | (() => string[]);
+  private _nextChangeShouldAddHistoryStep = false;
 
   public constructor(private _sceneObject: SceneObjectWithUrlSync, _options: SceneObjectUrlSyncConfigOptions) {
     this._keys = _options.keys;
@@ -25,5 +26,15 @@ export class SceneObjectUrlSyncConfig implements SceneObjectUrlSyncHandler {
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
     this._sceneObject.updateFromUrl(values);
+  }
+
+  public performBrowserHistoryAction(callback: () => void) {
+    this._nextChangeShouldAddHistoryStep = true;
+    callback();
+    this._nextChangeShouldAddHistoryStep = false;
+  }
+
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._nextChangeShouldAddHistoryStep;
   }
 }

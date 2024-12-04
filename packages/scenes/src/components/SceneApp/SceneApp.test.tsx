@@ -1,5 +1,5 @@
 import { NavModelItem } from '@grafana/data';
-import { PluginPageProps } from '@grafana/runtime';
+import { locationService, PluginPageProps } from '@grafana/runtime';
 import { screen, render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import React from 'react';
@@ -22,6 +22,11 @@ jest.mock('@grafana/runtime', () => ({
     pluginPageProps = props;
     return <div>{props.children}</div>;
   },
+}));
+
+jest.mock('../../utils/utils', () => ({
+  ...jest.requireActual('../../utils/utils'),
+  useLocationServiceSafe: () => locationService,
 }));
 
 describe('SceneApp', () => {

@@ -1,5 +1,5 @@
 import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
-import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest } from '@grafana/runtime';
+import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config } from '@grafana/runtime';
 import { act, getAllByRole, render, screen } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import React from 'react';
@@ -15,7 +15,14 @@ import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 
-describe('GroupByVariable', () => {
+// 11.1.2 - will use SafeSerializableSceneObject
+// 11.1.1 - will NOT use SafeSerializableSceneObject
+describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
+  // const cachedCongif = config;
+  beforeEach(() => {
+    config.buildInfo.version = v;
+  });
+
   it('should not resolve values from the data source if default options provided', async () => {
     const { variable, getTagKeysSpy } = setupTest({
       defaultOptions: [
@@ -252,6 +259,69 @@ describe('GroupByVariable', () => {
     });
   });
 
+  // TODO enable once this repo is using @grafana/ui@11.1.0
+  it.skip('shows groups and orders according to first occurence of a group item', async () => {
+    const { runRequest } = setupTest({
+      getTagKeysProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+            group: 'People',
+          },
+          {
+            text: 'Bar',
+            value: 'bar',
+          },
+          {
+            text: 'Cat',
+            value: 'cat',
+            group: 'Animals',
+          },
+          {
+            text: 'Bob',
+            value: 'bob',
+            group: 'People',
+          },
+          {
+            text: 'Dog',
+            value: 'dog',
+            group: 'Animals',
+          },
+          {
+            text: 'Foo',
+            value: 'foo',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('GroupBySelect-testGroupBy');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.click(selects[0]);
+
+    // Check the group headers are visible
+    expect(screen.getByText('People')).toBeInTheDocument();
+    expect(screen.getByText('Animals')).toBeInTheDocument();
+
+    // Check the correct options exist
+    const options = screen.getAllByRole('option');
+    expect(options.length).toBe(6);
+    expect(options[0]).toHaveTextContent('Alice');
+    expect(options[1]).toHaveTextContent('Bob');
+    expect(options[2]).toHaveTextContent('Bar');
+    expect(options[3]).toHaveTextContent('Cat');
+    expect(options[4]).toHaveTextContent('Dog');
+    expect(options[5]).toHaveTextContent('Foo');
+  });
+
   describe('component', () => {
     it('should fetch dimensions when Select is opened', async () => {
       const { variable, getTagKeysSpy } = setupTest();
@@ -353,5 +423,5 @@ export function setupTest(
     </TestContextProvider>
   );
 
-  return { scene, variable, getTagKeysSpy, timeRange };
+  return { scene, variable, getTagKeysSpy, timeRange, runRequest: runRequestMock.fn };
 }

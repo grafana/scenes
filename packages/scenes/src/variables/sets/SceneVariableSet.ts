@@ -87,7 +87,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         this._variablesToUpdate.add(variable);
       }
     }
-
     this._updateNextBatch();
   }
 
@@ -253,6 +252,9 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     console.error('SceneVariableSet updateAndValidate error', err);
 
     writeVariableTraceLog(variable, 'updateAndValidate error', err);
+
+    this._notifyDependentSceneObjects(variable);
+    this._updateNextBatch();
   }
 
   private _handleVariableValueChanged(variableThatChanged: SceneVariable) {

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-// @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, DataSourceApi, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
@@ -11,11 +10,12 @@ import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'r
 import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect } from '@grafana/ui';
 import { isArray } from 'lodash';
-import { dataFromResponse, getQueriesForVariables, responseHasError } from '../utils';
+import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -92,6 +92,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         this.state.defaultOptions.map((o) => ({
           label: o.text,
           value: String(o.value),
+          group: o.group,
         }))
       );
     }
@@ -100,24 +101,24 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: { text: '__sceneObject', value: this },
+        __sceneObject: wrapInSafeSerializableSceneObject(this),
       })
     ).pipe(
       mergeMap((ds) => {
         return from(this._getKeys(ds)).pipe(
           tap((response) => {
             if (responseHasError(response)) {
-              this.setState({ error: response.error.message })
+              this.setState({ error: response.error.message });
             }
           }),
           map((response) => dataFromResponse(response)),
           take(1),
           mergeMap((data) => {
-            // @ts-expect-error Remove when 11.1.x is released
             const a: VariableValueOption[] = data.map((i) => {
               return {
                 label: i.text,
                 value: i.value ? String(i.value) : i.text,
+                group: i.group,
               };
             });
             return of(a);
@@ -162,9 +163,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (this.state.defaultOptions) {
-      return this.state.defaultOptions.concat(
-        dataFromResponse(override?.values ?? [])
-      );
+      return this.state.defaultOptions.concat(dataFromResponse(override?.values ?? []));
     }
 
     if (!ds.getTagKeys) {
@@ -175,12 +174,16 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const response = await ds.getTagKeys({ filters: otherFilters, queries, timeRange, ...getEnrichedFiltersRequest(this) });
+    const response = await ds.getTagKeys({
+      filters: otherFilters,
+      queries,
+      timeRange,
+      ...getEnrichedFiltersRequest(this),
+    });
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
-  
+
     let keys = dataFromResponse(response);
     if (override) {
       keys = keys.concat(dataFromResponse(override.values));
@@ -188,7 +191,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
     if (tagKeyRegexFilter) {
-      // @ts-expect-error Remove when 11.1.x is released
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
@@ -203,7 +205,16 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 }
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, maxVisibleValues, noValueOnClear, options, includeAll } = model.useState();
+  const {
+    value,
+    text,
+    key,
+    maxVisibleValues,
+    noValueOnClear,
+    options,
+    includeAll,
+    allowCustomValue = true,
+  } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
@@ -246,7 +257,10 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     return inputValue;
   };
 
-  const filteredOptions = optionSearcher(inputValue);
+  const filteredOptions = useMemo(
+    () => handleOptionGroups(optionSearcher(inputValue).map(toSelectableValue)),
+    [optionSearcher, inputValue]
+  );
 
   return (
     <MultiSelect<VariableValueSingle>
@@ -254,6 +268,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       id={key}
       placeholder={'Select value'}
       width="auto"
+      allowCustomValue={allowCustomValue}
       inputValue={inputValue}
       value={uncommittedValue}
       noMultiValueWrap={true}
@@ -295,3 +310,17 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
 }
 
 const filterNoOp = () => true;
+
+function toSelectableValue(input: VariableValueOption): SelectableValue<VariableValueSingle> {
+  const { label, value, group } = input;
+  const result: SelectableValue<VariableValueSingle> = {
+    label,
+    value,
+  };
+
+  if (group) {
+    result.group = group;
+  }
+
+  return result;
+}

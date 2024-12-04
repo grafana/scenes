@@ -1,4 +1,4 @@
-import { getTimeZone, setWeekStart, TimeRange } from '@grafana/data';
+import { getTimeZone, rangeUtil, TimeRange, toUtc } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -8,14 +8,16 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
-import { config } from '@grafana/runtime';
+import { locationService, RefreshEvent } from '@grafana/runtime';
+import { isValid } from '../utils/date';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone'] });
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
 
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
-    const from = state.from ?? 'now-6h';
-    const to = state.to ?? 'now';
+    const from = state.from && isValid(state.from) ? state.from : 'now-6h';
+    const to = state.to && isValid(state.to) ? state.to : 'now';
+
     const timeZone = state.timeZone;
     const value = evaluateTimeRange(
       from,
@@ -24,7 +26,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       state.fiscalYearStartMonth,
       state.UNSAFE_nowDelay
     );
-    super({ from, to, timeZone, value, ...state });
+    const refreshOnActivate = state.refreshOnActivate ?? { percent: 10 };
+    super({ from, to, timeZone, value, refreshOnActivate, ...state });
 
     this.addActivationHandler(this._onActivate.bind(this));
   }
@@ -52,16 +55,22 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       }
     }
 
-    if (this.state.weekStart) {
-      setWeekStart(this.state.weekStart);
+    if (rangeUtil.isRelativeTimeRange(this.state.value.raw)) {
+      this.refreshIfStale();
     }
+  }
 
-    // Deactivation handler that restore weekStart if it was changed
-    return () => {
-      if (this.state.weekStart) {
-        setWeekStart(config.bootData.user.weekStart);
-      }
-    };
+  private refreshIfStale() {
+    let ms;
+    if (this.state?.refreshOnActivate?.percent !== undefined) {
+      ms = this.calculatePercentOfInterval(this.state.refreshOnActivate.percent);
+    }
+    if (this.state?.refreshOnActivate?.afterMs !== undefined) {
+      ms = Math.min(this.state.refreshOnActivate.afterMs, ms ?? Infinity);
+    }
+    if (ms !== undefined) {
+      this.refreshRange(ms);
+    }
   }
 
   /**
@@ -86,6 +95,33 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     return source;
   }
 
+  /**
+   * Refreshes time range if it is older than the invalidation interval
+   * @param refreshAfterMs invalidation interval (milliseconds)
+   * @private
+   */
+  private refreshRange(refreshAfterMs: number) {
+    const value = evaluateTimeRange(
+      this.state.from,
+      this.state.to,
+      this.state.timeZone ?? getTimeZone(),
+      this.state.fiscalYearStartMonth,
+      this.state.UNSAFE_nowDelay
+    );
+
+    const diff = value.to.diff(this.state.value.to, 'milliseconds');
+    if (diff >= refreshAfterMs) {
+      this.setState({
+        value,
+      });
+    }
+  }
+
+  private calculatePercentOfInterval(percent: number): number {
+    const intervalMs = this.state.value.to.diff(this.state.value.from, 'milliseconds');
+    return Math.ceil(intervalMs / percent);
+  }
+
   public getTimeZone(): TimeZone {
     // Return local time zone if provided
     if (this.state.timeZone) {
@@ -104,27 +140,22 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeRangeChange = (timeRange: TimeRange) => {
     const update: Partial<SceneTimeRangeState> = {};
-    const updateToEval: Partial<SceneTimeRangeState> = {};
 
     if (typeof timeRange.raw.from === 'string') {
       update.from = timeRange.raw.from;
-      updateToEval.from = timeRange.raw.from;
     } else {
       update.from = timeRange.raw.from.toISOString();
-      updateToEval.from = timeRange.raw.from.toISOString(true);
     }
 
     if (typeof timeRange.raw.to === 'string') {
       update.to = timeRange.raw.to;
-      updateToEval.to = timeRange.raw.to;
     } else {
       update.to = timeRange.raw.to.toISOString();
-      updateToEval.to = timeRange.raw.to.toISOString(true);
     }
 
     update.value = evaluateTimeRange(
-      updateToEval.from,
-      updateToEval.to,
+      update.from,
+      update.to,
       this.getTimeZone(),
       this.state.fiscalYearStartMonth,
       this.state.UNSAFE_nowDelay
@@ -132,12 +163,16 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
     // Only update if time range actually changed
     if (update.from !== this.state.from || update.to !== this.state.to) {
-      this.setState(update);
+      this._urlSync.performBrowserHistoryAction(() => {
+        this.setState(update);
+      });
     }
   };
 
   public onTimeZoneChange = (timeZone: TimeZone) => {
-    this.setState({ timeZone });
+    this._urlSync.performBrowserHistoryAction(() => {
+      this.setState({ timeZone });
+    });
   };
 
   public onRefresh = () => {
@@ -150,37 +185,56 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
         this.state.UNSAFE_nowDelay
       ),
     });
+
+    this.publishEvent(new RefreshEvent(), true);
   };
 
   public getUrlState() {
-    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to };
-    if (this.state.timeZone) {
-      urlValues.timezone = this.state.timeZone;
+    const params = locationService.getSearchObject();
+    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to, timezone: this.getTimeZone() };
+
+    // Clear time and time.window once they are converted to from and to
+    if (params.time && params['time.window']) {
+      urlValues.time = null;
+      urlValues['time.window'] = null;
     }
 
     return urlValues;
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
-    // ignore if both are missing
-    if (!values.to && !values.from) {
-      return;
+    const update: Partial<SceneTimeRangeState> = {};
+
+    let from = parseUrlParam(values.from);
+    let to = parseUrlParam(values.to);
+
+    if (values.time && values['time.window']) {
+      const time = Array.isArray(values.time) ? values.time[0] : values.time;
+      const timeWindow = Array.isArray(values['time.window']) ? values['time.window'][0] : values['time.window'];
+      const timeRange = getTimeWindow(time, timeWindow);
+      if (timeRange.from && isValid(timeRange.from)) {
+        from = timeRange.from;
+      }
+
+      if (timeRange.to && isValid(timeRange.to)) {
+        to = timeRange.to;
+      }
     }
 
-    const update: Partial<SceneTimeRangeState> = {};
-    const from = parseUrlParam(values.from);
-
-    if (from) {
+    if (from && isValid(from)) {
       update.from = from;
     }
 
-    const to = parseUrlParam(values.to);
-    if (to) {
+    if (to && isValid(to)) {
       update.to = to;
     }
 
     if (typeof values.timezone === 'string') {
       update.timeZone = values.timezone !== '' ? values.timezone : undefined;
+    }
+
+    if (Object.keys(update).length === 0) {
+      return;
     }
 
     update.value = evaluateTimeRange(
@@ -191,6 +245,30 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       this.state.UNSAFE_nowDelay
     );
 
-    this.setState(update);
+    return this.setState(update);
   }
+}
+
+/**
+ * Calculates the duration of the time range from time-time.window/2 to time+time.window/2. Both be specified in ms. For example ?time=1500000000000&time.window=10000 results in a 10-second time range from 1499999995000 to 1500000005000`.
+ * @param time - time in ms
+ * @param timeWindow - time window in ms or interval string
+ */
+function getTimeWindow(time: string, timeWindow: string) {
+  // Parse the time, assuming it could be an ISO string or a number in milliseconds
+  const valueTime = isNaN(Date.parse(time)) ? parseInt(time, 10) : Date.parse(time);
+
+  let timeWindowMs;
+
+  if (timeWindow.match(/^\d+$/) && parseInt(timeWindow, 10)) {
+    // when time window is specified in ms
+    timeWindowMs = parseInt(timeWindow, 10);
+  } else {
+    timeWindowMs = rangeUtil.intervalToMs(timeWindow);
+  }
+
+  return {
+    from: toUtc(valueTime - timeWindowMs / 2).toISOString(),
+    to: toUtc(valueTime + timeWindowMs / 2).toISOString(),
+  };
 }

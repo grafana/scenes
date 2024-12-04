@@ -60,6 +60,7 @@ describe('UrlSyncManager', () => {
 
   beforeEach(() => {
     locationUpdates = [];
+    deactivate = () => {};
     listenUnregister = locationService.getHistory().listen((location) => {
       locationUpdates.push(location);
     });
@@ -112,6 +113,35 @@ describe('UrlSyncManager', () => {
       obj.setState({ other: 'not synced' });
 
       // Should not update url
+      expect(locationUpdates.length).toBe(1);
+    });
+  });
+
+  describe('Initiating url from state', () => {
+    it('Should sync initial scene state with url', () => {
+      const obj = new TestObj({ name: 'test' });
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
+      });
+
+      urlManager = new UrlSyncManager({ updateUrlOnInit: true });
+      urlManager.initSync(scene);
+
+      expect(locationUpdates.length).toBe(1);
+      expect(locationUpdates[0].search).toBe('?name=test');
+    });
+
+    it('Should not update url if there is no difference', () => {
+      const obj = new TestObj({ name: 'test' });
+      scene = new SceneFlexLayout({
+        children: [new SceneFlexItem({ body: obj })],
+      });
+
+      locationService.partial({ name: 'test' });
+
+      urlManager = new UrlSyncManager();
+      urlManager.initSync(scene);
+
       expect(locationUpdates.length).toBe(1);
     });
   });
@@ -228,7 +258,7 @@ describe('UrlSyncManager', () => {
         $timeRange: outerTimeRange,
       });
 
-      urlManager = new UrlSyncManager();
+      urlManager = new UrlSyncManager({ updateUrlOnInit: true });
       urlManager.initSync(scene);
 
       deactivate = scene.activate();
@@ -238,8 +268,12 @@ describe('UrlSyncManager', () => {
 
       // Should use unique key based where it is in the scene
       expect(locationService.getSearchObject()).toEqual({
+        from: 'now-6h',
         ['from-2']: 'now-10m',
+        timezone: 'browser',
+        to: 'now',
         ['to-2']: 'now',
+        ['timezone-2']: 'browser',
       });
 
       outerTimeRange.setState({ from: 'now-20m' });
@@ -248,8 +282,10 @@ describe('UrlSyncManager', () => {
       expect(locationService.getSearchObject()).toEqual({
         from: 'now-20m',
         to: 'now',
+        timezone: 'browser',
         ['from-2']: 'now-10m',
         ['to-2']: 'now',
+        ['timezone-2']: 'browser',
       });
 
       // When updating via url
@@ -259,7 +295,7 @@ describe('UrlSyncManager', () => {
       // should not update the first object
       expect(outerTimeRange.state.from).toBe('now-20m');
       // Should not cause another url update
-      expect(locationUpdates.length).toBe(3);
+      expect(locationUpdates.length).toBe(4);
     });
 
     it('should handle dynamically added objects that use same key', () => {
@@ -438,7 +474,7 @@ describe('UrlSyncManager', () => {
         children: [obj1],
       });
 
-      urlManager = new UrlSyncManager();
+      urlManager = new UrlSyncManager({ updateUrlOnInit: true });
       urlManager.initSync(scene1);
 
       deactivate = scene1.activate();
@@ -448,7 +484,7 @@ describe('UrlSyncManager', () => {
       obj1.setState({ name: 'B' });
 
       // Should not update url
-      expect(locationService.getSearchObject().name).toBeUndefined();
+      expect(locationService.getSearchObject().name).toBe('A');
 
       // When updating via url
       updateUrlStateAndSyncState({ name: 'Hello' }, urlManager);
@@ -487,23 +523,23 @@ describe('UrlSyncManager', () => {
 
   describe('When init sync root is not scene root', () => {
     it('Should sync init root', async () => {
-      const scene = new TestObj({ 
+      const scene = new TestObj({
         name: 'scene-root',
-        nested: new TestObj({ 
+        nested: new TestObj({
           name: 'url-sync-root',
-         })
-       });
+        }),
+      });
 
       urlManager = new UrlSyncManager();
-     
+
       locationService.push(`/?name=test1`);
       urlManager.initSync(scene.state.nested!);
 
-      deactivate = activateFullSceneTree(scene);      
+      deactivate = activateFullSceneTree(scene);
 
       // Only updated the nested scene (as it's the only part of scene tree that is synced)
       expect(scene.state.nested?.state.name).toEqual('test1');
-      
+
       // Unchanged
       expect(scene.state.name).toEqual('scene-root');
     });

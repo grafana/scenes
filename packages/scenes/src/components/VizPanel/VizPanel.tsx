@@ -32,7 +32,7 @@ import { emptyPanelData } from '../../core/SceneDataNode';
 import { changeSeriesColorConfigFactory } from './colorSeriesConfigFactory';
 import { loadPanelPluginSync } from './registerRuntimePanelPlugin';
 import { getCursorSyncScope } from '../../behaviors/CursorSync';
-import { cloneDeep, isArray, merge, mergeWith } from 'lodash';
+import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
@@ -58,6 +58,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   hoverHeaderOffset?: number;
   /**
+   * Only shows vizPanelMenu on hover if false, otherwise the menu is always visible in the header
+   */
+  showMenuAlways?: boolean
+  /**
    * Defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
    * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
    */
@@ -66,6 +70,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Defines a menu that renders panel link.
    **/
   titleItems?: React.ReactNode | SceneObject | SceneObject[];
+  seriesLimit?: number;
+  seriesLimitShowAll?: boolean;
   /**
    * Add action to the top right panel header
    */
@@ -87,6 +93,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   _pluginLoadError?: string;
   /** Internal */
   _pluginInstanceState?: any;
+  _renderCounter?: number;
 }
 
 export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
@@ -111,6 +118,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       fieldConfig: { defaults: {}, overrides: [] },
       title: 'Title',
       pluginId: 'timeseries',
+      _renderCounter: 0,
       ...state,
     });
 
@@ -129,17 +137,27 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
   }
 
-  private async _loadPlugin(pluginId: string) {
+  public forceRender(): void {
+    // Incrementing the render counter means VizRepeater and its children will also re-render
+    this.setState({ _renderCounter: (this.state._renderCounter ?? 0) + 1 });
+  }
+
+  private async _loadPlugin(
+    pluginId: string,
+    overwriteOptions?: DeepPartial<{}>,
+    overwriteFieldConfig?: FieldConfigSource,
+    isAfterPluginChange?: boolean
+  ) {
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
-      this._pluginLoaded(plugin);
+      this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
         const result = await importPanelPlugin(pluginId);
-        this._pluginLoaded(result);
+        this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
 
@@ -159,7 +177,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return panelId;
   }
 
-  private async _pluginLoaded(plugin: PanelPlugin) {
+  private async _pluginLoaded(
+    plugin: PanelPlugin,
+    overwriteOptions?: DeepPartial<{}>,
+    overwriteFieldConfig?: FieldConfigSource,
+    isAfterPluginChange?: boolean
+  ) {
     const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
@@ -171,11 +194,19 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       pluginVersion: pluginVersion,
     };
 
+    if (overwriteOptions) {
+      panel.options = overwriteOptions;
+    }
+
+    if (overwriteFieldConfig) {
+      panel.fieldConfig = overwriteFieldConfig;
+    }
+
     const currentVersion = this._getPluginVersion(plugin);
 
     _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    if (plugin.onPanelMigration && currentVersion !== this.state.pluginVersion) {
+    if (plugin.onPanelMigration && currentVersion !== pluginVersion && !isAfterPluginChange) {
       // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
       panel.options = await plugin.onPanelMigration(panel);
     }
@@ -184,7 +215,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       plugin,
       currentOptions: panel.options,
       currentFieldConfig: panel.fieldConfig,
-      isAfterPluginChange: true,
+      isAfterPluginChange: isAfterPluginChange ?? false,
     });
 
     this._plugin = plugin;
@@ -193,6 +224,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       options: withDefaults.options as DeepPartial<TOptions>,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
+      pluginId: plugin.meta.id,
     });
 
     // Non data panels needs to be re-rendered when time range change
@@ -249,6 +281,33 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return sceneTimeRange.state.value;
   };
 
+  public async changePluginType(pluginId: string, newOptions?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
+    const { options: prevOptions, fieldConfig: prevFieldConfig, pluginId: prevPluginId } = this.state;
+
+    //clear field config cache to update it later
+    this._dataWithFieldConfig = undefined;
+
+    // If state.pluginId is already the correct plugin we don't treat this as plain user panel type change
+    const isAfterPluginChange = this.state.pluginId !== pluginId;
+    await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, isAfterPluginChange);
+
+    const panel: PanelModel = {
+      title: this.state.title,
+      options: this.state.options,
+      fieldConfig: this.state.fieldConfig,
+      id: 1,
+      type: pluginId,
+    };
+
+    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React.
+    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches.
+    const updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
+
+    if (updatedOptions && !isEmpty(updatedOptions)) {
+      this.onOptionsChange(updatedOptions, true, true);
+    }
+  }
+
   public onTitleChange = (title: string) => {
     this.setState({ title });
   };
@@ -284,11 +343,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       plugin: this._plugin!,
       currentOptions: nextOptions,
       currentFieldConfig: fieldConfig,
-      isAfterPluginChange,
+      isAfterPluginChange: isAfterPluginChange,
     });
 
     this.setState({
       options: withDefaults.options as DeepPartial<TOptions>,
+      _renderCounter: (this.state._renderCounter ?? 0) + 1,
     });
   };
 

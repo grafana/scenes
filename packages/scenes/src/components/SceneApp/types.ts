@@ -1,5 +1,5 @@
 import { ComponentType } from 'react';
-import { DataRequestEnricher, SceneObject, SceneObjectState } from '../../core/types';
+import { DataRequestEnricher, SceneObject, SceneObjectState, SceneUrlSyncOptions } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { IconName, PageLayoutType } from '@grafana/data';
 
@@ -14,6 +14,7 @@ export interface SceneAppState extends SceneObjectState {
   // Array of SceneAppPage objects that are considered app's top level pages
   pages: SceneAppPageLike[];
   name?: string;
+  urlSyncOptions?: SceneUrlSyncOptions;
 }
 
 export interface SceneAppRoute {
@@ -67,7 +68,7 @@ export interface SceneAppPageState extends SceneObjectState {
    */
   getFallbackPage?: () => SceneAppPageLike;
 
-  layout?: PageLayoutType
+  layout?: PageLayoutType;
 }
 
 export interface SceneAppPageLike extends SceneObject<SceneAppPageState>, DataRequestEnricher {

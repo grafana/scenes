@@ -61,6 +61,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** True when there is a React component mounted for this Object */
   readonly isActive: boolean;
 
+  /** Controls if activation blocks rendering */
+  readonly renderBeforeActivation: boolean;
+
   /** SceneObject parent */
   readonly parent?: SceneObject;
 
@@ -117,6 +120,11 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
    */
   forEachChild(callback: (child: SceneObject) => void): void;
+
+  /**
+   * Useful for edge cases when you want to move a scene object to another parent.
+   */
+  clearParent(): void;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;
@@ -151,6 +159,18 @@ export interface SceneTimeRangeState extends SceneObjectState {
    * Override the now time by entering a time delay. Use this option to accommodate known delays in data aggregation to avoid null values.
    * */
   UNSAFE_nowDelay?: string;
+
+  refreshOnActivate?: {
+    /**
+     * When set, the time range will invalidate relative ranges after the specified interval has elapsed
+     */
+    afterMs?: number;
+    /**
+     * When set, the time range will invalidate relative ranges after the specified percentage of the current interval has elapsed.
+     * If both invalidate values are set, the smaller value will be used for the given interval.
+     */
+    percent?: number;
+  };
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
@@ -167,12 +187,14 @@ export function isSceneObject(obj: any): obj is SceneObject {
 export interface SceneObjectWithUrlSync extends SceneObject {
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
+  shouldCreateHistoryStep?(values: SceneObjectUrlValues): boolean;
 }
 
 export interface SceneObjectUrlSyncHandler {
   getKeys(): string[];
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
+  shouldCreateHistoryStep?(values: SceneObjectUrlValues): boolean;
 }
 
 export interface DataRequestEnricher {
@@ -263,4 +285,18 @@ export interface SceneDataQuery extends DataQuery {
 
   // Opt this query out of time window comparison
   timeRangeCompare?: boolean;
+}
+
+export interface SceneUrlSyncOptions {
+  /**
+   * This will update the url to contain all scene url state
+   * when the scene is initialized. Important for browser history "back" actions.
+   */
+  updateUrlOnInit?: boolean;
+  /**
+   * This is only supported by some objects if they implement
+   * shouldCreateHistoryStep where they can control what changes
+   * url changes should add a new browser history entry.
+   */
+  createBrowserHistorySteps?: boolean;
 }

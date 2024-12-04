@@ -1,6 +1,6 @@
 import { NavModelItem, UrlQueryMap } from '@grafana/data';
 import { PluginPage } from '@grafana/runtime';
-import React, { useEffect, useLayoutEffect } from 'react';
+import React, { useContext, useEffect, useLayoutEffect } from 'react';
 
 import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
@@ -9,10 +9,11 @@ import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
 import { getUrlWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
 import { useUrlSync } from '../../services/useUrlSync';
+import { SceneAppContext } from './SceneApp';
+import { useLocationServiceSafe } from '../../utils/utils';
 
 export interface Props {
   page: SceneAppPageLike;
-  //   activeTab?: SceneAppPageLike;
   routeProps: RouteComponentProps;
 }
 
@@ -21,8 +22,10 @@ export function SceneAppPageView({ page, routeProps }: Props) {
   const containerState = containerPage.useState();
   const params = useAppQueryParams();
   const scene = page.getScene(routeProps.match);
+  const appContext = useContext(SceneAppContext);
   const isInitialized = containerState.initializedScene === scene;
-  const {layout} = page.state;
+  const { layout } = page.state;
+  const locationService = useLocationServiceSafe();
 
   useLayoutEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
@@ -36,7 +39,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     return () => containerPage.setState({ initializedScene: undefined });
   }, [containerPage]);
 
-  const urlSyncInitialized = useUrlSync(containerPage);
+  const urlSyncInitialized = useUrlSync(containerPage, appContext?.state.urlSyncOptions);
 
   if (!isInitialized && !urlSyncInitialized) {
     return null;
@@ -46,11 +49,12 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     text: containerState.title,
     img: containerState.titleImg,
     icon: containerState.titleIcon,
-    url: getUrlWithAppState(containerState.url, containerState.preserveUrlKeys),
+    url: getUrlWithAppState(containerState.url, locationService.getSearchObject(), containerState.preserveUrlKeys),
     hideFromBreadcrumbs: containerState.hideFromBreadcrumbs,
     parentItem: getParentBreadcrumbs(
       containerState.getParentPage ? containerState.getParentPage() : containerPage.parent,
-      params
+      params,
+      locationService.getSearchObject()
     ),
   };
 
@@ -61,7 +65,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
         icon: tab.state.titleIcon,
         tabSuffix: tab.state.tabSuffix,
         active: page === tab,
-        url: getUrlWithAppState(tab.state.url, tab.state.preserveUrlKeys),
+        url: getUrlWithAppState(tab.state.url, locationService.getSearchObject(), tab.state.preserveUrlKeys),
         parentItem: pageNav,
       };
     });
@@ -102,15 +106,20 @@ function getParentPageIfTab(page: SceneAppPageLike) {
   return page;
 }
 
-function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryMap): NavModelItem | undefined {
+function getParentBreadcrumbs(
+  parent: SceneObject | undefined,
+  params: UrlQueryMap,
+  searchObject: UrlQueryMap
+): NavModelItem | undefined {
   if (parent instanceof SceneAppPage) {
     return {
       text: parent.state.title,
-      url: getUrlWithAppState(parent.state.url, parent.state.preserveUrlKeys),
+      url: getUrlWithAppState(parent.state.url, searchObject, parent.state.preserveUrlKeys),
       hideFromBreadcrumbs: parent.state.hideFromBreadcrumbs,
       parentItem: getParentBreadcrumbs(
         parent.state.getParentPage ? parent.state.getParentPage() : parent.parent,
-        params
+        params,
+        searchObject
       ),
     };
   }

@@ -25,6 +25,7 @@ export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
   text: VariableValue; // old current.value
   options: VariableValueOption[];
+  allowCustomValue?: boolean;
   isMulti?: boolean;
   includeAll?: boolean;
   defaultToAll?: boolean;
@@ -82,7 +83,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    */
   private updateValueGivenNewOptions(options: VariableValueOption[]) {
     // Remember current value and text
-    const { value: currentValue, text: currentText } = this.state;
+    const { value: currentValue, text: currentText, options: oldOptions } = this.state;
 
     const stateUpdate = this.getStateUpdateGivenNewOptions(options, currentValue, currentText);
 
@@ -92,7 +93,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     this.setStateHelper(stateUpdate);
 
     // Publish value changed event only if value changed
-    if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
+    if (
+      stateUpdate.value !== currentValue ||
+      stateUpdate.text !== currentText ||
+      (this.hasAllValue() && !isEqual(options, oldOptions))
+    ) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -125,7 +130,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     if (this.hasAllValue()) {
-      if (!this.state.includeAll) {
+      if (this.state.includeAll) {
+        // Sometimes the text representation is also set the ALL_VARIABLE_VALUE, this fixes that
+        stateUpdate.text = ALL_VARIABLE_TEXT;
+      } else {
         stateUpdate.value = options[0].value;
         stateUpdate.text = options[0].label;
         // If multi switch to arrays
@@ -192,7 +200,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     // If the validation wants to fix the all value (All ==> $__all) then we should let that pass
     const isAllValueFix = stateUpdate.value === ALL_VARIABLE_VALUE && this.state.text === ALL_VARIABLE_TEXT;
 
-    if (this.skipNextValidation && stateUpdate.value !== this.state.value && !isAllValueFix) {
+    if (
+      this.skipNextValidation &&
+      stateUpdate.value !== this.state.value &&
+      stateUpdate.text !== this.state.text &&
+      !isAllValueFix
+    ) {
       stateUpdate.value = this.state.value;
       stateUpdate.text = this.state.text;
     }
@@ -327,6 +340,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     return options;
+  }
+
+  public refreshOptions() {
+    this.getValueOptions({}).subscribe((options) => {
+      this.updateValueGivenNewOptions(options);
+    });
   }
 
   /**

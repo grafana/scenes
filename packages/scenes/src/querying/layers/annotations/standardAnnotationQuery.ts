@@ -13,11 +13,12 @@ import {
   ScopedVars,
 } from '@grafana/data';
 
-import { getRunRequest } from '@grafana/runtime';
+import { getRunRequest, getTemplateSrv } from '@grafana/runtime';
 import { shouldUseLegacyRunner, standardAnnotationSupport } from './standardAnnotationsSupport';
 import { Dashboard, LoadingState } from '@grafana/schema';
 import { SceneObject, SceneTimeRangeLike } from '../../../core/types';
 import { getEnrichedDataRequest } from '../../getEnrichedDataRequest';
+import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 
 let counter = 100;
 function getNextRequestId() {
@@ -48,7 +49,9 @@ export function executeAnnotationQuery(
         range: timeRange.state.value,
         rangeRaw: timeRange.state.value.raw,
         annotation: query,
-        dashboard: {},
+        dashboard: {
+          getVariables: getTemplateSrv().getVariables
+        },
       })
     ).pipe(
       map((events) => ({
@@ -97,7 +100,7 @@ export function executeAnnotationQuery(
     __interval: { text: interval.interval, value: interval.interval },
     __interval_ms: { text: interval.intervalMs.toString(), value: interval.intervalMs },
     __annotation: { text: annotation.name, value: annotation },
-    __sceneObject: { text: '__sceneObject', value: layer },
+    __sceneObject: wrapInSafeSerializableSceneObject(layer),
   };
 
   const queryRequest: DataQueryRequest = {

@@ -1,11 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-  SceneTimeRangeState,
-  SceneTimeRange,
-  behaviors,
-  UrlSyncContextProvider,
-  getUrlSyncManager,
-} from '@grafana/scenes';
+import { SceneTimeRangeState, SceneTimeRange, behaviors, UrlSyncContextProvider } from '@grafana/scenes';
 
 import { SceneContextObject, SceneContextObjectState } from './SceneContextObject';
 
@@ -51,8 +45,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
     const childContext = new SceneContextObject(state);
 
     if (parentContext) {
-      getUrlSyncManager().handleNewObject(childContext);
-      parentContext.setState({ childContext });
+      parentContext.addChildContext(childContext);
     }
 
     const deactivate = childContext.activate();
@@ -62,7 +55,7 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
       deactivate();
 
       if (parentContext) {
-        parentContext.setState({ childContext: undefined });
+        parentContext.removeChildContext(childContext);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -79,5 +72,9 @@ export function SceneContextProvider({ children, timeRange, withQueryController 
   }
 
   // For root context we wrap the provider in a UrlSyncWrapper that handles the hook that updates state on location changes
-  return <UrlSyncContextProvider scene={childContext}>{innerProvider}</UrlSyncContextProvider>;
+  return (
+    <UrlSyncContextProvider scene={childContext} updateUrlOnInit={true} createBrowserHistorySteps={true}>
+      {innerProvider}
+    </UrlSyncContextProvider>
+  );
 }

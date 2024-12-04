@@ -219,12 +219,22 @@ describe('sceneInterpolator', () => {
     expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe('var-cluster=A');
   });
 
-  it('Can use use $__url_time_range', () => {
+  it('Can use use $__url_time_range with browser timezone', () => {
     const scene = new TestScene({
       $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
     });
 
-    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe(
+      `from=now-5m&to=now&timezone=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`
+    );
+  });
+
+  it('Can use use $__url_time_range with custom timezone', () => {
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now', timeZone: 'utc' }),
+    });
+
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now&timezone=utc');
   });
 
   describe('Interval variables', () => {

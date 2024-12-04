@@ -1,23 +1,17 @@
 import React, { useMemo, useState } from 'react';
 
-import { AdHocFiltersVariable, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFilterWithLabels, isMultiValueOperator } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
-import { getOptionSearcher } from '../components/getOptionSearcher';
-import { VariableValueOption } from '../types';
+import { getAdhocOptionSearcher } from './getAdhocOptionSearcher';
+import { handleOptionGroups } from '../utils';
+import { OptionWithCheckbox } from '../components/VariableValueSelect';
 
 interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
-}
-
-function selectableValueToVariableValueOption(value: SelectableValue): VariableValueOption {
-  return {
-    label: value.label ?? String(value.value),
-    value: value.value,
-  };
 }
 
 function keyLabelToOption(key: string, label?: string): SelectableValue | null {
@@ -40,16 +34,17 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [isValuesLoading, setIsValuesLoading] = useState(false);
   const [isKeysOpen, setIsKeysOpen] = useState(false);
   const [isValuesOpen, setIsValuesOpen] = useState(false);
+  const [isOperatorOpen, setIsOperatorOpen] = useState(false);
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
+  // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
+  const [uncommittedValue, setUncommittedValue] = useState<SelectableValue>(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []);
+  const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
-  const valueValue = keyLabelToOption(filter.value, filter.valueLabel);
+  const valueValue = keyLabelToOption(filter.value, filter.valueLabels?.[0]);
 
-  const optionSearcher = useMemo(
-    () => getOptionSearcher(values.map(selectableValueToVariableValueOption), undefined),
-    [values]
-  );
+  const optionSearcher = useMemo(() => getAdhocOptionSearcher(values), [values]);
 
   const onValueInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
@@ -58,17 +53,68 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     return value;
   };
 
-  const filteredValueOptions: SelectableValue[] = optionSearcher(valueInputValue);
+  const onOperatorChange = (v: SelectableValue) => {
+    const existingOperator = filter.operator;
+    const newOperator = v.value;
+
+    const update: Partial<AdHocFilterWithLabels> = { operator: newOperator };
+    // clear value if operator has changed from multi to single
+    if (isMultiValueOperator(existingOperator) && !isMultiValueOperator(newOperator)) {
+      update.value = '';
+      update.valueLabels = [''];
+      update.values = undefined;
+      setUncommittedValue([]);
+    // set values if operator has changed from single to multi
+    } else if (!isMultiValueOperator(existingOperator) && isMultiValueOperator(newOperator) && filter.value) {
+      update.values = [filter.value];
+      setUncommittedValue([{
+        value: filter.value,
+        label: filter.valueLabels?.[0] ?? filter.value,
+      }]);
+    }
+    model._updateFilter(filter, update);
+  }
+
+  const filteredValueOptions = useMemo(
+    () => handleOptionGroups(optionSearcher(valueInputValue)),
+    [optionSearcher, valueInputValue]
+  );
+
+  const multiValueProps = {
+    isMulti: true,
+    value: uncommittedValue,
+    components: {
+      Option: OptionWithCheckbox,
+    },
+    hideSelectedOptions: false,
+    closeMenuOnSelect: false,
+    openMenuOnFocus: false,
+    onChange: (v: SelectableValue) => {
+      setUncommittedValue(v);
+      // clear input value when creating a new custom multi value
+      if (v.some((value: SelectableValue) => value.__isNew__)) {
+        setValueInputValue('');
+      }
+    },
+    onBlur: () => {
+      model._updateFilter(filter, {
+        value: uncommittedValue[0]?.value ?? '',
+        // TODO remove expect-error when we're on the latest version of @grafana/data
+        values: uncommittedValue.map((option: SelectableValue<string>) => option.value),
+        valueLabels: uncommittedValue.map((option: SelectableValue<string>) => option.label),
+      });
+    }
+  }
 
   const valueSelect = (
     <Select
       virtualized
-      allowCustomValue
+      allowCustomValue={model.state.allowCustomValue ?? true}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
       disabled={model.state.readOnly}
-      className={cx(styles.value, isKeysOpen ? styles.widthWhenOpen : undefined)}
+      className={cx(styles.value, isValuesOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
       value={valueValue}
       filterOption={filterNoOp}
@@ -77,7 +123,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
       onChange={(v) => {
-        model._updateFilter(filter, 'value', v);
+        model._updateFilter(filter, {
+          value: v.value,
+          valueLabels: v.label ? [v.label] : [v.value]
+        });
 
         if (valueHasCustomValue !== v.__isNew__) {
           setValueHasCustomValue(v.__isNew__);
@@ -88,7 +137,6 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
       isOpen={isValuesOpen && !isValuesLoading}
       isLoading={isValuesLoading}
-      autoFocus={filter.key !== '' && filter.value === ''}
       openMenuOnFocus={true}
       onOpenMenu={async () => {
         setIsValuesLoading(true);
@@ -104,6 +152,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         setIsValuesOpen(false);
         setValueInputValue('');
       }}
+      {...(isMultiValue && multiValueProps)}
     />
   );
 
@@ -115,10 +164,21 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       disabled={model.state.readOnly}
       className={cx(styles.key, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
+      allowCustomValue={model.state.allowCustomValue ?? true}
       value={keyValue}
       placeholder={'Select label'}
-      options={keys}
-      onChange={(v) => model._updateFilter(filter, 'key', v)}
+      options={handleOptionGroups(keys)}
+      onChange={(v) => {
+        model._updateFilter(filter, {
+          key: v.value,
+          keyLabel: v.label,
+          // clear value if key has changed
+          value: '',
+          valueLabels: [''],
+          values: undefined
+        })
+        setUncommittedValue([]);
+      }}
       autoFocus={filter.key === ''}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
       // see https://github.com/grafana/grafana/issues/63558
@@ -144,6 +204,24 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     />
   );
 
+  const operatorSelect = (
+    <Select
+      className={cx(styles.operator, {
+        [styles.widthWhenOpen]: isOperatorOpen,
+      })}
+      value={filter.operator}
+      disabled={model.state.readOnly}
+      options={model._getOperators()}
+      onChange={onOperatorChange}
+      onOpenMenu={() => {
+        setIsOperatorOpen(true)
+      }}
+      onCloseMenu={() => {
+        setIsOperatorOpen(false)
+      }}
+    />
+  );
+
   if (model.state.layout === 'vertical') {
     if (filter.key) {
       const label = (
@@ -153,14 +231,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       return (
         <Field label={label} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
           <div className={styles.wrapper}>
-            <Select
-              className={styles.operator}
-              value={filter.operator}
-              disabled={model.state.readOnly}
-              options={model._getOperators()}
-              width="auto"
-              onChange={(v) => model._updateFilter(filter, 'operator', v)}
-            />
+            {operatorSelect}
             {valueSelect}
           </div>
         </Field>
@@ -177,14 +248,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   return (
     <div className={styles.wrapper} data-testid={`AdHocFilter-${filter.key}`}>
       {keySelect}
-      <Select
-        className={styles.operator}
-        value={filter.operator}
-        disabled={model.state.readOnly}
-        options={model._getOperators()}
-        width="auto"
-        onChange={(v) => model._updateFilter(filter, 'operator', v)}
-      />
+      {operatorSelect}
       {valueSelect}
       <Button
         variant="secondary"
@@ -244,14 +308,18 @@ const getStyles = (theme: GrafanaTheme2) => ({
     minWidth: theme.spacing(16),
   }),
   value: css({
+    flexBasis: 'content',
     flexShrink: 1,
+    minWidth: '90px',
   }),
   key: css({
+    flexBasis: 'content',
     minWidth: '90px',
     flexShrink: 1,
   }),
   operator: css({
     flexShrink: 0,
+    flexBasis: 'content',
   }),
   removeButton: css({
     paddingLeft: theme.spacing(3 / 2),

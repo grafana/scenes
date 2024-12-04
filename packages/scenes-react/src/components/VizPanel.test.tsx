@@ -8,6 +8,15 @@ import { TestContextProvider } from '../utils/testUtils';
 
 let pluginToLoad: PanelPlugin | undefined;
 
+global.ResizeObserver = class {
+  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+  observe() {}
+  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+  unobserve() {}
+  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+  disconnect() {}
+};
+
 jest.mock('@grafana/runtime', () => ({
   ...jest.requireActual('@grafana/runtime'),
   getPluginImportUtils: () => ({

@@ -5,7 +5,7 @@ import { useSceneContext } from '../hooks/hooks';
 import { RenderResult, render } from '@testing-library/react';
 import { behaviors } from '@grafana/scenes';
 import { Router } from 'react-router-dom';
-import { locationService } from '@grafana/runtime';
+import { locationService, LocationServiceProvider } from '@grafana/runtime';
 
 describe('SceneContextProvider', () => {
   it('Should activate on mount', () => {
@@ -31,7 +31,22 @@ describe('SceneContextProvider', () => {
   it('Can nest', () => {
     const s = setup({ timeRange: { from: '1m-now', to: 'now' }, withQueryController: true });
 
-    expect(s.childContext?.parent).toBe(s.context);
+    expect(s.childContexts![0].parent).toBe(s.context);
+  });
+
+  it('Should hold sibling contexts', () => {
+    const s = setup({ timeRange: { from: '1m-now', to: 'now' }, withQueryController: true });
+
+    expect(s.childContexts![0].parent).toBe(s.context);
+    expect(s.childContexts![1].parent).toBe(s.context);
+  });
+
+  it('Should deactivate children on unmount', () => {
+    const s = setup({ timeRange: { from: '1m-now', to: 'now' }, withQueryController: true });
+
+    s.renderResult.unmount();
+    expect(s.childContexts![0].isActive).toBe(false);
+    expect(s.childContexts![1].isActive).toBe(false);
   });
 });
 
@@ -52,7 +67,7 @@ function ChildTest({ setCtx, children }: ChildTestProps) {
 
 interface SetupResult {
   context?: SceneContextObject;
-  childContext?: SceneContextObject;
+  childContexts?: SceneContextObject[];
   renderResult: RenderResult;
 }
 
@@ -62,14 +77,19 @@ function setup(props: SetupProps) {
   const result: SetupResult = {} as SetupResult;
 
   result.renderResult = render(
-    <Router history={locationService.getHistory()}>
-      <SceneContextProvider {...props}>
-        <ChildTest setCtx={(c) => (result.context = c)}></ChildTest>
-        <SceneContextProvider>
-          <ChildTest setCtx={(c) => (result.childContext = c)}></ChildTest>
+    <LocationServiceProvider service={locationService}>
+      <Router history={locationService.getHistory()}>
+        <SceneContextProvider {...props}>
+          <ChildTest setCtx={(c) => (result.context = c)}></ChildTest>
+          <SceneContextProvider>
+            <ChildTest setCtx={(c) => (result.childContexts = [...(result.childContexts ?? []), c])}></ChildTest>
+          </SceneContextProvider>
+          <SceneContextProvider>
+            <ChildTest setCtx={(c) => (result.childContexts = [...(result.childContexts ?? []), c])}></ChildTest>
+          </SceneContextProvider>
         </SceneContextProvider>
-      </SceneContextProvider>
-    </Router>
+      </Router>
+    </LocationServiceProvider>
   );
 
   return result;
