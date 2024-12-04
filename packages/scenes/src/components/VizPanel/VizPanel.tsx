@@ -86,7 +86,6 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   collapsible?: PanelChromeProps['collapsible']
   collapsed?: PanelChromeProps['collapsed']
-  height?: PanelChromeProps['height']
   onToggleCollapse?: (collapsed: boolean, vizPanel: VizPanel) => void;
   /**
    * @internal
