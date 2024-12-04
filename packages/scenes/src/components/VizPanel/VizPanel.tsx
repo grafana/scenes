@@ -83,7 +83,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   /**
    * For advanced use cases that need to override PanelChrome props.
    */
-  panelChromeProps?: Partial<PanelChromeProps>
+  panelChromeProps?:  Omit<Partial<PanelChromeProps>, 'children'>
   /**
    * @internal
    * Only for use from core to handle migration from old angular panels

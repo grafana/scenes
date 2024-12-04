@@ -254,6 +254,14 @@ describe('VizPanelBuilder', () => {
       const p1 = getTestBuilder().applyMixin(mixin).build();
       expect(p1.state.options.numeric).toEqual(2);
     });
+
+    it('allows panel chrome props', async() => {
+      const p1 = getTestBuilder()
+        .setPanelChromeProps({collapsible: true, collapsed: true})
+        .build();
+      expect(p1.state.panelChromeProps?.collapsed).toEqual(true)
+      expect(p1.state.panelChromeProps?.collapsible).toEqual(true)
+    })
   });
 
   describe('overrides', () => {

@@ -90,7 +90,7 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   /**
    * Set PanelChrome prop overrides
    */
-  public setPanelChromeProps(props: Partial<PanelChromeProps>): this {
+  public setPanelChromeProps(props: Omit<Partial<PanelChromeProps>, 'children'>): this {
     this._state.panelChromeProps = props;
     return this;
   }
