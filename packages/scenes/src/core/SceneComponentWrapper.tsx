@@ -1,8 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { Context, useContext, useEffect, useState } from 'react';
 
 import { SceneComponentProps, SceneObject } from './types';
 
-function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...otherProps }: SceneComponentProps<T>) {
+function ContextsConsumer<T extends SceneObject>({ model }: SceneComponentProps<T>) {
+  return model.reactContexts
+    ?.getContextsList()
+    .map((ctx, idx) => <MySceneObjectContextConsumer key={idx} ctx={ctx.context} model={model} />);
+}
+
+interface MySceneObjectContextConsumerProps {
+  ctx: Context<any>;
+  model: SceneObject;
+}
+
+function MySceneObjectContextConsumer({ ctx, model }: MySceneObjectContextConsumerProps) {
+  const ctxValue = useContext(ctx);
+
+  useEffect(() => {
+    model.reactContexts?.updateContext(ctx, ctxValue);
+  }, [ctx, ctxValue, model]);
+
+  return null;
+}
+
+function ComponentRenderer<T extends SceneObject>({ model, ...otherProps }: SceneComponentProps<T>) {
   const Component = (model as any).constructor['Component'] ?? EmptyRenderer;
   const [_, setValue] = useState(0);
 
@@ -20,6 +41,13 @@ function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...oth
   }
 
   return <Component {...otherProps} model={model} />;
+}
+
+function SceneComponentWrapperWithoutMemo<T extends SceneObject>({ model, ...otherProps }: SceneComponentProps<T>) {
+  return [
+    <ContextsConsumer key="contexts" model={model} />,
+    <ComponentRenderer key="component" model={model} {...otherProps} />,
+  ];
 }
 
 export const SceneComponentWrapper = React.memo(SceneComponentWrapperWithoutMemo);
