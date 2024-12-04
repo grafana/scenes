@@ -29,10 +29,6 @@ export class ReactContexts implements ReactContextsHandler {
       });
   }
 
-  public useContext<T = any>(ctx: Context<T>): T {
-    return this._ctxMap.getValue().get(ctx);
-  }
-
   public updateContext<T = any>(ctx: Context<T>, ctxValue: T) {
     const currentCtxMap = this._ctxMap.getValue();
 
