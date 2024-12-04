@@ -4,7 +4,6 @@ import { FieldConfigBuilder } from './FieldConfigBuilder';
 import { FieldConfigOverridesBuilder } from './FieldConfigOverridesBuilder';
 import { PanelOptionsBuilder } from './PanelOptionsBuilder';
 import { StandardFieldConfig, StandardFieldConfigInterface } from './types';
-import { PanelChromeProps } from '@grafana/ui';
 
 export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   implements StandardFieldConfigInterface<StandardFieldConfig, VizPanelBuilder<TOptions, TFieldConfig>, 'set'>
@@ -87,11 +86,16 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
     return this;
   }
 
-  /**
-   * Set PanelChrome prop overrides
-   */
-  public setPanelChromeProps(props: Omit<Partial<PanelChromeProps>, 'children'>): this {
-    this._state.panelChromeProps = props;
+  public setCollapsible(collapsible: VizPanelState['collapsible']): this {
+    this._state.collapsible = collapsible
+    return this;
+  }
+  public setCollapsed(collapsed: VizPanelState['collapsed']): this {
+    this._state.collapsed = collapsed
+    return this;
+  }
+  public setOnToggleCollapse(onToggleCollapse: VizPanelState['onToggleCollapse']): this {
+    this._state.onToggleCollapse = onToggleCollapse
     return this;
   }
 

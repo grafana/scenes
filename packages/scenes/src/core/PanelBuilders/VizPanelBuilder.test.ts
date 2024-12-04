@@ -256,11 +256,15 @@ describe('VizPanelBuilder', () => {
     });
 
     it('allows panel chrome props', async() => {
+      const fn = jest.fn()
       const p1 = getTestBuilder()
-        .setPanelChromeProps({collapsible: true, collapsed: true})
+        .setCollapsed(true)
+        .setCollapsible(true)
+        .setOnToggleCollapse(fn)
         .build();
-      expect(p1.state.panelChromeProps?.collapsed).toEqual(true)
-      expect(p1.state.panelChromeProps?.collapsible).toEqual(true)
+      expect(p1.state.collapsed).toEqual(true)
+      expect(p1.state.collapsible).toEqual(true)
+      expect(p1.state.onToggleCollapse).toBe(fn)
     })
   });
 

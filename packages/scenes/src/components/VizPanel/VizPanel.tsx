@@ -80,10 +80,14 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Mainly for advanced use cases that need custom handling of PanelContext callbacks.
    */
   extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
+
   /**
-   * For advanced use cases that need to override PanelChrome props.
+   * Sets panel chrome collapsed state
    */
-  panelChromeProps?:  Omit<Partial<PanelChromeProps>, 'children'>
+  collapsible?: PanelChromeProps['collapsible']
+  collapsed?: PanelChromeProps['collapsed']
+  height?: PanelChromeProps['height']
+  onToggleCollapse?: (collapsed: boolean, vizPanel: VizPanel) => void;
   /**
    * @internal
    * Only for use from core to handle migration from old angular panels
