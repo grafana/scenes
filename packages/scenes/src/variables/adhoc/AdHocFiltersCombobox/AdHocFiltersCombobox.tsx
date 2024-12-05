@@ -419,8 +419,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     (value: SelectableValue<string>) => {
       const valueLabel = value.label || value.value!;
       setFilterMultiValues((prev) => prev.filter((item) => item.value !== value.value));
+      setPreventFiltering(true);
       setInputValue(valueLabel);
       refs.domReference.current?.focus();
+      setTimeout(() => {
+        refs.domReference.current?.select();
+      });
     },
     [refs.domReference]
   );
