@@ -255,23 +255,23 @@ describe('VizPanelBuilder', () => {
       expect(p1.state.options.numeric).toEqual(2);
     });
 
-    it('allows collapsed props', async() => {
+    it('allows collapsed props', async () => {
       const p1 = getTestBuilder().setCollapsed(true).setCollapsible(true).build();
-      expect(p1.state.collapsed).toEqual(true)
-      expect(p1.state.collapsible).toEqual(true)
+      expect(p1.state.collapsed).toEqual(true);
+      expect(p1.state.collapsible).toEqual(true);
 
       const p2 = getTestBuilder().setCollapsible(true).build();
-      expect(p2.state.collapsed).toEqual(undefined)
-      expect(p2.state.collapsible).toEqual(true)
+      expect(p2.state.collapsed).toEqual(undefined);
+      expect(p2.state.collapsible).toEqual(true);
 
       const p3 = getTestBuilder().setCollapsed(true).build();
-      expect(p3.state.collapsed).toEqual(true)
-      expect(p3.state.collapsible).toEqual(undefined)
+      expect(p3.state.collapsed).toEqual(true);
+      expect(p3.state.collapsible).toEqual(undefined);
 
       const p4 = getTestBuilder().build();
-      expect(p4.state.collapsed).toEqual(undefined)
-      expect(p4.state.collapsible).toEqual(undefined)
-    })
+      expect(p4.state.collapsed).toEqual(undefined);
+      expect(p4.state.collapsible).toEqual(undefined);
+    });
   });
 
   describe('overrides', () => {
