@@ -17,7 +17,7 @@ import {
   renderMarkdown,
   PanelPluginDataSupport,
 } from '@grafana/data';
-import { PanelChromeProps, PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
+import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
@@ -84,8 +84,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   /**
    * Sets panel chrome collapsed state
    */
-  collapsible?: PanelChromeProps['collapsible']
-  collapsed?: PanelChromeProps['collapsed']
+  collapsible?: boolean
+  collapsed?: boolean
   /**
    * @internal
    * Only for use from core to handle migration from old angular panels
