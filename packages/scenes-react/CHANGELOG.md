@@ -1,3 +1,15 @@
+# v5.29.0 (Thu Dec 05 2024)
+
+#### 🐛 Bug Fix
+
+- Prettier/lint: Add prettier and lint check to CI , format all files with prettier [#988](https://github.com/grafana/scenes/pull/988) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.28.0 (Fri Nov 29 2024)
 
 #### 🐛 Bug Fix

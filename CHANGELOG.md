@@ -1,3 +1,25 @@
+# v5.29.0 (Thu Dec 05 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersCombobox - Improve filter editing behaviour when pre-filling value on edit [#992](https://github.com/grafana/scenes/pull/992) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+  - Variables: Fixes issue when variable value was null [#985](https://github.com/grafana/scenes/pull/985) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Fix typo in visualizations.md [#943](https://github.com/grafana/scenes/pull/943) ([@ecurbelo](https://github.com/ecurbelo))
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Prettier/lint: Add prettier and lint check to CI , format all files with prettier [#988](https://github.com/grafana/scenes/pull/988) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Elena Curbelo ([@ecurbelo](https://github.com/ecurbelo))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.28.1 (Fri Nov 29 2024)
 
 #### 🐛 Bug Fix
