@@ -16,6 +16,7 @@ import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
+import { SceneScopesBridge } from '../../core/SceneScopesBridge';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -50,6 +51,11 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * Return replace: false if you want to combine the results with the default lookup
    */
   getTagKeysProvider?: getTagKeysProvider;
+
+  /**
+   * @internal flag for keeping track of scopes loading state
+   */
+  _isScopesLoading?: boolean;
 }
 
 export type getTagKeysProvider = (
@@ -62,6 +68,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   isLazy = true;
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
+
+  private _scopesBridge: SceneScopesBridge | undefined;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -151,12 +159,26 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         return () => allActiveGroupByVariables.delete(this);
       });
     }
+
+    this.addActivationHandler(() => {
+      this._scopesBridge = sceneGraph.getScopesBridge(this);
+
+      if (this._scopesBridge) {
+        this._subs.add(
+          this._scopesBridge.subscribeToIsLoading((isLoading) => this.setState({ _isScopesLoading: isLoading }))
+        );
+      }
+    });
   }
 
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public _getKeys = async (ds: DataSourceApi) => {
+    if (this._scopesBridge?.getIsLoading()) {
+      return [];
+    }
+
     // TODO:  provide current dimensions?
     const override = await this.state.getTagKeysProvider?.(this, null);
 
@@ -180,6 +202,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       filters: otherFilters,
       queries,
       timeRange,
+      scopes: this._scopesBridge?.getValue(),
       ...getEnrichedFiltersRequest(this),
     });
     if (responseHasError(response)) {
@@ -207,7 +230,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 }
 
-export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
+export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVariable>) {
   const {
     value,
     text,
@@ -218,6 +241,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     options,
     includeAll,
     allowCustomValue = true,
+    _isScopesLoading,
   } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
@@ -286,7 +310,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       isOpen={isOptionsOpen}
       isClearable={true}
       hideSelectedOptions={false}
-      isLoading={isFetchingOptions}
+      isLoading={isFetchingOptions || _isScopesLoading}
       components={{ Option: OptionWithCheckbox }}
       onInputChange={onInputChange}
       onBlur={() => {

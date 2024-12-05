@@ -16,16 +16,19 @@ export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequ
   }
 
   public static Component = ({ model }: SceneComponentProps<SceneApp>) => {
-    const { pages } = model.useState();
+    const { pages, scopesBridge } = model.useState();
 
     return (
-      <SceneAppContext.Provider value={model}>
-        <Routes>
-          {pages.map((page) => (
-            <Route key={page.state.url} path={page.state.routePath} element={<page.Component model={page} />} />
-          ))}
-        </Routes>
-      </SceneAppContext.Provider>
+      <>
+        {scopesBridge && <scopesBridge.Component model={scopesBridge} />}
+        <SceneAppContext.Provider value={model}>
+          <Routes>
+            {pages.map((page) => (
+              <Route key={page.state.url} path={page.state.routePath} element={<page.Component model={page} />} />
+            ))}
+          </Routes>
+        </SceneAppContext.Provider>
+      </>
     );
   };
 }

@@ -16,6 +16,7 @@ import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
+import { SceneScopesBridge } from '../../core/SceneScopesBridge';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -119,6 +120,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Allows custom formatting of a value before saving to filter state
    */
   onAddCustomValue?: OnAddCustomValueFn;
+
+  /**
+   * @internal flag for keeping track of scopes loading state
+   */
+  _isScopesLoading?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -194,6 +200,7 @@ export class AdHocFiltersVariable
 
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
+  private _scopesBridge: SceneScopesBridge | undefined;
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
@@ -211,7 +218,19 @@ export class AdHocFiltersVariable
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
     }
+
+    this.addActivationHandler(this._activationHandler);
   }
+
+  private _activationHandler = () => {
+    this._scopesBridge = sceneGraph.getScopesBridge(this);
+
+    if (this._scopesBridge) {
+      this._subs.add(
+        this._scopesBridge.subscribeToIsLoading((isLoading) => this.setState({ _isScopesLoading: isLoading }))
+      );
+    }
+  };
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
@@ -337,6 +356,10 @@ export class AdHocFiltersVariable
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public async _getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    if (this._scopesBridge?.getIsLoading()) {
+      return [];
+    }
+
     const override = await this.state.getTagKeysProvider?.(this, currentKey);
 
     if (override && override.replace) {
@@ -359,6 +382,7 @@ export class AdHocFiltersVariable
       filters: otherFilters,
       queries,
       timeRange,
+      scopes: this._scopesBridge?.getValue(),
       ...getEnrichedFiltersRequest(this),
     });
 
@@ -383,6 +407,10 @@ export class AdHocFiltersVariable
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
   public async _getValuesFor(filter: AdHocFilterWithLabels): Promise<Array<SelectableValue<string>>> {
+    if (this._scopesBridge?.getIsLoading()) {
+      return [];
+    }
+
     const override = await this.state.getTagValuesProvider?.(this, filter);
 
     if (override && override.replace) {
@@ -406,6 +434,7 @@ export class AdHocFiltersVariable
       filters: otherFilters,
       timeRange,
       queries,
+      scopes: this._scopesBridge?.getValue(),
       ...getEnrichedFiltersRequest(this),
     });
 
