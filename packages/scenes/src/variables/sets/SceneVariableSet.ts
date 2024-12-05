@@ -247,7 +247,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     this._updating.delete(variable);
     this._variablesToUpdate.delete(variable);
 
-    variable.setState({ loading: false, error: err.message });
+    variable.setState({ loading: false, error: err });
 
     console.error('SceneVariableSet updateAndValidate error', err);
 
