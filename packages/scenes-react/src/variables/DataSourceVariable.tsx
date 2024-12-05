@@ -31,16 +31,16 @@ export function DataSourceVariable({
   let variable: DataSourceVariableObject | undefined = scene.findVariable(name);
 
   if (!variable) {
-    variable = new DataSourceVariableObject({ 
+    variable = new DataSourceVariableObject({
       pluginId,
       regex,
       name,
       label,
-      value: initialValue, 
+      value: initialValue,
       isMulti,
-      hide, 
+      hide,
       includeAll,
-     });
+    });
   }
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export function DataSourceVariable({
     }
 
     if (
-      variable.state.pluginId ===  pluginId &&
+      variable.state.pluginId === pluginId &&
       variable.state.regex === regex &&
       variable.state.label === label &&
       variable.state.hide === hide &&
@@ -68,12 +68,12 @@ export function DataSourceVariable({
       pluginId,
       regex,
       label,
-      hide, 
+      hide,
       includeAll,
-    })
+    });
 
     variable.refreshOptions();
-  }, [hide, includeAll, label, pluginId, regex, variable, variableAdded])
+  }, [hide, includeAll, label, pluginId, regex, variable, variableAdded]);
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {

@@ -103,7 +103,7 @@
 
 #### UrlSync: Support browser history steps, remove singleton ([#878](https://github.com/grafana/scenes/pull/878))
 
-getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider. 
+getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider.
 If you called getUrlSyncManager().getUrlState that util function is available via the exported object sceneUtils.
 
 ---
@@ -251,4 +251,4 @@ If you called getUrlSyncManager().getUrlState that util function is available vi
 
 ---
 
-Work in progress 
+Work in progress

@@ -7,14 +7,12 @@ If you want to query a custom resource API, you can register a runtime data sour
 
 `SceneQueryRunner` does a lot of complex work for you like:
 
-* Wait for variables to complete (if your queries depend on them)
-* Re-execute variables when a time range changes
-* Figure out if variables changed while inactive
-
+- Wait for variables to complete (if your queries depend on them)
+- Re-execute variables when a time range changes
+- Figure out if variables changed while inactive
 
 ```typescript
-
- class MyCustomDS extends RuntimeDataSource {
+class MyCustomDS extends RuntimeDataSource {
   query(request: DataQueryRequest<DataQuery>): Promise<DataQueryResponse> | Observable<DataQueryResponse> {
     return Promise.resolve({
       state: LoadingState.Done,
@@ -34,19 +32,18 @@ If you want to query a custom resource API, you can register a runtime data sour
 
 // Important to specify a unique pluginId and uid for your data source that is unlikely to confict with any other scene app plugin.
 sceneUtils.registerRuntimeDataSource({ dataSource: new MyCustomDS('my-custom-ds', 'my-custom-ds-uid') });
-
 ```
+
 You can now use this data source in `SceneQueryRunner` queries using the same uid. If you want to mix queries to standard data sources and your custom data source in the same `SceneQueryRunner`, use the mixed data source.
 
 Example:
 
 ```typescript
-  $data: new SceneQueryRunner({
-    datasource: { uid: '-- Mixed --' },
-    queries: [
-      { refId: 'A', datasource: { uid: 'my-prometheus' }, expr: '<my prometheus query>' },
-      { refId: 'B', datasource: { uid: 'my-custom-ds-uid' }, expr: '<my prometheus query>' },
-    ]
-  })
-
+$data: new SceneQueryRunner({
+  datasource: { uid: '-- Mixed --' },
+  queries: [
+    { refId: 'A', datasource: { uid: 'my-prometheus' }, expr: '<my prometheus query>' },
+    { refId: 'B', datasource: { uid: 'my-custom-ds-uid' }, expr: '<my prometheus query>' },
+  ],
+});
 ```

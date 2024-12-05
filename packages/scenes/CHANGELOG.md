@@ -537,7 +537,7 @@
 
 #### UrlSync: Support browser history steps, remove singleton ([#878](https://github.com/grafana/scenes/pull/878))
 
-getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider. 
+getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider.
 If you called getUrlSyncManager().getUrlState that util function is available via the exported object sceneUtils.
 
 ---
@@ -753,7 +753,7 @@ Brings a fix for [variables interpolation bug](https://github.com/grafana/scenes
 
 #### 🚀 Enhancement
 
-- Allow setting _skipOnLayoutChange in SceneGridLayout [#849](https://github.com/grafana/scenes/pull/849) ([@kaydelaney](https://github.com/kaydelaney))
+- Allow setting \_skipOnLayoutChange in SceneGridLayout [#849](https://github.com/grafana/scenes/pull/849) ([@kaydelaney](https://github.com/kaydelaney))
 
 #### Authors: 1
 
@@ -789,7 +789,7 @@ Brings a fix for [variables interpolation bug](https://github.com/grafana/scenes
 
 #### 🚀 Enhancement
 
-- Wrap __sceneObject scoped var in an serialisable wrapper [#828](https://github.com/grafana/scenes/pull/828) ([@dprokop](https://github.com/dprokop))
+- Wrap \_\_sceneObject scoped var in an serialisable wrapper [#828](https://github.com/grafana/scenes/pull/828) ([@dprokop](https://github.com/dprokop))
 
 #### Authors: 1
 
@@ -1117,7 +1117,7 @@ Brings a fix for [variables interpolation bug](https://github.com/grafana/scenes
 
 #### 🚀 Enhancement
 
-- Variables: Add support to read only variables  and expose missing types for custom variables in core grafana [#781](https://github.com/grafana/scenes/pull/781) ([@axelavargas](https://github.com/axelavargas))
+- Variables: Add support to read only variables and expose missing types for custom variables in core grafana [#781](https://github.com/grafana/scenes/pull/781) ([@axelavargas](https://github.com/axelavargas))
 
 #### Authors: 1
 
@@ -1638,7 +1638,7 @@ Brings a fix for [variables interpolation bug](https://github.com/grafana/scenes
 
 #### 🚀 Enhancement
 
-- Fix ${__all_variables} not updating their value in panels [#698](https://github.com/grafana/scenes/pull/698) ([@axelavargas](https://github.com/axelavargas))
+- Fix ${\_\_all_variables} not updating their value in panels [#698](https://github.com/grafana/scenes/pull/698) ([@axelavargas](https://github.com/axelavargas))
 
 #### Authors: 1
 
@@ -1746,7 +1746,7 @@ Brings a fix for [variables interpolation bug](https://github.com/grafana/scenes
 
 #### 🐛 Bug Fix
 
-- Clone SceneQueryRunner together with _results [#681](https://github.com/grafana/scenes/pull/681) ([@mdvictor](https://github.com/mdvictor))
+- Clone SceneQueryRunner together with \_results [#681](https://github.com/grafana/scenes/pull/681) ([@mdvictor](https://github.com/mdvictor))
 
 #### Authors: 1
 
