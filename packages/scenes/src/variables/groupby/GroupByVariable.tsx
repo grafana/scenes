@@ -8,7 +8,7 @@ import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } fro
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
-import { InputActionMeta, MultiSelect } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
 import { isArray } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
@@ -20,6 +20,10 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
   name: string;
+  /** Determines if user can select several options*/
+  isMulti: boolean;
+  /** Determines whether the component uses MultiSelect or Select. Defaults to true for MultiSelect. */
+  isMultiSelect?: boolean;
   /** The visible keys to group on */
   // TODO review this type and name (naming is hard)
   defaultOptions?: MetricFindValue[];
@@ -131,6 +135,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   public constructor(initialState: Partial<GroupByVariableState>) {
     super({
       isMulti: true,
+      isMultiSelect: true,
       name: '',
       value: [],
       text: [],
@@ -204,11 +209,14 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return { value: [], text: [] };
   }
 }
+
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
   const {
     value,
     text,
     key,
+    isMulti,
+    isMultiSelect = true,
     maxVisibleValues,
     noValueOnClear,
     options,
@@ -262,7 +270,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     [optionSearcher, inputValue]
   );
 
-  return (
+  return isMultiSelect ? (
     <MultiSelect<VariableValueSingle>
       data-testid={`GroupBySelect-${key}`}
       id={key}
@@ -296,6 +304,57 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
         }
         setUncommittedValue(newValue);
       }}
+      onOpenMenu={async () => {
+        setIsFetchingOptions(true);
+        await lastValueFrom(model.validateAndUpdate());
+        setIsFetchingOptions(false);
+        setIsOptionsOpen(true);
+      }}
+      onCloseMenu={() => {
+        setIsOptionsOpen(false);
+      }}
+    />
+  ) : (
+    <Select
+      aria-label="Group by selector"
+      id={key}
+      placeholder="None"
+      width="auto"
+      inputValue={inputValue}
+      value={uncommittedValue}
+      allowCustomValue={allowCustomValue}
+      noMultiValueWrap={true}
+      maxVisibleValues={maxVisibleValues ?? 5}
+      tabSelectsValue={false}
+      virtualized
+      options={filteredOptions}
+      filterOption={filterNoOp}
+      closeMenuOnSelect={true}
+      isOpen={isOptionsOpen}
+      isClearable={true}
+      hideSelectedOptions={false}
+      noValueOnClear={true}
+      isMulti={isMulti}
+      isLoading={isFetchingOptions}
+      onInputChange={onInputChange}
+      onChange={(newValue, action) => {
+        if (action.action === 'clear') {
+          setUncommittedValue([]);
+          if (noValueOnClear) {
+            model.changeValueTo([]);
+          }
+          return;
+        }
+
+        if (isMulti === false && newValue?.value) {
+          setUncommittedValue([newValue]);
+          model.changeValueTo(newValue.value, newValue.label);
+        } else if (isMulti && Array.isArray(newValue)) {
+          setUncommittedValue(newValue);
+          model.changeValueTo(newValue.map(v => v.value), newValue.map(v => v.label));
+        }
+      }}
+
       onOpenMenu={async () => {
         setIsFetchingOptions(true);
         await lastValueFrom(model.validateAndUpdate());
