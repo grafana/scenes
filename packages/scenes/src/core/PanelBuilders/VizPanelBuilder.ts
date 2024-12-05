@@ -94,10 +94,6 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
     this._state.collapsed = collapsed
     return this;
   }
-  public setOnToggleCollapse(onToggleCollapse: VizPanelState['onToggleCollapse']): this {
-    this._state.onToggleCollapse = onToggleCollapse
-    return this;
-  }
 
   /**
    * Set color.
