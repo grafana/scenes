@@ -40,7 +40,6 @@ import { getUrlSyncTest } from './urlSyncTest';
 import { getMlDemo } from './ml';
 import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
-import { getReactContext } from './reactContext/ReactContext';
 
 export interface DemoDescriptor {
   title: string;
@@ -90,6 +89,5 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Machine Learning', getPage: getMlDemo },
     { title: 'Events on the Scene Graph', getPage: getSceneGraphEventsDemo },
     { title: 'Series limit', getPage: getSeriesLimitTest },
-    { title: 'React Contexts', getPage: getReactContext },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

@@ -8,6 +8,8 @@ import { SceneReactObject } from '../SceneReactObject';
 import { SceneAppDrilldownViewRender, SceneAppPageView } from './SceneAppPageView';
 import { SceneAppDrilldownView, SceneAppPageLike, SceneAppPageState, SceneRouteMatch } from './types';
 import { renderSceneComponentWithRouteProps } from './utils';
+import { sceneGraph } from '../../core/sceneGraph';
+import { SceneScopesBridge } from '../../core/SceneScopesBridge';
 
 /**
  * Responsible for page's drilldown & tabs routing
@@ -16,10 +18,29 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   public static Component = SceneAppPageRenderer;
   private _sceneCache = new Map<string, EmbeddedScene>();
   private _drilldownCache = new Map<string, SceneAppPageLike>();
+  private _scopesBridge: SceneScopesBridge | undefined;
 
   public constructor(state: SceneAppPageState) {
     super(state);
+
+    this.addActivationHandler(this._activationHandler);
   }
+
+  private _activationHandler = () => {
+    this._scopesBridge = sceneGraph.getScopesBridge(this);
+
+    if (this.state.useScopes) {
+      if (!this._scopesBridge) {
+        throw new Error('Use of scopes is enabled but no scopes bridge found');
+      }
+
+      this._scopesBridge.enable();
+
+      return () => {
+        this._scopesBridge?.disable();
+      };
+    }
+  };
 
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });
