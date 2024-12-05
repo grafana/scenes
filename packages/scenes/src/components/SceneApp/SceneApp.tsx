@@ -10,6 +10,8 @@ import { renderSceneComponentWithRouteProps } from './utils';
  * Responsible for top level pages routing
  */
 export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequestEnricher {
+  protected _renderBeforeActivation = true;
+
   public enrichDataRequest() {
     return {
       app: this.state.name || 'app',
