@@ -22,6 +22,12 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
 
+      - name: Lint library
+        run: yarn lint
+
+      - name: Prettier check
+        run: yarn prettier:check
+
       - name: Test library
         run: yarn test
 

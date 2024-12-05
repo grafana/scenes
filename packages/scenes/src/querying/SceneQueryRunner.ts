@@ -150,13 +150,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
             if (provider.shouldRerun(p, n, this.state.queries)) {
               this.runQueries();
             }
-          }),
+          })
         );
       }
 
-      this.subscribeToTimeRangeChanges(
-        timeRange,
-      );
+      this.subscribeToTimeRangeChanges(timeRange);
 
       if (this.shouldRunQueriesOnActivate()) {
         this.runQueries();
@@ -257,7 +255,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * be called many times until all dependencies are in a non loading state.   *
    */
   private onVariableUpdatesCompleted() {
-    if(this.isQueryModeAuto()){
+    if (this.isQueryModeAuto()) {
       this.runQueries();
     }
   }
@@ -386,7 +384,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
-    if(this.isQueryModeAuto()){
+    if (this.isQueryModeAuto()) {
       this.subscribeToTimeRangeChanges(timeRange);
     }
 
@@ -686,7 +684,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private isQueryModeAuto(): boolean {
-    return (this.state.runQueriesMode ?? 'auto') === 'auto'
+    return (this.state.runQueriesMode ?? 'auto') === 'auto';
   }
 }
 

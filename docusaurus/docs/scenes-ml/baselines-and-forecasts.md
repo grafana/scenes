@@ -27,9 +27,7 @@ const baseliner = new SceneBaseliner({
   discoverSeasonalities: false,
   pinned: false,
 });
-const panel = PanelBuilders.timeseries()
-  .setHeaderActions([baseliner])
-  .build();
+const panel = PanelBuilders.timeseries().setHeaderActions([baseliner]).build();
 ```
 
 :::note
