@@ -87,11 +87,11 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   }
 
   public setCollapsible(collapsible: VizPanelState['collapsible']): this {
-    this._state.collapsible = collapsible
+    this._state.collapsible = collapsible;
     return this;
   }
   public setCollapsed(collapsed: VizPanelState['collapsed']): this {
-    this._state.collapsed = collapsed
+    this._state.collapsed = collapsed;
     return this;
   }
 

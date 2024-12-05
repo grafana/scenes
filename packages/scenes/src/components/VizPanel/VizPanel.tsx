@@ -84,8 +84,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   /**
    * Sets panel chrome collapsed state
    */
-  collapsible?: boolean
-  collapsed?: boolean
+  collapsible?: boolean;
+  collapsed?: boolean;
   /**
    * @internal
    * Only for use from core to handle migration from old angular panels
@@ -324,9 +324,9 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public onToggleCollapse = (collapsed: boolean) => {
     this.setState({
-      collapsed
-    })
-  }
+      collapsed,
+    });
+  };
 
   public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
     const { fieldConfig, options } = this.state;
