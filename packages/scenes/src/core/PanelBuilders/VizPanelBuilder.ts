@@ -86,6 +86,15 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
     return this;
   }
 
+  public setCollapsible(collapsible: VizPanelState['collapsible']): this {
+    this._state.collapsible = collapsible
+    return this;
+  }
+  public setCollapsed(collapsed: VizPanelState['collapsed']): this {
+    this._state.collapsed = collapsed
+    return this;
+  }
+
   /**
    * Set color.
    */

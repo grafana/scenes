@@ -31,6 +31,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     seriesLimit,
     seriesLimitShowAll,
     description,
+    collapsible,
+    collapsed,
     _renderCounter = 0,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
@@ -190,6 +192,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
+            collapsible={collapsible}
+            collapsed={collapsed}
+            onToggleCollapse={model.onToggleCollapse}
           >
             {(innerWidth, innerHeight) => (
               <>
