@@ -62,6 +62,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const [inputValue, setInputValue] = useState('');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [filterInputType, setInputType] = useState<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
+  const [preventFiltering, setPreventFiltering] = useState<boolean>(!isAlwaysWip && filterInputType === 'value');
   const styles = useStyles2(getStyles);
   // control multi values with local state in order to commit all values at once and avoid _wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
@@ -191,6 +192,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     const value = event.target.value;
     setInputValue(value);
     setActiveIndex(0);
+    if (preventFiltering) {
+      setPreventFiltering(false);
+    }
   }
 
   const handleRemoveMultiValue = useCallback(
@@ -203,7 +207,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   // operation order on fetched options:
   //    fuzzy search -> extract into groups -> flatten group labels and options
-  const filteredDropDownItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(inputValue, filterInputType)));
+  const filteredDropDownItems = flattenOptionGroups(
+    handleOptionGroups(optionsSearcher(preventFiltering ? '' : inputValue, filterInputType))
+  );
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
   if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
@@ -454,6 +460,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       //   this avoids populating input during delete with backspace
       if (!hasMultiValueOperator && populateInputOnEdit) {
         setInputValue(filter?.value || '');
+        setTimeout(() => {
+          refs.domReference.current?.select();
+        });
       }
 
       refs.domReference.current?.focus();
