@@ -40,7 +40,6 @@ import { getUrlSyncTest } from './urlSyncTest';
 import { getMlDemo } from './ml';
 import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
-import { getReactContext } from './reactContext/ReactContext';
 
 export interface DemoDescriptor {
   title: string;
@@ -298,12 +297,6 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Test panel series limit feature',
       getPage: getSeriesLimitTest,
       getSourceCodeModule: () => import('!!raw-loader!../demos/seriesLimit'),
-    },
-    {
-      title: 'React Contexts',
-      description: 'Example of how to bind React Contexts to Scene Objects',
-      getPage: getReactContext,
-      getSourceCodeModule: () => import('!!raw-loader!../demos/reactContext/ReactContext')
     },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

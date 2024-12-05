@@ -28,6 +28,8 @@ const filterNoOp = () => true;
 export function AdHocFilterRenderer({ filter, model }: Props) {
   const styles = useStyles2(getStyles);
 
+  const { _isScopesLoading } = model.useState();
+
   const [keys, setKeys] = useState<SelectableValue[]>([]);
   const [values, setValues] = useState<SelectableValue[]>([]);
   const [isKeysLoading, setIsKeysLoading] = useState(false);
@@ -144,8 +146,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
       // see https://github.com/grafana/grafana/issues/63558
       // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
-      isOpen={isValuesOpen && !isValuesLoading}
-      isLoading={isValuesLoading}
+      isOpen={isValuesOpen && !isValuesLoading && !_isScopesLoading}
+      isLoading={isValuesLoading || _isScopesLoading}
       openMenuOnFocus={true}
       onOpenMenu={async () => {
         setIsValuesLoading(true);
@@ -192,8 +194,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
       // see https://github.com/grafana/grafana/issues/63558
       // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
-      isOpen={isKeysOpen && !isKeysLoading}
-      isLoading={isKeysLoading}
+      isOpen={isKeysOpen && !isKeysLoading && !_isScopesLoading}
+      isLoading={isKeysLoading || _isScopesLoading}
       onOpenMenu={async () => {
         setIsKeysOpen(true);
         setIsKeysLoading(true);
