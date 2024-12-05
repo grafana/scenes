@@ -15,6 +15,7 @@ import {
   findDescendents,
   getQueryController,
   getUrlSyncManager,
+  getScopesBridge,
 } from './sceneGraph';
 
 export const sceneGraph = {
@@ -34,4 +35,5 @@ export const sceneGraph = {
   findDescendents,
   getQueryController,
   getUrlSyncManager,
+  getScopesBridge,
 };

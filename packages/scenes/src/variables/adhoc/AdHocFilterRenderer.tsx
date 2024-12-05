@@ -28,6 +28,8 @@ const filterNoOp = () => true;
 export function AdHocFilterRenderer({ filter, model }: Props) {
   const styles = useStyles2(getStyles);
 
+  const { _isScopesLoading } = model.useState();
+
   const [keys, setKeys] = useState<SelectableValue[]>([]);
   const [values, setValues] = useState<SelectableValue[]>([]);
   const [isKeysLoading, setIsKeysLoading] = useState(false);
@@ -38,7 +40,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
-  const [uncommittedValue, setUncommittedValue] = useState<SelectableValue>(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []);
+  const [uncommittedValue, setUncommittedValue] = useState<SelectableValue>(
+    filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []
+  );
   const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
@@ -64,16 +68,18 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       update.valueLabels = [''];
       update.values = undefined;
       setUncommittedValue([]);
-    // set values if operator has changed from single to multi
+      // set values if operator has changed from single to multi
     } else if (!isMultiValueOperator(existingOperator) && isMultiValueOperator(newOperator) && filter.value) {
       update.values = [filter.value];
-      setUncommittedValue([{
-        value: filter.value,
-        label: filter.valueLabels?.[0] ?? filter.value,
-      }]);
+      setUncommittedValue([
+        {
+          value: filter.value,
+          label: filter.valueLabels?.[0] ?? filter.value,
+        },
+      ]);
     }
     model._updateFilter(filter, update);
-  }
+  };
 
   const filteredValueOptions = useMemo(
     () => handleOptionGroups(optionSearcher(valueInputValue)),
@@ -103,8 +109,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
         values: uncommittedValue.map((option: SelectableValue<string>) => option.value),
         valueLabels: uncommittedValue.map((option: SelectableValue<string>) => option.label),
       });
-    }
-  }
+    },
+  };
 
   const valueSelect = (
     <Select
@@ -125,7 +131,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       onChange={(v) => {
         model._updateFilter(filter, {
           value: v.value,
-          valueLabels: v.label ? [v.label] : [v.value]
+          valueLabels: v.label ? [v.label] : [v.value],
         });
 
         if (valueHasCustomValue !== v.__isNew__) {
@@ -135,8 +141,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
       // see https://github.com/grafana/grafana/issues/63558
       // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
-      isOpen={isValuesOpen && !isValuesLoading}
-      isLoading={isValuesLoading}
+      isOpen={isValuesOpen && !isValuesLoading && !_isScopesLoading}
+      isLoading={isValuesLoading || _isScopesLoading}
       openMenuOnFocus={true}
       onOpenMenu={async () => {
         setIsValuesLoading(true);
@@ -175,16 +181,16 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
           // clear value if key has changed
           value: '',
           valueLabels: [''],
-          values: undefined
-        })
+          values: undefined,
+        });
         setUncommittedValue([]);
       }}
       autoFocus={filter.key === ''}
       // there's a bug in react-select where the menu doesn't recalculate its position when the options are loaded asynchronously
       // see https://github.com/grafana/grafana/issues/63558
       // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
-      isOpen={isKeysOpen && !isKeysLoading}
-      isLoading={isKeysLoading}
+      isOpen={isKeysOpen && !isKeysLoading && !_isScopesLoading}
+      isLoading={isKeysLoading || _isScopesLoading}
       onOpenMenu={async () => {
         setIsKeysOpen(true);
         setIsKeysLoading(true);
@@ -214,10 +220,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       options={model._getOperators()}
       onChange={onOperatorChange}
       onOpenMenu={() => {
-        setIsOperatorOpen(true)
+        setIsOperatorOpen(true);
       }}
       onCloseMenu={() => {
-        setIsOperatorOpen(false)
+        setIsOperatorOpen(false);
       }}
     />
   );

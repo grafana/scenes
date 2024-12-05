@@ -11,6 +11,7 @@ import { SceneQueryControllerLike, isQueryController } from '../../behaviors/Sce
 import { VariableInterpolation } from '@grafana/runtime';
 import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
+import { SceneScopesBridge } from '../SceneScopesBridge';
 
 /**
  * Get the closest node with variables
@@ -235,10 +236,7 @@ interface SceneType<T> extends Function {
  * A utility function to find the closest ancestor of a given type. This function expects
  * to find it and will throw an error if it does not.
  */
-export function getAncestor<ParentType>(
-  sceneObject: SceneObject,
-  ancestorType: SceneType<ParentType>
-): ParentType {
+export function getAncestor<ParentType>(sceneObject: SceneObject, ancestorType: SceneType<ParentType>): ParentType {
   let parent: SceneObject | undefined = sceneObject;
 
   while (parent) {
@@ -302,4 +300,11 @@ export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike 
   }
 
   return undefined;
+}
+
+/**
+ * Will walk up the scene object graph to the closest $scopesBridge scene object
+ */
+export function getScopesBridge(sceneObject: SceneObject): SceneScopesBridge | undefined {
+  return (findObject(sceneObject, (s) => s instanceof SceneScopesBridge) as SceneScopesBridge) ?? undefined;
 }
