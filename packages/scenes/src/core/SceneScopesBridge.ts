@@ -1,16 +1,15 @@
 import { isEqual } from 'lodash';
+import { useEffect } from 'react';
 import { BehaviorSubject, filter, map, Observable, pairwise, Unsubscribable } from 'rxjs';
 
 import { Scope } from '@grafana/data';
 
 import { SceneObjectBase } from './SceneObjectBase';
-import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues, SceneObjectWithUrlSync } from './types';
+import { SceneComponentProps, SceneObjectUrlValues, SceneObjectWithUrlSync } from './types';
 import { ScopesContextValue, useScopes } from './ScopesContext';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
-export interface SceneScopesBridgeState extends SceneObjectState {}
-
-export class SceneScopesBridge extends SceneObjectBase<SceneScopesBridgeState> implements SceneObjectWithUrlSync {
+export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWithUrlSync {
   static Component = SceneScopesBridgeRenderer;
 
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['scopes'] });
@@ -20,10 +19,6 @@ export class SceneScopesBridge extends SceneObjectBase<SceneScopesBridgeState> i
   private _contextSubject = new BehaviorSubject<ScopesContextValue | undefined>(undefined);
 
   private _pendingScopes: string[] | null = null;
-
-  public constructor(state: SceneScopesBridgeState) {
-    super(state);
-  }
 
   public getUrlState(): SceneObjectUrlValues {
     return {
@@ -113,7 +108,7 @@ export class SceneScopesBridge extends SceneObjectBase<SceneScopesBridgeState> i
       this._contextSubject.next(newContext);
 
       if (shouldUpdate) {
-        setTimeout(() => this.forceRender());
+        this.forceRender();
       }
     }
   }
@@ -130,7 +125,9 @@ export class SceneScopesBridge extends SceneObjectBase<SceneScopesBridgeState> i
 function SceneScopesBridgeRenderer({ model }: SceneComponentProps<SceneScopesBridge>) {
   const context = useScopes();
 
-  model.updateContext(context);
+  useEffect(() => {
+    model.updateContext(context);
+  }, [context, model]);
 
   return null;
 }
