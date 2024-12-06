@@ -51,11 +51,6 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * Return replace: false if you want to combine the results with the default lookup
    */
   getTagKeysProvider?: getTagKeysProvider;
-
-  /**
-   * @internal flag for keeping track of scopes loading state
-   */
-  _isScopesLoading?: boolean;
 }
 
 export type getTagKeysProvider = (
@@ -157,12 +152,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
       allActiveGroupByVariables.add(this);
 
-      if (this._scopesBridge) {
-        this._subs.add(
-          this._scopesBridge.subscribeToIsLoading((isLoading) => this.setState({ _isScopesLoading: isLoading }))
-        );
-      }
-
       return () => allActiveGroupByVariables.delete(this);
     });
   }
@@ -171,10 +160,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public _getKeys = async (ds: DataSourceApi) => {
-    if (this._scopesBridge?.getIsLoading()) {
-      return [];
-    }
-
     // TODO:  provide current dimensions?
     const override = await this.state.getTagKeysProvider?.(this, null);
 
@@ -235,7 +220,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     options,
     includeAll,
     allowCustomValue = true,
-    _isScopesLoading,
   } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
@@ -303,7 +287,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       isOpen={isOptionsOpen}
       isClearable={true}
       hideSelectedOptions={false}
-      isLoading={isFetchingOptions || _isScopesLoading}
+      isLoading={isFetchingOptions}
       components={{ Option: OptionWithCheckbox }}
       onInputChange={onInputChange}
       onBlur={() => {
