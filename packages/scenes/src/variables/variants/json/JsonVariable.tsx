@@ -1,13 +1,17 @@
+import React from 'react';
 import { property } from 'lodash';
 import { Observable, map, of } from 'rxjs';
-
+import { Select } from '@grafana/ui';
+import { SelectableValue } from '@grafana/data';
+import { SceneObjectBase } from '../../../core/SceneObjectBase';
+import { SceneComponentProps } from '../../../core/types';
 import {
-  SceneObjectBase,
-  SceneVariable,
   SceneVariableState,
+  SceneVariable,
   ValidateAndUpdateResult,
   VariableValue,
-} from '@grafana/scenes';
+  SceneVariableValueChangedEvent,
+} from '../../types';
 
 export interface JsonVariableState extends SceneVariableState {
   /**
@@ -39,6 +43,7 @@ export class JsonVariable extends SceneObjectBase<JsonVariableState> implements 
     super({
       // @ts-ignore
       type: 'json',
+      options: [],
       ...state,
     });
   }
@@ -52,7 +57,6 @@ export class JsonVariable extends SceneObjectBase<JsonVariableState> implements 
 
     return this.state.provider.getOptions().pipe(
       map((options) => {
-        console.log('options', options);
         this.updateValueGivenNewOptions(options);
         return {};
       })
@@ -97,55 +101,31 @@ export class JsonVariable extends SceneObjectBase<JsonVariableState> implements 
 
     return (JsonVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
   }
+
+  public _onChange = (selected: SelectableValue<string>) => {
+    this.setState({ value: selected.value });
+    this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+  };
+
+  public static Component = ({ model }: SceneComponentProps<JsonVariable>) => {
+    const { key, value, options } = model.useState();
+
+    const current = options.find((option) => option.value === value)?.value;
+
+    return (
+      <Select
+        id={key}
+        placeholder="Select value"
+        width="auto"
+        value={current}
+        tabSelectsValue={false}
+        options={options}
+        onChange={model._onChange}
+      />
+    );
+  };
 }
 
 interface FieldAccessorCache {
   [key: string]: (obj: any) => any;
-}
-
-export interface JsonStringOptionPrividerOptions {
-  /**
-   * String contauining JSON with an array of objects or a map of objects
-   */
-  json: string;
-  /**
-   * Defaults to name if not specified
-   */
-  valueProp?: string;
-}
-
-export class JsonStringOptionPrivider implements JsonVariableOptionProvider {
-  public constructor(private options: JsonStringOptionPrividerOptions) {}
-
-  public getOptions(): Observable<JsonVariableOption[]> {
-    return new Observable((subscriber) => {
-      try {
-        const { json, valueProp = 'name' } = this.options;
-        const jsonValue = JSON.parse(json);
-
-        if (!Array.isArray(jsonValue)) {
-          throw new Error('JSON must be an array');
-        }
-
-        const resultOptions: JsonVariableOption[] = [];
-
-        jsonValue.forEach((option) => {
-          if (option[valueProp] == null) {
-            return;
-          }
-
-          resultOptions.push({
-            value: option[valueProp],
-            label: option[valueProp],
-            obj: option,
-          });
-        });
-
-        subscriber.next(resultOptions);
-        subscriber.complete();
-      } catch (error) {
-        subscriber.error(error);
-      }
-    });
-  }
 }
