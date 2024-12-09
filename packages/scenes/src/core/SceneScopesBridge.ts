@@ -3,10 +3,11 @@ import { useEffect } from 'react';
 import { BehaviorSubject, filter, map, Observable, pairwise, Unsubscribable } from 'rxjs';
 
 import { Scope } from '@grafana/data';
+// @ts-expect-error: TODO: Fix this once new runtime package is released
+import { ScopesContextValue, useScopes } from '@grafana/runtime';
 
 import { SceneObjectBase } from './SceneObjectBase';
 import { SceneComponentProps, SceneObjectUrlValues, SceneObjectWithUrlSync } from './types';
-import { ScopesContextValue, useScopes } from './ScopesContext';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
 export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWithUrlSync {
@@ -22,7 +23,7 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
 
   public getUrlState(): SceneObjectUrlValues {
     return {
-      scopes: this._pendingScopes ?? (this.context?.state.value ?? []).map((scope) => scope.metadata.name),
+      scopes: this._pendingScopes ?? (this.context?.state.value ?? []).map((scope: Scope) => scope.metadata.name),
     };
   }
 
@@ -45,7 +46,7 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
   public subscribeToValue(cb: (newScopes: Scope[], prevScopes: Scope[]) => void): Unsubscribable {
     return this.contextObservable
       .pipe(
-        filter((context) => !!context && !context.state.isLoading),
+        filter((context) => !!context && !context.state.loading),
         pairwise(),
         map(
           ([prevContext, newContext]) =>
@@ -58,40 +59,32 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
       });
   }
 
-  public getIsLoading(): boolean {
-    return this.context?.state.isLoading ?? false;
+  public isLoading(): boolean {
+    return this.context?.state.loading ?? false;
   }
 
-  public subscribeToIsLoading(cb: (isLoading: boolean) => void): Unsubscribable {
+  public subscribeToLoading(cb: (loading: boolean) => void): Unsubscribable {
     return this.contextObservable
       .pipe(
         filter((context) => !!context),
         pairwise(),
         map(
           ([prevContext, newContext]) =>
-            [prevContext?.state.isLoading ?? false, newContext?.state.isLoading ?? false] as [boolean, boolean]
+            [prevContext?.state.loading ?? false, newContext?.state.loading ?? false] as [boolean, boolean]
         ),
-        filter(([prevIsLoading, newIsLoading]) => prevIsLoading !== newIsLoading)
+        filter(([prevLoading, newLoading]) => prevLoading !== newLoading)
       )
-      .subscribe(([_prevIsLoading, newIsLoading]) => {
-        cb(newIsLoading);
+      .subscribe(([_prevLoading, newLoading]) => {
+        cb(newLoading);
       });
   }
 
-  public enable() {
-    this.context?.enable();
+  public setEnabled(enabled: boolean) {
+    this.context?.setEnabled(enabled);
   }
 
-  public disable() {
-    this.context?.disable();
-  }
-
-  public enterReadOnly() {
-    this.context?.enterReadOnly();
-  }
-
-  public exitReadOnly() {
-    this.context?.exitReadOnly();
+  public setReadOnly(readOnly: boolean) {
+    this.context?.setReadOnly(readOnly);
   }
 
   public updateContext(newContext: ScopesContextValue | undefined) {
