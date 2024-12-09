@@ -464,7 +464,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     // Skip executing queries if scopes are in loading state
-    if (scopesBridge?.getIsLoading()) {
+    if (scopesBridge?.isLoading()) {
       writeSceneLog('SceneQueryRunner', 'Scopes are in loading state, skipping query execution');
       this.setState({ data: { ...(this.state.data ?? emptyPanelData), state: LoadingState.Loading } });
       return;
