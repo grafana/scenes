@@ -10,6 +10,8 @@ import { renderSceneComponentWithRouteProps } from './utils';
  * Responsible for top level pages routing
  */
 export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequestEnricher {
+  protected _renderBeforeActivation = true;
+
   public enrichDataRequest() {
     return {
       app: this.state.name || 'app',
@@ -17,21 +19,24 @@ export class SceneApp extends SceneObjectBase<SceneAppState> implements DataRequ
   }
 
   public static Component = ({ model }: SceneComponentProps<SceneApp>) => {
-    const { pages } = model.useState();
+    const { pages, scopesBridge } = model.useState();
 
     return (
-      <SceneAppContext.Provider value={model}>
-        <Switch>
-          {pages.map((page) => (
-            <Route
-              key={page.state.url}
-              exact={false}
-              path={page.state.url}
-              render={(props) => renderSceneComponentWithRouteProps(page, props)}
-            ></Route>
-          ))}
-        </Switch>
-      </SceneAppContext.Provider>
+      <>
+        {scopesBridge && <scopesBridge.Component model={scopesBridge} />}
+        <SceneAppContext.Provider value={model}>
+          <Switch>
+            {pages.map((page) => (
+              <Route
+                key={page.state.url}
+                exact={false}
+                path={page.state.url}
+                render={(props) => renderSceneComponentWithRouteProps(page, props)}
+              ></Route>
+            ))}
+          </Switch>
+        </SceneAppContext.Provider>
+      </>
     );
   };
 }

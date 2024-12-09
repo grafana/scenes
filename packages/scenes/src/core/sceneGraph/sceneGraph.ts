@@ -11,6 +11,7 @@ import { SceneQueryControllerLike, isQueryController } from '../../behaviors/Sce
 import { VariableInterpolation } from '@grafana/runtime';
 import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
+import { SceneScopesBridge } from '../SceneScopesBridge';
 
 /**
  * Get the closest node with variables
@@ -299,4 +300,11 @@ export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike 
   }
 
   return undefined;
+}
+
+/**
+ * Will walk up the scene object graph to the closest $scopesBridge scene object
+ */
+export function getScopesBridge(sceneObject: SceneObject): SceneScopesBridge | undefined {
+  return (findObject(sceneObject, (s) => s instanceof SceneScopesBridge) as SceneScopesBridge) ?? undefined;
 }
