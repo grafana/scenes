@@ -26,19 +26,21 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   }
 
   private _activationHandler = () => {
-    if (this.state.useScopes) {
-      this._scopesBridge = sceneGraph.getScopesBridge(this);
-
-      if (!this._scopesBridge) {
-        throw new Error('Use of scopes is enabled but no scopes bridge found');
-      }
-
-      this._scopesBridge.setEnabled(true);
-
-      return () => {
-        this._scopesBridge?.setEnabled(false);
-      };
+    if (!this.state.useScopes) {
+      return;
     }
+
+    this._scopesBridge = sceneGraph.getScopesBridge(this);
+
+    if (!this._scopesBridge) {
+      throw new Error('Use of scopes is enabled but no scopes bridge found');
+    }
+
+    this._scopesBridge.setEnabled(true);
+
+    return () => {
+      this._scopesBridge?.setEnabled(false);
+    };
   };
 
   public initializeScene(scene: EmbeddedScene) {
