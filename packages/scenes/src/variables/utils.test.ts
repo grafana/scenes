@@ -5,6 +5,9 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { getFuzzySearcher, getQueriesForVariables } from './utils';
+import { SceneVariableSet } from './sets/SceneVariableSet';
+import { DataSourceVariable } from './variants/DataSourceVariable';
+import { GetDataSourceListFilters } from '@grafana/runtime';
 
 describe('getQueriesForVariables', () => {
   it('should resolve queries', () => {
@@ -173,6 +176,91 @@ describe('getQueriesForVariables', () => {
     source.activate();
 
     expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'AA' }, { refId: 'B' }]);
+  });
+});
+
+const getDataSourceListMock = jest.fn().mockImplementation((filters: GetDataSourceListFilters) => {
+  if (filters.pluginId === 'prometheus') {
+    return [
+      {
+        id: 1,
+        uid: 'interpolatedDs',
+        type: 'prometheus',
+        name: 'interpolatedDs-name',
+        isDefault: true,
+      },
+    ];
+  }
+
+  return [];
+});
+
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  getDataSourceSrv: () => {
+    return {
+      getList: getDataSourceListMock,
+    };
+  },
+}));
+
+describe('getQueriesForVariables', () => {
+  const original = console.error;
+
+  beforeAll(() => {
+    console.error = jest.fn();
+  });
+
+  afterAll(() => {
+    console.error = original;
+    jest.resetAllMocks();
+  });
+
+  it.only('should get queries for interpolated source object and query datasource uuids', () => {
+    const runner1 = new SceneQueryRunner({
+      datasource: {
+        uid: '${dsVar}',
+      },
+      queries: [{ refId: 'A' }],
+    });
+
+    const runner2 = new SceneQueryRunner({
+      datasource: {
+        uid: '${dsVar}',
+      },
+      queries: [{ refId: 'B' }],
+    });
+
+    const source = new TestObject({
+      $variables: new SceneVariableSet({
+        variables: [
+          new DataSourceVariable({
+            name: 'dsVar',
+            options: [],
+            value: 'interpolatedDs',
+            text: 'interpolatedDs-name',
+            pluginId: 'prometheus',
+          }),
+        ],
+      }),
+      datasource: { uid: '${dsVar}', type: 'prometheus' },
+    });
+    new EmbeddedScene({
+      $data: runner1,
+      body: new SceneFlexLayout({
+        children: [
+          new SceneFlexItem({
+            $data: runner2,
+            body: source,
+          }),
+        ],
+      }),
+    });
+
+    runner1.activate();
+    runner2.activate();
+    source.activate();
+    expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'B' }]);
   });
 });
 
