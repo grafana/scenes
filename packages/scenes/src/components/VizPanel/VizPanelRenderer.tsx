@@ -176,8 +176,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             statusMessageOnClick={model.onStatusMessageClick}
             width={width}
             height={height}
+            //@ts-expect-error Remove when 11.4 is released
+            selectionId={model.state.key}
             displayMode={displayMode}
-            //@ts-expect-error Remove when 11.4 is released: https://github.com/grafana/grafana/pull/96868
             showMenuAlways={showMenuAlways}
             hoverHeader={hoverHeader}
             hoverHeaderOffset={hoverHeaderOffset}
