@@ -1,3 +1,16 @@
+# v5.30.0 (Tue Dec 10 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Set selectionId for PanelChrome [#997](https://github.com/grafana/scenes/pull/997) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.29.0 (Thu Dec 05 2024)
 
 #### 🚀 Enhancement
