@@ -48,6 +48,8 @@ export interface SceneCSSGridLayoutOptions {
   justifyContent?: CSSProperties['justifyContent'];
 }
 
+const ARROW_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
+
 export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState> implements SceneLayout {
   public static Component = SceneCSSGridLayoutRenderer;
 
@@ -99,7 +101,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
     document.addEventListener('pointerup', this.onPointerUp);
 
     // Find closest grid cell and make note of which cell is closest to the current mouse position (it is the cell we are dragging)
-    this.gridCells = calculateGridCells(this.container).slice(0, this.state.children.length);
+    this.gridCells = calculateGridCells(this.container).filter((c) => c.order >= 0);
     const mousePos = { x: e.clientX, y: e.clientY };
     const scrollTop = closestScroll(this.container);
     this.previewCell = closestCell(this.gridCells, { x: mousePos.x, y: mousePos.y + scrollTop});
@@ -184,6 +186,12 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
       return;
     }
 
+    if (ARROW_KEYS.has(e.key)) {
+      this.gridCells = calculateGridCells(this.container!).filter((c) => c.order >= 0);
+    }
+
+    const cellIndex = this.gridCells.findIndex((c) => c.order === itemIndex);
+
     if (e.key === 'ArrowLeft') {
       if (itemIndex === 0) {
         return;
@@ -191,7 +199,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
 
       e.preventDefault();
       e.stopPropagation();
-      this.moveChild(itemIndex, itemIndex - 1);
+      this.moveChild(itemIndex, this.gridCells[cellIndex - 1].order);
     } else if (e.key === 'ArrowRight') {
       if (itemIndex === this.state.children.length - 1) {
         return;
@@ -199,7 +207,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
 
       e.preventDefault();
       e.stopPropagation();
-      this.moveChild(itemIndex, itemIndex + 1);
+      this.moveChild(itemIndex, this.gridCells[cellIndex + 1].order);
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
       e.stopPropagation();
@@ -207,10 +215,10 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
       const style = getComputedStyle(this.container!);
       const columns = style.gridTemplateColumns.split(' ');
       const columnCount = columns.length;
-      const currentColumn = itemIndex % columnCount;
+      const currentColumn = cellIndex % columnCount;
       const rows = style.gridTemplateRows.split(' ');
       const rowCount = rows.length;
-      const currentRow = Math.floor(itemIndex / columnCount);
+      const currentRow = Math.floor(cellIndex / columnCount);
 
       let newRow = currentRow;
       if (e.key === 'ArrowUp' && currentRow > 0) {
@@ -220,7 +228,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
       }
 
       const newIndex = newRow * columnCount + currentColumn;
-      this.moveChild(itemIndex, newIndex);
+      this.moveChild(itemIndex, this.gridCells[newIndex].order);
     }
   }
 
@@ -303,12 +311,15 @@ function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<Scene
       {children.map((item, i) => {
         const Component = item.Component as ComponentType<SceneCSSGridItemRenderProps<SceneObject>>;
         const Wrapper = isLazy ? LazyLoader : 'div';
+        const isHidden = 'isHidden' in item.state && typeof item.state.isHidden === 'boolean' && item.state.isHidden;
 
         return (
           <Wrapper
             key={item.state.key!}
             ref={_draggingIndex === i ? draggingRef : undefined}
             onKeyDown={(e) => model.onKeyDown(e, i)}
+            className={styles.itemWrapper}
+            data-order={isHidden ? -1 : i}
           >
             <Component model={item} parentState={model.state} />
           </Wrapper>
@@ -353,6 +364,9 @@ const getStyles = (theme: GrafanaTheme2, state: SceneCSSGridLayoutState) => ({
         }
       : undefined,
   }),
+  itemWrapper: css({
+    display: 'grid'
+  })
 });
 
 interface Point {
@@ -374,14 +388,18 @@ function closestCell(rects: Rect[], point: Point) {
   let closest = rects[0];
   let shortestDistance = Number.MAX_SAFE_INTEGER;
   for (const rect of rects) {
-    const rectMidpoint: Point = {
-      x: rect.left + (rect.right - rect.left) / 2,
-      y: rect.top + (rect.bottom - rect.top) / 2,
-    };
-    const distance = Math.hypot(rectMidpoint.x - point.x, rectMidpoint.y - point.y);
-    if (distance < shortestDistance) {
-      shortestDistance = distance;
-      closest = rect;
+    const topLeft = { x: rect.left, y: rect.top };
+    const topRight = { x: rect.right, y: rect.top};
+    const bottomLeft = { x: rect.left, y: rect.bottom};
+    const bottomRight = { x: rect.right, y: rect.bottom};
+    const corners = [topLeft, topRight, bottomLeft, bottomRight];
+
+    for (const corner of corners) {
+      const distance = Math.hypot(corner.x - point.x, corner.y - point.y);
+      if (distance < shortestDistance) {
+        shortestDistance = distance;
+        closest = rect;
+      }
     }
   }
 
@@ -404,6 +422,7 @@ function calculateGridCells(gridElement: HTMLElement) {
   const gridBoundingBox = gridElement.getBoundingClientRect();
   const scrollTop = closestScroll(gridElement);
   const gridOrigin = { x: gridBoundingBox.left, y: gridBoundingBox.top + scrollTop };
+  const ids = [...gridElement.children].map((c) => Number.parseInt(c.getAttribute('data-order') ?? '-1', 10)).filter((v) => v >= 0);
 
   const rects: Rect[] = [];
   let yTotal = gridOrigin.y;
@@ -431,7 +450,7 @@ function calculateGridCells(gridElement: HTMLElement) {
         bottom: row.bottom,
         rowIndex: rowIndex + 1,
         columnIndex: colIndex + 1,
-        order: rowIndex * templateColumns.length + colIndex,
+        order: ids[rowIndex * templateColumns.length + colIndex],
       });
     }
   }
