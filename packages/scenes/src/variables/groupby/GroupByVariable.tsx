@@ -8,7 +8,7 @@ import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } fro
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
-import { InputActionMeta, MultiSelect } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
 import { isArray } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
@@ -204,11 +204,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return { value: [], text: [] };
   }
 }
+
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
   const {
     value,
     text,
     key,
+    isMulti = true,
     maxVisibleValues,
     noValueOnClear,
     options,
@@ -262,7 +264,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     [optionSearcher, inputValue]
   );
 
-  return (
+  return isMulti ? (
     <MultiSelect<VariableValueSingle>
       data-testid={`GroupBySelect-${key}`}
       id={key}
@@ -295,6 +297,51 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
           model.changeValueTo([]);
         }
         setUncommittedValue(newValue);
+      }}
+      onOpenMenu={async () => {
+        setIsFetchingOptions(true);
+        await lastValueFrom(model.validateAndUpdate());
+        setIsFetchingOptions(false);
+        setIsOptionsOpen(true);
+      }}
+      onCloseMenu={() => {
+        setIsOptionsOpen(false);
+      }}
+    />
+  ) : (
+    <Select
+      aria-label="Group by selector"
+      id={key}
+      placeholder="None"
+      width="auto"
+      inputValue={inputValue}
+      value={uncommittedValue}
+      allowCustomValue={allowCustomValue}
+      noMultiValueWrap={true}
+      maxVisibleValues={maxVisibleValues ?? 5}
+      tabSelectsValue={false}
+      virtualized
+      options={filteredOptions}
+      filterOption={filterNoOp}
+      closeMenuOnSelect={true}
+      isOpen={isOptionsOpen}
+      isClearable={true}
+      hideSelectedOptions={false}
+      noValueOnClear={true}
+      isLoading={isFetchingOptions}
+      onInputChange={onInputChange}
+      onChange={(newValue, action) => {
+        if (action.action === 'clear') {
+          setUncommittedValue([]);
+          if (noValueOnClear) {
+            model.changeValueTo([]);
+          }
+          return;
+        }
+        if (newValue?.value) {
+          setUncommittedValue([newValue]);
+          model.changeValueTo(newValue.value, newValue.label);
+        }
       }}
       onOpenMenu={async () => {
         setIsFetchingOptions(true);
