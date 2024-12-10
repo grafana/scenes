@@ -45,7 +45,6 @@ export function getGroupByStatic(defaults: SceneAppPageState) {
               name: 'groupByOneSelection',
               label: 'Group By OneSelection (static list)',
               datasource: { uid: 'gdev-prometheus' },
-              isMultiSelect: false,
               isMulti: false,
               defaultOptions: [
                 {

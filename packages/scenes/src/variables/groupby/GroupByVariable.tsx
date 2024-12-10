@@ -20,8 +20,6 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
   name: string;
-  /** Determines whether the component uses MultiSelect or Select. Defaults to true for MultiSelect. */
-  isMultiSelect?: boolean;
   /** The visible keys to group on */
   // TODO review this type and name (naming is hard)
   defaultOptions?: MetricFindValue[];
@@ -133,7 +131,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   public constructor(initialState: Partial<GroupByVariableState>) {
     super({
       isMulti: true,
-      isMultiSelect: true,
       name: '',
       value: [],
       text: [],
@@ -213,7 +210,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     value,
     text,
     key,
-    isMultiSelect = true,
+    isMulti = true,
     maxVisibleValues,
     noValueOnClear,
     options,
@@ -267,7 +264,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     [optionSearcher, inputValue]
   );
 
-  return isMultiSelect ? (
+  return isMulti ? (
     <MultiSelect<VariableValueSingle>
       data-testid={`GroupBySelect-${key}`}
       id={key}
