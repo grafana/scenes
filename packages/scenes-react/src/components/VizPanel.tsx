@@ -25,8 +25,12 @@ export interface VizPanelProps {
   hoverHeaderOffset?: number;
   menu?: VizPanelMenu;
   titleItems?: React.ReactNode | SceneObject | SceneObject[];
+  seriesLimit?: number;
+  seriesLimitShowAll?: boolean;
   headerActions?: React.ReactNode;
   extendPanelContext?: (vizPanel: VizPanelObject, context: PanelContext) => void;
+  collapsible?: boolean;
+  collapsed?: boolean;
 }
 
 export function VizPanel(props: VizPanelProps) {
@@ -42,6 +46,10 @@ export function VizPanel(props: VizPanelProps) {
     menu,
     titleItems,
     extendPanelContext,
+    seriesLimit,
+    seriesLimitShowAll,
+    collapsible,
+    collapsed,
   } = props;
 
   const scene = useSceneContext();
@@ -67,6 +75,10 @@ export function VizPanel(props: VizPanelProps) {
       headerActions: headerActions,
       menu: menu,
       extendPanelContext: extendPanelContext,
+      collapsible: collapsible,
+      collapsed: collapsed,
+      seriesLimit: seriesLimit,
+      seriesLimitShowAll: seriesLimitShowAll,
     });
   }
 
@@ -116,6 +128,22 @@ export function VizPanel(props: VizPanelProps) {
       stateUpdate.$data = getDataProviderForVizPanel(dataProvider);
     }
 
+    if (seriesLimit !== prevProps.seriesLimit) {
+      stateUpdate.seriesLimit = seriesLimit;
+    }
+
+    if (seriesLimitShowAll !== prevProps.seriesLimitShowAll) {
+      stateUpdate.seriesLimitShowAll = seriesLimitShowAll;
+    }
+
+    if (collapsible !== prevProps.collapsible) {
+      stateUpdate.collapsible = collapsible;
+    }
+
+    if (collapsed !== prevProps.collapsed) {
+      stateUpdate.collapsed = collapsed;
+    }
+
     if (viz !== prevProps.viz) {
       if (viz.pluginId === prevProps.viz.pluginId) {
         const plugin = panel.getPlugin();
@@ -150,6 +178,10 @@ export function VizPanel(props: VizPanelProps) {
     titleItems,
     viz,
     dataProvider,
+    seriesLimit,
+    seriesLimitShowAll,
+    collapsible,
+    collapsed,
     prevProps,
   ]);
 

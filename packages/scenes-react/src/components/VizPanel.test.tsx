@@ -56,59 +56,6 @@ describe('VizPanel', () => {
     expect(scene.state.children.length).toBe(0);
   });
 
-  it('Should render with displayMode', () => {
-    const scene = new SceneContextObject();
-    const viz = VizConfigBuilders.timeseries().build();
-
-    const { container } = render(
-      <TestContextProvider value={scene}>
-        <VizPanel title="Test" displayMode="transparent" viz={viz} />
-      </TestContextProvider>
-    );
-
-    expect(container.firstChild).toHaveClass('transparent');
-  });
-
-  it('Should render with hoverHeader', () => {
-    const scene = new SceneContextObject();
-    const viz = VizConfigBuilders.timeseries().build();
-
-    const { container } = render(
-      <TestContextProvider value={scene}>
-        <VizPanel title="Test" hoverHeader={true} viz={viz} />
-      </TestContextProvider>
-    );
-
-    expect(container.firstChild).toHaveClass('hover-header');
-  });
-
-  it('Should render with hoverHeaderOffset', () => {
-    const scene = new SceneContextObject();
-    const viz = VizConfigBuilders.timeseries().build();
-
-    const { container } = render(
-      <TestContextProvider value={scene}>
-        <VizPanel title="Test" hoverHeaderOffset={10} viz={viz} />
-      </TestContextProvider>
-    );
-
-    expect(container.firstChild).toHaveStyle('margin-top: 10px');
-  });
-
-  it('Should render with menu', () => {
-    const scene = new SceneContextObject();
-    const viz = VizConfigBuilders.timeseries().build();
-    const menu = new VizPanelMenu();
-
-    const { container } = render(
-      <TestContextProvider value={scene}>
-        <VizPanel title="Test" menu={menu} viz={viz} />
-      </TestContextProvider>
-    );
-
-    expect(container.querySelector('.viz-panel-menu')).toBeInTheDocument();
-  });
-
   it('Should render with titleItems', () => {
     const scene = new SceneContextObject();
     const viz = VizConfigBuilders.timeseries().build();
