@@ -1,5 +1,7 @@
 import React, { useEffect, useId } from 'react';
 import {
+  SceneObject,
+  VizPanelMenu,
   SceneDataProvider,
   VizPanel as VizPanelObject,
   VizPanelState,
@@ -9,18 +11,39 @@ import {
 } from '@grafana/scenes';
 import { usePrevious } from 'react-use';
 import { getPanelOptionsWithDefaults } from '@grafana/data';
+import { PanelContext } from '@grafana/ui';
 import { writeSceneLog } from '../utils';
 import { useSceneContext } from '../hooks/hooks';
 
 export interface VizPanelProps {
   title: string;
+  description?: string;
   dataProvider?: SceneDataProvider;
   viz: VizConfig;
+  displayMode?: 'default' | 'transparent';
+  hoverHeader?: boolean;
+  hoverHeaderOffset?: number;
+  menu?: VizPanelMenu;
+  titleItems?: React.ReactNode | SceneObject | SceneObject[];
   headerActions?: React.ReactNode;
+  extendPanelContext?: (vizPanel: VizPanelObject, context: PanelContext) => void;
 }
 
 export function VizPanel(props: VizPanelProps) {
-  const { title, viz, dataProvider, headerActions } = props;
+  const {
+    title,
+    description,
+    viz,
+    dataProvider,
+    displayMode,
+    hoverHeader,
+    hoverHeaderOffset,
+    headerActions,
+    menu,
+    titleItems,
+    extendPanelContext,
+  } = props;
+
   const scene = useSceneContext();
   const key = useId();
   const prevProps = usePrevious(props);
@@ -30,13 +53,20 @@ export function VizPanel(props: VizPanelProps) {
   if (!panel) {
     panel = new VizPanelObject({
       key: key,
-      title: title,
       pluginId: viz.pluginId,
-      pluginVersion: viz.pluginVersion,
+      title: title,
+      titleItems: titleItems,
+      description: description,
       options: viz.options,
       fieldConfig: viz.fieldConfig,
+      pluginVersion: viz.pluginVersion,
       $data: getDataProviderForVizPanel(dataProvider),
+      displayMode: displayMode,
+      hoverHeader: hoverHeader,
+      hoverHeaderOffset: hoverHeaderOffset,
       headerActions: headerActions,
+      menu: menu,
+      extendPanelContext: extendPanelContext,
     });
   }
 
@@ -52,6 +82,30 @@ export function VizPanel(props: VizPanelProps) {
 
     if (title !== prevProps.title) {
       stateUpdate.title = title;
+    }
+
+    if (description !== prevProps.description) {
+      stateUpdate.description = description;
+    }
+
+    if (displayMode !== prevProps.displayMode) {
+      stateUpdate.displayMode = displayMode;
+    }
+
+    if (hoverHeader !== prevProps.hoverHeader) {
+      stateUpdate.hoverHeader = hoverHeader;
+    }
+
+    if (hoverHeaderOffset !== prevProps.hoverHeaderOffset) {
+      stateUpdate.hoverHeaderOffset = hoverHeaderOffset;
+    }
+
+    if (menu !== prevProps.menu) {
+      stateUpdate.menu = menu;
+    }
+
+    if (titleItems !== prevProps.titleItems) {
+      stateUpdate.titleItems = titleItems;
     }
 
     if (headerActions !== prevProps.headerActions) {
@@ -84,7 +138,20 @@ export function VizPanel(props: VizPanelProps) {
       panel.setState(stateUpdate);
       writeSceneLog('VizPanel', 'Updating VizPanel state', stateUpdate);
     }
-  }, [panel, title, headerActions, viz, dataProvider, prevProps]);
+  }, [
+    panel,
+    title,
+    description,
+    displayMode,
+    hoverHeader,
+    hoverHeaderOffset,
+    headerActions,
+    menu,
+    titleItems,
+    viz,
+    dataProvider,
+    prevProps,
+  ]);
 
   return <panel.Component model={panel} />;
 }
