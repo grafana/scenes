@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { SceneContextObject } from '../contexts/SceneContextObject';
-import { VizConfigBuilders, VizPanel as VizPanelObject, VizPanelMenu } from '@grafana/scenes';
+import { VizConfigBuilders, VizPanel as VizPanelObject } from '@grafana/scenes';
 import { VizPanel } from './VizPanel';
 import { PanelPlugin } from '@grafana/data';
 import { TestContextProvider } from '../utils/testUtils';
