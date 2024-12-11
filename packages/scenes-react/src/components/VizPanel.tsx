@@ -24,7 +24,7 @@ export interface VizPanelProps {
   hoverHeader?: boolean;
   hoverHeaderOffset?: number;
   menu?: VizPanelMenu;
-  titleItems?: React.ReactNode | SceneObject | SceneObject[];
+  titleItems?: React.ReactNode;
   seriesLimit?: number;
   seriesLimitShowAll?: boolean;
   headerActions?: React.ReactNode;
