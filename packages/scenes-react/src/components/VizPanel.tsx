@@ -1,6 +1,5 @@
 import React, { useEffect, useId } from 'react';
 import {
-  SceneObject,
   VizPanelMenu,
   SceneDataProvider,
   VizPanel as VizPanelObject,
