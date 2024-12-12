@@ -20,6 +20,7 @@ export function evaluateTimeRange(
     options: { roundUp: boolean; timezone: TimeZone; fiscalYearStartMonth?: number; now?: DateTimeInput }
   ) => {
     if (dateMath.toDateTime) {
+      // @ts-ignore
       return dateMath.toDateTime(val, options);
     } else {
       return dateMath.parse(val, options.roundUp, options.timezone, options.fiscalYearStartMonth);
