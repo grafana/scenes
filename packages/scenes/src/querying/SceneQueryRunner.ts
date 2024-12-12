@@ -445,7 +445,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      this.findAndSubscribeToAdHocFilters(datasource?.uid);
+      this.findAndSubscribeToAdHocFilters(ds.uid);
 
       const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
@@ -654,18 +654,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  private findAndSubscribeToAdHocFilters(uid: string | undefined) {
-    // TODO: ADD TESTS
-    const interpolatedDsUid = interpolate(this, uid);
-
-    const filtersVar = findActiveAdHocFilterVariableByUid(interpolatedDsUid);
+  private findAndSubscribeToAdHocFilters(interpolatedUid: string | undefined) {
+    const filtersVar = findActiveAdHocFilterVariableByUid(interpolatedUid);
 
     if (this._adhocFiltersVar !== filtersVar) {
       this._adhocFiltersVar = filtersVar;
       this._updateExplicitVariableDependencies();
     }
 
-    const groupByVar = findActiveGroupByVariablesByUid(interpolatedDsUid);
+    const groupByVar = findActiveGroupByVariablesByUid(interpolatedUid);
     if (this._groupByVar !== groupByVar) {
       this._groupByVar = groupByVar;
       this._updateExplicitVariableDependencies();
