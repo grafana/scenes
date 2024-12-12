@@ -150,7 +150,7 @@ export const sceneUtils = {
   isGroupByVariable,
 
   // Allow apps to sync with timeSrv
-  setWindowGrafanaSceneContext
+  setWindowGrafanaSceneContext,
 };
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
