@@ -22,7 +22,6 @@
 
 # Build
 compiled
-dist
 node_modules
 .docusaurus
 build

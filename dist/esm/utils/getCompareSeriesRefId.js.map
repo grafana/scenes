@@ -1,0 +1,1 @@
+{"version":3,"file":"getCompareSeriesRefId.js","sources":["../../../src/utils/getCompareSeriesRefId.ts"],"sourcesContent":["export const getCompareSeriesRefId = (refId: string) => `${refId}-compare`;\n"],"names":[],"mappings":"AAAa,MAAA,qBAAA,GAAwB,CAAC,KAAA,KAAkB,CAAG,EAAA,KAAA,CAAA,QAAA;;;;"}
