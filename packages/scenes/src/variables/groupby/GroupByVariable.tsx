@@ -266,6 +266,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
 
   return isMulti ? (
     <MultiSelect<VariableValueSingle>
+      aria-label="Group by selector"
       data-testid={`GroupBySelect-${key}`}
       id={key}
       placeholder={'Select value'}
@@ -311,8 +312,9 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
   ) : (
     <Select
       aria-label="Group by selector"
+      data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder="None"
+      placeholder={'Select value'}
       width="auto"
       inputValue={inputValue}
       value={uncommittedValue}
