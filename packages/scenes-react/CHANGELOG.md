@@ -1,3 +1,16 @@
+# v5.31.0 (Thu Dec 12 2024)
+
+#### 🚀 Enhancement
+
+- feat: (scenes-react) - VizPanel add missing props and tests [#998](https://github.com/grafana/scenes/pull/998) ([@L2D2Grafana](https://github.com/L2D2Grafana) [@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+---
+
 # v5.29.0 (Thu Dec 05 2024)
 
 #### 🐛 Bug Fix
