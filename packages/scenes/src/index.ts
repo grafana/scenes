@@ -16,6 +16,7 @@ import {
   isIntervalVariable,
   isGroupByVariable,
 } from './variables/variants/guards';
+import { setWindowGrafanaSceneContext } from './utils/compatibility/setWindowGrafanaSceneContext';
 
 export * from './core/types';
 export * from './core/events';
@@ -147,6 +148,9 @@ export const sceneUtils = {
   isQueryVariable,
   isTextBoxVariable,
   isGroupByVariable,
+
+  // Allow apps to sync with timeSrv
+  setWindowGrafanaSceneContext
 };
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
