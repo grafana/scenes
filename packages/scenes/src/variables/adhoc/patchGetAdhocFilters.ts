@@ -25,7 +25,7 @@ export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
 
   templateSrv.getAdhocFilters = function getAdhocFiltersScenePatch(dsName: string): AdHocVariableFilter[] {
     if (allActiveFilterSets.size === 0) {
-      return originalGetAdhocFilters.call(templateSrv);
+      return originalGetAdhocFilters.call(templateSrv, dsName);
     }
 
     const ds = getDataSourceSrv().getInstanceSettings(dsName);

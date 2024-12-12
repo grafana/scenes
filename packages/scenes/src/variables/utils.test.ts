@@ -4,7 +4,7 @@ import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLa
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
-import { getQueriesForVariables } from './utils';
+import { getFuzzySearcher, getQueriesForVariables } from './utils';
 
 describe('getQueriesForVariables', () => {
   it('should resolve queries', () => {
@@ -173,6 +173,31 @@ describe('getQueriesForVariables', () => {
     source.activate();
 
     expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'AA' }, { refId: 'B' }]);
+  });
+});
+
+describe('getFuzzySearcher orders by match quality with case-sensitivity', () => {
+  it('Can filter options by search query', async () => {
+    const haystack = [
+      'client_service_namespace',
+      'namespace',
+      'alert_namespace',
+      'container_namespace',
+      'Namespace',
+      'client_k8s_namespace_name',
+      'foobar',
+    ];
+
+    const searcher = getFuzzySearcher(haystack);
+
+    expect(searcher('Names').map((i) => haystack[i])).toEqual([
+      'Namespace',
+      'namespace',
+      'alert_namespace',
+      'container_namespace',
+      'client_k8s_namespace_name',
+      'client_service_namespace',
+    ]);
   });
 });
 

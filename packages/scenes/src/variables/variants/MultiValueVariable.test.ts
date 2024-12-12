@@ -298,6 +298,24 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
       expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
     });
+
+    it('Should correct $__all text value if not correct', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [{ label: 'A', value: '1' }],
+        defaultToAll: true,
+        includeAll: true,
+        value: ALL_VARIABLE_VALUE,
+        text: ALL_VARIABLE_VALUE,
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
+      expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
+    });
   });
 
   describe('changeValueTo', () => {
