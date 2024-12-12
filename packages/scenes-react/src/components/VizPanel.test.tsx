@@ -5,7 +5,6 @@ import { VizConfigBuilders, VizPanel as VizPanelObject, VizPanelMenu } from '@gr
 import { VizPanel, VizPanelProps } from './VizPanel';
 import { PanelPlugin } from '@grafana/data';
 import { TestContextProvider } from '../utils/testUtils';
-import { PanelChrome } from '@grafana/ui';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -62,24 +61,24 @@ describe('VizPanel', () => {
     const viz = VizConfigBuilders.timeseries().build();
     const titleItems = <div>Title Item</div>;
 
-    const {rerender, unmount} = render(
+    const { rerender, unmount } = render(
       <TestContextProvider value={scene}>
         <VizPanel titleItems={titleItems} title="Test" viz={viz} />
       </TestContextProvider>
     );
 
     const panel = scene.state.children[0] as VizPanelObject;
-    expect(panel.state.titleItems).toEqual(titleItems)
+    expect(panel.state.titleItems).toEqual(titleItems);
 
     rerender(
       <TestContextProvider value={scene}>
         <VizPanel titleItems={undefined} title="Test" viz={viz} />
       </TestContextProvider>
-    )
+    );
 
-    expect(panel.state.titleItems).toEqual(undefined)
+    expect(panel.state.titleItems).toEqual(undefined);
 
-    unmount()
+    unmount();
 
     expect(scene.state.children.length).toBe(0);
   });
@@ -96,15 +95,15 @@ describe('VizPanel', () => {
     );
 
     const panel = scene.state.children[0] as VizPanelObject;
-    expect(panel.state.headerActions).toEqual(headerActions)
+    expect(panel.state.headerActions).toEqual(headerActions);
 
     rerender(
       <TestContextProvider value={scene}>
         <VizPanel title="Test" viz={viz} />
       </TestContextProvider>
-    )
+    );
 
-    unmount()
+    unmount();
 
     expect(scene.state.children.length).toBe(0);
   });
@@ -114,12 +113,12 @@ describe('VizPanel', () => {
     const viz = VizConfigBuilders.timeseries().build();
     const headerActions = <button>Action</button>;
     const seriesLimit = 1;
-    const collapsed = true
+    const collapsed = true;
     const collapsible = true;
     const hoverHeader = true;
-    const description = 'description'
-    const menu = new VizPanelMenu({})
-    const title = 'title'
+    const description = 'description';
+    const menu = new VizPanelMenu({});
+    const title = 'title';
     const props: VizPanelProps = {
       title,
       viz,
@@ -129,8 +128,8 @@ describe('VizPanel', () => {
       collapsible,
       hoverHeader,
       description,
-      menu
-    }
+      menu,
+    };
 
     const { rerender, unmount } = render(
       <TestContextProvider value={scene}>
@@ -139,29 +138,29 @@ describe('VizPanel', () => {
     );
 
     const panel = scene.state.children[0] as VizPanelObject;
-    expect(panel.state.headerActions).toEqual(headerActions)
-    expect(panel.state.collapsed).toEqual(collapsed)
-    expect(panel.state.seriesLimit).toEqual(seriesLimit)
-    expect(panel.state.collapsible).toEqual(collapsible)
-    expect(panel.state.hoverHeader).toEqual(hoverHeader)
-    expect(panel.state.description).toEqual(description)
-    expect(panel.state.menu).toEqual(menu)
+    expect(panel.state.headerActions).toEqual(headerActions);
+    expect(panel.state.collapsed).toEqual(collapsed);
+    expect(panel.state.seriesLimit).toEqual(seriesLimit);
+    expect(panel.state.collapsible).toEqual(collapsible);
+    expect(panel.state.hoverHeader).toEqual(hoverHeader);
+    expect(panel.state.description).toEqual(description);
+    expect(panel.state.menu).toEqual(menu);
 
     rerender(
       <TestContextProvider value={scene}>
         <VizPanel title="Test" viz={viz} />
       </TestContextProvider>
-    )
+    );
 
-    expect(panel.state.headerActions).toEqual(undefined)
-    expect(panel.state.collapsed).toEqual(undefined)
-    expect(panel.state.seriesLimit).toEqual(undefined)
-    expect(panel.state.collapsible).toEqual(undefined)
-    expect(panel.state.hoverHeader).toEqual(undefined)
-    expect(panel.state.description).toEqual(undefined)
-    expect(panel.state.menu).toEqual(undefined)
+    expect(panel.state.headerActions).toEqual(undefined);
+    expect(panel.state.collapsed).toEqual(undefined);
+    expect(panel.state.seriesLimit).toEqual(undefined);
+    expect(panel.state.collapsible).toEqual(undefined);
+    expect(panel.state.hoverHeader).toEqual(undefined);
+    expect(panel.state.description).toEqual(undefined);
+    expect(panel.state.menu).toEqual(undefined);
 
-    unmount()
+    unmount();
 
     expect(scene.state.children.length).toBe(0);
   });
