@@ -22,7 +22,7 @@ export function evaluateTimeRange(
     if (dateMath.toDateTime) {
       return dateMath.toDateTime(val, options);
     } else {
-      dateMath.parse(val, options.roundUp, options.timezone, options.fiscalYearStartMonth);
+      return dateMath.parse(val, options.roundUp, options.timezone, options.fiscalYearStartMonth);
     }
   };
 
