@@ -342,7 +342,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
         }
         if (newValue?.value) {
           setUncommittedValue([newValue]);
-          model.changeValueTo(newValue.value, newValue.label);
+          model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : undefined);
         }
       }}
       onOpenMenu={async () => {
