@@ -2,7 +2,7 @@ import React, { RefCallback, useCallback, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
 // @ts-ignore
-import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider, SetPanelAttentionEvent, rangeUtil, RawTimeRange, TimeRange } from '@grafana/data';
+import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider, SetPanelAttentionEvent, RawTimeRange, TimeRange } from '@grafana/data';
 
 import {getAppEvents, getDataSourceSrv} from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon, Button } from '@grafana/ui';
@@ -221,7 +221,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                             value: '$__interval_ms',
                           }
 
-                          let timeRange = rangeUtil.convertRawToRange(data.request?.rangeRaw as RawTimeRange)
+                          let timeRange = data.request?.range as TimeRange
                           let rangeDurationMs = timeRange.to.valueOf() - timeRange.from.valueOf()
 
                           getDataSourceSrv().get(datasource, variables)

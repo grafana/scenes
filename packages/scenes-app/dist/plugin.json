@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "app",
-  "name": "Oodle App",
-  "id": "oodle-app",
+  "name": "Scenes Test App",
+  "id": "grafana-scenes-app",
   "info": {
     "keywords": ["basic", "app", "example"],
-    "description": "App for oodle scenes",
+    "description": "An app to test scenes scenarios",
     "author": {
       "name": "Your name"
     },
@@ -15,7 +15,7 @@
     },
     "screenshots": [],
     "version": "5.20.4",
-    "updated": "2024-12-12"
+    "updated": "2024-12-13"
   },
   "includes": [
     {

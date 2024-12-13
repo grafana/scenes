@@ -6685,7 +6685,7 @@ var __spreadValues$u = (a, b) => {
   return a;
 };
 function VizPanelRenderer({ model }) {
-  var _a, _b, _c, _d, _e;
+  var _a, _b, _c;
   const {
     title,
     options,
@@ -6799,10 +6799,7 @@ function VizPanelRenderer({ model }) {
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
   const context = model.getPanelContext();
   const panelId = model.getLegacyPanelId();
-  let datasource = null;
-  if ((_d = (_c = (_b = data$1.request) == null ? void 0 : _b.targets) == null ? void 0 : _c.length) != null ? _d : 0 > 0) {
-    datasource = (_e = data$1.request) == null ? void 0 : _e.targets[0].datasource;
-  }
+  let datasource = (_c = (_b = data$1.request) == null ? void 0 : _b.targets[0]) == null ? void 0 : _c.datasource;
   return /* @__PURE__ */ React__default["default"].createElement("div", {
     className: relativeWrapper
   }, /* @__PURE__ */ React__default["default"].createElement("div", {
@@ -6848,10 +6845,10 @@ function VizPanelRenderer({ model }) {
       variables.__interval_ms = {
         value: "$__interval_ms"
       };
-      let timeRange2 = data.rangeUtil.convertRawToRange((_b2 = data$1.request) == null ? void 0 : _b2.rangeRaw);
+      let timeRange2 = (_b2 = data$1.request) == null ? void 0 : _b2.range;
       let rangeDurationMs = timeRange2.to.valueOf() - timeRange2.from.valueOf();
       runtime.getDataSourceSrv().get(datasource, variables).then((ds) => {
-        var _a3, _b3, _c2, _d2, _e2, _f;
+        var _a3, _b3, _c2, _d, _e, _f;
         if (ds.interpolateVariablesInQueries) {
           let targets = ds.interpolateVariablesInQueries((_a3 = data$1.request) == null ? void 0 : _a3.targets, variables);
           sendOodleInsightEvent(
@@ -6862,13 +6859,13 @@ function VizPanelRenderer({ model }) {
             targets,
             timeRange2,
             rangeDurationMs,
-            (_f = (_e2 = (_d2 = model.state) == null ? void 0 : _d2.fieldConfig) == null ? void 0 : _e2.defaults) == null ? void 0 : _f.unit
+            (_f = (_e = (_d = model.state) == null ? void 0 : _d.fieldConfig) == null ? void 0 : _e.defaults) == null ? void 0 : _f.unit
           );
         } else {
           throw new Error("datasource does not support variable interpolation");
         }
       }).catch((_) => {
-        var _a3, _b3, _c2, _d2, _e2, _f;
+        var _a3, _b3, _c2, _d, _e, _f;
         sendOodleInsightEvent(
           (_a3 = data$1.request) == null ? void 0 : _a3.dashboardUID,
           "Insights",
@@ -6877,7 +6874,7 @@ function VizPanelRenderer({ model }) {
           (_c2 = data$1.request) == null ? void 0 : _c2.targets,
           timeRange2,
           rangeDurationMs,
-          (_f = (_e2 = (_d2 = model.state) == null ? void 0 : _d2.fieldConfig) == null ? void 0 : _e2.defaults) == null ? void 0 : _f.unit
+          (_f = (_e = (_d = model.state) == null ? void 0 : _d.fieldConfig) == null ? void 0 : _e.defaults) == null ? void 0 : _f.unit
         );
       });
     }
@@ -6895,7 +6892,7 @@ function VizPanelRenderer({ model }) {
   }, isReadyToRender && /* @__PURE__ */ React__default["default"].createElement(PanelComponent, {
     id: panelId,
     data: data$1,
-    title: "TEST TITLE",
+    title,
     timeRange,
     timeZone,
     options,
