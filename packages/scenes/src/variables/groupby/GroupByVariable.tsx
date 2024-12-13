@@ -345,7 +345,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
           model.changeValueTo([newValue.value]);
         }
       }}
-
       onOpenMenu={async () => {
         setIsFetchingOptions(true);
         await lastValueFrom(model.validateAndUpdate());
