@@ -1,3 +1,16 @@
+# v5.32.0 (Fri Dec 13 2024)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Supply fixed now to datemath caluclations [#981](https://github.com/grafana/scenes/pull/981) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v5.31.0 (Thu Dec 12 2024)
 
 #### 🚀 Enhancement
