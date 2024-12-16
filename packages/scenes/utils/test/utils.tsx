@@ -1,11 +1,6 @@
-import React from 'react';
-import { locationService } from '@grafana/runtime';
 import { matcherHint, printExpected, printReceived } from 'jest-matcher-utils';
 import { asapScheduler, Subscription, timer, isObservable } from 'rxjs';
-import { render } from '@testing-library/react';
-import { SceneApp } from '../../src/components/SceneApp/SceneApp';
-import { SceneObject, SceneObjectState } from '../../src';
-import { TestContextProviderBase } from './TestContextProvider';
+import { SceneObject, SceneObjectState } from '../../src/core/types';
 
 export const OBSERVABLE_TEST_TIMEOUT_IN_MS = 1000;
 
@@ -66,16 +61,6 @@ export function expectObservable(received: unknown): jest.CustomMatcherResult | 
   }
 
   return null;
-}
-
-export function renderAppInsideRouterWithStartingUrl(app: SceneApp, startingUrl: string) {
-  locationService.push(startingUrl);
-
-  return render(
-    <TestContextProviderBase>
-      <app.Component model={app} />
-    </TestContextProviderBase>
-  );
 }
 
 export function subscribeToStateUpdates<T extends SceneObjectState>(obj: SceneObject<T>): T[] {
