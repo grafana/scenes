@@ -1,7 +1,8 @@
 import { locationService, LocationServiceProvider } from '@grafana/runtime';
 import React, { useEffect, useState } from 'react';
 import { Router } from 'react-router-dom';
-import { SceneObject, UrlSyncContextProvider } from '../../src';
+import { SceneObject } from '../../src/core/types';
+import { UrlSyncContextProvider } from '../../src/services/UrlSyncContextProvider';
 
 const history = locationService.getHistory();
 

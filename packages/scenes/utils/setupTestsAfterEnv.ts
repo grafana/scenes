@@ -1,5 +1,9 @@
 import '@testing-library/jest-dom';
 
-import { matchers } from './test';
+import { toEmitValues } from './test/toEmitValues';
+import { toEmitValuesWith } from './test/toEmitValuesWith';
 
-expect.extend(matchers);
+expect.extend({
+  toEmitValues,
+  toEmitValuesWith,
+});

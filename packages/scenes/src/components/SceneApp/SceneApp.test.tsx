@@ -1,8 +1,8 @@
 import { NavModelItem } from '@grafana/data';
-import { locationService, PluginPage } from '@grafana/runtime';
+import { locationService, PluginPage, PluginPageProps } from '@grafana/runtime';
 import { screen, render } from '@testing-library/react';
 import React from 'react';
-import { renderAppInsideRouterWithStartingUrl } from '../../../utils/test/utils';
+import { renderAppInsideRouterWithStartingUrl } from '../../../utils/test/renderAppInsideRoutingWithStartingUrl';
 import { SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
@@ -12,8 +12,12 @@ import { SceneAppPage } from './SceneAppPage';
 import { SceneRouteMatch } from './types';
 import { SceneReactObject } from '../SceneReactObject';
 
-// Mock lives in ./__mocks__/@grafana/runtime.js
-jest.mock('@grafana/runtime');
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  PluginPage: jest.fn().mockImplementation((props: PluginPageProps) => {
+    return <div>{props.children}</div>;
+  }),
+}));
 jest.mock('../../utils/utils', () => ({
   ...jest.requireActual('../../utils/utils'),
   useLocationServiceSafe: () => locationService,
