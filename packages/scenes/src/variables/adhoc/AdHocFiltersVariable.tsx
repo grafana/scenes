@@ -189,7 +189,7 @@ export class AdHocFiltersVariable
     }
   }
 
-  public setState(update: Partial<AdHocFiltersVariableState>, options?: {skipPublish?: boolean}): void {
+  public setState(update: Partial<AdHocFiltersVariableState>, options?: { skipPublish?: boolean }): void {
     let filterExpressionChanged = false;
 
     if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {

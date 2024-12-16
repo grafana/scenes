@@ -973,7 +973,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       variable.setState({ filters: [{ key: 'key2', operator: '=', value: 'val1' }] });
 
       expect(evtHandler).toHaveBeenCalled();
-    })
+    });
 
     it('Should not publish event on when expr did change, if skipPublish is true', () => {
       const variable = new AdHocFiltersVariable({
@@ -987,10 +987,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const evtHandler = jest.fn();
       variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
 
-      variable.setState({ filters: [{ key: 'key2', operator: '=', value: 'val1' }] }, {skipPublish: true});
+      variable.setState({ filters: [{ key: 'key2', operator: '=', value: 'val1' }] }, { skipPublish: true });
 
       expect(evtHandler).not.toHaveBeenCalled();
-    })
+    });
 
     it('Should create variable with applyMode as manual by default and it allows to override it', () => {
       const defaultVariable = new AdHocFiltersVariable({
