@@ -1,13 +1,14 @@
-import { toUtc, dateMath } from '@grafana/data';
+import { toUtc, dateMath, setWeekStart } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
-import { RefreshEvent } from '@grafana/runtime';
+import { RefreshEvent, config } from '@grafana/runtime';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneReactObject } from '../components/SceneReactObject';
 
 jest.mock('@grafana/data', () => ({
   ...jest.requireActual('@grafana/data'),
+  setWeekStart: jest.fn(),
 }));
 
 function simulateDelay(newDateString: string, scene: EmbeddedScene) {
@@ -15,10 +16,21 @@ function simulateDelay(newDateString: string, scene: EmbeddedScene) {
   scene.activate();
 }
 
+config.bootData = { user: { weekStart: 'monday' } } as any;
+
 describe('SceneTimeRange', () => {
   it('when created should evaluate time range', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
     expect(timeRange.state.value.raw.from).toBe('now-1h');
+  });
+
+  it('When weekStart i set should call on activation', () => {
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', weekStart: 'saturday' });
+    const deactivate = timeRange.activate();
+    expect(setWeekStart).toHaveBeenCalledWith('saturday');
+
+    deactivate();
+    expect(setWeekStart).toHaveBeenCalledWith('monday');
   });
 
   it('when time range refreshed should evaluate and update value', async () => {
