@@ -67,7 +67,7 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     // caller of the `LazyLoader` component.
     const classes = `${loaded ? hideEmpty : ''} ${className}`;
     return (
-      <div id={id} ref={innerRef} className={classes} {...rest}>
+      <div data-testid="lazy-loader-container" id={id} ref={innerRef} className={classes} {...rest}>
         {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
       </div>
     );
