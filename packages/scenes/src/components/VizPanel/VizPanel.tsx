@@ -265,13 +265,15 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public getTimeRange = (data?: PanelData) => {
     const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
     const sceneTimeRange = sceneGraph.getTimeRange(this);
+
     if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
       return evaluateTimeRange(
         sceneTimeRange.state.from,
         sceneTimeRange.state.to,
         sceneTimeRange.getTimeZone(),
         sceneTimeRange.state.fiscalYearStartMonth,
-        sceneTimeRange.state.UNSAFE_nowDelay
+        sceneTimeRange.state.UNSAFE_nowDelay,
+        sceneTimeRange.state.weekStart
       );
     }
 

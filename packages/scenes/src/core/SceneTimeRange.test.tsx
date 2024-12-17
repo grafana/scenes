@@ -8,7 +8,6 @@ import { SceneReactObject } from '../components/SceneReactObject';
 
 jest.mock('@grafana/data', () => ({
   ...jest.requireActual('@grafana/data'),
-  setWeekStart: jest.fn(),
 }));
 
 function simulateDelay(newDateString: string, scene: EmbeddedScene) {
@@ -24,13 +23,11 @@ describe('SceneTimeRange', () => {
     expect(timeRange.state.value.raw.from).toBe('now-1h');
   });
 
-  it('When weekStart i set should call on activation', () => {
-    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', weekStart: 'saturday' });
-    const deactivate = timeRange.activate();
-    expect(setWeekStart).toHaveBeenCalledWith('saturday');
+  it('When weekStart use it when evaluting time range', () => {
+    const timeRange = new SceneTimeRange({ from: 'now/w', to: 'now/w', weekStart: 'saturday' });
+    const weekDay = timeRange.state.value.from.isoWeekday();
 
-    deactivate();
-    expect(setWeekStart).toHaveBeenCalledWith('monday');
+    expect(weekDay).toBe(6);
   });
 
   it('when time range refreshed should evaluate and update value', async () => {
