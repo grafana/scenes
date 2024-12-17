@@ -116,6 +116,31 @@ class CustomQueryRunner implements QueryRunner {
   }
 }
 
+const variableDummyRefId = 'variable-query';
+class DatasourceQueryRunner implements QueryRunner {
+  public constructor(private datasource: DataSourceApi, private _runRequest = getRunRequest()) {}
+
+  public getTarget(variable: QueryVariable) {
+    if (hasDataSourceVariableSupport(this.datasource)) {
+      if (typeof variable.state.query === 'string') {
+        return variable.state.query;
+      }
+
+      return { ...variable.state.query, refId: variable.state.query.refId ?? variableDummyRefId };
+    }
+
+    throw new Error("Couldn't create a target with supplied arguments.");
+  }
+
+  public runRequest(_: RunnerArgs, request: DataQueryRequest) {
+    if (!hasDataSourceVariableSupport(this.datasource)) {
+      return getEmptyMetricFindValueObservable();
+    }
+
+    return this._runRequest(this.datasource, request, this.datasource.query);
+  }
+}
+
 function getEmptyMetricFindValueObservable(): Observable<PanelData> {
   return of({ state: LoadingState.Done, series: [], timeRange: getDefaultTimeRange() });
 }
@@ -134,7 +159,7 @@ function createQueryVariableRunnerFactory(datasource: DataSourceApi): QueryRunne
   }
 
   if (hasDataSourceVariableSupport(datasource)) {
-    return new CustomQueryRunner(datasource);
+    return new DatasourceQueryRunner(datasource);
   }
 
   throw new Error(`Couldn't create a query runner for datasource ${datasource.type}`);
