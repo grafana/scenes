@@ -1,4 +1,4 @@
-import { toUtc, dateMath, setWeekStart } from '@grafana/data';
+import { toUtc, dateMath } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
