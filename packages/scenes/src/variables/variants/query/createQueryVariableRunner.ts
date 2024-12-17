@@ -10,7 +10,12 @@ import {
 } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
 
-import { hasCustomVariableSupport, hasLegacyVariableSupport, hasStandardVariableSupport } from './guards';
+import {
+  hasCustomVariableSupport,
+  hasDataSourceVariableSupport,
+  hasLegacyVariableSupport,
+  hasStandardVariableSupport,
+} from './guards';
 
 import { QueryVariable } from './QueryVariable';
 import { DataQuery } from '@grafana/schema';
@@ -125,6 +130,10 @@ function createQueryVariableRunnerFactory(datasource: DataSourceApi): QueryRunne
   }
 
   if (hasCustomVariableSupport(datasource)) {
+    return new CustomQueryRunner(datasource);
+  }
+
+  if (hasDataSourceVariableSupport(datasource)) {
     return new CustomQueryRunner(datasource);
   }
 
