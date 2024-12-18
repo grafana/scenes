@@ -64,6 +64,11 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
+    if (this.state.applyMode === 'manual') {
+      console.log('validateAndUpdate');
+      return of({});
+    }
+
     return this.getValueOptions({}).pipe(
       map((options) => {
         this._updateValueGivenNewOptions(options);
@@ -155,6 +160,12 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public _getKeys = async (ds: DataSourceApi) => {
+    // Skip query updates if applyMode is manual
+    if (this.state.applyMode === 'manual') {
+      console.log('getKeys skipped');
+      return [];
+    }
+
     // TODO:  provide current dimensions?
     const override = await this.state.getTagKeysProvider?.(this, null);
 
@@ -300,9 +311,11 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
         setUncommittedValue(newValue);
       }}
       onOpenMenu={async () => {
-        setIsFetchingOptions(true);
-        await lastValueFrom(model.validateAndUpdate());
-        setIsFetchingOptions(false);
+        if (model.state.applyMode !== 'manual') {
+          setIsFetchingOptions(true);
+          await lastValueFrom(model.validateAndUpdate());
+          setIsFetchingOptions(false);
+        }
         setIsOptionsOpen(true);
       }}
       onCloseMenu={() => {
@@ -346,9 +359,11 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
         }
       }}
       onOpenMenu={async () => {
-        setIsFetchingOptions(true);
-        await lastValueFrom(model.validateAndUpdate());
-        setIsFetchingOptions(false);
+        if (model.state.applyMode !== 'manual') {
+          setIsFetchingOptions(true);
+          await lastValueFrom(model.validateAndUpdate());
+          setIsFetchingOptions(false);
+        }
         setIsOptionsOpen(true);
       }}
       onCloseMenu={() => {

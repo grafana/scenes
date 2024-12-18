@@ -38,6 +38,7 @@ export interface MultiValueVariableState extends SceneVariableState {
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
   isReadOnly?: boolean;
+  applyMode?: 'auto' | 'manual';
 }
 
 export interface VariableGetOptionsArgs {

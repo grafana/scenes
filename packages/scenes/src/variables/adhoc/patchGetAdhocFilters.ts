@@ -17,7 +17,6 @@ export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
 
   const templateSrv: any = getTemplateSrv();
   if (!templateSrv?.getAdhocFilters) {
-    console.log('Failed to patch getAdhocFilters');
     return;
   }
 

@@ -18,7 +18,7 @@ import { FiltersRequestEnricher } from '../../core/types';
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
 describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
-  // const cachedCongif = config;
+  // const cachedConfig = config;
   beforeEach(() => {
     config.buildInfo.version = v;
   });
@@ -199,6 +199,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       ]);
     });
   });
+
   it('Can filter by regex', async () => {
     const { variable } = setupTest({
       tagKeyRegexFilter: new RegExp('x.*'),
@@ -260,7 +261,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
   });
 
   // TODO enable once this repo is using @grafana/ui@11.1.0
-  it.skip('shows groups and orders according to first occurence of a group item', async () => {
+  it.skip('shows groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setupTest({
       getTagKeysProvider: async () => ({
         replace: true,
@@ -320,6 +321,19 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     expect(options[3]).toHaveTextContent('Cat');
     expect(options[4]).toHaveTextContent('Dog');
     expect(options[5]).toHaveTextContent('Foo');
+  });
+
+  it('should return an observable emitting an empty object when applyMode is manual', async () => {
+    const { variable, runRequest } = setupTest({
+      applyMode: 'manual',
+    });
+
+    await act(async () => {
+      const result = await lastValueFrom(variable.validateAndUpdate());
+      expect(result).toEqual({});
+    });
+
+    expect(runRequest.mock.calls.length).toBe(0);
   });
 
   describe('component', () => {
