@@ -216,7 +216,7 @@ describe('getQueriesForVariables', () => {
     jest.resetAllMocks();
   });
 
-  it.only('should get queries for interpolated source object and query datasource uuids', () => {
+  it('should get queries for interpolated source object and query datasource uuids', () => {
     const runner1 = new SceneQueryRunner({
       datasource: {
         uid: '${dsVar}',
