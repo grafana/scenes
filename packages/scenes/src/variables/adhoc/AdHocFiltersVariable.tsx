@@ -190,6 +190,21 @@ export class AdHocFiltersVariable
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
+    this.updateFilters(update);
+  }
+
+  /**
+   * Updates the variable's `filters` and `filterExpression` state.
+   * If `skipPublish` option is true, this will not emit the `SceneVariableValueChangedEvent`,
+   * allowing consumers to update the filters without triggering dependent data providers.
+   */
+  public updateFilters(
+    update: Partial<AdHocFiltersVariableState>,
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void {
     let filterExpressionChanged = false;
 
     if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {
@@ -199,7 +214,7 @@ export class AdHocFiltersVariable
 
     super.setState(update);
 
-    if (filterExpressionChanged) {
+    if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish === true) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
