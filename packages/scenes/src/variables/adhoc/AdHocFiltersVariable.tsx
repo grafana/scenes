@@ -202,18 +202,19 @@ export class AdHocFiltersVariable
     update: Partial<AdHocFiltersVariableState>,
     options?: {
       skipPublish?: boolean;
+      forcePublish?: boolean;
     }
   ): void {
     let filterExpressionChanged = false;
 
-    if (update.filters && update.filters !== this.state.filters) {
+    if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {
       update.filterExpression = renderExpression(this.state.expressionBuilder, update.filters);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
     }
 
     super.setState(update);
 
-    if (filterExpressionChanged && options?.skipPublish !== true) {
+    if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish === true) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
