@@ -970,7 +970,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const evtHandler = jest.fn();
       variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
 
-      variable.updateFilters({filters: variable.state.filters.slice(0)});
+      variable.updateFilters({ filters: variable.state.filters.slice(0) });
 
       expect(evtHandler).not.toHaveBeenCalled();
     });
@@ -987,7 +987,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const evtHandler = jest.fn();
       variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
 
-      variable.updateFilters({filters: [{ key: 'key2', operator: '=', value: 'val1' }]});
+      variable.updateFilters({ filters: [{ key: 'key2', operator: '=', value: 'val1' }] });
 
       expect(evtHandler).toHaveBeenCalled();
       expect(variable.state.filterExpression).toEqual(`key2="val1"`);
@@ -1005,7 +1005,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const evtHandler = jest.fn();
       variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
 
-      variable.updateFilters({filters: [{ key: 'key2', operator: '=', value: 'val1' }]}, { skipPublish: true });
+      variable.updateFilters({ filters: [{ key: 'key2', operator: '=', value: 'val1' }] }, { skipPublish: true });
 
       expect(evtHandler).not.toHaveBeenCalled();
       expect(variable.state.filterExpression).toEqual(`key2="val1"`);

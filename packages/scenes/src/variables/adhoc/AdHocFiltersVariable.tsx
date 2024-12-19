@@ -190,7 +190,7 @@ export class AdHocFiltersVariable
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
-    this.updateFilters(update)
+    this.updateFilters(update);
   }
 
   /**
