@@ -325,20 +325,14 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     setBaseClassState<MultiValueVariableState>(this, state);
   }
 
-  public getOptionsForSelectWithoutCurrentValue(): VariableValueOption[] {
+  public getOptionsForSelect(includeCurrentValue = true): VariableValueOption[] {
     let options = this.state.options;
 
     if (this.state.includeAll) {
       options = [{ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT }, ...options];
     }
 
-    return options;
-  }
-
-  public getOptionsForSelect(): VariableValueOption[] {
-    let options = this.getOptionsForSelectWithoutCurrentValue();
-
-    if (!Array.isArray(this.state.value)) {
+    if (includeCurrentValue && !Array.isArray(this.state.value)) {
       const current = options.find((x) => x.value === this.state.value);
       if (!current) {
         options = [{ value: this.state.value, label: String(this.state.text) }, ...options];
