@@ -213,7 +213,7 @@ export class AdHocFiltersVariable
     filters: AdHocFilterWithLabels[],
     options?: {
       skipPublish?: boolean;
-      forcePublish?: boolean
+      forcePublish?: boolean;
     }
   ): void {
     let filterExpressionChanged = false;
@@ -229,7 +229,7 @@ export class AdHocFiltersVariable
       filterExpression,
     });
 
-    if (filterExpressionChanged && options?.skipPublish !== true || options?.forcePublish) {
+    if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
