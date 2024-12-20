@@ -204,6 +204,36 @@ export class AdHocFiltersVariable
     }
   }
 
+  /**
+   * Updates the variable's `filters` and `filterExpression` state.
+   * If `skipPublish` option is true, this will not emit the `SceneVariableValueChangedEvent`,
+   * allowing consumers to update the filters without triggering dependent data providers.
+   */
+  public updateFilters(
+    filters: AdHocFilterWithLabels[],
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void {
+    let filterExpressionChanged = false;
+    let filterExpression = undefined;
+
+    if (filters && filters !== this.state.filters) {
+      filterExpression = renderExpression(this.state.expressionBuilder, filters);
+      filterExpressionChanged = filterExpression !== this.state.filterExpression;
+    }
+
+    super.setState({
+      filters,
+      filterExpression,
+    });
+
+    if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
+
   public getValue(): VariableValue | undefined {
     return this.state.filterExpression;
   }

@@ -958,6 +958,134 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(evtHandler).not.toHaveBeenCalled();
     });
 
+    it('Should not overwrite filterExpression on setState', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filterExpression: '',
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.setState({ filters: variable.state.filters.slice(0), filterExpression: 'hello filter expression!' });
+
+      expect(evtHandler).not.toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual('hello filter expression!');
+    });
+
+    it('Should overwrite filterExpression on updateFilters', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filterExpression: 'hello filter expression!',
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters(variable.state.filters.slice(0));
+
+      expect(evtHandler).toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual('key1="val1"');
+    });
+
+    it('updateFilters should not publish event when expr did not change', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters(variable.state.filters.slice(0));
+
+      expect(evtHandler).not.toHaveBeenCalled();
+    });
+
+    it('updateFilters should publish event when expr did not change, but forcePublish is set', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters(variable.state.filters.slice(0), { forcePublish: true });
+
+      expect(evtHandler).toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual('key1="val1"');
+    });
+
+    it('updateFilters should publish event on when expr did change', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters([{ key: 'key2', operator: '=', value: 'val1' }]);
+
+      expect(evtHandler).toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual(`key2="val1"`);
+    });
+
+    it('updateFilters should not publish event when skip event is true', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filterExpression: 'hello filter expression',
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters([{ key: 'key2', operator: '=', value: 'val1' }], { skipPublish: true });
+
+      expect(evtHandler).not.toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual(`key2="val1"`);
+    });
+
+    it('updateFilters should not publish event on when expr did change, if skipPublish is true', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters([{ key: 'key2', operator: '=', value: 'val1' }], { skipPublish: true });
+
+      expect(evtHandler).not.toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual(`key2="val1"`);
+    });
+
     it('Should create variable with applyMode as manual by default and it allows to override it', () => {
       const defaultVariable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
