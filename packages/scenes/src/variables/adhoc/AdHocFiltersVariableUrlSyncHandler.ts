@@ -27,6 +27,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
 
     const value = filters
       .filter(isFilterComplete)
+      .filter((filter) => !filter.hidden)
       .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'));
     return { [this.getKey()]: value };
   }
