@@ -75,10 +75,11 @@ interface SetupProps extends Partial<SceneContextProviderProps> {}
 
 function setup(props: SetupProps) {
   const result: SetupResult = {} as SetupResult;
+  const history = locationService.getHistory();
 
   result.renderResult = render(
     <LocationServiceProvider service={locationService}>
-      <Router history={locationService.getHistory()}>
+      <Router navigator={history} location={history.location}>
         <SceneContextProvider {...props}>
           <ChildTest setCtx={(c) => (result.context = c)}></ChildTest>
           <SceneContextProvider>

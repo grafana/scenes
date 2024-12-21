@@ -75,6 +75,7 @@ export function scoped() {
   return new SceneAppPage({
     title: 'Cursor sync test',
     url: demoUrl('cursor-sync/scoped'),
+    routePath: 'scoped',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
