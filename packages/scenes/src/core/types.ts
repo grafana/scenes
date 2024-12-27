@@ -61,6 +61,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** True when there is a React component mounted for this Object */
   readonly isActive: boolean;
 
+  /** Controls if activation blocks rendering */
+  readonly renderBeforeActivation: boolean;
+
   /** SceneObject parent */
   readonly parent?: SceneObject;
 

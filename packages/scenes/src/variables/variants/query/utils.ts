@@ -4,7 +4,7 @@ import { stringToJsRegex, VariableSort } from '@grafana/data';
 
 import { VariableValueOption } from '../../types';
 
-export const metricNamesToVariableValues = (variableRegEx: string, sort: VariableSort, metricNames: any[]) => {
+export function metricNamesToVariableValues(variableRegEx: string, sort: VariableSort, metricNames: any[]) {
   let regex;
   let options: VariableValueOption[] = [];
 
@@ -14,8 +14,8 @@ export const metricNamesToVariableValues = (variableRegEx: string, sort: Variabl
 
   for (let i = 0; i < metricNames.length; i++) {
     const item = metricNames[i];
-    let text = item.text === undefined || item.text === null ? item.value : item.text;
-    let value = item.value === undefined || item.value === null ? item.text : item.value;
+    let text = item.text ?? item.value ?? '';
+    let value = item.value ?? item.text ?? '';
 
     if (isNumber(value)) {
       value = value.toString();
@@ -56,7 +56,7 @@ export const metricNamesToVariableValues = (variableRegEx: string, sort: Variabl
 
   options = uniqBy(options, 'value');
   return sortVariableValues(options, sort);
-};
+}
 
 const getAllMatches = (str: string, regex: RegExp): RegExpExecArray[] => {
   const results: RegExpExecArray[] = [];

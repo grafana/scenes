@@ -38,9 +38,9 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const [valueInputValue, setValueInputValue] = useState('');
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
-  // TODO remove expect-error when we're on the latest version of @grafana/data
-  // @ts-expect-error
-  const [uncommittedValue, setUncommittedValue] = useState<SelectableValue>(filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []);
+  const [uncommittedValue, setUncommittedValue] = useState<SelectableValue>(
+    filter.values ? filter.values.map((value, index) => keyLabelToOption(value, filter.valueLabels?.[index])) : []
+  );
   const isMultiValue = isMultiValueOperator(filter.operator);
 
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
@@ -64,22 +64,20 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     if (isMultiValueOperator(existingOperator) && !isMultiValueOperator(newOperator)) {
       update.value = '';
       update.valueLabels = [''];
-      // TODO remove expect-error when we're on the latest version of @grafana/data
-      // @ts-expect-error
       update.values = undefined;
       setUncommittedValue([]);
-    // set values if operator has changed from single to multi
+      // set values if operator has changed from single to multi
     } else if (!isMultiValueOperator(existingOperator) && isMultiValueOperator(newOperator) && filter.value) {
-      // TODO remove expect-error when we're on the latest version of @grafana/data
-      // @ts-expect-error
       update.values = [filter.value];
-      setUncommittedValue([{
-        value: filter.value,
-        label: filter.valueLabels?.[0] ?? filter.value,
-      }]);
+      setUncommittedValue([
+        {
+          value: filter.value,
+          label: filter.valueLabels?.[0] ?? filter.value,
+        },
+      ]);
     }
     model._updateFilter(filter, update);
-  }
+  };
 
   const filteredValueOptions = useMemo(
     () => handleOptionGroups(optionSearcher(valueInputValue)),
@@ -106,17 +104,16 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       model._updateFilter(filter, {
         value: uncommittedValue[0]?.value ?? '',
         // TODO remove expect-error when we're on the latest version of @grafana/data
-        // @ts-expect-error
         values: uncommittedValue.map((option: SelectableValue<string>) => option.value),
         valueLabels: uncommittedValue.map((option: SelectableValue<string>) => option.label),
       });
-    }
-  }
+    },
+  };
 
   const valueSelect = (
     <Select
       virtualized
-      allowCustomValue
+      allowCustomValue={model.state.allowCustomValue ?? true}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
@@ -132,7 +129,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       onChange={(v) => {
         model._updateFilter(filter, {
           value: v.value,
-          valueLabels: v.label ? [v.label] : [v.value]
+          valueLabels: v.label ? [v.label] : [v.value],
         });
 
         if (valueHasCustomValue !== v.__isNew__) {
@@ -171,7 +168,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       disabled={model.state.readOnly}
       className={cx(styles.key, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
-      allowCustomValue={true}
+      allowCustomValue={model.state.allowCustomValue ?? true}
       value={keyValue}
       placeholder={'Select label'}
       options={handleOptionGroups(keys)}
@@ -182,10 +179,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
           // clear value if key has changed
           value: '',
           valueLabels: [''],
-          // TODO remove expect-error when we're on the latest version of @grafana/data
-          // @ts-expect-error
-          values: undefined
-        })
+          values: undefined,
+        });
         setUncommittedValue([]);
       }}
       autoFocus={filter.key === ''}
@@ -223,10 +218,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       options={model._getOperators()}
       onChange={onOperatorChange}
       onOpenMenu={() => {
-        setIsOperatorOpen(true)
+        setIsOperatorOpen(true);
       }}
       onCloseMenu={() => {
-        setIsOperatorOpen(false)
+        setIsOperatorOpen(false);
       }}
     />
   );

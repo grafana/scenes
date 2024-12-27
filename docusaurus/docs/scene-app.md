@@ -25,9 +25,9 @@ function getSceneApp() {
   return new SceneApp({
     pages: [],
     urlSyncOptions: {
-      updateUrlOnInit: true, 
-      createBrowserHistorySteps: true
-    }
+      updateUrlOnInit: true,
+      createBrowserHistorySteps: true,
+    },
   });
 }
 ```

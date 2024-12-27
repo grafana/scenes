@@ -1,5 +1,4 @@
 import React from 'react';
-// @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
@@ -94,6 +93,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * impact the current queries are presented to the user.
    */
   useQueriesAsFilterForOptions?: boolean;
+
+  /**
+   * Flag that decides whether custom values can be added to the filter
+   */
+  allowCustomValue?: boolean;
 
   /**
    * @internal state of the new filter being added
@@ -196,6 +200,36 @@ export class AdHocFiltersVariable
     super.setState(update);
 
     if (filterExpressionChanged) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
+
+  /**
+   * Updates the variable's `filters` and `filterExpression` state.
+   * If `skipPublish` option is true, this will not emit the `SceneVariableValueChangedEvent`,
+   * allowing consumers to update the filters without triggering dependent data providers.
+   */
+  public updateFilters(
+    filters: AdHocFilterWithLabels[],
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void {
+    let filterExpressionChanged = false;
+    let filterExpression = undefined;
+
+    if (filters && filters !== this.state.filters) {
+      filterExpression = renderExpression(this.state.expressionBuilder, filters);
+      filterExpressionChanged = filterExpression !== this.state.filterExpression;
+    }
+
+    super.setState({
+      filters,
+      filterExpression,
+    });
+
+    if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -305,7 +339,6 @@ export class AdHocFiltersVariable
     });
 
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 
@@ -316,7 +349,6 @@ export class AdHocFiltersVariable
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
     if (tagKeyRegexFilter) {
-      // @ts-expect-error Remove when 11.1.x is released
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
@@ -348,13 +380,12 @@ export class AdHocFiltersVariable
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
-      timeRange, // @ts-expect-error TODO: remove this once 11.1.x is released
+      timeRange,
       queries,
       ...getEnrichedFiltersRequest(this),
     });
 
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 

@@ -1,5 +1,10 @@
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } from '../../core/types';
-import { AdHocFiltersVariable, AdHocFilterWithLabels, isFilterComplete, isMultiValueOperator } from './AdHocFiltersVariable';
+import {
+  AdHocFiltersVariable,
+  AdHocFilterWithLabels,
+  isFilterComplete,
+  isMultiValueOperator,
+} from './AdHocFiltersVariable';
 import { escapeUrlPipeDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
@@ -20,7 +25,9 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return { [this.getKey()]: [''] };
     }
 
-    const value = filters.filter(isFilterComplete).map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'));
+    const value = filters
+      .filter(isFilterComplete)
+      .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'));
     return { [this.getKey()]: value };
   }
 
@@ -47,10 +54,7 @@ function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLab
 }
 
 function toArray(filter: AdHocFilterWithLabels): string[] {
-  const result = [
-    toUrlCommaDelimitedString(filter.key, filter.keyLabel),
-    filter.operator,
-  ];
+  const result = [toUrlCommaDelimitedString(filter.key, filter.keyLabel), filter.operator];
   if (isMultiValueOperator(filter.operator)) {
     // TODO remove expect-error when we're on the latest version of @grafana/data
     // @ts-expect-error
@@ -84,8 +88,6 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     keyLabel,
     operator,
     value: values[0],
-    // TODO remove expect-error when we're on the latest version of @grafana/data
-    // @ts-expect-error
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',

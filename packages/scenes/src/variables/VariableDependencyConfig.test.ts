@@ -175,5 +175,41 @@ describe('VariableDependencyConfig', () => {
       // No need to wait now as no dependency loading
       expect(nestedObj.state.didSomethingCount).toBe(3);
     });
+
+    it('When handleTimeMacros is true', () => {
+      const timeRange = new SceneTimeRange();
+      const scene = new TestObjectThatUsesTimeMacro({
+        $timeRange: timeRange,
+        title: 'title with ${__from:date} ${__to:date} and ${__timezone}',
+        variableValueChanged: 0,
+      });
+
+      scene.activate();
+
+      expect(scene.state.variableValueChanged).toBe(0);
+
+      timeRange.onRefresh();
+
+      expect(scene.state.variableValueChanged).toBe(1);
+
+      timeRange.onTimeZoneChange('UTC');
+
+      expect(scene.state.variableValueChanged).toBe(2);
+    });
   });
 });
+
+interface TestSceneObjectState extends SceneObjectState {
+  title: string;
+  variableValueChanged: number;
+}
+
+export class TestObjectThatUsesTimeMacro extends SceneObjectBase<TestSceneObjectState> {
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    statePaths: ['title'],
+    handleTimeMacros: true,
+    onReferencedVariableValueChanged: () => {
+      this.setState({ variableValueChanged: this.state.variableValueChanged + 1 });
+    },
+  });
+}
