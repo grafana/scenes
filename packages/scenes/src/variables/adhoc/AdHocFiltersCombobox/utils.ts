@@ -211,3 +211,24 @@ export const populateInputValueOnInputTypeSwitch = ({
     setInputValue('');
   }
 };
+
+export const calculateCollapseThreshold = (
+  shouldCollapse: boolean,
+  filtersLength: number,
+  wrapperRef: React.RefObject<HTMLDivElement>
+) => {
+  if (!shouldCollapse || !wrapperRef.current) {
+    return null;
+  }
+
+  const rect = wrapperRef.current.getBoundingClientRect();
+
+  if (rect.height - 6 > 26) {
+    const componentLineSpan = (rect.height - 6) / 26;
+    const filterCutOff = Math.max(1, Math.floor(filtersLength / (componentLineSpan + 1)));
+
+    return filterCutOff;
+  }
+
+  return null;
+};
