@@ -223,8 +223,12 @@ export const calculateCollapseThreshold = (
 
   const rect = wrapperRef.current.getBoundingClientRect();
 
+  // without paddings variable wrapper height is 26px
+  //   therefore trigger only when higher than that
   if (rect.height - 6 > 26) {
     const componentLineSpan = (rect.height - 6) / 26;
+    // magic number but dividing filters by line span +1 should yield
+    //   number of filters that will fit in 1 line
     const filterCutOff = Math.max(1, Math.floor(filtersLength / (componentLineSpan + 1)));
 
     return filterCutOff;

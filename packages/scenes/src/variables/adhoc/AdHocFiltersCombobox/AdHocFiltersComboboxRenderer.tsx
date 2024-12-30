@@ -45,8 +45,10 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   );
 
   useLayoutEffect(() => {
-    // updateCollapseThreshold(!!model.state.collapseFilters ? true : false, filters.length);
-    updateCollapseThreshold(true, filters.length);
+    updateCollapseThreshold(!!model.state.collapseFilters ? true : false, filters.length);
+    // TODO: remove below before merging
+    // updateCollapseThreshold(true, filters.length); // for testing locally
+
     // needs to run only on first render
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -59,8 +61,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       }}
       ref={wrapperRef}
       onFocusCapture={handleFilterCollapse(false, filters.length)}
-      // onBlurCapture={handleFilterCollapse(!!model.state.collapseFilters ? true : false, filters.length}
-      onBlurCapture={handleFilterCollapse(true, filters.length)}
+      // TODO: remove below before merging
+      // onBlurCapture={handleFilterCollapse(true, filters.length)} // for testing locally
+      onBlurCapture={handleFilterCollapse(!!model.state.collapseFilters ? true : false, filters.length)}
     >
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
