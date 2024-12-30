@@ -8,6 +8,8 @@ import { getFuzzySearcher, getQueriesForVariables } from './utils';
 import { SceneVariableSet } from './sets/SceneVariableSet';
 import { DataSourceVariable } from './variants/DataSourceVariable';
 import { GetDataSourceListFilters } from '@grafana/runtime';
+import { searchOptions } from './adhoc/AdHocFiltersCombobox/utils';
+import { SelectableValue } from '@grafana/data';
 
 describe('getQueriesForVariables', () => {
   it('should resolve queries', () => {
@@ -285,6 +287,27 @@ describe('getFuzzySearcher orders by match quality with case-sensitivity', () =>
       'container_namespace',
       'client_k8s_namespace_name',
       'client_service_namespace',
+    ]);
+  });
+});
+
+describe('searchOptions falls back to substring matching for non-latin needles', () => {
+  it('Can filter options by search query', async () => {
+    const options: SelectableValue[] = [
+      '台灣省',
+      '台中市',
+      '台北市',
+      '台南市',
+      '南投縣',
+      '高雄市',
+      '台中第一高級中學',
+    ].map(v => ({label: v, value: v}));
+
+    const searcher = searchOptions(options);
+
+    expect(searcher('南', 'key').map((o) => o.label!)).toEqual([
+      '台南市',
+      '南投縣',
     ]);
   });
 });

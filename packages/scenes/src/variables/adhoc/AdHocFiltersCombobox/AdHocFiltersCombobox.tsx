@@ -25,7 +25,7 @@ import {
 import {
   ERROR_STATE_DROPDOWN_WIDTH,
   flattenOptionGroups,
-  fuzzySearchOptions,
+  searchOptions,
   generateFilterUpdatePayload,
   generatePlaceholder,
   populateInputValueOnInputTypeSwitch,
@@ -81,7 +81,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const disabledIndicesRef = useRef<number[]>([]);
   const filterInputTypeRef = useRef<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
 
-  const optionsSearcher = useMemo(() => fuzzySearchOptions(options), [options]);
+  const optionsSearcher = useMemo(() => searchOptions(options), [options]);
 
   const isLastFilter = useMemo(() => {
     if (isAlwaysWip) {
