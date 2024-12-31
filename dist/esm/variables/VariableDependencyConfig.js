@@ -3,6 +3,7 @@ import { sceneGraph } from '../core/sceneGraph/index.js';
 import { writeSceneLog } from '../utils/writeSceneLog.js';
 import { VARIABLE_REGEX } from './constants.js';
 import { safeStringifyValue } from './utils.js';
+import { ConstantVariable } from './variants/ConstantVariable.js';
 
 class VariableDependencyConfig {
   constructor(_sceneObject, _options) {
@@ -12,6 +13,9 @@ class VariableDependencyConfig {
     this._isWaitingForVariables = false;
     this.scanCount = 0;
     this._statePaths = _options.statePaths;
+    if (this._options.handleTimeMacros) {
+      this.handleTimeMacros();
+    }
   }
   hasDependencyOn(name) {
     return this.getNames().has(name);
@@ -114,6 +118,31 @@ class VariableDependencyConfig {
       const variableName = var1 || var2 || var3;
       this._dependencies.add(variableName);
     }
+  }
+  handleTimeMacros() {
+    this._sceneObject.addActivationHandler(() => {
+      const timeRange = sceneGraph.getTimeRange(this._sceneObject);
+      const sub = timeRange.subscribeToState((newState, oldState) => {
+        const deps = this.getNames();
+        const hasFromDep = deps.has("__from");
+        const hasToDep = deps.has("__to");
+        const hasTimeZone = deps.has("__timezone");
+        if (newState.value !== oldState.value) {
+          if (hasFromDep) {
+            const variable = new ConstantVariable({ name: "__from", value: newState.from });
+            this.variableUpdateCompleted(variable, true);
+          } else if (hasToDep) {
+            const variable = new ConstantVariable({ name: "__to", value: newState.to });
+            this.variableUpdateCompleted(variable, true);
+          }
+        }
+        if (newState.timeZone !== oldState.timeZone && hasTimeZone) {
+          const variable = new ConstantVariable({ name: "__timezone", value: newState.timeZone });
+          this.variableUpdateCompleted(variable, true);
+        }
+      });
+      return () => sub.unsubscribe();
+    });
   }
 }
 

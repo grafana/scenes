@@ -11,6 +11,7 @@ export { DataSourceVariable } from './variables/DataSourceVariable.js';
 export { QueryVariable } from './variables/QueryVariable.js';
 export { Breadcrumb, BreadcrumbContext, BreadcrumbProvider } from './contexts/BreadcrumbContext.js';
 export { useVariableValues } from './hooks/useVariableValues.js';
+export { useQueryVariable } from './hooks/useQueryVariable.js';
 export { useVariableValue } from './hooks/useVariableValue.js';
 export { AnnotationLayer } from './components/AnnotationLayer.js';
 export { EmbeddedSceneWithContext } from './interoperability/EmbeddedSceneWithContext.js';

@@ -54,7 +54,7 @@ function toSelectableValue(value, label) {
   };
 }
 function VariableValueSelect({ model }) {
-  const { value, text, key, options, includeAll, isReadOnly } = model.useState();
+  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
   const [inputValue, setInputValue] = useState("");
   const [hasCustomValue, setHasCustomValue] = useState(false);
   const selectValue = toSelectableValue(value, String(text));
@@ -86,7 +86,7 @@ function VariableValueSelect({ model }) {
     disabled: isReadOnly,
     value: selectValue,
     inputValue,
-    allowCustomValue: true,
+    allowCustomValue,
     virtualized: true,
     filterOption: filterNoOp,
     tabSelectsValue: false,
@@ -104,7 +104,16 @@ function VariableValueSelect({ model }) {
   });
 }
 function VariableValueSelectMulti({ model }) {
-  const { value, options, key, maxVisibleValues, noValueOnClear, includeAll, isReadOnly } = model.useState();
+  const {
+    value,
+    options,
+    key,
+    maxVisibleValues,
+    noValueOnClear,
+    includeAll,
+    isReadOnly,
+    allowCustomValue = true
+  } = model.useState();
   const arrayValue = useMemo(() => isArray(value) ? value : [value], [value]);
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
   const [inputValue, setInputValue] = useState("");
@@ -139,7 +148,7 @@ function VariableValueSelectMulti({ model }) {
     maxVisibleValues: maxVisibleValues != null ? maxVisibleValues : 5,
     tabSelectsValue: false,
     virtualized: true,
-    allowCustomValue: true,
+    allowCustomValue,
     toggleAllOptions: {
       enabled: true,
       optionsFilter: filterAll,

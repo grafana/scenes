@@ -6,7 +6,23 @@ import { writeSceneLog } from '../utils.js';
 import { useSceneContext } from '../hooks/hooks.js';
 
 function VizPanel(props) {
-  const { title, viz, dataProvider, headerActions } = props;
+  const {
+    title,
+    description,
+    viz,
+    dataProvider,
+    displayMode,
+    hoverHeader,
+    hoverHeaderOffset,
+    headerActions,
+    menu,
+    titleItems,
+    extendPanelContext,
+    seriesLimit,
+    seriesLimitShowAll,
+    collapsible,
+    collapsed
+  } = props;
   const scene = useSceneContext();
   const key = useId();
   const prevProps = usePrevious(props);
@@ -14,13 +30,24 @@ function VizPanel(props) {
   if (!panel) {
     panel = new VizPanel$1({
       key,
-      title,
       pluginId: viz.pluginId,
-      pluginVersion: viz.pluginVersion,
+      title,
+      titleItems,
+      description,
       options: viz.options,
       fieldConfig: viz.fieldConfig,
+      pluginVersion: viz.pluginVersion,
       $data: getDataProviderForVizPanel(dataProvider),
-      headerActions
+      displayMode,
+      hoverHeader,
+      hoverHeaderOffset,
+      headerActions,
+      menu,
+      extendPanelContext,
+      collapsible,
+      collapsed,
+      seriesLimit,
+      seriesLimitShowAll
     });
   }
   useEffect(() => scene.addToScene(panel), [panel, scene]);
@@ -32,11 +59,41 @@ function VizPanel(props) {
     if (title !== prevProps.title) {
       stateUpdate.title = title;
     }
+    if (description !== prevProps.description) {
+      stateUpdate.description = description;
+    }
+    if (displayMode !== prevProps.displayMode) {
+      stateUpdate.displayMode = displayMode;
+    }
+    if (hoverHeader !== prevProps.hoverHeader) {
+      stateUpdate.hoverHeader = hoverHeader;
+    }
+    if (hoverHeaderOffset !== prevProps.hoverHeaderOffset) {
+      stateUpdate.hoverHeaderOffset = hoverHeaderOffset;
+    }
+    if (menu !== prevProps.menu) {
+      stateUpdate.menu = menu;
+    }
+    if (titleItems !== prevProps.titleItems) {
+      stateUpdate.titleItems = titleItems;
+    }
     if (headerActions !== prevProps.headerActions) {
       stateUpdate.headerActions = headerActions;
     }
     if (dataProvider !== prevProps.dataProvider) {
       stateUpdate.$data = getDataProviderForVizPanel(dataProvider);
+    }
+    if (seriesLimit !== prevProps.seriesLimit) {
+      stateUpdate.seriesLimit = seriesLimit;
+    }
+    if (seriesLimitShowAll !== prevProps.seriesLimitShowAll) {
+      stateUpdate.seriesLimitShowAll = seriesLimitShowAll;
+    }
+    if (collapsible !== prevProps.collapsible) {
+      stateUpdate.collapsible = collapsible;
+    }
+    if (collapsed !== prevProps.collapsed) {
+      stateUpdate.collapsed = collapsed;
     }
     if (viz !== prevProps.viz) {
       if (viz.pluginId === prevProps.viz.pluginId) {
@@ -58,7 +115,24 @@ function VizPanel(props) {
       panel.setState(stateUpdate);
       writeSceneLog("VizPanel", "Updating VizPanel state", stateUpdate);
     }
-  }, [panel, title, headerActions, viz, dataProvider, prevProps]);
+  }, [
+    panel,
+    title,
+    description,
+    displayMode,
+    hoverHeader,
+    hoverHeaderOffset,
+    headerActions,
+    menu,
+    titleItems,
+    viz,
+    dataProvider,
+    seriesLimit,
+    seriesLimitShowAll,
+    collapsible,
+    collapsed,
+    prevProps
+  ]);
   return /* @__PURE__ */ React.createElement(panel.Component, {
     model: panel
   });

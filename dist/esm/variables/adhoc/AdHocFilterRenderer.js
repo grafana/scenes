@@ -31,7 +31,7 @@ function keyLabelToOption(key, label) {
 }
 const filterNoOp = () => true;
 function AdHocFilterRenderer({ filter, model }) {
-  var _a, _b, _c;
+  var _a, _b, _c, _d, _e;
   const styles = useStyles2(getStyles);
   const [keys, setKeys] = useState([]);
   const [values, setValues] = useState([]);
@@ -42,10 +42,12 @@ function AdHocFilterRenderer({ filter, model }) {
   const [isOperatorOpen, setIsOperatorOpen] = useState(false);
   const [valueInputValue, setValueInputValue] = useState("");
   const [valueHasCustomValue, setValueHasCustomValue] = useState(false);
-  const [uncommittedValue, setUncommittedValue] = useState(filter.values ? filter.values.map((value, index) => {
-    var _a2;
-    return keyLabelToOption(value, (_a2 = filter.valueLabels) == null ? void 0 : _a2[index]);
-  }) : []);
+  const [uncommittedValue, setUncommittedValue] = useState(
+    filter.values ? filter.values.map((value, index) => {
+      var _a2;
+      return keyLabelToOption(value, (_a2 = filter.valueLabels) == null ? void 0 : _a2[index]);
+    }) : []
+  );
   const isMultiValue = isMultiValueOperator(filter.operator);
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, (_a = filter.valueLabels) == null ? void 0 : _a[0]);
@@ -68,10 +70,12 @@ function AdHocFilterRenderer({ filter, model }) {
       setUncommittedValue([]);
     } else if (!isMultiValueOperator(existingOperator) && isMultiValueOperator(newOperator) && filter.value) {
       update.values = [filter.value];
-      setUncommittedValue([{
-        value: filter.value,
-        label: (_b2 = (_a2 = filter.valueLabels) == null ? void 0 : _a2[0]) != null ? _b2 : filter.value
-      }]);
+      setUncommittedValue([
+        {
+          value: filter.value,
+          label: (_b2 = (_a2 = filter.valueLabels) == null ? void 0 : _a2[0]) != null ? _b2 : filter.value
+        }
+      ]);
     }
     model._updateFilter(filter, update);
   };
@@ -105,7 +109,7 @@ function AdHocFilterRenderer({ filter, model }) {
   };
   const valueSelect = /* @__PURE__ */ React.createElement(Select, __spreadValues({
     virtualized: true,
-    allowCustomValue: true,
+    allowCustomValue: (_b = model.state.allowCustomValue) != null ? _b : true,
     isValidNewOption: (inputValue) => inputValue.trim().length > 0,
     allowCreateWhileLoading: true,
     formatCreateLabel: (inputValue) => `Use custom value: ${inputValue}`,
@@ -151,7 +155,7 @@ function AdHocFilterRenderer({ filter, model }) {
     disabled: model.state.readOnly,
     className: cx(styles.key, isKeysOpen ? styles.widthWhenOpen : void 0),
     width: "auto",
-    allowCustomValue: true,
+    allowCustomValue: (_c = model.state.allowCustomValue) != null ? _c : true,
     value: keyValue,
     placeholder: "Select label",
     options: handleOptionGroups(keys),
@@ -204,7 +208,7 @@ function AdHocFilterRenderer({ filter, model }) {
     if (filter.key) {
       const label = /* @__PURE__ */ React.createElement(ControlsLabel, {
         layout: "vertical",
-        label: (_b = filter.key) != null ? _b : "",
+        label: (_d = filter.key) != null ? _d : "",
         onRemove: () => model._removeFilter(filter)
       });
       return /* @__PURE__ */ React.createElement(Field, {
@@ -231,7 +235,7 @@ function AdHocFilterRenderer({ filter, model }) {
     title: "Remove filter",
     className: styles.removeButton,
     icon: "times",
-    "data-testid": `AdHocFilter-remove-${(_c = filter.key) != null ? _c : ""}`,
+    "data-testid": `AdHocFilter-remove-${(_e = filter.key) != null ? _e : ""}`,
     onClick: () => model._removeFilter(filter)
   }));
 }

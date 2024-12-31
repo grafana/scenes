@@ -67,7 +67,8 @@ class VizPanel extends SceneObjectBase {
           sceneTimeRange.state.to,
           sceneTimeRange.getTimeZone(),
           sceneTimeRange.state.fiscalYearStartMonth,
-          sceneTimeRange.state.UNSAFE_nowDelay
+          sceneTimeRange.state.UNSAFE_nowDelay,
+          sceneTimeRange.state.weekStart
         );
       }
       const plugin = this.getPlugin();
@@ -84,6 +85,11 @@ class VizPanel extends SceneObjectBase {
     };
     this.onDisplayModeChange = (displayMode) => {
       this.setState({ displayMode });
+    };
+    this.onToggleCollapse = (collapsed) => {
+      this.setState({
+        collapsed
+      });
     };
     this.onOptionsChange = (optionsUpdate, replace = false, isAfterPluginChange = false) => {
       var _a;
@@ -198,6 +204,10 @@ class VizPanel extends SceneObjectBase {
       this._loadPlugin(this.state.pluginId);
     }
   }
+  forceRender() {
+    var _a;
+    this.setState({ _renderCounter: ((_a = this.state._renderCounter) != null ? _a : 0) + 1 });
+  }
   async _loadPlugin(pluginId, overwriteOptions, overwriteFieldConfig, isAfterPluginChange) {
     const plugin = loadPanelPluginSync(pluginId);
     if (plugin) {
@@ -240,7 +250,7 @@ class VizPanel extends SceneObjectBase {
     }
     const currentVersion = this._getPluginVersion(plugin);
     _UNSAFE_customMigrationHandler == null ? void 0 : _UNSAFE_customMigrationHandler(panel, plugin);
-    if (plugin.onPanelMigration && currentVersion !== this.state.pluginVersion) {
+    if (plugin.onPanelMigration && currentVersion !== pluginVersion && !isAfterPluginChange) {
       panel.options = await plugin.onPanelMigration(panel);
     }
     const withDefaults = getPanelOptionsWithDefaults({
@@ -274,13 +284,10 @@ class VizPanel extends SceneObjectBase {
   }
   async changePluginType(pluginId, newOptions, newFieldConfig) {
     var _a, _b;
-    const {
-      options: prevOptions,
-      fieldConfig: prevFieldConfig,
-      pluginId: prevPluginId
-    } = this.state;
+    const { options: prevOptions, fieldConfig: prevFieldConfig, pluginId: prevPluginId } = this.state;
     this._dataWithFieldConfig = void 0;
-    await this._loadPlugin(pluginId, newOptions != null ? newOptions : {}, newFieldConfig, true);
+    const isAfterPluginChange = this.state.pluginId !== pluginId;
+    await this._loadPlugin(pluginId, newOptions != null ? newOptions : {}, newFieldConfig, isAfterPluginChange);
     const panel = {
       title: this.state.title,
       options: this.state.options,

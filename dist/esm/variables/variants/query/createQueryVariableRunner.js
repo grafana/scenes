@@ -1,7 +1,7 @@
 import { from, mergeMap, of } from 'rxjs';
 import { LoadingState, getDefaultTimeRange } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
-import { hasStandardVariableSupport, hasLegacyVariableSupport, hasCustomVariableSupport } from './guards.js';
+import { hasStandardVariableSupport, hasLegacyVariableSupport, hasCustomVariableSupport, hasDataSourceVariableSupport } from './guards.js';
 
 var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
@@ -97,6 +97,29 @@ class CustomQueryRunner {
     return this._runRequest(this.datasource, request, this.datasource.variables.query.bind(this.datasource.variables));
   }
 }
+const variableDummyRefId = "variable-query";
+class DatasourceQueryRunner {
+  constructor(datasource, _runRequest = getRunRequest()) {
+    this.datasource = datasource;
+    this._runRequest = _runRequest;
+  }
+  getTarget(variable) {
+    var _a;
+    if (hasDataSourceVariableSupport(this.datasource)) {
+      if (typeof variable.state.query === "string") {
+        return variable.state.query;
+      }
+      return __spreadProps(__spreadValues({}, variable.state.query), { refId: (_a = variable.state.query.refId) != null ? _a : variableDummyRefId });
+    }
+    throw new Error("Couldn't create a target with supplied arguments.");
+  }
+  runRequest(_, request) {
+    if (!hasDataSourceVariableSupport(this.datasource)) {
+      return getEmptyMetricFindValueObservable();
+    }
+    return this._runRequest(this.datasource, request, this.datasource.query);
+  }
+}
 function getEmptyMetricFindValueObservable() {
   return of({ state: LoadingState.Done, series: [], timeRange: getDefaultTimeRange() });
 }
@@ -109,6 +132,9 @@ function createQueryVariableRunnerFactory(datasource) {
   }
   if (hasCustomVariableSupport(datasource)) {
     return new CustomQueryRunner(datasource);
+  }
+  if (hasDataSourceVariableSupport(datasource)) {
+    return new DatasourceQueryRunner(datasource);
   }
   throw new Error(`Couldn't create a query runner for datasource ${datasource.type}`);
 }

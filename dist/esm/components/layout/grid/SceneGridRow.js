@@ -39,7 +39,8 @@ class SceneGridRow extends SceneObjectBase {
       width: GRID_COLUMN_COUNT
     }));
     this._variableDependency = new VariableDependencyConfig(this, {
-      statePaths: ["title"]
+      statePaths: ["title"],
+      handleTimeMacros: true
     });
     this.onCollapseToggle = () => {
       if (!this.state.isCollapsible) {

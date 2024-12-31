@@ -12,6 +12,9 @@ class UrlTimeRangeMacro {
     var _a;
     const timeRange = getTimeRange(this._sceneObject);
     const urlState = (_a = timeRange.urlSync) == null ? void 0 : _a.getUrlState();
+    if ((urlState == null ? void 0 : urlState.timezone) === "browser") {
+      urlState.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
     return new SkipFormattingValue(urlUtil.toUrlParams(urlState));
   }
   getValueText() {

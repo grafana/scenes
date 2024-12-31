@@ -41,7 +41,7 @@ function SceneComponentWrapperWithoutMemo(_a) {
     setValue((prevState) => prevState + 1);
     return unsub;
   }, [model]);
-  if (!model.isActive) {
+  if (!model.isActive && !model.renderBeforeActivation) {
     return null;
   }
   return /* @__PURE__ */ React.createElement(Component, __spreadProps(__spreadValues({}, otherProps), {

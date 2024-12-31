@@ -1,8 +1,8 @@
 import { isNumber, uniqBy, sortBy, toLower } from 'lodash';
 import { stringToJsRegex, VariableSort } from '@grafana/data';
 
-const metricNamesToVariableValues = (variableRegEx, sort, metricNames) => {
-  var _a, _b, _c, _d, _e, _f;
+function metricNamesToVariableValues(variableRegEx, sort, metricNames) {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
   let regex;
   let options = [];
   if (variableRegEx) {
@@ -10,8 +10,8 @@ const metricNamesToVariableValues = (variableRegEx, sort, metricNames) => {
   }
   for (let i = 0; i < metricNames.length; i++) {
     const item = metricNames[i];
-    let text = item.text === void 0 || item.text === null ? item.value : item.text;
-    let value = item.value === void 0 || item.value === null ? item.text : item.value;
+    let text = (_b = (_a = item.text) != null ? _a : item.value) != null ? _b : "";
+    let value = (_d = (_c = item.value) != null ? _c : item.text) != null ? _d : "";
     if (isNumber(value)) {
       value = value.toString();
     }
@@ -28,8 +28,8 @@ const metricNamesToVariableValues = (variableRegEx, sort, metricNames) => {
       const firstMatch = matches.find((m) => m.length > 1);
       const manyMatches = matches.length > 1 && firstMatch;
       if (valueGroup || textGroup) {
-        value = (_c = (_a = valueGroup == null ? void 0 : valueGroup.groups) == null ? void 0 : _a.value) != null ? _c : (_b = textGroup == null ? void 0 : textGroup.groups) == null ? void 0 : _b.text;
-        text = (_f = (_d = textGroup == null ? void 0 : textGroup.groups) == null ? void 0 : _d.text) != null ? _f : (_e = valueGroup == null ? void 0 : valueGroup.groups) == null ? void 0 : _e.value;
+        value = (_g = (_e = valueGroup == null ? void 0 : valueGroup.groups) == null ? void 0 : _e.value) != null ? _g : (_f = textGroup == null ? void 0 : textGroup.groups) == null ? void 0 : _f.text;
+        text = (_j = (_h = textGroup == null ? void 0 : textGroup.groups) == null ? void 0 : _h.text) != null ? _j : (_i = valueGroup == null ? void 0 : valueGroup.groups) == null ? void 0 : _i.value;
       } else if (manyMatches) {
         for (let j = 0; j < matches.length; j++) {
           const match = matches[j];
@@ -45,7 +45,7 @@ const metricNamesToVariableValues = (variableRegEx, sort, metricNames) => {
   }
   options = uniqBy(options, "value");
   return sortVariableValues(options, sort);
-};
+}
 const getAllMatches = (str, regex) => {
   const results = [];
   let matches = null;

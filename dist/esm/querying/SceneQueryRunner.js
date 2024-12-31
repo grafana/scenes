@@ -88,9 +88,7 @@ class SceneQueryRunner extends SceneObjectBase {
           })
         );
       }
-      this.subscribeToTimeRangeChanges(
-        timeRange
-      );
+      this.subscribeToTimeRangeChanges(timeRange);
       if (this.shouldRunQueriesOnActivate()) {
         this.runQueries();
       }
@@ -294,7 +292,7 @@ class SceneQueryRunner extends SceneObjectBase {
     try {
       const datasource = (_c = this.state.datasource) != null ? _c : findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
-      this.findAndSubscribeToAdHocFilters(datasource == null ? void 0 : datasource.uid);
+      this.findAndSubscribeToAdHocFilters(ds.uid);
       const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
       writeSceneLog("SceneQueryRunner", "Starting runRequest", this.state.key);
@@ -423,13 +421,13 @@ class SceneQueryRunner extends SceneObjectBase {
     });
     return Array.from(found.values());
   }
-  findAndSubscribeToAdHocFilters(uid) {
-    const filtersVar = findActiveAdHocFilterVariableByUid(uid);
+  findAndSubscribeToAdHocFilters(interpolatedUid) {
+    const filtersVar = findActiveAdHocFilterVariableByUid(interpolatedUid);
     if (this._adhocFiltersVar !== filtersVar) {
       this._adhocFiltersVar = filtersVar;
       this._updateExplicitVariableDependencies();
     }
-    const groupByVar = findActiveGroupByVariablesByUid(uid);
+    const groupByVar = findActiveGroupByVariablesByUid(interpolatedUid);
     if (this._groupByVar !== groupByVar) {
       this._groupByVar = groupByVar;
       this._updateExplicitVariableDependencies();

@@ -38,7 +38,8 @@ class SceneTimeZoneOverride extends SceneTimeRangeTransformerBase {
         timeRange.to,
         this.state.timeZone,
         timeRange.fiscalYearStartMonth,
-        timeRange.UNSAFE_nowDelay
+        timeRange.UNSAFE_nowDelay,
+        timeRange.weekStart
       )
     }));
   }
@@ -46,14 +47,16 @@ class SceneTimeZoneOverride extends SceneTimeRangeTransformerBase {
     return this.state.timeZone;
   }
   onTimeZoneChange(timeZone) {
+    const parentTimeRange = this.getAncestorTimeRange();
     this.setState({
       timeZone,
       value: evaluateTimeRange(
-        this.state.from,
-        this.state.to,
-        this.state.timeZone,
-        this.getAncestorTimeRange().state.fiscalYearStartMonth,
-        this.state.UNSAFE_nowDelay
+        parentTimeRange.state.from,
+        parentTimeRange.state.to,
+        timeZone,
+        parentTimeRange.state.fiscalYearStartMonth,
+        parentTimeRange.state.UNSAFE_nowDelay,
+        parentTimeRange.state.weekStart
       )
     });
   }

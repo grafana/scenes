@@ -121,7 +121,12 @@ const OptionsErrorPlaceholder = ({ handleFetchOptions }) => {
     onClick: handleFetchOptions
   }, "An error has occurred fetching labels. Click to retry");
 };
-const MultiValueApplyButton = ({ onApply, floatingElement, maxOptionWidth, menuHeight }) => {
+const MultiValueApplyButton = ({
+  onApply,
+  floatingElement,
+  maxOptionWidth,
+  menuHeight
+}) => {
   const styles = useStyles2(getStyles);
   const floatingElementRect = floatingElement == null ? void 0 : floatingElement.getBoundingClientRect();
   return /* @__PURE__ */ React.createElement("div", {

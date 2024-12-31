@@ -4,7 +4,7 @@ import { sceneGraph } from '../../core/sceneGraph/index.js';
 import { MultiValueVariable } from '../variants/MultiValueVariable.js';
 import { map, of, from, mergeMap, tap, take, lastValueFrom } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource.js';
-import { MultiSelect } from '@grafana/ui';
+import { MultiSelect, Select } from '@grafana/ui';
 import { isArray } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, responseHasError, handleOptionGroups } from '../utils.js';
 import { OptionWithCheckbox } from '../components/VariableValueSelect.js';
@@ -83,10 +83,12 @@ class GroupByVariable extends MultiValueVariable {
       }
       return keys;
     };
-    this.addActivationHandler(() => {
-      allActiveGroupByVariables.add(this);
-      return () => allActiveGroupByVariables.delete(this);
-    });
+    if (this.state.applyMode === "auto") {
+      this.addActivationHandler(() => {
+        allActiveGroupByVariables.add(this);
+        return () => allActiveGroupByVariables.delete(this);
+      });
+    }
   }
   validateAndUpdate() {
     return this.getValueOptions({}).pipe(
@@ -151,7 +153,17 @@ class GroupByVariable extends MultiValueVariable {
 }
 GroupByVariable.Component = GroupByVariableRenderer;
 function GroupByVariableRenderer({ model }) {
-  const { value, text, key, maxVisibleValues, noValueOnClear, options, includeAll } = model.useState();
+  const {
+    value,
+    text,
+    key,
+    isMulti = true,
+    maxVisibleValues,
+    noValueOnClear,
+    options,
+    includeAll,
+    allowCustomValue = true
+  } = model.useState();
   const values = useMemo(() => {
     const arrayValue = isArray(value) ? value : [value];
     const arrayText = isArray(text) ? text : [text];
@@ -189,11 +201,13 @@ function GroupByVariableRenderer({ model }) {
     () => handleOptionGroups(optionSearcher(inputValue).map(toSelectableValue)),
     [optionSearcher, inputValue]
   );
-  return /* @__PURE__ */ React.createElement(MultiSelect, {
+  return isMulti ? /* @__PURE__ */ React.createElement(MultiSelect, {
+    "aria-label": "Group by selector",
     "data-testid": `GroupBySelect-${key}`,
     id: key,
     placeholder: "Select value",
     width: "auto",
+    allowCustomValue,
     inputValue,
     value: uncommittedValue,
     noMultiValueWrap: true,
@@ -220,6 +234,50 @@ function GroupByVariableRenderer({ model }) {
         model.changeValueTo([]);
       }
       setUncommittedValue(newValue);
+    },
+    onOpenMenu: async () => {
+      setIsFetchingOptions(true);
+      await lastValueFrom(model.validateAndUpdate());
+      setIsFetchingOptions(false);
+      setIsOptionsOpen(true);
+    },
+    onCloseMenu: () => {
+      setIsOptionsOpen(false);
+    }
+  }) : /* @__PURE__ */ React.createElement(Select, {
+    "aria-label": "Group by selector",
+    "data-testid": `GroupBySelect-${key}`,
+    id: key,
+    placeholder: "Select value",
+    width: "auto",
+    inputValue,
+    value: uncommittedValue,
+    allowCustomValue,
+    noMultiValueWrap: true,
+    maxVisibleValues: maxVisibleValues != null ? maxVisibleValues : 5,
+    tabSelectsValue: false,
+    virtualized: true,
+    options: filteredOptions,
+    filterOption: filterNoOp,
+    closeMenuOnSelect: true,
+    isOpen: isOptionsOpen,
+    isClearable: true,
+    hideSelectedOptions: false,
+    noValueOnClear: true,
+    isLoading: isFetchingOptions,
+    onInputChange,
+    onChange: (newValue, action) => {
+      if (action.action === "clear") {
+        setUncommittedValue([]);
+        if (noValueOnClear) {
+          model.changeValueTo([]);
+        }
+        return;
+      }
+      if (newValue == null ? void 0 : newValue.value) {
+        setUncommittedValue([newValue]);
+        model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : void 0);
+      }
     },
     onOpenMenu: async () => {
       setIsFetchingOptions(true);

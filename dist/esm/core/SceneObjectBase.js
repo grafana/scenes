@@ -30,6 +30,7 @@ class SceneObjectBase {
     this._deactivationHandlers = /* @__PURE__ */ new Map();
     this._subs = new Subscription();
     this._refCount = 0;
+    this._renderBeforeActivation = false;
     if (!state.key) {
       state.key = v4();
     }
@@ -42,6 +43,9 @@ class SceneObjectBase {
   }
   get isActive() {
     return this._isActive;
+  }
+  get renderBeforeActivation() {
+    return this._renderBeforeActivation;
   }
   get parent() {
     return this._parent;

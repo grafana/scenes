@@ -17,6 +17,7 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+const GLOBAL_ANNOTATION_ID = 0;
 function filterAnnotations(data, filters) {
   var _a;
   if (!Array.isArray(data) || data.length === 0) {
@@ -34,11 +35,11 @@ function filterAnnotations(data, filters) {
       const sourceField = frame.fields.find((f) => f.name === "source");
       if (sourceField) {
         if (panelIdField && sourceField.values[index].type === "dashboard") {
-          matching = panelIdField.values[index] === filters.panelId;
+          matching = [filters.panelId, GLOBAL_ANNOTATION_ID].includes(panelIdField.values[index]);
         }
         const sourceFilter = sourceField.values[index].filter;
         if (sourceFilter) {
-          const includes = ((_a = sourceFilter.ids) != null ? _a : []).includes(filters.panelId);
+          const includes = [...(_a = sourceFilter.ids) != null ? _a : [], GLOBAL_ANNOTATION_ID].includes(filters.panelId);
           if (sourceFilter.exclude) {
             if (includes) {
               matching = false;

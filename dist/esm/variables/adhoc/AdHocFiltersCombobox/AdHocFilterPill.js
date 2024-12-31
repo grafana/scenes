@@ -22,41 +22,58 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }) {
+function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }) {
   var _a, _b, _c;
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
-  const [shouldFocus, setShouldFocus] = useState(false);
+  const [shouldFocusOnPillWrapper, setShouldFocusOnPillWrapper] = useState(false);
   const pillWrapperRef = useRef(null);
+  const [populateInputOnEdit, setPopulateInputOnEdit] = useState(false);
   const keyLabel = (_a = filter.keyLabel) != null ? _a : filter.key;
   const valueLabel = ((_b = filter.valueLabels) == null ? void 0 : _b.join(", ")) || ((_c = filter.values) == null ? void 0 : _c.join(", ")) || filter.value;
   const handleChangeViewMode = useCallback(
-    (event) => {
+    (event, shouldFocusOnPillWrapperOverride) => {
       event == null ? void 0 : event.stopPropagation();
       if (readOnly) {
         return;
       }
-      setShouldFocus(!viewMode);
+      setShouldFocusOnPillWrapper(shouldFocusOnPillWrapperOverride != null ? shouldFocusOnPillWrapperOverride : !viewMode);
       setViewMode(!viewMode);
     },
     [readOnly, viewMode]
   );
   useEffect(() => {
     var _a2;
-    if (shouldFocus) {
+    if (shouldFocusOnPillWrapper) {
       (_a2 = pillWrapperRef.current) == null ? void 0 : _a2.focus();
-      setShouldFocus(false);
+      setShouldFocusOnPillWrapper(false);
     }
-  }, [shouldFocus]);
+  }, [shouldFocusOnPillWrapper]);
+  useEffect(() => {
+    if (filter.forceEdit && viewMode) {
+      setViewMode(false);
+      model._updateFilter(filter, { forceEdit: void 0 });
+    }
+  }, [filter, model, viewMode]);
+  useEffect(() => {
+    if (viewMode) {
+      setPopulateInputOnEdit((prevValue) => prevValue ? false : prevValue);
+    }
+  }, [viewMode]);
   if (viewMode) {
     const pillText = /* @__PURE__ */ React.createElement("span", {
       className: styles.pillText
     }, keyLabel, " ", filter.operator, " ", valueLabel);
     return /* @__PURE__ */ React.createElement("div", {
       className: cx(styles.combinedFilterPill, { [styles.readOnlyCombinedFilter]: readOnly }),
-      onClick: handleChangeViewMode,
+      onClick: (e) => {
+        e.stopPropagation();
+        setPopulateInputOnEdit(true);
+        handleChangeViewMode();
+      },
       onKeyDown: (e) => {
         if (e.key === "Enter") {
+          setPopulateInputOnEdit(true);
           handleChangeViewMode();
         }
       },
@@ -73,14 +90,14 @@ function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }) {
       onClick: (e) => {
         e.stopPropagation();
         model._removeFilter(filter);
-        setTimeout(() => focusOnInputRef == null ? void 0 : focusOnInputRef());
+        setTimeout(() => focusOnWipInputRef == null ? void 0 : focusOnWipInputRef());
       },
       onKeyDownCapture: (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           e.stopPropagation();
           model._removeFilter(filter);
-          setTimeout(() => focusOnInputRef == null ? void 0 : focusOnInputRef());
+          setTimeout(() => focusOnWipInputRef == null ? void 0 : focusOnWipInputRef());
         }
       },
       name: "times",
@@ -92,7 +109,9 @@ function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }) {
   return /* @__PURE__ */ React.createElement(AdHocCombobox, {
     filter,
     model,
-    handleChangeViewMode
+    handleChangeViewMode,
+    focusOnWipInputRef,
+    populateInputOnEdit
   });
 }
 const getStyles = (theme) => ({

@@ -49,6 +49,7 @@ export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig.js
 export { EmbeddedScene } from './components/EmbeddedScene.js';
 export { VizPanel } from './components/VizPanel/VizPanel.js';
 export { VizPanelMenu } from './components/VizPanel/VizPanelMenu.js';
+export { VizPanelExploreButton } from './components/VizPanel/VizPanelExploreButton.js';
 export { NestedScene } from './components/NestedScene.js';
 export { SceneCanvasText } from './components/SceneCanvasText.js';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton.js';
@@ -78,6 +79,7 @@ export { renderSelectForVariable } from './variables/components/VariableValueSel
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder.js';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders.js';
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject.js';
+export { getExploreURL } from './utils/explore.js';
 export { PanelOptionsBuilders } from './core/PanelBuilders/PanelOptionsBuilders.js';
 export { FieldConfigBuilders } from './core/PanelBuilders/FieldConfigBuilders.js';
 export { FieldConfigOverridesBuilder } from './core/PanelBuilders/FieldConfigOverridesBuilder.js';

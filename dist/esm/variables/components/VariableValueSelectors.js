@@ -45,13 +45,13 @@ function VariableValueSelectWrapper({ variable, layout, showAlways, hideLabel })
   }));
 }
 function VariableLabel({ variable, layout, hideLabel }) {
-  var _a, _b;
+  var _a;
   const { state } = variable;
   if (variable.state.hide === VariableHide.hideLabel || hideLabel) {
     return null;
   }
   const elementId = `var-${state.key}`;
-  const labelOrName = (_a = state.label) != null ? _a : state.name;
+  const labelOrName = state.label || state.name;
   return /* @__PURE__ */ React.createElement(ControlsLabel, {
     htmlFor: elementId,
     isLoading: state.loading,
@@ -62,7 +62,7 @@ function VariableLabel({ variable, layout, hideLabel }) {
     label: labelOrName,
     error: state.error,
     layout,
-    description: (_b = state.description) != null ? _b : void 0
+    description: (_a = state.description) != null ? _a : void 0
   });
 }
 const containerStyle = css({ display: "flex" });

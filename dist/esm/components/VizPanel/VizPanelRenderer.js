@@ -7,8 +7,11 @@ import { sceneGraph } from '../../core/sceneGraph/index.js';
 import { isSceneObject } from '../../core/types.js';
 import { css, cx } from '@emotion/css';
 import { debounce } from 'lodash';
+import { VizPanelSeriesLimit } from './VizPanelSeriesLimit.js';
 
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __propIsEnum = Object.prototype.propertyIsEnumerable;
@@ -24,6 +27,7 @@ var __spreadValues = (a, b) => {
     }
   return a;
 };
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 function VizPanelRenderer({ model }) {
   var _a, _b, _c;
   const {
@@ -33,17 +37,24 @@ function VizPanelRenderer({ model }) {
     _pluginLoadError,
     displayMode,
     hoverHeader,
+    showMenuAlways,
     hoverHeaderOffset,
     menu,
     headerActions,
     titleItems,
+    seriesLimit,
+    seriesLimitShowAll,
     description,
+    collapsible,
+    collapsed,
     _renderCounter = 0
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
   const setPanelAttention = useCallback(() => {
-    appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+    if (model.state.key) {
+      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+    }
   }, [model.state.key, appEvents]);
   const debouncedMouseMove = useMemo(
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
@@ -53,7 +64,8 @@ function VizPanelRenderer({ model }) {
   const { dragClass, dragClassCancel } = getDragClasses(model);
   const dataObject = sceneGraph.getData(model);
   const rawData = dataObject.useState();
-  const dataWithFieldConfig = model.applyFieldConfig(rawData.data);
+  const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
+  const dataWithFieldConfig = model.applyFieldConfig(dataWithSeriesLimit);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
   const timeZone = sceneTimeRange.getTimeZone();
   const timeRange = model.getTimeRange(dataWithFieldConfig);
@@ -87,6 +99,17 @@ function VizPanelRenderer({ model }) {
     } else {
       titleItemsElement.push(titleItems);
     }
+  }
+  if (seriesLimit) {
+    titleItemsElement.push(
+      /* @__PURE__ */ React.createElement(VizPanelSeriesLimit, {
+        key: "series-limit",
+        data: rawData.data,
+        seriesLimit,
+        showAll: seriesLimitShowAll,
+        onShowAllSeries: () => model.setState({ seriesLimitShowAll: !seriesLimitShowAll })
+      })
+    );
   }
   if (model.state.$timeRange) {
     titleItemsElement.push(/* @__PURE__ */ React.createElement(model.state.$timeRange.Component, {
@@ -154,7 +177,9 @@ function VizPanelRenderer({ model }) {
     statusMessageOnClick: model.onStatusMessageClick,
     width,
     height,
+    selectionId: model.state.key,
     displayMode,
+    showMenuAlways,
     hoverHeader,
     hoverHeaderOffset,
     titleItems: titleItemsElement,
@@ -166,7 +191,10 @@ function VizPanelRenderer({ model }) {
     onCancelQuery: model.onCancelQuery,
     onFocus: setPanelAttention,
     onMouseEnter: setPanelAttention,
-    onMouseMove: debouncedMouseMove
+    onMouseMove: debouncedMouseMove,
+    collapsible,
+    collapsed,
+    onToggleCollapse: model.onToggleCollapse
   }, (innerWidth, innerHeight) => /* @__PURE__ */ React.createElement(React.Fragment, null, plugin.meta.id === "timeseries" && /* @__PURE__ */ React.createElement(Button, {
     style: { top: "-32px", right: "28px", position: "absolute", border: 0, padding: 0 },
     variant: "secondary",
@@ -270,6 +298,16 @@ const sendOodleInsightEvent = (dashboardUId, dashboardTitle, panelTitle, panelId
 };
 function sendEventToParent(data) {
   window.parent.postMessage(data, "*");
+}
+function useDataWithSeriesLimit(data, seriesLimit, showAllSeries) {
+  return useMemo(() => {
+    if (!(data == null ? void 0 : data.series) || !seriesLimit || showAllSeries) {
+      return data;
+    }
+    return __spreadProps(__spreadValues({}, data), {
+      series: data.series.slice(0, seriesLimit)
+    });
+  }, [data, seriesLimit, showAllSeries]);
 }
 function getDragClasses(panel) {
   var _a, _b;

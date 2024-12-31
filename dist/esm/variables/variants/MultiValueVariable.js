@@ -55,7 +55,9 @@ class MultiValueVariable extends SceneObjectBase {
       return stateUpdate;
     }
     if (this.hasAllValue()) {
-      if (!this.state.includeAll) {
+      if (this.state.includeAll) {
+        stateUpdate.text = ALL_VARIABLE_TEXT;
+      } else {
         stateUpdate.value = options[0].value;
         stateUpdate.text = options[0].label;
         if (this.state.isMulti) {

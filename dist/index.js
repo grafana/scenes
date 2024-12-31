@@ -13,9 +13,9 @@ var schema = require('@grafana/schema');
 var ui = require('@grafana/ui');
 var e2eSelectors = require('@grafana/e2e-selectors');
 var css = require('@emotion/css');
-var uFuzzy = require('@leeoniya/ufuzzy');
 var react = require('@floating-ui/react');
 var reactVirtual = require('@tanstack/react-virtual');
+var uFuzzy = require('@leeoniya/ufuzzy');
 var reactUse = require('react-use');
 var operators = require('rxjs/operators');
 var ReactGridLayout = require('react-grid-layout');
@@ -41,7 +41,44 @@ var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 var uFuzzy__default = /*#__PURE__*/_interopDefaultLegacy(uFuzzy);
 var ReactGridLayout__default = /*#__PURE__*/_interopDefaultLegacy(ReactGridLayout);
 
+var __defProp$Q = Object.defineProperty;
+var __getOwnPropSymbols$Q = Object.getOwnPropertySymbols;
+var __hasOwnProp$Q = Object.prototype.hasOwnProperty;
+var __propIsEnum$Q = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$Q = (obj, key, value) => key in obj ? __defProp$Q(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$Q = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp$Q.call(b, prop))
+      __defNormalProp$Q(a, prop, b[prop]);
+  if (__getOwnPropSymbols$Q)
+    for (var prop of __getOwnPropSymbols$Q(b)) {
+      if (__propIsEnum$Q.call(b, prop))
+        __defNormalProp$Q(a, prop, b[prop]);
+    }
+  return a;
+};
+function useAppQueryParams() {
+  const location = reactRouterDom.useLocation();
+  return runtime.locationSearchToObject(location.search || "");
+}
+function getUrlWithAppState(path, searchObject, preserveParams) {
+  const paramsCopy = __spreadValues$Q({}, searchObject);
+  if (preserveParams) {
+    for (const key of Object.keys(paramsCopy)) {
+      if (!preserveParams.includes(key)) {
+        delete paramsCopy[key];
+      }
+    }
+  }
+  return data.urlUtil.renderUrl(data.locationUtil.assureBaseUrl(path), paramsCopy);
+}
+function renderSceneComponentWithRouteProps(sceneObject, routeProps) {
+  return React__default["default"].createElement(sceneObject.Component, { model: sceneObject, routeProps });
+}
+
 var __defProp$P = Object.defineProperty;
+var __defProps$x = Object.defineProperties;
+var __getOwnPropDescs$x = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols$P = Object.getOwnPropertySymbols;
 var __hasOwnProp$P = Object.prototype.hasOwnProperty;
 var __propIsEnum$P = Object.prototype.propertyIsEnumerable;
@@ -57,50 +94,13 @@ var __spreadValues$P = (a, b) => {
     }
   return a;
 };
-function useAppQueryParams() {
-  const location = reactRouterDom.useLocation();
-  return runtime.locationSearchToObject(location.search || "");
-}
-function getUrlWithAppState(path, searchObject, preserveParams) {
-  const paramsCopy = __spreadValues$P({}, searchObject);
-  if (preserveParams) {
-    for (const key of Object.keys(paramsCopy)) {
-      if (!preserveParams.includes(key)) {
-        delete paramsCopy[key];
-      }
-    }
-  }
-  return data.urlUtil.renderUrl(data.locationUtil.assureBaseUrl(path), paramsCopy);
-}
-function renderSceneComponentWithRouteProps(sceneObject, routeProps) {
-  return React__default["default"].createElement(sceneObject.Component, { model: sceneObject, routeProps });
-}
-
-var __defProp$O = Object.defineProperty;
-var __defProps$u = Object.defineProperties;
-var __getOwnPropDescs$u = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$O = Object.getOwnPropertySymbols;
-var __hasOwnProp$O = Object.prototype.hasOwnProperty;
-var __propIsEnum$O = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$O = (obj, key, value) => key in obj ? __defProp$O(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$O = (a, b) => {
-  for (var prop in b || (b = {}))
-    if (__hasOwnProp$O.call(b, prop))
-      __defNormalProp$O(a, prop, b[prop]);
-  if (__getOwnPropSymbols$O)
-    for (var prop of __getOwnPropSymbols$O(b)) {
-      if (__propIsEnum$O.call(b, prop))
-        __defNormalProp$O(a, prop, b[prop]);
-    }
-  return a;
-};
-var __spreadProps$u = (a, b) => __defProps$u(a, __getOwnPropDescs$u(b));
+var __spreadProps$x = (a, b) => __defProps$x(a, __getOwnPropDescs$x(b));
 const runtimePanelPlugins = /* @__PURE__ */ new Map();
 function registerRuntimePanelPlugin({ pluginId, plugin }) {
   if (runtimePanelPlugins.has(pluginId)) {
     throw new Error(`A runtime panel plugin with id ${pluginId} has already been registered`);
   }
-  plugin.meta = __spreadProps$u(__spreadValues$O({}, plugin.meta), {
+  plugin.meta = __spreadProps$x(__spreadValues$P({}, plugin.meta), {
     id: pluginId,
     name: pluginId,
     module: "runtime plugin",
@@ -128,33 +128,33 @@ function loadPanelPluginSync(pluginId) {
   return (_a = getPanelPluginFromCache(pluginId)) != null ? _a : runtimePanelPlugins.get(pluginId);
 }
 
-var __defProp$N = Object.defineProperty;
-var __defProps$t = Object.defineProperties;
-var __getOwnPropDescs$t = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$N = Object.getOwnPropertySymbols;
-var __hasOwnProp$N = Object.prototype.hasOwnProperty;
-var __propIsEnum$N = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$N = (obj, key, value) => key in obj ? __defProp$N(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$N = (a, b) => {
+var __defProp$O = Object.defineProperty;
+var __defProps$w = Object.defineProperties;
+var __getOwnPropDescs$w = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$O = Object.getOwnPropertySymbols;
+var __hasOwnProp$O = Object.prototype.hasOwnProperty;
+var __propIsEnum$O = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$O = (obj, key, value) => key in obj ? __defProp$O(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$O = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$N.call(b, prop))
-      __defNormalProp$N(a, prop, b[prop]);
-  if (__getOwnPropSymbols$N)
-    for (var prop of __getOwnPropSymbols$N(b)) {
-      if (__propIsEnum$N.call(b, prop))
-        __defNormalProp$N(a, prop, b[prop]);
+    if (__hasOwnProp$O.call(b, prop))
+      __defNormalProp$O(a, prop, b[prop]);
+  if (__getOwnPropSymbols$O)
+    for (var prop of __getOwnPropSymbols$O(b)) {
+      if (__propIsEnum$O.call(b, prop))
+        __defNormalProp$O(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$t = (a, b) => __defProps$t(a, __getOwnPropDescs$t(b));
+var __spreadProps$w = (a, b) => __defProps$w(a, __getOwnPropDescs$w(b));
 var __objRest$5 = (source, exclude) => {
   var target = {};
   for (var prop in source)
-    if (__hasOwnProp$N.call(source, prop) && exclude.indexOf(prop) < 0)
+    if (__hasOwnProp$O.call(source, prop) && exclude.indexOf(prop) < 0)
       target[prop] = source[prop];
-  if (source != null && __getOwnPropSymbols$N)
-    for (var prop of __getOwnPropSymbols$N(source)) {
-      if (exclude.indexOf(prop) < 0 && __propIsEnum$N.call(source, prop))
+  if (source != null && __getOwnPropSymbols$O)
+    for (var prop of __getOwnPropSymbols$O(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum$O.call(source, prop))
         target[prop] = source[prop];
     }
   return target;
@@ -169,10 +169,10 @@ function SceneComponentWrapperWithoutMemo(_a) {
     setValue((prevState) => prevState + 1);
     return unsub;
   }, [model]);
-  if (!model.isActive) {
+  if (!model.isActive && !model.renderBeforeActivation) {
     return null;
   }
-  return /* @__PURE__ */ React__default["default"].createElement(Component, __spreadProps$t(__spreadValues$N({}, otherProps), {
+  return /* @__PURE__ */ React__default["default"].createElement(Component, __spreadProps$w(__spreadValues$O({}, otherProps), {
     model
   }));
 }
@@ -218,19 +218,19 @@ class SceneObjectRef {
 }
 _ref = new WeakMap();
 
-var __defProp$M = Object.defineProperty;
-var __getOwnPropSymbols$M = Object.getOwnPropertySymbols;
-var __hasOwnProp$M = Object.prototype.hasOwnProperty;
-var __propIsEnum$M = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$M = (obj, key, value) => key in obj ? __defProp$M(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$M = (a, b) => {
+var __defProp$N = Object.defineProperty;
+var __getOwnPropSymbols$N = Object.getOwnPropertySymbols;
+var __hasOwnProp$N = Object.prototype.hasOwnProperty;
+var __propIsEnum$N = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$N = (obj, key, value) => key in obj ? __defProp$N(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$N = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$M.call(b, prop))
-      __defNormalProp$M(a, prop, b[prop]);
-  if (__getOwnPropSymbols$M)
-    for (var prop of __getOwnPropSymbols$M(b)) {
-      if (__propIsEnum$M.call(b, prop))
-        __defNormalProp$M(a, prop, b[prop]);
+    if (__hasOwnProp$N.call(b, prop))
+      __defNormalProp$N(a, prop, b[prop]);
+  if (__getOwnPropSymbols$N)
+    for (var prop of __getOwnPropSymbols$N(b)) {
+      if (__propIsEnum$N.call(b, prop))
+        __defNormalProp$N(a, prop, b[prop]);
     }
   return a;
 };
@@ -241,6 +241,7 @@ class SceneObjectBase {
     this._deactivationHandlers = /* @__PURE__ */ new Map();
     this._subs = new rxjs.Subscription();
     this._refCount = 0;
+    this._renderBeforeActivation = false;
     if (!state.key) {
       state.key = uuid.v4();
     }
@@ -253,6 +254,9 @@ class SceneObjectBase {
   }
   get isActive() {
     return this._isActive;
+  }
+  get renderBeforeActivation() {
+    return this._renderBeforeActivation;
   }
   get parent() {
     return this._parent;
@@ -293,7 +297,7 @@ class SceneObjectBase {
   }
   setState(update) {
     const prevState = this._state;
-    const newState = __spreadValues$M(__spreadValues$M({}, this._state), update);
+    const newState = __spreadValues$N(__spreadValues$N({}, this._state), update);
     this._state = Object.freeze(newState);
     this._setParent(update);
     this._handleActivationOfChangedStateProps(prevState, newState);
@@ -489,19 +493,19 @@ function forEachChild(state, callback) {
   }
 }
 
-var __defProp$L = Object.defineProperty;
-var __getOwnPropSymbols$L = Object.getOwnPropertySymbols;
-var __hasOwnProp$L = Object.prototype.hasOwnProperty;
-var __propIsEnum$L = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$L = (obj, key, value) => key in obj ? __defProp$L(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$L = (a, b) => {
+var __defProp$M = Object.defineProperty;
+var __getOwnPropSymbols$M = Object.getOwnPropertySymbols;
+var __hasOwnProp$M = Object.prototype.hasOwnProperty;
+var __propIsEnum$M = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$M = (obj, key, value) => key in obj ? __defProp$M(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$M = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$L.call(b, prop))
-      __defNormalProp$L(a, prop, b[prop]);
-  if (__getOwnPropSymbols$L)
-    for (var prop of __getOwnPropSymbols$L(b)) {
-      if (__propIsEnum$L.call(b, prop))
-        __defNormalProp$L(a, prop, b[prop]);
+    if (__hasOwnProp$M.call(b, prop))
+      __defNormalProp$M(a, prop, b[prop]);
+  if (__getOwnPropSymbols$M)
+    for (var prop of __getOwnPropSymbols$M(b)) {
+      if (__propIsEnum$M.call(b, prop))
+        __defNormalProp$M(a, prop, b[prop]);
     }
   return a;
 };
@@ -510,14 +514,19 @@ function cloneSceneObject(sceneObject, withState) {
   return new sceneObject.constructor(clonedState);
 }
 function cloneSceneObjectState(sceneState, withState) {
-  const clonedState = __spreadValues$L({}, sceneState);
+  const clonedState = __spreadValues$M({}, sceneState);
+  Object.assign(clonedState, withState);
   for (const key in clonedState) {
+    if (withState && withState[key] !== void 0) {
+      continue;
+    }
     const propValue = clonedState[key];
     if (propValue instanceof SceneObjectBase) {
       clonedState[key] = propValue.clone();
     }
     if (propValue instanceof SceneObjectRef) {
-      throw new Error("Cannot clone a SceneObject with a SceneObjectRef in state");
+      console.warn("Cloning object with SceneObjectRef");
+      continue;
     }
     if (Array.isArray(propValue)) {
       const newArray = [];
@@ -531,7 +540,6 @@ function cloneSceneObjectState(sceneState, withState) {
       clonedState[key] = newArray;
     }
   }
-  Object.assign(clonedState, withState);
   return clonedState;
 }
 function getClosest(sceneObject, extract) {
@@ -607,25 +615,25 @@ function lookupVariable(name, sceneObject) {
   return null;
 }
 
-var __defProp$K = Object.defineProperty;
-var __getOwnPropSymbols$K = Object.getOwnPropertySymbols;
-var __hasOwnProp$K = Object.prototype.hasOwnProperty;
-var __propIsEnum$K = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$K = (obj, key, value) => key in obj ? __defProp$K(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$K = (a, b) => {
+var __defProp$L = Object.defineProperty;
+var __getOwnPropSymbols$L = Object.getOwnPropertySymbols;
+var __hasOwnProp$L = Object.prototype.hasOwnProperty;
+var __propIsEnum$L = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$L = (obj, key, value) => key in obj ? __defProp$L(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$L = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$K.call(b, prop))
-      __defNormalProp$K(a, prop, b[prop]);
-  if (__getOwnPropSymbols$K)
-    for (var prop of __getOwnPropSymbols$K(b)) {
-      if (__propIsEnum$K.call(b, prop))
-        __defNormalProp$K(a, prop, b[prop]);
+    if (__hasOwnProp$L.call(b, prop))
+      __defNormalProp$L(a, prop, b[prop]);
+  if (__getOwnPropSymbols$L)
+    for (var prop of __getOwnPropSymbols$L(b)) {
+      if (__propIsEnum$L.call(b, prop))
+        __defNormalProp$L(a, prop, b[prop]);
     }
   return a;
 };
 class SceneDataNode extends SceneObjectBase {
   constructor(state) {
-    super(__spreadValues$K({
+    super(__spreadValues$L({
       data: emptyPanelData
     }, state));
   }
@@ -708,16 +716,44 @@ function parseUrlParam(value) {
   return null;
 }
 
-function evaluateTimeRange(from, to, timeZone, fiscalYearStartMonth, delay) {
+function evaluateTimeRange(from, to, timeZone, fiscalYearStartMonth, delay, weekStart) {
   const hasDelay = delay && to === "now";
+  const now = Date.now();
+  if (weekStart) {
+    setWeekStartIfDifferent(weekStart);
+  }
+  const parseOrToDateTime = (val, options) => {
+    if (data.dateMath.toDateTime) {
+      return data.dateMath.toDateTime(val, options);
+    } else {
+      return data.dateMath.parse(val, options.roundUp, options.timezone, options.fiscalYearStartMonth);
+    }
+  };
   return {
-    from: data.dateMath.parse(from, false, timeZone, fiscalYearStartMonth),
-    to: data.dateMath.parse(hasDelay ? "now-" + delay : to, true, timeZone, fiscalYearStartMonth),
+    to: parseOrToDateTime(hasDelay ? "now-" + delay : to, {
+      roundUp: true,
+      timezone: timeZone,
+      fiscalYearStartMonth,
+      now
+    }),
+    from: parseOrToDateTime(from, {
+      roundUp: false,
+      timezone: timeZone,
+      fiscalYearStartMonth,
+      now
+    }),
     raw: {
       from,
       to
     }
   };
+}
+let prevWeekStart;
+function setWeekStartIfDifferent(weekStart) {
+  if (weekStart !== prevWeekStart) {
+    prevWeekStart = weekStart;
+    data.setWeekStart(weekStart);
+  }
 }
 
 function isValid$1(value, roundUp, timeZone) {
@@ -731,19 +767,19 @@ function isValid$1(value, roundUp, timeZone) {
   return parsed.isValid();
 }
 
-var __defProp$J = Object.defineProperty;
-var __getOwnPropSymbols$J = Object.getOwnPropertySymbols;
-var __hasOwnProp$J = Object.prototype.hasOwnProperty;
-var __propIsEnum$J = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$J = (obj, key, value) => key in obj ? __defProp$J(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$J = (a, b) => {
+var __defProp$K = Object.defineProperty;
+var __getOwnPropSymbols$K = Object.getOwnPropertySymbols;
+var __hasOwnProp$K = Object.prototype.hasOwnProperty;
+var __propIsEnum$K = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$K = (obj, key, value) => key in obj ? __defProp$K(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$K = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$J.call(b, prop))
-      __defNormalProp$J(a, prop, b[prop]);
-  if (__getOwnPropSymbols$J)
-    for (var prop of __getOwnPropSymbols$J(b)) {
-      if (__propIsEnum$J.call(b, prop))
-        __defNormalProp$J(a, prop, b[prop]);
+    if (__hasOwnProp$K.call(b, prop))
+      __defNormalProp$K(a, prop, b[prop]);
+  if (__getOwnPropSymbols$K)
+    for (var prop of __getOwnPropSymbols$K(b)) {
+      if (__propIsEnum$K.call(b, prop))
+        __defNormalProp$K(a, prop, b[prop]);
     }
   return a;
 };
@@ -758,10 +794,11 @@ class SceneTimeRange extends SceneObjectBase {
       to,
       timeZone || data.getTimeZone(),
       state.fiscalYearStartMonth,
-      state.UNSAFE_nowDelay
+      state.UNSAFE_nowDelay,
+      state.weekStart
     );
     const refreshOnActivate = (_a = state.refreshOnActivate) != null ? _a : { percent: 10 };
-    super(__spreadValues$J({ from, to, timeZone, value, refreshOnActivate }, state));
+    super(__spreadValues$K({ from, to, timeZone, value, refreshOnActivate }, state));
     this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: ["from", "to", "timezone", "time", "time.window"] });
     this.onTimeRangeChange = (timeRange) => {
       const update = {};
@@ -780,7 +817,8 @@ class SceneTimeRange extends SceneObjectBase {
         update.to,
         this.getTimeZone(),
         this.state.fiscalYearStartMonth,
-        this.state.UNSAFE_nowDelay
+        this.state.UNSAFE_nowDelay,
+        this.state.weekStart
       );
       if (update.from !== this.state.from || update.to !== this.state.to) {
         this._urlSync.performBrowserHistoryAction(() => {
@@ -794,15 +832,7 @@ class SceneTimeRange extends SceneObjectBase {
       });
     };
     this.onRefresh = () => {
-      this.setState({
-        value: evaluateTimeRange(
-          this.state.from,
-          this.state.to,
-          this.getTimeZone(),
-          this.state.fiscalYearStartMonth,
-          this.state.UNSAFE_nowDelay
-        )
-      });
+      this.refreshRange(0);
       this.publishEvent(new runtime.RefreshEvent(), true);
     };
     this.addActivationHandler(this._onActivate.bind(this));
@@ -814,15 +844,7 @@ class SceneTimeRange extends SceneObjectBase {
         this._subs.add(
           timeZoneSource.subscribeToState((n, p) => {
             if (n.timeZone !== void 0 && n.timeZone !== p.timeZone) {
-              this.setState({
-                value: evaluateTimeRange(
-                  this.state.from,
-                  this.state.to,
-                  timeZoneSource.getTimeZone(),
-                  this.state.fiscalYearStartMonth,
-                  this.state.UNSAFE_nowDelay
-                )
-              });
+              this.refreshRange(0);
             }
           })
         );
@@ -831,6 +853,11 @@ class SceneTimeRange extends SceneObjectBase {
     if (data.rangeUtil.isRelativeTimeRange(this.state.value.raw)) {
       this.refreshIfStale();
     }
+    return () => {
+      if (this.state.weekStart) {
+        data.setWeekStart(runtime.config.bootData.user.weekStart);
+      }
+    };
   }
   refreshIfStale() {
     var _a, _b, _c, _d;
@@ -867,13 +894,12 @@ class SceneTimeRange extends SceneObjectBase {
       this.state.to,
       (_a = this.state.timeZone) != null ? _a : data.getTimeZone(),
       this.state.fiscalYearStartMonth,
-      this.state.UNSAFE_nowDelay
+      this.state.UNSAFE_nowDelay,
+      this.state.weekStart
     );
     const diff = value.to.diff(this.state.value.to, "milliseconds");
     if (diff >= refreshAfterMs) {
-      this.setState({
-        value
-      });
+      this.setState({ value });
     }
   }
   calculatePercentOfInterval(percent) {
@@ -892,10 +918,7 @@ class SceneTimeRange extends SceneObjectBase {
   }
   getUrlState() {
     const params = runtime.locationService.getSearchObject();
-    const urlValues = { from: this.state.from, to: this.state.to };
-    if (this.state.timeZone) {
-      urlValues.timezone = this.state.timeZone;
-    }
+    const urlValues = { from: this.state.from, to: this.state.to, timezone: this.getTimeZone() };
     if (params.time && params["time.window"]) {
       urlValues.time = null;
       urlValues["time.window"] = null;
@@ -935,7 +958,8 @@ class SceneTimeRange extends SceneObjectBase {
       (_b = update.to) != null ? _b : this.state.to,
       (_c = update.timeZone) != null ? _c : this.getTimeZone(),
       this.state.fiscalYearStartMonth,
-      this.state.UNSAFE_nowDelay
+      this.state.UNSAFE_nowDelay,
+      this.state.weekStart
     );
     return this.setState(update);
   }
@@ -1341,6 +1365,9 @@ class UrlTimeRangeMacro {
     var _a;
     const timeRange = getTimeRange(this._sceneObject);
     const urlState = (_a = timeRange.urlSync) == null ? void 0 : _a.getUrlState();
+    if ((urlState == null ? void 0 : urlState.timezone) === "browser") {
+      urlState.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
     return new SkipFormattingValue(data.urlUtil.toUrlParams(urlState));
   }
   getValueText() {
@@ -1463,7 +1490,9 @@ class MultiValueVariable extends SceneObjectBase {
       return stateUpdate;
     }
     if (this.hasAllValue()) {
-      if (!this.state.includeAll) {
+      if (this.state.includeAll) {
+        stateUpdate.text = ALL_VARIABLE_TEXT;
+      } else {
         stateUpdate.value = options[0].value;
         stateUpdate.text = options[0].label;
         if (this.state.isMulti) {
@@ -1745,25 +1774,25 @@ function collectAllVariables(sceneObject, record = {}) {
   return record;
 }
 
-var __defProp$I = Object.defineProperty;
-var __defProps$s = Object.defineProperties;
-var __getOwnPropDescs$s = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$I = Object.getOwnPropertySymbols;
-var __hasOwnProp$I = Object.prototype.hasOwnProperty;
-var __propIsEnum$I = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$I = (obj, key, value) => key in obj ? __defProp$I(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$I = (a, b) => {
+var __defProp$J = Object.defineProperty;
+var __defProps$v = Object.defineProperties;
+var __getOwnPropDescs$v = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$J = Object.getOwnPropertySymbols;
+var __hasOwnProp$J = Object.prototype.hasOwnProperty;
+var __propIsEnum$J = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$J = (obj, key, value) => key in obj ? __defProp$J(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$J = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$I.call(b, prop))
-      __defNormalProp$I(a, prop, b[prop]);
-  if (__getOwnPropSymbols$I)
-    for (var prop of __getOwnPropSymbols$I(b)) {
-      if (__propIsEnum$I.call(b, prop))
-        __defNormalProp$I(a, prop, b[prop]);
+    if (__hasOwnProp$J.call(b, prop))
+      __defNormalProp$J(a, prop, b[prop]);
+  if (__getOwnPropSymbols$J)
+    for (var prop of __getOwnPropSymbols$J(b)) {
+      if (__propIsEnum$J.call(b, prop))
+        __defNormalProp$J(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$s = (a, b) => __defProps$s(a, __getOwnPropDescs$s(b));
+var __spreadProps$v = (a, b) => __defProps$v(a, __getOwnPropDescs$v(b));
 function getTemplateProxyForField(field, frame, frames) {
   return new Proxy(
     {},
@@ -1779,7 +1808,7 @@ function getTemplateProxyForField(field, frame, frames) {
           if (!field.labels) {
             return "";
           }
-          return __spreadProps$s(__spreadValues$I({}, field.labels), {
+          return __spreadProps$v(__spreadValues$J({}, field.labels), {
             __values: Object.values(field.labels).sort().join(", "),
             toString: () => {
               return data.formatLabels(field.labels, "", true);
@@ -2276,9 +2305,51 @@ function isExtraQueryProvider(obj) {
   return typeof obj === "object" && "getExtraQueries" in obj;
 }
 
+var __defProp$I = Object.defineProperty;
+var __defProps$u = Object.defineProperties;
+var __getOwnPropDescs$u = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$I = Object.getOwnPropertySymbols;
+var __hasOwnProp$I = Object.prototype.hasOwnProperty;
+var __propIsEnum$I = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$I = (obj, key, value) => key in obj ? __defProp$I(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$I = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp$I.call(b, prop))
+      __defNormalProp$I(a, prop, b[prop]);
+  if (__getOwnPropSymbols$I)
+    for (var prop of __getOwnPropSymbols$I(b)) {
+      if (__propIsEnum$I.call(b, prop))
+        __defNormalProp$I(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps$u = (a, b) => __defProps$u(a, __getOwnPropDescs$u(b));
+const passthroughProcessor = (_, secondary) => rxjs.of(secondary);
+const extraQueryProcessingOperator = (processors) => (data) => {
+  return data.pipe(
+    rxjs.mergeMap(([primary, ...secondaries]) => {
+      const processedSecondaries = secondaries.flatMap((s) => {
+        var _a, _b;
+        return (_b = (_a = processors.get(s.request.requestId)) == null ? void 0 : _a(primary, s)) != null ? _b : rxjs.of(s);
+      });
+      return rxjs.forkJoin([rxjs.of(primary), ...processedSecondaries]);
+    }),
+    rxjs.map(([primary, ...processedSecondaries]) => {
+      var _a;
+      return __spreadProps$u(__spreadValues$I({}, primary), {
+        series: [...primary.series, ...processedSecondaries.flatMap((s) => s.series)],
+        annotations: [...(_a = primary.annotations) != null ? _a : [], ...processedSecondaries.flatMap((s) => {
+          var _a2;
+          return (_a2 = s.annotations) != null ? _a2 : [];
+        })]
+      });
+    })
+  );
+};
+
 var __defProp$H = Object.defineProperty;
-var __defProps$r = Object.defineProperties;
-var __getOwnPropDescs$r = Object.getOwnPropertyDescriptors;
+var __defProps$t = Object.defineProperties;
+var __getOwnPropDescs$t = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols$H = Object.getOwnPropertySymbols;
 var __hasOwnProp$H = Object.prototype.hasOwnProperty;
 var __propIsEnum$H = Object.prototype.propertyIsEnumerable;
@@ -2294,49 +2365,8 @@ var __spreadValues$H = (a, b) => {
     }
   return a;
 };
-var __spreadProps$r = (a, b) => __defProps$r(a, __getOwnPropDescs$r(b));
-const passthroughProcessor = (_, secondary) => rxjs.of(secondary);
-const extraQueryProcessingOperator = (processors) => (data) => {
-  return data.pipe(
-    rxjs.mergeMap(([primary, ...secondaries]) => {
-      const processedSecondaries = secondaries.flatMap((s) => {
-        var _a, _b;
-        return (_b = (_a = processors.get(s.request.requestId)) == null ? void 0 : _a(primary, s)) != null ? _b : rxjs.of(s);
-      });
-      return rxjs.forkJoin([rxjs.of(primary), ...processedSecondaries]);
-    }),
-    rxjs.map(([primary, ...processedSecondaries]) => {
-      var _a;
-      return __spreadProps$r(__spreadValues$H({}, primary), {
-        series: [...primary.series, ...processedSecondaries.flatMap((s) => s.series)],
-        annotations: [...(_a = primary.annotations) != null ? _a : [], ...processedSecondaries.flatMap((s) => {
-          var _a2;
-          return (_a2 = s.annotations) != null ? _a2 : [];
-        })]
-      });
-    })
-  );
-};
-
-var __defProp$G = Object.defineProperty;
-var __defProps$q = Object.defineProperties;
-var __getOwnPropDescs$q = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$G = Object.getOwnPropertySymbols;
-var __hasOwnProp$G = Object.prototype.hasOwnProperty;
-var __propIsEnum$G = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$G = (obj, key, value) => key in obj ? __defProp$G(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$G = (a, b) => {
-  for (var prop in b || (b = {}))
-    if (__hasOwnProp$G.call(b, prop))
-      __defNormalProp$G(a, prop, b[prop]);
-  if (__getOwnPropSymbols$G)
-    for (var prop of __getOwnPropSymbols$G(b)) {
-      if (__propIsEnum$G.call(b, prop))
-        __defNormalProp$G(a, prop, b[prop]);
-    }
-  return a;
-};
-var __spreadProps$q = (a, b) => __defProps$q(a, __getOwnPropDescs$q(b));
+var __spreadProps$t = (a, b) => __defProps$t(a, __getOwnPropDescs$t(b));
+const GLOBAL_ANNOTATION_ID = 0;
 function filterAnnotations(data, filters) {
   var _a;
   if (!Array.isArray(data) || data.length === 0) {
@@ -2354,11 +2384,11 @@ function filterAnnotations(data, filters) {
       const sourceField = frame.fields.find((f) => f.name === "source");
       if (sourceField) {
         if (panelIdField && sourceField.values[index].type === "dashboard") {
-          matching = panelIdField.values[index] === filters.panelId;
+          matching = [filters.panelId, GLOBAL_ANNOTATION_ID].includes(panelIdField.values[index]);
         }
         const sourceFilter = sourceField.values[index].filter;
         if (sourceFilter) {
-          const includes = ((_a = sourceFilter.ids) != null ? _a : []).includes(filters.panelId);
+          const includes = [...(_a = sourceFilter.ids) != null ? _a : [], GLOBAL_ANNOTATION_ID].includes(filters.panelId);
           if (sourceFilter.exclude) {
             if (includes) {
               matching = false;
@@ -2387,11 +2417,11 @@ function filterAnnotations(data, filters) {
           continue;
         }
       }
-      fields.push(__spreadProps$q(__spreadValues$G({}, field), {
+      fields.push(__spreadProps$t(__spreadValues$H({}, field), {
         values: buffer
       }));
     }
-    processed.push(__spreadProps$q(__spreadValues$G({}, frame), {
+    processed.push(__spreadProps$t(__spreadValues$H({}, frame), {
       fields,
       length: frameLength
     }));
@@ -2427,7 +2457,7 @@ function patchGetAdhocFilters(filterVar) {
   templateSrv.getAdhocFilters = function getAdhocFiltersScenePatch(dsName) {
     var _a;
     if (allActiveFilterSets.size === 0) {
-      return originalGetAdhocFilters.call(templateSrv);
+      return originalGetAdhocFilters.call(templateSrv, dsName);
     }
     const ds = runtime.getDataSourceSrv().getInstanceSettings(dsName);
     if (!ds) {
@@ -2444,7 +2474,7 @@ function patchGetAdhocFilters(filterVar) {
 function findActiveAdHocFilterVariableByUid(dsUid) {
   var _a;
   for (const filter of allActiveFilterSets.values()) {
-    if (((_a = filter.state.datasource) == null ? void 0 : _a.uid) === dsUid) {
+    if (interpolate(filter, (_a = filter.state.datasource) == null ? void 0 : _a.uid) === dsUid) {
       return filter;
     }
   }
@@ -2490,84 +2520,50 @@ const allActiveGroupByVariables = /* @__PURE__ */ new Set();
 function findActiveGroupByVariablesByUid(dsUid) {
   var _a;
   for (const groupByVariable of allActiveGroupByVariables.values()) {
-    if (((_a = groupByVariable.state.datasource) == null ? void 0 : _a.uid) === dsUid) {
+    if (interpolate(groupByVariable, (_a = groupByVariable.state.datasource) == null ? void 0 : _a.uid) === dsUid) {
       return groupByVariable;
     }
   }
   return void 0;
 }
 
-function getOptionSearcher(options, includeAll) {
-  const ufuzzy = new uFuzzy__default["default"]();
+function getOptionSearcher(options, includeAll = false) {
   let allOptions = options;
-  const haystack = [];
-  const limit = 1e4;
   if (includeAll) {
     allOptions = [{ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT }, ...allOptions];
   }
-  return (search) => {
-    if (search === "") {
-      if (allOptions.length > limit) {
-        return allOptions.slice(0, limit);
-      } else {
-        return allOptions;
-      }
-    }
-    if (haystack.length === 0) {
-      for (let i = 0; i < allOptions.length; i++) {
-        haystack.push(allOptions[i].label);
-      }
-    }
-    const [idxs, info, order] = ufuzzy.search(haystack, search);
-    const filteredOptions = [];
-    if (idxs) {
-      for (let i = 0; i < idxs.length; i++) {
-        if (info && order) {
-          const idx = order[i];
-          filteredOptions.push(allOptions[idxs[idx]]);
-        } else {
-          filteredOptions.push(allOptions[idxs[i]]);
-        }
-        if (filteredOptions.length > limit) {
-          return filteredOptions;
-        }
-      }
-      return filteredOptions;
-    }
-    if (allOptions.length > limit) {
-      return allOptions.slice(0, limit);
-    }
-    return allOptions;
-  };
+  const haystack = allOptions.map((o) => o.label);
+  const fuzzySearch = getFuzzySearcher(haystack);
+  return (search) => fuzzySearch(search).map((i) => allOptions[i]);
 }
 
-var __defProp$F = Object.defineProperty;
-var __defProps$p = Object.defineProperties;
-var __getOwnPropDescs$p = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$F = Object.getOwnPropertySymbols;
-var __hasOwnProp$F = Object.prototype.hasOwnProperty;
-var __propIsEnum$F = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$F = (obj, key, value) => key in obj ? __defProp$F(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$F = (a, b) => {
+var __defProp$G = Object.defineProperty;
+var __defProps$s = Object.defineProperties;
+var __getOwnPropDescs$s = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$G = Object.getOwnPropertySymbols;
+var __hasOwnProp$G = Object.prototype.hasOwnProperty;
+var __propIsEnum$G = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$G = (obj, key, value) => key in obj ? __defProp$G(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$G = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$F.call(b, prop))
-      __defNormalProp$F(a, prop, b[prop]);
-  if (__getOwnPropSymbols$F)
-    for (var prop of __getOwnPropSymbols$F(b)) {
-      if (__propIsEnum$F.call(b, prop))
-        __defNormalProp$F(a, prop, b[prop]);
+    if (__hasOwnProp$G.call(b, prop))
+      __defNormalProp$G(a, prop, b[prop]);
+  if (__getOwnPropSymbols$G)
+    for (var prop of __getOwnPropSymbols$G(b)) {
+      if (__propIsEnum$G.call(b, prop))
+        __defNormalProp$G(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$p = (a, b) => __defProps$p(a, __getOwnPropDescs$p(b));
+var __spreadProps$s = (a, b) => __defProps$s(a, __getOwnPropDescs$s(b));
 var __objRest$4 = (source, exclude) => {
   var target = {};
   for (var prop in source)
-    if (__hasOwnProp$F.call(source, prop) && exclude.indexOf(prop) < 0)
+    if (__hasOwnProp$G.call(source, prop) && exclude.indexOf(prop) < 0)
       target[prop] = source[prop];
-  if (source != null && __getOwnPropSymbols$F)
-    for (var prop of __getOwnPropSymbols$F(source)) {
-      if (exclude.indexOf(prop) < 0 && __propIsEnum$F.call(source, prop))
+  if (source != null && __getOwnPropSymbols$G)
+    for (var prop of __getOwnPropSymbols$G(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum$G.call(source, prop))
         target[prop] = source[prop];
     }
   return target;
@@ -2590,7 +2586,7 @@ function toSelectableValue$2(value, label) {
   };
 }
 function VariableValueSelect({ model }) {
-  const { value, text, key, options, includeAll, isReadOnly } = model.useState();
+  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
   const [inputValue, setInputValue] = React.useState("");
   const [hasCustomValue, setHasCustomValue] = React.useState(false);
   const selectValue = toSelectableValue$2(value, String(text));
@@ -2622,7 +2618,7 @@ function VariableValueSelect({ model }) {
     disabled: isReadOnly,
     value: selectValue,
     inputValue,
-    allowCustomValue: true,
+    allowCustomValue,
     virtualized: true,
     filterOption: filterNoOp$2,
     tabSelectsValue: false,
@@ -2640,7 +2636,16 @@ function VariableValueSelect({ model }) {
   });
 }
 function VariableValueSelectMulti({ model }) {
-  const { value, options, key, maxVisibleValues, noValueOnClear, includeAll, isReadOnly } = model.useState();
+  const {
+    value,
+    options,
+    key,
+    maxVisibleValues,
+    noValueOnClear,
+    includeAll,
+    isReadOnly,
+    allowCustomValue = true
+  } = model.useState();
   const arrayValue = React.useMemo(() => lodash.isArray(value) ? value : [value], [value]);
   const [uncommittedValue, setUncommittedValue] = React.useState(arrayValue);
   const [inputValue, setInputValue] = React.useState("");
@@ -2675,7 +2680,7 @@ function VariableValueSelectMulti({ model }) {
     maxVisibleValues: maxVisibleValues != null ? maxVisibleValues : 5,
     tabSelectsValue: false,
     virtualized: true,
-    allowCustomValue: true,
+    allowCustomValue,
     toggleAllOptions: {
       enabled: true,
       optionsFilter: filterAll,
@@ -2715,7 +2720,7 @@ const OptionWithCheckbox = ({
   const theme = ui.useTheme2();
   const selectStyles = ui.getSelectStyles(theme);
   const optionStyles = ui.useStyles2(getOptionStyles);
-  return /* @__PURE__ */ React__default["default"].createElement("div", __spreadProps$p(__spreadValues$F({
+  return /* @__PURE__ */ React__default["default"].createElement("div", __spreadProps$s(__spreadValues$G({
     ref: innerRef,
     className: css.cx(selectStyles.option, isFocused && selectStyles.optionFocused)
   }, rest), {
@@ -2880,28 +2885,28 @@ function wrapInSafeSerializableSceneObject(sceneObject) {
   return { value: sceneObject, text: "__sceneObject" };
 }
 
-var __defProp$E = Object.defineProperty;
-var __defProps$o = Object.defineProperties;
-var __getOwnPropDescs$o = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$E = Object.getOwnPropertySymbols;
-var __hasOwnProp$E = Object.prototype.hasOwnProperty;
-var __propIsEnum$E = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$E = (obj, key, value) => key in obj ? __defProp$E(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$E = (a, b) => {
+var __defProp$F = Object.defineProperty;
+var __defProps$r = Object.defineProperties;
+var __getOwnPropDescs$r = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$F = Object.getOwnPropertySymbols;
+var __hasOwnProp$F = Object.prototype.hasOwnProperty;
+var __propIsEnum$F = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$F = (obj, key, value) => key in obj ? __defProp$F(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$F = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$E.call(b, prop))
-      __defNormalProp$E(a, prop, b[prop]);
-  if (__getOwnPropSymbols$E)
-    for (var prop of __getOwnPropSymbols$E(b)) {
-      if (__propIsEnum$E.call(b, prop))
-        __defNormalProp$E(a, prop, b[prop]);
+    if (__hasOwnProp$F.call(b, prop))
+      __defNormalProp$F(a, prop, b[prop]);
+  if (__getOwnPropSymbols$F)
+    for (var prop of __getOwnPropSymbols$F(b)) {
+      if (__propIsEnum$F.call(b, prop))
+        __defNormalProp$F(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$o = (a, b) => __defProps$o(a, __getOwnPropDescs$o(b));
+var __spreadProps$r = (a, b) => __defProps$r(a, __getOwnPropDescs$r(b));
 class GroupByVariable extends MultiValueVariable {
   constructor(initialState) {
-    super(__spreadProps$o(__spreadValues$E({
+    super(__spreadProps$r(__spreadValues$F({
       isMulti: true,
       name: "",
       value: [],
@@ -2932,7 +2937,7 @@ class GroupByVariable extends MultiValueVariable {
       const queries = getQueriesForVariables(this);
       const otherFilters = this.state.baseFilters || [];
       const timeRange = sceneGraph.getTimeRange(this).state.value;
-      const response = await ds.getTagKeys(__spreadValues$E({
+      const response = await ds.getTagKeys(__spreadValues$F({
         filters: otherFilters,
         queries,
         timeRange
@@ -2950,10 +2955,12 @@ class GroupByVariable extends MultiValueVariable {
       }
       return keys;
     };
-    this.addActivationHandler(() => {
-      allActiveGroupByVariables.add(this);
-      return () => allActiveGroupByVariables.delete(this);
-    });
+    if (this.state.applyMode === "auto") {
+      this.addActivationHandler(() => {
+        allActiveGroupByVariables.add(this);
+        return () => allActiveGroupByVariables.delete(this);
+      });
+    }
   }
   validateAndUpdate() {
     return this.getValueOptions({}).pipe(
@@ -3018,7 +3025,17 @@ class GroupByVariable extends MultiValueVariable {
 }
 GroupByVariable.Component = GroupByVariableRenderer;
 function GroupByVariableRenderer({ model }) {
-  const { value, text, key, maxVisibleValues, noValueOnClear, options, includeAll } = model.useState();
+  const {
+    value,
+    text,
+    key,
+    isMulti = true,
+    maxVisibleValues,
+    noValueOnClear,
+    options,
+    includeAll,
+    allowCustomValue = true
+  } = model.useState();
   const values = React.useMemo(() => {
     const arrayValue = lodash.isArray(value) ? value : [value];
     const arrayText = lodash.isArray(text) ? text : [text];
@@ -3056,11 +3073,13 @@ function GroupByVariableRenderer({ model }) {
     () => handleOptionGroups(optionSearcher(inputValue).map(toSelectableValue$1)),
     [optionSearcher, inputValue]
   );
-  return /* @__PURE__ */ React__default["default"].createElement(ui.MultiSelect, {
+  return isMulti ? /* @__PURE__ */ React__default["default"].createElement(ui.MultiSelect, {
+    "aria-label": "Group by selector",
     "data-testid": `GroupBySelect-${key}`,
     id: key,
     placeholder: "Select value",
     width: "auto",
+    allowCustomValue,
     inputValue,
     value: uncommittedValue,
     noMultiValueWrap: true,
@@ -3087,6 +3106,50 @@ function GroupByVariableRenderer({ model }) {
         model.changeValueTo([]);
       }
       setUncommittedValue(newValue);
+    },
+    onOpenMenu: async () => {
+      setIsFetchingOptions(true);
+      await rxjs.lastValueFrom(model.validateAndUpdate());
+      setIsFetchingOptions(false);
+      setIsOptionsOpen(true);
+    },
+    onCloseMenu: () => {
+      setIsOptionsOpen(false);
+    }
+  }) : /* @__PURE__ */ React__default["default"].createElement(ui.Select, {
+    "aria-label": "Group by selector",
+    "data-testid": `GroupBySelect-${key}`,
+    id: key,
+    placeholder: "Select value",
+    width: "auto",
+    inputValue,
+    value: uncommittedValue,
+    allowCustomValue,
+    noMultiValueWrap: true,
+    maxVisibleValues: maxVisibleValues != null ? maxVisibleValues : 5,
+    tabSelectsValue: false,
+    virtualized: true,
+    options: filteredOptions,
+    filterOption: filterNoOp$1,
+    closeMenuOnSelect: true,
+    isOpen: isOptionsOpen,
+    isClearable: true,
+    hideSelectedOptions: false,
+    noValueOnClear: true,
+    isLoading: isFetchingOptions,
+    onInputChange,
+    onChange: (newValue, action) => {
+      if (action.action === "clear") {
+        setUncommittedValue([]);
+        if (noValueOnClear) {
+          model.changeValueTo([]);
+        }
+        return;
+      }
+      if (newValue == null ? void 0 : newValue.value) {
+        setUncommittedValue([newValue]);
+        model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : void 0);
+      }
     },
     onOpenMenu: async () => {
       setIsFetchingOptions(true);
@@ -3127,7 +3190,7 @@ function LoadingIndicator(props) {
 }
 
 function ControlsLabel(props) {
-  const styles = ui.useStyles2(getStyles$e);
+  const styles = ui.useStyles2(getStyles$g);
   const theme = ui.useTheme2();
   const isVertical = props.layout === "vertical";
   const loadingIndicator = Boolean(props.isLoading) ? /* @__PURE__ */ React__default["default"].createElement("div", {
@@ -3190,7 +3253,7 @@ function ControlsLabel(props) {
   }
   return labelElement;
 }
-const getStyles$e = (theme) => ({
+const getStyles$g = (theme) => ({
   horizontalLabel: css.css({
     background: theme.isDark ? theme.colors.background.primary : theme.colors.background.secondary,
     display: `flex`,
@@ -3226,59 +3289,27 @@ const getStyles$e = (theme) => ({
 });
 
 function getAdhocOptionSearcher(options) {
-  const ufuzzy = new uFuzzy__default["default"]();
-  const haystack = [];
-  const limit = 1e4;
-  return (search) => {
+  const haystack = options.map((o) => {
     var _a;
-    if (search === "") {
-      if (options.length > limit) {
-        return options.slice(0, limit);
-      } else {
-        return options;
-      }
-    }
-    if (haystack.length === 0) {
-      for (let i = 0; i < options.length; i++) {
-        haystack.push((_a = options[i].label) != null ? _a : String(options[i].value));
-      }
-    }
-    const [idxs, info, order] = ufuzzy.search(haystack, search);
-    const filteredOptions = [];
-    if (idxs) {
-      for (let i = 0; i < idxs.length; i++) {
-        if (info && order) {
-          const idx = order[i];
-          filteredOptions.push(options[idxs[idx]]);
-        } else {
-          filteredOptions.push(options[idxs[i]]);
-        }
-        if (filteredOptions.length > limit) {
-          return filteredOptions;
-        }
-      }
-      return filteredOptions;
-    }
-    if (options.length > limit) {
-      return options.slice(0, limit);
-    }
-    return options;
-  };
+    return (_a = o.label) != null ? _a : String(o.value);
+  });
+  const fuzzySearch = getFuzzySearcher(haystack);
+  return (search) => fuzzySearch(search).map((i) => options[i]);
 }
 
-var __defProp$D = Object.defineProperty;
-var __getOwnPropSymbols$D = Object.getOwnPropertySymbols;
-var __hasOwnProp$D = Object.prototype.hasOwnProperty;
-var __propIsEnum$D = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$D = (obj, key, value) => key in obj ? __defProp$D(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$D = (a, b) => {
+var __defProp$E = Object.defineProperty;
+var __getOwnPropSymbols$E = Object.getOwnPropertySymbols;
+var __hasOwnProp$E = Object.prototype.hasOwnProperty;
+var __propIsEnum$E = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$E = (obj, key, value) => key in obj ? __defProp$E(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$E = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$D.call(b, prop))
-      __defNormalProp$D(a, prop, b[prop]);
-  if (__getOwnPropSymbols$D)
-    for (var prop of __getOwnPropSymbols$D(b)) {
-      if (__propIsEnum$D.call(b, prop))
-        __defNormalProp$D(a, prop, b[prop]);
+    if (__hasOwnProp$E.call(b, prop))
+      __defNormalProp$E(a, prop, b[prop]);
+  if (__getOwnPropSymbols$E)
+    for (var prop of __getOwnPropSymbols$E(b)) {
+      if (__propIsEnum$E.call(b, prop))
+        __defNormalProp$E(a, prop, b[prop]);
     }
   return a;
 };
@@ -3290,8 +3321,8 @@ function keyLabelToOption(key, label) {
 }
 const filterNoOp = () => true;
 function AdHocFilterRenderer({ filter, model }) {
-  var _a, _b, _c;
-  const styles = ui.useStyles2(getStyles$d);
+  var _a, _b, _c, _d, _e;
+  const styles = ui.useStyles2(getStyles$f);
   const [keys, setKeys] = React.useState([]);
   const [values, setValues] = React.useState([]);
   const [isKeysLoading, setIsKeysLoading] = React.useState(false);
@@ -3301,10 +3332,12 @@ function AdHocFilterRenderer({ filter, model }) {
   const [isOperatorOpen, setIsOperatorOpen] = React.useState(false);
   const [valueInputValue, setValueInputValue] = React.useState("");
   const [valueHasCustomValue, setValueHasCustomValue] = React.useState(false);
-  const [uncommittedValue, setUncommittedValue] = React.useState(filter.values ? filter.values.map((value, index) => {
-    var _a2;
-    return keyLabelToOption(value, (_a2 = filter.valueLabels) == null ? void 0 : _a2[index]);
-  }) : []);
+  const [uncommittedValue, setUncommittedValue] = React.useState(
+    filter.values ? filter.values.map((value, index) => {
+      var _a2;
+      return keyLabelToOption(value, (_a2 = filter.valueLabels) == null ? void 0 : _a2[index]);
+    }) : []
+  );
   const isMultiValue = isMultiValueOperator(filter.operator);
   const keyValue = keyLabelToOption(filter.key, filter.keyLabel);
   const valueValue = keyLabelToOption(filter.value, (_a = filter.valueLabels) == null ? void 0 : _a[0]);
@@ -3327,10 +3360,12 @@ function AdHocFilterRenderer({ filter, model }) {
       setUncommittedValue([]);
     } else if (!isMultiValueOperator(existingOperator) && isMultiValueOperator(newOperator) && filter.value) {
       update.values = [filter.value];
-      setUncommittedValue([{
-        value: filter.value,
-        label: (_b2 = (_a2 = filter.valueLabels) == null ? void 0 : _a2[0]) != null ? _b2 : filter.value
-      }]);
+      setUncommittedValue([
+        {
+          value: filter.value,
+          label: (_b2 = (_a2 = filter.valueLabels) == null ? void 0 : _a2[0]) != null ? _b2 : filter.value
+        }
+      ]);
     }
     model._updateFilter(filter, update);
   };
@@ -3362,9 +3397,9 @@ function AdHocFilterRenderer({ filter, model }) {
       });
     }
   };
-  const valueSelect = /* @__PURE__ */ React__default["default"].createElement(ui.Select, __spreadValues$D({
+  const valueSelect = /* @__PURE__ */ React__default["default"].createElement(ui.Select, __spreadValues$E({
     virtualized: true,
-    allowCustomValue: true,
+    allowCustomValue: (_b = model.state.allowCustomValue) != null ? _b : true,
     isValidNewOption: (inputValue) => inputValue.trim().length > 0,
     allowCreateWhileLoading: true,
     formatCreateLabel: (inputValue) => `Use custom value: ${inputValue}`,
@@ -3410,7 +3445,7 @@ function AdHocFilterRenderer({ filter, model }) {
     disabled: model.state.readOnly,
     className: css.cx(styles.key, isKeysOpen ? styles.widthWhenOpen : void 0),
     width: "auto",
-    allowCustomValue: true,
+    allowCustomValue: (_c = model.state.allowCustomValue) != null ? _c : true,
     value: keyValue,
     placeholder: "Select label",
     options: handleOptionGroups(keys),
@@ -3463,7 +3498,7 @@ function AdHocFilterRenderer({ filter, model }) {
     if (filter.key) {
       const label = /* @__PURE__ */ React__default["default"].createElement(ControlsLabel, {
         layout: "vertical",
-        label: (_b = filter.key) != null ? _b : "",
+        label: (_d = filter.key) != null ? _d : "",
         onRemove: () => model._removeFilter(filter)
       });
       return /* @__PURE__ */ React__default["default"].createElement(ui.Field, {
@@ -3490,11 +3525,11 @@ function AdHocFilterRenderer({ filter, model }) {
     title: "Remove filter",
     className: styles.removeButton,
     icon: "times",
-    "data-testid": `AdHocFilter-remove-${(_c = filter.key) != null ? _c : ""}`,
+    "data-testid": `AdHocFilter-remove-${(_e = filter.key) != null ? _e : ""}`,
     onClick: () => model._removeFilter(filter)
   }));
 }
-const getStyles$d = (theme) => ({
+const getStyles$f = (theme) => ({
   field: css.css({
     marginBottom: 0
   }),
@@ -3609,10 +3644,7 @@ function deserializeUrlToFilters(value) {
 }
 function toArray(filter) {
   var _a;
-  const result = [
-    toUrlCommaDelimitedString(filter.key, filter.keyLabel),
-    filter.operator
-  ];
+  const result = [toUrlCommaDelimitedString(filter.key, filter.keyLabel), filter.operator];
   if (isMultiValueOperator(filter.operator)) {
     filter.values.forEach((value, index) => {
       var _a2;
@@ -3646,30 +3678,30 @@ function isFilter(filter) {
   return filter !== null && typeof filter.key === "string" && typeof filter.value === "string";
 }
 
-var __defProp$C = Object.defineProperty;
-var __getOwnPropSymbols$C = Object.getOwnPropertySymbols;
-var __hasOwnProp$C = Object.prototype.hasOwnProperty;
-var __propIsEnum$C = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$C = (obj, key, value) => key in obj ? __defProp$C(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$C = (a, b) => {
+var __defProp$D = Object.defineProperty;
+var __getOwnPropSymbols$D = Object.getOwnPropertySymbols;
+var __hasOwnProp$D = Object.prototype.hasOwnProperty;
+var __propIsEnum$D = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$D = (obj, key, value) => key in obj ? __defProp$D(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$D = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$C.call(b, prop))
-      __defNormalProp$C(a, prop, b[prop]);
-  if (__getOwnPropSymbols$C)
-    for (var prop of __getOwnPropSymbols$C(b)) {
-      if (__propIsEnum$C.call(b, prop))
-        __defNormalProp$C(a, prop, b[prop]);
+    if (__hasOwnProp$D.call(b, prop))
+      __defNormalProp$D(a, prop, b[prop]);
+  if (__getOwnPropSymbols$D)
+    for (var prop of __getOwnPropSymbols$D(b)) {
+      if (__propIsEnum$D.call(b, prop))
+        __defNormalProp$D(a, prop, b[prop]);
     }
   return a;
 };
 var __objRest$3 = (source, exclude) => {
   var target = {};
   for (var prop in source)
-    if (__hasOwnProp$C.call(source, prop) && exclude.indexOf(prop) < 0)
+    if (__hasOwnProp$D.call(source, prop) && exclude.indexOf(prop) < 0)
       target[prop] = source[prop];
-  if (source != null && __getOwnPropSymbols$C)
-    for (var prop of __getOwnPropSymbols$C(source)) {
-      if (exclude.indexOf(prop) < 0 && __propIsEnum$C.call(source, prop))
+  if (source != null && __getOwnPropSymbols$D)
+    for (var prop of __getOwnPropSymbols$D(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum$D.call(source, prop))
         target[prop] = source[prop];
     }
   return target;
@@ -3677,9 +3709,9 @@ var __objRest$3 = (source, exclude) => {
 const DropdownItem = React.forwardRef(
   function DropdownItem2(_a, ref) {
     var _b = _a, { children, active, addGroupBottomBorder, isMultiValueEdit, checked } = _b, rest = __objRest$3(_b, ["children", "active", "addGroupBottomBorder", "isMultiValueEdit", "checked"]);
-    const styles = ui.useStyles2(getStyles$c);
+    const styles = ui.useStyles2(getStyles$e);
     const id = React.useId();
-    return /* @__PURE__ */ React__default["default"].createElement("div", __spreadValues$C({
+    return /* @__PURE__ */ React__default["default"].createElement("div", __spreadValues$D({
       ref,
       role: "option",
       id,
@@ -3695,7 +3727,7 @@ const DropdownItem = React.forwardRef(
     }) : null, children)));
   }
 );
-const getStyles$c = (theme) => ({
+const getStyles$e = (theme) => ({
   option: css.css({
     label: "grafana-select-option",
     top: 0,
@@ -3765,8 +3797,13 @@ const OptionsErrorPlaceholder = ({ handleFetchOptions }) => {
     onClick: handleFetchOptions
   }, "An error has occurred fetching labels. Click to retry");
 };
-const MultiValueApplyButton = ({ onApply, floatingElement, maxOptionWidth, menuHeight }) => {
-  const styles = ui.useStyles2(getStyles$c);
+const MultiValueApplyButton = ({
+  onApply,
+  floatingElement,
+  maxOptionWidth,
+  menuHeight
+}) => {
+  const styles = ui.useStyles2(getStyles$e);
   const floatingElementRect = floatingElement == null ? void 0 : floatingElement.getBoundingClientRect();
   return /* @__PURE__ */ React__default["default"].createElement("div", {
     className: styles.multiValueApplyWrapper,
@@ -3789,55 +3826,16 @@ const VIRTUAL_LIST_ITEM_HEIGHT = 38;
 const VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION = 60;
 const ERROR_STATE_DROPDOWN_WIDTH = 366;
 function fuzzySearchOptions(options) {
-  const ufuzzy = new uFuzzy__default["default"]();
-  const haystack = [];
-  const limit = 1e4;
-  return (search, filterInputType) => {
+  const haystack = options.map((o) => {
     var _a;
-    if (search === "") {
-      if (options.length > limit) {
-        return options.slice(0, limit);
-      } else {
-        return options;
-      }
+    return (_a = o.label) != null ? _a : o.value;
+  });
+  const fuzzySearch = getFuzzySearcher(haystack);
+  return (search, filterInputType) => {
+    if (filterInputType === "operator" && search !== "") {
+      search = `"${search}"`;
     }
-    if (filterInputType === "operator") {
-      const filteredOperators = [];
-      for (let i = 0; i < options.length; i++) {
-        if ((_a = options[i].label || options[i].value) == null ? void 0 : _a.includes(search)) {
-          filteredOperators.push(options[i]);
-          if (filteredOperators.length > limit) {
-            return filteredOperators;
-          }
-        }
-      }
-      return filteredOperators;
-    }
-    if (haystack.length === 0) {
-      for (let i = 0; i < options.length; i++) {
-        haystack.push(options[i].label || options[i].value);
-      }
-    }
-    const [idxs, info, order] = ufuzzy.search(haystack, search);
-    const filteredOptions = [];
-    if (idxs) {
-      for (let i = 0; i < idxs.length; i++) {
-        if (info && order) {
-          const idx = order[i];
-          filteredOptions.push(options[idxs[idx]]);
-        } else {
-          filteredOptions.push(options[idxs[i]]);
-        }
-        if (filteredOptions.length > limit) {
-          return filteredOptions;
-        }
-      }
-      return filteredOptions;
-    }
-    if (options.length > limit) {
-      return options.slice(0, limit);
-    }
-    return options;
+    return fuzzySearch(search).map((i) => options[i]);
   };
 }
 const flattenOptionGroups = (options) => options.flatMap((option) => option.options ? [option, ...option.options] : [option]);
@@ -3871,15 +3869,16 @@ const nextInputTypeMap = {
   operator: "value",
   value: "key"
 };
-const switchToNextInputType = (filterInputType, setInputType, handleChangeViewMode, element) => switchInputType(
+const switchToNextInputType = (filterInputType, setInputType, handleChangeViewMode, element, shouldFocusOnPillWrapperOverride) => switchInputType(
   nextInputTypeMap[filterInputType],
   setInputType,
   filterInputType === "value" ? handleChangeViewMode : void 0,
-  element
+  element,
+  shouldFocusOnPillWrapperOverride
 );
-const switchInputType = (filterInputType, setInputType, handleChangeViewMode, element) => {
+const switchInputType = (filterInputType, setInputType, handleChangeViewMode, element, shouldFocusOnPillWrapperOverride) => {
   setInputType(filterInputType);
-  handleChangeViewMode == null ? void 0 : handleChangeViewMode();
+  handleChangeViewMode == null ? void 0 : handleChangeViewMode(void 0, shouldFocusOnPillWrapperOverride);
   setTimeout(() => element == null ? void 0 : element.focus());
 };
 const generateFilterUpdatePayload = ({
@@ -3946,6 +3945,19 @@ const generatePlaceholder = (filter, filterInputType, isMultiValueEdit, isAlways
   }
   return filter[filterInputType] && !isAlwaysWip ? `${filter[filterInputType]}` : INPUT_PLACEHOLDER;
 };
+const populateInputValueOnInputTypeSwitch = ({
+  populateInputOnEdit,
+  item,
+  filterInputType,
+  setInputValue,
+  filter
+}) => {
+  if (populateInputOnEdit && !isMultiValueOperator(item.value || "") && nextInputTypeMap[filterInputType] === "value") {
+    setInputValue((filter == null ? void 0 : filter.value) || "");
+  } else {
+    setInputValue("");
+  }
+};
 
 const MAX_MENU_HEIGHT = 300;
 const useFloatingInteractions = ({
@@ -4011,9 +4023,117 @@ const useFloatingInteractions = ({
   };
 };
 
+var __defProp$C = Object.defineProperty;
+var __defProps$q = Object.defineProperties;
+var __getOwnPropDescs$q = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$C = Object.getOwnPropertySymbols;
+var __hasOwnProp$C = Object.prototype.hasOwnProperty;
+var __propIsEnum$C = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$C = (obj, key, value) => key in obj ? __defProp$C(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$C = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp$C.call(b, prop))
+      __defNormalProp$C(a, prop, b[prop]);
+  if (__getOwnPropSymbols$C)
+    for (var prop of __getOwnPropSymbols$C(b)) {
+      if (__propIsEnum$C.call(b, prop))
+        __defNormalProp$C(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps$q = (a, b) => __defProps$q(a, __getOwnPropDescs$q(b));
+const MultiValuePill = ({
+  item,
+  handleRemoveMultiValue,
+  index,
+  handleEditMultiValuePill
+}) => {
+  var _a, _b;
+  const styles = ui.useStyles2(getStyles$d);
+  const editMultiValuePill = React.useCallback(
+    (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      handleEditMultiValuePill(item);
+    },
+    [handleEditMultiValuePill, item]
+  );
+  const editMultiValuePillWithKeyboard = React.useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        editMultiValuePill(e);
+      }
+    },
+    [editMultiValuePill]
+  );
+  const removePillHandler = React.useCallback(
+    (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      handleRemoveMultiValue(item);
+    },
+    [handleRemoveMultiValue, item]
+  );
+  const removePillHandlerWithKeyboard = React.useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        removePillHandler(e);
+      }
+    },
+    [removePillHandler]
+  );
+  return /* @__PURE__ */ React__default["default"].createElement("div", {
+    className: css.cx(styles.basePill, styles.valuePill),
+    onClick: editMultiValuePill,
+    onKeyDown: editMultiValuePillWithKeyboard,
+    tabIndex: 0,
+    id: `${item.value}-${index}`
+  }, (_a = item.label) != null ? _a : item.value, /* @__PURE__ */ React__default["default"].createElement(ui.Button, {
+    onClick: removePillHandler,
+    onKeyDownCapture: removePillHandlerWithKeyboard,
+    fill: "text",
+    size: "sm",
+    variant: "secondary",
+    className: styles.removeButton,
+    tooltip: `Remove filter value - ${(_b = item.label) != null ? _b : item.value}`
+  }, /* @__PURE__ */ React__default["default"].createElement(ui.Icon, {
+    name: "times",
+    size: "md",
+    id: `${item.value}-${index}-close-icon`
+  })));
+};
+const getStyles$d = (theme) => ({
+  basePill: css.css(__spreadProps$q(__spreadValues$C({
+    display: "flex",
+    alignItems: "center",
+    background: theme.colors.action.disabledBackground,
+    border: `1px solid ${theme.colors.border.weak}`,
+    padding: theme.spacing(0.125, 1, 0.125, 1),
+    color: theme.colors.text.primary,
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    minHeight: theme.spacing(2.75)
+  }, theme.typography.bodySmall), {
+    cursor: "pointer"
+  })),
+  valuePill: css.css({
+    background: theme.colors.action.selected,
+    padding: theme.spacing(0.125, 0, 0.125, 1)
+  }),
+  removeButton: css.css({
+    marginInline: theme.spacing(0.5),
+    height: "100%",
+    padding: 0,
+    cursor: "pointer",
+    "&:hover": {
+      color: theme.colors.text.primary
+    }
+  })
+});
+
 var __defProp$B = Object.defineProperty;
-var __defProps$n = Object.defineProperties;
-var __getOwnPropDescs$n = Object.getOwnPropertyDescriptors;
+var __defProps$p = Object.defineProperties;
+var __getOwnPropDescs$p = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols$B = Object.getOwnPropertySymbols;
 var __hasOwnProp$B = Object.prototype.hasOwnProperty;
 var __propIsEnum$B = Object.prototype.propertyIsEnumerable;
@@ -4029,9 +4149,9 @@ var __spreadValues$B = (a, b) => {
     }
   return a;
 };
-var __spreadProps$n = (a, b) => __defProps$n(a, __getOwnPropDescs$n(b));
-const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, isAlwaysWip, handleChangeViewMode }, parentRef) {
-  var _a, _b, _c;
+var __spreadProps$p = (a, b) => __defProps$p(a, __getOwnPropDescs$p(b));
+const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, isAlwaysWip, handleChangeViewMode, focusOnWipInputRef, populateInputOnEdit }, parentRef) {
+  var _a, _b, _c, _d;
   const [open, setOpen] = React.useState(false);
   const [options, setOptions] = React.useState([]);
   const [optionsLoading, setOptionsLoading] = React.useState(false);
@@ -4039,16 +4159,28 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
   const [inputValue, setInputValue] = React.useState("");
   const [activeIndex, setActiveIndex] = React.useState(null);
   const [filterInputType, setInputType] = React.useState(!isAlwaysWip ? "value" : "key");
-  const styles = ui.useStyles2(getStyles$b);
+  const [preventFiltering, setPreventFiltering] = React.useState(!isAlwaysWip && filterInputType === "value");
+  const styles = ui.useStyles2(getStyles$c);
   const [filterMultiValues, setFilterMultiValues] = React.useState([]);
   const [_, setForceRefresh] = React.useState({});
+  const allowCustomValue = (_a = model.state.allowCustomValue) != null ? _a : true;
   const multiValuePillWrapperRef = React.useRef(null);
   const hasMultiValueOperator = isMultiValueOperator((filter == null ? void 0 : filter.operator) || "");
   const isMultiValueEdit = hasMultiValueOperator && filterInputType === "value";
   const operatorIdentifier = React.useId();
   const listRef = React.useRef([]);
   const disabledIndicesRef = React.useRef([]);
+  const filterInputTypeRef = React.useRef(!isAlwaysWip ? "value" : "key");
   const optionsSearcher = React.useMemo(() => fuzzySearchOptions(options), [options]);
+  const isLastFilter = React.useMemo(() => {
+    if (isAlwaysWip) {
+      return false;
+    }
+    if (model.state.filters.at(-1) === filter) {
+      return true;
+    }
+    return false;
+  }, [filter, isAlwaysWip, model.state.filters]);
   const handleResetWip = React.useCallback(() => {
     if (isAlwaysWip) {
       model._addWip();
@@ -4108,7 +4240,13 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     ]
   );
   const outsidePressIdsToIgnore = React.useMemo(() => {
-    return [operatorIdentifier, ...filterMultiValues.map((item, i) => `${item.value}-${i}`)];
+    return [
+      operatorIdentifier,
+      ...filterMultiValues.reduce(
+        (acc, item, i) => [...acc, `${item.value}-${i}`, `${item.value}-${i}-close-icon`],
+        []
+      )
+    ];
   }, [operatorIdentifier, filterMultiValues]);
   const { refs, floatingStyles, context, getReferenceProps, getFloatingProps, getItemProps } = useFloatingInteractions({
     open,
@@ -4127,6 +4265,9 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     const value = event.target.value;
     setInputValue(value);
     setActiveIndex(0);
+    if (preventFiltering) {
+      setPreventFiltering(false);
+    }
   }
   const handleRemoveMultiValue = React.useCallback(
     (item) => {
@@ -4138,8 +4279,10 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     },
     [refs.domReference]
   );
-  const filteredDropDownItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(inputValue, filterInputType)));
-  if (filterInputType !== "operator" && inputValue) {
+  const filteredDropDownItems = flattenOptionGroups(
+    handleOptionGroups(optionsSearcher(preventFiltering ? "" : inputValue, filterInputType))
+  );
+  if (allowCustomValue && filterInputType !== "operator" && inputValue) {
     filteredDropDownItems.push({
       value: inputValue.trim(),
       label: inputValue.trim(),
@@ -4162,9 +4305,14 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
         } else if (inputType === "value") {
           options2 = await model._getValuesFor(filter);
         }
+        if (filterInputTypeRef.current !== inputType) {
+          return;
+        }
         setOptions(options2);
         if ((_a2 = options2[0]) == null ? void 0 : _a2.group) {
           setActiveIndex(1);
+        } else {
+          setActiveIndex(0);
         }
       } catch (e) {
         setOptionsError(true);
@@ -4182,19 +4330,37 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
   const handleBackspaceInput = React.useCallback(
     (event, multiValueEdit) => {
       if (event.key === "Backspace" && !inputValue) {
-        if (multiValueEdit) {
-          setFilterMultiValues((items) => {
-            const updated = [...items];
-            updated.splice(-1, 1);
-            return updated;
-          });
-        } else if (filterInputType === "key") {
-          model._removeLastFilter();
-          handleFetchOptions(filterInputType);
+        if (filterInputType === "value") {
+          if (multiValueEdit) {
+            if (filterMultiValues.length) {
+              setFilterMultiValues((items) => {
+                const updated = [...items];
+                updated.splice(-1, 1);
+                return updated;
+              });
+              return;
+            }
+          }
+          setInputType("operator");
+          return;
+        }
+        focusOnWipInputRef == null ? void 0 : focusOnWipInputRef();
+        model._handleComboboxBackspace(filter);
+        if (isAlwaysWip) {
+          handleResetWip();
         }
       }
     },
-    [inputValue, filterInputType, model, handleFetchOptions]
+    [
+      inputValue,
+      filterInputType,
+      model,
+      filter,
+      isAlwaysWip,
+      filterMultiValues.length,
+      handleResetWip,
+      focusOnWipInputRef
+    ]
   );
   const handleTabInput = React.useCallback(
     (event, multiValueEdit) => {
@@ -4241,6 +4407,7 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
         const selectedItem = filteredDropDownItems[activeIndex];
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
+          setInputValue("");
         } else {
           model._updateFilter(
             filter,
@@ -4251,22 +4418,55 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
               setFilterMultiValues
             })
           );
-          switchToNextInputType(filterInputType, setInputType, handleChangeViewMode, refs.domReference.current);
-          setActiveIndex(0);
+          populateInputValueOnInputTypeSwitch({
+            populateInputOnEdit,
+            item: selectedItem,
+            filterInputType,
+            setInputValue,
+            filter
+          });
+          switchToNextInputType(
+            filterInputType,
+            setInputType,
+            handleChangeViewMode,
+            refs.domReference.current,
+            isLastFilter ? false : void 0
+          );
+          setActiveIndex(null);
+          if (isLastFilter) {
+            focusOnWipInputRef == null ? void 0 : focusOnWipInputRef();
+          }
         }
-        setInputValue("");
       }
     },
     [
       activeIndex,
-      filter,
-      filterInputType,
       filteredDropDownItems,
       handleLocalMultiValueChange,
-      handleChangeViewMode,
       model,
-      refs.domReference
+      filter,
+      filterInputType,
+      populateInputOnEdit,
+      handleChangeViewMode,
+      refs.domReference,
+      isLastFilter,
+      focusOnWipInputRef
     ]
+  );
+  const handleEditMultiValuePill = React.useCallback(
+    (value) => {
+      var _a2;
+      const valueLabel = value.label || value.value;
+      setFilterMultiValues((prev) => prev.filter((item) => item.value !== value.value));
+      setPreventFiltering(true);
+      setInputValue(valueLabel);
+      (_a2 = refs.domReference.current) == null ? void 0 : _a2.focus();
+      setTimeout(() => {
+        var _a3;
+        (_a3 = refs.domReference.current) == null ? void 0 : _a3.select();
+      });
+    },
+    [refs.domReference]
   );
   React.useEffect(() => {
     if (open) {
@@ -4276,8 +4476,6 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
   React.useEffect(() => {
     var _a2, _b2;
     if (!isAlwaysWip) {
-      setInputType("value");
-      setInputValue("");
       if (hasMultiValueOperator && ((_a2 = filter == null ? void 0 : filter.values) == null ? void 0 : _a2.length)) {
         const multiValueOptions = filter.values.reduce(
           (acc, value, i) => {
@@ -4294,6 +4492,13 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
         );
         setFilterMultiValues(multiValueOptions);
       }
+      if (!hasMultiValueOperator && populateInputOnEdit) {
+        setInputValue((filter == null ? void 0 : filter.value) || "");
+        setTimeout(() => {
+          var _a3;
+          (_a3 = refs.domReference.current) == null ? void 0 : _a3.select();
+        });
+      }
       (_b2 = refs.domReference.current) == null ? void 0 : _b2.focus();
     }
   }, []);
@@ -4303,12 +4508,17 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     }
   }, [filterMultiValues, isMultiValueEdit]);
   React.useLayoutEffect(() => {
+    if (filterInputTypeRef.current) {
+      filterInputTypeRef.current = filterInputType;
+    }
+  }, [filterInputType]);
+  React.useLayoutEffect(() => {
     var _a2, _b2;
     if (activeIndex !== null && rowVirtualizer.range && (activeIndex > ((_a2 = rowVirtualizer.range) == null ? void 0 : _a2.endIndex) || activeIndex < ((_b2 = rowVirtualizer.range) == null ? void 0 : _b2.startIndex))) {
       rowVirtualizer.scrollToIndex(activeIndex);
     }
   }, [activeIndex, rowVirtualizer]);
-  const keyLabel = (_a = filter == null ? void 0 : filter.keyLabel) != null ? _a : filter == null ? void 0 : filter.key;
+  const keyLabel = (_b = filter == null ? void 0 : filter.keyLabel) != null ? _b : filter == null ? void 0 : filter.key;
   return /* @__PURE__ */ React__default["default"].createElement("div", {
     className: styles.comboboxWrapper
   }, filter ? /* @__PURE__ */ React__default["default"].createElement("div", {
@@ -4323,11 +4533,13 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     tabIndex: 0,
     onClick: (event) => {
       event.stopPropagation();
+      setInputValue("");
       switchInputType("operator", setInputType, void 0, refs.domReference.current);
     },
     onKeyDown: (event) => {
       handleShiftTabInput(event, hasMultiValueOperator);
       if (event.key === "Enter") {
+        setInputValue("");
         switchInputType("operator", setInputType, void 0, refs.domReference.current);
       }
     }
@@ -4337,8 +4549,9 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     key: `${item.value}-${i}`,
     item,
     index: i,
-    handleRemoveMultiValue
-  })) : null) : null, /* @__PURE__ */ React__default["default"].createElement("input", __spreadProps$n(__spreadValues$B({}, getReferenceProps({
+    handleRemoveMultiValue,
+    handleEditMultiValuePill
+  })) : null) : null, /* @__PURE__ */ React__default["default"].createElement("input", __spreadProps$p(__spreadValues$B({}, getReferenceProps({
     ref: refs.setReference,
     onChange,
     value: inputValue,
@@ -4363,7 +4576,6 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
       setOpen(true);
     },
     onFocus: () => {
-      setActiveIndex(0);
       setOpen(true);
     }
   })), optionsLoading ? /* @__PURE__ */ React__default["default"].createElement(ui.Spinner, {
@@ -4375,14 +4587,14 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     visuallyHiddenDismiss: true,
     modal: false
   }, /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, /* @__PURE__ */ React__default["default"].createElement("div", {
-    style: __spreadProps$n(__spreadValues$B({}, floatingStyles), {
+    style: __spreadProps$p(__spreadValues$B({}, floatingStyles), {
       width: `${optionsError ? ERROR_STATE_DROPDOWN_WIDTH : maxOptionWidth}px`,
-      transform: isMultiValueEdit ? `translate(${((_b = multiValuePillWrapperRef.current) == null ? void 0 : _b.getBoundingClientRect().left) || 0}px, ${(((_c = refs.domReference.current) == null ? void 0 : _c.getBoundingClientRect().bottom) || 0) + 10}px )` : floatingStyles.transform
+      transform: isMultiValueEdit ? `translate(${((_c = multiValuePillWrapperRef.current) == null ? void 0 : _c.getBoundingClientRect().left) || 0}px, ${(((_d = refs.domReference.current) == null ? void 0 : _d.getBoundingClientRect().bottom) || 0) + 10}px )` : floatingStyles.transform
     }),
     ref: refs.setFloating,
     className: styles.dropdownWrapper,
     tabIndex: -1
-  }, /* @__PURE__ */ React__default["default"].createElement("div", __spreadProps$n(__spreadValues$B({
+  }, /* @__PURE__ */ React__default["default"].createElement("div", __spreadProps$p(__spreadValues$B({
     style: {
       height: `${rowVirtualizer.getTotalSize() || VIRTUAL_LIST_ITEM_HEIGHT}px`
     }
@@ -4390,7 +4602,7 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     tabIndex: -1
   }), optionsLoading ? /* @__PURE__ */ React__default["default"].createElement(LoadingOptionsPlaceholder, null) : optionsError ? /* @__PURE__ */ React__default["default"].createElement(OptionsErrorPlaceholder, {
     handleFetchOptions: () => handleFetchOptions(filterInputType)
-  }) : !filteredDropDownItems.length && (filterInputType === "operator" || !inputValue) ? /* @__PURE__ */ React__default["default"].createElement(NoOptionsPlaceholder, null) : rowVirtualizer.getVirtualItems().map((virtualItem) => {
+  }) : !filteredDropDownItems.length && (!allowCustomValue || filterInputType === "operator" || !inputValue) ? /* @__PURE__ */ React__default["default"].createElement(NoOptionsPlaceholder, null) : rowVirtualizer.getVirtualItems().map((virtualItem) => {
     var _a2;
     const item = filteredDropDownItems[virtualItem.index];
     const index = virtualItem.index;
@@ -4410,7 +4622,7 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     }
     const nextItem = filteredDropDownItems[virtualItem.index + 1];
     const shouldAddBottomBorder = nextItem && !nextItem.group && !nextItem.options && item.group;
-    return /* @__PURE__ */ React__default["default"].createElement(DropdownItem, __spreadProps$n(__spreadValues$B({}, getItemProps({
+    return /* @__PURE__ */ React__default["default"].createElement(DropdownItem, __spreadProps$p(__spreadValues$B({}, getItemProps({
       key: `${item.value}-${index}`,
       ref(node) {
         listRef.current[index] = node;
@@ -4424,6 +4636,7 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
           event.preventDefault();
           event.stopPropagation();
           handleLocalMultiValueChange(item);
+          setInputValue("");
           (_a3 = refs.domReference.current) == null ? void 0 : _a3.focus();
         } else {
           model._updateFilter(
@@ -4435,12 +4648,19 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
               setFilterMultiValues
             })
           );
-          setInputValue("");
+          populateInputValueOnInputTypeSwitch({
+            populateInputOnEdit,
+            item,
+            filterInputType,
+            setInputValue,
+            filter
+          });
           switchToNextInputType(
             filterInputType,
             setInputType,
             handleChangeViewMode,
-            refs.domReference.current
+            refs.domReference.current,
+            false
           );
         }
       }
@@ -4467,36 +4687,7 @@ const AdHocCombobox = React.forwardRef(function AdHocCombobox2({ filter, model, 
     menuHeight: Math.min(rowVirtualizer.getTotalSize(), MAX_MENU_HEIGHT)
   }) : null))));
 });
-const MultiValuePill = ({ item, handleRemoveMultiValue, index }) => {
-  var _a, _b;
-  const styles = ui.useStyles2(getStyles$b);
-  return /* @__PURE__ */ React__default["default"].createElement("div", {
-    className: css.cx(styles.basePill, styles.valuePill)
-  }, /* @__PURE__ */ React__default["default"].createElement("span", null, " ", (_a = item.label) != null ? _a : item.value), /* @__PURE__ */ React__default["default"].createElement(ui.Button, {
-    onClick: (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      handleRemoveMultiValue(item);
-    },
-    onKeyDownCapture: (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-        handleRemoveMultiValue(item);
-      }
-    },
-    fill: "text",
-    size: "sm",
-    variant: "secondary",
-    className: styles.removeButton,
-    tooltip: `Remove filter value - ${(_b = item.label) != null ? _b : item.value}`
-  }, /* @__PURE__ */ React__default["default"].createElement(ui.Icon, {
-    name: "times",
-    size: "md",
-    id: `${item.value}-${index}`
-  })));
-};
-const getStyles$b = (theme) => ({
+const getStyles$c = (theme) => ({
   comboboxWrapper: css.css({
     display: "flex",
     flexWrap: "wrap"
@@ -4506,7 +4697,7 @@ const getStyles$b = (theme) => ({
     alignItems: "center",
     flexWrap: "wrap"
   }),
-  basePill: css.css(__spreadProps$n(__spreadValues$B({
+  basePill: css.css(__spreadProps$p(__spreadValues$B({
     display: "flex",
     alignItems: "center",
     background: theme.colors.action.disabledBackground,
@@ -4527,10 +4718,6 @@ const getStyles$b = (theme) => ({
     "&:hover": {
       background: theme.colors.action.hover
     }
-  }),
-  valuePill: css.css({
-    background: theme.colors.action.selected,
-    padding: theme.spacing(0.125, 0, 0.125, 1)
   }),
   dropdownWrapper: css.css({
     backgroundColor: theme.colors.background.primary,
@@ -4564,30 +4751,15 @@ const getStyles$b = (theme) => ({
       borderTop: `1px solid ${theme.colors.border.weak}`
     }
   }),
-  removeButton: css.css({
-    marginInline: theme.spacing(0.5),
-    height: "100%",
-    padding: 0,
-    cursor: "pointer",
-    "&:hover": {
-      color: theme.colors.text.primary
-    }
-  }),
-  descriptionText: css.css(__spreadProps$n(__spreadValues$B({}, theme.typography.bodySmall), {
+  descriptionText: css.css(__spreadProps$p(__spreadValues$B({}, theme.typography.bodySmall), {
     color: theme.colors.text.secondary,
     paddingTop: theme.spacing(0.5)
-  })),
-  multiValueApply: css.css({
-    position: "absolute",
-    top: 0,
-    left: 0,
-    display: "flex"
-  })
+  }))
 });
 
 var __defProp$A = Object.defineProperty;
-var __defProps$m = Object.defineProperties;
-var __getOwnPropDescs$m = Object.getOwnPropertyDescriptors;
+var __defProps$o = Object.defineProperties;
+var __getOwnPropDescs$o = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols$A = Object.getOwnPropertySymbols;
 var __hasOwnProp$A = Object.prototype.hasOwnProperty;
 var __propIsEnum$A = Object.prototype.propertyIsEnumerable;
@@ -4603,42 +4775,59 @@ var __spreadValues$A = (a, b) => {
     }
   return a;
 };
-var __spreadProps$m = (a, b) => __defProps$m(a, __getOwnPropDescs$m(b));
-function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }) {
+var __spreadProps$o = (a, b) => __defProps$o(a, __getOwnPropDescs$o(b));
+function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }) {
   var _a, _b, _c;
-  const styles = ui.useStyles2(getStyles$a);
+  const styles = ui.useStyles2(getStyles$b);
   const [viewMode, setViewMode] = React.useState(true);
-  const [shouldFocus, setShouldFocus] = React.useState(false);
+  const [shouldFocusOnPillWrapper, setShouldFocusOnPillWrapper] = React.useState(false);
   const pillWrapperRef = React.useRef(null);
+  const [populateInputOnEdit, setPopulateInputOnEdit] = React.useState(false);
   const keyLabel = (_a = filter.keyLabel) != null ? _a : filter.key;
   const valueLabel = ((_b = filter.valueLabels) == null ? void 0 : _b.join(", ")) || ((_c = filter.values) == null ? void 0 : _c.join(", ")) || filter.value;
   const handleChangeViewMode = React.useCallback(
-    (event) => {
+    (event, shouldFocusOnPillWrapperOverride) => {
       event == null ? void 0 : event.stopPropagation();
       if (readOnly) {
         return;
       }
-      setShouldFocus(!viewMode);
+      setShouldFocusOnPillWrapper(shouldFocusOnPillWrapperOverride != null ? shouldFocusOnPillWrapperOverride : !viewMode);
       setViewMode(!viewMode);
     },
     [readOnly, viewMode]
   );
   React.useEffect(() => {
     var _a2;
-    if (shouldFocus) {
+    if (shouldFocusOnPillWrapper) {
       (_a2 = pillWrapperRef.current) == null ? void 0 : _a2.focus();
-      setShouldFocus(false);
+      setShouldFocusOnPillWrapper(false);
     }
-  }, [shouldFocus]);
+  }, [shouldFocusOnPillWrapper]);
+  React.useEffect(() => {
+    if (filter.forceEdit && viewMode) {
+      setViewMode(false);
+      model._updateFilter(filter, { forceEdit: void 0 });
+    }
+  }, [filter, model, viewMode]);
+  React.useEffect(() => {
+    if (viewMode) {
+      setPopulateInputOnEdit((prevValue) => prevValue ? false : prevValue);
+    }
+  }, [viewMode]);
   if (viewMode) {
     const pillText = /* @__PURE__ */ React__default["default"].createElement("span", {
       className: styles.pillText
     }, keyLabel, " ", filter.operator, " ", valueLabel);
     return /* @__PURE__ */ React__default["default"].createElement("div", {
       className: css.cx(styles.combinedFilterPill, { [styles.readOnlyCombinedFilter]: readOnly }),
-      onClick: handleChangeViewMode,
+      onClick: (e) => {
+        e.stopPropagation();
+        setPopulateInputOnEdit(true);
+        handleChangeViewMode();
+      },
       onKeyDown: (e) => {
         if (e.key === "Enter") {
+          setPopulateInputOnEdit(true);
           handleChangeViewMode();
         }
       },
@@ -4655,14 +4844,14 @@ function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }) {
       onClick: (e) => {
         e.stopPropagation();
         model._removeFilter(filter);
-        setTimeout(() => focusOnInputRef == null ? void 0 : focusOnInputRef());
+        setTimeout(() => focusOnWipInputRef == null ? void 0 : focusOnWipInputRef());
       },
       onKeyDownCapture: (e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           e.stopPropagation();
           model._removeFilter(filter);
-          setTimeout(() => focusOnInputRef == null ? void 0 : focusOnInputRef());
+          setTimeout(() => focusOnWipInputRef == null ? void 0 : focusOnWipInputRef());
         }
       },
       name: "times",
@@ -4674,11 +4863,13 @@ function AdHocFilterPill({ filter, model, readOnly, focusOnInputRef }) {
   return /* @__PURE__ */ React__default["default"].createElement(AdHocCombobox, {
     filter,
     model,
-    handleChangeViewMode
+    handleChangeViewMode,
+    focusOnWipInputRef,
+    populateInputOnEdit
   });
 }
-const getStyles$a = (theme) => ({
-  combinedFilterPill: css.css(__spreadProps$m(__spreadValues$A({
+const getStyles$b = (theme) => ({
+  combinedFilterPill: css.css(__spreadProps$o(__spreadValues$A({
     display: "flex",
     alignItems: "center",
     background: theme.colors.action.selected,
@@ -4738,30 +4929,30 @@ const AdHocFiltersAlwaysWipCombobox = React.forwardRef(function AdHocFiltersAlwa
 
 const AdHocFiltersComboboxRenderer = React.memo(function AdHocFiltersComboboxRenderer2({ model }) {
   const { filters, readOnly } = model.useState();
-  const styles = ui.useStyles2(getStyles$9);
-  const focusOnInputRef = React.useRef();
+  const styles = ui.useStyles2(getStyles$a);
+  const focusOnWipInputRef = React.useRef();
   return /* @__PURE__ */ React__default["default"].createElement("div", {
     className: css.cx(styles.comboboxWrapper, { [styles.comboboxFocusOutline]: !readOnly }),
     onClick: () => {
       var _a;
-      (_a = focusOnInputRef.current) == null ? void 0 : _a.call(focusOnInputRef);
+      (_a = focusOnWipInputRef.current) == null ? void 0 : _a.call(focusOnWipInputRef);
     }
   }, /* @__PURE__ */ React__default["default"].createElement(ui.Icon, {
     name: "filter",
     className: styles.filterIcon,
     size: "lg"
   }), filters.map((filter, index) => /* @__PURE__ */ React__default["default"].createElement(AdHocFilterPill, {
-    key: index,
+    key: `${index}-${filter.key}`,
     filter,
     model,
     readOnly,
-    focusOnInputRef: focusOnInputRef.current
+    focusOnWipInputRef: focusOnWipInputRef.current
   })), !readOnly ? /* @__PURE__ */ React__default["default"].createElement(AdHocFiltersAlwaysWipCombobox, {
     model,
-    ref: focusOnInputRef
+    ref: focusOnWipInputRef
   }) : null);
 });
-const getStyles$9 = (theme) => ({
+const getStyles$a = (theme) => ({
   comboboxWrapper: css.css({
     display: "flex",
     flexWrap: "wrap",
@@ -4794,6 +4985,8 @@ const getStyles$9 = (theme) => ({
 });
 
 var __defProp$z = Object.defineProperty;
+var __defProps$n = Object.defineProperties;
+var __getOwnPropDescs$n = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols$z = Object.getOwnPropertySymbols;
 var __hasOwnProp$z = Object.prototype.hasOwnProperty;
 var __propIsEnum$z = Object.prototype.propertyIsEnumerable;
@@ -4809,6 +5002,7 @@ var __spreadValues$z = (a, b) => {
     }
   return a;
 };
+var __spreadProps$n = (a, b) => __defProps$n(a, __getOwnPropDescs$n(b));
 const OPERATORS = [
   {
     value: "=",
@@ -4874,6 +5068,21 @@ class AdHocFiltersVariable extends SceneObjectBase {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
+  updateFilters(filters, options) {
+    let filterExpressionChanged = false;
+    let filterExpression = void 0;
+    if (filters && filters !== this.state.filters) {
+      filterExpression = renderExpression(this.state.expressionBuilder, filters);
+      filterExpressionChanged = filterExpression !== this.state.filterExpression;
+    }
+    super.setState({
+      filters,
+      filterExpression
+    });
+    if (filterExpressionChanged && (options == null ? void 0 : options.skipPublish) !== true || (options == null ? void 0 : options.forcePublish)) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
   getValue() {
     return this.state.filterExpression;
   }
@@ -4903,6 +5112,30 @@ class AdHocFiltersVariable extends SceneObjectBase {
     const filterToRemove = this.state.filters.at(-1);
     if (filterToRemove) {
       this._removeFilter(filterToRemove);
+    }
+  }
+  _handleComboboxBackspace(filter) {
+    if (this.state.filters.length) {
+      let filterToForceIndex = this.state.filters.length - 1;
+      if (filter !== this.state._wip) {
+        filterToForceIndex = -1;
+      }
+      this.setState({
+        filters: this.state.filters.reduce((acc, f, index) => {
+          if (index === filterToForceIndex) {
+            return [
+              ...acc,
+              __spreadProps$n(__spreadValues$z({}, f), {
+                forceEdit: true
+              })
+            ];
+          }
+          if (f === filter) {
+            return acc;
+          }
+          return [...acc, f];
+        }, [])
+      });
     }
   }
   async _getKeys(currentKey) {
@@ -4987,7 +5220,7 @@ function renderExpression(builder, filters) {
 }
 function AdHocFiltersVariableRenderer({ model }) {
   const { filters, readOnly, addFilterButtonText } = model.useState();
-  const styles = ui.useStyles2(getStyles$8);
+  const styles = ui.useStyles2(getStyles$9);
   if (model.state.layout === "combobox") {
     return /* @__PURE__ */ React__default["default"].createElement(AdHocFiltersComboboxRenderer, {
       model
@@ -5006,7 +5239,7 @@ function AdHocFiltersVariableRenderer({ model }) {
     addFilterButtonText
   }));
 }
-const getStyles$8 = (theme) => ({
+const getStyles$9 = (theme) => ({
   wrapper: css.css({
     display: "flex",
     flexWrap: "wrap",
@@ -5080,8 +5313,8 @@ function areDifferentLayers(a, b) {
 }
 
 var __defProp$y = Object.defineProperty;
-var __defProps$l = Object.defineProperties;
-var __getOwnPropDescs$l = Object.getOwnPropertyDescriptors;
+var __defProps$m = Object.defineProperties;
+var __getOwnPropDescs$m = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols$y = Object.getOwnPropertySymbols;
 var __hasOwnProp$y = Object.prototype.hasOwnProperty;
 var __propIsEnum$y = Object.prototype.propertyIsEnumerable;
@@ -5097,7 +5330,7 @@ var __spreadValues$y = (a, b) => {
     }
   return a;
 };
-var __spreadProps$l = (a, b) => __defProps$l(a, __getOwnPropDescs$l(b));
+var __spreadProps$m = (a, b) => __defProps$m(a, __getOwnPropDescs$m(b));
 let counter$1 = 100;
 function getNextRequestId$1() {
   return "SQR" + counter$1++;
@@ -5143,9 +5376,7 @@ class SceneQueryRunner extends SceneObjectBase {
           })
         );
       }
-      this.subscribeToTimeRangeChanges(
-        timeRange
-      );
+      this.subscribeToTimeRangeChanges(timeRange);
       if (this.shouldRunQueriesOnActivate()) {
         this.runQueries();
       }
@@ -5199,9 +5430,9 @@ class SceneQueryRunner extends SceneObjectBase {
       return;
     }
     this._layerAnnotations = annotations;
-    const baseStateUpdate = this.state.data ? this.state.data : __spreadProps$l(__spreadValues$y({}, emptyPanelData), { timeRange: timeRange.state.value });
+    const baseStateUpdate = this.state.data ? this.state.data : __spreadProps$m(__spreadValues$y({}, emptyPanelData), { timeRange: timeRange.state.value });
     this.setState({
-      data: __spreadProps$l(__spreadValues$y({}, baseStateUpdate), {
+      data: __spreadProps$m(__spreadValues$y({}, baseStateUpdate), {
         annotations: [...(_d = this._resultAnnotations) != null ? _d : [], ...annotations],
         alertState: alertState != null ? alertState : (_e = this.state.data) == null ? void 0 : _e.alertState
       })
@@ -5324,7 +5555,7 @@ class SceneQueryRunner extends SceneObjectBase {
       this._dataLayersSub = void 0;
     }
     this.setState({
-      data: __spreadProps$l(__spreadValues$y({}, this.state.data), { state: schema.LoadingState.Done })
+      data: __spreadProps$m(__spreadValues$y({}, this.state.data), { state: schema.LoadingState.Done })
     });
   }
   async runWithTimeRange(timeRange) {
@@ -5338,7 +5569,7 @@ class SceneQueryRunner extends SceneObjectBase {
     (_a = this._querySub) == null ? void 0 : _a.unsubscribe();
     if (this._variableDependency.hasDependencyInLoadingState()) {
       writeSceneLog("SceneQueryRunner", "Variable dependency is in loading state, skipping query execution");
-      this.setState({ data: __spreadProps$l(__spreadValues$y({}, (_b = this.state.data) != null ? _b : emptyPanelData), { state: schema.LoadingState.Loading }) });
+      this.setState({ data: __spreadProps$m(__spreadValues$y({}, (_b = this.state.data) != null ? _b : emptyPanelData), { state: schema.LoadingState.Loading }) });
       return;
     }
     const { queries } = this.state;
@@ -5349,7 +5580,7 @@ class SceneQueryRunner extends SceneObjectBase {
     try {
       const datasource = (_c = this.state.datasource) != null ? _c : findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
-      this.findAndSubscribeToAdHocFilters(datasource == null ? void 0 : datasource.uid);
+      this.findAndSubscribeToAdHocFilters(ds.uid);
       const runRequest = runtime.getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
       writeSceneLog("SceneQueryRunner", "Starting runRequest", this.state.key);
@@ -5370,7 +5601,7 @@ class SceneQueryRunner extends SceneObjectBase {
       this._querySub = stream.subscribe(this.onDataReceived);
     } catch (err) {
       console.error("PanelQueryRunner Error", err);
-      this.onDataReceived(__spreadProps$l(__spreadValues$y(__spreadValues$y({}, emptyPanelData), this.state.data), {
+      this.onDataReceived(__spreadProps$m(__spreadValues$y(__spreadValues$y({}, emptyPanelData), this.state.data), {
         state: schema.LoadingState.Error,
         errors: [runtime.toDataQueryError(err)]
       }));
@@ -5439,7 +5670,7 @@ class SceneQueryRunner extends SceneObjectBase {
     for (const provider of (_a = this.getClosestExtraQueryProviders()) != null ? _a : []) {
       for (const { req, processor } of provider.getExtraQueries(request)) {
         const requestId = getNextRequestId$1();
-        secondaryRequests.push(__spreadProps$l(__spreadValues$y({}, req), { requestId }));
+        secondaryRequests.push(__spreadProps$m(__spreadValues$y({}, req), { requestId }));
         secondaryProcessors.set(requestId, processor != null ? processor : passthroughProcessor);
       }
     }
@@ -5478,13 +5709,13 @@ class SceneQueryRunner extends SceneObjectBase {
     });
     return Array.from(found.values());
   }
-  findAndSubscribeToAdHocFilters(uid) {
-    const filtersVar = findActiveAdHocFilterVariableByUid(uid);
+  findAndSubscribeToAdHocFilters(interpolatedUid) {
+    const filtersVar = findActiveAdHocFilterVariableByUid(interpolatedUid);
     if (this._adhocFiltersVar !== filtersVar) {
       this._adhocFiltersVar = filtersVar;
       this._updateExplicitVariableDependencies();
     }
-    const groupByVar = findActiveGroupByVariablesByUid(uid);
+    const groupByVar = findActiveGroupByVariablesByUid(interpolatedUid);
     if (this._groupByVar !== groupByVar) {
       this._groupByVar = groupByVar;
       this._updateExplicitVariableDependencies();
@@ -5578,13 +5809,16 @@ function escapeLokiRegexp(value) {
   return value.replace(RE2_METACHARACTERS, "\\$&");
 }
 function getQueriesForVariables(sourceObject) {
+  var _a;
   const runners = sceneGraph.findAllObjects(
     sourceObject.getRoot(),
     (o) => o instanceof SceneQueryRunner
   );
+  const interpolatedDsUuid = sceneGraph.interpolate(sourceObject, (_a = sourceObject.state.datasource) == null ? void 0 : _a.uid);
   const applicableRunners = filterOutInactiveRunnerDuplicates(runners).filter((r) => {
-    var _a, _b;
-    return ((_a = r.state.datasource) == null ? void 0 : _a.uid) === ((_b = sourceObject.state.datasource) == null ? void 0 : _b.uid);
+    var _a2;
+    const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, (_a2 = r.state.datasource) == null ? void 0 : _a2.uid);
+    return interpolatedQueryDsUuid === interpolatedDsUuid;
   });
   if (applicableRunners.length === 0) {
     return [];
@@ -5664,6 +5898,61 @@ function handleOptionGroups(values) {
   }
   return result;
 }
+function getFuzzySearcher(haystack, limit = 1e4) {
+  const ufuzzy = new uFuzzy__default["default"]();
+  const FIRST = Array.from({ length: Math.min(limit, haystack.length) }, (_, i) => i);
+  return (search) => {
+    if (search === "") {
+      return FIRST;
+    }
+    const [idxs, info, order] = ufuzzy.search(haystack, search);
+    if (idxs) {
+      if (info && order) {
+        const outIdxs = Array(Math.min(order.length, limit));
+        for (let i = 0; i < outIdxs.length; i++) {
+          outIdxs[i] = info.idx[order[i]];
+        }
+        return outIdxs;
+      }
+      return idxs.slice(0, limit);
+    }
+    return [];
+  };
+}
+
+var __defProp$x = Object.defineProperty;
+var __defProps$l = Object.defineProperties;
+var __getOwnPropDescs$l = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$x = Object.getOwnPropertySymbols;
+var __hasOwnProp$x = Object.prototype.hasOwnProperty;
+var __propIsEnum$x = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$x = (obj, key, value) => key in obj ? __defProp$x(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$x = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp$x.call(b, prop))
+      __defNormalProp$x(a, prop, b[prop]);
+  if (__getOwnPropSymbols$x)
+    for (var prop of __getOwnPropSymbols$x(b)) {
+      if (__propIsEnum$x.call(b, prop))
+        __defNormalProp$x(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps$l = (a, b) => __defProps$l(a, __getOwnPropDescs$l(b));
+class ConstantVariable extends SceneObjectBase {
+  constructor(initialState) {
+    super(__spreadProps$l(__spreadValues$x({
+      type: "constant",
+      value: "",
+      name: ""
+    }, initialState), {
+      skipUrlSync: true
+    }));
+  }
+  getValue() {
+    return this.state.value;
+  }
+}
 
 class VariableDependencyConfig {
   constructor(_sceneObject, _options) {
@@ -5673,6 +5962,9 @@ class VariableDependencyConfig {
     this._isWaitingForVariables = false;
     this.scanCount = 0;
     this._statePaths = _options.statePaths;
+    if (this._options.handleTimeMacros) {
+      this.handleTimeMacros();
+    }
   }
   hasDependencyOn(name) {
     return this.getNames().has(name);
@@ -5776,6 +6068,31 @@ class VariableDependencyConfig {
       this._dependencies.add(variableName);
     }
   }
+  handleTimeMacros() {
+    this._sceneObject.addActivationHandler(() => {
+      const timeRange = sceneGraph.getTimeRange(this._sceneObject);
+      const sub = timeRange.subscribeToState((newState, oldState) => {
+        const deps = this.getNames();
+        const hasFromDep = deps.has("__from");
+        const hasToDep = deps.has("__to");
+        const hasTimeZone = deps.has("__timezone");
+        if (newState.value !== oldState.value) {
+          if (hasFromDep) {
+            const variable = new ConstantVariable({ name: "__from", value: newState.from });
+            this.variableUpdateCompleted(variable, true);
+          } else if (hasToDep) {
+            const variable = new ConstantVariable({ name: "__to", value: newState.to });
+            this.variableUpdateCompleted(variable, true);
+          }
+        }
+        if (newState.timeZone !== oldState.timeZone && hasTimeZone) {
+          const variable = new ConstantVariable({ name: "__timezone", value: newState.timeZone });
+          this.variableUpdateCompleted(variable, true);
+        }
+      });
+      return () => sub.unsubscribe();
+    });
+  }
 }
 
 const hasLegacyVariableSupport = (datasource) => {
@@ -5801,22 +6118,28 @@ const hasCustomVariableSupport = (datasource) => {
   const variableSupport = datasource.variables;
   return "query" in variableSupport && "editor" in variableSupport && Boolean(variableSupport.query) && Boolean(variableSupport.editor);
 };
+const hasDataSourceVariableSupport = (datasource) => {
+  if (!datasource.variables) {
+    return false;
+  }
+  return datasource.variables.getType() === data.VariableSupportType.Datasource;
+};
 
-var __defProp$x = Object.defineProperty;
+var __defProp$w = Object.defineProperty;
 var __defProps$k = Object.defineProperties;
 var __getOwnPropDescs$k = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$x = Object.getOwnPropertySymbols;
-var __hasOwnProp$x = Object.prototype.hasOwnProperty;
-var __propIsEnum$x = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$x = (obj, key, value) => key in obj ? __defProp$x(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$x = (a, b) => {
+var __getOwnPropSymbols$w = Object.getOwnPropertySymbols;
+var __hasOwnProp$w = Object.prototype.hasOwnProperty;
+var __propIsEnum$w = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$w = (obj, key, value) => key in obj ? __defProp$w(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$w = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$x.call(b, prop))
-      __defNormalProp$x(a, prop, b[prop]);
-  if (__getOwnPropSymbols$x)
-    for (var prop of __getOwnPropSymbols$x(b)) {
-      if (__propIsEnum$x.call(b, prop))
-        __defNormalProp$x(a, prop, b[prop]);
+    if (__hasOwnProp$w.call(b, prop))
+      __defNormalProp$w(a, prop, b[prop]);
+  if (__getOwnPropSymbols$w)
+    for (var prop of __getOwnPropSymbols$w(b)) {
+      if (__propIsEnum$w.call(b, prop))
+        __defNormalProp$w(a, prop, b[prop]);
     }
   return a;
 };
@@ -5857,7 +6180,7 @@ class LegacyQueryRunner {
       return getEmptyMetricFindValueObservable();
     }
     return rxjs.from(
-      this.datasource.metricFindQuery(variable.state.query, __spreadProps$k(__spreadValues$x({}, request), {
+      this.datasource.metricFindQuery(variable.state.query, __spreadProps$k(__spreadValues$w({}, request), {
         variable: {
           name: variable.state.name,
           type: variable.state.type
@@ -5896,6 +6219,29 @@ class CustomQueryRunner {
     return this._runRequest(this.datasource, request, this.datasource.variables.query.bind(this.datasource.variables));
   }
 }
+const variableDummyRefId = "variable-query";
+class DatasourceQueryRunner {
+  constructor(datasource, _runRequest = runtime.getRunRequest()) {
+    this.datasource = datasource;
+    this._runRequest = _runRequest;
+  }
+  getTarget(variable) {
+    var _a;
+    if (hasDataSourceVariableSupport(this.datasource)) {
+      if (typeof variable.state.query === "string") {
+        return variable.state.query;
+      }
+      return __spreadProps$k(__spreadValues$w({}, variable.state.query), { refId: (_a = variable.state.query.refId) != null ? _a : variableDummyRefId });
+    }
+    throw new Error("Couldn't create a target with supplied arguments.");
+  }
+  runRequest(_, request) {
+    if (!hasDataSourceVariableSupport(this.datasource)) {
+      return getEmptyMetricFindValueObservable();
+    }
+    return this._runRequest(this.datasource, request, this.datasource.query);
+  }
+}
 function getEmptyMetricFindValueObservable() {
   return rxjs.of({ state: data.LoadingState.Done, series: [], timeRange: data.getDefaultTimeRange() });
 }
@@ -5909,6 +6255,9 @@ function createQueryVariableRunnerFactory(datasource) {
   if (hasCustomVariableSupport(datasource)) {
     return new CustomQueryRunner(datasource);
   }
+  if (hasDataSourceVariableSupport(datasource)) {
+    return new DatasourceQueryRunner(datasource);
+  }
   throw new Error(`Couldn't create a query runner for datasource ${datasource.type}`);
 }
 let createQueryVariableRunner = createQueryVariableRunnerFactory;
@@ -5919,13 +6268,13 @@ function ensureVariableQueryModelIsADataQuery(variable) {
     return { query, refId: `variable-${variable.state.name}` };
   }
   if (query.refId == null) {
-    return __spreadProps$k(__spreadValues$x({}, query), { refId: `variable-${variable.state.name}` });
+    return __spreadProps$k(__spreadValues$w({}, query), { refId: `variable-${variable.state.name}` });
   }
   return variable.state.query;
 }
 
-const metricNamesToVariableValues = (variableRegEx, sort, metricNames) => {
-  var _a, _b, _c, _d, _e, _f;
+function metricNamesToVariableValues(variableRegEx, sort, metricNames) {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
   let regex;
   let options = [];
   if (variableRegEx) {
@@ -5933,8 +6282,8 @@ const metricNamesToVariableValues = (variableRegEx, sort, metricNames) => {
   }
   for (let i = 0; i < metricNames.length; i++) {
     const item = metricNames[i];
-    let text = item.text === void 0 || item.text === null ? item.value : item.text;
-    let value = item.value === void 0 || item.value === null ? item.text : item.value;
+    let text = (_b = (_a = item.text) != null ? _a : item.value) != null ? _b : "";
+    let value = (_d = (_c = item.value) != null ? _c : item.text) != null ? _d : "";
     if (lodash.isNumber(value)) {
       value = value.toString();
     }
@@ -5951,8 +6300,8 @@ const metricNamesToVariableValues = (variableRegEx, sort, metricNames) => {
       const firstMatch = matches.find((m) => m.length > 1);
       const manyMatches = matches.length > 1 && firstMatch;
       if (valueGroup || textGroup) {
-        value = (_c = (_a = valueGroup == null ? void 0 : valueGroup.groups) == null ? void 0 : _a.value) != null ? _c : (_b = textGroup == null ? void 0 : textGroup.groups) == null ? void 0 : _b.text;
-        text = (_f = (_d = textGroup == null ? void 0 : textGroup.groups) == null ? void 0 : _d.text) != null ? _f : (_e = valueGroup == null ? void 0 : valueGroup.groups) == null ? void 0 : _e.value;
+        value = (_g = (_e = valueGroup == null ? void 0 : valueGroup.groups) == null ? void 0 : _e.value) != null ? _g : (_f = textGroup == null ? void 0 : textGroup.groups) == null ? void 0 : _f.text;
+        text = (_j = (_h = textGroup == null ? void 0 : textGroup.groups) == null ? void 0 : _h.text) != null ? _j : (_i = valueGroup == null ? void 0 : valueGroup.groups) == null ? void 0 : _i.value;
       } else if (manyMatches) {
         for (let j = 0; j < matches.length; j++) {
           const match = matches[j];
@@ -5968,7 +6317,7 @@ const metricNamesToVariableValues = (variableRegEx, sort, metricNames) => {
   }
   options = lodash.uniqBy(options, "value");
   return sortVariableValues(options, sort);
-};
+}
 const getAllMatches = (str, regex) => {
   const results = [];
   let matches = null;
@@ -6087,8 +6436,8 @@ function toMetricFindValues() {
         for (let index = 0; index < frame.length; index++) {
           const expandable = expandableIndex !== -1 ? frame.fields[expandableIndex].values.get(index) : void 0;
           const string = frame.fields[stringIndex].values.get(index);
-          const text = textIndex !== -1 ? frame.fields[textIndex].values.get(index) : null;
-          const value = valueIndex !== -1 ? frame.fields[valueIndex].values.get(index) : null;
+          const text = textIndex !== -1 ? frame.fields[textIndex].values.get(index) : "";
+          const value = valueIndex !== -1 ? frame.fields[valueIndex].values.get(index) : "";
           if (valueIndex === -1 && textIndex === -1) {
             metrics.push({ text: string, value: string, expandable });
             continue;
@@ -6134,25 +6483,25 @@ function areMetricFindValues(data$1) {
   return false;
 }
 
-var __defProp$w = Object.defineProperty;
-var __getOwnPropSymbols$w = Object.getOwnPropertySymbols;
-var __hasOwnProp$w = Object.prototype.hasOwnProperty;
-var __propIsEnum$w = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$w = (obj, key, value) => key in obj ? __defProp$w(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$w = (a, b) => {
+var __defProp$v = Object.defineProperty;
+var __getOwnPropSymbols$v = Object.getOwnPropertySymbols;
+var __hasOwnProp$v = Object.prototype.hasOwnProperty;
+var __propIsEnum$v = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$v = (obj, key, value) => key in obj ? __defProp$v(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$v = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$w.call(b, prop))
-      __defNormalProp$w(a, prop, b[prop]);
-  if (__getOwnPropSymbols$w)
-    for (var prop of __getOwnPropSymbols$w(b)) {
-      if (__propIsEnum$w.call(b, prop))
-        __defNormalProp$w(a, prop, b[prop]);
+    if (__hasOwnProp$v.call(b, prop))
+      __defNormalProp$v(a, prop, b[prop]);
+  if (__getOwnPropSymbols$v)
+    for (var prop of __getOwnPropSymbols$v(b)) {
+      if (__propIsEnum$v.call(b, prop))
+        __defNormalProp$v(a, prop, b[prop]);
     }
   return a;
 };
 class QueryVariable extends MultiValueVariable {
   constructor(initialState) {
-    super(__spreadValues$w({
+    super(__spreadValues$v({
       type: "query",
       name: "",
       value: "",
@@ -6599,28 +6948,28 @@ class ActWhenVariableChanged extends SceneObjectBase {
   }
 }
 
-var __defProp$v = Object.defineProperty;
+var __defProp$u = Object.defineProperty;
 var __defProps$j = Object.defineProperties;
 var __getOwnPropDescs$j = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$v = Object.getOwnPropertySymbols;
-var __hasOwnProp$v = Object.prototype.hasOwnProperty;
-var __propIsEnum$v = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$v = (obj, key, value) => key in obj ? __defProp$v(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$v = (a, b) => {
+var __getOwnPropSymbols$u = Object.getOwnPropertySymbols;
+var __hasOwnProp$u = Object.prototype.hasOwnProperty;
+var __propIsEnum$u = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$u = (obj, key, value) => key in obj ? __defProp$u(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$u = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$v.call(b, prop))
-      __defNormalProp$v(a, prop, b[prop]);
-  if (__getOwnPropSymbols$v)
-    for (var prop of __getOwnPropSymbols$v(b)) {
-      if (__propIsEnum$v.call(b, prop))
-        __defNormalProp$v(a, prop, b[prop]);
+    if (__hasOwnProp$u.call(b, prop))
+      __defNormalProp$u(a, prop, b[prop]);
+  if (__getOwnPropSymbols$u)
+    for (var prop of __getOwnPropSymbols$u(b)) {
+      if (__propIsEnum$u.call(b, prop))
+        __defNormalProp$u(a, prop, b[prop]);
     }
   return a;
 };
 var __spreadProps$j = (a, b) => __defProps$j(a, __getOwnPropDescs$j(b));
 class CursorSync extends SceneObjectBase {
   constructor(state) {
-    super(__spreadProps$j(__spreadValues$v({}, state), {
+    super(__spreadProps$j(__spreadValues$u({}, state), {
       sync: state.sync || schema.DashboardCursorSync.Off
     }));
     this.getEventsBus = (panel) => {
@@ -6668,22 +7017,64 @@ function getCursorSyncScope(sceneObject) {
   return sceneGraph.findObject(sceneObject, (o) => o instanceof CursorSync);
 }
 
-var __defProp$u = Object.defineProperty;
-var __getOwnPropSymbols$u = Object.getOwnPropertySymbols;
-var __hasOwnProp$u = Object.prototype.hasOwnProperty;
-var __propIsEnum$u = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$u = (obj, key, value) => key in obj ? __defProp$u(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$u = (a, b) => {
+function VizPanelSeriesLimit({ data, showAll, seriesLimit, onShowAllSeries }) {
+  const styles = ui.useStyles2(getStyles$8);
+  const seriesCount = data == null ? void 0 : data.series.length;
+  if (seriesCount === void 0 || seriesCount < seriesLimit) {
+    return null;
+  }
+  const buttonText = showAll ? "Restore limit" : `Show all ${seriesCount}`;
+  return /* @__PURE__ */ React__default["default"].createElement("div", {
+    className: styles.timeSeriesDisclaimer
+  }, !showAll && /* @__PURE__ */ React__default["default"].createElement("span", {
+    className: styles.warningMessage
+  }, /* @__PURE__ */ React__default["default"].createElement(ui.Icon, {
+    title: `Showing only ${seriesLimit} series`,
+    name: "exclamation-triangle",
+    "aria-hidden": "true"
+  })), /* @__PURE__ */ React__default["default"].createElement(ui.Tooltip, {
+    content: "Rendering too many series in a single panel may impact performance and make data harder to read."
+  }, /* @__PURE__ */ React__default["default"].createElement(ui.Button, {
+    variant: "secondary",
+    size: "sm",
+    onClick: onShowAllSeries
+  }, buttonText)));
+}
+const getStyles$8 = (theme) => ({
+  timeSeriesDisclaimer: css.css({
+    label: "time-series-disclaimer",
+    display: "flex",
+    alignItems: "center",
+    gap: theme.spacing(1)
+  }),
+  warningMessage: css.css({
+    display: "flex",
+    alignItems: "center",
+    gap: theme.spacing(0.5),
+    color: theme.colors.warning.main,
+    fontSize: theme.typography.bodySmall.fontSize
+  })
+});
+
+var __defProp$t = Object.defineProperty;
+var __defProps$i = Object.defineProperties;
+var __getOwnPropDescs$i = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$t = Object.getOwnPropertySymbols;
+var __hasOwnProp$t = Object.prototype.hasOwnProperty;
+var __propIsEnum$t = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$t = (obj, key, value) => key in obj ? __defProp$t(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$t = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$u.call(b, prop))
-      __defNormalProp$u(a, prop, b[prop]);
-  if (__getOwnPropSymbols$u)
-    for (var prop of __getOwnPropSymbols$u(b)) {
-      if (__propIsEnum$u.call(b, prop))
-        __defNormalProp$u(a, prop, b[prop]);
+    if (__hasOwnProp$t.call(b, prop))
+      __defNormalProp$t(a, prop, b[prop]);
+  if (__getOwnPropSymbols$t)
+    for (var prop of __getOwnPropSymbols$t(b)) {
+      if (__propIsEnum$t.call(b, prop))
+        __defNormalProp$t(a, prop, b[prop]);
     }
   return a;
 };
+var __spreadProps$i = (a, b) => __defProps$i(a, __getOwnPropDescs$i(b));
 function VizPanelRenderer({ model }) {
   var _a, _b, _c;
   const {
@@ -6693,17 +7084,24 @@ function VizPanelRenderer({ model }) {
     _pluginLoadError,
     displayMode,
     hoverHeader,
+    showMenuAlways,
     hoverHeaderOffset,
     menu,
     headerActions,
     titleItems,
+    seriesLimit,
+    seriesLimitShowAll,
     description,
+    collapsible,
+    collapsed,
     _renderCounter = 0
   } = model.useState();
   const [ref, { width, height }] = reactUse.useMeasure();
   const appEvents = React.useMemo(() => runtime.getAppEvents(), []);
   const setPanelAttention = React.useCallback(() => {
-    appEvents.publish(new data.SetPanelAttentionEvent({ panelId: model.state.key }));
+    if (model.state.key) {
+      appEvents.publish(new data.SetPanelAttentionEvent({ panelId: model.state.key }));
+    }
   }, [model.state.key, appEvents]);
   const debouncedMouseMove = React.useMemo(
     () => lodash.debounce(setPanelAttention, 100, { leading: true, trailing: false }),
@@ -6713,7 +7111,8 @@ function VizPanelRenderer({ model }) {
   const { dragClass, dragClassCancel } = getDragClasses(model);
   const dataObject = sceneGraph.getData(model);
   const rawData = dataObject.useState();
-  const dataWithFieldConfig = model.applyFieldConfig(rawData.data);
+  const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
+  const dataWithFieldConfig = model.applyFieldConfig(dataWithSeriesLimit);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
   const timeZone = sceneTimeRange.getTimeZone();
   const timeRange = model.getTimeRange(dataWithFieldConfig);
@@ -6747,6 +7146,17 @@ function VizPanelRenderer({ model }) {
     } else {
       titleItemsElement.push(titleItems);
     }
+  }
+  if (seriesLimit) {
+    titleItemsElement.push(
+      /* @__PURE__ */ React__default["default"].createElement(VizPanelSeriesLimit, {
+        key: "series-limit",
+        data: rawData.data,
+        seriesLimit,
+        showAll: seriesLimitShowAll,
+        onShowAllSeries: () => model.setState({ seriesLimitShowAll: !seriesLimitShowAll })
+      })
+    );
   }
   if (model.state.$timeRange) {
     titleItemsElement.push(/* @__PURE__ */ React__default["default"].createElement(model.state.$timeRange.Component, {
@@ -6814,7 +7224,9 @@ function VizPanelRenderer({ model }) {
     statusMessageOnClick: model.onStatusMessageClick,
     width,
     height,
+    selectionId: model.state.key,
     displayMode,
+    showMenuAlways,
     hoverHeader,
     hoverHeaderOffset,
     titleItems: titleItemsElement,
@@ -6826,7 +7238,10 @@ function VizPanelRenderer({ model }) {
     onCancelQuery: model.onCancelQuery,
     onFocus: setPanelAttention,
     onMouseEnter: setPanelAttention,
-    onMouseMove: debouncedMouseMove
+    onMouseMove: debouncedMouseMove,
+    collapsible,
+    collapsed,
+    onToggleCollapse: model.onToggleCollapse
   }, (innerWidth, innerHeight) => /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, plugin.meta.id === "timeseries" && /* @__PURE__ */ React__default["default"].createElement(ui.Button, {
     style: { top: "-32px", right: "28px", position: "absolute", border: 0, padding: 0 },
     variant: "secondary",
@@ -6838,7 +7253,7 @@ function VizPanelRenderer({ model }) {
     hidden: (datasource == null ? void 0 : datasource.type) !== "prometheus",
     onClick: () => {
       var _a2, _b2;
-      const variables = __spreadValues$u({}, (_a2 = data$1 == null ? void 0 : data$1.request) == null ? void 0 : _a2.scopedVars);
+      const variables = __spreadValues$t({}, (_a2 = data$1 == null ? void 0 : data$1.request) == null ? void 0 : _a2.scopedVars);
       variables.__interval = {
         value: "$__interval"
       };
@@ -6931,6 +7346,16 @@ const sendOodleInsightEvent = (dashboardUId, dashboardTitle, panelTitle, panelId
 function sendEventToParent(data) {
   window.parent.postMessage(data, "*");
 }
+function useDataWithSeriesLimit(data, seriesLimit, showAllSeries) {
+  return React.useMemo(() => {
+    if (!(data == null ? void 0 : data.series) || !seriesLimit || showAllSeries) {
+      return data;
+    }
+    return __spreadProps$i(__spreadValues$t({}, data), {
+      series: data.series.slice(0, seriesLimit)
+    });
+  }, [data, seriesLimit, showAllSeries]);
+}
 function getDragClasses(panel) {
   var _a, _b;
   const parentLayout = sceneGraph.getLayout(panel);
@@ -6984,25 +7409,25 @@ const getAlertStateStyles = (theme) => {
   };
 };
 
-var __defProp$t = Object.defineProperty;
-var __defProps$i = Object.defineProperties;
-var __getOwnPropDescs$i = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$t = Object.getOwnPropertySymbols;
-var __hasOwnProp$t = Object.prototype.hasOwnProperty;
-var __propIsEnum$t = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$t = (obj, key, value) => key in obj ? __defProp$t(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$t = (a, b) => {
+var __defProp$s = Object.defineProperty;
+var __defProps$h = Object.defineProperties;
+var __getOwnPropDescs$h = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$s = Object.getOwnPropertySymbols;
+var __hasOwnProp$s = Object.prototype.hasOwnProperty;
+var __propIsEnum$s = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$s = (obj, key, value) => key in obj ? __defProp$s(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$s = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$t.call(b, prop))
-      __defNormalProp$t(a, prop, b[prop]);
-  if (__getOwnPropSymbols$t)
-    for (var prop of __getOwnPropSymbols$t(b)) {
-      if (__propIsEnum$t.call(b, prop))
-        __defNormalProp$t(a, prop, b[prop]);
+    if (__hasOwnProp$s.call(b, prop))
+      __defNormalProp$s(a, prop, b[prop]);
+  if (__getOwnPropSymbols$s)
+    for (var prop of __getOwnPropSymbols$s(b)) {
+      if (__propIsEnum$s.call(b, prop))
+        __defNormalProp$s(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$i = (a, b) => __defProps$i(a, __getOwnPropDescs$i(b));
+var __spreadProps$h = (a, b) => __defProps$h(a, __getOwnPropDescs$h(b));
 const displayOverrideRef = "hideSeriesFrom";
 const isHideSeriesOverride = data.isSystemOverrideWithRef(displayOverrideRef);
 function seriesVisibilityConfigFactory(label, mode, fieldConfig, data) {
@@ -7012,13 +7437,13 @@ function seriesVisibilityConfigFactory(label, mode, fieldConfig, data) {
   if (currentIndex < 0) {
     if (mode === ui.SeriesVisibilityChangeMode.ToggleSelection) {
       const override3 = createOverride$1([displayName, ...getNamesOfHiddenFields(overrides, data)]);
-      return __spreadProps$i(__spreadValues$t({}, fieldConfig), {
+      return __spreadProps$h(__spreadValues$s({}, fieldConfig), {
         overrides: [...fieldConfig.overrides, override3]
       });
     }
     const displayNames = getDisplayNames(data, displayName);
     const override2 = createOverride$1(displayNames);
-    return __spreadProps$i(__spreadValues$t({}, fieldConfig), {
+    return __spreadProps$h(__spreadValues$s({}, fieldConfig), {
       overrides: [...fieldConfig.overrides, override2]
     });
   }
@@ -7031,22 +7456,22 @@ function seriesVisibilityConfigFactory(label, mode, fieldConfig, data) {
       existing = existing.filter((el) => nameOfHiddenFields.indexOf(el) < 0);
     }
     if (existing[0] === displayName && existing.length === 1) {
-      return __spreadProps$i(__spreadValues$t({}, fieldConfig), {
+      return __spreadProps$h(__spreadValues$s({}, fieldConfig), {
         overrides: overridesCopy
       });
     }
     const override2 = createOverride$1([displayName, ...nameOfHiddenFields]);
-    return __spreadProps$i(__spreadValues$t({}, fieldConfig), {
+    return __spreadProps$h(__spreadValues$s({}, fieldConfig), {
       overrides: [...overridesCopy, override2]
     });
   }
   const override = createExtendedOverride(current, displayName);
   if (allFieldsAreExcluded(override, data)) {
-    return __spreadProps$i(__spreadValues$t({}, fieldConfig), {
+    return __spreadProps$h(__spreadValues$s({}, fieldConfig), {
       overrides: overridesCopy
     });
   }
-  return __spreadProps$i(__spreadValues$t({}, fieldConfig), {
+  return __spreadProps$h(__spreadValues$s({}, fieldConfig), {
     overrides: [...overridesCopy, override]
   });
 }
@@ -7071,7 +7496,7 @@ function createOverride$1(names, mode = data.ByNamesMatcherMode.exclude, propert
       }
     },
     properties: [
-      __spreadProps$i(__spreadValues$t({}, property), {
+      __spreadProps$h(__spreadValues$s({}, property), {
         value: {
           viz: true,
           legend: false,
@@ -7143,32 +7568,32 @@ const getNamesOfHiddenFields = (overrides, data$1) => {
   return names;
 };
 
-var __defProp$s = Object.defineProperty;
-var __defProps$h = Object.defineProperties;
-var __getOwnPropDescs$h = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$s = Object.getOwnPropertySymbols;
-var __hasOwnProp$s = Object.prototype.hasOwnProperty;
-var __propIsEnum$s = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$s = (obj, key, value) => key in obj ? __defProp$s(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$s = (a, b) => {
+var __defProp$r = Object.defineProperty;
+var __defProps$g = Object.defineProperties;
+var __getOwnPropDescs$g = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$r = Object.getOwnPropertySymbols;
+var __hasOwnProp$r = Object.prototype.hasOwnProperty;
+var __propIsEnum$r = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$r = (obj, key, value) => key in obj ? __defProp$r(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$r = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$s.call(b, prop))
-      __defNormalProp$s(a, prop, b[prop]);
-  if (__getOwnPropSymbols$s)
-    for (var prop of __getOwnPropSymbols$s(b)) {
-      if (__propIsEnum$s.call(b, prop))
-        __defNormalProp$s(a, prop, b[prop]);
+    if (__hasOwnProp$r.call(b, prop))
+      __defNormalProp$r(a, prop, b[prop]);
+  if (__getOwnPropSymbols$r)
+    for (var prop of __getOwnPropSymbols$r(b)) {
+      if (__propIsEnum$r.call(b, prop))
+        __defNormalProp$r(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$h = (a, b) => __defProps$h(a, __getOwnPropDescs$h(b));
+var __spreadProps$g = (a, b) => __defProps$g(a, __getOwnPropDescs$g(b));
 const changeSeriesColorConfigFactory = (label, color, fieldConfig) => {
   const { overrides } = fieldConfig;
   const currentIndex = fieldConfig.overrides.findIndex((override) => {
     return override.matcher.id === data.FieldMatcherID.byName && override.matcher.options === label;
   });
   if (currentIndex < 0) {
-    return __spreadProps$h(__spreadValues$s({}, fieldConfig), {
+    return __spreadProps$g(__spreadValues$r({}, fieldConfig), {
       overrides: [...fieldConfig.overrides, createOverride(label, color)]
     });
   }
@@ -7176,19 +7601,19 @@ const changeSeriesColorConfigFactory = (label, color, fieldConfig) => {
   const existing = overridesCopy[currentIndex];
   const propertyIndex = existing.properties.findIndex((p) => p.id === "color");
   if (propertyIndex < 0) {
-    overridesCopy[currentIndex] = __spreadProps$h(__spreadValues$s({}, existing), {
+    overridesCopy[currentIndex] = __spreadProps$g(__spreadValues$r({}, existing), {
       properties: [...existing.properties, createProperty(color)]
     });
-    return __spreadProps$h(__spreadValues$s({}, fieldConfig), {
+    return __spreadProps$g(__spreadValues$r({}, fieldConfig), {
       overrides: overridesCopy
     });
   }
   const propertiesCopy = Array.from(existing.properties);
   propertiesCopy[propertyIndex] = createProperty(color);
-  overridesCopy[currentIndex] = __spreadProps$h(__spreadValues$s({}, existing), {
+  overridesCopy[currentIndex] = __spreadProps$g(__spreadValues$r({}, existing), {
     properties: propertiesCopy
   });
-  return __spreadProps$h(__spreadValues$s({}, fieldConfig), {
+  return __spreadProps$g(__spreadValues$r({}, fieldConfig), {
     overrides: overridesCopy
   });
 };
@@ -7211,29 +7636,29 @@ const createProperty = (color) => {
   };
 };
 
-var __defProp$r = Object.defineProperty;
-var __defProps$g = Object.defineProperties;
-var __getOwnPropDescs$g = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$r = Object.getOwnPropertySymbols;
-var __hasOwnProp$r = Object.prototype.hasOwnProperty;
-var __propIsEnum$r = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$r = (obj, key, value) => key in obj ? __defProp$r(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$r = (a, b) => {
+var __defProp$q = Object.defineProperty;
+var __defProps$f = Object.defineProperties;
+var __getOwnPropDescs$f = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$q = Object.getOwnPropertySymbols;
+var __hasOwnProp$q = Object.prototype.hasOwnProperty;
+var __propIsEnum$q = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$q = (obj, key, value) => key in obj ? __defProp$q(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$q = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$r.call(b, prop))
-      __defNormalProp$r(a, prop, b[prop]);
-  if (__getOwnPropSymbols$r)
-    for (var prop of __getOwnPropSymbols$r(b)) {
-      if (__propIsEnum$r.call(b, prop))
-        __defNormalProp$r(a, prop, b[prop]);
+    if (__hasOwnProp$q.call(b, prop))
+      __defNormalProp$q(a, prop, b[prop]);
+  if (__getOwnPropSymbols$q)
+    for (var prop of __getOwnPropSymbols$q(b)) {
+      if (__propIsEnum$q.call(b, prop))
+        __defNormalProp$q(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$g = (a, b) => __defProps$g(a, __getOwnPropDescs$g(b));
+var __spreadProps$f = (a, b) => __defProps$f(a, __getOwnPropDescs$f(b));
 class VizPanel extends SceneObjectBase {
   constructor(state) {
     var _a;
-    super(__spreadValues$r({
+    super(__spreadValues$q({
       options: {},
       fieldConfig: { defaults: {}, overrides: [] },
       title: "Title",
@@ -7264,7 +7689,8 @@ class VizPanel extends SceneObjectBase {
           sceneTimeRange.state.to,
           sceneTimeRange.getTimeZone(),
           sceneTimeRange.state.fiscalYearStartMonth,
-          sceneTimeRange.state.UNSAFE_nowDelay
+          sceneTimeRange.state.UNSAFE_nowDelay,
+          sceneTimeRange.state.weekStart
         );
       }
       const plugin = this.getPlugin();
@@ -7281,6 +7707,11 @@ class VizPanel extends SceneObjectBase {
     };
     this.onDisplayModeChange = (displayMode) => {
       this.setState({ displayMode });
+    };
+    this.onToggleCollapse = (collapsed) => {
+      this.setState({
+        collapsed
+      });
     };
     this.onOptionsChange = (optionsUpdate, replace = false, isAfterPluginChange = false) => {
       var _a;
@@ -7353,7 +7784,7 @@ class VizPanel extends SceneObjectBase {
     };
     this._onInstanceStateChange = (state) => {
       if (this._panelContext) {
-        this._panelContext = __spreadProps$g(__spreadValues$r({}, this._panelContext), {
+        this._panelContext = __spreadProps$f(__spreadValues$q({}, this._panelContext), {
           instanceState: state
         });
       }
@@ -7377,8 +7808,8 @@ class VizPanel extends SceneObjectBase {
         sortBy = sortKey;
       }
       this.onOptionsChange(
-        __spreadProps$g(__spreadValues$r({}, this.state.options), {
-          legend: __spreadProps$g(__spreadValues$r({}, legendOptions), { sortBy, sortDesc })
+        __spreadProps$f(__spreadValues$q({}, this.state.options), {
+          legend: __spreadProps$f(__spreadValues$q({}, legendOptions), { sortBy, sortDesc })
         }),
         true
       );
@@ -7394,6 +7825,10 @@ class VizPanel extends SceneObjectBase {
     if (!this._plugin) {
       this._loadPlugin(this.state.pluginId);
     }
+  }
+  forceRender() {
+    var _a;
+    this.setState({ _renderCounter: ((_a = this.state._renderCounter) != null ? _a : 0) + 1 });
   }
   async _loadPlugin(pluginId, overwriteOptions, overwriteFieldConfig, isAfterPluginChange) {
     const plugin = loadPanelPluginSync(pluginId);
@@ -7437,7 +7872,7 @@ class VizPanel extends SceneObjectBase {
     }
     const currentVersion = this._getPluginVersion(plugin);
     _UNSAFE_customMigrationHandler == null ? void 0 : _UNSAFE_customMigrationHandler(panel, plugin);
-    if (plugin.onPanelMigration && currentVersion !== this.state.pluginVersion) {
+    if (plugin.onPanelMigration && currentVersion !== pluginVersion && !isAfterPluginChange) {
       panel.options = await plugin.onPanelMigration(panel);
     }
     const withDefaults = data.getPanelOptionsWithDefaults({
@@ -7471,13 +7906,10 @@ class VizPanel extends SceneObjectBase {
   }
   async changePluginType(pluginId, newOptions, newFieldConfig) {
     var _a, _b;
-    const {
-      options: prevOptions,
-      fieldConfig: prevFieldConfig,
-      pluginId: prevPluginId
-    } = this.state;
+    const { options: prevOptions, fieldConfig: prevFieldConfig, pluginId: prevPluginId } = this.state;
     this._dataWithFieldConfig = void 0;
-    await this._loadPlugin(pluginId, newOptions != null ? newOptions : {}, newFieldConfig, true);
+    const isAfterPluginChange = this.state.pluginId !== pluginId;
+    await this._loadPlugin(pluginId, newOptions != null ? newOptions : {}, newFieldConfig, isAfterPluginChange);
     const panel = {
       title: this.state.title,
       options: this.state.options,
@@ -7516,7 +7948,7 @@ class VizPanel extends SceneObjectBase {
     if (!data.compareArrayValues(newFrames, prevFrames, data.compareDataFrameStructures)) {
       this._structureRev++;
     }
-    this._dataWithFieldConfig = __spreadProps$g(__spreadValues$r({}, rawData), {
+    this._dataWithFieldConfig = __spreadProps$f(__spreadValues$q({}, rawData), {
       structureRev: this._structureRev,
       series: newFrames
     });
@@ -7659,25 +8091,25 @@ function getMessageFromError(err) {
   return JSON.stringify(err);
 }
 
-var __defProp$q = Object.defineProperty;
-var __getOwnPropSymbols$q = Object.getOwnPropertySymbols;
-var __hasOwnProp$q = Object.prototype.hasOwnProperty;
-var __propIsEnum$q = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$q = (obj, key, value) => key in obj ? __defProp$q(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$q = (a, b) => {
+var __defProp$p = Object.defineProperty;
+var __getOwnPropSymbols$p = Object.getOwnPropertySymbols;
+var __hasOwnProp$p = Object.prototype.hasOwnProperty;
+var __propIsEnum$p = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$p = (obj, key, value) => key in obj ? __defProp$p(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$p = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$q.call(b, prop))
-      __defNormalProp$q(a, prop, b[prop]);
-  if (__getOwnPropSymbols$q)
-    for (var prop of __getOwnPropSymbols$q(b)) {
-      if (__propIsEnum$q.call(b, prop))
-        __defNormalProp$q(a, prop, b[prop]);
+    if (__hasOwnProp$p.call(b, prop))
+      __defNormalProp$p(a, prop, b[prop]);
+  if (__getOwnPropSymbols$p)
+    for (var prop of __getOwnPropSymbols$p(b)) {
+      if (__propIsEnum$p.call(b, prop))
+        __defNormalProp$p(a, prop, b[prop]);
     }
   return a;
 };
 class SceneDataLayerBase extends SceneObjectBase {
   constructor(initialState, variableDependencyStatePaths = []) {
-    super(__spreadValues$q({
+    super(__spreadValues$p({
       isEnabled: true
     }, initialState));
     this._results = new rxjs.ReplaySubject(1);
@@ -7802,33 +8234,33 @@ function DataLayerControlSwitch({ layer }) {
 }
 const containerStyle$1 = css.css({ display: "flex" });
 
-var __defProp$p = Object.defineProperty;
-var __defProps$f = Object.defineProperties;
-var __getOwnPropDescs$f = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$p = Object.getOwnPropertySymbols;
-var __hasOwnProp$p = Object.prototype.hasOwnProperty;
-var __propIsEnum$p = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$p = (obj, key, value) => key in obj ? __defProp$p(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$p = (a, b) => {
+var __defProp$o = Object.defineProperty;
+var __defProps$e = Object.defineProperties;
+var __getOwnPropDescs$e = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$o = Object.getOwnPropertySymbols;
+var __hasOwnProp$o = Object.prototype.hasOwnProperty;
+var __propIsEnum$o = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$o = (obj, key, value) => key in obj ? __defProp$o(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$o = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$p.call(b, prop))
-      __defNormalProp$p(a, prop, b[prop]);
-  if (__getOwnPropSymbols$p)
-    for (var prop of __getOwnPropSymbols$p(b)) {
-      if (__propIsEnum$p.call(b, prop))
-        __defNormalProp$p(a, prop, b[prop]);
+    if (__hasOwnProp$o.call(b, prop))
+      __defNormalProp$o(a, prop, b[prop]);
+  if (__getOwnPropSymbols$o)
+    for (var prop of __getOwnPropSymbols$o(b)) {
+      if (__propIsEnum$o.call(b, prop))
+        __defNormalProp$o(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$f = (a, b) => __defProps$f(a, __getOwnPropDescs$f(b));
+var __spreadProps$e = (a, b) => __defProps$e(a, __getOwnPropDescs$e(b));
 var __objRest$2 = (source, exclude) => {
   var target = {};
   for (var prop in source)
-    if (__hasOwnProp$p.call(source, prop) && exclude.indexOf(prop) < 0)
+    if (__hasOwnProp$o.call(source, prop) && exclude.indexOf(prop) < 0)
       target[prop] = source[prop];
-  if (source != null && __getOwnPropSymbols$p)
-    for (var prop of __getOwnPropSymbols$p(source)) {
-      if (exclude.indexOf(prop) < 0 && __propIsEnum$p.call(source, prop))
+  if (source != null && __getOwnPropSymbols$o)
+    for (var prop of __getOwnPropSymbols$o(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum$o.call(source, prop))
         target[prop] = source[prop];
     }
   return target;
@@ -7837,7 +8269,7 @@ const standardAnnotationSupport = {
   prepareAnnotation: (json) => {
     if (lodash.isString(json == null ? void 0 : json.query)) {
       const _a = json, { query } = _a, rest = __objRest$2(_a, ["query"]);
-      return __spreadProps$f(__spreadValues$p({}, rest), {
+      return __spreadProps$e(__spreadValues$o({}, rest), {
         target: {
           refId: "annotation_query",
           query
@@ -8005,25 +8437,25 @@ function shouldUseLegacyRunner(datasource) {
   return !datasource.annotations || legacyRunner.includes(type);
 }
 
-var __defProp$o = Object.defineProperty;
-var __defProps$e = Object.defineProperties;
-var __getOwnPropDescs$e = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$o = Object.getOwnPropertySymbols;
-var __hasOwnProp$o = Object.prototype.hasOwnProperty;
-var __propIsEnum$o = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$o = (obj, key, value) => key in obj ? __defProp$o(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$o = (a, b) => {
+var __defProp$n = Object.defineProperty;
+var __defProps$d = Object.defineProperties;
+var __getOwnPropDescs$d = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$n = Object.getOwnPropertySymbols;
+var __hasOwnProp$n = Object.prototype.hasOwnProperty;
+var __propIsEnum$n = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$n = (obj, key, value) => key in obj ? __defProp$n(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$n = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$o.call(b, prop))
-      __defNormalProp$o(a, prop, b[prop]);
-  if (__getOwnPropSymbols$o)
-    for (var prop of __getOwnPropSymbols$o(b)) {
-      if (__propIsEnum$o.call(b, prop))
-        __defNormalProp$o(a, prop, b[prop]);
+    if (__hasOwnProp$n.call(b, prop))
+      __defNormalProp$n(a, prop, b[prop]);
+  if (__getOwnPropSymbols$n)
+    for (var prop of __getOwnPropSymbols$n(b)) {
+      if (__propIsEnum$n.call(b, prop))
+        __defNormalProp$n(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$e = (a, b) => __defProps$e(a, __getOwnPropDescs$e(b));
+var __spreadProps$d = (a, b) => __defProps$d(a, __getOwnPropDescs$d(b));
 let counter = 100;
 function getNextRequestId() {
   return "AQ" + counter++;
@@ -8048,8 +8480,8 @@ function executeAnnotationQuery(datasource, timeRange, query, layer) {
       }))
     );
   }
-  const processor = __spreadValues$o(__spreadValues$o({}, standardAnnotationSupport), datasource.annotations);
-  const annotationWithDefaults = __spreadValues$o(__spreadValues$o({}, (_a = processor.getDefaultQuery) == null ? void 0 : _a.call(processor)), query);
+  const processor = __spreadValues$n(__spreadValues$n({}, standardAnnotationSupport), datasource.annotations);
+  const annotationWithDefaults = __spreadValues$n(__spreadValues$n({}, (_a = processor.getDefaultQuery) == null ? void 0 : _a.call(processor)), query);
   const annotation = processor.prepareAnnotation(annotationWithDefaults);
   if (!annotation) {
     return rxjs.of({
@@ -8072,7 +8504,7 @@ function executeAnnotationQuery(datasource, timeRange, query, layer) {
     __annotation: { text: annotation.name, value: annotation },
     __sceneObject: wrapInSafeSerializableSceneObject(layer)
   };
-  const queryRequest = __spreadValues$o(__spreadProps$e(__spreadValues$o({
+  const queryRequest = __spreadValues$n(__spreadProps$d(__spreadValues$n({
     startTime: Date.now(),
     requestId: getNextRequestId(),
     range: timeRange.state.value,
@@ -8082,7 +8514,7 @@ function executeAnnotationQuery(datasource, timeRange, query, layer) {
     app: data.CoreApp.Dashboard,
     timezone: timeRange.getTimeZone(),
     targets: [
-      __spreadProps$e(__spreadValues$o({}, processedQuery), {
+      __spreadProps$d(__spreadValues$n({}, processedQuery), {
         refId: "Anno"
       })
     ]
@@ -8100,7 +8532,7 @@ function executeAnnotationQuery(datasource, timeRange, query, layer) {
       data$1.forEach((frame) => {
         var _a2;
         if (!((_a2 = frame.meta) == null ? void 0 : _a2.dataTopic)) {
-          frame.meta = __spreadProps$e(__spreadValues$o({}, frame.meta || {}), { dataTopic: data.DataTopic.Annotations });
+          frame.meta = __spreadProps$d(__spreadValues$n({}, frame.meta || {}), { dataTopic: data.DataTopic.Annotations });
         }
       });
       return processor.processEvents(annotation, data$1).pipe(
@@ -8115,19 +8547,19 @@ function executeAnnotationQuery(datasource, timeRange, query, layer) {
   );
 }
 
-var __defProp$n = Object.defineProperty;
-var __getOwnPropSymbols$n = Object.getOwnPropertySymbols;
-var __hasOwnProp$n = Object.prototype.hasOwnProperty;
-var __propIsEnum$n = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$n = (obj, key, value) => key in obj ? __defProp$n(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$n = (a, b) => {
+var __defProp$m = Object.defineProperty;
+var __getOwnPropSymbols$m = Object.getOwnPropertySymbols;
+var __hasOwnProp$m = Object.prototype.hasOwnProperty;
+var __propIsEnum$m = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$m = (obj, key, value) => key in obj ? __defProp$m(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$m = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$n.call(b, prop))
-      __defNormalProp$n(a, prop, b[prop]);
-  if (__getOwnPropSymbols$n)
-    for (var prop of __getOwnPropSymbols$n(b)) {
-      if (__propIsEnum$n.call(b, prop))
-        __defNormalProp$n(a, prop, b[prop]);
+    if (__hasOwnProp$m.call(b, prop))
+      __defNormalProp$m(a, prop, b[prop]);
+  if (__getOwnPropSymbols$m)
+    for (var prop of __getOwnPropSymbols$m(b)) {
+      if (__propIsEnum$m.call(b, prop))
+        __defNormalProp$m(a, prop, b[prop]);
     }
   return a;
 };
@@ -8138,7 +8570,7 @@ function postProcessQueryResult(annotation, results) {
   }
   const processed = results.map((item) => {
     var _a;
-    const processedItem = __spreadValues$n({}, item);
+    const processedItem = __spreadValues$m({}, item);
     processedItem.source = annotation;
     processedItem.color = runtime.config.theme2.visualization.getColorByName(annotation.iconColor);
     processedItem.type = annotation.name;
@@ -8187,29 +8619,29 @@ function isPanelAlert(event) {
   return event.eventType === "panel-alert";
 }
 
-var __defProp$m = Object.defineProperty;
-var __defProps$d = Object.defineProperties;
-var __getOwnPropDescs$d = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$m = Object.getOwnPropertySymbols;
-var __hasOwnProp$m = Object.prototype.hasOwnProperty;
-var __propIsEnum$m = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$m = (obj, key, value) => key in obj ? __defProp$m(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$m = (a, b) => {
+var __defProp$l = Object.defineProperty;
+var __defProps$c = Object.defineProperties;
+var __getOwnPropDescs$c = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$l = Object.getOwnPropertySymbols;
+var __hasOwnProp$l = Object.prototype.hasOwnProperty;
+var __propIsEnum$l = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$l = (obj, key, value) => key in obj ? __defProp$l(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$l = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$m.call(b, prop))
-      __defNormalProp$m(a, prop, b[prop]);
-  if (__getOwnPropSymbols$m)
-    for (var prop of __getOwnPropSymbols$m(b)) {
-      if (__propIsEnum$m.call(b, prop))
-        __defNormalProp$m(a, prop, b[prop]);
+    if (__hasOwnProp$l.call(b, prop))
+      __defNormalProp$l(a, prop, b[prop]);
+  if (__getOwnPropSymbols$l)
+    for (var prop of __getOwnPropSymbols$l(b)) {
+      if (__propIsEnum$l.call(b, prop))
+        __defNormalProp$l(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$d = (a, b) => __defProps$d(a, __getOwnPropDescs$d(b));
+var __spreadProps$c = (a, b) => __defProps$c(a, __getOwnPropDescs$c(b));
 class AnnotationsDataLayer extends SceneDataLayerBase {
   constructor(initialState) {
     super(
-      __spreadValues$m({
+      __spreadValues$l({
         isEnabled: true
       }, initialState),
       ["query"]
@@ -8261,7 +8693,7 @@ class AnnotationsDataLayer extends SceneDataLayerBase {
         this.publishResults(stateUpdate);
       });
     } catch (e) {
-      this.publishResults(__spreadProps$d(__spreadValues$m({}, emptyPanelData), {
+      this.publishResults(__spreadProps$c(__spreadValues$l({}, emptyPanelData), {
         state: schema.LoadingState.Error,
         errors: [
           {
@@ -8278,9 +8710,9 @@ class AnnotationsDataLayer extends SceneDataLayerBase {
   processEvents(query, events) {
     let processedEvents = postProcessQueryResult(query, events.events || []);
     processedEvents = dedupAnnotations(processedEvents);
-    const stateUpdate = __spreadProps$d(__spreadValues$m({}, emptyPanelData), { state: events.state });
+    const stateUpdate = __spreadProps$c(__spreadValues$l({}, emptyPanelData), { state: events.state });
     const df = data.arrayToDataFrame(processedEvents);
-    df.meta = __spreadProps$d(__spreadValues$m({}, df.meta), {
+    df.meta = __spreadProps$c(__spreadValues$l({}, df.meta), {
       dataTopic: data.DataTopic.Annotations
     });
     stateUpdate.series = [df];
@@ -8333,28 +8765,28 @@ class SceneTimeRangeTransformerBase extends SceneObjectBase {
   }
 }
 
-var __defProp$l = Object.defineProperty;
-var __defProps$c = Object.defineProperties;
-var __getOwnPropDescs$c = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$l = Object.getOwnPropertySymbols;
-var __hasOwnProp$l = Object.prototype.hasOwnProperty;
-var __propIsEnum$l = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$l = (obj, key, value) => key in obj ? __defProp$l(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$l = (a, b) => {
+var __defProp$k = Object.defineProperty;
+var __defProps$b = Object.defineProperties;
+var __getOwnPropDescs$b = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$k = Object.getOwnPropertySymbols;
+var __hasOwnProp$k = Object.prototype.hasOwnProperty;
+var __propIsEnum$k = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$k = (obj, key, value) => key in obj ? __defProp$k(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$k = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$l.call(b, prop))
-      __defNormalProp$l(a, prop, b[prop]);
-  if (__getOwnPropSymbols$l)
-    for (var prop of __getOwnPropSymbols$l(b)) {
-      if (__propIsEnum$l.call(b, prop))
-        __defNormalProp$l(a, prop, b[prop]);
+    if (__hasOwnProp$k.call(b, prop))
+      __defNormalProp$k(a, prop, b[prop]);
+  if (__getOwnPropSymbols$k)
+    for (var prop of __getOwnPropSymbols$k(b)) {
+      if (__propIsEnum$k.call(b, prop))
+        __defNormalProp$k(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$c = (a, b) => __defProps$c(a, __getOwnPropDescs$c(b));
+var __spreadProps$b = (a, b) => __defProps$b(a, __getOwnPropDescs$b(b));
 class SceneTimeZoneOverride extends SceneTimeRangeTransformerBase {
   constructor(state) {
-    super(__spreadProps$c(__spreadValues$l({}, state), {
+    super(__spreadProps$b(__spreadValues$k({}, state), {
       timeZone: state.timeZone,
       from: "now-6h",
       to: "now",
@@ -8362,14 +8794,15 @@ class SceneTimeZoneOverride extends SceneTimeRangeTransformerBase {
     }));
   }
   ancestorTimeRangeChanged(timeRange) {
-    this.setState(__spreadProps$c(__spreadValues$l({}, timeRange), {
+    this.setState(__spreadProps$b(__spreadValues$k({}, timeRange), {
       timeZone: this.state.timeZone,
       value: evaluateTimeRange(
         timeRange.from,
         timeRange.to,
         this.state.timeZone,
         timeRange.fiscalYearStartMonth,
-        timeRange.UNSAFE_nowDelay
+        timeRange.UNSAFE_nowDelay,
+        timeRange.weekStart
       )
     }));
   }
@@ -8377,14 +8810,16 @@ class SceneTimeZoneOverride extends SceneTimeRangeTransformerBase {
     return this.state.timeZone;
   }
   onTimeZoneChange(timeZone) {
+    const parentTimeRange = this.getAncestorTimeRange();
     this.setState({
       timeZone,
       value: evaluateTimeRange(
-        this.state.from,
-        this.state.to,
-        this.state.timeZone,
-        this.getAncestorTimeRange().state.fiscalYearStartMonth,
-        this.state.UNSAFE_nowDelay
+        parentTimeRange.state.from,
+        parentTimeRange.state.to,
+        timeZone,
+        parentTimeRange.state.fiscalYearStartMonth,
+        parentTimeRange.state.UNSAFE_nowDelay,
+        parentTimeRange.state.weekStart
       )
     });
   }
@@ -8423,25 +8858,25 @@ class DataProviderProxy extends SceneObjectBase {
   }
 }
 
-var __defProp$k = Object.defineProperty;
-var __defProps$b = Object.defineProperties;
-var __getOwnPropDescs$b = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$k = Object.getOwnPropertySymbols;
-var __hasOwnProp$k = Object.prototype.hasOwnProperty;
-var __propIsEnum$k = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$k = (obj, key, value) => key in obj ? __defProp$k(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$k = (a, b) => {
+var __defProp$j = Object.defineProperty;
+var __defProps$a = Object.defineProperties;
+var __getOwnPropDescs$a = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$j = Object.getOwnPropertySymbols;
+var __hasOwnProp$j = Object.prototype.hasOwnProperty;
+var __propIsEnum$j = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$j = (obj, key, value) => key in obj ? __defProp$j(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$j = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$k.call(b, prop))
-      __defNormalProp$k(a, prop, b[prop]);
-  if (__getOwnPropSymbols$k)
-    for (var prop of __getOwnPropSymbols$k(b)) {
-      if (__propIsEnum$k.call(b, prop))
-        __defNormalProp$k(a, prop, b[prop]);
+    if (__hasOwnProp$j.call(b, prop))
+      __defNormalProp$j(a, prop, b[prop]);
+  if (__getOwnPropSymbols$j)
+    for (var prop of __getOwnPropSymbols$j(b)) {
+      if (__propIsEnum$j.call(b, prop))
+        __defNormalProp$j(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$b = (a, b) => __defProps$b(a, __getOwnPropDescs$b(b));
+var __spreadProps$a = (a, b) => __defProps$a(a, __getOwnPropDescs$a(b));
 class SceneDataLayerSetBase extends SceneObjectBase {
   constructor() {
     super(...arguments);
@@ -8465,7 +8900,7 @@ class SceneDataLayerSetBase extends SceneObjectBase {
         series = series.concat(result.data.series);
       }
     }
-    const combinedData = __spreadProps$b(__spreadValues$k({}, emptyPanelData), { series });
+    const combinedData = __spreadProps$a(__spreadValues$j({}, emptyPanelData), { series });
     this._results.next({ origin: this, data: combinedData });
     this.setStateHelper({ data: combinedData });
   }
@@ -8514,25 +8949,25 @@ SceneDataLayerSet.Component = ({ model }) => {
   })));
 };
 
-var __defProp$j = Object.defineProperty;
-var __defProps$a = Object.defineProperties;
-var __getOwnPropDescs$a = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$j = Object.getOwnPropertySymbols;
-var __hasOwnProp$j = Object.prototype.hasOwnProperty;
-var __propIsEnum$j = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$j = (obj, key, value) => key in obj ? __defProp$j(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$j = (a, b) => {
+var __defProp$i = Object.defineProperty;
+var __defProps$9 = Object.defineProperties;
+var __getOwnPropDescs$9 = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$i = Object.getOwnPropertySymbols;
+var __hasOwnProp$i = Object.prototype.hasOwnProperty;
+var __propIsEnum$i = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$i = (obj, key, value) => key in obj ? __defProp$i(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$i = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$j.call(b, prop))
-      __defNormalProp$j(a, prop, b[prop]);
-  if (__getOwnPropSymbols$j)
-    for (var prop of __getOwnPropSymbols$j(b)) {
-      if (__propIsEnum$j.call(b, prop))
-        __defNormalProp$j(a, prop, b[prop]);
+    if (__hasOwnProp$i.call(b, prop))
+      __defNormalProp$i(a, prop, b[prop]);
+  if (__getOwnPropSymbols$i)
+    for (var prop of __getOwnPropSymbols$i(b)) {
+      if (__propIsEnum$i.call(b, prop))
+        __defNormalProp$i(a, prop, b[prop]);
     }
   return a;
 };
-var __spreadProps$a = (a, b) => __defProps$a(a, __getOwnPropDescs$a(b));
+var __spreadProps$9 = (a, b) => __defProps$9(a, __getOwnPropDescs$9(b));
 class SceneDataTransformer extends SceneObjectBase {
   constructor(state) {
     super(state);
@@ -8609,7 +9044,7 @@ class SceneDataTransformer extends SceneObjectBase {
     const { series, annotations } = this._prevDataFromSource;
     if (data.series === series && data.annotations === annotations) {
       if (this.state.data && data.state !== this.state.data.state) {
-        this.setState({ data: __spreadProps$a(__spreadValues$j({}, this.state.data), { state: data.state }) });
+        this.setState({ data: __spreadProps$9(__spreadValues$i({}, this.state.data), { state: data.state }) });
       }
       return true;
     }
@@ -8657,7 +9092,7 @@ class SceneDataTransformer extends SceneObjectBase {
       rxjs.map((values) => {
         const transformedSeries = values[0];
         const transformedAnnotations = values[1];
-        return __spreadProps$a(__spreadValues$j({}, data$1), {
+        return __spreadProps$9(__spreadValues$i({}, data$1), {
           series: transformedSeries,
           annotations: transformedAnnotations != null ? transformedAnnotations : data$1.annotations
         });
@@ -8668,7 +9103,7 @@ class SceneDataTransformer extends SceneObjectBase {
         const sourceErr = ((_a2 = this.getSourceData().state.data) == null ? void 0 : _a2.errors) || [];
         const transformationError = runtime.toDataQueryError(err);
         transformationError.message = `Error transforming data: ${transformationError.message}`;
-        const result = __spreadProps$a(__spreadValues$j({}, data$1), {
+        const result = __spreadProps$9(__spreadValues$i({}, data$1), {
           state: data.LoadingState.Error,
           errors: [...sourceErr, transformationError]
         });
@@ -8721,13 +9156,13 @@ function VariableValueSelectWrapper({ variable, layout, showAlways, hideLabel })
   }));
 }
 function VariableLabel({ variable, layout, hideLabel }) {
-  var _a, _b;
+  var _a;
   const { state } = variable;
   if (variable.state.hide === data.VariableHide.hideLabel || hideLabel) {
     return null;
   }
   const elementId = `var-${state.key}`;
-  const labelOrName = (_a = state.label) != null ? _a : state.name;
+  const labelOrName = state.label || state.name;
   return /* @__PURE__ */ React__default["default"].createElement(ControlsLabel, {
     htmlFor: elementId,
     isLoading: state.loading,
@@ -8738,7 +9173,7 @@ function VariableLabel({ variable, layout, hideLabel }) {
     label: labelOrName,
     error: state.error,
     layout,
-    description: (_b = state.description) != null ? _b : void 0
+    description: (_a = state.description) != null ? _a : void 0
   });
 }
 const containerStyle = css.css({ display: "flex" });
@@ -9002,40 +9437,6 @@ class SceneVariableSetVariableDependencyHandler {
   }
   variableUpdateCompleted(variable, hasChanged) {
     this._variableUpdatesCompleted(variable, hasChanged);
-  }
-}
-
-var __defProp$i = Object.defineProperty;
-var __defProps$9 = Object.defineProperties;
-var __getOwnPropDescs$9 = Object.getOwnPropertyDescriptors;
-var __getOwnPropSymbols$i = Object.getOwnPropertySymbols;
-var __hasOwnProp$i = Object.prototype.hasOwnProperty;
-var __propIsEnum$i = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$i = (obj, key, value) => key in obj ? __defProp$i(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$i = (a, b) => {
-  for (var prop in b || (b = {}))
-    if (__hasOwnProp$i.call(b, prop))
-      __defNormalProp$i(a, prop, b[prop]);
-  if (__getOwnPropSymbols$i)
-    for (var prop of __getOwnPropSymbols$i(b)) {
-      if (__propIsEnum$i.call(b, prop))
-        __defNormalProp$i(a, prop, b[prop]);
-    }
-  return a;
-};
-var __spreadProps$9 = (a, b) => __defProps$9(a, __getOwnPropDescs$9(b));
-class ConstantVariable extends SceneObjectBase {
-  constructor(initialState) {
-    super(__spreadProps$9(__spreadValues$i({
-      type: "constant",
-      value: "",
-      name: ""
-    }, initialState), {
-      skipUrlSync: true
-    }));
-  }
-  getValue() {
-    return this.state.value;
   }
 }
 
@@ -9345,6 +9746,7 @@ function VariableValueInput({ model }) {
     id: key,
     placeholder: "Enter value",
     minWidth: 15,
+    maxWidth: 30,
     value,
     loading,
     onBlur,
@@ -9863,6 +10265,82 @@ function VizPanelMenuRenderer({ model }) {
   return /* @__PURE__ */ React__default["default"].createElement(ui.Menu, {
     ref
   }, renderItems(items));
+}
+
+async function getExploreURL(data, model, timeRange, transform) {
+  var _a, _b, _c, _d;
+  const targets = (_a = data.request) == null ? void 0 : _a.targets;
+  if (!targets) {
+    return "";
+  }
+  const { from, to } = timeRange;
+  const filters = (_b = data.request) == null ? void 0 : _b.filters;
+  const scopedVars = {
+    __sceneObject: wrapInSafeSerializableSceneObject(model)
+  };
+  const interpolatedQueries = (await Promise.allSettled(
+    targets.map(async (q) => {
+      var _a2;
+      const queryDs = await runtime.getDataSourceSrv().get(q.datasource);
+      return ((_a2 = queryDs.interpolateVariablesInQueries) == null ? void 0 : _a2.call(queryDs, [q], scopedVars != null ? scopedVars : {}, filters)[0]) || q;
+    })
+  )).filter((promise) => promise.status === "fulfilled").map((q) => q.value).map((q) => {
+    var _a2;
+    return (_a2 = transform == null ? void 0 : transform(q)) != null ? _a2 : q;
+  });
+  const queries = interpolatedQueries != null ? interpolatedQueries : [];
+  const datasource = (_d = (_c = queries.find((query) => {
+    var _a2;
+    return !!((_a2 = query.datasource) == null ? void 0 : _a2.uid);
+  })) == null ? void 0 : _c.datasource) == null ? void 0 : _d.uid;
+  if ((queries == null ? void 0 : queries.length) && datasource && from && to) {
+    const left = encodeURIComponent(
+      JSON.stringify({
+        datasource,
+        queries,
+        range: {
+          from,
+          to
+        }
+      })
+    );
+    return `/explore?left=${left}`;
+  }
+  return "";
+}
+
+class VizPanelExploreButton extends SceneObjectBase {
+  constructor(options = {}) {
+    super({ options });
+  }
+}
+VizPanelExploreButton.Component = VizPanelExploreButtonComponent;
+function VizPanelExploreButtonComponent({ model }) {
+  const { options } = model.useState();
+  const { data } = sceneGraph.getData(model).useState();
+  const { from, to } = sceneGraph.getTimeRange(model).useState();
+  const { value: exploreLink } = reactUse.useAsync(
+    async () => data ? getExploreURL(data, model, { from, to }, options.transform) : "",
+    [data, model, from, to]
+  );
+  const returnToPrevious = runtime.useReturnToPrevious();
+  if (exploreLink) {
+    return /* @__PURE__ */ React__default["default"].createElement(ui.LinkButton, {
+      key: "explore",
+      icon: "compass",
+      size: "sm",
+      variant: "secondary",
+      href: exploreLink,
+      onClick: () => {
+        var _a;
+        if (options.returnToPrevious) {
+          returnToPrevious(options.returnToPrevious.title, options.returnToPrevious.href);
+        }
+        (_a = options.onClick) == null ? void 0 : _a.call(options);
+      }
+    }, "Explore");
+  }
+  return null;
 }
 
 const DEFAULT_PANEL_SPAN = 4;
@@ -10493,7 +10971,8 @@ class SceneGridRow extends SceneObjectBase {
       width: GRID_COLUMN_COUNT
     }));
     this._variableDependency = new VariableDependencyConfig(this, {
-      statePaths: ["title"]
+      statePaths: ["title"],
+      handleTimeMacros: true
     });
     this.onCollapseToggle = () => {
       if (!this.state.isCollapsible) {
@@ -11407,15 +11886,12 @@ function getMultiVariableValues(variable) {
   return [{ value, label: text }];
 }
 
-const _SceneControlsSpacer = class extends SceneObjectBase {
+class SceneControlsSpacer extends SceneObjectBase {
   constructor() {
     super({});
+    this._renderBeforeActivation = true;
   }
-  get Component() {
-    return _SceneControlsSpacer.Component;
-  }
-};
-let SceneControlsSpacer = _SceneControlsSpacer;
+}
 SceneControlsSpacer.Component = (_props) => {
   return /* @__PURE__ */ React__default["default"].createElement("div", {
     style: { flexGrow: 1 }
@@ -12884,12 +13360,24 @@ class VizPanelBuilder {
     this._state.hoverHeader = hoverHeader;
     return this;
   }
+  setShowMenuAlways(showMenuAlways) {
+    this._state.showMenuAlways = showMenuAlways;
+    return this;
+  }
   setMenu(menu) {
     this._state.menu = menu;
     return this;
   }
   setHeaderActions(headerActions) {
     this._state.headerActions = headerActions;
+    return this;
+  }
+  setCollapsible(collapsible) {
+    this._state.collapsible = collapsible;
+    return this;
+  }
+  setCollapsed(collapsed) {
+    this._state.collapsed = collapsed;
     return this;
   }
   setColor(color) {
@@ -12962,6 +13450,10 @@ class VizPanelBuilder {
   }
   setBehaviors(behaviors) {
     this._state.$behaviors = behaviors;
+    return this;
+  }
+  setSeriesLimit(seriesLimit) {
+    this._state.seriesLimit = seriesLimit;
     return this;
   }
   applyMixin(mixin) {
@@ -13462,10 +13954,12 @@ exports.VizConfigBuilder = VizConfigBuilder;
 exports.VizConfigBuilders = VizConfigBuilders;
 exports.VizPanel = VizPanel;
 exports.VizPanelBuilder = VizPanelBuilder;
+exports.VizPanelExploreButton = VizPanelExploreButton;
 exports.VizPanelMenu = VizPanelMenu;
 exports.behaviors = index$1;
 exports.dataLayers = index;
 exports.formatRegistry = formatRegistry;
+exports.getExploreURL = getExploreURL;
 exports.isCustomVariableValue = isCustomVariableValue;
 exports.isDataLayer = isDataLayer;
 exports.isDataRequestEnricher = isDataRequestEnricher;

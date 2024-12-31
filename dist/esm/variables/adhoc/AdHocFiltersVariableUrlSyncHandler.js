@@ -38,10 +38,7 @@ function deserializeUrlToFilters(value) {
 }
 function toArray(filter) {
   var _a;
-  const result = [
-    toUrlCommaDelimitedString(filter.key, filter.keyLabel),
-    filter.operator
-  ];
+  const result = [toUrlCommaDelimitedString(filter.key, filter.keyLabel), filter.operator];
   if (isMultiValueOperator(filter.operator)) {
     filter.values.forEach((value, index) => {
       var _a2;

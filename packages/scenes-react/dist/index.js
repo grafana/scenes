@@ -6,6 +6,7 @@ var React = require('react');
 var scenes = require('@grafana/scenes');
 var lodash = require('lodash');
 var rxjs = require('rxjs');
+var lruCache = require('lru-cache');
 var ui = require('@grafana/ui');
 var reactUse = require('react-use');
 var data = require('@grafana/data');
@@ -204,21 +205,133 @@ function useVariableInterpolator(options) {
   );
 }
 
-function useQueryRunner(options) {
+var __accessCheck = (obj, member, msg) => {
+  if (!member.has(obj))
+    throw TypeError("Cannot " + msg);
+};
+var __privateGet = (obj, member, getter) => {
+  __accessCheck(obj, member, "read from private field");
+  return getter ? getter.call(obj) : member.get(obj);
+};
+var __privateAdd = (obj, member, value) => {
+  if (member.has(obj))
+    throw TypeError("Cannot add the same private member more than once");
+  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+};
+var __privateSet = (obj, member, value, setter) => {
+  __accessCheck(obj, member, "write to private field");
+  setter ? setter.call(obj, value) : member.set(obj, value);
+  return value;
+};
+var __privateWrapper = (obj, member, setter, getter) => {
+  return {
+    set _(value) {
+      __privateSet(obj, member, value, setter);
+    },
+    get _() {
+      return __privateGet(obj, member, getter);
+    }
+  };
+};
+var _cache, _objectRefIds, _objectRefIdCounter;
+class SceneObjectCache {
+  constructor() {
+    __privateAdd(this, _cache, void 0);
+    __privateAdd(this, _objectRefIds, /* @__PURE__ */ new WeakMap());
+    __privateAdd(this, _objectRefIdCounter, 0);
+    __privateSet(this, _cache, new lruCache.LRUCache({
+      max: 500,
+      ttl: 1e3 * 60 * 5
+    }));
+  }
+  add(keyHash, object) {
+    __privateGet(this, _cache).set(keyHash, object);
+  }
+  get(keyHash) {
+    return __privateGet(this, _cache).get(keyHash);
+  }
+  getHashKey(key, type) {
+    if (Array.isArray(key)) {
+      return `${type.name}-${key.map((k) => this.getHashKeyElement(k)).join()}`;
+    }
+    return `${type.name}-${this.getHashKeyElement(key)}`;
+  }
+  getByRefHashKey(obj) {
+    let objectRefId = __privateGet(this, _objectRefIds).get(obj);
+    if (objectRefId == null) {
+      objectRefId = __privateWrapper(this, _objectRefIdCounter)._++;
+      __privateGet(this, _objectRefIds).set(obj, objectRefId);
+    }
+    return objectRefId;
+  }
+  getHashKeyElement(key) {
+    if (typeof key === "string" || typeof key === "boolean" || typeof key === "number") {
+      return key;
+    }
+    return getObjectHash(key);
+  }
+}
+_cache = new WeakMap();
+_objectRefIds = new WeakMap();
+_objectRefIdCounter = new WeakMap();
+let cache;
+function getSceneObjectCache() {
+  if (cache) {
+    return cache;
+  }
+  return cache = new SceneObjectCache();
+}
+function getObjectHash(obj) {
+  return JSON.stringify(
+    obj,
+    (_, val) => lodash.isPlainObject(val) ? Object.keys(val).sort().reduce((result, key) => {
+      result[key] = val[key];
+      return result;
+    }, {}) : val
+  );
+}
+
+function useSceneObject(options) {
   const scene = useSceneContext();
   const key = React.useId();
-  let queryRunner = scene.findByKey(key);
-  if (!queryRunner) {
-    queryRunner = new scenes.SceneQueryRunner({
+  const cache = getSceneObjectCache();
+  let cacheKeyHash = options.cacheKey ? cache.getHashKey(options.cacheKey, options.objectConstructor) : void 0;
+  let obj = scene.findByKey(key);
+  if (!obj && cacheKeyHash) {
+    obj = cache.get(cacheKeyHash);
+    if (obj && obj.parent !== scene) {
+      if (scenes.sceneGraph.findObject(scene, (sceneObj) => sceneObj === obj)) {
+        console.error("A scene object cache key matched an object that is already in the scene");
+        obj = void 0;
+        cacheKeyHash = void 0;
+      } else {
+        obj.clearParent();
+      }
+    }
+  }
+  if (!obj) {
+    obj = options.factory(key);
+    if (cacheKeyHash) {
+      cache.add(cacheKeyHash, obj);
+    }
+  }
+  React.useEffect(() => scene.addToScene(obj), [obj, scene]);
+  return obj;
+}
+
+function useQueryRunner(options) {
+  const queryRunner = useSceneObject({
+    factory: (key) => new scenes.SceneQueryRunner({
       key,
       queries: options.queries,
       maxDataPoints: options.maxDataPoints,
       datasource: options.datasource,
       liveStreaming: options.liveStreaming,
       maxDataPointsFromWidth: options.maxDataPointsFromWidth
-    });
-  }
-  React.useEffect(() => scene.addToScene(queryRunner), [queryRunner, scene]);
+    }),
+    objectConstructor: scenes.SceneQueryRunner,
+    cacheKey: options.cacheKey
+  });
   React.useEffect(() => {
     if (!lodash.isEqual(queryRunner.state.queries, options.queries)) {
       queryRunner.setState({ queries: options.queries });
@@ -284,7 +397,23 @@ function VariableControl({ name, hideLabel, layout }) {
 }
 
 function VizPanel(props) {
-  const { title, viz, dataProvider, headerActions } = props;
+  const {
+    title,
+    description,
+    viz,
+    dataProvider,
+    displayMode,
+    hoverHeader,
+    hoverHeaderOffset,
+    headerActions,
+    menu,
+    titleItems,
+    extendPanelContext,
+    seriesLimit,
+    seriesLimitShowAll,
+    collapsible,
+    collapsed
+  } = props;
   const scene = useSceneContext();
   const key = React.useId();
   const prevProps = reactUse.usePrevious(props);
@@ -292,13 +421,24 @@ function VizPanel(props) {
   if (!panel) {
     panel = new scenes.VizPanel({
       key,
-      title,
       pluginId: viz.pluginId,
-      pluginVersion: viz.pluginVersion,
+      title,
+      titleItems,
+      description,
       options: viz.options,
       fieldConfig: viz.fieldConfig,
+      pluginVersion: viz.pluginVersion,
       $data: getDataProviderForVizPanel(dataProvider),
-      headerActions
+      displayMode,
+      hoverHeader,
+      hoverHeaderOffset,
+      headerActions,
+      menu,
+      extendPanelContext,
+      collapsible,
+      collapsed,
+      seriesLimit,
+      seriesLimitShowAll
     });
   }
   React.useEffect(() => scene.addToScene(panel), [panel, scene]);
@@ -310,11 +450,41 @@ function VizPanel(props) {
     if (title !== prevProps.title) {
       stateUpdate.title = title;
     }
+    if (description !== prevProps.description) {
+      stateUpdate.description = description;
+    }
+    if (displayMode !== prevProps.displayMode) {
+      stateUpdate.displayMode = displayMode;
+    }
+    if (hoverHeader !== prevProps.hoverHeader) {
+      stateUpdate.hoverHeader = hoverHeader;
+    }
+    if (hoverHeaderOffset !== prevProps.hoverHeaderOffset) {
+      stateUpdate.hoverHeaderOffset = hoverHeaderOffset;
+    }
+    if (menu !== prevProps.menu) {
+      stateUpdate.menu = menu;
+    }
+    if (titleItems !== prevProps.titleItems) {
+      stateUpdate.titleItems = titleItems;
+    }
     if (headerActions !== prevProps.headerActions) {
       stateUpdate.headerActions = headerActions;
     }
     if (dataProvider !== prevProps.dataProvider) {
       stateUpdate.$data = getDataProviderForVizPanel(dataProvider);
+    }
+    if (seriesLimit !== prevProps.seriesLimit) {
+      stateUpdate.seriesLimit = seriesLimit;
+    }
+    if (seriesLimitShowAll !== prevProps.seriesLimitShowAll) {
+      stateUpdate.seriesLimitShowAll = seriesLimitShowAll;
+    }
+    if (collapsible !== prevProps.collapsible) {
+      stateUpdate.collapsible = collapsible;
+    }
+    if (collapsed !== prevProps.collapsed) {
+      stateUpdate.collapsed = collapsed;
     }
     if (viz !== prevProps.viz) {
       if (viz.pluginId === prevProps.viz.pluginId) {
@@ -336,7 +506,24 @@ function VizPanel(props) {
       panel.setState(stateUpdate);
       writeSceneLog("VizPanel", "Updating VizPanel state", stateUpdate);
     }
-  }, [panel, title, headerActions, viz, dataProvider, prevProps]);
+  }, [
+    panel,
+    title,
+    description,
+    displayMode,
+    hoverHeader,
+    hoverHeaderOffset,
+    headerActions,
+    menu,
+    titleItems,
+    viz,
+    dataProvider,
+    seriesLimit,
+    seriesLimitShowAll,
+    collapsible,
+    collapsed,
+    prevProps
+  ]);
   return /* @__PURE__ */ React__default["default"].createElement(panel.Component, {
     model: panel
   });
@@ -655,6 +842,35 @@ function useVariableValues(name) {
   return [value, isLoading];
 }
 
+function useQueryVariable(options) {
+  const scene = useSceneContext();
+  let variable = scenes.sceneGraph.lookupVariable(options.name, scene);
+  if (!variable) {
+    variable = new scenes.QueryVariable({
+      name: options.name,
+      datasource: { uid: options.datasource },
+      query: options.query,
+      regex: options.regex
+    });
+  }
+  if (!(variable instanceof scenes.QueryVariable)) {
+    variable = null;
+  }
+  React.useEffect(() => {
+    if (variable) {
+      scene.addVariable(variable);
+    }
+  }, [variable, scene]);
+  React.useEffect(() => {
+    var _a;
+    if (((_a = variable == null ? void 0 : variable.state.datasource) == null ? void 0 : _a.uid) !== options.datasource || !lodash.isEqual(variable == null ? void 0 : variable.state.query, options.query) || (variable == null ? void 0 : variable.state.regex) !== options.regex) {
+      variable == null ? void 0 : variable.setState({ datasource: { uid: options.datasource }, query: options.query, regex: options.regex });
+      variable == null ? void 0 : variable.refreshOptions();
+    }
+  }, [options, variable]);
+  return variable;
+}
+
 function useVariableValue(name) {
   const scene = useSceneContext();
   const variable = scenes.sceneGraph.lookupVariable(name, scene);
@@ -778,6 +994,7 @@ exports.VizGridLayout = VizGridLayout;
 exports.VizPanel = VizPanel;
 exports.useDataTransformer = useDataTransformer;
 exports.useQueryRunner = useQueryRunner;
+exports.useQueryVariable = useQueryVariable;
 exports.useSceneContext = useSceneContext;
 exports.useTimeRange = useTimeRange;
 exports.useUpdateWhenSceneChanges = useUpdateWhenSceneChanges;

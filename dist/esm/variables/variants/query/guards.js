@@ -23,6 +23,12 @@ const hasCustomVariableSupport = (datasource) => {
   const variableSupport = datasource.variables;
   return "query" in variableSupport && "editor" in variableSupport && Boolean(variableSupport.query) && Boolean(variableSupport.editor);
 };
+const hasDataSourceVariableSupport = (datasource) => {
+  if (!datasource.variables) {
+    return false;
+  }
+  return datasource.variables.getType() === VariableSupportType.Datasource;
+};
 
-export { hasCustomVariableSupport, hasLegacyVariableSupport, hasStandardVariableSupport };
+export { hasCustomVariableSupport, hasDataSourceVariableSupport, hasLegacyVariableSupport, hasStandardVariableSupport };
 //# sourceMappingURL=guards.js.map

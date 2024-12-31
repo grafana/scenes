@@ -1,6 +1,7 @@
 import { isEqual } from 'lodash';
 import { sceneGraph } from '../core/sceneGraph/index.js';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner.js';
+import uFuzzy from '@leeoniya/ufuzzy';
 
 function isVariableValueEqual(a, b) {
   if (a === b) {
@@ -59,13 +60,16 @@ function escapeLokiRegexp(value) {
   return value.replace(RE2_METACHARACTERS, "\\$&");
 }
 function getQueriesForVariables(sourceObject) {
+  var _a;
   const runners = sceneGraph.findAllObjects(
     sourceObject.getRoot(),
     (o) => o instanceof SceneQueryRunner
   );
+  const interpolatedDsUuid = sceneGraph.interpolate(sourceObject, (_a = sourceObject.state.datasource) == null ? void 0 : _a.uid);
   const applicableRunners = filterOutInactiveRunnerDuplicates(runners).filter((r) => {
-    var _a, _b;
-    return ((_a = r.state.datasource) == null ? void 0 : _a.uid) === ((_b = sourceObject.state.datasource) == null ? void 0 : _b.uid);
+    var _a2;
+    const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, (_a2 = r.state.datasource) == null ? void 0 : _a2.uid);
+    return interpolatedQueryDsUuid === interpolatedDsUuid;
   });
   if (applicableRunners.length === 0) {
     return [];
@@ -145,6 +149,27 @@ function handleOptionGroups(values) {
   }
   return result;
 }
+function getFuzzySearcher(haystack, limit = 1e4) {
+  const ufuzzy = new uFuzzy();
+  const FIRST = Array.from({ length: Math.min(limit, haystack.length) }, (_, i) => i);
+  return (search) => {
+    if (search === "") {
+      return FIRST;
+    }
+    const [idxs, info, order] = ufuzzy.search(haystack, search);
+    if (idxs) {
+      if (info && order) {
+        const outIdxs = Array(Math.min(order.length, limit));
+        for (let i = 0; i < outIdxs.length; i++) {
+          outIdxs[i] = info.idx[order[i]];
+        }
+        return outIdxs;
+      }
+      return idxs.slice(0, limit);
+    }
+    return [];
+  };
+}
 
-export { dataFromResponse, escapeLabelValueInExactSelector, escapeLabelValueInRegexSelector, escapeUrlCommaDelimiters, escapeUrlPipeDelimiters, getQueriesForVariables, handleOptionGroups, isVariableValueEqual, renderPrometheusLabelFilters, responseHasError, safeStringifyValue, toUrlCommaDelimitedString, unescapeUrlDelimiters };
+export { dataFromResponse, escapeLabelValueInExactSelector, escapeLabelValueInRegexSelector, escapeUrlCommaDelimiters, escapeUrlPipeDelimiters, getFuzzySearcher, getQueriesForVariables, handleOptionGroups, isVariableValueEqual, renderPrometheusLabelFilters, responseHasError, safeStringifyValue, toUrlCommaDelimitedString, unescapeUrlDelimiters };
 //# sourceMappingURL=utils.js.map

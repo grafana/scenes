@@ -21,6 +21,7 @@ function VariableValueInput({ model }) {
     id: key,
     placeholder: "Enter value",
     minWidth: 15,
+    maxWidth: 30,
     value,
     loading,
     onBlur,

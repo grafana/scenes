@@ -1,23 +1,21 @@
-import { useId, useEffect } from 'react';
+import { useEffect } from 'react';
 import { SceneQueryRunner } from '@grafana/scenes';
 import { isEqual } from 'lodash';
-import { useSceneContext } from './hooks.js';
+import { useSceneObject } from './useSceneObject.js';
 
 function useQueryRunner(options) {
-  const scene = useSceneContext();
-  const key = useId();
-  let queryRunner = scene.findByKey(key);
-  if (!queryRunner) {
-    queryRunner = new SceneQueryRunner({
+  const queryRunner = useSceneObject({
+    factory: (key) => new SceneQueryRunner({
       key,
       queries: options.queries,
       maxDataPoints: options.maxDataPoints,
       datasource: options.datasource,
       liveStreaming: options.liveStreaming,
       maxDataPointsFromWidth: options.maxDataPointsFromWidth
-    });
-  }
-  useEffect(() => scene.addToScene(queryRunner), [queryRunner, scene]);
+    }),
+    objectConstructor: SceneQueryRunner,
+    cacheKey: options.cacheKey
+  });
   useEffect(() => {
     if (!isEqual(queryRunner.state.queries, options.queries)) {
       queryRunner.setState({ queries: options.queries });

@@ -49,12 +49,24 @@ class VizPanelBuilder {
     this._state.hoverHeader = hoverHeader;
     return this;
   }
+  setShowMenuAlways(showMenuAlways) {
+    this._state.showMenuAlways = showMenuAlways;
+    return this;
+  }
   setMenu(menu) {
     this._state.menu = menu;
     return this;
   }
   setHeaderActions(headerActions) {
     this._state.headerActions = headerActions;
+    return this;
+  }
+  setCollapsible(collapsible) {
+    this._state.collapsible = collapsible;
+    return this;
+  }
+  setCollapsed(collapsed) {
+    this._state.collapsed = collapsed;
     return this;
   }
   setColor(color) {
@@ -127,6 +139,10 @@ class VizPanelBuilder {
   }
   setBehaviors(behaviors) {
     this._state.$behaviors = behaviors;
+    return this;
+  }
+  setSeriesLimit(seriesLimit) {
+    this._state.seriesLimit = seriesLimit;
     return this;
   }
   applyMixin(mixin) {

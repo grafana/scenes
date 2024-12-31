@@ -1,10 +1,10 @@
-import { getTimeZone, rangeUtil, toUtc } from '@grafana/data';
+import { getTimeZone, rangeUtil, setWeekStart, toUtc } from '@grafana/data';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig.js';
 import { SceneObjectBase } from './SceneObjectBase.js';
 import { getClosest } from './sceneGraph/utils.js';
 import { parseUrlParam } from '../utils/parseUrlParam.js';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange.js';
-import { RefreshEvent, locationService } from '@grafana/runtime';
+import { RefreshEvent, config, locationService } from '@grafana/runtime';
 import { isValid } from '../utils/date.js';
 
 var __defProp = Object.defineProperty;
@@ -34,7 +34,8 @@ class SceneTimeRange extends SceneObjectBase {
       to,
       timeZone || getTimeZone(),
       state.fiscalYearStartMonth,
-      state.UNSAFE_nowDelay
+      state.UNSAFE_nowDelay,
+      state.weekStart
     );
     const refreshOnActivate = (_a = state.refreshOnActivate) != null ? _a : { percent: 10 };
     super(__spreadValues({ from, to, timeZone, value, refreshOnActivate }, state));
@@ -56,7 +57,8 @@ class SceneTimeRange extends SceneObjectBase {
         update.to,
         this.getTimeZone(),
         this.state.fiscalYearStartMonth,
-        this.state.UNSAFE_nowDelay
+        this.state.UNSAFE_nowDelay,
+        this.state.weekStart
       );
       if (update.from !== this.state.from || update.to !== this.state.to) {
         this._urlSync.performBrowserHistoryAction(() => {
@@ -70,15 +72,7 @@ class SceneTimeRange extends SceneObjectBase {
       });
     };
     this.onRefresh = () => {
-      this.setState({
-        value: evaluateTimeRange(
-          this.state.from,
-          this.state.to,
-          this.getTimeZone(),
-          this.state.fiscalYearStartMonth,
-          this.state.UNSAFE_nowDelay
-        )
-      });
+      this.refreshRange(0);
       this.publishEvent(new RefreshEvent(), true);
     };
     this.addActivationHandler(this._onActivate.bind(this));
@@ -90,15 +84,7 @@ class SceneTimeRange extends SceneObjectBase {
         this._subs.add(
           timeZoneSource.subscribeToState((n, p) => {
             if (n.timeZone !== void 0 && n.timeZone !== p.timeZone) {
-              this.setState({
-                value: evaluateTimeRange(
-                  this.state.from,
-                  this.state.to,
-                  timeZoneSource.getTimeZone(),
-                  this.state.fiscalYearStartMonth,
-                  this.state.UNSAFE_nowDelay
-                )
-              });
+              this.refreshRange(0);
             }
           })
         );
@@ -107,6 +93,11 @@ class SceneTimeRange extends SceneObjectBase {
     if (rangeUtil.isRelativeTimeRange(this.state.value.raw)) {
       this.refreshIfStale();
     }
+    return () => {
+      if (this.state.weekStart) {
+        setWeekStart(config.bootData.user.weekStart);
+      }
+    };
   }
   refreshIfStale() {
     var _a, _b, _c, _d;
@@ -143,13 +134,12 @@ class SceneTimeRange extends SceneObjectBase {
       this.state.to,
       (_a = this.state.timeZone) != null ? _a : getTimeZone(),
       this.state.fiscalYearStartMonth,
-      this.state.UNSAFE_nowDelay
+      this.state.UNSAFE_nowDelay,
+      this.state.weekStart
     );
     const diff = value.to.diff(this.state.value.to, "milliseconds");
     if (diff >= refreshAfterMs) {
-      this.setState({
-        value
-      });
+      this.setState({ value });
     }
   }
   calculatePercentOfInterval(percent) {
@@ -168,10 +158,7 @@ class SceneTimeRange extends SceneObjectBase {
   }
   getUrlState() {
     const params = locationService.getSearchObject();
-    const urlValues = { from: this.state.from, to: this.state.to };
-    if (this.state.timeZone) {
-      urlValues.timezone = this.state.timeZone;
-    }
+    const urlValues = { from: this.state.from, to: this.state.to, timezone: this.getTimeZone() };
     if (params.time && params["time.window"]) {
       urlValues.time = null;
       urlValues["time.window"] = null;
@@ -211,7 +198,8 @@ class SceneTimeRange extends SceneObjectBase {
       (_b = update.to) != null ? _b : this.state.to,
       (_c = update.timeZone) != null ? _c : this.getTimeZone(),
       this.state.fiscalYearStartMonth,
-      this.state.UNSAFE_nowDelay
+      this.state.UNSAFE_nowDelay,
+      this.state.weekStart
     );
     return this.setState(update);
   }

@@ -1,4 +1,5 @@
 import { getTemplateSrv, getDataSourceSrv } from '@grafana/runtime';
+import { interpolate } from '../../core/sceneGraph/sceneGraph.js';
 
 let originalGetAdhocFilters = void 0;
 let allActiveFilterSets = /* @__PURE__ */ new Set();
@@ -19,7 +20,7 @@ function patchGetAdhocFilters(filterVar) {
   templateSrv.getAdhocFilters = function getAdhocFiltersScenePatch(dsName) {
     var _a;
     if (allActiveFilterSets.size === 0) {
-      return originalGetAdhocFilters.call(templateSrv);
+      return originalGetAdhocFilters.call(templateSrv, dsName);
     }
     const ds = getDataSourceSrv().getInstanceSettings(dsName);
     if (!ds) {
@@ -36,7 +37,7 @@ function patchGetAdhocFilters(filterVar) {
 function findActiveAdHocFilterVariableByUid(dsUid) {
   var _a;
   for (const filter of allActiveFilterSets.values()) {
-    if (((_a = filter.state.datasource) == null ? void 0 : _a.uid) === dsUid) {
+    if (interpolate(filter, (_a = filter.state.datasource) == null ? void 0 : _a.uid) === dsUid) {
       return filter;
     }
   }

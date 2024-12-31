@@ -7,26 +7,26 @@ import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox.j
 const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer2({ model }) {
   const { filters, readOnly } = model.useState();
   const styles = useStyles2(getStyles);
-  const focusOnInputRef = useRef();
+  const focusOnWipInputRef = useRef();
   return /* @__PURE__ */ React.createElement("div", {
     className: cx(styles.comboboxWrapper, { [styles.comboboxFocusOutline]: !readOnly }),
     onClick: () => {
       var _a;
-      (_a = focusOnInputRef.current) == null ? void 0 : _a.call(focusOnInputRef);
+      (_a = focusOnWipInputRef.current) == null ? void 0 : _a.call(focusOnWipInputRef);
     }
   }, /* @__PURE__ */ React.createElement(Icon, {
     name: "filter",
     className: styles.filterIcon,
     size: "lg"
   }), filters.map((filter, index) => /* @__PURE__ */ React.createElement(AdHocFilterPill, {
-    key: index,
+    key: `${index}-${filter.key}`,
     filter,
     model,
     readOnly,
-    focusOnInputRef: focusOnInputRef.current
+    focusOnWipInputRef: focusOnWipInputRef.current
   })), !readOnly ? /* @__PURE__ */ React.createElement(AdHocFiltersAlwaysWipCombobox, {
     model,
-    ref: focusOnInputRef
+    ref: focusOnWipInputRef
   }) : null);
 });
 const getStyles = (theme) => ({

@@ -1,5 +1,5 @@
-import uFuzzy from '@leeoniya/ufuzzy';
 import { isMultiValueOperator } from '../AdHocFiltersVariable.js';
+import { getFuzzySearcher } from '../../utils.js';
 
 const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
 const VIRTUAL_LIST_DESCRIPTION_WIDTH_ESTIMATE_MULTIPLIER = 6;
@@ -9,55 +9,16 @@ const VIRTUAL_LIST_ITEM_HEIGHT = 38;
 const VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION = 60;
 const ERROR_STATE_DROPDOWN_WIDTH = 366;
 function fuzzySearchOptions(options) {
-  const ufuzzy = new uFuzzy();
-  const haystack = [];
-  const limit = 1e4;
-  return (search, filterInputType) => {
+  const haystack = options.map((o) => {
     var _a;
-    if (search === "") {
-      if (options.length > limit) {
-        return options.slice(0, limit);
-      } else {
-        return options;
-      }
+    return (_a = o.label) != null ? _a : o.value;
+  });
+  const fuzzySearch = getFuzzySearcher(haystack);
+  return (search, filterInputType) => {
+    if (filterInputType === "operator" && search !== "") {
+      search = `"${search}"`;
     }
-    if (filterInputType === "operator") {
-      const filteredOperators = [];
-      for (let i = 0; i < options.length; i++) {
-        if ((_a = options[i].label || options[i].value) == null ? void 0 : _a.includes(search)) {
-          filteredOperators.push(options[i]);
-          if (filteredOperators.length > limit) {
-            return filteredOperators;
-          }
-        }
-      }
-      return filteredOperators;
-    }
-    if (haystack.length === 0) {
-      for (let i = 0; i < options.length; i++) {
-        haystack.push(options[i].label || options[i].value);
-      }
-    }
-    const [idxs, info, order] = ufuzzy.search(haystack, search);
-    const filteredOptions = [];
-    if (idxs) {
-      for (let i = 0; i < idxs.length; i++) {
-        if (info && order) {
-          const idx = order[i];
-          filteredOptions.push(options[idxs[idx]]);
-        } else {
-          filteredOptions.push(options[idxs[i]]);
-        }
-        if (filteredOptions.length > limit) {
-          return filteredOptions;
-        }
-      }
-      return filteredOptions;
-    }
-    if (options.length > limit) {
-      return options.slice(0, limit);
-    }
-    return options;
+    return fuzzySearch(search).map((i) => options[i]);
   };
 }
 const flattenOptionGroups = (options) => options.flatMap((option) => option.options ? [option, ...option.options] : [option]);
@@ -91,15 +52,16 @@ const nextInputTypeMap = {
   operator: "value",
   value: "key"
 };
-const switchToNextInputType = (filterInputType, setInputType, handleChangeViewMode, element) => switchInputType(
+const switchToNextInputType = (filterInputType, setInputType, handleChangeViewMode, element, shouldFocusOnPillWrapperOverride) => switchInputType(
   nextInputTypeMap[filterInputType],
   setInputType,
   filterInputType === "value" ? handleChangeViewMode : void 0,
-  element
+  element,
+  shouldFocusOnPillWrapperOverride
 );
-const switchInputType = (filterInputType, setInputType, handleChangeViewMode, element) => {
+const switchInputType = (filterInputType, setInputType, handleChangeViewMode, element, shouldFocusOnPillWrapperOverride) => {
   setInputType(filterInputType);
-  handleChangeViewMode == null ? void 0 : handleChangeViewMode();
+  handleChangeViewMode == null ? void 0 : handleChangeViewMode(void 0, shouldFocusOnPillWrapperOverride);
   setTimeout(() => element == null ? void 0 : element.focus());
 };
 const generateFilterUpdatePayload = ({
@@ -166,6 +128,19 @@ const generatePlaceholder = (filter, filterInputType, isMultiValueEdit, isAlways
   }
   return filter[filterInputType] && !isAlwaysWip ? `${filter[filterInputType]}` : INPUT_PLACEHOLDER;
 };
+const populateInputValueOnInputTypeSwitch = ({
+  populateInputOnEdit,
+  item,
+  filterInputType,
+  setInputValue,
+  filter
+}) => {
+  if (populateInputOnEdit && !isMultiValueOperator(item.value || "") && nextInputTypeMap[filterInputType] === "value") {
+    setInputValue((filter == null ? void 0 : filter.value) || "");
+  } else {
+    setInputValue("");
+  }
+};
 
-export { ERROR_STATE_DROPDOWN_WIDTH, VIRTUAL_LIST_ITEM_HEIGHT, VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION, VIRTUAL_LIST_OVERSCAN, flattenOptionGroups, fuzzySearchOptions, generateFilterUpdatePayload, generatePlaceholder, setupDropdownAccessibility, switchInputType, switchToNextInputType };
+export { ERROR_STATE_DROPDOWN_WIDTH, VIRTUAL_LIST_ITEM_HEIGHT, VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION, VIRTUAL_LIST_OVERSCAN, flattenOptionGroups, fuzzySearchOptions, generateFilterUpdatePayload, generatePlaceholder, populateInputValueOnInputTypeSwitch, setupDropdownAccessibility, switchInputType, switchToNextInputType };
 //# sourceMappingURL=utils.js.map

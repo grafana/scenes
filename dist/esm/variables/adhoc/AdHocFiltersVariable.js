@@ -15,6 +15,8 @@ import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFilter
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject.js';
 
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __propIsEnum = Object.prototype.propertyIsEnumerable;
@@ -30,6 +32,7 @@ var __spreadValues = (a, b) => {
     }
   return a;
 };
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 const OPERATORS = [
   {
     value: "=",
@@ -95,6 +98,21 @@ class AdHocFiltersVariable extends SceneObjectBase {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
+  updateFilters(filters, options) {
+    let filterExpressionChanged = false;
+    let filterExpression = void 0;
+    if (filters && filters !== this.state.filters) {
+      filterExpression = renderExpression(this.state.expressionBuilder, filters);
+      filterExpressionChanged = filterExpression !== this.state.filterExpression;
+    }
+    super.setState({
+      filters,
+      filterExpression
+    });
+    if (filterExpressionChanged && (options == null ? void 0 : options.skipPublish) !== true || (options == null ? void 0 : options.forcePublish)) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
   getValue() {
     return this.state.filterExpression;
   }
@@ -124,6 +142,30 @@ class AdHocFiltersVariable extends SceneObjectBase {
     const filterToRemove = this.state.filters.at(-1);
     if (filterToRemove) {
       this._removeFilter(filterToRemove);
+    }
+  }
+  _handleComboboxBackspace(filter) {
+    if (this.state.filters.length) {
+      let filterToForceIndex = this.state.filters.length - 1;
+      if (filter !== this.state._wip) {
+        filterToForceIndex = -1;
+      }
+      this.setState({
+        filters: this.state.filters.reduce((acc, f, index) => {
+          if (index === filterToForceIndex) {
+            return [
+              ...acc,
+              __spreadProps(__spreadValues({}, f), {
+                forceEdit: true
+              })
+            ];
+          }
+          if (f === filter) {
+            return acc;
+          }
+          return [...acc, f];
+        }, [])
+      });
     }
   }
   async _getKeys(currentKey) {

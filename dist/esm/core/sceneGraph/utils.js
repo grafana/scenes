@@ -23,13 +23,18 @@ function cloneSceneObject(sceneObject, withState) {
 }
 function cloneSceneObjectState(sceneState, withState) {
   const clonedState = __spreadValues({}, sceneState);
+  Object.assign(clonedState, withState);
   for (const key in clonedState) {
+    if (withState && withState[key] !== void 0) {
+      continue;
+    }
     const propValue = clonedState[key];
     if (propValue instanceof SceneObjectBase) {
       clonedState[key] = propValue.clone();
     }
     if (propValue instanceof SceneObjectRef) {
-      throw new Error("Cannot clone a SceneObject with a SceneObjectRef in state");
+      console.warn("Cloning object with SceneObjectRef");
+      continue;
     }
     if (Array.isArray(propValue)) {
       const newArray = [];
@@ -43,7 +48,6 @@ function cloneSceneObjectState(sceneState, withState) {
       clonedState[key] = newArray;
     }
   }
-  Object.assign(clonedState, withState);
   return clonedState;
 }
 function getClosest(sceneObject, extract) {
