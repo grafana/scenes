@@ -301,14 +301,11 @@ describe('searchOptions falls back to substring matching for non-latin needles',
       '南投縣',
       '高雄市',
       '台中第一高級中學',
-    ].map(v => ({label: v, value: v}));
+    ].map((v) => ({ label: v, value: v }));
 
     const searcher = searchOptions(options);
 
-    expect(searcher('南', 'key').map((o) => o.label!)).toEqual([
-      '台南市',
-      '南投縣',
-    ]);
+    expect(searcher('南', 'key').map((o) => o.label!)).toEqual(['台南市', '南投縣']);
   });
 });
 
