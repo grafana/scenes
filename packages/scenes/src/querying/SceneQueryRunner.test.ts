@@ -30,13 +30,14 @@ import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequest
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
+import { SceneQueryController } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
 import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
+import { SceneQueryStateControllerState } from '../behaviors/types';
 import { config } from '@grafana/runtime';
 
 const getDataSourceMock = jest.fn().mockReturnValue({

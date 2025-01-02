@@ -7,7 +7,6 @@ import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types
 import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
-import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 import { VariableInterpolation } from '@grafana/runtime';
 import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
@@ -262,26 +261,6 @@ export function findDescendents<T extends SceneObject>(scene: SceneObject, desce
 
   const targetScenes = findAllObjects(scene, isDescendentType);
   return targetScenes.filter(isDescendentType);
-}
-
-/**
- * Returns the closest query controller undefined if none found
- */
-export function getQueryController(sceneObject: SceneObject): SceneQueryControllerLike | undefined {
-  let parent: SceneObject | undefined = sceneObject;
-
-  while (parent) {
-    if (parent.state.$behaviors) {
-      for (const behavior of parent.state.$behaviors) {
-        if (isQueryController(behavior)) {
-          return behavior;
-        }
-      }
-    }
-    parent = parent.parent;
-  }
-
-  return undefined;
 }
 
 /**
