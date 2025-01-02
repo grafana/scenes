@@ -1,10 +1,8 @@
-import { calculateNetworkTime, processRecordedSpans } from "./SceneRenderProfiler";
+import { calculateNetworkTime, processRecordedSpans } from './SceneRenderProfiler';
 
 describe('calculateNetworkTime', () => {
   it('should return the duration of a single request', () => {
-    const requests: PerformanceResourceTiming[] = [
-      { startTime: 0, responseEnd: 100 } as PerformanceResourceTiming,
-    ];
+    const requests: PerformanceResourceTiming[] = [{ startTime: 0, responseEnd: 100 } as PerformanceResourceTiming];
     expect(calculateNetworkTime(requests)).toBe(100);
   });
 
@@ -54,18 +52,18 @@ describe('calculateNetworkTime', () => {
 });
 
 describe('processRecordedSpans', () => {
-    it('should return the whole array if the last element is greater than 30', () => {
-      const spans = [10, 10, 40];
-      expect(processRecordedSpans(spans)).toEqual([10, 10, 40]);
-    });
-  
-    it('should return up to the last element greater than 30', () => {
-      const spans = [10, 20, 30, 40, 60, 10];
-      expect(processRecordedSpans(spans)).toEqual([10, 20, 30, 40, 60]);
-    });
-  
-    it('should return only the first element if all are below or equal to 30', () => {
-      const spans = [10, 20, 15, 5];
-      expect(processRecordedSpans(spans)).toEqual([10]);
-    });
+  it('should return the whole array if the last element is greater than 30', () => {
+    const spans = [10, 10, 40];
+    expect(processRecordedSpans(spans)).toEqual([10, 10, 40]);
   });
+
+  it('should return up to the last element greater than 30', () => {
+    const spans = [10, 20, 30, 40, 60, 10];
+    expect(processRecordedSpans(spans)).toEqual([10, 20, 30, 40, 60]);
+  });
+
+  it('should return only the first element if all are below or equal to 30', () => {
+    const spans = [10, 20, 15, 5];
+    expect(processRecordedSpans(spans)).toEqual([10]);
+  });
+});
