@@ -1,11 +1,11 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
-// @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
+import uFuzzy from '@leeoniya/ufuzzy';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -106,8 +106,12 @@ export function getQueriesForVariables(
     (o) => o instanceof SceneQueryRunner
   ) as SceneQueryRunner[];
 
+  const interpolatedDsUuid = sceneGraph.interpolate(sourceObject, sourceObject.state.datasource?.uid);
+
   const applicableRunners = filterOutInactiveRunnerDuplicates(runners).filter((r) => {
-    return r.state.datasource?.uid === sourceObject.state.datasource?.uid;
+    const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, r.state.datasource?.uid);
+
+    return interpolatedQueryDsUuid === interpolatedDsUuid;
   });
 
   if (applicableRunners.length === 0) {
@@ -220,4 +224,35 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
   }
 
   return result;
+}
+
+export function getFuzzySearcher(haystack: string[], limit = 10_000) {
+  const ufuzzy = new uFuzzy();
+
+  const FIRST = Array.from({ length: Math.min(limit, haystack.length) }, (_, i) => i);
+
+  // returns matched indices by quality
+  return (search: string): number[] => {
+    if (search === '') {
+      return FIRST;
+    }
+
+    const [idxs, info, order] = ufuzzy.search(haystack, search);
+
+    if (idxs) {
+      if (info && order) {
+        const outIdxs = Array(Math.min(order.length, limit));
+
+        for (let i = 0; i < outIdxs.length; i++) {
+          outIdxs[i] = info.idx[order[i]];
+        }
+
+        return outIdxs;
+      }
+
+      return idxs.slice(0, limit);
+    }
+
+    return [];
+  };
 }

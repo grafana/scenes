@@ -5,7 +5,6 @@ import {
   InputActionMeta,
   MultiSelect,
   Select,
-  //@ts-ignore
   ToggleAllState,
   getSelectStyles,
   useStyles2,
@@ -49,7 +48,7 @@ export function toSelectableValue<T>(value: T, label?: string): SelectableValue<
 }
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, options, includeAll, isReadOnly } = model.useState();
+  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
   const selectValue = toSelectableValue(value, String(text));
@@ -89,7 +88,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       disabled={isReadOnly}
       value={selectValue}
       inputValue={inputValue}
-      allowCustomValue
+      allowCustomValue={allowCustomValue}
       virtualized
       filterOption={filterNoOp}
       tabSelectsValue={false}
@@ -111,7 +110,16 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
 }
 
 export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, options, key, maxVisibleValues, noValueOnClear, includeAll, isReadOnly } = model.useState();
+  const {
+    value,
+    options,
+    key,
+    maxVisibleValues,
+    noValueOnClear,
+    includeAll,
+    isReadOnly,
+    allowCustomValue = true,
+  } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
@@ -157,7 +165,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
       virtualized
-      allowCustomValue
+      allowCustomValue={allowCustomValue}
       //@ts-ignore
       toggleAllOptions={{
         enabled: true,

@@ -61,6 +61,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /** True when there is a React component mounted for this Object */
   readonly isActive: boolean;
 
+  /** Controls if activation blocks rendering */
+  readonly renderBeforeActivation: boolean;
+
   /** SceneObject parent */
   readonly parent?: SceneObject;
 
@@ -117,6 +120,11 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
    */
   forEachChild(callback: (child: SceneObject) => void): void;
+
+  /**
+   * Useful for edge cases when you want to move a scene object to another parent.
+   */
+  clearParent(): void;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;

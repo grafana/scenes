@@ -1,7 +1,7 @@
 import { SelectableValue } from '@grafana/data';
-import uFuzzy from '@leeoniya/ufuzzy';
 import { AdHocInputType } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, isMultiValueOperator } from '../AdHocFiltersVariable';
+import { getFuzzySearcher } from '../../utils';
 
 const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
 const VIRTUAL_LIST_DESCRIPTION_WIDTH_ESTIMATE_MULTIPLIER = 6;
@@ -11,62 +11,25 @@ export const VIRTUAL_LIST_ITEM_HEIGHT = 38;
 export const VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION = 60;
 export const ERROR_STATE_DROPDOWN_WIDTH = 366;
 
-export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
-  const ufuzzy = new uFuzzy();
-  const haystack: string[] = [];
-  const limit = 10000;
+// https://catonmat.net/my-favorite-regex :)
+const REGEXP_NON_ASCII = /[^ -~]/m;
+
+export function searchOptions(options: Array<SelectableValue<string>>) {
+  const haystack = options.map((o) => o.label ?? o.value!);
+  const fuzzySearch = getFuzzySearcher(haystack);
 
   return (search: string, filterInputType: AdHocInputType) => {
-    if (search === '') {
-      if (options.length > limit) {
-        return options.slice(0, limit);
-      } else {
-        return options;
-      }
+    // fall back to substring matching for non-latin chars
+    if (REGEXP_NON_ASCII.test(search)) {
+      return options.filter((o) => o.label?.includes(search) || o.value?.includes(search) || false);
     }
 
-    if (filterInputType === 'operator') {
-      const filteredOperators = [];
-      for (let i = 0; i < options.length; i++) {
-        if ((options[i].label || options[i].value)?.includes(search)) {
-          filteredOperators.push(options[i]);
-          if (filteredOperators.length > limit) {
-            return filteredOperators;
-          }
-        }
-      }
-      return filteredOperators;
+    if (filterInputType === 'operator' && search !== '') {
+      // uFuzzy can only match non-alphanum chars if quoted
+      search = `"${search}"`;
     }
 
-    if (haystack.length === 0) {
-      for (let i = 0; i < options.length; i++) {
-        haystack.push(options[i].label || options[i].value!);
-      }
-    }
-    const [idxs, info, order] = ufuzzy.search(haystack, search);
-    const filteredOptions: Array<SelectableValue<string>> = [];
-
-    if (idxs) {
-      for (let i = 0; i < idxs.length; i++) {
-        if (info && order) {
-          const idx = order[i];
-          filteredOptions.push(options[idxs[idx]]);
-        } else {
-          filteredOptions.push(options[idxs[i]]);
-        }
-
-        if (filteredOptions.length > limit) {
-          return filteredOptions;
-        }
-      }
-      return filteredOptions;
-    }
-
-    if (options.length > limit) {
-      return options.slice(0, limit);
-    }
-
-    return options;
+    return fuzzySearch(search).map((i) => options[i]);
   };
 }
 export const flattenOptionGroups = (options: Array<SelectableValue<string>>) =>
@@ -181,18 +144,13 @@ export const generateFilterUpdatePayload = ({
       // update operator and reset values and valueLabels
       return {
         operator: item.value,
-        // TODO remove when we're on the latest version of @grafana/data
-        //@ts-expect-error
         valueLabels: [filter.valueLabels?.[0] || filter.values?.[0] || filter.value],
-        //@ts-expect-error
         values: undefined,
       };
     }
 
     // handle values/valueLabels when switching from single to multi value operator
     if (isMultiValueOperator(item.value!) && !isMultiValueOperator(filter.operator)) {
-      // TODO remove when we're on the latest version of @grafana/data
-      //@ts-expect-error
       const valueLabels = [filter.valueLabels?.[0] || filter.values?.[0] || filter.value];
       const values = [filter.value];
 
@@ -210,7 +168,6 @@ export const generateFilterUpdatePayload = ({
       return {
         operator: item.value,
         valueLabels: valueLabels,
-        //@ts-expect-error
         values: values,
       };
     }
@@ -241,4 +198,24 @@ export const generatePlaceholder = (
   }
 
   return filter[filterInputType] && !isAlwaysWip ? `${filter[filterInputType]}` : INPUT_PLACEHOLDER;
+};
+
+export const populateInputValueOnInputTypeSwitch = ({
+  populateInputOnEdit,
+  item,
+  filterInputType,
+  setInputValue,
+  filter,
+}: {
+  populateInputOnEdit: boolean | undefined;
+  item: SelectableValue<string>;
+  filterInputType: AdHocInputType;
+  setInputValue: (value: React.SetStateAction<string>) => void;
+  filter: AdHocFilterWithLabels | undefined;
+}) => {
+  if (populateInputOnEdit && !isMultiValueOperator(item.value || '') && nextInputTypeMap[filterInputType] === 'value') {
+    setInputValue(filter?.value || '');
+  } else {
+    setInputValue('');
+  }
 };

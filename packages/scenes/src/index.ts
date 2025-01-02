@@ -79,6 +79,7 @@ export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
 export { VizPanelMenu } from './components/VizPanel/VizPanelMenu';
+export { VizPanelExploreButton } from './components/VizPanel/VizPanelExploreButton';
 export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
@@ -150,3 +151,4 @@ export const sceneUtils = {
 };
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
+export { getExploreURL } from './utils/explore';

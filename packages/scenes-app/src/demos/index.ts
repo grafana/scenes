@@ -39,6 +39,7 @@ import { getInteropDemo } from './interopDemo';
 import { getUrlSyncTest } from './urlSyncTest';
 import { getMlDemo } from './ml';
 import { getSceneGraphEventsDemo } from './sceneGraphEvents';
+import { getSeriesLimitTest } from './seriesLimit';
 
 export interface DemoDescriptor {
   title: string;
@@ -87,5 +88,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Url sync test', getPage: getUrlSyncTest },
     { title: 'Machine Learning', getPage: getMlDemo },
     { title: 'Events on the Scene Graph', getPage: getSceneGraphEventsDemo },
+    { title: 'Series limit', getPage: getSeriesLimitTest },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

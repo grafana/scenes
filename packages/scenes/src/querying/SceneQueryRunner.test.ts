@@ -906,6 +906,33 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
+    it('Should not execute query twice when time range changes and the query is using a time macro', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$__from' }],
+      });
+
+      const timeRange = new SceneTimeRange();
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [] }),
+        $timeRange: timeRange,
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      timeRange.onRefresh();
+
+      await new Promise((r) => setTimeout(r, 2));
+
+      expect(runRequestMock.mock.calls.length).toBe(2);
+    });
+
     it('Should not execute query when variable updates, but maxDataPointsFromWidth is true and width not received yet', async () => {
       const variable = new TestVariable({ name: 'A', value: '', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({

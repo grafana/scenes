@@ -35,6 +35,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
   protected _refCount = 0;
+  protected _renderBeforeActivation = false;
 
   protected _variableDependency: SceneVariableDependencyConfigLike | undefined;
   protected _urlSync: SceneObjectUrlSyncHandler | undefined;
@@ -58,6 +59,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /** True if currently being active (ie displayed for visual objects) */
   public get isActive(): boolean {
     return this._isActive;
+  }
+
+  public get renderBeforeActivation(): boolean {
+    return this._renderBeforeActivation;
   }
 
   /** Returns the parent, undefined for root object */

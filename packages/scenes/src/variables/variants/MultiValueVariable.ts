@@ -25,6 +25,7 @@ export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
   text: VariableValue; // old current.value
   options: VariableValueOption[];
+  allowCustomValue?: boolean;
   isMulti?: boolean;
   includeAll?: boolean;
   defaultToAll?: boolean;
@@ -129,7 +130,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     if (this.hasAllValue()) {
-      if (!this.state.includeAll) {
+      if (this.state.includeAll) {
+        // Sometimes the text representation is also set the ALL_VARIABLE_VALUE, this fixes that
+        stateUpdate.text = ALL_VARIABLE_TEXT;
+      } else {
         stateUpdate.value = options[0].value;
         stateUpdate.text = options[0].label;
         // If multi switch to arrays
