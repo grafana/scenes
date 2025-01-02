@@ -133,7 +133,7 @@ function sortByNumeric(opt: VariableValueOption) {
 const collator = new Intl.Collator(undefined, { sensitivity: 'accent', numeric: true });
 
 function sortByNaturalSort(options: VariableValueOption[]) {
-  return options.sort((a, b) => {
+  return options.slice().sort((a, b) => {
     return collator.compare(a.label, b.label);
   });
 }
