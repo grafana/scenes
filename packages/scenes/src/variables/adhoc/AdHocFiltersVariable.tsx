@@ -103,6 +103,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;
+
+  /**
+   * Flag that will collapse combobox filters when they become too long
+   */
+  collapseFilters?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
