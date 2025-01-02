@@ -130,16 +130,10 @@ function sortByNumeric(opt: VariableValueOption) {
   }
 }
 
+const collator = new Intl.Collator(undefined, { sensitivity: 'accent', numeric: true });
+
 function sortByNaturalSort(options: VariableValueOption[]) {
   return options.sort((a, b) => {
-    if (!a.label) {
-      return -1;
-    }
-
-    if (!b.label) {
-      return 1;
-    }
-
-    return a.label.localeCompare(b.label, undefined, { numeric: true });
+    return collator.compare(a.label, b.label);
   });
 }
