@@ -193,6 +193,7 @@ const dynamicSplitDemo = () =>
   new SceneAppPage({
     title: 'Dynamic split layout test',
     url: demoUrl('split-layout/dynamic'),
+    routePath: 'dynamic',
     getScene: getDynamicSplitScene,
   });
 
