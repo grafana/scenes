@@ -9,6 +9,7 @@ import {
   getSelectStyles,
   useStyles2,
   useTheme2,
+  Combobox,
 } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
@@ -47,12 +48,37 @@ export function toSelectableValue<T>(value: T, label?: string): SelectableValue<
 }
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
+  const {
+    value,
+    text,
+    key,
+    options,
+    includeAll,
+    isReadOnly,
+    allowCustomValue = true,
+    renderWithCombobox,
+  } = model.useState();
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
   const selectValue = toSelectableValue(value, String(text));
 
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
+
+  if (renderWithCombobox) {
+    const comboboxOptions = options.map((o) => ({ value: o.value.toString(), label: o.label }));
+    return (
+      <Combobox
+        value={value.toString()}
+        width="auto"
+        minWidth={20}
+        options={comboboxOptions}
+        createCustomValue={allowCustomValue}
+        onChange={(newValue) => {
+          model.changeValueTo(newValue.value!, newValue.label!);
+        }}
+      />
+    );
+  }
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
