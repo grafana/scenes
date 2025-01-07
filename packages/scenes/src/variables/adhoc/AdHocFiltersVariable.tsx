@@ -22,6 +22,8 @@ export interface AdHocFilterWithLabels extends AdHocVariableFilter {
   valueLabels?: string[];
   // this is used to externally trigger edit mode in combobox filter UI
   forceEdit?: boolean;
+  // hide the filter from AdHocFiltersVariableRenderer and the URL
+  hidden?: boolean;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -432,11 +434,13 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
 
   return (
     <div className={styles.wrapper}>
-      {filters.map((filter, index) => (
-        <React.Fragment key={index}>
-          <AdHocFilterRenderer filter={filter} model={model} />
-        </React.Fragment>
-      ))}
+      {filters
+        .filter((filter) => !filter.hidden)
+        .map((filter, index) => (
+          <React.Fragment key={index}>
+            <AdHocFilterRenderer filter={filter} model={model} />
+          </React.Fragment>
+        ))}
 
       {!readOnly && <AdHocFilterBuilder model={model} key="'builder" addFilterButtonText={addFilterButtonText} />}
     </div>

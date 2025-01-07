@@ -474,6 +474,16 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  it('does not render hidden filter in url', () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], { hidden: true });
+    });
+
+    expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
+  });
+
   it('overrides state when url has empty key', () => {
     const { filtersVar } = setup();
 
@@ -1173,6 +1183,23 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('displays the existing filters', async () => {
       expect(await screen.findByText('key1 = val1')).toBeInTheDocument();
       expect(await screen.findByText('key2 = val2')).toBeInTheDocument();
+    });
+
+    it('does not display hidden filters', async () => {
+      act(() => {
+        const { filtersVar } = setup();
+
+        filtersVar.setState({
+          filters: [
+            ...filtersVar.state.filters,
+            { key: 'hidden_key', operator: '=', value: 'hidden_val', hidden: true },
+          ],
+        });
+      });
+
+      expect(await screen.findByText('key1 = val1')).toBeInTheDocument();
+      expect(await screen.findByText('key2 = val2')).toBeInTheDocument();
+      expect(await screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
     });
 
     it('focusing the input opens the key dropdown', async () => {
