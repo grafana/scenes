@@ -56,7 +56,7 @@ export const DemoSubTitle = ({ text, getSourceCodeModule }: Props) => {
         <HighlightCode
           code={fileContent?.trim() ?? ''}
           language='typescript'
-          plugins={['line-numbers']}
+          plugins={['line-numbers', 'toolbar']}
         />
       </div>
       <Modal.ButtonRow>
