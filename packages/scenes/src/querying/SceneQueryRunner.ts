@@ -126,7 +126,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
-    statePaths: ['queries', 'datasource'],
+    statePaths: ['queries', 'datasource', 'minInterval'],
     onVariableUpdateCompleted: this.onVariableUpdatesCompleted.bind(this),
     onAnyVariableChanged: this.onAnyVariableChanged.bind(this),
   });
