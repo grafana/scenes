@@ -51,8 +51,9 @@ export const DemoSubTitle = ({ text, getSourceCodeModule }: Props) => {
   return <div className={styles.subTitleRow}>
     <span>{text}</span>
     <Button variant={'secondary'} tooltip={'View Source code'} onClick={openSourceCode}>{'</>'}</Button>
-    <Modal className={styles.modalContent} title={text} isOpen={isModalOpen} onDismiss={onModalClose}>
+    <Modal className={styles.modalContent} title={'Demo source code'} isOpen={isModalOpen} onDismiss={onModalClose}>
       <div className={styles.bodyContent}>
+        <p>{text}</p>
         <HighlightCode
           code={fileContent?.trim() ?? ''}
           language='typescript'

@@ -98,7 +98,7 @@ export class DemoList extends SceneObjectBase<DemoListState> {
 
     for (const demo of getDemos()) {
       if (searchQuery) {
-        if (!demo.title.match(regex)) {
+        if (!demo.title.match(regex) && !demo.description.match(regex)) {
           continue;
         }
       }
