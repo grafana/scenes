@@ -15,11 +15,15 @@ export function DynamicVariablesPage() {
   const [sort, setSort] = React.useState<VariableSort>(VariableSort.alphabeticalAsc);
 
   return (
-    <PageWrapper title="Dynamic variables"
-                 subTitle={<DemoSubTitle
-                   text={'Variables added via react rendering'}
-                   getSourceCodeModule={() => import('!!raw-loader!./DynamicVariablesPage')}
-                 />}>
+    <PageWrapper
+      title="Dynamic variables"
+      subTitle={
+        <DemoSubTitle
+          text={'Variables added via react rendering'}
+          getSourceCodeModule={() => import('!!raw-loader!./DynamicVariablesPage')}
+        />
+      }
+    >
       <CustomVariable name="job" query="A, B, C" initialValue="A">
         <Stack direction="column">
           <Stack>

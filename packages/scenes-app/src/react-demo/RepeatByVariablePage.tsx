@@ -9,11 +9,13 @@ import { DemoSubTitle } from '../pages/DemoSubTitle';
 export function RepeatByVariablePage() {
   return (
     <PageWrapper
-      title='Repeat by variable'
-      subTitle={<DemoSubTitle
-        text={'Has a nested variable scope with a new variable which we repeat some viz panels by'}
-        getSourceCodeModule={() => import('!!raw-loader!./RepeatByVariablePage')}
-      />}
+      title="Repeat by variable"
+      subTitle={
+        <DemoSubTitle
+          text={'Has a nested variable scope with a new variable which we repeat some viz panels by'}
+          getSourceCodeModule={() => import('!!raw-loader!./RepeatByVariablePage')}
+        />
+      }
     >
       <CustomVariable name="panels" query="10, 20, 30, 40, 50" initialValue={['10']} isMulti>
         <Stack direction={'column'}>

@@ -13,17 +13,17 @@ import { css, cx } from '@emotion/css';
 
 const getStyles = () => ({
   alwaysVisible: css`
-      opacity: 1 !important;
+    opacity: 1 !important;
 
-      & + div {
-          opacity: 1 !important; /* Make the toolbar visible */
-      }
+    & + div {
+      opacity: 1 !important; /* Make the toolbar visible */
+    }
 
-      & + .toolbar .toolbar-item .copy-to-clipboard-button {
-          padding: 8px;
-          margin-top: 8px;
-          margin-right: 8px;
-      }
+    & + .toolbar .toolbar-item .copy-to-clipboard-button {
+      padding: 8px;
+      margin-top: 8px;
+      margin-right: 8px;
+    }
   `,
 });
 
@@ -31,7 +31,7 @@ type Props = {
   code: string;
   plugins?: string[];
   language: string;
-}
+};
 
 export const HighlightCode = ({ code, plugins, language }: Props) => {
   const styles = useStyles2(getStyles);

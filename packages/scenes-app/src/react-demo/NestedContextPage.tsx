@@ -8,11 +8,15 @@ import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function NestedContextsPage() {
   return (
-    <PageWrapper title="Nested context"
-                 subTitle={<DemoSubTitle
-                   text={'Nested contexts with different time ranges and variables'}
-                   getSourceCodeModule={() => import('!!raw-loader!./NestedContextPage')}
-                 />}>
+    <PageWrapper
+      title="Nested context"
+      subTitle={
+        <DemoSubTitle
+          text={'Nested contexts with different time ranges and variables'}
+          getSourceCodeModule={() => import('!!raw-loader!./NestedContextPage')}
+        />
+      }
+    >
       <Stack direction="column">
         <DemoVizLayout>
           <PlainGraphWithRandomWalk title="Global" />

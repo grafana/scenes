@@ -55,7 +55,9 @@ function getDemoSceneApp() {
 
               return demoInfo.getPage({
                 title: demoInfo.title,
-                subTitle: <DemoSubTitle text={demoInfo.description} getSourceCodeModule={demoInfo.getSourceCodeModule} />,
+                subTitle: (
+                  <DemoSubTitle text={demoInfo.description} getSourceCodeModule={demoInfo.getSourceCodeModule} />
+                ),
                 url: `${demoUrl(slugify(demoInfo.title))}`,
                 getParentPage: () => parent,
               });

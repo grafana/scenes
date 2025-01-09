@@ -33,11 +33,14 @@ export function TransformationsDemoPage() {
   });
 
   return (
-    <PageWrapper title="Transformations"
-                 subTitle={<DemoSubTitle
-                   text={'Transformations demo page'}
-                   getSourceCodeModule={() => import('!!raw-loader!./TransformationsDemoPage')}
-                 />}
+    <PageWrapper
+      title="Transformations"
+      subTitle={
+        <DemoSubTitle
+          text={'Transformations demo page'}
+          getSourceCodeModule={() => import('!!raw-loader!./TransformationsDemoPage')}
+        />
+      }
     >
       <Select
         onChange={(e) => setReducer(e.value ?? ReducerID.mean)}

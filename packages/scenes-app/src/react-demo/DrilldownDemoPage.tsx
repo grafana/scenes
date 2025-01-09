@@ -37,11 +37,14 @@ export function DrilldownHome() {
   });
 
   return (
-    <PageWrapper title="Drilldown demo"
-                 subTitle={<DemoSubTitle
-                   text={'The top level page (for the demo)'}
-                   getSourceCodeModule={() => import('!!raw-loader!./DrilldownDemoPage')}
-                 />}
+    <PageWrapper
+      title="Drilldown demo"
+      subTitle={
+        <DemoSubTitle
+          text={'The top level page (for the demo)'}
+          getSourceCodeModule={() => import('!!raw-loader!./DrilldownDemoPage')}
+        />
+      }
     >
       <DemoVizLayout>
         <VizPanel title="JS Libraries" dataProvider={dataProvider} viz={tableWithDrilldown} />
@@ -54,11 +57,15 @@ export function DrilldownLibraryPage() {
   const libraryName = useParams<{ lib: string }>().lib;
 
   return (
-    <PageWrapper title={`Library: ${libraryName}`}
-                 subTitle={<DemoSubTitle
-                   text={'Library details drilldown page'}
-                   getSourceCodeModule={() => import('!!raw-loader!./DrilldownDemoPage')}
-                 />}>
+    <PageWrapper
+      title={`Library: ${libraryName}`}
+      subTitle={
+        <DemoSubTitle
+          text={'Library details drilldown page'}
+          getSourceCodeModule={() => import('!!raw-loader!./DrilldownDemoPage')}
+        />
+      }
+    >
       <DemoVizLayout>
         <PlainGraphWithRandomWalk title={`${libraryName} trends`} />
       </DemoVizLayout>

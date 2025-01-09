@@ -20,14 +20,15 @@ export function UseQueryVariableHookPage() {
     setRegex('/[ABC]/');
   };
 
-
   return (
     <PageWrapper
       title="useQueryVariable hook"
-      subTitle={<DemoSubTitle
-        text={'Testing a hook that provides an alternative way of creating a query variable'}
-        getSourceCodeModule={() => import('!!raw-loader!./UseQueryVariableHookPage')}
-      />}
+      subTitle={
+        <DemoSubTitle
+          text={'Testing a hook that provides an alternative way of creating a query variable'}
+          getSourceCodeModule={() => import('!!raw-loader!./UseQueryVariableHookPage')}
+        />
+      }
     >
       <Stack direction="column">
         <Stack direction="column" gap={2}>

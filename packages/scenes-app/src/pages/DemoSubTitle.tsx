@@ -25,7 +25,7 @@ function getStyles(theme: GrafanaTheme2) {
 type Props = {
   text: string;
   getSourceCodeModule: () => Promise<any>;
-}
+};
 
 export const DemoSubTitle = ({ text, getSourceCodeModule }: Props) => {
   const styles = useStyles2(getStyles);
@@ -48,21 +48,23 @@ export const DemoSubTitle = ({ text, getSourceCodeModule }: Props) => {
     setIsModalOpen(false);
   }
 
-  return <div className={styles.subTitleRow}>
-    <span>{text}</span>
-    <Button variant={'secondary'} tooltip={'View Source code'} onClick={openSourceCode}>{'</>'}</Button>
-    <Modal className={styles.modalContent} title={'Demo source code'} isOpen={isModalOpen} onDismiss={onModalClose}>
-      <div className={styles.bodyContent}>
-        <p>{text}</p>
-        <HighlightCode
-          code={fileContent?.trim() ?? ''}
-          language='typescript'
-          plugins={['line-numbers', 'toolbar']}
-        />
-      </div>
-      <Modal.ButtonRow>
-        <Button variant='primary' fill='solid' onClick={onModalClose}>OK</Button>
-      </Modal.ButtonRow>
-    </Modal>
-  </div>;
+  return (
+    <div className={styles.subTitleRow}>
+      <span>{text}</span>
+      <Button variant={'secondary'} tooltip={'View Source code'} onClick={openSourceCode}>
+        {'</>'}
+      </Button>
+      <Modal className={styles.modalContent} title={'Demo source code'} isOpen={isModalOpen} onDismiss={onModalClose}>
+        <div className={styles.bodyContent}>
+          <p>{text}</p>
+          <HighlightCode code={fileContent?.trim() ?? ''} language="typescript" plugins={['line-numbers', 'toolbar']} />
+        </div>
+        <Modal.ButtonRow>
+          <Button variant="primary" fill="solid" onClick={onModalClose}>
+            OK
+          </Button>
+        </Modal.ButtonRow>
+      </Modal>
+    </div>
+  );
 };

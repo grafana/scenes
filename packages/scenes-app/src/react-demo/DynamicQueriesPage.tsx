@@ -17,11 +17,15 @@ export function DynamicQueriesPage() {
   const dataProvider = useQueryRunner({ queries: queries, maxDataPoints: 100, datasource: DATASOURCE_REF });
 
   return (
-    <PageWrapper title="Dynamic queriues"
-                 subTitle={<DemoSubTitle
-                   text={'Rebuild queries based on some user input / state'}
-                   getSourceCodeModule={() => import('!!raw-loader!./RepeatBySeriesPage')}
-                 />}>
+    <PageWrapper
+      title="Dynamic queriues"
+      subTitle={
+        <DemoSubTitle
+          text={'Rebuild queries based on some user input / state'}
+          getSourceCodeModule={() => import('!!raw-loader!./RepeatBySeriesPage')}
+        />
+      }
+    >
       <Stack direction="column">
         <Stack>
           <Field label="Query scenario">

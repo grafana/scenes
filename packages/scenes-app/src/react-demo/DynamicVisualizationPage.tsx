@@ -25,11 +25,15 @@ export function DynamicVisualiationPage() {
   );
 
   return (
-    <PageWrapper title="Dynamic visualisation"
-                 subTitle={<DemoSubTitle
-                   text={'Rebuild queries based on some user input / state'}
-                   getSourceCodeModule={() => import('!!raw-loader!./DynamicVisualizationPage')}
-                 />}>
+    <PageWrapper
+      title="Dynamic visualisation"
+      subTitle={
+        <DemoSubTitle
+          text={'Rebuild queries based on some user input / state'}
+          getSourceCodeModule={() => import('!!raw-loader!./DynamicVisualizationPage')}
+        />
+      }
+    >
       <Stack direction="column">
         <DemoVizLayout>
           <VizPanel

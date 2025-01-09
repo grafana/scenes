@@ -10,10 +10,12 @@ export function InterpolationHookPage() {
   return (
     <PageWrapper
       title="Interpolation hook"
-      subTitle={<DemoSubTitle
-        text={'Testing a hook that makes any component re-render when variable or time range change'}
-        getSourceCodeModule={() => import('!!raw-loader!./InterpolationHookPage')}
-      />}
+      subTitle={
+        <DemoSubTitle
+          text={'Testing a hook that makes any component re-render when variable or time range change'}
+          getSourceCodeModule={() => import('!!raw-loader!./InterpolationHookPage')}
+        />
+      }
     >
       <Stack direction="column">
         <RenderCounter name="Page" />

@@ -33,31 +33,36 @@ export const HomePage = () => {
   const styles = useStyles2(getStyles);
   const history = useHistory();
 
-  return <PluginPage layout={PageLayoutType.Custom}>
-    <div className={styles.content}>
-      <div className={styles.title}>
-        <h1>Learn how to build apps with Scenes</h1>
+  return (
+    <PluginPage layout={PageLayoutType.Custom}>
+      <div className={styles.content}>
+        <div className={styles.title}>
+          <h1>Learn how to build apps with Scenes</h1>
+        </div>
+        <div className={styles.cardsRow}>
+          <Card key={`card-demo`} onClick={() => history.push(prefixRoute(`${ROUTES.Demos}`))}>
+            <Card.Heading>Demo</Card.Heading>
+            <Card.Description>
+              <p>List of scenes demo</p>
+            </Card.Description>
+          </Card>
+          <Card
+            key={`card-grafana-monitoring`}
+            onClick={() => history.push(prefixRoute(`${ROUTES.GrafanaMonitoring}`))}
+          >
+            <Card.Heading>Grafana Monitoring</Card.Heading>
+            <Card.Description>
+              <p>A custom app with embedded scenes to monitor your Grafana server</p>
+            </Card.Description>
+          </Card>
+          <Card key={`card-react-demo`} onClick={() => history.push(prefixRoute(`${ROUTES.ReactDemo}`))}>
+            <Card.Heading>React only demo</Card.Heading>
+            <Card.Description>
+              <p>Welcome to the React first demos</p>
+            </Card.Description>
+          </Card>
+        </div>
       </div>
-      <div className={styles.cardsRow}>
-        <Card key={`card-demo`} onClick={() => history.push(prefixRoute(`${ROUTES.Demos}`))}>
-          <Card.Heading>Demo</Card.Heading>
-          <Card.Description>
-            <p>List of scenes demo</p>
-          </Card.Description>
-        </Card>
-        <Card key={`card-grafana-monitoring`} onClick={() => history.push(prefixRoute(`${ROUTES.GrafanaMonitoring}`))}>
-          <Card.Heading>Grafana Monitoring</Card.Heading>
-          <Card.Description>
-            <p>A custom app with embedded scenes to monitor your Grafana server</p>
-          </Card.Description>
-        </Card>
-        <Card key={`card-react-demo`} onClick={() => history.push(prefixRoute(`${ROUTES.ReactDemo}`))}>
-          <Card.Heading>React only demo</Card.Heading>
-          <Card.Description>
-            <p>Welcome to the React first demos</p>
-          </Card.Description>
-        </Card>
-      </div>
-    </div>
-  </PluginPage>;
+    </PluginPage>
+  );
 };

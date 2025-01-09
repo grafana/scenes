@@ -72,11 +72,15 @@ export function AnnotationDemoPage() {
   };
 
   return (
-    <PageWrapper title="Annotations"
-                 subTitle={<DemoSubTitle
-                   text={'Annotation demo page'}
-                   getSourceCodeModule={() => import('!!raw-loader!./AnnotationsDemoPage')}
-                 />}>
+    <PageWrapper
+      title="Annotations"
+      subTitle={
+        <DemoSubTitle
+          text={'Annotation demo page'}
+          getSourceCodeModule={() => import('!!raw-loader!./AnnotationsDemoPage')}
+        />
+      }
+    >
       <AnnotationLayer name="GlobalAnno" query={globalQuery}>
         <Stack direction={'column'} gap={2}>
           <SceneContextProvider>
