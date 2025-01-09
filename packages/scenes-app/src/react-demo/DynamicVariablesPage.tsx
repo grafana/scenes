@@ -46,12 +46,12 @@ export function DynamicVariablesPage() {
           </DemoVizLayout>
         </Stack>
       </DataSourceVariable>
-      <QueryVariable 
-        name="job2" 
+      <QueryVariable
+        name="job2"
         initialValue="A"
-        query={{ query: '*', refId: 'A' }} 
-        datasource={{ uid: 'gdev-testdata' }} 
-        regex={regexQueryVar} 
+        query={{ query: '*', refId: 'A' }}
+        datasource={{ uid: 'gdev-testdata' }}
+        regex={regexQueryVar}
         hide={hide}
         refresh={VariableRefresh.onTimeRangeChanged}
         includeAll={includeAll}

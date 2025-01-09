@@ -13,6 +13,7 @@ import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '..
 import { VizPanel } from './VizPanel';
 import { css, cx } from '@emotion/css';
 import { debounce } from 'lodash';
+import { VizPanelSeriesLimit } from './VizPanelSeriesLimit';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -27,14 +28,20 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     menu,
     headerActions,
     titleItems,
+    seriesLimit,
+    seriesLimitShowAll,
     description,
+    collapsible,
+    collapsed,
     _renderCounter = 0,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
 
   const setPanelAttention = useCallback(() => {
-    appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+    if (model.state.key) {
+      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+    }
   }, [model.state.key, appEvents]);
   const debouncedMouseMove = useMemo(
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
@@ -47,7 +54,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataObject = sceneGraph.getData(model);
 
   const rawData = dataObject.useState();
-  const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
+  const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
+  const dataWithFieldConfig = model.applyFieldConfig(dataWithSeriesLimit);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
   const timeZone = sceneTimeRange.getTimeZone();
   const timeRange = model.getTimeRange(dataWithFieldConfig);
@@ -86,6 +94,18 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     } else {
       titleItemsElement.push(titleItems);
     }
+  }
+
+  if (seriesLimit) {
+    titleItemsElement.push(
+      <VizPanelSeriesLimit
+        key="series-limit"
+        data={rawData.data}
+        seriesLimit={seriesLimit}
+        showAll={seriesLimitShowAll}
+        onShowAllSeries={() => model.setState({ seriesLimitShowAll: !seriesLimitShowAll })}
+      />
+    );
   }
 
   // If we have local time range show that in panel header
@@ -156,8 +176,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             statusMessageOnClick={model.onStatusMessageClick}
             width={width}
             height={height}
+            //@ts-expect-error Remove when 11.4 is released
+            selectionId={model.state.key}
             displayMode={displayMode}
-            //@ts-expect-error Remove when 11.4 is released: https://github.com/grafana/grafana/pull/96868
             showMenuAlways={showMenuAlways}
             hoverHeader={hoverHeader}
             hoverHeaderOffset={hoverHeaderOffset}
@@ -172,6 +193,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
+            collapsible={collapsible}
+            collapsed={collapsed}
+            onToggleCollapse={model.onToggleCollapse}
           >
             {(innerWidth, innerHeight) => (
               <>
@@ -208,6 +232,19 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       </div>
     </div>
   );
+}
+
+function useDataWithSeriesLimit(data: PanelData | undefined, seriesLimit?: number, showAllSeries?: boolean) {
+  return useMemo(() => {
+    if (!data?.series || !seriesLimit || showAllSeries) {
+      return data;
+    }
+
+    return {
+      ...data,
+      series: data.series.slice(0, seriesLimit),
+    };
+  }, [data, seriesLimit, showAllSeries]);
 }
 
 function getDragClasses(panel: VizPanel) {

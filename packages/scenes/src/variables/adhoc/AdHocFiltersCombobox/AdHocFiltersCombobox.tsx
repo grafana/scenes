@@ -25,7 +25,7 @@ import {
 import {
   ERROR_STATE_DROPDOWN_WIDTH,
   flattenOptionGroups,
-  fuzzySearchOptions,
+  searchOptions,
   generateFilterUpdatePayload,
   generatePlaceholder,
   populateInputValueOnInputTypeSwitch,
@@ -62,6 +62,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const [inputValue, setInputValue] = useState('');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [filterInputType, setInputType] = useState<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
+  const [preventFiltering, setPreventFiltering] = useState<boolean>(!isAlwaysWip && filterInputType === 'value');
   const styles = useStyles2(getStyles);
   // control multi values with local state in order to commit all values at once and avoid _wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
@@ -78,8 +79,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const disabledIndicesRef = useRef<number[]>([]);
+  const filterInputTypeRef = useRef<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
 
-  const optionsSearcher = useMemo(() => fuzzySearchOptions(options), [options]);
+  const optionsSearcher = useMemo(() => searchOptions(options), [options]);
 
   const isLastFilter = useMemo(() => {
     if (isAlwaysWip) {
@@ -115,8 +117,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           valueLabels.push(item.label ?? item.value!);
           values.push(item.value!);
         });
-        // TODO remove when we're on the latest version of @grafana/data
-        //@ts-expect-error
         model._updateFilter(filter!, { valueLabels, values, value: values[0] });
         setFilterMultiValues([]);
       }
@@ -192,6 +192,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     const value = event.target.value;
     setInputValue(value);
     setActiveIndex(0);
+    if (preventFiltering) {
+      setPreventFiltering(false);
+    }
   }
 
   const handleRemoveMultiValue = useCallback(
@@ -204,7 +207,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   // operation order on fetched options:
   //    fuzzy search -> extract into groups -> flatten group labels and options
-  const filteredDropDownItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(inputValue, filterInputType)));
+  const filteredDropDownItems = flattenOptionGroups(
+    handleOptionGroups(optionsSearcher(preventFiltering ? '' : inputValue, filterInputType))
+  );
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
   if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
@@ -224,6 +229,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       setOptionsLoading(true);
       setOptions([]);
       let options: Array<SelectableValue<string>> = [];
+
       try {
         if (inputType === 'key') {
           options = await model._getKeys(null);
@@ -233,6 +239,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           options = await model._getValuesFor(filter!);
         }
 
+        // if input type changed before fetch completed then abort updating options
+        //   this can cause race condition and return incorrect options when input type changed
+        if (filterInputTypeRef.current !== inputType) {
+          return;
+        }
         setOptions(options);
         if (options[0]?.group) {
           setActiveIndex(1);
@@ -408,8 +419,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     (value: SelectableValue<string>) => {
       const valueLabel = value.label || value.value!;
       setFilterMultiValues((prev) => prev.filter((item) => item.value !== value.value));
+      setPreventFiltering(true);
       setInputValue(valueLabel);
       refs.domReference.current?.focus();
+      setTimeout(() => {
+        refs.domReference.current?.select();
+      });
     },
     [refs.domReference]
   );
@@ -430,11 +445,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   //    and in this case we default to 'value' input type and focus input
   useEffect(() => {
     if (!isAlwaysWip) {
-      // TODO remove when we're on the latest version of @grafana/data
-      //@ts-expect-error
       if (hasMultiValueOperator && filter?.values?.length) {
-        // TODO remove when we're on the latest version of @grafana/data
-        //@ts-expect-error
         const multiValueOptions = (filter.values as string[]).reduce<Array<SelectableValue<string>>>(
           (acc, value, i) => [
             ...acc,
@@ -453,6 +464,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       //   this avoids populating input during delete with backspace
       if (!hasMultiValueOperator && populateInputOnEdit) {
         setInputValue(filter?.value || '');
+        setTimeout(() => {
+          refs.domReference.current?.select();
+        });
       }
 
       refs.domReference.current?.focus();
@@ -467,6 +481,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       setTimeout(() => setForceRefresh({}));
     }
   }, [filterMultiValues, isMultiValueEdit]);
+
+  // synch filterInputTypeRef with filterInputType state
+  useLayoutEffect(() => {
+    if (filterInputTypeRef.current) {
+      filterInputTypeRef.current = filterInputType;
+    }
+  }, [filterInputType]);
 
   useLayoutEffect(() => {
     // this is needed to scroll virtual list to the position of currently selected

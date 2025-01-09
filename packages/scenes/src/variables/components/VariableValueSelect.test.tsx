@@ -80,6 +80,7 @@ describe('VariableValueSelect', () => {
     expect(variableValueSelectElement).toBeInTheDocument();
     expect(inputElement).toBeDisabled();
   });
+
   it('should render VariableValueSelect component with disabled value', async () => {
     const model = new CustomVariable({
       name: 'test',

@@ -23,7 +23,7 @@ export function getGroupByStatic(defaults: SceneAppPageState) {
           variables: [
             new GroupByVariable({
               name: 'groupBy',
-              label: 'Group By (static list)',
+              label: 'Group By MultiSelect (static list)',
               datasource: { uid: 'gdev-prometheus' },
               defaultOptions: [
                 {
@@ -35,8 +35,28 @@ export function getGroupByStatic(defaults: SceneAppPageState) {
                   value: 'job',
                 },
                 {
-                  text: 'alertname',
-                  value: 'alertname',
+                  text: 'alert_name',
+                  value: 'alert_name',
+                },
+              ],
+            }),
+            new GroupByVariable({
+              name: 'groupByOneSelection',
+              label: 'Group By OneSelection (static list)',
+              datasource: { uid: 'gdev-prometheus' },
+              isMulti: false,
+              defaultOptions: [
+                {
+                  text: 'schema',
+                  value: 'schema',
+                },
+                {
+                  text: 'instance',
+                  value: 'instance',
+                },
+                {
+                  text: 'job',
+                  value: 'job',
                 },
               ],
             }),
@@ -50,7 +70,14 @@ export function getGroupByStatic(defaults: SceneAppPageState) {
             new SceneFlexItem({
               ySizing: 'content',
               body: new SceneCanvasText({
-                text: `Interpolated value (static): {$groupBy}`,
+                text: `Interpolated value MultiSelect(static): {$groupBy}`,
+                fontSize: 14,
+              }),
+            }),
+            new SceneFlexItem({
+              ySizing: 'content',
+              body: new SceneCanvasText({
+                text: `Interpolated value OneSelection (static): {$groupByOneSelection}`,
                 fontSize: 14,
               }),
             }),

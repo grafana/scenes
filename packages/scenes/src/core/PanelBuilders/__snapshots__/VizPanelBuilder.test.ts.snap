@@ -130,6 +130,7 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
   "legend": {
     "show": true,
   },
+  "selectionMode": "x",
   "showValue": "auto",
   "tooltip": {
     "mode": "single",
@@ -225,6 +226,7 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
   "colorMode": "value",
   "graphMode": "area",
   "justifyMode": "auto",
+  "percentChangeColorMode": "standard",
   "showPercentChange": false,
   "textMode": "auto",
   "wideLayout": true,
@@ -244,6 +246,7 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 {
   "alignValue": "left",
   "mergeValues": true,
+  "perPage": 20,
   "rowHeight": 0.9,
   "showValue": "auto",
 }

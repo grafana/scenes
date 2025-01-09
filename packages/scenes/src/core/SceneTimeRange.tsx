@@ -1,4 +1,4 @@
-import { getTimeZone, rangeUtil, TimeRange, toUtc } from '@grafana/data';
+import { getTimeZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
@@ -8,7 +8,7 @@ import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from '.
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
-import { locationService, RefreshEvent } from '@grafana/runtime';
+import { config, locationService, RefreshEvent } from '@grafana/runtime';
 import { isValid } from '../utils/date';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
@@ -17,14 +17,14 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
     const from = state.from && isValid(state.from) ? state.from : 'now-6h';
     const to = state.to && isValid(state.to) ? state.to : 'now';
-
     const timeZone = state.timeZone;
     const value = evaluateTimeRange(
       from,
       to,
       timeZone || getTimeZone(),
       state.fiscalYearStartMonth,
-      state.UNSAFE_nowDelay
+      state.UNSAFE_nowDelay,
+      state.weekStart
     );
     const refreshOnActivate = state.refreshOnActivate ?? { percent: 10 };
     super({ from, to, timeZone, value, refreshOnActivate, ...state });
@@ -40,15 +40,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
         this._subs.add(
           timeZoneSource.subscribeToState((n, p) => {
             if (n.timeZone !== undefined && n.timeZone !== p.timeZone) {
-              this.setState({
-                value: evaluateTimeRange(
-                  this.state.from,
-                  this.state.to,
-                  timeZoneSource.getTimeZone(),
-                  this.state.fiscalYearStartMonth,
-                  this.state.UNSAFE_nowDelay
-                ),
-              });
+              this.refreshRange(0);
             }
           })
         );
@@ -58,6 +50,12 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     if (rangeUtil.isRelativeTimeRange(this.state.value.raw)) {
       this.refreshIfStale();
     }
+
+    return () => {
+      if (this.state.weekStart) {
+        setWeekStart(config.bootData.user.weekStart);
+      }
+    };
   }
 
   private refreshIfStale() {
@@ -106,14 +104,13 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       this.state.to,
       this.state.timeZone ?? getTimeZone(),
       this.state.fiscalYearStartMonth,
-      this.state.UNSAFE_nowDelay
+      this.state.UNSAFE_nowDelay,
+      this.state.weekStart
     );
 
     const diff = value.to.diff(this.state.value.to, 'milliseconds');
     if (diff >= refreshAfterMs) {
-      this.setState({
-        value,
-      });
+      this.setState({ value });
     }
   }
 
@@ -158,7 +155,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.to,
       this.getTimeZone(),
       this.state.fiscalYearStartMonth,
-      this.state.UNSAFE_nowDelay
+      this.state.UNSAFE_nowDelay,
+      this.state.weekStart
     );
 
     // Only update if time range actually changed
@@ -176,16 +174,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   public onRefresh = () => {
-    this.setState({
-      value: evaluateTimeRange(
-        this.state.from,
-        this.state.to,
-        this.getTimeZone(),
-        this.state.fiscalYearStartMonth,
-        this.state.UNSAFE_nowDelay
-      ),
-    });
-
+    this.refreshRange(0);
     this.publishEvent(new RefreshEvent(), true);
   };
 
@@ -242,7 +231,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       update.to ?? this.state.to,
       update.timeZone ?? this.getTimeZone(),
       this.state.fiscalYearStartMonth,
-      this.state.UNSAFE_nowDelay
+      this.state.UNSAFE_nowDelay,
+      this.state.weekStart
     );
 
     return this.setState(update);

@@ -61,15 +61,13 @@ class VizChange extends SceneObjectBase<VizChangeState> {
     } else if (value === 'stat') {
       viz.changePluginType('stat');
     } else if (value === 'gauge_extra') {
-      const options = PanelOptionsBuilders.gauge()
-      .setOption('orientation', VizOrientation.Vertical)
-      .build();
+      const options = PanelOptionsBuilders.gauge().setOption('orientation', VizOrientation.Vertical).build();
 
       const fieldConfig = FieldConfigBuilders.gauge().setUnit('accMS2').build();
-      
+
       viz.changePluginType('gauge', options, fieldConfig);
     }
-  }
+  };
 
   public static Component = ({ model }: SceneComponentProps<VizOptions>) => {
     const { value } = model.useState();

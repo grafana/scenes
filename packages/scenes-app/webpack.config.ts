@@ -26,4 +26,3 @@ const config = (env: any): Configuration => {
 };
 
 export default config;
-

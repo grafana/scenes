@@ -1,8 +1,15 @@
 import { isArray } from 'lodash';
 import React, { RefCallback, useEffect, useMemo, useState } from 'react';
-
-//@ts-ignore
-import { Checkbox, InputActionMeta, MultiSelect, Select, ToggleAllState, getSelectStyles, useStyles2, useTheme2 } from '@grafana/ui';
+import {
+  Checkbox,
+  InputActionMeta,
+  MultiSelect,
+  Select,
+  ToggleAllState,
+  getSelectStyles,
+  useStyles2,
+  useTheme2,
+} from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable } from '../variants/MultiValueVariable';
@@ -14,7 +21,7 @@ import { getOptionSearcher } from './getOptionSearcher';
 
 const filterNoOp = () => true;
 
-const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== '$__all'
+const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== '$__all';
 
 const determineToggleAllState = (
   selectedValues: Array<SelectableValue<VariableValueSingle>>,
@@ -101,7 +108,16 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
 }
 
 export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, options, key, maxVisibleValues, noValueOnClear, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
+  const {
+    value,
+    options,
+    key,
+    maxVisibleValues,
+    noValueOnClear,
+    includeAll,
+    isReadOnly,
+    allowCustomValue = true,
+  } = model.useState();
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
@@ -182,7 +198,7 @@ interface SelectMenuOptionProps<T> {
   innerRef: RefCallback<HTMLDivElement>;
   renderOptionLabel?: (value: SelectableValue<T>) => JSX.Element;
   data: SelectableValue<T>;
-  indeterminate: boolean; 
+  indeterminate: boolean;
 }
 
 export const OptionWithCheckbox = ({

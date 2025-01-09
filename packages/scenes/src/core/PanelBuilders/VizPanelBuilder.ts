@@ -67,7 +67,7 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    */
   public setShowMenuAlways(showMenuAlways: VizPanelState['showMenuAlways']): this {
     this._state.showMenuAlways = showMenuAlways;
-    return this
+    return this;
   }
 
   /**
@@ -83,6 +83,15 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    */
   public setHeaderActions(headerActions: VizPanelState['headerActions']): this {
     this._state.headerActions = headerActions;
+    return this;
+  }
+
+  public setCollapsible(collapsible: VizPanelState['collapsible']): this {
+    this._state.collapsible = collapsible;
+    return this;
+  }
+  public setCollapsed(collapsed: VizPanelState['collapsed']): this {
+    this._state.collapsed = collapsed;
     return this;
   }
 
@@ -221,6 +230,14 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    */
   public setBehaviors(behaviors: VizPanelState['$behaviors']): this {
     this._state.$behaviors = behaviors;
+    return this;
+  }
+
+  /**
+   * Sets the default series limit for the panel.
+   */
+  public setSeriesLimit(seriesLimit: VizPanelState['seriesLimit']): this {
+    this._state.seriesLimit = seriesLimit;
     return this;
   }
 

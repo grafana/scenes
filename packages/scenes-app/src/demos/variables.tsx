@@ -232,16 +232,20 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   name: 'manyAdhocOptions',
                   getTagKeysProvider: async () => ({
                     replace: true,
-                    values: [{
-                      value: 'a',
-                      text: 'A'
-                    }, {
-                      value: 'b',
-                      text: 'B'
-                    }, {
-                      value: 'c',
-                      text: 'C'
-                    }]
+                    values: [
+                      {
+                        value: 'a',
+                        text: 'A',
+                      },
+                      {
+                        value: 'b',
+                        text: 'B',
+                      },
+                      {
+                        value: 'c',
+                        text: 'C',
+                      },
+                    ],
                   }),
                   getTagValuesProvider: async () => {
                     return {
@@ -249,7 +253,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                       values: getRandomOptions(100000).map(({ value, label }) => ({
                         value,
                         text: label,
-                      }))
+                      })),
                     };
                   },
                 }),

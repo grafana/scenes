@@ -235,10 +235,7 @@ interface SceneType<T> extends Function {
  * A utility function to find the closest ancestor of a given type. This function expects
  * to find it and will throw an error if it does not.
  */
-export function getAncestor<ParentType>(
-  sceneObject: SceneObject,
-  ancestorType: SceneType<ParentType>
-): ParentType {
+export function getAncestor<ParentType>(sceneObject: SceneObject, ancestorType: SceneType<ParentType>): ParentType {
   let parent: SceneObject | undefined = sceneObject;
 
   while (parent) {

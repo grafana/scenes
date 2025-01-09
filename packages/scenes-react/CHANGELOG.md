@@ -1,3 +1,40 @@
+# v5.31.0 (Thu Dec 12 2024)
+
+#### 🚀 Enhancement
+
+- feat: (scenes-react) - VizPanel add missing props and tests [#998](https://github.com/grafana/scenes/pull/998) ([@L2D2Grafana](https://github.com/L2D2Grafana) [@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+---
+
+# v5.29.0 (Thu Dec 05 2024)
+
+#### 🐛 Bug Fix
+
+- Prettier/lint: Add prettier and lint check to CI , format all files with prettier [#988](https://github.com/grafana/scenes/pull/988) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.28.0 (Fri Nov 29 2024)
+
+#### 🐛 Bug Fix
+
+- Chore: Bump grafana dependencies [#965](https://github.com/grafana/scenes/pull/965) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.25.0 (Wed Nov 13 2024)
 
 #### 🚀 Enhancement
@@ -91,7 +128,7 @@
 
 #### UrlSync: Support browser history steps, remove singleton ([#878](https://github.com/grafana/scenes/pull/878))
 
-getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider. 
+getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider.
 If you called getUrlSyncManager().getUrlState that util function is available via the exported object sceneUtils.
 
 ---
@@ -239,4 +276,4 @@ If you called getUrlSyncManager().getUrlState that util function is available vi
 
 ---
 
-Work in progress 
+Work in progress
