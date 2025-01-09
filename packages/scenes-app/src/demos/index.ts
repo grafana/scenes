@@ -90,6 +90,6 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Url sync test', description: 'A simple demo stress testing url sync', getPage: getUrlSyncTest, getSourceCodeModule: () => import('!!raw-loader!../demos/urlSyncTest') },
     { title: 'Machine Learning', description: 'Time series Machine Learning demos', getPage: getMlDemo, getSourceCodeModule: () => import('!!raw-loader!../demos/ml') },
     { title: 'Events on the Scene Graph', description: 'Illustrating how events traverse the scene graph', getPage: getSceneGraphEventsDemo, getSourceCodeModule: () => import('!!raw-loader!../demos/sceneGraphEvents') },
-    { title: 'Series limit', getPage: getSeriesLimitTest },
+    { title: 'Series limit', description: 'Test panel series limit feature', getPage: getSeriesLimitTest, getSourceCodeModule: () => import('!!raw-loader!../demos/seriesLimit') },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
