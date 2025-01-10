@@ -23,12 +23,12 @@ export const CopyToClipboard = (props: Props) => {
       () => {
         /* clipboard write failed */
         onClipboardError && onClipboardError();
-      },
+      }
     );
   };
 
   return (
-    <Button onClick={handleClick} {...buttonProps} type='button'>
+    <Button onClick={handleClick} {...buttonProps} type="button">
       {buttonProps.children}
     </Button>
   );
