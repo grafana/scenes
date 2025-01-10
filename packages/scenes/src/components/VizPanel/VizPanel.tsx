@@ -36,6 +36,7 @@ import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
+import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -158,7 +159,16 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        const result = await importPanelPlugin(pluginId);
+        const panelPromise = importPanelPlugin(pluginId);
+
+        const queryControler = sceneGraph.getQueryController(this);
+        if (queryControler && queryControler.state.enableProfiling) {
+          wrapPromiseInStateObservable(panelPromise)
+            .pipe(registerQueryWithController({ type: 'plugin', origin: this }))
+            .subscribe(() => {});
+        }
+
+        const result = await panelPromise;
         this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
