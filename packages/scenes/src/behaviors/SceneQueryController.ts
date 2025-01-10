@@ -19,8 +19,6 @@ export class SceneQueryController
 
   #tryCompleteProfileFrameId: number | null = null;
 
-  // lastFrameTime: number = 0;
-
   public constructor(state: Partial<SceneQueryStateControllerState> = {}) {
     super({ ...state, isRunning: false });
 
@@ -69,7 +67,6 @@ export class SceneQueryController
      */
     (window as any).__grafanaRunningQueryCount = ((window as any).__grafanaRunningQueryCount ?? 0) + dir;
 
-    // console.log('\tRunning queries:', (window as any).__grafanaRunningQueryCount);
     if (dir === 1 && this.state.enableProfiling) {
       if (entry) {
         // Collect profile crumbs, variables, annotations, queries and plugins
