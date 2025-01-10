@@ -6938,13 +6938,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prismjs@npm:^1.26.5":
-  version: 1.26.5
-  resolution: "@types/prismjs@npm:1.26.5"
-  checksum: 10/617099479db9550119d0f84272dc79d64b2cf3e0d7a17167fe740d55fdf0f155697d935409464392d164e62080c2c88d649cf4bc4fdd30a87127337536657277
-  languageName: node
-  linkType: hard
-
 "@types/prop-types@npm:*":
   version: 15.7.5
   resolution: "@types/prop-types@npm:15.7.5"
@@ -24000,7 +23993,6 @@ __metadata:
     "@types/jest": "npm:^29.5.12"
     "@types/lodash": "npm:latest"
     "@types/node": "npm:^20.11.30"
-    "@types/prismjs": "npm:^1.26.5"
     "@types/react-router-dom": "npm:^5.3.3"
     "@typescript-eslint/eslint-plugin": "npm:^4.33.0"
     "@typescript-eslint/parser": "npm:^4.33.0"
@@ -24016,7 +24008,6 @@ __metadata:
     fork-ts-checker-webpack-plugin: "npm:^7.2.0"
     jest: "npm:29.7.0"
     prettier: "npm:^2.5.0"
-    prismjs: "npm:^1.29.0"
     raw-loader: "npm:^4.0.2"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
