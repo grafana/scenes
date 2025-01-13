@@ -111,7 +111,7 @@ Performs a side effect when a variable changes.
 
 #### Usage
 
-Assuming there is a `MultiValueVariable` variable named `myVariable` in a scene, you can configure side effect to be performed when it's value changes:
+Assuming there is a `MultiValueVariable` variable named `myVariable` in a scene, you can configure a side effect to be performed when the variable value changes:
 
 ```ts
 import { behaviors, MultiValueVariable } from '@grafana/scenes';
