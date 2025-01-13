@@ -1,8 +1,7 @@
-import { Button, CodeEditor, Icon, Modal, useStyles2 } from '@grafana/ui';
+import { Button, ClipboardButton, CodeEditor, Modal, useStyles2 } from '@grafana/ui';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
-import { CopyToClipboard } from '../components/CopyToClipboard';
 
 function getStyles(theme: GrafanaTheme2, titleHeight: number, bodyHeight: number) {
   return {
@@ -35,32 +34,6 @@ function getStyles(theme: GrafanaTheme2, titleHeight: number, bodyHeight: number
       alignItems: 'flex-end',
       paddingBottom: theme.spacing(1),
     }),
-    copyText: css({
-      display: 'flex',
-      flexDirection: 'row',
-      gap: theme.spacing(1),
-      alignItems: 'center',
-
-      svg: {
-        fill: theme.colors.text.link,
-      },
-      span: {
-        color: theme.colors.text.link,
-      },
-    }),
-    checkIcon: css({
-      display: 'flex',
-      flexDirection: 'row',
-      gap: theme.spacing(1),
-      alignItems: 'center',
-
-      svg: {
-        fill: theme.colors.success.text,
-      },
-      span: {
-        color: theme.colors.success.text,
-      },
-    }),
   };
 }
 
@@ -76,7 +49,6 @@ export const DemoSubTitle = ({ text, getSourceCodeModule }: Props) => {
   const styles = useStyles2((theme) => getStyles(theme, titleHeight, bodyHeight));
   const [fileContent, setFileContent] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCopySuccessful, setIsCopySuccessful] = useState(false);
 
   const openSourceCode = useCallback(async () => {
     const module = await getSourceCodeModule?.();
@@ -119,12 +91,6 @@ export const DemoSubTitle = ({ text, getSourceCodeModule }: Props) => {
     setIsModalOpen(false);
   }
 
-  function onClipboardCopy() {
-    setIsCopySuccessful(true);
-
-    setTimeout(() => setIsCopySuccessful(false), 3000);
-  }
-
   return (
     <div className={styles.subTitleRow}>
       <span>{text}</span>
@@ -136,24 +102,9 @@ export const DemoSubTitle = ({ text, getSourceCodeModule }: Props) => {
           <div ref={textRef} className={styles.textCopyRow}>
             <p>{text}</p>
             {fileContent && (
-              <CopyToClipboard
-                onClipboardCopy={onClipboardCopy}
-                onClipboardError={() => setIsCopySuccessful(false)}
-                clipboardText={fileContent}
-                fill="text"
-              >
-                {!isCopySuccessful ? (
-                  <div className={styles.copyText}>
-                    <Icon name="copy" />
-                    <span>Copy to clipboard</span>
-                  </div>
-                ) : (
-                  <div className={styles.checkIcon}>
-                    <Icon name="check" />
-                    <span>copied!</span>
-                  </div>
-                )}
-              </CopyToClipboard>
+              <ClipboardButton icon="copy" variant="primary" fill="text" size="sm" getText={() => fileContent}>
+                Copy to clipboard
+              </ClipboardButton>
             )}
           </div>
           {fileContent && (
