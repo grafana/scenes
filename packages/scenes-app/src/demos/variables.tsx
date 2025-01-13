@@ -27,7 +27,6 @@ import { getQueryRunnerWithRandomWalkQuery } from './utils';
 export function getVariablesDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Test of variable cascading updates and refresh on time range change',
     $timeRange: new SceneTimeRange(),
     controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
     tabs: [

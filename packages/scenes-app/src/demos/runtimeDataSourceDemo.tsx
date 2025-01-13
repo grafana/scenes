@@ -28,7 +28,6 @@ export function getRuntimeDataSourceDemo(defaults: SceneAppPageState): SceneAppP
 
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Demo of a runtime registered panel plugin',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

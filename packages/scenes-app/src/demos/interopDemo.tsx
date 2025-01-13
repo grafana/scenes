@@ -18,7 +18,6 @@ import { PlainGraphWithRandomWalk } from '../react-demo/PlainGraphWithRandomWalk
 export function getInteropDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Testing using the hooks and plain react components from normal scene',
     getScene: () => {
       return new EmbeddedSceneWithContext({
         ...getEmbeddedSceneDefaults(),

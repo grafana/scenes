@@ -26,7 +26,6 @@ import { NewSceneObjectAddedEvent } from '@grafana/scenes/src/services/UrlSyncMa
 export function getUrlSyncTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A simple demo stress testing url sync',
     $timeRange: new SceneTimeRange(),
     controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
     $data: getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }),

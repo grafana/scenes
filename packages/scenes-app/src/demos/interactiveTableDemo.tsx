@@ -24,7 +24,6 @@ import { DataFrameView } from '@grafana/data';
 export function getInteractiveTableDemo(defaults: SceneAppPageState): SceneAppPage {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Interactive table',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

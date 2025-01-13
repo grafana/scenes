@@ -7,6 +7,7 @@ import { toOption } from '@grafana/data';
 import { SceneDataQuery } from '@grafana/scenes';
 import { plainGraph } from './visualizations';
 import { DemoVizLayout } from './utils';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function DynamicQueriesPage() {
   const scenarios = ['Slow query', 'Random walk'].map(toOption);
@@ -16,7 +17,15 @@ export function DynamicQueriesPage() {
   const dataProvider = useQueryRunner({ queries: queries, maxDataPoints: 100, datasource: DATASOURCE_REF });
 
   return (
-    <PageWrapper title="Dynamic queriues" subTitle="Rebuild queries based on some user input / state">
+    <PageWrapper
+      title="Dynamic queriues"
+      subTitle={
+        <DemoSubTitle
+          text={'Rebuild queries based on some user input / state'}
+          getSourceCodeModule={() => import('!!raw-loader!./RepeatBySeriesPage')}
+        />
+      }
+    >
       <Stack direction="column">
         <Stack>
           <Field label="Query scenario">

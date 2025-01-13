@@ -14,7 +14,6 @@ import React from 'react';
 export function getPanelHeaderActions(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Example of panels with actions and controls',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

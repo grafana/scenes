@@ -16,7 +16,6 @@ import { getEmbeddedSceneDefaults } from './utils';
 export function getGroupByStatic(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'TODO description',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

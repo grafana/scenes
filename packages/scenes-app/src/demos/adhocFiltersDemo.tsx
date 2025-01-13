@@ -23,9 +23,6 @@ import { getEmbeddedSceneDefaults } from './utils';
 export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: `Adhoc filters variable can be used in auto mode. By default datasources will apply the filters automatically to all queries of the same data source.
-     In manual mode you can use it as a normal variable in queries or use it programmtically.
-    `,
     tabs: [
       new SceneAppPage({
         title: 'Apply mode auto',

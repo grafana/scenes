@@ -4,10 +4,19 @@ import { PageWrapper } from './PageWrapper';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 import { CustomVariable, TimeRangePicker, VariableControl, SceneContextProvider } from '@grafana/scenes-react';
 import { DemoVizLayout } from './utils';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function NestedContextsPage() {
   return (
-    <PageWrapper title="Nested context" subTitle="Nested contexts with different time ranges and variables">
+    <PageWrapper
+      title="Nested context"
+      subTitle={
+        <DemoSubTitle
+          text={'Nested contexts with different time ranges and variables'}
+          getSourceCodeModule={() => import('!!raw-loader!./NestedContextPage')}
+        />
+      }
+    >
       <Stack direction="column">
         <DemoVizLayout>
           <PlainGraphWithRandomWalk title="Global" />

@@ -13,7 +13,6 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getFlexLayoutTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A simple demo of different flex layout options',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

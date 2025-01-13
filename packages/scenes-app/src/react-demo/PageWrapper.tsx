@@ -5,7 +5,7 @@ import React, { useContext } from 'react';
 
 export interface Props {
   title: string;
-  subTitle: string;
+  subTitle: React.ReactNode;
   children: React.ReactNode;
 }
 

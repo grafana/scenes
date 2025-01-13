@@ -109,7 +109,6 @@ const docs = [
 export function getDocsExamples(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Examples from documentation page',
     url: demoUrl('docs-examples'),
     tabs: docs.map((doc) => getDocsExample(doc.getScene, doc.url, doc.title)),
   });

@@ -4,12 +4,18 @@ import React from 'react';
 import { PageWrapper } from './PageWrapper';
 import { locationService } from '@grafana/runtime';
 import { RenderCounter } from './utils';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function InterpolationHookPage() {
   return (
     <PageWrapper
       title="Interpolation hook"
-      subTitle="Testing a hook that makes any component re-render when variable or time range change"
+      subTitle={
+        <DemoSubTitle
+          text={'Testing a hook that makes any component re-render when variable or time range change'}
+          getSourceCodeModule={() => import('!!raw-loader!./InterpolationHookPage')}
+        />
+      }
     >
       <Stack direction="column">
         <RenderCounter name="Page" />

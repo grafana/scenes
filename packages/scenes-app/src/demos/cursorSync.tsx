@@ -192,7 +192,6 @@ export function scoped() {
 export function getCursorSyncTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A simple demo of scoped cursor sync',
     url: demoUrl('cursor-sync'),
     tabs: [global(), scoped()],
   });

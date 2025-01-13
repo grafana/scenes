@@ -16,7 +16,6 @@ import { getQueryRunnerWithRandomWalkQuery } from './utils';
 export function getTimeRangeComparisonTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Time range comparison test',
     getScene: () => {
       return new EmbeddedScene({
         $data: getQueryRunnerWithRandomWalkQuery({}, { maxDataPointsFromWidth: false }),

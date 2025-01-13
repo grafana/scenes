@@ -199,7 +199,6 @@ const dynamicSplitDemo = () =>
 export function getSplitTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A demo of split layout options',
     url: demoUrl('split-layout'),
     tabs: [basicDemo(), dynamicSplitDemo()],
   });

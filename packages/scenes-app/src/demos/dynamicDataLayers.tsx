@@ -24,7 +24,6 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getDynamicDataLayersDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A demo of data layers added and removed dynamically',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
