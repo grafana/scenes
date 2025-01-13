@@ -10,6 +10,7 @@ import { parseUrlParam } from '../utils/parseUrlParam';
 import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 import { config, locationService, RefreshEvent } from '@grafana/runtime';
 import { isValid } from '../utils/date';
+import { getQueryController } from './sceneGraph/getQueryController';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
@@ -161,6 +162,8 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
     // Only update if time range actually changed
     if (update.from !== this.state.from || update.to !== this.state.to) {
+      const queryController = getQueryController(this);
+      queryController?.startProfile(this);
       this._urlSync.performBrowserHistoryAction(() => {
         this.setState(update);
       });
