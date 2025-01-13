@@ -171,6 +171,10 @@ export function escapeUrlCommaDelimiters(value: string | undefined): string {
   return /,/g[Symbol.replace](value, '__gfc__');
 }
 
+export function escapeURLDelimiters(value: string | undefined): string {
+  return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(value))
+}
+
 export function unescapeUrlDelimiters(value: string | undefined): string {
   if (value === null || value === undefined) {
     return '';

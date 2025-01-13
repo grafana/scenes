@@ -5,7 +5,11 @@ import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
 
 import { registerVariableMacro } from './variables/macros';
-import { renderPrometheusLabelFilters } from './variables/utils';
+import {
+  escapeLabelValueInExactSelector,
+  escapeLabelValueInRegexSelector, escapeURLDelimiters,
+  renderPrometheusLabelFilters,
+} from './variables/utils';
 import {
   isAdHocVariable,
   isQueryVariable,
@@ -137,6 +141,9 @@ export const sceneUtils = {
   syncStateFromSearchParams,
   getUrlState,
   renderPrometheusLabelFilters,
+  escapeLabelValueInRegexSelector,
+  escapeLabelValueInExactSelector,
+  escapeURLDelimiters,
 
   // Variable guards
   isAdHocVariable,
