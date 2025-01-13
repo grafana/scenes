@@ -7,7 +7,8 @@ import { getUrlState, syncStateFromSearchParams } from './services/utils';
 import { registerVariableMacro } from './variables/macros';
 import {
   escapeLabelValueInExactSelector,
-  escapeLabelValueInRegexSelector, escapeURLDelimiters,
+  escapeLabelValueInRegexSelector,
+  escapeURLDelimiters,
   renderPrometheusLabelFilters,
 } from './variables/utils';
 import {

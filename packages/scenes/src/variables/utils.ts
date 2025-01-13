@@ -172,7 +172,7 @@ export function escapeUrlCommaDelimiters(value: string | undefined): string {
 }
 
 export function escapeURLDelimiters(value: string | undefined): string {
-  return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(value))
+  return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(value));
 }
 
 export function unescapeUrlDelimiters(value: string | undefined): string {
