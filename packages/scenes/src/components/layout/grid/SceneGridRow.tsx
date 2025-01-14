@@ -86,7 +86,7 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
   const panels = count === 1 ? 'panel' : 'panels';
 
   return (
-    <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
+    <div className={cx(styles.row, isCollapsed && styles.rowCollapsed && "oodle-panel-row")}>
       <div className={styles.rowTitleAndActionsGroup}>
         <button
           onClick={model.onCollapseToggle}
