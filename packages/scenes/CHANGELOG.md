@@ -1,3 +1,15 @@
+# v5.37.0 (Tue Jan 14 2025)
+
+#### 🚀 Enhancement
+
+- sceneUtils: export methods for generating scenes URLs in external applications [#1024](https://github.com/grafana/scenes/pull/1024) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
 # v5.36.4 (Fri Jan 10 2025)
 
 #### 🐛 Bug Fix
