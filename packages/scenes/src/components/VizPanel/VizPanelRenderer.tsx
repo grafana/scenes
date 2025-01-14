@@ -168,7 +168,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   let datasource = data.request?.targets[0]?.datasource
 
   return (
-    <div className={relativeWrapper}>
+    <div className={relativeWrapper + " oodle-panel"}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
           <PanelChrome

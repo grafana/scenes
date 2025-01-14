@@ -7211,7 +7211,7 @@ function VizPanelRenderer({ model }) {
   const panelId = model.getLegacyPanelId();
   let datasource = (_c = (_b = data$1.request) == null ? void 0 : _b.targets[0]) == null ? void 0 : _c.datasource;
   return /* @__PURE__ */ React__default["default"].createElement("div", {
-    className: relativeWrapper
+    className: relativeWrapper + " oodle-panel"
   }, /* @__PURE__ */ React__default["default"].createElement("div", {
     ref,
     className: absoluteWrapper,
@@ -11010,7 +11010,7 @@ function SceneGridRowRenderer({ model }) {
   const count = children ? children.length : 0;
   const panels = count === 1 ? "panel" : "panels";
   return /* @__PURE__ */ React__default["default"].createElement("div", {
-    className: css.cx(styles.row, isCollapsed && styles.rowCollapsed)
+    className: css.cx(styles.row, isCollapsed && styles.rowCollapsed) + " oodle-panel-row"
   }, /* @__PURE__ */ React__default["default"].createElement("div", {
     className: styles.rowTitleAndActionsGroup
   }, /* @__PURE__ */ React__default["default"].createElement("button", {
