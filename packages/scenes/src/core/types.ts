@@ -143,7 +143,7 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
   isDraggable(): boolean;
   getDragClass?(): string;
   getDragClassCancel?(): string;
-  onPointerDown?(e: React.PointerEvent<Element>): void;
+  onPointerDown?(e: React.PointerEvent<Element>, layoutItem: SceneObject): void;
 }
 
 export interface SceneTimeRangeState extends SceneObjectState {

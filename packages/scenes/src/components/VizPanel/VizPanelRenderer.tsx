@@ -193,7 +193,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
-            onDragStart={dragHooks.onDragStart}
+            onDragStart={(e: React.PointerEvent) => {
+              dragHooks.onDragStart!(e, model);
+            }}
             collapsible={collapsible}
             collapsed={collapsed}
             onToggleCollapse={model.onToggleCollapse}

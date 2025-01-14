@@ -7,6 +7,7 @@ import { LazyLoader } from '../LazyLoader';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
 import { SceneCSSGridItem, SceneCSSGridItemRenderProps } from './SceneCSSGridItem';
+import { DragManager, DropZone } from './DragManager';
 
 export interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridLayoutOptions {
   children: Array<SceneCSSGridItem | SceneObject>;
@@ -21,7 +22,6 @@ export interface SceneCSSGridLayoutState extends SceneObjectState, SceneCSSGridL
   md?: SceneCSSGridLayoutOptions;
   /** True when the items should be lazy loaded */
   isLazy?: boolean;
-  _draggingIndex?: number;
 }
 
 export interface SceneCSSGridLayoutOptions {
@@ -48,16 +48,10 @@ export interface SceneCSSGridLayoutOptions {
   justifyContent?: CSSProperties['justifyContent'];
 }
 
-const ARROW_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
-
 export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState> implements SceneLayout {
   public static Component = SceneCSSGridLayoutRenderer;
 
-  private gridCells: Rect[] = [];
-  private dragOffset = { x: 0, y: 0 };
-  private previewCell: Rect | undefined;
-  private oldCursor = '';
-
+  public dragManager!: DragManager;
   public constructor(state: Partial<SceneCSSGridLayoutState>) {
     super({
       rowGap: 1,
@@ -69,8 +63,13 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
     });
 
     this.onPointerDown = this.onPointerDown.bind(this);
-    this.onPointerMove = this.onPointerMove.bind(this);
-    this.onPointerUp = this.onPointerUp.bind(this);
+    this.addActivationHandler(() => {
+      const dragManager = findDragManager(this);
+      if (dragManager) {
+        this.dragManager = dragManager;
+        this.dragManager.registerLayout(this);
+      }
+    });
   }
 
   public isDraggable(): boolean {
@@ -85,7 +84,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
     return 'grid-drag-cancel';
   }
 
-  public onPointerDown(e: React.PointerEvent) {
+  public onPointerDown(e: React.PointerEvent, item: SceneObject) {
     if (!this.container || this.cannotDrag(e.target)) {
       return;
     }
@@ -93,143 +92,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
     e.preventDefault();
     e.stopPropagation();
 
-    this.oldCursor = document.body.style.cursor;
-    document.body.style.cursor = 'move';
-    document.body.style.userSelect = 'none';
-    document.body.setPointerCapture(e.pointerId);
-    document.addEventListener('pointermove', this.onPointerMove);
-    document.addEventListener('pointerup', this.onPointerUp);
-
-    // Find closest grid cell and make note of which cell is closest to the current mouse position (it is the cell we are dragging)
-    this.gridCells = calculateGridCells(this.container).filter((c) => c.order >= 0);
-    const mousePos = { x: e.clientX, y: e.clientY };
-    const scrollTop = closestScroll(this.container);
-    this.previewCell = closestCell(this.gridCells, { x: mousePos.x, y: mousePos.y + scrollTop});
-
-    // get the layout item that occupies the previously found closest cell
-    this.draggingRef = this.container.children[this.previewCell.order + 1] as HTMLElement;
-    const elementBox = this.draggingRef.getBoundingClientRect();
-    this.dragOffset = { x: e.clientX - elementBox.left, y: e.clientY - elementBox.top };
-
-    // set the layout item's dimensions to what they were when they were in the grid
-    const computedStyles = getComputedStyle(this.draggingRef);
-    const newCoords = { x: mousePos.x - this.dragOffset.x, y: mousePos.y - this.dragOffset.y };
-    this.draggingRef.style.width = computedStyles.width;
-    this.draggingRef.style.height = computedStyles.height;
-    this.draggingRef.style.transform = `translate(${newCoords.x}px,${newCoords.y}px)`;
-    this.draggingRef.style.zIndex = '999999';
-    this.draggingRef.style.position = 'fixed';
-    this.draggingRef.style.top = '0';
-    this.draggingRef.style.left = '0';
-
-    this.movePreviewToCell(this.previewCell.rowIndex, this.previewCell.columnIndex);
-
-    // setting _draggingIndex re-renders the component and sets the various element refs referred to in the onPointerMove/Up handlers
-    this.setState({ _draggingIndex: this.previewCell.order });
-  }
-
-  private onPointerMove(e: PointerEvent) {
-    // seems to get called after onPointerDown is called and after the component re-renders, so element refs should all be set
-    // but if there's ever weird behavior it's probably a race condition related to this
-    e.preventDefault();
-    e.stopPropagation();
-
-    // we're not dragging but this handler was called, maybe left mouse was lifted on a different screen or something
-    const notDragging = !(e.buttons & 1);
-    if (notDragging) {
-      this.onPointerUp(e);
-      return;
-    }
-
-    if (this.draggingRef) {
-      const dragCurrent = { x: e.clientX, y: e.clientY };
-      const newX = dragCurrent.x - this.dragOffset.x;
-      const newY = dragCurrent.y - this.dragOffset.y;
-      this.draggingRef.style.transform = `translate(${newX}px,${newY}px)`;
-
-      const scrollTop = closestScroll(this.draggingRef);
-      const closestGridCell = closestCell(this.gridCells, { x: dragCurrent.x, y: dragCurrent.y + scrollTop });
-      const closestIndex = closestGridCell.order;
-
-      const newCellEntered =
-        this.previewCell &&
-        (closestGridCell.columnIndex !== this.previewCell.columnIndex ||
-          closestGridCell.rowIndex !== this.previewCell.rowIndex);
-
-      if (newCellEntered) {
-        this.moveChild(this.previewCell!.order, closestIndex);
-        this.previewCell = closestGridCell;
-        this.movePreviewToCell(this.previewCell.rowIndex, this.previewCell.columnIndex);
-        this.setState({ _draggingIndex: closestIndex });
-      }
-    }
-  }
-
-  private onPointerUp(e: PointerEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    document.body.style.cursor = this.oldCursor;
-    document.body.style.removeProperty('user-select');
-    document.body.releasePointerCapture(e.pointerId);
-    document.removeEventListener('pointermove', this.onPointerMove);
-    document.removeEventListener('pointerup', this.onPointerUp);
-
-    clearInlineStyles(this.draggingRef);
-    clearInlineStyles(this.dropPreview);
-
-    this.setState({ _draggingIndex: undefined });
-  }
-
-  public onKeyDown(e: React.KeyboardEvent<HTMLElement>, itemIndex: number) {
-    if (this.state._draggingIndex !== undefined) {
-      return;
-    }
-
-    if (ARROW_KEYS.has(e.key)) {
-      this.gridCells = calculateGridCells(this.container!).filter((c) => c.order >= 0);
-    }
-
-    const cellIndex = this.gridCells.findIndex((c) => c.order === itemIndex);
-
-    if (e.key === 'ArrowLeft') {
-      if (itemIndex === 0) {
-        return;
-      }
-
-      e.preventDefault();
-      e.stopPropagation();
-      this.moveChild(itemIndex, this.gridCells[cellIndex - 1].order);
-    } else if (e.key === 'ArrowRight') {
-      if (itemIndex === this.state.children.length - 1) {
-        return;
-      }
-
-      e.preventDefault();
-      e.stopPropagation();
-      this.moveChild(itemIndex, this.gridCells[cellIndex + 1].order);
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const style = getComputedStyle(this.container!);
-      const columns = style.gridTemplateColumns.split(' ');
-      const columnCount = columns.length;
-      const currentColumn = cellIndex % columnCount;
-      const rows = style.gridTemplateRows.split(' ');
-      const rowCount = rows.length;
-      const currentRow = Math.floor(cellIndex / columnCount);
-
-      let newRow = currentRow;
-      if (e.key === 'ArrowUp' && currentRow > 0) {
-        newRow = currentRow - 1;
-      } else if (e.key === 'ArrowDown' && currentRow < rowCount - 1) {
-        newRow = currentRow + 1;
-      }
-
-      const newIndex = newRow * columnCount + currentColumn;
-      this.moveChild(itemIndex, this.gridCells[newIndex].order);
-    }
+    this.dragManager.onDragStart(e.nativeEvent, this, item);
   }
 
   private cannotDrag(el: EventTarget) {
@@ -247,57 +110,55 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
     return cannotDrag;
   }
 
-  private moveChild(from: number, to: number) {
-    const children = [...this.state.children];
-    const childToMove = children.splice(from, 1)[0];
-    children.splice(to, 0, childToMove);
-    this.setState({ children });
-  }
-
-  private movePreviewToCell(rowIndex: number, columnIndex: number) {
-    if (this.dropPreview) {
-      this.dropPreview.style.position = 'relative';
-      this.dropPreview.style.width = '100%';
-      this.dropPreview.style.height = '100%';
-      this.dropPreview.style.gridRow = `${rowIndex} / span 1`;
-      this.dropPreview.style.gridColumn = `${columnIndex} / span 1`;
-    }
-  }
-
   private container: HTMLElement | undefined;
   public setContainer(el: HTMLElement) {
     this.container = el;
   }
 
-  private dropPreview: HTMLElement | undefined;
-  public setPreview(el: HTMLElement) {
-    this.dropPreview = el;
+  public getContainer() {
+    return this.container;
   }
 
-  private draggingRef: HTMLElement | undefined;
-  public setDraggingRef(el: HTMLElement) {
-    this.draggingRef = el;
+  public getDropZones() {
+    if (!this.container) {
+      return [];
+    }
+
+    const layoutHasVisibleChildren =
+      [...this.container.children].filter((n) => Number.parseInt(n.getAttribute('data-order') ?? '0', 10) > -1).length >
+      0;
+    if (!layoutHasVisibleChildren) {
+      const child = this.container.appendChild(document.createElement('div'));
+      child.setAttribute('data-order', '99999');
+      const cells = calculateGridCells(this.container).filter((c) => c.order >= 0);
+      this.container.removeChild(child);
+      return cells;
+    }
+
+    return calculateGridCells(this.container).filter((c) => c.order >= 0);
   }
 }
 
 function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<SceneCSSGridLayout>) {
-  const { children, isHidden, isLazy, _draggingIndex } = model.useState();
+  const { children, isHidden, isLazy } = model.useState();
   const styles = useStyles2(getStyles, model.state);
-  const previewRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const draggingRef = useRef<HTMLDivElement>(null);
+  const oldDropZone = useRef<DropZone>();
+  const { activeItem, activeLayout, dropZone } = model.dragManager.useState();
+
+  const currentLayoutIsActive = model === activeLayout && activeItem;
+
+  if (!currentLayoutIsActive && containerRef.current) {
+    containerRef.current.style.overflow = '';
+    containerRef.current.style.height = '';
+    containerRef.current.style.transition = '';
+  }
+
+  oldDropZone.current = dropZone;
 
   useLayoutEffect(() => {
     if (containerRef.current) {
       model.setContainer(containerRef.current);
-    }
-
-    if (previewRef.current) {
-      model.setPreview(previewRef.current);
-    }
-
-    if (draggingRef.current) {
-      model.setDraggingRef(draggingRef.current);
     }
   });
 
@@ -306,39 +167,45 @@ function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<Scene
   }
 
   return (
-    <div className={styles.container} ref={containerRef}>
-      <div className={styles.dropPreview} ref={previewRef}></div>
+    <div
+      className={styles.container}
+      ref={containerRef}
+      onPointerEnter={() => {
+        if (!containerRef.current || model === activeLayout) {
+          return;
+        }
+
+        model.dragManager.dropZones = [];
+        model.dragManager.setState({ activeLayout: model, dropZone: undefined });
+        
+        // Probably a better way of doing this, but we have to wait for react to add the new placeholder
+        // before we calculate the drop zones
+        setTimeout(() => {
+          model.dragManager.refreshDropZones();
+        }, 1);
+      }}
+    >
       {children.map((item, i) => {
         const Component = item.Component as ComponentType<SceneCSSGridItemRenderProps<SceneObject>>;
         const Wrapper = isLazy ? LazyLoader : 'div';
         const isHidden = 'isHidden' in item.state && typeof item.state.isHidden === 'boolean' && item.state.isHidden;
+        const isDragging = item === activeItem;
+        if (isDragging) {
+          return null;
+        }
 
         return (
-          <Wrapper
-            key={item.state.key!}
-            ref={_draggingIndex === i ? draggingRef : undefined}
-            onKeyDown={(e) => model.onKeyDown(e, i)}
-            className={styles.itemWrapper}
-            data-order={isHidden ? -1 : i}
-          >
+          <Wrapper key={item.state.key!} className={styles.itemWrapper} data-order={isHidden ? -1 : i}>
             <Component model={item} parentState={model.state} />
           </Wrapper>
         );
       })}
+      {currentLayoutIsActive && <div style={{ gridRow: dropZone?.rowIndex, gridColumn: dropZone?.columnIndex }}></div>}
     </div>
   );
 }
 
 const getStyles = (theme: GrafanaTheme2, state: SceneCSSGridLayoutState) => ({
-  dropPreview: css({
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 0,
-    height: 0,
-    background: theme.colors.primary.transparent,
-    boxShadow: `0 0 4px ${theme.colors.primary.border}`,
-  }),
   container: css({
     display: 'grid',
     position: 'relative',
@@ -365,16 +232,12 @@ const getStyles = (theme: GrafanaTheme2, state: SceneCSSGridLayoutState) => ({
       : undefined,
   }),
   itemWrapper: css({
-    display: 'grid'
-  })
+    display: 'grid',
+    overflow: 'hidden',
+  }),
 });
 
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface Rect {
+export interface Rect {
   top: number;
   left: number;
   bottom: number;
@@ -382,28 +245,6 @@ interface Rect {
   rowIndex: number;
   columnIndex: number;
   order: number;
-}
-
-function closestCell(rects: Rect[], point: Point) {
-  let closest = rects[0];
-  let shortestDistance = Number.MAX_SAFE_INTEGER;
-  for (const rect of rects) {
-    const topLeft = { x: rect.left, y: rect.top };
-    const topRight = { x: rect.right, y: rect.top};
-    const bottomLeft = { x: rect.left, y: rect.bottom};
-    const bottomRight = { x: rect.right, y: rect.bottom};
-    const corners = [topLeft, topRight, bottomLeft, bottomRight];
-
-    for (const corner of corners) {
-      const distance = Math.hypot(corner.x - point.x, corner.y - point.y);
-      if (distance < shortestDistance) {
-        shortestDistance = distance;
-        closest = rect;
-      }
-    }
-  }
-
-  return closest;
 }
 
 function getGridStyles(gridElement: HTMLElement) {
@@ -420,9 +261,11 @@ function getGridStyles(gridElement: HTMLElement) {
 function calculateGridCells(gridElement: HTMLElement) {
   const { templateRows, templateColumns, rowGap, columnGap } = getGridStyles(gridElement);
   const gridBoundingBox = gridElement.getBoundingClientRect();
-  const scrollTop = closestScroll(gridElement);
+  const { scrollTop } = closestScroll(gridElement);
   const gridOrigin = { x: gridBoundingBox.left, y: gridBoundingBox.top + scrollTop };
-  const ids = [...gridElement.children].map((c) => Number.parseInt(c.getAttribute('data-order') ?? '-1', 10)).filter((v) => v >= 0);
+  const ids = [...gridElement.children]
+    .map((c, i) => Number.parseInt(c.getAttribute('data-order') ?? `${i}`, 10))
+    .filter((v) => v >= 0);
 
   const rects: Rect[] = [];
   let yTotal = gridOrigin.y;
@@ -458,18 +301,36 @@ function calculateGridCells(gridElement: HTMLElement) {
   return rects;
 }
 
-function clearInlineStyles(el?: HTMLElement) {
-  if (!el) {
-    return;
-  }
+function canScroll(el: HTMLElement) {
+  const oldScroll = el.scrollTop;
+  el.scrollTop = Number.MAX_SAFE_INTEGER;
+  const newScroll = el.scrollTop;
+  el.scrollTop = oldScroll;
 
-  el.style.cssText = '';
+  return newScroll > 0;
 }
 
-function closestScroll(el?: HTMLElement | null): number {
-  if (el && el.scrollTop > 0) {
-    return el.scrollTop;
+function closestScroll(el?: HTMLElement | null): {
+  scrollTop: number;
+  scrollTopMax: number;
+  wrapper?: HTMLElement | null;
+} {
+  if (el && canScroll(el)) {
+    return { scrollTop: el.scrollTop, scrollTopMax: el.scrollHeight - el.clientHeight - 5, wrapper: el };
   }
-  
-  return el ? closestScroll(el.parentElement) : 0;
+
+  return el ? closestScroll(el.parentElement) : { scrollTop: 0, scrollTopMax: 0, wrapper: el };
+}
+
+function findDragManager(root: SceneObject | undefined) {
+  if (!root) {
+    return undefined;
+  }
+
+  const match = root.state.$behaviors?.find((b) => b instanceof DragManager);
+  if (match) {
+    return match;
+  }
+
+  return findDragManager(root.parent);
 }
