@@ -164,7 +164,7 @@ function VizPanelRenderer({ model }) {
   const panelId = model.getLegacyPanelId();
   let datasource = (_c = (_b = data.request) == null ? void 0 : _b.targets[0]) == null ? void 0 : _c.datasource;
   return /* @__PURE__ */ React.createElement("div", {
-    className: relativeWrapper
+    className: relativeWrapper + " oodle-panel"
   }, /* @__PURE__ */ React.createElement("div", {
     ref,
     className: absoluteWrapper,
