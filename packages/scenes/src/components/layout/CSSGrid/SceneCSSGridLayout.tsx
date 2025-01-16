@@ -51,7 +51,7 @@ export interface SceneCSSGridLayoutOptions {
 export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState> implements SceneLayout {
   public static Component = SceneCSSGridLayoutRenderer;
 
-  public dragManager!: DragManager;
+  public dragManager: DragManager | undefined;
   public constructor(state: Partial<SceneCSSGridLayoutState>) {
     super({
       rowGap: 1,
@@ -85,7 +85,7 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
   }
 
   public onPointerDown(e: React.PointerEvent, item: SceneObject) {
-    if (!this.container || this.cannotDrag(e.target)) {
+    if (!this.container || this.cannotDrag(e.target) || !this.dragManager) {
       return;
     }
 
@@ -139,12 +139,14 @@ export class SceneCSSGridLayout extends SceneObjectBase<SceneCSSGridLayoutState>
   }
 }
 
+const dragManagerDefaults = { activeItem: undefined, activeLayout: undefined, dropZone: undefined };
 function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<SceneCSSGridLayout>) {
   const { children, isHidden, isLazy } = model.useState();
   const styles = useStyles2(getStyles, model.state);
   const containerRef = useRef<HTMLDivElement>(null);
   const oldDropZone = useRef<DropZone>();
-  const { activeItem, activeLayout, dropZone } = model.dragManager.useState();
+  // Probably a rules-of-hooks violation waiting to happen. Need to think of a better solution
+  const { activeItem, activeLayout, dropZone } = model.dragManager?.useState() ?? dragManagerDefaults;
 
   const currentLayoutIsActive = model === activeLayout && activeItem;
 
@@ -171,7 +173,7 @@ function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<Scene
       className={styles.container}
       ref={containerRef}
       onPointerEnter={() => {
-        if (!containerRef.current || model === activeLayout) {
+        if (!containerRef.current || model === activeLayout || !model.dragManager) {
           return;
         }
 
@@ -181,7 +183,7 @@ function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<Scene
         // Probably a better way of doing this, but we have to wait for react to add the new placeholder
         // before we calculate the drop zones
         setTimeout(() => {
-          model.dragManager.refreshDropZones();
+          model.dragManager?.refreshDropZones();
         }, 1);
       }}
     >
