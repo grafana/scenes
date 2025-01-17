@@ -45,7 +45,7 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
       for (const child of propValue) {
         if (child instanceof SceneObjectBase) {
           newArray.push(child.clone());
-        } else if (typeof child === 'object') {
+        } else if (typeof child === 'object' && !Array.isArray(child)) {
           newArray.push({ ...child });
         } else {
           newArray.push(child);
