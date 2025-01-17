@@ -70,11 +70,11 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       <Combobox
         value={value.toString()}
         width="auto"
-        minWidth={20}
+        minWidth={10}
         options={comboboxOptions}
         createCustomValue={allowCustomValue}
         onChange={(newValue) => {
-          model.changeValueTo(newValue.value!, newValue.label!);
+          model.changeValueTo(newValue.value, newValue.label);
         }}
       />
     );
