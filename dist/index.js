@@ -11010,7 +11010,7 @@ function SceneGridRowRenderer({ model }) {
   const count = children ? children.length : 0;
   const panels = count === 1 ? "panel" : "panels";
   return /* @__PURE__ */ React__default["default"].createElement("div", {
-    className: css.cx(styles.row, isCollapsed && styles.rowCollapsed) + " oodle-panel-row"
+    className: css.cx(styles.row, isCollapsed && styles.rowCollapsed) + " oodle-panel-row oodle-panel-row-" + (isCollapsed ? "closed" : "open")
   }, /* @__PURE__ */ React__default["default"].createElement("div", {
     className: styles.rowTitleAndActionsGroup
   }, /* @__PURE__ */ React__default["default"].createElement("button", {
