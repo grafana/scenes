@@ -144,7 +144,7 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
   isDraggable(): boolean;
   getDragClass?(): string;
   getDragClassCancel?(): string;
-  onDragStart?: (e: React.PointerEvent, panel: VizPanel) => void;
+  getDragHooks?(): { onDragStart?: (e: React.PointerEvent, panel: VizPanel) => void };
 }
 
 export interface SceneTimeRangeState extends SceneObjectState {
