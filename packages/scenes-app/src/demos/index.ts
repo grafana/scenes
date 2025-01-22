@@ -40,6 +40,7 @@ import { getUrlSyncTest } from './urlSyncTest';
 import { getMlDemo } from './ml';
 import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
+import { getCssGridToGridDemo } from './cssGridToGridDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -80,6 +81,7 @@ export function getDemos(): DemoDescriptor[] {
     { title: 'Docs examples', getPage: getDocsExamples },
     { title: 'Nested scenes and variables', getPage: getNestedScenesAndVariablesDemo },
     { title: 'CSS Grid Layout', getPage: getCssGridLayoutDemo },
+    { title: 'CSS Grid to Grid drag and drop', getPage: getCssGridToGridDemo },
     { title: 'Panel header actions', getPage: getPanelHeaderActions },
     { title: 'Vertical controls layout', getPage: getVerticalControlsLayoutDemo },
     { title: 'Interactive table with expandable rows', getPage: getInteractiveTableDemo },
