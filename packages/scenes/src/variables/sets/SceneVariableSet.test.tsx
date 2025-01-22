@@ -15,7 +15,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { LocalValueVariable } from '../variants/LocalValueVariable';
 import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
-import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
+//import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
