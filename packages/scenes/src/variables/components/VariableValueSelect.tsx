@@ -19,6 +19,7 @@ import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 const filterNoOp = () => true;
 
@@ -48,37 +49,12 @@ export function toSelectableValue<T>(value: T, label?: string): SelectableValue<
 }
 
 export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
-  const {
-    value,
-    text,
-    key,
-    options,
-    includeAll,
-    isReadOnly,
-    allowCustomValue = true,
-    renderWithCombobox,
-  } = model.useState();
+  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
   const selectValue = toSelectableValue(value, String(text));
 
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
-
-  if (renderWithCombobox) {
-    const comboboxOptions = options.map((o) => ({ value: o.value.toString(), label: o.label }));
-    return (
-      <Combobox
-        value={value.toString()}
-        width="auto"
-        minWidth={10}
-        options={comboboxOptions}
-        createCustomValue={allowCustomValue}
-        onChange={(newValue) => {
-          model.changeValueTo(newValue.value, newValue.label);
-        }}
-      />
-    );
-  }
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
@@ -278,7 +254,36 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
+function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable>) {
+  const { value, key, options, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
+
+  let comboboxOptions = options.map((o) => ({ value: o.value.toString(), label: o.label }));
+
+  if (includeAll) {
+    comboboxOptions.unshift({ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT });
+  }
+
+  return (
+    <Combobox
+      id={'var-' + key}
+      disabled={isReadOnly}
+      value={value.toString()}
+      width="auto"
+      minWidth={10}
+      options={comboboxOptions}
+      createCustomValue={allowCustomValue}
+      onChange={(newValue) => {
+        model.changeValueTo(newValue.value, newValue.label);
+      }}
+    />
+  );
+}
+
 export function renderSelectForVariable(model: MultiValueVariable) {
+  if (model.state.renderWithCombobox && !model.state.isMulti) {
+    return <VariableValueCombobox model={model} />;
+  }
+
   if (model.state.isMulti) {
     return <VariableValueSelectMulti model={model} />;
   } else {

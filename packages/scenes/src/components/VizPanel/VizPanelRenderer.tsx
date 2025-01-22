@@ -168,6 +168,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
+          // @ts-ignore
           <PanelChrome
             title={titleInterpolated}
             description={description?.trim() ? model.getDescription : undefined}
@@ -176,7 +177,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             statusMessageOnClick={model.onStatusMessageClick}
             width={width}
             height={height}
-            //@ts-expect-error Remove when 11.4 is released
             selectionId={model.state.key}
             displayMode={displayMode}
             showMenuAlways={showMenuAlways}
