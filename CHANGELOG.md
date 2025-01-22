@@ -1,3 +1,16 @@
+# v5.37.1 (Wed Jan 22 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilterVariable: Force option label to be a string [#1029](https://github.com/grafana/scenes/pull/1029) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v5.37.0 (Tue Jan 14 2025)
 
 #### 🚀 Enhancement
