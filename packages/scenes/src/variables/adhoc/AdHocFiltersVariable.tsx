@@ -460,7 +460,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
 export function toSelectableValue(input: MetricFindValue): SelectableValue<string> {
   const { text, value } = input;
   const result: SelectableValue<string> = {
-    label: text,
+    // converting text to string due to some edge cases where it can be a number
+    // TODO: remove once https://github.com/grafana/grafana/issues/99021 is closed
+    label: String(text),
     value: String(value ?? text),
   };
 
