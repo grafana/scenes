@@ -1,3 +1,15 @@
+# v5.38.0 (Wed Jan 22 2025)
+
+#### 🚀 Enhancement
+
+- Layouts: Add ability to hook into VizPanelRenderer events [#1028](https://github.com/grafana/scenes/pull/1028) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v5.37.1 (Wed Jan 22 2025)
 
 #### 🐛 Bug Fix
