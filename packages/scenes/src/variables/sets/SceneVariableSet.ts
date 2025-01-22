@@ -328,10 +328,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
     if (sceneObject.state.$variables && sceneObject.state.$variables !== this) {
-      // const localVar = sceneObject.state.$variables.getByName(variable.state.name);
-      // if (localVar) {
-      //   return;
-      // }
+      const localVar = sceneObject.state.$variables.getByName(variable.state.name);
+      if (localVar) {
+        hasChanged = false;
+        variable = localVar;
+      }
     }
 
     if (sceneObject.variableDependency) {

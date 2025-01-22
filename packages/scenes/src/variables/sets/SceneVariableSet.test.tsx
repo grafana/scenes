@@ -15,7 +15,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { LocalValueVariable } from '../variants/LocalValueVariable';
 import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
-//import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
+import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
@@ -809,34 +809,35 @@ describe('SceneVariableList', () => {
       expect(B.state.loading).toBe(true);
     });
 
-    // describe('When local value overrides parent variable changes on top level should not propagate', () => {
-    //   const topLevelVar = new TestVariable({
-    //     name: 'test',
-    //     options: [],
-    //     value: 'B',
-    //     optionsToReturn: [{ label: 'B', value: 'B' }],
-    //     delayMs: 0,
-    //   });
+    it('When local value overrides parent variable changes on top level should propagate update but not hasChanged', () => {
+      const topLevelVar = new TestVariable({
+        name: 'test',
+        options: [],
+        value: 'B',
+        optionsToReturn: [{ label: 'B', value: 'B' }],
+        delayMs: 0,
+      });
 
-    //   const nestedScene = new TestObjectWithVariableDependency({
-    //     title: '$test',
-    //     $variables: new SceneVariableSet({
-    //       variables: [new LocalValueVariable({ name: 'test', value: 'nestedValue' })],
-    //     }),
-    //   });
+      const nestedScene = new TestObjectWithVariableDependency({
+        title: '$test',
+        $variables: new SceneVariableSet({
+          variables: [new LocalValueVariable({ name: 'test', value: 'nestedValue' })],
+        }),
+      });
 
-    //   const scene = new TestScene({
-    //     $variables: new SceneVariableSet({ variables: [topLevelVar] }),
-    //     nested: nestedScene,
-    //   });
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [topLevelVar] }),
+        nested: nestedScene,
+      });
 
-    //   activateFullSceneTree(scene);
+      activateFullSceneTree(scene);
 
-    //   topLevelVar.changeValueTo('E');
+      nestedScene.doSomethingThatRequiresVariables();
+      topLevelVar.changeValueTo('E');
 
-    //   expect(nestedScene.state.didSomethingCount).toBe(0);
-    //   expect(nestedScene.state.variableValueChanged).toBe(0);
-    // });
+      expect(nestedScene.state.didSomethingCount).toBe(1);
+      expect(nestedScene.state.variableValueChanged).toBe(0);
+    });
   });
 
   describe('When changing a dependency while variable is loading', () => {
