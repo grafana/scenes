@@ -66,6 +66,12 @@ export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
 export {
+  JsonVariable,
+  type JsonVariableOptionProvider,
+  type JsonVariableOption,
+} from './variables/variants/json/JsonVariable';
+export { JsonVariableOptionProviders } from './variables/variants/json/JsonVariableOptionProviders';
+export {
   MultiValueVariable,
   type MultiValueVariableState,
   type VariableGetOptionsArgs,
