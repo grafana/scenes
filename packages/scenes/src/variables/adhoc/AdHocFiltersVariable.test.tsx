@@ -130,7 +130,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
-  it('shows key groups and orders according to first occurence of a group item', async () => {
+  it('shows key groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setup({
       getTagKeysProvider: async () => ({
         replace: true,
@@ -192,7 +192,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(options[5]).toHaveTextContent('Foo');
   });
 
-  it('shows value groups and orders according to first occurence of a group item', async () => {
+  it('shows value groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setup({
       getTagValuesProvider: async () => ({
         replace: true,
@@ -1380,6 +1380,45 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
+    });
+  });
+
+  describe('operators', () => {
+    it('shows the regex operators when allowCustomValue is set true', async () => {
+      setup({
+        allowCustomValue: true,
+      });
+
+      const middleKeySelect = screen.getAllByRole('combobox')[1];
+      await userEvent.click(middleKeySelect);
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
+
+      expect(options).toEqual([
+        '=Equals',
+        '!=Not equal',
+        '=~Matches regex',
+        '!~Does not match regex',
+        '<Less than',
+        '>Greater than',
+      ]);
+    });
+
+    it('does not show the regex operators when allowCustomValue is set false', async () => {
+      setup({
+        allowCustomValue: false,
+      });
+
+      const middleKeySelect = screen.getAllByRole('combobox')[1];
+      await userEvent.click(middleKeySelect);
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
+
+      expect(options).toEqual(['=Equals', '!=Not equal', '<Less than', '>Greater than']);
     });
   });
 });

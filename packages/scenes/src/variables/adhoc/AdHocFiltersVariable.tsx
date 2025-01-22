@@ -125,6 +125,7 @@ export type OperatorDefinition = {
   value: string;
   description?: string;
   isMulti?: Boolean;
+  isRegex?: Boolean;
 };
 
 export const OPERATORS: OperatorDefinition[] = [
@@ -149,10 +150,12 @@ export const OPERATORS: OperatorDefinition[] = [
   {
     value: '=~',
     description: 'Matches regex',
+    isRegex: true,
   },
   {
     value: '!~',
     description: 'Does not match regex',
+    isRegex: true,
   },
   {
     value: '<',
@@ -406,10 +409,17 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const filteredOperators = this.state.supportsMultiValueOperators
-      ? OPERATORS
-      : OPERATORS.filter((operator) => !operator.isMulti);
-    return filteredOperators.map<SelectableValue<string>>(({ value, description }) => ({
+    const { supportsMultiValueOperators, allowCustomValue } = this.state;
+
+    return OPERATORS.filter(({ isMulti, isRegex }) => {
+      if (!supportsMultiValueOperators && isMulti) {
+        return false;
+      }
+      if (!allowCustomValue && isRegex) {
+        return false;
+      }
+      return true;
+    }).map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
       description,
