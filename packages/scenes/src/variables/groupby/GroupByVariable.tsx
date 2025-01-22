@@ -144,11 +144,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       noValueOnClear: true,
     });
 
-    this.addActivationHandler(() => {
-      allActiveGroupByVariables.add(this);
+    if (this.state.applyMode === 'auto') {
+      this.addActivationHandler(() => {
+        allActiveGroupByVariables.add(this);
 
-      return () => allActiveGroupByVariables.delete(this);
-    });
+        return () => allActiveGroupByVariables.delete(this);
+      });
+    }
   }
 
   /**

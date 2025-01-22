@@ -51,6 +51,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const plugin = model.getPlugin();
 
   const { dragClass, dragClassCancel } = getDragClasses(model);
+  const dragHooks = getDragHooks(model);
   const dataObject = sceneGraph.getData(model);
 
   const rawData = dataObject.useState();
@@ -196,6 +197,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             collapsible={collapsible}
             collapsed={collapsed}
             onToggleCollapse={model.onToggleCollapse}
+            onDragStart={(e: React.PointerEvent) => {
+              dragHooks.onDragStart?.(e, model);
+            }}
           >
             {(innerWidth, innerHeight) => (
               <>
@@ -256,6 +260,11 @@ function getDragClasses(panel: VizPanel) {
   }
 
   return { dragClass: parentLayout.getDragClass?.(), dragClassCancel: parentLayout?.getDragClassCancel?.() };
+}
+
+function getDragHooks(panel: VizPanel) {
+  const parentLayout = sceneGraph.getLayout(panel);
+  return parentLayout?.getDragHooks?.() ?? {};
 }
 
 /**
