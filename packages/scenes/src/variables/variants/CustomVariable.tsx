@@ -44,7 +44,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
       }
     });
 
-    if (!options.length && this.hasKeyInUrl()) {
+    if (!options.length && this.hasValueInUrl()) {
       this.skipNextValidation = true;
     }
 
@@ -55,7 +55,10 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     return renderSelectForVariable(model);
   };
 
-  private hasKeyInUrl() {
-    return !!this.urlSync?.getKeys()?.find((key) => key === `var-${this.state.name}`);
+  private hasValueInUrl() {
+    const urlValues = this.urlSync?.getUrlState();
+    const urlKey = this.urlSync?.getKeys()?.find((key) => key === `var-${this.state.name}`);
+
+    return !!urlValues?.[urlKey ?? ''];
   }
 }
