@@ -2,6 +2,7 @@ import { isEqual } from 'lodash';
 
 import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/types';
 import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
+import { CustomVariable } from '../variables/variants/CustomVariable';
 
 /**
  * @param root
@@ -65,6 +66,15 @@ function syncUrlStateToObject(sceneObject: SceneObject, urlParams: URLSearchPara
     for (const key of sceneObject.urlSync.getKeys()) {
       const uniqueKey = urlKeyMapper.getUniqueKey(key, sceneObject);
       const newValue = urlParams.getAll(uniqueKey);
+
+      if (
+        sceneObject instanceof CustomVariable &&
+        uniqueKey === `var-${sceneObject.state.name}` &&
+        !sceneObject.state.options?.length
+      ) {
+        sceneObject.skipNextValidation = true;
+      }
+
       const currentValue = currentState[key];
 
       if (isUrlValueEqual(newValue, currentValue)) {
