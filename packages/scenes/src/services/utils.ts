@@ -2,7 +2,6 @@ import { isEqual } from 'lodash';
 
 import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/types';
 import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
-import { CustomVariable } from '../variables/variants/CustomVariable';
 
 /**
  * @param root
