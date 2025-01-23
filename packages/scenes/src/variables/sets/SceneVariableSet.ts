@@ -13,6 +13,7 @@ import {
   SceneVariableValueChangedEvent,
 } from '../types';
 import { VariableValueRecorder } from '../VariableValueRecorder';
+import { LocalValueVariable } from '../variants/LocalValueVariable';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that have changed in since the activation or since the first manual value change */
@@ -329,9 +330,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
     if (sceneObject.state.$variables && sceneObject.state.$variables !== this) {
       const localVar = sceneObject.state.$variables.getByName(variable.state.name);
-      if (localVar) {
+      if (localVar?.isAncestorLoading) {
         hasChanged = false;
         variable = localVar;
+      } else {
+        return;
       }
     }
 
