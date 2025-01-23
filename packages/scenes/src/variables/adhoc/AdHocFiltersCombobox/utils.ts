@@ -127,6 +127,7 @@ export const generateFilterUpdatePayload = ({
     return {
       key: item.value,
       keyLabel: item.label ? item.label : item.value,
+      meta: item?.meta,
     };
   }
   if (filterInputType === 'value') {

@@ -17,13 +17,16 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
-export interface AdHocFilterWithLabels extends AdHocVariableFilter {
+export interface AdHocFilterWithLabels<M = any> extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabels?: string[];
   // this is used to externally trigger edit mode in combobox filter UI
   forceEdit?: boolean;
   // hide the filter from AdHocFiltersVariableRenderer and the URL
   hidden?: boolean;
+  meta?: {
+    [index: string]: M;
+  };
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -478,6 +481,10 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
 
   if ('group' in input) {
     result.group = input.group;
+  }
+
+  if ('meta' in input) {
+    result.meta = input.meta;
   }
 
   return result;
