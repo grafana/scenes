@@ -114,7 +114,6 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     <Select
       virtualized
       allowCustomValue={model.state.allowCustomValue ?? true}
-      areTheFilterValuesNumbers={model.state.areTheFilterValuesNumbers ?? true}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
@@ -170,7 +169,6 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       className={cx(styles.key, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
       allowCustomValue={model.state.allowCustomValue ?? true}
-      areTheFilterValuesNumbers={model.state.areTheFilterValuesNumbers ?? true}
       value={keyValue}
       placeholder={'Select label'}
       options={handleOptionGroups(keys)}

@@ -404,16 +404,22 @@ export class AdHocFiltersVariable
     }
 
     let values = dataFromResponse(response);
+
+    const isNumeric = values.every((value) => typeof value.value === 'number');
+    values = values.map((value) => ({
+      ...value,
+      isNumeric,
+    }));
+
     if (override) {
-      values = values.concat(dataFromResponse(override.values));
+      const overrideValues = dataFromResponse(override.values).map((value) => ({
+        ...value,
+        isNumeric,
+      }));
+      values = values.concat(overrideValues);
     }
 
-    const areValuesNumbers = values.some((value) => typeof value.value === 'number');
-    if (areValuesNumbers) {
-      this.setState({ areTheFilterValuesNumbers: true });
-    } else {
-      this.setState({ areTheFilterValuesNumbers: false });
-    }
+    this.setState({ areTheFilterValuesNumbers: isNumeric });
 
     return values.map(toSelectableValue);
   }
