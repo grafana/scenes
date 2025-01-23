@@ -809,7 +809,7 @@ describe('SceneVariableList', () => {
       expect(B.state.loading).toBe(true);
     });
 
-    it('When local value overrides parent variable changes on top level should propagate update but not hasChanged', () => {
+    it('When local value overrides parent variable changes on top level should propagate', () => {
       const topLevelVar = new TestVariable({
         name: 'test',
         options: [],
@@ -835,8 +835,8 @@ describe('SceneVariableList', () => {
       nestedScene.doSomethingThatRequiresVariables();
       topLevelVar.changeValueTo('E');
 
-      expect(nestedScene.state.didSomethingCount).toBe(1);
-      expect(nestedScene.state.variableValueChanged).toBe(0);
+      expect(nestedScene.state.didSomethingCount).toBe(2);
+      expect(nestedScene.state.variableValueChanged).toBe(1);
     });
   });
 
