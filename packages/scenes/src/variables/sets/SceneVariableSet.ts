@@ -13,7 +13,6 @@ import {
   SceneVariableValueChangedEvent,
 } from '../types';
 import { VariableValueRecorder } from '../VariableValueRecorder';
-import { LocalValueVariable } from '../variants/LocalValueVariable';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that have changed in since the activation or since the first manual value change */
