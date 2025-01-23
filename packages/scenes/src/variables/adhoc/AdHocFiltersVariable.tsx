@@ -102,6 +102,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   allowCustomValue?: boolean;
 
   /**
+   * Check if the values returned from getTagValuesProvider are numbers
+   */
+  areTheFilterValuesNumbers?: boolean;
+
+  /**
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;
@@ -126,6 +131,7 @@ export type OperatorDefinition = {
   description?: string;
   isMulti?: Boolean;
   isRegex?: Boolean;
+  isNumber?: Boolean;
 };
 
 export const OPERATORS: OperatorDefinition[] = [
@@ -160,10 +166,12 @@ export const OPERATORS: OperatorDefinition[] = [
   {
     value: '<',
     description: 'Less than',
+    isNumber: true,
   },
   {
     value: '>',
     description: 'Greater than',
+    isNumber: true,
   },
 ];
 
@@ -336,6 +344,7 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
     const response = await ds.getTagKeys({
       filters: otherFilters,
       queries,
@@ -399,6 +408,13 @@ export class AdHocFiltersVariable
       values = values.concat(dataFromResponse(override.values));
     }
 
+    const areValuesNumbers = values.some((value) => typeof value.value === 'number');
+    if (areValuesNumbers) {
+      this.setState({ areTheFilterValuesNumbers: true });
+    } else {
+      this.setState({ areTheFilterValuesNumbers: false });
+    }
+
     return values.map(toSelectableValue);
   }
 
@@ -409,15 +425,20 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const { supportsMultiValueOperators, allowCustomValue } = this.state;
+    const { supportsMultiValueOperators, allowCustomValue, areTheFilterValuesNumbers } = this.state;
 
-    return OPERATORS.filter(({ isMulti, isRegex }) => {
+    return OPERATORS.filter(({ isMulti, isRegex, isNumber }) => {
       if (!supportsMultiValueOperators && isMulti) {
         return false;
       }
       if (!allowCustomValue && isRegex) {
         return false;
       }
+
+      if (!areTheFilterValuesNumbers && isNumber) {
+        return false;
+      }
+
       return true;
     }).map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
