@@ -366,9 +366,12 @@ export class AdHocFiltersVariable
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
+    const isNumeric = keys.every((key) => typeof key.value === 'number');
+
+    this.setState({ areTheFilterValuesNumbers: isNumeric });
+
     return keys.map(toSelectableValue);
   }
-
   /**
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
@@ -404,22 +407,9 @@ export class AdHocFiltersVariable
     }
 
     let values = dataFromResponse(response);
-
-    const isNumeric = values.every((value) => typeof value.value === 'number');
-    values = values.map((value) => ({
-      ...value,
-      isNumeric,
-    }));
-
     if (override) {
-      const overrideValues = dataFromResponse(override.values).map((value) => ({
-        ...value,
-        isNumeric,
-      }));
-      values = values.concat(overrideValues);
+      values = values.concat(dataFromResponse(override.values));
     }
-
-    this.setState({ areTheFilterValuesNumbers: isNumeric });
 
     return values.map(toSelectableValue);
   }
