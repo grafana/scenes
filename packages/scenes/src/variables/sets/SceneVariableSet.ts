@@ -332,7 +332,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       const localVar = sceneObject.state.$variables.getByName(variable.state.name);
       // If local variable is viewed as loading when ancestor is loading we propagate a change
       if (localVar?.isAncestorLoading) {
-        hasChanged = false;
         variable = localVar;
       } else if (localVar) {
         return;
