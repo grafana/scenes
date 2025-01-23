@@ -67,14 +67,6 @@ function syncUrlStateToObject(sceneObject: SceneObject, urlParams: URLSearchPara
       const uniqueKey = urlKeyMapper.getUniqueKey(key, sceneObject);
       const newValue = urlParams.getAll(uniqueKey);
 
-      if (
-        sceneObject instanceof CustomVariable &&
-        uniqueKey === `var-${sceneObject.state.name}` &&
-        !sceneObject.state.options?.length
-      ) {
-        sceneObject.skipNextValidation = true;
-      }
-
       const currentValue = currentState[key];
 
       if (isUrlValueEqual(newValue, currentValue)) {

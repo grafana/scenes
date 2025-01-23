@@ -44,10 +44,18 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
       }
     });
 
+    if (!options.length && this.hasKeyInUrl()) {
+      this.skipNextValidation = true;
+    }
+
     return of(options);
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
     return renderSelectForVariable(model);
   };
+
+  private hasKeyInUrl() {
+    return !!this.urlSync?.getKeys()?.find((key) => key === `var-${this.state.name}`);
+  }
 }
