@@ -44,7 +44,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
       }
     });
 
-    if (!options.length && this.hasValueInUrl()) {
+    if (!options.length) {
       this.skipNextValidation = true;
     }
 
@@ -54,11 +54,4 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
     return renderSelectForVariable(model);
   };
-
-  private hasValueInUrl() {
-    const urlValues = this.urlSync?.getUrlState();
-    const urlKey = this.urlSync?.getKeys()?.find((key) => key === `var-${this.state.name}`);
-
-    return !!urlValues?.[urlKey ?? ''];
-  }
 }
