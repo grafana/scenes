@@ -36,7 +36,7 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
       console.warn('Cloning object with SceneObjectRef');
       continue;
     }
-  
+
     if (propValue instanceof SceneObjectBase) {
       clonedState[key] = propValue.clone();
     } else if (Array.isArray(propValue)) {
