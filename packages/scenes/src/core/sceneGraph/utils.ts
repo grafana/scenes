@@ -31,18 +31,16 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
     }
 
     const propValue = clonedState[key];
-    if (propValue instanceof SceneObjectBase) {
-      clonedState[key] = propValue.clone();
-    }
 
     if (propValue instanceof SceneObjectRef) {
       console.warn('Cloning object with SceneObjectRef');
       continue;
     }
-
-    // Clone scene objects in arrays
-    if (Array.isArray(propValue)) {
-      const newArray: any = [];
+  
+    if (propValue instanceof SceneObjectBase) {
+      clonedState[key] = propValue.clone();
+    } else if (Array.isArray(propValue)) {
+      const newArray: typeof propValue[0] = [];
       for (const child of propValue) {
         if (child instanceof SceneObjectBase) {
           newArray.push(child.clone());
