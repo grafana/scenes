@@ -829,6 +829,45 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  it('Can encode a custom value', async () => {
+    const { filtersVar, runRequest } = setup({
+      allowCustomValue: true,
+      filters: [{
+        key: 'key1',
+        value: 'value',
+        valueLabels: ['valueLabels'],
+        operator: '=~',
+        meta: 'metaVal'
+      }],
+      onAddCustomValue: (item, filter) => {
+        const customValue = JSON.stringify({
+          meta: filter.meta,
+          value: item.value
+        })
+        return {
+          value: customValue,
+          valueLabels: [item.label ?? item.value ?? '']
+        }
+      }
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe(JSON.stringify({meta: "metaVal", value: 'myVeryCustomValue'}));
+    expect(screen.getByText('myVeryCustomValue')).toBeVisible()
+    expect(screen.queryByText('metaVal')).not.toBeInTheDocument()
+  })
+
   it('Can override and add keys and values', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
