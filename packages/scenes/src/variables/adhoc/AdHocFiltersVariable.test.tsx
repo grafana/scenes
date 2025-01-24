@@ -1162,8 +1162,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         }),
         layout: 'combobox',
         filters: [
-          { key: 'key1', operator: '=', value: 'val1'},
-          { key: 'key2', operator: '=', value: 'val2'},
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=', value: 'val2' },
         ],
       });
     });
@@ -1171,8 +1171,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('renders values if valueLabels are not defined', async () => {
       expect(await screen.findByText('key1 = val1')).toBeInTheDocument();
       expect(await screen.findByText('key2 = val2')).toBeInTheDocument();
-    })
-  })
+    });
+  });
 
   describe('using new combobox layout - valueLabels', () => {
     // needed for floating-ui to correctly calculate the position of the dropdown
