@@ -4,7 +4,7 @@ import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLa
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
-import { getFuzzySearcher, getQueriesForVariables } from './utils';
+import { escapeURLDelimiters, getFuzzySearcher, getQueriesForVariables } from './utils';
 import { SceneVariableSet } from './sets/SceneVariableSet';
 import { DataSourceVariable } from './variants/DataSourceVariable';
 import { GetDataSourceListFilters } from '@grafana/runtime';
@@ -306,6 +306,17 @@ describe('searchOptions falls back to substring matching for non-latin needles',
     const searcher = searchOptions(options);
 
     expect(searcher('南', 'key').map((o) => o.label!)).toEqual(['台南市', '南投縣']);
+  });
+});
+
+describe('escapeURLVariableString', () => {
+  it('Should escape pipes and commas in url parameter being passed into scenes from external application', () => {
+    expect(escapeURLDelimiters('')).toEqual('');
+    expect(escapeURLDelimiters('((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}|(KHTML, like Gecko)')).toEqual(
+      '((25[0-5]__gfp__(2[0-4]__gfp__1\\d__gfp__[1-9]__gfp__)\\d)\\.?\\b){4}__gfp__(KHTML__gfc__ like Gecko)'
+    );
+    expect(escapeURLDelimiters('|=')).toEqual('__gfp__=');
+    expect(escapeURLDelimiters('val1,val2a|val2b')).toEqual('val1__gfc__val2a__gfp__val2b');
   });
 });
 
