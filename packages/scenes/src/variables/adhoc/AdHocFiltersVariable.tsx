@@ -24,9 +24,7 @@ export interface AdHocFilterWithLabels<M = any> extends AdHocVariableFilter {
   forceEdit?: boolean;
   // hide the filter from AdHocFiltersVariableRenderer and the URL
   hidden?: boolean;
-  meta?: {
-    [index: string]: M;
-  };
+  meta?: M;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -114,7 +112,8 @@ export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
-  currentKey: string | null
+  currentKey: string | null,
+  operators?: OperatorDefinition[]
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type getTagValuesProvider = (
