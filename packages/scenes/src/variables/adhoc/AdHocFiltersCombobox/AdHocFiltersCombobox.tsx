@@ -463,7 +463,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       // populate input when selecting pill for edit
       //   this avoids populating input during delete with backspace
       if (!hasMultiValueOperator && populateInputOnEdit) {
-        setInputValue(filter?.value || '');
+        setInputValue(filter?.valueLabels?.[0] ?? (filter?.value || ''));
         setTimeout(() => {
           refs.domReference.current?.select();
         });
