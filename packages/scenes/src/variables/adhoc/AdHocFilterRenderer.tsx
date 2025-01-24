@@ -47,6 +47,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueValue = keyLabelToOption(filter.value, filter.valueLabels?.[0]);
 
   const optionSearcher = useMemo(() => getAdhocOptionSearcher(values), [values]);
+  const onAddCustomValue = model._getOnAddCustomValue()
 
   const onValueInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
@@ -127,10 +128,14 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
       onChange={(v) => {
-        model._updateFilter(filter, {
-          value: v.value,
-          valueLabels: v.label ? [v.label] : [v.value],
-        });
+        if(onAddCustomValue && v.__isNew__){
+          model._updateFilter(filter, onAddCustomValue(v, filter));
+        }else{
+          model._updateFilter(filter, {
+            value: v.value,
+            valueLabels: v.label ? [v.label] : [v.value],
+          });
+        }
 
         if (valueHasCustomValue !== v.__isNew__) {
           setValueHasCustomValue(v.__isNew__);
