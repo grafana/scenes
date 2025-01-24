@@ -220,6 +220,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     });
   }
 
+  // Get the optional onAddCustomValue method from the AdHocFiltersVariable if defined
+  const onAddCustomValue = model._getOnAddCustomValue();
+
   // calculate width and populate listRef and disabledIndicesRef for arrow key navigation
   const maxOptionWidth = setupDropdownAccessibility(filteredDropDownItems, listRef, disabledIndicesRef);
 
@@ -374,7 +377,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               item: selectedItem,
               filter: filter!,
               setFilterMultiValues,
-              onAddCustomValue
+              onAddCustomValue,
             })
           );
 
@@ -413,6 +416,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       refs.domReference,
       isLastFilter,
       focusOnWipInputRef,
+      onAddCustomValue,
     ]
   );
 
@@ -503,8 +507,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }, [activeIndex, rowVirtualizer]);
 
   const keyLabel = filter?.keyLabel ?? filter?.key;
-
-  const onAddCustomValue = model._getOnAddCustomValue()
 
   return (
     <div className={styles.comboboxWrapper}>
@@ -670,7 +672,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                     item,
                                     filter: filter!,
                                     setFilterMultiValues,
-                                    onAddCustomValue
+                                    onAddCustomValue,
                                   })
                                 );
 

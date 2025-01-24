@@ -117,13 +117,13 @@ export const generateFilterUpdatePayload = ({
   item,
   filter,
   setFilterMultiValues,
-  onAddCustomValue
+  onAddCustomValue,
 }: {
   filterInputType: AdHocInputType;
   item: SelectableValue<string>;
   filter: AdHocFilterWithLabels;
   setFilterMultiValues: (value: React.SetStateAction<Array<SelectableValue<string>>>) => void;
-  onAddCustomValue?: OnAddCustomValueFn
+  onAddCustomValue?: OnAddCustomValueFn;
 }): Partial<AdHocFilterWithLabels> => {
   if (filterInputType === 'key') {
     return {
@@ -133,8 +133,8 @@ export const generateFilterUpdatePayload = ({
     };
   }
   if (filterInputType === 'value') {
-    if(item.isCustom && onAddCustomValue){
-      return onAddCustomValue(item, filter)
+    if (item.isCustom && onAddCustomValue) {
+      return onAddCustomValue(item, filter);
     }
     return {
       value: item.value,

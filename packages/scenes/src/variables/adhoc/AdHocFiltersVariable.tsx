@@ -110,11 +110,14 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * Allows custom formatting of a value before saving to filter state
    */
-  onAddCustomValue?: OnAddCustomValueFn
+  onAddCustomValue?: OnAddCustomValueFn;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
-export type OnAddCustomValueFn = (item: SelectableValue<string> & {isCustom?: boolean}, filter: AdHocFilterWithLabels) => {value: string | undefined, valueLabels: string[]}
+export type OnAddCustomValueFn = (
+  item: SelectableValue<string> & { isCustom?: boolean },
+  filter: AdHocFilterWithLabels
+) => { value: string | undefined; valueLabels: string[] };
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
@@ -435,7 +438,7 @@ export class AdHocFiltersVariable
   }
 
   public _getOnAddCustomValue() {
-    return this.state.onAddCustomValue
+    return this.state.onAddCustomValue;
   }
 }
 
