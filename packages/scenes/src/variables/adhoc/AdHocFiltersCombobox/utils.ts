@@ -220,7 +220,7 @@ export const populateInputValueOnInputTypeSwitch = ({
   filter: AdHocFilterWithLabels | undefined;
 }) => {
   if (populateInputOnEdit && !isMultiValueOperator(item.value || '') && nextInputTypeMap[filterInputType] === 'value') {
-    setInputValue(filter?.valueLabels?.[0] ?? filter?.value ?? '');
+    setInputValue(filter?.value || '');
   } else {
     setInputValue('');
   }
