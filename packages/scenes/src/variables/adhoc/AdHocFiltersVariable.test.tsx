@@ -763,7 +763,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('Can define custom meta in getTagKeysProvider which will be passed to getTagValuesProvider', async () => {
-    type FilterMeta = { parser: string };
+    type FilterMeta = Record<string, string>;
 
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
