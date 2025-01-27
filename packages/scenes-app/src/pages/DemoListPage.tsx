@@ -169,6 +169,7 @@ export function getDemoNotFoundPage(url: string): SceneAppPage {
     title: 'Demo not found',
     subTitle: 'So sorry sir but the demo cannot be found.',
     url: url,
+    routePath: '',
     getScene: () => {
       return new EmbeddedScene({
         body: new SceneFlexLayout({

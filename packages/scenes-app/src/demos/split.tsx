@@ -22,6 +22,7 @@ const basicDemo = () =>
   new SceneAppPage({
     title: 'Split layout test',
     url: demoUrl('split-layout'),
+    routePath: 'split-layout/*',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

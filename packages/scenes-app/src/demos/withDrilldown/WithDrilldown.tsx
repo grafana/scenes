@@ -58,6 +58,7 @@ export function getDrilldownsAppPageScene(defaults: SceneAppPageState) {
 
           return new SceneAppPage({
             url: `${defaults.url}/room/${roomName}/temperature`,
+            routePath: `room/:roomName/*`,
             title: `${roomName}`,
             subTitle: 'This scene is a particular room drilldown. It implements two tabs to organise the data.',
             getParentPage: () => parent,

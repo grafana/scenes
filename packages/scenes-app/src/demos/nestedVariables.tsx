@@ -43,6 +43,7 @@ export function getNestedScenesAndVariablesDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Overview',
         url: `${defaults.url}/overview`,
+        routePath: 'overview',
         getScene: () => {
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),

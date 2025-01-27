@@ -141,6 +141,7 @@ function getDefaultFallbackPage() {
     url: '',
     title: 'Not found',
     subTitle: 'The url did not match any page',
+    routePath: '*',
     getScene: () => {
       return new EmbeddedScene({
         body: new SceneFlexLayout({

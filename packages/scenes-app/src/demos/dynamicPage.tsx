@@ -28,6 +28,7 @@ export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
       new SceneAppPage({
         title: 'Loading...',
         url: '',
+        routePath: '*',
         getScene: () =>
           new EmbeddedScene({
             body: new SceneReactObject({

@@ -205,6 +205,7 @@ describe('SceneApp', () => {
                     key: 'drilldown-page',
                     title: `Drilldown ${match.params.id}`,
                     url: `/test-drilldown/${match.params.id}`,
+                    routePath: '/:id/*',
                     getScene: () => getDrilldownScene(match),
                     getParentPage: () => parent,
                   });
@@ -279,6 +280,7 @@ describe('SceneApp', () => {
                     return new SceneAppPage({
                       title: `Drilldown ${match.params.id}`,
                       url: `/main/drilldown/${match.params.id}`,
+                      routePath: 'drilldown/:id/*',
                       getScene: () => getDrilldownScene(match),
                       getParentPage: () => parent,
                     });
@@ -334,6 +336,7 @@ describe('SceneApp', () => {
                       return new SceneAppPage({
                         title: 'drilldown',
                         url: `/test/tab/${match.params.id}`,
+                        routePath: 'tab/:id/*',
                         getScene: () => getDrilldownScene(match),
                       });
                     },

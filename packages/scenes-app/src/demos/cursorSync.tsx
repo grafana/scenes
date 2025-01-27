@@ -16,6 +16,7 @@ export function global() {
   return new SceneAppPage({
     title: 'Global sync scope',
     url: demoUrl('cursor-sync'),
+    routePath: 'cursor-sync/*',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
