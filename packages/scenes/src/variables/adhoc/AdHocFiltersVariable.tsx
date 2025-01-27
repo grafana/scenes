@@ -17,7 +17,7 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
-export interface AdHocFilterWithLabels<M = any> extends AdHocVariableFilter {
+export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabels?: string[];
   // this is used to externally trigger edit mode in combobox filter UI
