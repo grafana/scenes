@@ -106,9 +106,18 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;
+
+  /**
+   * Allows custom formatting of a value before saving to filter state
+   */
+  onAddCustomValue?: OnAddCustomValueFn;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
+export type OnAddCustomValueFn = (
+  item: SelectableValue<string> & { isCustom?: boolean },
+  filter: AdHocFilterWithLabels
+) => { value: string | undefined; valueLabels: string[] };
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,

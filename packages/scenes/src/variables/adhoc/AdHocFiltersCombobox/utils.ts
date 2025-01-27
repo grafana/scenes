@@ -1,6 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import { AdHocInputType } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, isMultiValueOperator } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, isMultiValueOperator, OnAddCustomValueFn } from '../AdHocFiltersVariable';
 import { getFuzzySearcher } from '../../utils';
 
 const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
@@ -117,11 +117,13 @@ export const generateFilterUpdatePayload = ({
   item,
   filter,
   setFilterMultiValues,
+  onAddCustomValue,
 }: {
   filterInputType: AdHocInputType;
   item: SelectableValue<string>;
   filter: AdHocFilterWithLabels;
   setFilterMultiValues: (value: React.SetStateAction<Array<SelectableValue<string>>>) => void;
+  onAddCustomValue?: OnAddCustomValueFn;
 }): Partial<AdHocFilterWithLabels> => {
   if (filterInputType === 'key') {
     return {
@@ -131,6 +133,9 @@ export const generateFilterUpdatePayload = ({
     };
   }
   if (filterInputType === 'value') {
+    if (item.isCustom && onAddCustomValue) {
+      return onAddCustomValue(item, filter);
+    }
     return {
       value: item.value,
       valueLabels: [item.label ? item.label : item.value!],
