@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariableValueChangedEvent } from '../types';
-import { AdHocFiltersVariable, AdHocFiltersVariableState } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import {
   DataSourceSrv,
   config,
@@ -31,6 +31,7 @@ import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
+import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -759,6 +760,114 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     const values = await filtersVar._getValuesFor(filtersVar.state.filters[0]);
     expect(values).toEqual([{ label: 'v', value: '2' }]);
+  });
+
+  it('Can define custom meta in getTagKeysProvider which will be passed to getTagValuesProvider', async () => {
+    type FilterMeta = Record<string, string>;
+
+    const { filtersVar } = setup({
+      getTagKeysProvider: () => {
+        // getTagKeysProvider API call returns metadata needed in the value
+        return Promise.resolve({
+          replace: true,
+          values: [{ text: 'keyLabel', value: 'keyValue', meta: { parser: 'parserValue' } }],
+        });
+      },
+      getTagValuesProvider: (variable, filter: AdHocFilterWithLabels<FilterMeta>) => {
+        // getTagValuesProvider can receive this metadata, and add it to the value
+        expect(filter.meta).toEqual({ parser: 'parserValue' });
+        return Promise.resolve({
+          replace: true,
+          values: [{ text: 'valueLabel', value: JSON.stringify({ value: 'v', parser: filter.meta?.parser }) }],
+        });
+      },
+    });
+
+    const keys = await filtersVar._getKeys(null);
+    expect(keys).toEqual([{ label: 'keyLabel', value: 'keyValue', meta: { parser: 'parserValue' } }]);
+
+    // Simulate the update of the filter key after the user selects a particular key
+    act(() =>
+      filtersVar._updateFilter(
+        filtersVar.state.filters[0],
+        generateFilterUpdatePayload({
+          filterInputType: 'key',
+          item: keys[0],
+          filter: filtersVar.state.filters[0],
+          setFilterMultiValues: jest.fn(),
+        })
+      )
+    );
+
+    // Get the values for the ad-hoc variable
+    const values = await filtersVar._getValuesFor(filtersVar.state.filters[0]);
+
+    // Our value should contain the metadata from the getTagKeysProvider call made earlier
+    expect(values).toEqual([{ label: 'valueLabel', value: JSON.stringify({ value: 'v', parser: 'parserValue' }) }]);
+
+    // Simulate the update of the filter value after the user selects a particular value
+    act(() =>
+      filtersVar._updateFilter(
+        filtersVar.state.filters[0],
+        generateFilterUpdatePayload({
+          filterInputType: 'value',
+          item: values[0],
+          filter: filtersVar.state.filters[0],
+          setFilterMultiValues: jest.fn(),
+        })
+      )
+    );
+
+    // Assert that the saved filter contains the expected meta and value
+    expect(filtersVar.state.filters[0]).toEqual({
+      operator: '=',
+      keyLabel: 'keyLabel',
+      key: 'keyValue',
+      meta: { parser: 'parserValue' },
+      value: JSON.stringify({ value: 'v', parser: 'parserValue' }),
+      valueLabels: ['valueLabel'],
+    });
+  });
+
+  it('Can encode a custom value', async () => {
+    const { filtersVar, runRequest } = setup({
+      allowCustomValue: true,
+      filters: [
+        {
+          key: 'key1',
+          value: 'value',
+          valueLabels: ['valueLabels'],
+          operator: '=~',
+          meta: 'metaVal',
+        },
+      ],
+      onAddCustomValue: (item, filter) => {
+        const customValue = JSON.stringify({
+          meta: filter.meta,
+          value: item.value,
+        });
+        return {
+          value: customValue,
+          valueLabels: [item.label ?? item.value ?? ''],
+        };
+      },
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe(JSON.stringify({ meta: 'metaVal', value: 'myVeryCustomValue' }));
+    expect(screen.getByText('myVeryCustomValue')).toBeVisible();
+    expect(screen.queryByText('metaVal')).not.toBeInTheDocument();
   });
 
   it('Can override and add keys and values', async () => {
