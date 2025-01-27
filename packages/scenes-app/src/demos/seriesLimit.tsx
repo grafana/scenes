@@ -4,7 +4,6 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getSeriesLimitTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Test panel series limit feature',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
