@@ -436,10 +436,6 @@ export class AdHocFiltersVariable
       description,
     }));
   }
-
-  public _getOnAddCustomValue() {
-    return this.state.onAddCustomValue;
-  }
 }
 
 function renderExpression(
