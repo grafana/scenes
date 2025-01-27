@@ -1,3 +1,20 @@
+# v5.39.0 (Mon Jan 27 2025)
+
+#### 🚀 Enhancement
+
+- AdHocFilters: allow setting filter meta in getTagKeysProvider [#1034](https://github.com/grafana/scenes/pull/1034) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### 🐛 Bug Fix
+
+- feat: when allowCustomValue is false, do not show the regex operators [#1031](https://github.com/grafana/scenes/pull/1031) ([@joannaWebDev](https://github.com/joannaWebDev))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Joanna ([@joannaWebDev](https://github.com/joannaWebDev))
+
+---
+
 # v5.38.0 (Wed Jan 22 2025)
 
 #### 🚀 Enhancement
