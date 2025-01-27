@@ -13,10 +13,19 @@ import { getFrameDisplayName } from '@grafana/data';
 import { plainGraph } from './visualizations';
 import { DemoVizLayout } from './utils';
 import { SceneDataNode } from '@grafana/scenes';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function RepeatBySeriesPage() {
   return (
-    <PageWrapper title="Repeat by series" subTitle="Repeats visualizations returned by a single query">
+    <PageWrapper
+      title="Repeat by series"
+      subTitle={
+        <DemoSubTitle
+          text={'Repeats visualizations returned by a single query'}
+          getSourceCodeModule={() => import('!!raw-loader!./RepeatBySeriesPage')}
+        />
+      }
+    >
       <CustomVariable name="series" label="Series count" query="1,2,5,10,20,30" initialValue={'3'}>
         <Stack direction={'column'}>
           <VariableControl name="series" />

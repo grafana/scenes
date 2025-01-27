@@ -58,7 +58,6 @@ export function getDataFilteringTest(defaults: SceneAppPageState) {
 
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Demo showing a simple data filtering case',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

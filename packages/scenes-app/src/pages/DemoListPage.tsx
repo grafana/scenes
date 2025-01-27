@@ -20,6 +20,7 @@ import { Alert, Card, Input, useStyles2 } from '@grafana/ui';
 import { config } from '@grafana/runtime';
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 function getDemoSceneApp() {
   return new SceneApp({
@@ -54,6 +55,9 @@ function getDemoSceneApp() {
 
               return demoInfo.getPage({
                 title: demoInfo.title,
+                subTitle: (
+                  <DemoSubTitle text={demoInfo.description} getSourceCodeModule={demoInfo.getSourceCodeModule} />
+                ),
                 url: `${demoUrl(slugify(demoInfo.title))}`,
                 getParentPage: () => parent,
               });
@@ -96,7 +100,7 @@ export class DemoList extends SceneObjectBase<DemoListState> {
 
     for (const demo of getDemos()) {
       if (searchQuery) {
-        if (!demo.title.match(regex)) {
+        if (!demo.title.match(regex) && !demo.description.match(regex)) {
           continue;
         }
       }

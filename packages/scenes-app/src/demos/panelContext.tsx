@@ -13,7 +13,6 @@ import { getEmbeddedSceneDefaults } from './utils';
 export function getPanelContextDemoScene(defaults: SceneAppPageState): SceneAppPage {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Here you can test changing series color and toggle series visiblity. ',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

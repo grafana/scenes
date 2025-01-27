@@ -49,7 +49,6 @@ const getScene = () =>
 export function getDrilldownsAppPageScene(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'This scene showcases a basic drilldown functionality. Interact with room to see room details scene.',
     getScene,
     drilldowns: [
       {
