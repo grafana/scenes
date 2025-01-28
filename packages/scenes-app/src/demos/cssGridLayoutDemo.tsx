@@ -83,9 +83,11 @@ function getLayoutChildren(count: number) {
           .build(),
       });
       // hide after timeout
-      setTimeout(() => {
-        item.setState({ isHidden: index % 3 === 0 });
-      }, 1000);
+      if (index % 3 === 0) {
+        setTimeout(() => {
+          item.setState({ isHidden: true });
+        }, 1000);
+      }
       return item;
     }
   );
