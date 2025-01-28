@@ -1,3 +1,16 @@
+# v5.41.0 (Tue Jan 28 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Fix issue with custom variables losing URL value when there are no options [#1033](https://github.com/grafana/scenes/pull/1033) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.40.0 (Tue Jan 28 2025)
 
 #### 🚀 Enhancement
