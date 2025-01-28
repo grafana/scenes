@@ -7,7 +7,7 @@
 
 #### 🐛 Bug Fix
 
-- improve demo app navigation and include  code highlighter [#1023](https://github.com/grafana/scenes/pull/1023) ([@yduartep](https://github.com/yduartep))
+- improve demo app navigation and include code highlighter [#1023](https://github.com/grafana/scenes/pull/1023) ([@yduartep](https://github.com/yduartep))
 - `@grafana/scenes`
   - feat: when allowCustomValue is false, do not show the regex operators [#1031](https://github.com/grafana/scenes/pull/1031) ([@joannaWebDev](https://github.com/joannaWebDev))
 
