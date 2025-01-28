@@ -73,24 +73,21 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
 }
 
 function getLayoutChildren(count: number) {
-  return Array.from(
-    Array(count),
-    (v, index) => {
-      const item = new SceneCSSGridItem({
-        body: PanelBuilders.stat()
-          .setTitle(`Panel ${index + 1}`)
-          .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
-          .build(),
-      });
-      // hide after timeout
-      if (index % 3 === 0) {
-        setTimeout(() => {
-          item.setState({ isHidden: true });
-        }, 1000);
-      }
-      return item;
+  return Array.from(Array(count), (v, index) => {
+    const item = new SceneCSSGridItem({
+      body: PanelBuilders.stat()
+        .setTitle(`Panel ${index + 1}`)
+        .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
+        .build(),
+    });
+    // hide after timeout
+    if (index % 3 === 0) {
+      setTimeout(() => {
+        item.setState({ isHidden: true });
+      }, 1000);
     }
-  );
+    return item;
+  });
 }
 
 export interface TemplateSelectorState extends SceneObjectState {
