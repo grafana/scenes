@@ -75,14 +75,19 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
 function getLayoutChildren(count: number) {
   return Array.from(
     Array(count),
-    (v, index) =>
-      new SceneCSSGridItem({
+    (v, index) => {
+      const item = new SceneCSSGridItem({
         body: PanelBuilders.stat()
           .setTitle(`Panel ${index + 1}`)
           .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
           .build(),
-        isHidden: index % 3 === 0,
-      })
+      });
+      // hide after timeout
+      setTimeout(() => {
+        item.setState({ isHidden: index % 3 === 0 });
+      }, 1000);
+      return item;
+    }
   );
 }
 
