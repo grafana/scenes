@@ -17,6 +17,7 @@ import { MultiValueVariable } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { reportInteraction } from '@grafana/runtime';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -259,9 +260,9 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
 });
 
 function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key, options, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
+  const { value, key, options, includeAll, isReadOnly, allowCustomValue = true, loading } = model.useState();
 
-  let comboboxOptions = options.map((o) => ({ value: o.value.toString(), label: o.label }));
+  const comboboxOptions = useMemo(() => options.map((o) => ({ value: o.value.toString(), label: o.label })), [options]);
 
   if (includeAll) {
     comboboxOptions.unshift({ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT });
@@ -277,8 +278,12 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
       options={comboboxOptions}
       createCustomValue={allowCustomValue}
       onChange={(newValue) => {
+        reportInteraction('grafana_dashboard_variable_change', {
+          isAll: newValue.value === ALL_VARIABLE_VALUE,
+        });
         model.changeValueTo(newValue.value, newValue.label);
       }}
+      loading={loading}
     />
   );
 }
