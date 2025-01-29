@@ -177,7 +177,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             statusMessageOnClick={model.onStatusMessageClick}
             width={width}
             height={height}
-            //@ts-expect-error Remove when 11.4 is released
             selectionId={model.state.key}
             displayMode={displayMode}
             showMenuAlways={showMenuAlways}
