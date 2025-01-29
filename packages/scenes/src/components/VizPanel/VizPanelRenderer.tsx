@@ -165,53 +165,42 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const context = model.getPanelContext();
   const panelId = model.getLegacyPanelId();
 
-  const baseProps = {
-    title: titleInterpolated,
-    description: description?.trim() ? model.getDescription : undefined,
-    loadingState: data.state,
-    statusMessage: getChromeStatusMessage(data, _pluginLoadError),
-    statusMessageOnClick: model.onStatusMessageClick,
-    width: width,
-    height: height,
-    selectionId: model.state.key,
-    displayMode: displayMode,
-
-    titleItems: titleItemsElement,
-    dragClass: dragClass,
-    actions: actionsElement,
-    dragClassCancel: dragClassCancel,
-    padding: plugin.noPadding ? ('none' as const) : ('md' as const),
-    menu: panelMenu,
-    onCancelQuery: model.onCancelQuery,
-    onFocus: setPanelAttention,
-    onMouseEnter: setPanelAttention,
-    onMouseMove: debouncedMouseMove,
-
-    onDragStart: (e: React.PointerEvent) => {
-      dragHooks.onDragStart?.(e, model);
-    },
-  };
-
-  const collapsibleProps = {
-    ...baseProps,
-    collapsible: Boolean(collapsible),
-    collapsed,
-    onToggleCollapse: model.onToggleCollapse,
-    showMenuAlways,
-  };
-
-  const hoverHeaderProps = {
-    ...baseProps,
-    hoverHeader,
-    hoverHeaderOffset,
-  };
-
   return (
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
-          // Width and height are needed here to correctly infer the innerWidth and innerHeight types
-          <PanelChrome {...(collapsible ? collapsibleProps : hoverHeaderProps)} width={width} height={height}>
+          <PanelChrome
+            title={titleInterpolated}
+            description={description?.trim() ? model.getDescription : undefined}
+            loadingState={data.state}
+            statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
+            statusMessageOnClick={model.onStatusMessageClick}
+            width={width}
+            height={height}
+            selectionId={model.state.key}
+            displayMode={displayMode}
+            titleItems={titleItemsElement}
+            dragClass={dragClass}
+            actions={actionsElement}
+            dragClassCancel={dragClassCancel}
+            padding={plugin.noPadding ? 'none' : 'md'}
+            menu={panelMenu}
+            onCancelQuery={model.onCancelQuery}
+            onFocus={setPanelAttention}
+            onMouseEnter={setPanelAttention}
+            onMouseMove={debouncedMouseMove}
+            onDragStart={(e: React.PointerEvent) => {
+              dragHooks.onDragStart?.(e, model);
+            }}
+            {...(collapsible
+              ? {
+                  collapsible: Boolean(collapsible),
+                  collapsed,
+                  onToggleCollapse: model.onToggleCollapse,
+                  showMenuAlways,
+                }
+              : { hoverHeader, hoverHeaderOffset })}
+          >
             {(innerWidth, innerHeight) => (
               <>
                 <ErrorBoundaryAlert dependencies={[plugin, data]}>
