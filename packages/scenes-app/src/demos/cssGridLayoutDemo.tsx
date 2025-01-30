@@ -81,10 +81,10 @@ function getLayoutChildren(count: number) {
         .build(),
     });
     // hide after timeout
-    if (index % 3 === 0) {
+    if (index % 4 === 0) {
       setTimeout(() => {
         item.setState({ isHidden: true });
-      }, 1000);
+      }, 3000);
     }
     return item;
   });
