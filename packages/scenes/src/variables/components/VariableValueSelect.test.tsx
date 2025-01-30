@@ -10,7 +10,14 @@ import userEvent from '@testing-library/user-event';
 
 describe('VariableValueSelect', () => {
   let model: MultiValueVariable<MultiValueVariableState>;
-
+  beforeAll(() => {
+    Object.defineProperty(global, 'CanvasRenderingContext2D', {
+      value: class {
+        measureText = jest.fn(() => ({ width: 50 }));
+      },
+      configurable: true,
+    });
+  });
   beforeEach(() => {
     model = new CustomVariable({
       name: 'test',
