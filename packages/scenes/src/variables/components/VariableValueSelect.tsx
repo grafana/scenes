@@ -13,7 +13,7 @@ import {
 } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
-import { MultiValueVariable } from '../variants/MultiValueVariable';
+import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
@@ -23,6 +23,15 @@ import { getOptionSearcher } from './getOptionSearcher';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
+
+const reportSelectedValue = (model: MultiValueVariable<MultiValueVariableState>, isAll: boolean, isCustom: boolean) => {
+  reportInteraction('grafana_dashboard_variable_change', {
+    isAll,
+    isMulti: model.state.isMulti,
+    isCustom,
+    variableType: model.state.type,
+  });
+};
 
 const filterNoOp = () => true;
 
@@ -104,6 +113,8 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!);
         queryController?.startProfile(model);
+
+        reportSelectedValue(model, newValue.value === '$__all', newValue.__isNew__);
 
         if (hasCustomValue !== newValue.__isNew__) {
           setHasCustomValue(newValue.__isNew__);
@@ -192,6 +203,10 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([]);
         }
+
+        //Unlcear how to report if special all value is selected
+        reportSelectedValue(model, false, action.action === 'create-option');
+
         setUncommittedValue(newValue.map((x) => x.value!));
       }}
     />
@@ -300,9 +315,9 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
       options={onInputChange || comboboxOptions}
       createCustomValue={allowCustomValue}
       onChange={(newValue) => {
-        reportInteraction('grafana_dashboard_variable_change', {
-          isAll: newValue.value === ALL_VARIABLE_VALUE,
-        });
+        // Extra logic needed for reporting custom value
+        reportSelectedValue(model, newValue.value === ALL_VARIABLE_VALUE, false);
+
         model.changeValueTo(newValue.value, newValue.label);
       }}
       loading={loading}
