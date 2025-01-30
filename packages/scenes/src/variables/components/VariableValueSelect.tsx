@@ -22,6 +22,7 @@ import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
+import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 
 const filterNoOp = () => true;
 
@@ -261,12 +262,33 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
 
 function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key, options, includeAll, isReadOnly, allowCustomValue = true, loading } = model.useState();
+  console.log('incoming options ', options);
 
-  const comboboxOptions = useMemo(() => options.map((o) => ({ value: o.value.toString(), label: o.label })), [options]);
+  const comboboxOptions = useMemo(() => {
+    const opts = options.map((o) => ({ value: o.value.toString(), label: o.label }));
+    if (includeAll) {
+      opts.unshift({ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT });
+    }
+    return opts;
+  }, [options, includeAll]);
 
-  if (includeAll) {
-    comboboxOptions.unshift({ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT });
-  }
+  // TODO: When ripping out the old functionality, make this work directly with onSearchChange
+  const onInputChange = useMemo(() => {
+    if (!model.onSearchChange) {
+      return;
+    }
+    return async (newInputValue: string) => {
+      model.onSearchChange!(newInputValue);
+
+      console.log('search change ', newInputValue);
+
+      // Same functionality as in _updateOptionsBasedOnSearchFilter, although deboucning is managed in Combobox
+      return (await lastValueFrom(model.getValueOptions({ searchFilter: newInputValue }))).map((o) => ({
+        value: o.value.toString(),
+        label: o.label,
+      }));
+    };
+  }, [model]);
 
   return (
     <Combobox
@@ -275,7 +297,7 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
       value={value.toString()}
       width="auto"
       minWidth={10}
-      options={comboboxOptions}
+      options={onInputChange || comboboxOptions}
       createCustomValue={allowCustomValue}
       onChange={(newValue) => {
         reportInteraction('grafana_dashboard_variable_change', {
