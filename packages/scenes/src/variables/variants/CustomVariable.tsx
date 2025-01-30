@@ -44,6 +44,10 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
       }
     });
 
+    if (!options.length) {
+      this.skipNextValidation = true;
+    }
+
     return of(options);
   }
 

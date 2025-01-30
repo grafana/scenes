@@ -17,13 +17,14 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
-export interface AdHocFilterWithLabels extends AdHocVariableFilter {
+export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabels?: string[];
   // this is used to externally trigger edit mode in combobox filter UI
   forceEdit?: boolean;
   // hide the filter from AdHocFiltersVariableRenderer and the URL
   hidden?: boolean;
+  meta?: M;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -105,13 +106,23 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;
+
+  /**
+   * Allows custom formatting of a value before saving to filter state
+   */
+  onAddCustomValue?: OnAddCustomValueFn;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
+export type OnAddCustomValueFn = (
+  item: SelectableValue<string> & { isCustom?: boolean },
+  filter: AdHocFilterWithLabels
+) => { value: string | undefined; valueLabels: string[] };
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
-  currentKey: string | null
+  currentKey: string | null,
+  operators?: OperatorDefinition[]
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type getTagValuesProvider = (
@@ -125,6 +136,7 @@ export type OperatorDefinition = {
   value: string;
   description?: string;
   isMulti?: Boolean;
+  isRegex?: Boolean;
 };
 
 export const OPERATORS: OperatorDefinition[] = [
@@ -149,10 +161,12 @@ export const OPERATORS: OperatorDefinition[] = [
   {
     value: '=~',
     description: 'Matches regex',
+    isRegex: true,
   },
   {
     value: '!~',
     description: 'Does not match regex',
+    isRegex: true,
   },
   {
     value: '<',
@@ -406,10 +420,17 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const filteredOperators = this.state.supportsMultiValueOperators
-      ? OPERATORS
-      : OPERATORS.filter((operator) => !operator.isMulti);
-    return filteredOperators.map<SelectableValue<string>>(({ value, description }) => ({
+    const { supportsMultiValueOperators, allowCustomValue } = this.state;
+
+    return OPERATORS.filter(({ isMulti, isRegex }) => {
+      if (!supportsMultiValueOperators && isMulti) {
+        return false;
+      }
+      if (!allowCustomValue && isRegex) {
+        return false;
+      }
+      return true;
+    }).map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
       description,
@@ -468,6 +489,10 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
 
   if ('group' in input) {
     result.group = input.group;
+  }
+
+  if ('meta' in input) {
+    result.meta = input.meta;
   }
 
   return result;

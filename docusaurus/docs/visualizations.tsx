@@ -106,7 +106,7 @@ interface CustomVizOptions {
 }
 
 interface CustomVizFieldOptions {
-  numericOption: number;
+  numericOption?: number;
 }
 
 interface Props extends PanelProps<CustomVizOptions> {}

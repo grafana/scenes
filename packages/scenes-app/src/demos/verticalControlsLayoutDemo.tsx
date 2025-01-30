@@ -20,7 +20,6 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Test of variables and adhoc filters with vertical layout',
 
     getScene: () => {
       return new EmbeddedScene({
