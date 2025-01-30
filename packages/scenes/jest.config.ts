@@ -5,7 +5,7 @@ module.exports = {
     '\\.css$': '<rootDir>/utils/test/__mocks__/style.ts',
   },
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['./utils/setupTests.ts'],
+  setupFilesAfterEnv: ['jest-canvas-mock', './utils/setupTests.ts'],
   testMatch: ['<rootDir>/src/**/*.{spec,test,jest}.{js,jsx,ts,tsx}'],
   transform: {
     '^.+\\.(t|j)sx?$': [
