@@ -26,6 +26,8 @@ import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 
 const reportSelectedValue = (model: MultiValueVariable<MultiValueVariableState>, isAll: boolean, isCustom: boolean) => {
   reportInteraction('grafana_dashboard_variable_change', {
+    // @ts-ignore
+    usesCombobox: config?.featureToggles?.templateVariablesUsesCombobox || false,
     isAll,
     isMulti: model.state.isMulti,
     isCustom,
