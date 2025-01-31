@@ -204,8 +204,9 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
           model.changeValueTo([]);
         }
 
+        const allSelected = newValue.find((v) => v.value === '$__all');
         //Unlcear how to report if special all value is selected
-        reportSelectedValue(model, false, action.action === 'create-option');
+        reportSelectedValue(model, !!allSelected, action.action === 'create-option');
 
         setUncommittedValue(newValue.map((x) => x.value!));
       }}
@@ -315,7 +316,7 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
       options={onInputChange || comboboxOptions}
       createCustomValue={allowCustomValue}
       onChange={(newValue) => {
-        // Extra logic needed for reporting custom value
+        // TODO: Extra logic needed for reporting custom value. Consider adding an extra arg to onChange
         reportSelectedValue(model, newValue.value === ALL_VARIABLE_VALUE, false);
 
         model.changeValueTo(newValue.value, newValue.label);
