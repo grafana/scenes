@@ -247,7 +247,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
   }
 
-  public getDefaultSingleState(options: VariableValueOption[]) {
+  protected getDefaultSingleState(options: VariableValueOption[]) {
     if (this.state.defaultToAll) {
       return { value: ALL_VARIABLE_VALUE, text: ALL_VARIABLE_TEXT };
     } else if (options.length > 0) {
