@@ -14,8 +14,6 @@ export interface SceneVariableState extends SceneObjectState {
   loading?: boolean;
   error?: any | null;
   description?: string | null;
-  /* @internal */
-  renderWithCombobox?: boolean;
 }
 
 export interface SceneVariable<TState extends SceneVariableState = SceneVariableState> extends SceneObject<TState> {

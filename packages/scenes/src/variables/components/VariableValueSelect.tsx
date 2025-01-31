@@ -17,7 +17,7 @@ import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiVa
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { reportInteraction } from '@grafana/runtime';
+import { reportInteraction, config } from '@grafana/runtime';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -323,7 +323,8 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
 }
 
 export function renderSelectForVariable(model: MultiValueVariable) {
-  if (model.state.renderWithCombobox && !model.state.isMulti) {
+  // @ts-ignore Feature flag not available in grafana yet
+  if (config.featureToggles.templateVariablesUsesCombobox && !model.state.isMulti) {
     return <VariableValueCombobox model={model} />;
   }
 
