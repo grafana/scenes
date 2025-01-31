@@ -288,7 +288,6 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
     return opts;
   }, [options, includeAll]);
 
-  // TODO: When ripping out the old functionality, make this work directly with onSearchChange
   const onInputChange = useMemo(() => {
     if (!model.onSearchChange) {
       return;
