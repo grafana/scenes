@@ -205,7 +205,6 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
         }
 
         const allSelected = newValue.find((v) => v.value === '$__all');
-        //Unlcear how to report if special all value is selected
         reportSelectedValue(model, !!allSelected, action.action === 'create-option');
 
         setUncommittedValue(newValue.map((x) => x.value!));
@@ -278,7 +277,6 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
 
 function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key, options, includeAll, isReadOnly, allowCustomValue = true, loading } = model.useState();
-  console.log('incoming options ', options);
 
   const comboboxOptions = useMemo(() => {
     const opts = options.map((o) => ({ value: o.value.toString(), label: o.label }));
@@ -295,8 +293,6 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
     }
     return async (newInputValue: string) => {
       model.onSearchChange!(newInputValue);
-
-      console.log('search change ', newInputValue);
 
       // Same functionality as in _updateOptionsBasedOnSearchFilter, although deboucning is managed in Combobox
       return (await lastValueFrom(model.getValueOptions({ searchFilter: newInputValue }))).map((o) => ({
