@@ -323,8 +323,8 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
 }
 
 export function renderSelectForVariable(model: MultiValueVariable) {
-  // @ts-ignore Feature flag not available in grafana yet
-  if (config.featureToggles.templateVariablesUsesCombobox && !model.state.isMulti) {
+  //@ts-ignore not available in runtime just yet
+  if (config?.featureToggles?.templateVariablesUsesCombobox && !model.state.isMulti) {
     return <VariableValueCombobox model={model} />;
   }
 
