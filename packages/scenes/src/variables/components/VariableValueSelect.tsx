@@ -313,12 +313,11 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
       options={onInputChange || comboboxOptions}
       createCustomValue={allowCustomValue}
       onChange={(newValue) => {
-        // TODO: Extra logic needed for reporting custom value. Consider adding an extra arg to onChange
         reportSelectedValue(
           model,
           newValue.value === ALL_VARIABLE_VALUE,
-          // This will work with the latest version of the Combobox
-          newValue.description?.startsWith('Custom') || false
+          // This will work with the latest version of the Combobox. // TODO: Extra logic needed for reporting custom value. Consider adding an extra arg to onChange.
+          newValue.description?.startsWith('Use custom value') || false
         );
 
         model.changeValueTo(newValue.value, newValue.label);
