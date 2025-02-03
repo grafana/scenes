@@ -149,7 +149,8 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       return this._getNewOptions(searchFilter);
     }
 
-    return this._updateOptionsBasedOnSearchFilter(searchFilter);
+    // Undefined for first call
+    return this._updateOptionsBasedOnSearchFilter(searchFilter) || Promise.resolve([]);
   };
 
   // Used for Combobox, as debouncing is done inside the component
@@ -159,7 +160,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     return result;
   };
 
-  private _updateOptionsBasedOnSearchFilter = debounce(this._getNewOptions, 400, { leading: true });
+  private _updateOptionsBasedOnSearchFilter = debounce(this._getNewOptions, 400);
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
     return renderSelectForVariable(model);

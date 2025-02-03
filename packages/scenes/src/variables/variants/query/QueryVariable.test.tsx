@@ -394,7 +394,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
       // wait for debounce
       await act(() => new Promise((r) => setTimeout(r, 500)));
 
-      expect(runRequestMock).toHaveBeenCalledTimes(3); // Depends on leading in the debounce
+      expect(runRequestMock).toHaveBeenCalledTimes(2);
       expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
     });
 
