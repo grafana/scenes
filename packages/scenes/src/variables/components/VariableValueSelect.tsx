@@ -116,7 +116,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
         model.changeValueTo(newValue.value!, newValue.label!);
         queryController?.startProfile(model);
 
-        reportSelectedValue(model, newValue.value === '$__all', newValue.__isNew__);
+        reportSelectedValue(model, newValue.value?.toString() === ALL_VARIABLE_VALUE, newValue.__isNew__);
 
         if (hasCustomValue !== newValue.__isNew__) {
           setHasCustomValue(newValue.__isNew__);
@@ -206,7 +206,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
           model.changeValueTo([]);
         }
 
-        const allSelected = newValue.find((v) => v.value === '$__all');
+        const allSelected = newValue.find((v) => v.value === ALL_VARIABLE_VALUE);
         reportSelectedValue(model, !!allSelected, action.action === 'create-option');
 
         setUncommittedValue(newValue.map((x) => x.value!));
