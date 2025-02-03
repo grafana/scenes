@@ -152,6 +152,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     return this._updateOptionsBasedOnSearchFilter(searchFilter);
   };
 
+  // Used for Combobox, as debouncing is done inside the component
   private _getNewOptions = async (searchFilter: string) => {
     const result = await lastValueFrom(this.getValueOptions({ searchFilter }));
     this.setState({ options: result, loading: false });
