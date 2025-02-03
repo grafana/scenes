@@ -260,7 +260,11 @@ describe('getQueriesForVariables', () => {
       datasource: {
         uid: '${dsVar}',
       },
-      queries: [{ refId: 'B' }, { datasource: { type: '__expr__', uid: 'Expression' }, refId: 'D' }],
+      queries: [
+        { refId: 'B' },
+        { datasource: { uid: '${dsVar}' }, refId: 'D' },
+        { datasource: { type: 'prometheus' }, refId: 'E' },
+      ],
     });
 
     const source = new TestObject({
@@ -292,7 +296,12 @@ describe('getQueriesForVariables', () => {
     runner1.activate();
     runner2.activate();
     source.activate();
-    expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'B' }]);
+    expect(getQueriesForVariables(source)).toEqual([
+      { refId: 'A' },
+      { refId: 'B' },
+      { datasource: { uid: '${dsVar}' }, refId: 'D' },
+      { datasource: { type: 'prometheus' }, refId: 'E' },
+    ]);
   });
 });
 
