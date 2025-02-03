@@ -351,7 +351,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   /**
    * Can be used by subclasses to do custom handling of option search based on search input
    */
-  public onSearchChange?(searchFilter: string): void;
+  public onSearchChange?(searchFilter: string): Promise<VariableValueOption[]>;
 }
 
 /**

@@ -16,7 +16,7 @@ import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
-import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { containsSearchFilter, GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { reportInteraction, config } from '@grafana/runtime';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
@@ -292,14 +292,20 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
     if (!model.onSearchChange) {
       return;
     }
-    return async (newInputValue: string) => {
-      model.onSearchChange!(newInputValue);
 
-      // Same functionality as in _updateOptionsBasedOnSearchFilter, although deboucning is managed in Combobox
-      return (await lastValueFrom(model.getValueOptions({ searchFilter: newInputValue }))).map((o) => ({
-        value: o.value.toString(),
-        label: o.label,
-      }));
+    // If we don't use searchFilter in QueryVariable, don't bother to make a query. TODO: Proper typing
+    if ('query' in model.state && !containsSearchFilter(model.state.query)) {
+      return;
+    }
+
+    return async (newInputValue: string) => {
+      console.log('onInputChange', newInputValue);
+      const res = model.onSearchChange!(newInputValue).then((result) => {
+        console.log(result);
+        return result.map((o) => ({ value: o.value.toString(), label: o.label }));
+      });
+      console.log(res);
+      return res;
     };
   }, [model]);
 
