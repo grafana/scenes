@@ -300,12 +300,12 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
     }
 
     return async (newInputValue: string) => {
-      console.log('onInputChange', newInputValue);
       const res = model.onSearchChange!(newInputValue).then((result) => {
-        console.log(result);
-        return result.map((o) => ({ value: o.value.toString(), label: o.label }));
+        return result.map((o) => ({
+          value: o.value.toString(),
+          label: o.value.toString() === ALL_VARIABLE_VALUE ? ALL_VARIABLE_TEXT : o.label,
+        }));
       });
-      console.log(res);
       return res;
     };
   }, [model]);
