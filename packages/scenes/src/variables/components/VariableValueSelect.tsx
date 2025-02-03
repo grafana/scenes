@@ -16,13 +16,13 @@ import { SceneComponentProps } from '../../core/types';
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
-import { containsSearchFilter, GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { reportInteraction, config } from '@grafana/runtime';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
-import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
+import { containsSearchFilter } from '../variants/query/QueryVariable';
 
 const reportSelectedValue = (model: MultiValueVariable<MultiValueVariableState>, isAll: boolean, isCustom: boolean) => {
   reportInteraction('grafana_dashboard_variable_change', {
@@ -294,6 +294,7 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
     }
 
     // If we don't use searchFilter in QueryVariable, don't bother to make a query. TODO: Proper typing
+    // @ts-ignore
     if ('query' in model.state && !containsSearchFilter(model.state.query)) {
       return;
     }
