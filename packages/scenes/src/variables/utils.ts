@@ -120,7 +120,7 @@ export function getQueriesForVariables(
 
   const result: SceneDataQuery[] = [];
   applicableRunners.forEach((r) => {
-    result.push(...r.state.queries.filter((q) => q.datasource === interpolatedDsUuid));
+    result.push(...r.state.queries.filter((q) => !q.datasource || q.datasource.uid === interpolatedDsUuid));
   });
 
   return result;
