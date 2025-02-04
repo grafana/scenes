@@ -179,6 +179,36 @@ describe('getQueriesForVariables', () => {
 
     expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'AA' }, { refId: 'B' }]);
   });
+
+  it('should not retrieve queries with a different datasource than the runner', () => {
+    const runner1 = new SceneQueryRunner({
+      datasource: { uid: 'test-uid' },
+      queries: [{ refId: 'A' }, { datasource: { type: '__expr__', uid: 'Expression' }, refId: 'B' }],
+    });
+
+    const runner2 = new SceneQueryRunner({
+      datasource: { uid: 'test-uid' },
+      queries: [{ datasource: { type: '__expr__', uid: 'Expression' }, refId: 'C' }],
+    });
+
+    const source = new TestObject({ datasource: { uid: 'test-uid' } });
+    new EmbeddedScene({
+      $data: runner1,
+      body: new SceneFlexLayout({
+        children: [
+          new SceneFlexItem({
+            $data: runner2,
+            body: source,
+          }),
+        ],
+      }),
+    });
+
+    runner1.activate();
+    runner2.activate();
+    source.activate();
+    expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }]);
+  });
 });
 
 const getDataSourceListMock = jest.fn().mockImplementation((filters: GetDataSourceListFilters) => {
@@ -223,14 +253,18 @@ describe('getQueriesForVariables', () => {
       datasource: {
         uid: '${dsVar}',
       },
-      queries: [{ refId: 'A' }],
+      queries: [{ refId: 'A' }, { datasource: { type: '__expr__', uid: 'Expression' }, refId: 'C' }],
     });
 
     const runner2 = new SceneQueryRunner({
       datasource: {
         uid: '${dsVar}',
       },
-      queries: [{ refId: 'B' }],
+      queries: [
+        { refId: 'B' },
+        { datasource: { uid: '${dsVar}' }, refId: 'D' },
+        { datasource: { type: 'prometheus' }, refId: 'E' },
+      ],
     });
 
     const source = new TestObject({
@@ -262,7 +296,12 @@ describe('getQueriesForVariables', () => {
     runner1.activate();
     runner2.activate();
     source.activate();
-    expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'B' }]);
+    expect(getQueriesForVariables(source)).toEqual([
+      { refId: 'A' },
+      { refId: 'B' },
+      { datasource: { uid: '${dsVar}' }, refId: 'D' },
+      { datasource: { type: 'prometheus' }, refId: 'E' },
+    ]);
   });
 });
 
