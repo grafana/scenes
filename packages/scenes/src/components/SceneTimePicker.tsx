@@ -73,8 +73,6 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
     deserializer: deserializeHistory,
   });
 
-  console.log(model.state.quickRanges);
-
   if (hidePicker) {
     return null;
   }
