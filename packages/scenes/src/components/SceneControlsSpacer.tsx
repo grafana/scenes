@@ -6,11 +6,8 @@ import { SceneComponentProps } from '../core/types';
 export class SceneControlsSpacer extends SceneObjectBase {
   public constructor() {
     super({});
-  }
 
-  public get Component() {
-    // Skipping wrapper component for this scene object so that it renders right away
-    return SceneControlsSpacer.Component;
+    this._renderBeforeActivation = true;
   }
 
   public static Component = (_props: SceneComponentProps<SceneControlsSpacer>) => {

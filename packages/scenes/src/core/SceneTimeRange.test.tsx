@@ -2,7 +2,7 @@ import { toUtc, dateMath } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
-import { RefreshEvent } from '@grafana/runtime';
+import { RefreshEvent, config } from '@grafana/runtime';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneReactObject } from '../components/SceneReactObject';
 
@@ -15,10 +15,19 @@ function simulateDelay(newDateString: string, scene: EmbeddedScene) {
   scene.activate();
 }
 
+config.bootData = { user: { weekStart: 'monday' } } as any;
+
 describe('SceneTimeRange', () => {
   it('when created should evaluate time range', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
     expect(timeRange.state.value.raw.from).toBe('now-1h');
+  });
+
+  it('When weekStart use it when evaluting time range', () => {
+    const timeRange = new SceneTimeRange({ from: 'now/w', to: 'now/w', weekStart: 'saturday' });
+    const weekDay = timeRange.state.value.from.isoWeekday();
+
+    expect(weekDay).toBe(6);
   });
 
   it('when time range refreshed should evaluate and update value', async () => {
@@ -190,7 +199,7 @@ describe('SceneTimeRange', () => {
       const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', UNSAFE_nowDelay: '1m' });
       expect(timeRange.state.value.raw.from).toBe('now-1h');
       expect(timeRange.state.value.raw.to).toBe('now');
-      expect(timeRange.state.value.to).toEqual(dateMath.parse('now-1m', true));
+      expect(timeRange.state.value.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
     });
 
     it('should NOT apply the delay value to absolute time range', () => {
@@ -215,23 +224,16 @@ describe('SceneTimeRange', () => {
         raw: { from: toUtc('2020-01-01'), to: 'now' },
       });
 
-      expect(stateSpy).toBeCalledTimes(1);
-      expect(stateSpy).toBeCalledWith(
-        expect.objectContaining({
-          value: expect.objectContaining({
-            to: dateMath.parse('now-1m', true),
-            raw: expect.objectContaining({
-              to: 'now',
-            }),
-          }),
-        })
-      );
+      expect(stateSpy).toHaveBeenCalledTimes(1);
+
+      expect(stateSpy.mock.calls[0][0].value?.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
+      expect(stateSpy.mock.calls[0][0].value?.raw.to).toEqual('now');
     });
 
     it('should apply the delay to the value when time range refreshed', async () => {
       const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', UNSAFE_nowDelay: '1m' });
       timeRange.onRefresh();
-      expect(timeRange.state.value.to).toEqual(dateMath.parse('now-1m', true));
+      expect(timeRange.state.value.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
       expect(timeRange.state.value.raw.to).toBe('now');
     });
 
@@ -244,7 +246,7 @@ describe('SceneTimeRange', () => {
       });
 
       expect(timeRange.state.value.raw.to).toBe('now');
-      expect(timeRange.state.value.to).toEqual(dateMath.parse('now-1m', true));
+      expect(timeRange.state.value.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
     });
 
     it('should apply delay when updating time zone from the closest range with time zone specified', () => {
@@ -262,7 +264,7 @@ describe('SceneTimeRange', () => {
       scene.activate();
 
       expect(innerTimeRange.state.value.raw.to).toBe('now');
-      expect(innerTimeRange.state.value.to).toEqual(dateMath.parse('now-1m', true));
+      expect(innerTimeRange.state.value.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
     });
   });
 

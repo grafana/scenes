@@ -16,7 +16,6 @@ export function getRuntimePanelPluginDemo(defaults: SceneAppPageState): SceneApp
 
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Demo of a runtime registered panel plugin',
     getScene: () => {
       return new EmbeddedScene({
         body: new SceneFlexLayout({
@@ -46,7 +45,7 @@ interface CustomVizOptions {
 }
 
 interface CustomVizFieldOptions {
-  numericOption: number;
+  numericOption?: number;
 }
 
 function getCustomVizPlugin() {

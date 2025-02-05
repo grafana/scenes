@@ -36,6 +36,7 @@ import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
+import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -58,6 +59,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   hoverHeaderOffset?: number;
   /**
+   * Only shows vizPanelMenu on hover if false, otherwise the menu is always visible in the header
+   */
+  showMenuAlways?: boolean;
+  /**
    * Defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
    * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
    */
@@ -66,6 +71,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Defines a menu that renders panel link.
    **/
   titleItems?: React.ReactNode | SceneObject | SceneObject[];
+  seriesLimit?: number;
+  seriesLimitShowAll?: boolean;
   /**
    * Add action to the top right panel header
    */
@@ -74,6 +81,12 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Mainly for advanced use cases that need custom handling of PanelContext callbacks.
    */
   extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
+
+  /**
+   * Sets panel chrome collapsed state
+   */
+  collapsible?: boolean;
+  collapsed?: boolean;
   /**
    * @internal
    * Only for use from core to handle migration from old angular panels
@@ -129,10 +142,15 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public forceRender(): void {
     // Incrementing the render counter means VizRepeater and its children will also re-render
-    this.setState({ _renderCounter: (this.state._renderCounter ?? 0) + 1});
+    this.setState({ _renderCounter: (this.state._renderCounter ?? 0) + 1 });
   }
 
-  private async _loadPlugin(pluginId: string, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
+  private async _loadPlugin(
+    pluginId: string,
+    overwriteOptions?: DeepPartial<{}>,
+    overwriteFieldConfig?: FieldConfigSource,
+    isAfterPluginChange?: boolean
+  ) {
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
@@ -141,7 +159,16 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        const result = await importPanelPlugin(pluginId);
+        const panelPromise = importPanelPlugin(pluginId);
+
+        const queryControler = sceneGraph.getQueryController(this);
+        if (queryControler && queryControler.state.enableProfiling) {
+          wrapPromiseInStateObservable(panelPromise)
+            .pipe(registerQueryWithController({ type: 'plugin', origin: this }))
+            .subscribe(() => {});
+        }
+
+        const result = await panelPromise;
         this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
@@ -162,7 +189,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return panelId;
   }
 
-  private async _pluginLoaded(plugin: PanelPlugin, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
+  private async _pluginLoaded(
+    plugin: PanelPlugin,
+    overwriteOptions?: DeepPartial<{}>,
+    overwriteFieldConfig?: FieldConfigSource,
+    isAfterPluginChange?: boolean
+  ) {
     const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
@@ -243,13 +275,15 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public getTimeRange = (data?: PanelData) => {
     const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
     const sceneTimeRange = sceneGraph.getTimeRange(this);
+
     if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
       return evaluateTimeRange(
         sceneTimeRange.state.from,
         sceneTimeRange.state.to,
         sceneTimeRange.getTimeZone(),
         sceneTimeRange.state.fiscalYearStartMonth,
-        sceneTimeRange.state.UNSAFE_nowDelay
+        sceneTimeRange.state.UNSAFE_nowDelay,
+        sceneTimeRange.state.weekStart
       );
     }
 
@@ -262,17 +296,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   public async changePluginType(pluginId: string, newOptions?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
-    const {
-      options: prevOptions,
-      fieldConfig: prevFieldConfig,
-      pluginId: prevPluginId,
-    } = this.state;
+    const { options: prevOptions, fieldConfig: prevFieldConfig, pluginId: prevPluginId } = this.state;
 
     //clear field config cache to update it later
     this._dataWithFieldConfig = undefined;
 
     // If state.pluginId is already the correct plugin we don't treat this as plain user panel type change
-    const isAfterPluginChange = this.state.pluginId !== pluginId; 
+    const isAfterPluginChange = this.state.pluginId !== pluginId;
     await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, isAfterPluginChange);
 
     const panel: PanelModel = {
@@ -283,8 +313,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       type: pluginId,
     };
 
-    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React. 
-    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches. 
+    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React.
+    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches.
     const updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
 
     if (updatedOptions && !isEmpty(updatedOptions)) {
@@ -302,6 +332,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public onDisplayModeChange = (displayMode: 'default' | 'transparent') => {
     this.setState({ displayMode });
+  };
+
+  public onToggleCollapse = (collapsed: boolean) => {
+    this.setState({
+      collapsed,
+    });
   };
 
   public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {

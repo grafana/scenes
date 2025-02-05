@@ -48,7 +48,7 @@ export class AnnotationsDataLayer
 
   public onEnable(): void {
     this.publishEvent(new RefreshEvent(), true);
-    
+
     const timeRange = sceneGraph.getTimeRange(this);
 
     this._timeRangeSub = timeRange.subscribeToState(() => {

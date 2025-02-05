@@ -27,7 +27,6 @@ import { getQueryRunnerWithRandomWalkQuery } from './utils';
 export function getVariablesDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Test of variable cascading updates and refresh on time range change',
     $timeRange: new SceneTimeRange(),
     controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
     tabs: [
@@ -233,16 +232,20 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   name: 'manyAdhocOptions',
                   getTagKeysProvider: async () => ({
                     replace: true,
-                    values: [{
-                      value: 'a',
-                      text: 'A'
-                    }, {
-                      value: 'b',
-                      text: 'B'
-                    }, {
-                      value: 'c',
-                      text: 'C'
-                    }]
+                    values: [
+                      {
+                        value: 'a',
+                        text: 'A',
+                      },
+                      {
+                        value: 'b',
+                        text: 'B',
+                      },
+                      {
+                        value: 'c',
+                        text: 'C',
+                      },
+                    ],
                   }),
                   getTagValuesProvider: async () => {
                     return {
@@ -250,7 +253,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                       values: getRandomOptions(100000).map(({ value, label }) => ({
                         value,
                         text: label,
-                      }))
+                      })),
                     };
                   },
                 }),

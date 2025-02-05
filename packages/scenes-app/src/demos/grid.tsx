@@ -14,7 +14,6 @@ import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './u
 export function getGridLayoutTest(defaults: SceneAppPageState): SceneAppPage {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Demo of the SceneGridLayout',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

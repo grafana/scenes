@@ -14,8 +14,15 @@ const config = (env: any): Configuration => {
       publicPath: `public/plugins/${pluginId}/`,
       uniqueName: pluginId,
     },
+    module: {
+      rules: [
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader'],
+        },
+      ],
+    },
   });
 };
 
 export default config;
-

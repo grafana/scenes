@@ -322,9 +322,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.state.options).toEqual([
-        { label: 'val1', value: 'val1' },
-        { label: 'val2', value: 'val2' },
         { label: 'val11', value: 'val11' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val1', value: 'val1' },
       ]);
     });
 
@@ -339,9 +339,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.state.options).toEqual([
-        { label: 'val11', value: 'val11' },
-        { label: 'val2', value: 'val2' },
         { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val11', value: 'val11' },
       ]);
     });
 

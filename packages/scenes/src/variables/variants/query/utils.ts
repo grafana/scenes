@@ -4,7 +4,7 @@ import { stringToJsRegex, VariableSort } from '@grafana/data';
 
 import { VariableValueOption } from '../../types';
 
-export const metricNamesToVariableValues = (variableRegEx: string, sort: VariableSort, metricNames: any[]) => {
+export function metricNamesToVariableValues(variableRegEx: string, sort: VariableSort, metricNames: any[]) {
   let regex;
   let options: VariableValueOption[] = [];
 
@@ -14,8 +14,8 @@ export const metricNamesToVariableValues = (variableRegEx: string, sort: Variabl
 
   for (let i = 0; i < metricNames.length; i++) {
     const item = metricNames[i];
-    let text = item.text === undefined || item.text === null ? item.value : item.text;
-    let value = item.value === undefined || item.value === null ? item.text : item.value;
+    let text = item.text ?? item.value ?? '';
+    let value = item.value ?? item.text ?? '';
 
     if (isNumber(value)) {
       value = value.toString();
@@ -56,7 +56,7 @@ export const metricNamesToVariableValues = (variableRegEx: string, sort: Variabl
 
   options = uniqBy(options, 'value');
   return sortVariableValues(options, sort);
-};
+}
 
 const getAllMatches = (str: string, regex: RegExp): RegExpExecArray[] => {
   const results: RegExpExecArray[] = [];
@@ -74,39 +74,10 @@ const getAllMatches = (str: string, regex: RegExp): RegExpExecArray[] => {
   return results;
 };
 
-export const sortVariableValues = (options: any[], sortOrder: VariableSort) => {
+export const sortVariableValues = (options: VariableValueOption[], sortOrder: VariableSort) => {
   if (sortOrder === VariableSort.disabled) {
     return options;
   }
-
-  // @ts-ignore
-  const sortByNumeric = (opt) => {
-    if (!opt.text) {
-      return -1;
-    }
-    const matches = opt.text.match(/.*?(\d+).*/);
-    if (!matches || matches.length < 2) {
-      return -1;
-    } else {
-      return parseInt(matches[1], 10);
-    }
-  };
-
-  // @ts-ignore
-  const sortByNaturalSort = (options) => {
-    //@ts-ignore
-    return options.sort((a, b) => {
-      if (!a.text) {
-        return -1;
-      }
-
-      if (!b.text) {
-        return 1;
-      }
-
-      return a.text.localeCompare(b.text, undefined, { numeric: true });
-    });
-  };
 
   switch (sortOrder) {
     case VariableSort.alphabeticalAsc:
@@ -146,3 +117,23 @@ export const sortVariableValues = (options: any[], sortOrder: VariableSort) => {
   }
   return options;
 };
+
+function sortByNumeric(opt: VariableValueOption) {
+  if (!opt.label) {
+    return -1;
+  }
+  const matches = opt.label.match(/.*?(\d+).*/);
+  if (!matches || matches.length < 2) {
+    return -1;
+  } else {
+    return parseInt(matches[1], 10);
+  }
+}
+
+const collator = new Intl.Collator(undefined, { sensitivity: 'accent', numeric: true });
+
+function sortByNaturalSort(options: VariableValueOption[]) {
+  return options.slice().sort((a, b) => {
+    return collator.compare(a.label, b.label);
+  });
+}

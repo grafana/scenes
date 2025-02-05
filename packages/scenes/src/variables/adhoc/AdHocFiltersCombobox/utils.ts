@@ -1,6 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import { AdHocInputType } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, isMultiValueOperator } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, isMultiValueOperator, OnAddCustomValueFn } from '../AdHocFiltersVariable';
 import { getFuzzySearcher } from '../../utils';
 
 const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
@@ -11,11 +11,19 @@ export const VIRTUAL_LIST_ITEM_HEIGHT = 38;
 export const VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION = 60;
 export const ERROR_STATE_DROPDOWN_WIDTH = 366;
 
-export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
+// https://catonmat.net/my-favorite-regex :)
+const REGEXP_NON_ASCII = /[^ -~]/m;
+
+export function searchOptions(options: Array<SelectableValue<string>>) {
   const haystack = options.map((o) => o.label ?? o.value!);
   const fuzzySearch = getFuzzySearcher(haystack);
 
   return (search: string, filterInputType: AdHocInputType) => {
+    // fall back to substring matching for non-latin chars
+    if (REGEXP_NON_ASCII.test(search)) {
+      return options.filter((o) => o.label?.includes(search) || o.value?.includes(search) || false);
+    }
+
     if (filterInputType === 'operator' && search !== '') {
       // uFuzzy can only match non-alphanum chars if quoted
       search = `"${search}"`;
@@ -109,19 +117,25 @@ export const generateFilterUpdatePayload = ({
   item,
   filter,
   setFilterMultiValues,
+  onAddCustomValue,
 }: {
   filterInputType: AdHocInputType;
   item: SelectableValue<string>;
   filter: AdHocFilterWithLabels;
   setFilterMultiValues: (value: React.SetStateAction<Array<SelectableValue<string>>>) => void;
+  onAddCustomValue?: OnAddCustomValueFn;
 }): Partial<AdHocFilterWithLabels> => {
   if (filterInputType === 'key') {
     return {
       key: item.value,
       keyLabel: item.label ? item.label : item.value,
+      meta: item?.meta,
     };
   }
   if (filterInputType === 'value') {
+    if (item.isCustom && onAddCustomValue) {
+      return onAddCustomValue(item, filter);
+    }
     return {
       value: item.value,
       valueLabels: [item.label ? item.label : item.value!],
@@ -136,18 +150,13 @@ export const generateFilterUpdatePayload = ({
       // update operator and reset values and valueLabels
       return {
         operator: item.value,
-        // TODO remove when we're on the latest version of @grafana/data
-        //@ts-expect-error
         valueLabels: [filter.valueLabels?.[0] || filter.values?.[0] || filter.value],
-        //@ts-expect-error
         values: undefined,
       };
     }
 
     // handle values/valueLabels when switching from single to multi value operator
     if (isMultiValueOperator(item.value!) && !isMultiValueOperator(filter.operator)) {
-      // TODO remove when we're on the latest version of @grafana/data
-      //@ts-expect-error
       const valueLabels = [filter.valueLabels?.[0] || filter.values?.[0] || filter.value];
       const values = [filter.value];
 
@@ -165,7 +174,6 @@ export const generateFilterUpdatePayload = ({
       return {
         operator: item.value,
         valueLabels: valueLabels,
-        //@ts-expect-error
         values: values,
       };
     }
@@ -212,7 +220,7 @@ export const populateInputValueOnInputTypeSwitch = ({
   filter: AdHocFilterWithLabels | undefined;
 }) => {
   if (populateInputOnEdit && !isMultiValueOperator(item.value || '') && nextInputTypeMap[filterInputType] === 'value') {
-    setInputValue(filter?.value || '');
+    setInputValue(filter?.valueLabels?.[0] ?? filter?.value ?? '');
   } else {
     setInputValue('');
   }

@@ -17,6 +17,7 @@ import { DataQuery, DataTopic, TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
+import { VizPanel } from '../components/VizPanel/VizPanel';
 
 export interface SceneObjectState {
   key?: string;
@@ -60,6 +61,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
 
   /** True when there is a React component mounted for this Object */
   readonly isActive: boolean;
+
+  /** Controls if activation blocks rendering */
+  readonly renderBeforeActivation: boolean;
 
   /** SceneObject parent */
   readonly parent?: SceneObject;
@@ -140,6 +144,7 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
   isDraggable(): boolean;
   getDragClass?(): string;
   getDragClassCancel?(): string;
+  getDragHooks?(): { onDragStart?: (e: React.PointerEvent, panel: VizPanel) => void };
 }
 
 export interface SceneTimeRangeState extends SceneObjectState {

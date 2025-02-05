@@ -1,6 +1,5 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
-// @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
@@ -107,8 +106,12 @@ export function getQueriesForVariables(
     (o) => o instanceof SceneQueryRunner
   ) as SceneQueryRunner[];
 
+  const interpolatedDsUuid = sceneGraph.interpolate(sourceObject, sourceObject.state.datasource?.uid);
+
   const applicableRunners = filterOutInactiveRunnerDuplicates(runners).filter((r) => {
-    return r.state.datasource?.uid === sourceObject.state.datasource?.uid;
+    const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, r.state.datasource?.uid);
+
+    return interpolatedQueryDsUuid === interpolatedDsUuid;
   });
 
   if (applicableRunners.length === 0) {
@@ -117,7 +120,16 @@ export function getQueriesForVariables(
 
   const result: SceneDataQuery[] = [];
   applicableRunners.forEach((r) => {
-    result.push(...r.state.queries);
+    result.push(
+      ...r.state.queries.filter((q) => {
+        if (!q.datasource || !q.datasource.uid) {
+          return true;
+        }
+
+        const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, q.datasource.uid);
+        return interpolatedQueryDsUuid === interpolatedDsUuid;
+      })
+    );
   });
 
   return result;
@@ -166,6 +178,10 @@ export function escapeUrlCommaDelimiters(value: string | undefined): string {
 
   // Replace the comma due to using it as a value/label separator
   return /,/g[Symbol.replace](value, '__gfc__');
+}
+
+export function escapeURLDelimiters(value: string | undefined): string {
+  return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(value));
 }
 
 export function unescapeUrlDelimiters(value: string | undefined): string {

@@ -36,7 +36,7 @@ export function filterAnnotations(data: DataFrame[], filters: DataLayerFilter) {
         // Here we are filtering based on annotation filter definition.
         // Those filters are: Show annotation in selected panels, Exclude annotation from selected panels.
         if (sourceFilter) {
-          const includes = ([...(sourceFilter.ids ?? []), GLOBAL_ANNOTATION_ID]).includes(filters.panelId);
+          const includes = [...(sourceFilter.ids ?? []), GLOBAL_ANNOTATION_ID].includes(filters.panelId);
           if (sourceFilter.exclude) {
             if (includes) {
               matching = false;
