@@ -57,7 +57,7 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
-  const { hidePicker, isOnCanvas } = model.useState();
+  const { hidePicker, isOnCanvas, quickRanges } = model.useState();
   const timeRange = sceneGraph.getTimeRange(model);
   const timeZone = timeRange.getTimeZone();
   const timeRangeState = timeRange.useState();
@@ -93,7 +93,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       history={timeRangeHistory}
       //TODO: remove once grafana/grafana updated to 11.6
       //@ts-expect-error
-      quickRanges={model.state.quickRanges}
+      quickRanges={quickRanges}
     />
   );
 }
