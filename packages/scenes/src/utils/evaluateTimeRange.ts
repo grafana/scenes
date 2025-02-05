@@ -1,5 +1,6 @@
 import { dateMath, DateTime, DateTimeInput, setWeekStart, TimeRange } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
+import { WeekStart } from '@grafana/ui';
 
 export function evaluateTimeRange(
   from: string | DateTime,
@@ -7,7 +8,7 @@ export function evaluateTimeRange(
   timeZone: TimeZone,
   fiscalYearStartMonth: number | undefined,
   delay: string | undefined,
-  weekStart: string | undefined
+  weekStart: WeekStart | undefined
 ): TimeRange {
   const hasDelay = delay && to === 'now';
   const now = Date.now();
@@ -57,9 +58,9 @@ export function evaluateTimeRange(
   };
 }
 
-let prevWeekStart: string | undefined;
+let prevWeekStart: WeekStart | undefined;
 
-function setWeekStartIfDifferent(weekStart: string) {
+function setWeekStartIfDifferent(weekStart: WeekStart) {
   if (weekStart !== prevWeekStart) {
     prevWeekStart = weekStart;
     setWeekStart(weekStart);
