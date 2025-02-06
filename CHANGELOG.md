@@ -1,3 +1,16 @@
+# v5.42.0 (Thu Feb 06 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Themes: Fixes variable labels to support border radius [#1050](https://github.com/grafana/scenes/pull/1050) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v5.41.3 (Thu Feb 06 2025)
 
 #### 🐛 Bug Fix
