@@ -1,4 +1,4 @@
-import { VariableHide, VariableRefresh } from '@grafana/data';
+import { VariableRefresh } from '@grafana/data';
 import {
   SceneFlexLayout,
   SceneTimeRange,
