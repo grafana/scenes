@@ -86,5 +86,14 @@ function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
   );
 }
 
-const containerStyle = css({ display: 'flex' });
+const containerStyle = css({
+  display: 'flex',
+  // No border for second element (input)
+  // For input only variables (hidden label) it will be in pos 1
+  '> :nth-child(2)': css({
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+  }),
+});
+
 const verticalContainer = css({ display: 'flex', flexDirection: 'column' });

@@ -1,4 +1,4 @@
-import { VariableRefresh } from '@grafana/data';
+import { VariableHide, VariableRefresh } from '@grafana/data';
 import {
   SceneFlexLayout,
   SceneTimeRange,
@@ -46,6 +46,7 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                   description: 'Server name',
                   delayMs: 1000,
                   isMulti: true,
+                  hide: VariableHide.hideLabel,
                   options: [],
                   refresh: VariableRefresh.onTimeRangeChanged,
                 }),
