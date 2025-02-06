@@ -1,3 +1,16 @@
+# v5.41.3 (Thu Feb 06 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimePicker: Add support for custom quick ranges [#1048](https://github.com/grafana/scenes/pull/1048) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v5.41.2 (Tue Feb 04 2025)
 
 #### 🐛 Bug Fix
