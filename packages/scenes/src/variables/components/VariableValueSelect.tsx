@@ -1,5 +1,5 @@
 import { isArray } from 'lodash';
-import React, { RefCallback, useEffect, useMemo, useState } from 'react';
+import React, { RefCallback, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Checkbox,
   InputActionMeta,
@@ -10,6 +10,7 @@ import {
   useStyles2,
   useTheme2,
   Combobox,
+  ComboboxOption,
 } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
@@ -278,28 +279,33 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
 });
 
 function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, key, options, includeAll, isReadOnly, allowCustomValue = true, loading } = model.useState();
+  const { value, key, isReadOnly, options, includeAll, allowCustomValue = true, loading } = model.useState();
 
-  const comboboxOptions = useMemo(() => {
+  const isAsync = useMemo(
+    () =>
+      //@ts-ignore
+      model.onSearchChange && 'query' in model.state && containsSearchFilter(model.state.query),
+    [model.state, model.onSearchChange]
+  );
+
+  const staticOptions = useMemo(() => {
+    if (isAsync) {
+      return []; // so we don't map over the options needlessly because of async state updates
+    }
     const opts = options.map((o) => ({ value: o.value.toString(), label: o.label }));
+
     if (includeAll) {
       opts.unshift({ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT });
     }
     return opts;
-  }, [options, includeAll]);
+  }, [isAsync, options, includeAll]);
 
-  const onInputChange = useMemo(() => {
-    if (!model.onSearchChange) {
-      return;
-    }
+  const getOptions = useCallback(
+    (newInputValue: string) => {
+      if (!model.onSearchChange) {
+        throw new Error("onSearchChange is not defined, shouldn't happen lol");
+      }
 
-    // If we don't use searchFilter in QueryVariable, don't bother to make a query. TODO: Proper typing
-    // @ts-ignore
-    if ('query' in model.state && !containsSearchFilter(model.state.query)) {
-      return;
-    }
-
-    return async (newInputValue: string) => {
       const res = model.onSearchChange!(newInputValue).then((result) => {
         return result.map((o) => ({
           value: o.value.toString(),
@@ -307,8 +313,17 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
         }));
       });
       return res;
-    };
-  }, [model]);
+    },
+    [model]
+  );
+
+  const finalOptions: ComboboxOption[] | ((s: string) => Promise<ComboboxOption[]>) = useMemo(() => {
+    if (!isAsync) {
+      return staticOptions;
+    }
+
+    return getOptions;
+  }, [isAsync, staticOptions, getOptions]);
 
   return (
     <Combobox
@@ -317,7 +332,7 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
       value={value.toString()}
       width="auto"
       minWidth={10}
-      options={onInputChange || comboboxOptions}
+      options={finalOptions}
       createCustomValue={allowCustomValue}
       onChange={(newValue) => {
         reportSelectedValue(
