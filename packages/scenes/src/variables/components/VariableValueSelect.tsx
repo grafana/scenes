@@ -281,12 +281,7 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
 function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable>) {
   const { value, key, isReadOnly, options, includeAll, allowCustomValue = true, loading } = model.useState();
 
-  const isAsync = useMemo(
-    () =>
-      //@ts-ignore
-      model.onSearchChange && 'query' in model.state && containsSearchFilter(model.state.query),
-    [model.state, model.onSearchChange]
-  );
+  const isAsync = useMemo(() => model.isAsync, [model.isAsync]);
 
   const staticOptions = useMemo(() => {
     if (isAsync) {
@@ -330,6 +325,7 @@ function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable
       id={'var-' + key}
       disabled={isReadOnly}
       value={value.toString()}
+      placeholder="Select value"
       width="auto"
       minWidth={10}
       options={finalOptions}

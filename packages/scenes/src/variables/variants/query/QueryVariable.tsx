@@ -62,6 +62,10 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     });
   }
 
+  public get isAsync() {
+    return this.state.query !== undefined && containsSearchFilter(this.state.query);
+  }
+
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
     if (!this.state.query) {
       return of([]);
@@ -150,7 +154,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     }
 
     // Undefined for first call
-    return this._updateOptionsBasedOnSearchFilter(searchFilter) || Promise.resolve([]);
+    return this._updateOptionsBasedOnSearchFilter(searchFilter);
   };
 
   // Used for Combobox, as debouncing is done inside the component
@@ -160,7 +164,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     return result;
   };
 
-  private _updateOptionsBasedOnSearchFilter = debounce(this._getNewOptions, 400);
+  private _updateOptionsBasedOnSearchFilter = debounce(this._getNewOptions, 400, { leading: true });
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
     return renderSelectForVariable(model);
