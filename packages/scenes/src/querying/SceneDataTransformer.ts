@@ -6,6 +6,8 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
+import { SceneVariableDependencyConfigLike } from '../variables/types';
+import { only } from 'node:test';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -149,20 +151,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       return;
     }
 
-    let interpolatedTransformations = this.state.transformations;
-
-    if (this._variableDependency.getNames().size > 0) {
-      interpolatedTransformations = this.state.transformations.map((t) => {
-        if ('options' in t) {
-          return {
-            ...t,
-            options: JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t.options), data.request?.scopedVars)),
-          };
-        }
-
-        return t;
-      });
-    }
+    let interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
 
     const seriesTransformations = interpolatedTransformations
       .filter((transformation) => {
@@ -234,5 +223,28 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         this._results.next({ origin: this, data: transformedData });
         this._prevDataFromSource = data;
       });
+  }
+
+  private _interpolateVariablesInTransformationConfigs(
+    data: PanelData
+  ): Array<DataTransformerConfig | CustomTransformerDefinition> {
+    const transformations = this.state.transformations;
+
+    if (this._variableDependency.getNames().size === 0) {
+      return transformations;
+    }
+
+    const onlyObjects = transformations.every((t) => typeof t === 'object');
+
+    // If all transformations are config object we can interpolate them all at once
+    if (onlyObjects) {
+      return JSON.parse(sceneGraph.interpolate(this, JSON.stringify(transformations), data.request?.scopedVars));
+    }
+
+    return transformations.map((t) => {
+      return typeof t === 'object'
+        ? JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t), data.request?.scopedVars))
+        : t;
+    });
   }
 }
