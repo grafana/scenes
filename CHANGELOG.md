@@ -1,3 +1,16 @@
+# v6.0.0 (Fri Feb 07 2025)
+
+#### 💥 Breaking Change
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Update to `react-router@6` [#979](https://github.com/grafana/scenes/pull/979) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
 # v5.42.0 (Thu Feb 06 2025)
 
 #### 🚀 Enhancement
