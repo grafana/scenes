@@ -45,7 +45,7 @@ interface CustomVizOptions {
 }
 
 interface CustomVizFieldOptions {
-  numericOption: number;
+  numericOption?: number;
 }
 
 function getCustomVizPlugin() {

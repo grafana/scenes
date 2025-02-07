@@ -177,12 +177,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             statusMessageOnClick={model.onStatusMessageClick}
             width={width}
             height={height}
-            //@ts-expect-error Remove when 11.4 is released
             selectionId={model.state.key}
             displayMode={displayMode}
-            showMenuAlways={showMenuAlways}
-            hoverHeader={hoverHeader}
-            hoverHeaderOffset={hoverHeaderOffset}
             titleItems={titleItemsElement}
             dragClass={dragClass}
             actions={actionsElement}
@@ -190,16 +186,20 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             padding={plugin.noPadding ? 'none' : 'md'}
             menu={panelMenu}
             onCancelQuery={model.onCancelQuery}
-            // @ts-ignore
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
-            collapsible={collapsible}
-            collapsed={collapsed}
-            onToggleCollapse={model.onToggleCollapse}
             onDragStart={(e: React.PointerEvent) => {
               dragHooks.onDragStart?.(e, model);
             }}
+            {...(collapsible
+              ? {
+                  collapsible: Boolean(collapsible),
+                  collapsed,
+                  onToggleCollapse: model.onToggleCollapse,
+                  showMenuAlways,
+                }
+              : { hoverHeader, hoverHeaderOffset })}
           >
             {(innerWidth, innerHeight) => (
               <>

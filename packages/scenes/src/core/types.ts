@@ -18,6 +18,7 @@ import { DataQuery, DataTopic, TimeZone } from '@grafana/schema';
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
 import { VizPanel } from '../components/VizPanel/VizPanel';
+import { WeekStart } from '@grafana/ui';
 
 export interface SceneObjectState {
   key?: string;
@@ -154,7 +155,7 @@ export interface SceneTimeRangeState extends SceneObjectState {
   value: TimeRange;
   timeZone?: TimeZone;
   /** weekStart will change the global date locale so having multiple different weekStart values is not supported  */
-  weekStart?: string;
+  weekStart?: WeekStart;
   /**
    * @internal
    * To enable feature parity with the old time range picker, not sure if it will be kept.
