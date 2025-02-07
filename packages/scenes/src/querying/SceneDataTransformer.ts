@@ -149,7 +149,22 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       return;
     }
 
-    const seriesTransformations = this.state.transformations
+    let interpolatedTransformations = this.state.transformations;
+
+    if (this._variableDependency.getNames().size > 0) {
+      interpolatedTransformations = this.state.transformations.map((t) => {
+        if ('options' in t) {
+          return {
+            ...t,
+            options: JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t.options), data.request?.scopedVars)),
+          };
+        }
+
+        return t;
+      });
+    }
+
+    const seriesTransformations = interpolatedTransformations
       .filter((transformation) => {
         if ('options' in transformation || 'topic' in transformation) {
           return transformation.topic == null || transformation.topic === DataTopic.Series;
@@ -159,7 +174,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       })
       .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
 
-    const annotationsTransformations = this.state.transformations
+    const annotationsTransformations = interpolatedTransformations
       .filter((transformation) => {
         if ('options' in transformation || 'topic' in transformation) {
           return transformation.topic === DataTopic.Annotations;
