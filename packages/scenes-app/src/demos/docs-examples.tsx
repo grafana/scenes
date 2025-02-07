@@ -117,6 +117,7 @@ export function getDocsExamples(defaults: SceneAppPageState) {
 function getDocsExample(getScene: () => EmbeddedScene, url: string, title: string) {
   return new SceneAppPage({
     title,
+    routePath: url,
     url: demoUrl(`docs-examples/${url}`),
     getScene,
   });

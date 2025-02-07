@@ -1,11 +1,10 @@
 import React from 'react';
 import { Card, useStyles2 } from '@grafana/ui';
-import { useHistory } from 'react-router-dom';
 import { prefixRoute } from '../utils/utils.routing';
 import { ROUTES } from '../constants';
 import { GrafanaTheme2, PageLayoutType } from '@grafana/data';
 import { css } from '@emotion/css';
-import { PluginPage } from '@grafana/runtime';
+import { PluginPage, locationService } from '@grafana/runtime';
 
 function getStyles(theme: GrafanaTheme2) {
   return {
@@ -29,9 +28,10 @@ function getStyles(theme: GrafanaTheme2) {
   };
 }
 
+const history = locationService.getHistory();
+
 export const HomePage = () => {
   const styles = useStyles2(getStyles);
-  const history = useHistory();
 
   return (
     <PluginPage layout={PageLayoutType.Custom}>

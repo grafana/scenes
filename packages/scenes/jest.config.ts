@@ -6,7 +6,8 @@ module.exports = {
     'react-inlinesvg': '<rootDir>/utils/test/__mocks__/react-inlinesvg.tsx',
   },
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['jest-canvas-mock', './utils/setupTests.ts'],
+  setupFiles: ['./utils/setupTests.ts'],
+  setupFilesAfterEnv: ['jest-canvas-mock', './utils/setupTestsAfterEnv.ts'],
   testMatch: ['<rootDir>/src/**/*.{spec,test,jest}.{js,jsx,ts,tsx}'],
   transform: {
     '^.+\\.(t|j)sx?$': [

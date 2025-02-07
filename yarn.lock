@@ -3757,7 +3757,6 @@ __metadata:
     "@types/react": "npm:18.2.74"
     "@types/react-dom": "npm:18.2.24"
     "@types/react-grid-layout": "npm:1.3.2"
-    "@types/react-router-dom": "npm:5.3.3"
     "@types/react-virtualized-auto-sizer": "npm:1.0.1"
     "@types/uuid": "npm:8.3.4"
     "@typescript-eslint/eslint-plugin": "npm:^4.33.0"
@@ -3776,7 +3775,6 @@ __metadata:
     lodash: "npm:4.17.21"
     lru-cache: "npm:^10.2.2"
     prettier: "npm:2.5.1"
-    react-router-dom: "npm:^5.2.0"
     react-select-event: "npm:^5.5.1"
     react-use: "npm:^17.4.0"
     rimraf: "npm:^3.0.2"
@@ -3799,6 +3797,7 @@ __metadata:
     "@grafana/ui": ^11.0.0
     react: ^18.0.0
     react-dom: ^18.0.0
+    react-router-dom: ^6.28.0
   languageName: unknown
   linkType: soft
 
@@ -3827,7 +3826,6 @@ __metadata:
     "@types/react": "npm:18.2.74"
     "@types/react-dom": "npm:18.2.24"
     "@types/react-grid-layout": "npm:1.3.2"
-    "@types/react-router-dom": "npm:5.3.3"
     "@types/react-virtualized-auto-sizer": "npm:1.0.1"
     "@types/uuid": "npm:8.3.4"
     "@typescript-eslint/eslint-plugin": "npm:^4.33.0"
@@ -3846,11 +3844,11 @@ __metadata:
     jest-matcher-utils: "npm:29.7.0"
     lodash: "npm:4.17.21"
     prettier: "npm:2.5.1"
-    react-grid-layout: "npm:^1.3.4"
-    react-router-dom: "npm:^5.2.0"
+    react-grid-layout: "npm:1.3.4"
+    react-router-dom: "npm:^6.28.0"
     react-select-event: "npm:^5.5.1"
-    react-use: "npm:^17.5.0"
-    react-virtualized-auto-sizer: "npm:^1.0.24"
+    react-use: "npm:17.5.0"
+    react-virtualized-auto-sizer: "npm:1.0.24"
     rimraf: "npm:^3.0.2"
     rollup: "npm:2.79.1"
     rollup-plugin-dts: "npm:^5.0.0"
@@ -3872,6 +3870,7 @@ __metadata:
     "@grafana/ui": ">=10.4"
     react: ^18.0.0
     react-dom: ^18.0.0
+    react-router-dom: ^6.28.0
   languageName: unknown
   linkType: soft
 
@@ -7035,7 +7034,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-router-dom@npm:*, @types/react-router-dom@npm:5.3.3, @types/react-router-dom@npm:^5.3.3":
+"@types/react-router-dom@npm:*":
   version: 5.3.3
   resolution: "@types/react-router-dom@npm:5.3.3"
   dependencies:
@@ -13479,13 +13478,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-equals@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "fast-equals@npm:4.0.3"
-  checksum: 10/04c1ff47b79923314e9b63ec6c81beeaa5e3b9588ec230ee6aff7ece725ff834a72abf627055055127bd0f53ae8a92cc04c3a6e187783fd932dbef743f9b13bf
-  languageName: node
-  linkType: hard
-
 "fast-glob@npm:3.2.7":
   version: 3.2.7
   resolution: "fast-glob@npm:3.2.7"
@@ -17869,6 +17861,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash.isequal@npm:^4.0.0":
+  version: 4.5.0
+  resolution: "lodash.isequal@npm:4.5.0"
+  checksum: 10/82fc58a83a1555f8df34ca9a2cd300995ff94018ac12cc47c349655f0ae1d4d92ba346db4c19bbfc90510764e0c00ddcc985a358bdcd4b3b965abf8f2a48a214
+  languageName: node
+  linkType: hard
+
 "lodash.ismatch@npm:^4.4.0":
   version: 4.4.0
   resolution: "lodash.ismatch@npm:4.4.0"
@@ -19578,7 +19577,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nano-css@npm:^5.6.2":
+"nano-css@npm:^5.6.1, nano-css@npm:^5.6.2":
   version: 5.6.2
   resolution: "nano-css@npm:5.6.2"
   dependencies:
@@ -22536,7 +22535,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-draggable@npm:^4.0.3, react-draggable@npm:^4.4.5":
+"react-draggable@npm:^4.0.0, react-draggable@npm:^4.0.3":
   version: 4.4.6
   resolution: "react-draggable@npm:4.4.6"
   dependencies:
@@ -22596,20 +22595,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-grid-layout@npm:^1.3.4":
-  version: 1.5.0
-  resolution: "react-grid-layout@npm:1.5.0"
+"react-grid-layout@npm:1.3.4":
+  version: 1.3.4
+  resolution: "react-grid-layout@npm:1.3.4"
   dependencies:
-    clsx: "npm:^2.0.0"
-    fast-equals: "npm:^4.0.3"
+    clsx: "npm:^1.1.1"
+    lodash.isequal: "npm:^4.0.0"
     prop-types: "npm:^15.8.1"
-    react-draggable: "npm:^4.4.5"
-    react-resizable: "npm:^3.0.5"
-    resize-observer-polyfill: "npm:^1.5.1"
+    react-draggable: "npm:^4.0.0"
+    react-resizable: "npm:^3.0.4"
   peerDependencies:
     react: ">= 16.3.0"
     react-dom: ">= 16.3.0"
-  checksum: 10/c20cf0120b0aed06fad0e3f535df3cf35fc7c6e9aca4a7e64bc5f453dc7298e037cc71dc0934a4b89b9d5c024967cf55b9f630c5f44afc03f8a1c055a01bf3c0
+  checksum: 10/944ab133e59bfaa5633625f57be9f69133b5cec2de0232d9581e2c988e257ebafe010ee9bbbff6c2754f9d7d8bb0053072bac103f20fc232be2a58e15d14fc64
   languageName: node
   linkType: hard
 
@@ -22779,7 +22777,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-resizable@npm:^3.0.5":
+"react-resizable@npm:^3.0.4":
   version: 3.0.5
   resolution: "react-resizable@npm:3.0.5"
   dependencies:
@@ -22835,7 +22833,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^5.2.0, react-router-dom@npm:^5.3.4":
+"react-router-dom@npm:^5.3.4":
   version: 5.3.4
   resolution: "react-router-dom@npm:5.3.4"
   dependencies:
@@ -22849,6 +22847,19 @@ __metadata:
   peerDependencies:
     react: ">=15"
   checksum: 10/5e0696ae2d86f466ff700944758a227e1dcd79b48797d567776506e4e3b4a08b81336155feb86a33be9f38c17c4d3d94212b5c60c8ee9a086022e4fd3961db29
+  languageName: node
+  linkType: hard
+
+"react-router-dom@npm:^6.28.0":
+  version: 6.28.0
+  resolution: "react-router-dom@npm:6.28.0"
+  dependencies:
+    "@remix-run/router": "npm:1.21.0"
+    react-router: "npm:6.28.0"
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 10/e637825132ea96c3514ef7b8322f9bf0b752a942d6b4ffc4c20e389b5911726adf3dba8208ed4b97bf5b9c3bd465d9d1a1db1a58a610a8d528f18d890e0b143f
   languageName: node
   linkType: hard
 
@@ -22965,6 +22976,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-use@npm:17.5.0":
+  version: 17.5.0
+  resolution: "react-use@npm:17.5.0"
+  dependencies:
+    "@types/js-cookie": "npm:^2.2.6"
+    "@xobotyi/scrollbar-width": "npm:^1.9.5"
+    copy-to-clipboard: "npm:^3.3.1"
+    fast-deep-equal: "npm:^3.1.3"
+    fast-shallow-equal: "npm:^1.0.0"
+    js-cookie: "npm:^2.2.1"
+    nano-css: "npm:^5.6.1"
+    react-universal-interface: "npm:^0.6.2"
+    resize-observer-polyfill: "npm:^1.5.1"
+    screenfull: "npm:^5.1.0"
+    set-harmonic-interval: "npm:^1.0.1"
+    throttle-debounce: "npm:^3.0.1"
+    ts-easing: "npm:^0.2.0"
+    tslib: "npm:^2.1.0"
+  peerDependencies:
+    react: "*"
+    react-dom: "*"
+  checksum: 10/5d81fe0902303d3ed7810cdd56c6cae12b08124a3d4fcbfa3924327105b81447b039ea9d6aff20aac3c13999f949000870a7a2fa29fe20ed844ac26606462fa0
+  languageName: node
+  linkType: hard
+
 "react-use@npm:17.6.0":
   version: 17.6.0
   resolution: "react-use@npm:17.6.0"
@@ -22990,7 +23026,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-use@npm:^17.4.0, react-use@npm:^17.5.0":
+"react-use@npm:^17.4.0":
   version: 17.5.1
   resolution: "react-use@npm:17.5.1"
   dependencies:
@@ -23015,7 +23051,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-virtualized-auto-sizer@npm:^1.0.24":
+"react-virtualized-auto-sizer@npm:1.0.24":
   version: 1.0.24
   resolution: "react-virtualized-auto-sizer@npm:1.0.24"
   peerDependencies:
@@ -24122,7 +24158,6 @@ __metadata:
     "@types/jest": "npm:^29.5.12"
     "@types/lodash": "npm:latest"
     "@types/node": "npm:^20.11.30"
-    "@types/react-router-dom": "npm:^5.3.3"
     "@typescript-eslint/eslint-plugin": "npm:^4.33.0"
     "@typescript-eslint/parser": "npm:^4.33.0"
     copy-webpack-plugin: "npm:^10.0.0"
@@ -24140,7 +24175,7 @@ __metadata:
     raw-loader: "npm:^4.0.2"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
-    react-router-dom: "npm:^5.2.0"
+    react-router-dom: "npm:^6.28.0"
     replace-in-file-webpack-plugin: "npm:^1.0.6"
     style-loader: "npm:^4.0.0"
     swc-loader: "npm:^0.1.15"
@@ -25683,21 +25718,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"terser@npm:^5.10.0":
-  version: 5.19.1
-  resolution: "terser@npm:5.19.1"
-  dependencies:
-    "@jridgewell/source-map": "npm:^0.3.3"
-    acorn: "npm:^8.8.2"
-    commander: "npm:^2.20.0"
-    source-map-support: "npm:~0.5.20"
-  bin:
-    terser: bin/terser
-  checksum: 10/d4f7b07fa9242d2b65676a373a2eecf9b78b7b186472cdb0f3ce990aae9ca0cbdbee0d6f5b5c0e7aacd6441858526798ae55d4166f9010a2128ab9bf372a4dd7
-  languageName: node
-  linkType: hard
-
-"terser@npm:^5.15.1, terser@npm:^5.26.0":
+"terser@npm:^5.10.0, terser@npm:^5.15.1, terser@npm:^5.26.0":
   version: 5.34.1
   resolution: "terser@npm:5.34.1"
   dependencies:
