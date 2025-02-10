@@ -1,3 +1,16 @@
+# v6.0.1 (Mon Feb 10 2025)
+
+#### 🐛 Bug Fix
+
+- SceneDataTransformer: Interpolate transformation options [#1051](https://github.com/grafana/scenes/pull/1051) ([@dprokop](https://github.com/dprokop) [@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.0.0 (Fri Feb 07 2025)
 
 #### 💥 Breaking Change
