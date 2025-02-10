@@ -6,8 +6,6 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
-import { SceneVariableDependencyConfigLike } from '../variables/types';
-import { only } from 'node:test';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
