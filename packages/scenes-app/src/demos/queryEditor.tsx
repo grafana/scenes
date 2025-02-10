@@ -12,7 +12,6 @@ import { QueryEditor } from '../components/QueryEditor/QueryEditor';
 export function getQueryEditorDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Example of how to to build a component that uses the QueryEditor',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

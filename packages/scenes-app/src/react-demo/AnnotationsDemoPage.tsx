@@ -4,6 +4,7 @@ import { PageWrapper } from './PageWrapper';
 import { Stack } from '@grafana/ui';
 import { AnnotationLayer, DataLayerControl, SceneContextProvider } from '@grafana/scenes-react';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function AnnotationDemoPage() {
   const query1 = {
@@ -71,7 +72,15 @@ export function AnnotationDemoPage() {
   };
 
   return (
-    <PageWrapper title="Annotations" subTitle="Annotation demo page">
+    <PageWrapper
+      title="Annotations"
+      subTitle={
+        <DemoSubTitle
+          text={'Annotation demo page'}
+          getSourceCodeModule={() => import('!!raw-loader!./AnnotationsDemoPage')}
+        />
+      }
+    >
       <AnnotationLayer name="GlobalAnno" query={globalQuery}>
         <Stack direction={'column'} gap={2}>
           <SceneContextProvider>

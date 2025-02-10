@@ -369,7 +369,7 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 {
   "defaults": {
     "custom": {
-      "label": "auto",
+      "fillOpacity": 50,
       "show": "points",
     },
   },
