@@ -181,7 +181,19 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   public getLegacyPanelId() {
-    const panelId = parseInt(this.state.key!.replace('panel-', ''), 10);
+    /**
+     * The `/` part is here because a panel key can be in a clone chain
+     * A clone chain looks like `panel-1-clone-0/grid-item-5/panel-14` where the last part is the panel key
+     */
+    const parts = this.state.key?.split('/') ?? [];
+
+    if (parts.length === 0) {
+      return 0;
+    }
+
+    const part = parts[parts.length - 1];
+    const panelId = parseInt(part!.replace('panel-', ''), 10);
+
     if (isNaN(panelId)) {
       return 0;
     }

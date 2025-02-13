@@ -375,6 +375,30 @@ describe('VizPanel', () => {
 
       expect(panel.getLegacyPanelId()).toBe(12);
     });
+
+    it('should return panel id for a panel in a clone chain', () => {
+      const panels = [
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-clone-0/panel-12-clone-1',
+        }),
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-12-clone-1',
+        }),
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-clone-0/grid-item-5/panel-12-clone-1',
+        }),
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-12-clone-0',
+        }),
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-12-clone-12',
+        }),
+      ];
+
+      panels.forEach((panel) => {
+        expect(panel.getLegacyPanelId()).toBe(12);
+      });
+    });
   });
 
   describe('updating options', () => {
