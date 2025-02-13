@@ -38,6 +38,7 @@ export interface MultiValueVariableState extends SceneVariableState {
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
   isReadOnly?: boolean;
+  shouldCreateHistoryStep?: boolean;
 }
 
 export interface VariableGetOptionsArgs {
@@ -301,6 +302,16 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       return;
     }
 
+    if (this.state.shouldCreateHistoryStep) {
+      this._urlSync.performBrowserHistoryAction?.(() => {
+        this.performValueUpdate(value, text!);
+      });
+    } else {
+      this.performValueUpdate(value, text);
+    }
+  }
+
+  private performValueUpdate(value: VariableValue, text: VariableValue) {
     this.setStateHelper({ value, text, loading: false });
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
   }
@@ -387,6 +398,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   implements SceneObjectUrlSyncHandler
 {
   public constructor(private _sceneObject: MultiValueVariable<TState>) {}
+  private _nextChangeShouldAddHistoryStep = false;
 
   private getKey(): string {
     return `var-${this._sceneObject.state.name}`;
@@ -445,6 +457,16 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
 
       this._sceneObject.changeValueTo(urlValue);
     }
+  }
+
+  public performBrowserHistoryAction(callback: () => void) {
+    this._nextChangeShouldAddHistoryStep = true;
+    callback();
+    this._nextChangeShouldAddHistoryStep = false;
+  }
+
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._nextChangeShouldAddHistoryStep;
   }
 }
 
