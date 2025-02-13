@@ -1,3 +1,16 @@
+# v6.0.2 (Thu Feb 13 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix the `getLegacyPanelId` method in `VizPanel` [#1053](https://github.com/grafana/scenes/pull/1053) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v6.0.1 (Mon Feb 10 2025)
 
 #### 🐛 Bug Fix
