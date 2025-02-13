@@ -279,20 +279,3 @@ export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike 
 
   return undefined;
 }
-
-/**
- * Returns the closest SceneObject that has a state property with the
- * name urlSyncManager that is of type UrlSyncManager
- */
-export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike | undefined {
-  let parent: SceneObject | undefined = sceneObject;
-
-  while (parent) {
-    if ('urlSyncManager' in parent.state) {
-      return parent.state.urlSyncManager as UrlSyncManagerLike;
-    }
-    parent = parent.parent;
-  }
-
-  return undefined;
-}
