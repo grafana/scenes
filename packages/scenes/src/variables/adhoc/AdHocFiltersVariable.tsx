@@ -420,7 +420,7 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const { supportsMultiValueOperators, allowCustomValue } = this.state;
+    const { supportsMultiValueOperators, allowCustomValue = true } = this.state;
 
     return OPERATORS.filter(({ isMulti, isRegex }) => {
       if (!supportsMultiValueOperators && isMulti) {
