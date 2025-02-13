@@ -10,12 +10,11 @@ import { SceneDataLayerSet } from '../../SceneDataLayerSet';
 import { AnnotationsDataLayer } from './AnnotationsDataLayer';
 import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithRequestEnricher';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
-import { config } from '@grafana/runtime';
+import { config, RefreshEvent } from '@grafana/runtime';
 
 let mockedEvents: Array<Partial<Field>> = [];
 
 const getDataSourceMock = jest.fn().mockReturnValue({
-  // getRef: () => ({ uid: 'test' }),
   annotations: {
     prepareAnnotation: (q: AnnotationQuery) => q,
     prepareQuery: (q: AnnotationQuery) => q,
@@ -130,7 +129,6 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
   });
 
   describe('variables support', () => {
-    beforeEach(() => {});
     describe('When query is using variable that is still loading', () => {
       it('Should not executed query on activate', async () => {
         const variable = new TestVariable({ name: 'A', value: '1' });
@@ -349,5 +347,35 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
 
       expect(sentRequest?.app).toBe('enriched');
     });
+  });
+
+  it('should emit RefreshEvent on enable/disable', async () => {
+    const layer = new AnnotationsDataLayer({
+      name: 'Test layer',
+      query: { name: 'Test', enable: false, iconColor: 'red', theActualQuery: '$A' },
+    });
+
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange(),
+      $data: new SceneDataLayerSet({
+        layers: [layer],
+      }),
+    });
+
+    scene.activate();
+
+    await new Promise((r) => setTimeout(r, 10));
+
+    const eventHandler = jest.fn();
+
+    scene.subscribeToEvent(RefreshEvent, eventHandler);
+
+    layer.onEnable();
+
+    expect(eventHandler).toHaveBeenCalledTimes(1);
+
+    layer.onDisable();
+
+    expect(eventHandler).toHaveBeenCalledTimes(2);
   });
 });

@@ -47,7 +47,7 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
     });
 
-    it('Should pick first option whebn current value is All value but all value is not enabled', async () => {
+    it('Should pick first option when current value is All value but all value is not enabled', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
@@ -231,7 +231,33 @@ describe('MultiValueVariable', () => {
       expect(variable.state.text).toEqual([ALL_VARIABLE_TEXT]);
     });
 
-    it('Should handle $__all value and send change event even when value is still $__all', async () => {
+    it('Should handle $__all value and send change event when value is still $__all, but options change', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        includeAll: true,
+        value: ALL_VARIABLE_VALUE,
+        text: ALL_VARIABLE_TEXT,
+        delayMs: 0,
+        updateOptions: false, // don't update options in TestVar, MultiVar will update it anyway
+      });
+
+      let changeEvent: SceneVariableValueChangedEvent | undefined;
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (evt) => (changeEvent = evt));
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
+      expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
+      expect(variable.state.options).toEqual(variable.state.optionsToReturn);
+      expect(changeEvent).toBeDefined();
+    });
+
+    it('Should handle $__all value and not send change event when value is still $__all, but options are the same', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
@@ -253,7 +279,7 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
       expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
       expect(variable.state.options).toEqual(variable.state.optionsToReturn);
-      expect(changeEvent).toBeDefined();
+      expect(changeEvent).not.toBeDefined();
     });
 
     it('Should default to $__all even when no options are returned', async () => {
@@ -264,6 +290,24 @@ describe('MultiValueVariable', () => {
         defaultToAll: true,
         value: [],
         text: [],
+        delayMs: 0,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
+      expect(variable.state.text).toBe(ALL_VARIABLE_TEXT);
+    });
+
+    it('Should correct $__all text value if not correct', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [{ label: 'A', value: '1' }],
+        defaultToAll: true,
+        includeAll: true,
+        value: ALL_VARIABLE_VALUE,
+        text: ALL_VARIABLE_VALUE,
         delayMs: 0,
       });
 

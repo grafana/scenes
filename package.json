@@ -31,12 +31,16 @@
     "packages:publish": "lerna exec --no-private -- npm publish",
     "docs": "yarn workspace website run start --port 8080",
     "docs:build": "yarn turbo build --filter=website",
+    "docs:build:dev": "yarn turbo build:dev --filter=website",
     "build": "yarn turbo build --filter=!website",
     "test:scenes": "yarn workspace @grafana/scenes test --watch",
     "test:scenes-react": "yarn workspace @grafana/scenes-react test --watch",
     "dev": "yarn turbo dev --filter=!website",
     "test": "yarn turbo test --filter=!website",
-    "typecheck": "yarn turbo typecheck --filter=!website"
+    "lint": "yarn turbo lint --filter=!website",
+    "typecheck": "yarn turbo typecheck --filter=!website",
+    "prettier:check": "prettier --check --list-different=false --log-level=warn \"**/*.{ts,tsx,scss,md,mdx,json,js}\"",
+    "prettier:write": "prettier --list-different \"**/*.{js,ts,tsx,scss,md,mdx,json}\" --write"
   },
   "resolutions": {
     "@types/react": "18.2.74"

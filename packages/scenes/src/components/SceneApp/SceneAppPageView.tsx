@@ -2,29 +2,29 @@ import { NavModelItem, UrlQueryMap } from '@grafana/data';
 import { PluginPage } from '@grafana/runtime';
 import React, { useContext, useEffect, useLayoutEffect } from 'react';
 
-import { RouteComponentProps } from 'react-router-dom';
 import { SceneObject } from '../../core/types';
 import { SceneDebugger } from '../SceneDebugger/SceneDebugger';
 import { SceneAppPage } from './SceneAppPage';
 import { SceneAppDrilldownView, SceneAppPageLike } from './types';
-import { getUrlWithAppState, renderSceneComponentWithRouteProps, useAppQueryParams } from './utils';
+import { getUrlWithAppState, useAppQueryParams, useSceneRouteMatch } from './utils';
 import { useUrlSync } from '../../services/useUrlSync';
 import { SceneAppContext } from './SceneApp';
+import { useLocationServiceSafe } from '../../utils/utils';
 
 export interface Props {
   page: SceneAppPageLike;
-  //   activeTab?: SceneAppPageLike;
-  routeProps: RouteComponentProps;
 }
 
-export function SceneAppPageView({ page, routeProps }: Props) {
+export function SceneAppPageView({ page }: Props) {
+  const routeMatch = useSceneRouteMatch(page.state.url);
   const containerPage = getParentPageIfTab(page);
   const containerState = containerPage.useState();
   const params = useAppQueryParams();
-  const scene = page.getScene(routeProps.match);
+  const scene = page.getScene(routeMatch);
   const appContext = useContext(SceneAppContext);
   const isInitialized = containerState.initializedScene === scene;
   const { layout } = page.state;
+  const locationService = useLocationServiceSafe();
 
   useLayoutEffect(() => {
     // Before rendering scene components, we are making sure the URL sync is enabled for.
@@ -48,11 +48,12 @@ export function SceneAppPageView({ page, routeProps }: Props) {
     text: containerState.title,
     img: containerState.titleImg,
     icon: containerState.titleIcon,
-    url: getUrlWithAppState(containerState.url, containerState.preserveUrlKeys),
+    url: getUrlWithAppState(containerState.url, locationService.getSearchObject(), containerState.preserveUrlKeys),
     hideFromBreadcrumbs: containerState.hideFromBreadcrumbs,
     parentItem: getParentBreadcrumbs(
       containerState.getParentPage ? containerState.getParentPage() : containerPage.parent,
-      params
+      params,
+      locationService.getSearchObject()
     ),
   };
 
@@ -63,7 +64,7 @@ export function SceneAppPageView({ page, routeProps }: Props) {
         icon: tab.state.titleIcon,
         tabSuffix: tab.state.tabSuffix,
         active: page === tab,
-        url: getUrlWithAppState(tab.state.url, tab.state.preserveUrlKeys),
+        url: getUrlWithAppState(tab.state.url, locationService.getSearchObject(), tab.state.preserveUrlKeys),
         parentItem: pageNav,
       };
     });
@@ -104,15 +105,20 @@ function getParentPageIfTab(page: SceneAppPageLike) {
   return page;
 }
 
-function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryMap): NavModelItem | undefined {
+function getParentBreadcrumbs(
+  parent: SceneObject | undefined,
+  params: UrlQueryMap,
+  searchObject: UrlQueryMap
+): NavModelItem | undefined {
   if (parent instanceof SceneAppPage) {
     return {
       text: parent.state.title,
-      url: getUrlWithAppState(parent.state.url, parent.state.preserveUrlKeys),
+      url: getUrlWithAppState(parent.state.url, searchObject, parent.state.preserveUrlKeys),
       hideFromBreadcrumbs: parent.state.hideFromBreadcrumbs,
       parentItem: getParentBreadcrumbs(
         parent.state.getParentPage ? parent.state.getParentPage() : parent.parent,
-        params
+        params,
+        searchObject
       ),
     };
   }
@@ -123,9 +129,10 @@ function getParentBreadcrumbs(parent: SceneObject | undefined, params: UrlQueryM
 export interface SceneAppDrilldownViewRenderProps {
   drilldown: SceneAppDrilldownView;
   parent: SceneAppPageLike;
-  routeProps: RouteComponentProps;
 }
 
-export function SceneAppDrilldownViewRender({ drilldown, parent, routeProps }: SceneAppDrilldownViewRenderProps) {
-  return renderSceneComponentWithRouteProps(parent.getDrilldownPage(drilldown, routeProps.match), routeProps);
+export function SceneAppDrilldownViewRender({ drilldown, parent }: SceneAppDrilldownViewRenderProps) {
+  const routeMatch = useSceneRouteMatch(drilldown.routePath!);
+  const page = parent.getDrilldownPage(drilldown, routeMatch);
+  return <page.Component model={page} />;
 }

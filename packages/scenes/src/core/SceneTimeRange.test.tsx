@@ -1,27 +1,33 @@
-import { toUtc, setWeekStart, dateMath } from '@grafana/data';
+import { toUtc, dateMath } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
-import { config, RefreshEvent } from '@grafana/runtime';
+import { RefreshEvent, config } from '@grafana/runtime';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneReactObject } from '../components/SceneReactObject';
 
 jest.mock('@grafana/data', () => ({
   ...jest.requireActual('@grafana/data'),
-  setWeekStart: jest.fn(),
 }));
-
-config.bootData = { user: { weekStart: 'monday' } } as any;
 
 function simulateDelay(newDateString: string, scene: EmbeddedScene) {
   jest.setSystemTime(new Date(newDateString));
   scene.activate();
 }
 
+config.bootData = { user: { weekStart: 'monday' } } as any;
+
 describe('SceneTimeRange', () => {
   it('when created should evaluate time range', () => {
     const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
     expect(timeRange.state.value.raw.from).toBe('now-1h');
+  });
+
+  it('When weekStart use it when evaluting time range', () => {
+    const timeRange = new SceneTimeRange({ from: 'now/w', to: 'now/w', weekStart: 'saturday' });
+    const weekDay = timeRange.state.value.from.isoWeekday();
+
+    expect(weekDay).toBe(6);
   });
 
   it('when time range refreshed should evaluate and update value', async () => {
@@ -51,16 +57,8 @@ describe('SceneTimeRange', () => {
     expect(timeRange.urlSync?.getUrlState()).toEqual({
       from: 'now-1h',
       to: 'now',
+      timezone: 'browser',
     });
-  });
-
-  it('When weekStart i set should call on activation', () => {
-    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', weekStart: 'saturday' });
-    const deactivate = timeRange.activate();
-    expect(setWeekStart).toHaveBeenCalledWith('saturday');
-
-    deactivate();
-    expect(setWeekStart).toHaveBeenCalledWith('monday');
   });
 
   it('updateFromUrl with ISO time', () => {
@@ -68,10 +66,41 @@ describe('SceneTimeRange', () => {
     timeRange.urlSync?.updateFromUrl({
       from: '2021-01-01T10:00:00.000Z',
       to: '2021-02-03T01:20:00.000Z',
+      timezone: 'browser',
     });
 
     expect(timeRange.state.from).toEqual('2021-01-01T10:00:00.000Z');
     expect(timeRange.state.value.from.valueOf()).toEqual(1609495200000);
+  });
+
+  it('updateFromUrl with time and time window using ms', () => {
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+    timeRange.urlSync?.updateFromUrl({
+      from: '2021-01-01T10:00:00.000Z',
+      to: '2021-02-03T01:20:00.000Z',
+      time: '1500000000000', // 2017-07-14T02:40:00.000Z
+      'time.window': '10000', // 10s
+    });
+
+    // 2017-07-14T02:40:00.000Z - 5s
+    expect(timeRange.state.from).toEqual('2017-07-14T02:39:55.000Z');
+    // 2017-07-14T02:40:00.000Z + 5s
+    expect(timeRange.state.to).toEqual('2017-07-14T02:40:05.000Z');
+  });
+
+  it('updateFromUrl with time and time window using ISO', () => {
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+    timeRange.urlSync?.updateFromUrl({
+      from: '2021-01-01T10:00:00.000Z',
+      to: '2021-02-03T01:20:00.000Z',
+      time: '2017-07-14T02:40:00.000Z', // 2017-07-14T02:40:00.000Z
+      'time.window': '10000', // 10s
+    });
+
+    // 2017-07-14T02:40:00.000Z - 5s
+    expect(timeRange.state.from).toEqual('2017-07-14T02:39:55.000Z');
+    // 2017-07-14T02:40:00.000Z + 5s
+    expect(timeRange.state.to).toEqual('2017-07-14T02:40:05.000Z');
   });
 
   it('should not update state when time range is not changed', () => {
@@ -91,6 +120,19 @@ describe('SceneTimeRange', () => {
       raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
     });
     expect(stateSpy).toBeCalledTimes(1);
+  });
+
+  it('should not allow invalid date values', () => {
+    const invalidDate = 'now)';
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: invalidDate });
+    expect(timeRange.state.value.raw.to).toBe('now');
+  });
+
+  it('should not allow invalid date values when updating from URL', () => {
+    let invalidDate = 'now)';
+    const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+    timeRange.urlSync?.updateFromUrl({ to: invalidDate });
+    expect(timeRange.state.value.raw.to).toBe('now');
   });
 
   describe('time zones', () => {
@@ -135,6 +177,14 @@ describe('SceneTimeRange', () => {
         scene.activate();
         expect(innerTimeRange.getTimeZone()).toEqual('Europe/Berlin');
       });
+
+      it('should update time zone when updating from URL', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'utc' });
+        timeRange.urlSync?.updateFromUrl({ from: 'now-1h', to: 'now', timezone: 'America/New_York' });
+        expect(timeRange.getTimeZone()).toBe('America/New_York');
+        timeRange.urlSync?.updateFromUrl({ from: 'now-1h', to: 'now', timezone: 'utc' });
+        expect(timeRange.getTimeZone()).toBe('utc');
+      });
     });
   });
 
@@ -149,7 +199,7 @@ describe('SceneTimeRange', () => {
       const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', UNSAFE_nowDelay: '1m' });
       expect(timeRange.state.value.raw.from).toBe('now-1h');
       expect(timeRange.state.value.raw.to).toBe('now');
-      expect(timeRange.state.value.to).toEqual(dateMath.parse('now-1m', true));
+      expect(timeRange.state.value.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
     });
 
     it('should NOT apply the delay value to absolute time range', () => {
@@ -174,23 +224,16 @@ describe('SceneTimeRange', () => {
         raw: { from: toUtc('2020-01-01'), to: 'now' },
       });
 
-      expect(stateSpy).toBeCalledTimes(1);
-      expect(stateSpy).toBeCalledWith(
-        expect.objectContaining({
-          value: expect.objectContaining({
-            to: dateMath.parse('now-1m', true),
-            raw: expect.objectContaining({
-              to: 'now',
-            }),
-          }),
-        })
-      );
+      expect(stateSpy).toHaveBeenCalledTimes(1);
+
+      expect(stateSpy.mock.calls[0][0].value?.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
+      expect(stateSpy.mock.calls[0][0].value?.raw.to).toEqual('now');
     });
 
     it('should apply the delay to the value when time range refreshed', async () => {
       const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', UNSAFE_nowDelay: '1m' });
       timeRange.onRefresh();
-      expect(timeRange.state.value.to).toEqual(dateMath.parse('now-1m', true));
+      expect(timeRange.state.value.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
       expect(timeRange.state.value.raw.to).toBe('now');
     });
 
@@ -203,7 +246,7 @@ describe('SceneTimeRange', () => {
       });
 
       expect(timeRange.state.value.raw.to).toBe('now');
-      expect(timeRange.state.value.to).toEqual(dateMath.parse('now-1m', true));
+      expect(timeRange.state.value.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
     });
 
     it('should apply delay when updating time zone from the closest range with time zone specified', () => {
@@ -221,7 +264,7 @@ describe('SceneTimeRange', () => {
       scene.activate();
 
       expect(innerTimeRange.state.value.raw.to).toBe('now');
-      expect(innerTimeRange.state.value.to).toEqual(dateMath.parse('now-1m', true));
+      expect(innerTimeRange.state.value.to.isSame(dateMath.toDateTime('now-1m', { roundUp: true }))).toBeTruthy();
     });
   });
 

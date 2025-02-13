@@ -1,47 +1,26 @@
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneObject, SceneObjectState, SceneStatelessBehavior } from '../core/types';
-import { DataQueryRequest } from '@grafana/data';
-import { LoadingState } from '@grafana/schema';
-
-export interface SceneQueryStateControllerState extends SceneObjectState {
-  isRunning: boolean;
-}
-
-export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateControllerState> {
-  isQueryController: true;
-  cancelAll(): void;
-
-  queryStarted(entry: SceneQueryControllerEntry): void;
-  queryCompleted(entry: SceneQueryControllerEntry): void;
-}
+import { SceneObject, SceneStatelessBehavior } from '../core/types';
+import { writeSceneLog } from '../utils/writeSceneLog';
+import { SceneRenderProfiler } from './SceneRenderProfiler';
+import { SceneQueryControllerEntry, SceneQueryControllerLike, SceneQueryStateControllerState } from './types';
 
 export function isQueryController(s: SceneObject | SceneStatelessBehavior): s is SceneQueryControllerLike {
   return 'isQueryController' in s;
 }
-
-export interface QueryResultWithState {
-  state: LoadingState;
-}
-
-export interface SceneQueryControllerEntry {
-  request?: DataQueryRequest;
-  type: SceneQueryControllerEntryType;
-  origin: SceneObject;
-  cancel?: () => void;
-}
-
-export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts';
 
 export class SceneQueryController
   extends SceneObjectBase<SceneQueryStateControllerState>
   implements SceneQueryControllerLike
 {
   public isQueryController: true = true;
+  private profiler = new SceneRenderProfiler(this);
 
   #running = new Set<SceneQueryControllerEntry>();
 
-  public constructor() {
-    super({ isRunning: false });
+  #tryCompleteProfileFrameId: number | null = null;
+
+  public constructor(state: Partial<SceneQueryStateControllerState> = {}) {
+    super({ ...state, isRunning: false });
 
     // Clear running state on deactivate
     this.addActivationHandler(() => {
@@ -49,10 +28,19 @@ export class SceneQueryController
     });
   }
 
+  public runningQueriesCount = () => {
+    return this.#running.size;
+  };
+  public startProfile(source: SceneObject) {
+    if (!this.state.enableProfiling) {
+      return;
+    }
+    this.profiler.startProfile(source.constructor.name);
+  }
+
   public queryStarted(entry: SceneQueryControllerEntry) {
     this.#running.add(entry);
-
-    this.changeRunningQueryCount(1);
+    this.changeRunningQueryCount(1, entry);
 
     if (!this.state.isRunning) {
       this.setState({ isRunning: true });
@@ -73,11 +61,34 @@ export class SceneQueryController
     }
   }
 
-  private changeRunningQueryCount(dir: 1 | -1) {
+  private changeRunningQueryCount(dir: 1 | -1, entry?: SceneQueryControllerEntry) {
     /**
      * Used by grafana-image-renderer to know when all queries are completed.
      */
     (window as any).__grafanaRunningQueryCount = ((window as any).__grafanaRunningQueryCount ?? 0) + dir;
+
+    if (dir === 1 && this.state.enableProfiling) {
+      if (entry) {
+        // Collect profile crumbs, variables, annotations, queries and plugins
+        this.profiler.addCrumb(`${entry.origin.constructor.name}/${entry.type}`);
+      }
+      if (this.profiler.isTailRecording()) {
+        writeSceneLog(this.constructor.name, 'New query started, cancelling tail recording');
+        this.profiler.cancelTailRecording();
+      }
+    }
+
+    if (this.state.enableProfiling) {
+      // Delegate to next frame to check if all queries are completed
+      // This is to account for scenarios when there's "yet another" query that's started
+      if (this.#tryCompleteProfileFrameId) {
+        cancelAnimationFrame(this.#tryCompleteProfileFrameId);
+      }
+
+      this.#tryCompleteProfileFrameId = requestAnimationFrame(() => {
+        this.profiler.tryCompletingProfile();
+      });
+    }
   }
 
   public cancelAll() {

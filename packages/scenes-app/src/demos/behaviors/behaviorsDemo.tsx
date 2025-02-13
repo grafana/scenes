@@ -21,7 +21,6 @@ import { ShowBasedOnConditionBehavior } from './ShowBasedOnConditionBehavior';
 export function getBehaviorsDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Behaviors can augment any scene object with new runtime behaviors and state logic',
     getScene: () => {
       const queryRunner = getQueryRunnerWithRandomWalkQuery({
         seriesCount: 2,

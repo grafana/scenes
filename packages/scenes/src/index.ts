@@ -5,7 +5,12 @@ import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
 
 import { registerVariableMacro } from './variables/macros';
-import { renderPrometheusLabelFilters } from './variables/utils';
+import {
+  escapeLabelValueInExactSelector,
+  escapeLabelValueInRegexSelector,
+  escapeURLDelimiters,
+  renderPrometheusLabelFilters,
+} from './variables/utils';
 import {
   isAdHocVariable,
   isQueryVariable,
@@ -29,6 +34,7 @@ export { SceneTimeRange } from './core/SceneTimeRange';
 export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
+export { DataProviderProxy } from './querying/DataProviderProxy';
 export {
   type ExtraQueryDescriptor,
   type ExtraQueryProvider,
@@ -37,14 +43,15 @@ export {
 export { SceneDataLayerSet, SceneDataLayerSetBase } from './querying/SceneDataLayerSet';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
-export { SceneDataTransformer } from './querying/SceneDataTransformer';
+export { SceneDataTransformer, type SceneDataTransformerState } from './querying/SceneDataTransformer';
 export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
 export type {
   SceneQueryControllerLike,
   SceneQueryControllerEntryType,
   SceneQueryControllerEntry,
-} from './behaviors/SceneQueryController';
+  SceneInteractionProfileEvent,
+} from './behaviors/types';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
@@ -66,6 +73,7 @@ export {
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
+export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
@@ -77,6 +85,7 @@ export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
 export { VizPanelMenu } from './components/VizPanel/VizPanelMenu';
+export { VizPanelExploreButton } from './components/VizPanel/VizPanelExploreButton';
 export { NestedScene } from './components/NestedScene';
 export { SceneCanvasText } from './components/SceneCanvasText';
 export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbarButton';
@@ -120,6 +129,7 @@ export { FieldConfigBuilder } from './core/PanelBuilders/FieldConfigBuilder';
 export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
+export { ControlsLabel } from './utils/ControlsLabel';
 export { renderSelectForVariable } from './variables/components/VariableValueSelect';
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
@@ -134,6 +144,9 @@ export const sceneUtils = {
   syncStateFromSearchParams,
   getUrlState,
   renderPrometheusLabelFilters,
+  escapeLabelValueInRegexSelector,
+  escapeLabelValueInExactSelector,
+  escapeURLDelimiters,
 
   // Variable guards
   isAdHocVariable,
@@ -147,3 +160,4 @@ export const sceneUtils = {
 };
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
+export { getExploreURL } from './utils/explore';

@@ -22,6 +22,12 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
 
+      - name: Lint library
+        run: yarn lint
+
+      - name: Prettier check
+        run: yarn prettier:check
+
       - name: Test library
         run: yarn test
 
@@ -37,9 +43,16 @@ jobs:
     needs: test
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_BOT_ACCESS_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
 
       - name: Prepare repository
         run: git fetch --unshallow --tags
@@ -58,6 +71,6 @@ jobs:
       - name: Run auto shipit
         run: yarn auto shipit
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_BOT_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

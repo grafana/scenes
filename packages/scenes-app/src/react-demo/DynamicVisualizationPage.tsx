@@ -7,19 +7,33 @@ import { SelectableValue } from '@grafana/data';
 import { graphWithGrapdientColor, plainGraph, timeSeriesBars } from './visualizations';
 import { VizConfig } from '@grafana/scenes';
 import { DemoVizLayout } from './utils';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function DynamicVisualiationPage() {
   const [selectedViz, setSelectedViz] = useState<VizConfig>(plainGraph);
   const selectedValue = visualizationOptions.find((x) => x.value === selectedViz)!;
 
-  const dataProvider = useQueryRunner({ queries: randomWalkQuery, maxDataPoints: 50, datasource: DATASOURCE_REF });
+  const dataProvider = useQueryRunner({
+    queries: randomWalkQuery,
+    maxDataPoints: 50,
+    datasource: DATASOURCE_REF,
+    cacheKey: randomWalkQuery,
+  });
 
   const vizSelector = (
     <RadioButtonGroup value={selectedViz} options={visualizationOptions} onChange={setSelectedViz} size="sm" />
   );
 
   return (
-    <PageWrapper title="Dynamic visualisation" subTitle="Rebuild queries based on some user input / state">
+    <PageWrapper
+      title="Dynamic visualisation"
+      subTitle={
+        <DemoSubTitle
+          text={'Rebuild queries based on some user input / state'}
+          getSourceCodeModule={() => import('!!raw-loader!./DynamicVisualizationPage')}
+        />
+      }
+    >
       <Stack direction="column">
         <DemoVizLayout>
           <VizPanel

@@ -1,3 +1,4 @@
+import { AdHocFiltersVariable } from '../adhoc/AdHocFiltersVariable';
 import { VariableValue } from '../types';
 import { TestVariable } from '../variants/TestVariable';
 
@@ -76,5 +77,26 @@ describe('formatRegistry', () => {
     expect(formatValue(VariableFormatID.UriEncode, '/any-path/any-second-path?query=foo()bar BAZ')).toBe(
       '/any-path/any-second-path?query=foo%28%29bar%20BAZ'
     );
+  });
+
+  describe('queryparam', () => {
+    it('should url encode value', () => {
+      const result = formatValue(VariableFormatID.QueryParam, 'helloAZ%=');
+      expect(result).toBe('var-server=helloAZ%25%3D');
+    });
+
+    it('should use variable url sync handler', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=~', value: 'val2' },
+        ],
+      });
+
+      const result = formatRegistry.get(VariableFormatID.QueryParam).formatter('asd', [], variable);
+      expect(result).toBe('var-Filters=key1%7C%3D%7Cval1&var-Filters=key2%7C%3D~%7Cval2');
+    });
   });
 });

@@ -1,6 +1,6 @@
 import { Location } from 'history';
 
-import { locationService } from '@grafana/runtime';
+import { LocationService, locationService as locationServiceRuntime } from '@grafana/runtime';
 
 import { SceneObjectStateChangedEvent } from '../core/events';
 import { SceneObject, SceneObjectUrlValues, SceneUrlSyncOptions } from '../core/types';
@@ -31,11 +31,14 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   private _sceneRoot?: SceneObject;
   private _subs: Subscription | undefined;
   private _lastLocation: Location | undefined;
-  private _paramsCache = new UrlParamsCache();
+  private _locationService: LocationService;
+  private _paramsCache: UrlParamsCache;
   private _options: SceneUrlSyncOptions;
 
-  public constructor(_options: SceneUrlSyncOptions = {}) {
+  public constructor(_options: SceneUrlSyncOptions = {}, locationService: LocationService = locationServiceRuntime) {
     this._options = _options;
+    this._locationService = locationService;
+    this._paramsCache = new UrlParamsCache(locationService);
   }
 
   /**
@@ -65,7 +68,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     );
 
     this._urlKeyMapper.clear();
-    this._lastLocation = locationService.getLocation();
+    this._lastLocation = this._locationService.getLocation();
 
     // Sync current url with state
     this.handleNewObject(this._sceneRoot);
@@ -75,7 +78,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       const urlState = getUrlState(root);
 
       if (isUrlStateDifferent(urlState, this._paramsCache.getParams())) {
-        locationService.partial(urlState, true);
+        this._locationService.partial(urlState, true);
       }
     }
   }
@@ -132,7 +135,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
     const newUrlState = changedObject.urlSync.getUrlState();
 
-    const searchParams = locationService.getSearch();
+    const searchParams = this._locationService.getSearch();
     const mappedUpdated: SceneObjectUrlValues = {};
 
     for (const [key, newUrlValue] of Object.entries(newUrlState)) {
@@ -149,10 +152,10 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       const shouldReplace = shouldCreateHistoryEntry !== true;
 
       writeSceneLog('UrlSyncManager', 'onStateChange updating URL');
-      locationService.partial(mappedUpdated, shouldReplace);
+      this._locationService.partial(mappedUpdated, shouldReplace);
 
       /// Mark the location already handled
-      this._lastLocation = locationService.getLocation();
+      this._lastLocation = this._locationService.getLocation();
     }
   }
 
@@ -165,8 +168,10 @@ class UrlParamsCache {
   #cache: URLSearchParams | undefined;
   #location: Location | undefined;
 
+  public constructor(private locationService: LocationService) {}
+
   public getParams(): URLSearchParams {
-    const location = locationService.getLocation();
+    const location = this.locationService.getLocation();
 
     if (this.#location === location) {
       return this.#cache!;
@@ -192,13 +197,16 @@ function isUrlStateDifferent(sceneUrlState: SceneObjectUrlValues, currentParams:
 /**
  * Creates a new memoized instance of the UrlSyncManager based on options
  */
-export function useUrlSyncManager(options: SceneUrlSyncOptions): UrlSyncManagerLike {
+export function useUrlSyncManager(options: SceneUrlSyncOptions, locationService: LocationService): UrlSyncManagerLike {
   return useMemo(
     () =>
-      new UrlSyncManager({
-        updateUrlOnInit: options.updateUrlOnInit,
-        createBrowserHistorySteps: options.createBrowserHistorySteps,
-      }),
-    [options.updateUrlOnInit, options.createBrowserHistorySteps]
+      new UrlSyncManager(
+        {
+          updateUrlOnInit: options.updateUrlOnInit,
+          createBrowserHistorySteps: options.createBrowserHistorySteps,
+        },
+        locationService
+      ),
+    [options.updateUrlOnInit, options.createBrowserHistorySteps, locationService]
   );
 }
