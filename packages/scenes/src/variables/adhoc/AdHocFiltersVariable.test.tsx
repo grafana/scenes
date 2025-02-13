@@ -1532,7 +1532,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
-  describe('operators', () => {
+  describe('the operators', () => {
     it('shows the regex operators when allowCustomValue is set true', async () => {
       setup({
         allowCustomValue: true,
@@ -1545,14 +1545,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
 
-      expect(options).toEqual([
-        '=Equals',
-        '!=Not equal',
-        '=~Matches regex',
-        '!~Does not match regex',
-        '<Less than',
-        '>Greater than',
-      ]);
+      expect(options).toEqual(['=Equals', '!=Not equal', '=~Matches regex', '!~Does not match regex']);
     });
 
     it('does not show the regex operators when allowCustomValue is set false', async () => {
@@ -1567,7 +1560,35 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
 
+      expect(options).toEqual(['=Equals', '!=Not equal']);
+    });
+
+    it('shows the less and greater than operators if the filter values are numbers', async () => {
+      setup({
+        areTheFilterValuesNumbers: true,
+      });
+
+      const middleKeySelect = screen.getAllByRole('combobox')[1];
+      await userEvent.click(middleKeySelect);
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
       expect(options).toEqual(['=Equals', '!=Not equal', '<Less than', '>Greater than']);
+    });
+
+    it('does not show the less and greater than operators if the filters values are not numbers', async () => {
+      setup({
+        areTheFilterValuesNumbers: false,
+      });
+
+      const middleKeySelect = screen.getAllByRole('combobox')[1];
+      await userEvent.click(middleKeySelect);
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
+      expect(options).toEqual(['=Equals', '!=Not equal']);
     });
   });
 });
