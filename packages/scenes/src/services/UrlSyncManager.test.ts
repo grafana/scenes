@@ -270,13 +270,8 @@ describe('UrlSyncManager', () => {
       expect(locationService.getSearchObject()).toEqual({
         from: 'now-6h',
         ['from-2']: 'now-10m',
-<<<<<<< HEAD
-        to: 'now',
-||||||| d1279ebe
-=======
         timezone: 'browser',
         to: 'now',
->>>>>>> 55cb8a43baa9158489f5756d1d091c17984cd203
         ['to-2']: 'now',
         ['timezone-2']: 'browser',
       });
