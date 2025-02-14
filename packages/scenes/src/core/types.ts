@@ -198,6 +198,7 @@ export interface SceneObjectUrlSyncHandler {
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
   shouldCreateHistoryStep?(values: SceneObjectUrlValues): boolean;
+  performBrowserHistoryAction?(callback: () => void): void;
 }
 
 export interface DataRequestEnricher {
