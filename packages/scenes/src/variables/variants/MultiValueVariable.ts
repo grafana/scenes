@@ -51,6 +51,13 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
+   * Used to determine if values should be fetched while typing in the variable dropdown
+   */
+  public get isAsync() {
+    return false;
+  }
+
+  /**
    * Set to true to skip next value validation to maintain the current value even it it's not among the options (ie valid values)
    */
   public skipNextValidation?: boolean;
@@ -356,7 +363,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   /**
    * Can be used by subclasses to do custom handling of option search based on search input
    */
-  public onSearchChange?(searchFilter: string): void;
+  public onSearchChange?(searchFilter: string): Promise<VariableValueOption[]>;
 }
 
 /**
