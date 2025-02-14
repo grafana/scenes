@@ -166,6 +166,11 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       tabSelectsValue={false}
       virtualized
       allowCustomValue={allowCustomValue}
+      // TODO: remove this when we update grafana-ui
+      // It'll complain about the type, but it
+      // will still pass the prop and fix the issue
+      // @ts-expect-error
+      menuShouldBlockScroll={false}
       //@ts-ignore
       toggleAllOptions={{
         enabled: true,
