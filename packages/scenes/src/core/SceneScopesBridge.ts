@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { BehaviorSubject, filter, map, Observable, pairwise, Unsubscribable } from 'rxjs';
 
 import { Scope } from '@grafana/data';
-// @ts-expect-error: TODO: Fix this once new runtime package is released
 import { ScopesContextValue, useScopes } from '@grafana/runtime';
 
 import { SceneObjectBase } from './SceneObjectBase';
