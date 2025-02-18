@@ -416,6 +416,30 @@ describe('SceneApp', () => {
         expect(await screen.findByTestId('custom-fallback-content')).toBeInTheDocument();
       });
     });
+
+    describe('Custom fallback page that loops on itself', () => {
+      const page: SceneAppPage = new SceneAppPage({
+        title: 'Test',
+        url: '/test',
+        routePath: 'test/*',
+        getScene: () => {
+          return new EmbeddedScene({
+            body: new SceneReactObject({
+              component: () => <div data-testid="custom-fallback-content">Loading...</div>,
+            }),
+          });
+        },
+        getFallbackPage: () => page,
+      });
+      const app = new SceneApp({
+        pages: [page],
+      });
+
+      it('should render custom loopback fallback page if url does not match', async () => {
+        renderAppInsideRouterWithStartingUrl(app, '/test/does-not-exist');
+        expect(await screen.findByTestId('custom-fallback-content')).toBeInTheDocument();
+      });
+    });
   });
 
   it('useSceneApp should cache instance', () => {

@@ -128,10 +128,7 @@ function getFallbackRoute(page: SceneAppPage) {
     <Route
       key={'fallback route'}
       path="*"
-      Component={() => {
-        const fallbackPage = page.state.getFallbackPage?.() ?? getDefaultFallbackPage();
-        return <SceneAppPageView page={fallbackPage} />;
-      }}
+      element={<SceneAppPageView page={page.state.getFallbackPage?.() ?? getDefaultFallbackPage()} />}
     ></Route>
   );
 }
