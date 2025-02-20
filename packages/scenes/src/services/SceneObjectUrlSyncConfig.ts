@@ -28,13 +28,13 @@ export class SceneObjectUrlSyncConfig implements SceneObjectUrlSyncHandler {
     this._sceneObject.updateFromUrl(values);
   }
 
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._nextChangeShouldAddHistoryStep;
+  }
+
   public performBrowserHistoryAction(callback: () => void) {
     this._nextChangeShouldAddHistoryStep = true;
     callback();
     this._nextChangeShouldAddHistoryStep = false;
-  }
-
-  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
-    return this._nextChangeShouldAddHistoryStep;
   }
 }

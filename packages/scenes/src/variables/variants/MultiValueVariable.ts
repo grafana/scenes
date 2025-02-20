@@ -260,7 +260,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   /**
    * Change the value and publish SceneVariableValueChangedEvent event.
    */
-  public changeValueTo(value: VariableValue, text?: VariableValue) {
+  public changeValueTo(value: VariableValue, text?: VariableValue, isUserAction = false) {
     // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
@@ -301,7 +301,18 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       return;
     }
 
-    this.setStateHelper({ value, text, loading: false });
+    const stateChangeAction = () => this.setStateHelper({ value, text, loading: false });
+
+    /**
+     * Because variable state changes can cause a whole chain of downstream state changes in other variables (that also cause URL update)
+     * Only some variable changes should add new history items to make sure the browser history contains valid URL states to go back to.
+     */
+    if (isUserAction) {
+      this._urlSync.performBrowserHistoryAction?.(stateChangeAction);
+    } else {
+      stateChangeAction();
+    }
+
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
   }
 
@@ -386,9 +397,11 @@ function findOptionMatchingCurrent(
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
   implements SceneObjectUrlSyncHandler
 {
-  public constructor(private _sceneObject: MultiValueVariable<TState>) {}
+  protected _nextChangeShouldAddHistoryStep = false;
 
-  private getKey(): string {
+  public constructor(protected _sceneObject: MultiValueVariable<TState>) {}
+
+  protected getKey(): string {
     return `var-${this._sceneObject.state.name}`;
   }
 
@@ -445,6 +458,16 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
 
       this._sceneObject.changeValueTo(urlValue);
     }
+  }
+
+  public performBrowserHistoryAction(callback: () => void) {
+    this._nextChangeShouldAddHistoryStep = true;
+    callback();
+    this._nextChangeShouldAddHistoryStep = false;
+  }
+
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._nextChangeShouldAddHistoryStep;
   }
 }
 
