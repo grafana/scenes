@@ -48,7 +48,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   extends SceneObjectBase<TState>
   implements SceneVariable<TState>
 {
-  protected _urlSync: MultiValueUrlSyncHandler<TState> = new MultiValueUrlSyncHandler(this);
+  protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
    * Set to true to skip next value validation to maintain the current value even it it's not among the options (ie valid values)
@@ -308,7 +308,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
      * Only some variable changes should add new history items to make sure the browser history contains valid URL states to go back to.
      */
     if (isUserAction) {
-      this._urlSync.performBrowserHistoryAction(stateChangeAction);
+      this._urlSync.performBrowserHistoryAction?.(stateChangeAction);
     } else {
       stateChangeAction();
     }
@@ -397,11 +397,11 @@ function findOptionMatchingCurrent(
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
   implements SceneObjectUrlSyncHandler
 {
-  private _nextChangeShouldAddHistoryStep = false;
+  protected _nextChangeShouldAddHistoryStep = false;
 
-  public constructor(private _sceneObject: MultiValueVariable<TState>) {}
+  public constructor(protected _sceneObject: MultiValueVariable<TState>) {}
 
-  private getKey(): string {
+  protected getKey(): string {
     return `var-${this._sceneObject.state.name}`;
   }
 
