@@ -1,10 +1,11 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
-import { AdHocVariableFilter } from '@grafana/data';
+import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneObject, SceneObjectState } from '../core/types';
-import { DataQueryExtended, SceneQueryRunner } from '../querying/SceneQueryRunner';
+import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
+import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
+import uFuzzy from '@leeoniya/ufuzzy';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -44,14 +45,26 @@ export function renderPrometheusLabelFilters(filters: AdHocVariableFilter[]) {
 
 function renderFilter(filter: AdHocVariableFilter) {
   let value = '';
+  let operator = filter.operator;
 
-  if (filter.operator === '=~' || filter.operator === '!~¨') {
+  // map "one of" operator to regex
+  if (operator === '=|') {
+    operator = '=~';
+    // TODO remove when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
+  } else if (operator === '!=|') {
+    operator = '!~';
+    // TODO remove when we're on the latest version of @grafana/data
+    // @ts-expect-error
+    value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
+  } else if (operator === '=~' || operator === '!~') {
     value = escapeLabelValueInRegexSelector(filter.value);
   } else {
     value = escapeLabelValueInExactSelector(filter.value);
   }
 
-  return `${filter.key}${filter.operator}"${value}"`;
+  return `${filter.key}${operator}"${value}"`;
 }
 
 // based on the openmetrics-documentation, the 3 symbols we have to handle are:
@@ -93,17 +106,30 @@ export function getQueriesForVariables(
     (o) => o instanceof SceneQueryRunner
   ) as SceneQueryRunner[];
 
+  const interpolatedDsUuid = sceneGraph.interpolate(sourceObject, sourceObject.state.datasource?.uid);
+
   const applicableRunners = filterOutInactiveRunnerDuplicates(runners).filter((r) => {
-    return r.state.datasource?.uid === sourceObject.state.datasource?.uid;
+    const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, r.state.datasource?.uid);
+
+    return interpolatedQueryDsUuid === interpolatedDsUuid;
   });
 
   if (applicableRunners.length === 0) {
     return [];
   }
 
-  const result: DataQueryExtended[] = [];
+  const result: SceneDataQuery[] = [];
   applicableRunners.forEach((r) => {
-    result.push(...r.state.queries);
+    result.push(
+      ...r.state.queries.filter((q) => {
+        if (!q.datasource || !q.datasource.uid) {
+          return true;
+        }
+
+        const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, q.datasource.uid);
+        return interpolatedQueryDsUuid === interpolatedDsUuid;
+      })
+    );
   });
 
   return result;
@@ -154,6 +180,10 @@ export function escapeUrlCommaDelimiters(value: string | undefined): string {
   return /,/g[Symbol.replace](value, '__gfc__');
 }
 
+export function escapeURLDelimiters(value: string | undefined): string {
+  return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(value));
+}
+
 export function unescapeUrlDelimiters(value: string | undefined): string {
   if (value === null || value === undefined) {
     return '';
@@ -172,4 +202,70 @@ export function toUrlCommaDelimitedString(key: string, label?: string): string {
   }
 
   return [key, label].map(escapeUrlCommaDelimiters).join(',');
+}
+
+export function dataFromResponse(response: GetTagResponse | MetricFindValue[]) {
+  return Array.isArray(response) ? response : response.data;
+}
+
+export function responseHasError(
+  response: GetTagResponse | MetricFindValue[]
+): response is GetTagResponse & { error: DataQueryError } {
+  return !Array.isArray(response) && Boolean(response.error);
+}
+
+// Collect a flat list of SelectableValues with a `group` property into a hierarchical list with groups
+export function handleOptionGroups(values: SelectableValue[]): Array<SelectableValue<string>> {
+  const result: Array<SelectableValue<string>> = [];
+  const groupedResults = new Map<string, Array<SelectableValue<string>>>();
+
+  for (const value of values) {
+    const groupLabel = value.group;
+    if (groupLabel) {
+      let group = groupedResults.get(groupLabel);
+
+      if (!group) {
+        group = [];
+        groupedResults.set(groupLabel, group);
+        result.push({ label: groupLabel, options: group });
+      }
+
+      group.push(value);
+    } else {
+      result.push(value);
+    }
+  }
+
+  return result;
+}
+
+export function getFuzzySearcher(haystack: string[], limit = 10_000) {
+  const ufuzzy = new uFuzzy();
+
+  const FIRST = Array.from({ length: Math.min(limit, haystack.length) }, (_, i) => i);
+
+  // returns matched indices by quality
+  return (search: string): number[] => {
+    if (search === '') {
+      return FIRST;
+    }
+
+    const [idxs, info, order] = ufuzzy.search(haystack, search);
+
+    if (idxs) {
+      if (info && order) {
+        const outIdxs = Array(Math.min(order.length, limit));
+
+        for (let i = 0; i < outIdxs.length; i++) {
+          outIdxs[i] = info.idx[order[i]];
+        }
+
+        return outIdxs;
+      }
+
+      return idxs.slice(0, limit);
+    }
+
+    return [];
+  };
 }

@@ -1,6 +1,9 @@
 import { lookupVariable } from '../../variables/lookupVariable';
+import { getQueryController } from './getQueryController';
 import { getTimeRange } from './getTimeRange';
 import {
+  findByKey,
+  findByKeyAndType,
   findObject,
   findAllObjects,
   getData,
@@ -10,7 +13,7 @@ import {
   hasVariableDependencyInLoadingState,
   interpolate,
   getAncestor,
-  getQueryController,
+  findDescendents,
 } from './sceneGraph';
 
 export const sceneGraph = {
@@ -22,8 +25,11 @@ export const sceneGraph = {
   interpolate,
   lookupVariable,
   hasVariableDependencyInLoadingState,
+  findByKey,
+  findByKeyAndType,
   findObject,
   findAllObjects,
   getAncestor,
   getQueryController,
+  findDescendents,
 };

@@ -62,6 +62,15 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   }
 
   /**
+   * Set if VizPanelMenu "kebab" icon is shown on panel hover for desktop devices. Set true to always show menu icon.
+   * @param showMenuAlways
+   */
+  public setShowMenuAlways(showMenuAlways: VizPanelState['showMenuAlways']): this {
+    this._state.showMenuAlways = showMenuAlways;
+    return this;
+  }
+
+  /**
    * Set panel menu scene object.
    */
   public setMenu(menu: VizPanelState['menu']): this {
@@ -74,6 +83,15 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    */
   public setHeaderActions(headerActions: VizPanelState['headerActions']): this {
     this._state.headerActions = headerActions;
+    return this;
+  }
+
+  public setCollapsible(collapsible: VizPanelState['collapsible']): this {
+    this._state.collapsible = collapsible;
+    return this;
+  }
+  public setCollapsed(collapsed: VizPanelState['collapsed']): this {
+    this._state.collapsed = collapsed;
     return this;
   }
 
@@ -212,6 +230,22 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
    */
   public setBehaviors(behaviors: VizPanelState['$behaviors']): this {
     this._state.$behaviors = behaviors;
+    return this;
+  }
+
+  /**
+   * Sets the default series limit for the panel.
+   */
+  public setSeriesLimit(seriesLimit: VizPanelState['seriesLimit']): this {
+    this._state.seriesLimit = seriesLimit;
+    return this;
+  }
+
+  /**
+   * Makes it possible to shared config between different builders
+   */
+  public applyMixin(mixin: (builder: this) => void): this {
+    mixin(this);
     return this;
   }
 

@@ -1,16 +1,17 @@
-import { DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
+import { DataQueryRequest, DateTime, dateTime, FieldType, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
+import { config } from '@grafana/runtime';
 import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectState, SceneObjectUrlValues } from '../core/types';
+import { SceneComponentProps, SceneDataQuery, SceneObjectState, SceneObjectUrlValues } from '../core/types';
+import { DataQueryExtended } from '../querying/SceneQueryRunner';
+import { ExtraQueryDescriptor, ExtraQueryDataProcessor, ExtraQueryProvider } from '../querying/ExtraQueryProvider';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
+import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
 import { css } from '@emotion/css';
-
-export interface TimeRangeCompareProvider {
-  getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined;
-}
+import { of } from 'rxjs';
 
 interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
@@ -38,7 +39,7 @@ export const DEFAULT_COMPARE_OPTIONS = [
 
 export class SceneTimeRangeCompare
   extends SceneObjectBase<SceneTimeRangeCompareState>
-  implements TimeRangeCompareProvider
+  implements ExtraQueryProvider<SceneTimeRangeCompareState>
 {
   static Component = SceneTimeRangeCompareRenderer;
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
@@ -94,6 +95,39 @@ export class SceneTimeRangeCompare
     this.setState({ compareWith: undefined });
   };
 
+  // Get a time shifted request to compare with the primary request.
+  public getExtraQueries(request: DataQueryRequest): ExtraQueryDescriptor[] {
+    const extraQueries: ExtraQueryDescriptor[] = [];
+    const compareRange = this.getCompareTimeRange(request.range);
+    if (!compareRange) {
+      return extraQueries;
+    }
+
+    const targets = request.targets.filter((query: DataQueryExtended) => query.timeRangeCompare !== false);
+    if (targets.length) {
+      extraQueries.push({
+        req: {
+          ...request,
+          targets,
+          range: compareRange,
+        },
+        processor: timeShiftAlignmentProcessor,
+      });
+    }
+    return extraQueries;
+  }
+
+  // The query runner should rerun the comparison query if the compareWith value has changed and there are queries that haven't opted out of TWC
+  public shouldRerun(
+    prev: SceneTimeRangeCompareState,
+    next: SceneTimeRangeCompareState,
+    queries: SceneDataQuery[]
+  ): boolean {
+    return (
+      prev.compareWith !== next.compareWith && queries.find((query) => query.timeRangeCompare !== false) !== undefined
+    );
+  }
+
   public getCompareTimeRange(timeRange: TimeRange): TimeRange | undefined {
     let compareFrom: DateTime;
     let compareTo: DateTime;
@@ -148,6 +182,43 @@ export class SceneTimeRangeCompare
     }
   }
 }
+
+// Processor function for use with time shifted comparison series.
+// This aligns the secondary series with the primary and adds custom
+// metadata and config to the secondary series' fields so that it is
+// rendered appropriately.
+const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary) => {
+  const diff = secondary.timeRange.from.diff(primary.timeRange.from);
+  secondary.series.forEach((series) => {
+    series.refId = getCompareSeriesRefId(series.refId || '');
+    series.meta = {
+      ...series.meta,
+      // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
+      timeCompare: {
+        diffMs: diff,
+        isTimeShiftQuery: true,
+      },
+    };
+    series.fields.forEach((field) => {
+      // Align compare series time stamps with reference series
+      if (field.type === FieldType.time) {
+        field.values = field.values.map((v) => {
+          return diff < 0 ? v - diff : v + diff;
+        });
+      }
+
+      field.config = {
+        ...field.config,
+        color: {
+          mode: 'fixed',
+          fixedColor: config.theme.palette.gray60,
+        },
+      };
+      return field;
+    });
+  });
+  return of(secondary);
+};
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
   const styles = useStyles2(getStyles);

@@ -1,47 +1,86 @@
-import { Location, UnregisterCallback } from 'history';
+import { Location } from 'history';
 
-import { locationService } from '@grafana/runtime';
+import { LocationService, locationService as locationServiceRuntime } from '@grafana/runtime';
 
 import { SceneObjectStateChangedEvent } from '../core/events';
-import { SceneObject, SceneObjectUrlValues } from '../core/types';
+import { SceneObject, SceneObjectUrlValues, SceneUrlSyncOptions } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
-import { Unsubscribable } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
 import { getUrlState, isUrlValueEqual, syncStateFromUrl } from './utils';
+import { BusEventWithPayload } from '@grafana/data';
+import { useMemo } from 'react';
 
 export interface UrlSyncManagerLike {
   initSync(root: SceneObject): void;
   cleanUp(root: SceneObject): void;
-  getUrlState(root: SceneObject): SceneObjectUrlValues;
+  handleNewLocation(location: Location): void;
+  handleNewObject(sceneObj: SceneObject): void;
+}
+
+/**
+ * Notify the url sync manager of a new object that has been added to the scene
+ * that needs to init state from URL.
+ */
+export class NewSceneObjectAddedEvent extends BusEventWithPayload<SceneObject> {
+  public static readonly type = 'new-scene-object-added';
 }
 
 export class UrlSyncManager implements UrlSyncManagerLike {
   private _urlKeyMapper = new UniqueUrlKeyMapper();
-  private _sceneRoot!: SceneObject;
-  private _stateSub: Unsubscribable | null = null;
-  private _locationSub?: UnregisterCallback | null = null;
-  private _lastPath?: string;
-  private _ignoreNextLocationUpdate = false;
+  private _sceneRoot?: SceneObject;
+  private _subs: Subscription | undefined;
+  private _lastLocation: Location | undefined;
+  private _locationService: LocationService;
+  private _paramsCache: UrlParamsCache;
+  private _options: SceneUrlSyncOptions;
+
+  public constructor(_options: SceneUrlSyncOptions = {}, locationService: LocationService = locationServiceRuntime) {
+    this._options = _options;
+    this._locationService = locationService;
+    this._paramsCache = new UrlParamsCache(locationService);
+  }
 
   /**
    * Updates the current scene state to match URL state.
    */
   public initSync(root: SceneObject) {
-    if (!this._locationSub) {
-      writeSceneLog('UrlSyncManager', 'New location listen');
-      this._locationSub = locationService.getHistory().listen(this._onLocationUpdate);
+    if (this._subs) {
+      writeSceneLog('UrlSyncManager', 'Unregister previous scene state subscription', this._sceneRoot?.state.key);
+      this._subs.unsubscribe();
     }
 
-    if (this._stateSub) {
-      writeSceneLog('UrlSyncManager', 'Unregister previous scene state subscription', this._sceneRoot.state.key);
-      this._stateSub.unsubscribe();
-    }
+    writeSceneLog('UrlSyncManager', 'init', root.state.key);
 
     this._sceneRoot = root;
-    this._lastPath = locationService.getLocation().pathname;
-    this._stateSub = root.subscribeToEvent(SceneObjectStateChangedEvent, this._onStateChanged);
+    this._subs = new Subscription();
 
-    this.syncFrom(this._sceneRoot);
+    this._subs.add(
+      root.subscribeToEvent(SceneObjectStateChangedEvent, (evt) => {
+        this.handleSceneObjectStateChanged(evt.payload.changedObject);
+      })
+    );
+
+    this._subs.add(
+      root.subscribeToEvent(NewSceneObjectAddedEvent, (evt) => {
+        this.handleNewObject(evt.payload);
+      })
+    );
+
+    this._urlKeyMapper.clear();
+    this._lastLocation = this._locationService.getLocation();
+
+    // Sync current url with state
+    this.handleNewObject(this._sceneRoot);
+
+    if (this._options.updateUrlOnInit) {
+      // Get current url state and update url to match
+      const urlState = getUrlState(root);
+
+      if (isUrlStateDifferent(urlState, this._paramsCache.getParams())) {
+        this._locationService.partial(urlState, true);
+      }
+    }
   }
 
   public cleanUp(root: SceneObject) {
@@ -52,15 +91,10 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
     writeSceneLog('UrlSyncManager', 'Clean up');
 
-    if (this._locationSub) {
-      this._locationSub();
-      writeSceneLog('UrlSyncManager', 'Unregister history listen');
-      this._locationSub = null;
-    }
+    if (this._subs) {
+      this._subs.unsubscribe();
+      this._subs = undefined;
 
-    if (this._stateSub) {
-      this._stateSub.unsubscribe();
-      this._stateSub = null;
       writeSceneLog(
         'UrlSyncManager',
         'Root deactived, unsub to state',
@@ -68,71 +102,111 @@ export class UrlSyncManager implements UrlSyncManagerLike {
         this._sceneRoot.state.key === root.state.key
       );
     }
+
+    this._sceneRoot = undefined;
+    this._lastLocation = undefined;
   }
 
-  public syncFrom(sceneObj: SceneObject) {
-    const urlParams = locationService.getSearch();
-    // The index is always from the root
-    this._urlKeyMapper.rebuildIndex(this._sceneRoot);
-    syncStateFromUrl(sceneObj, urlParams, this._urlKeyMapper);
-  }
-
-  private _onLocationUpdate = (location: Location) => {
-    if (this._ignoreNextLocationUpdate) {
-      this._ignoreNextLocationUpdate = false;
+  public handleNewLocation(location: Location) {
+    if (!this._sceneRoot || this._lastLocation === location) {
       return;
     }
 
-    if (this._lastPath !== location.pathname) {
-      return;
-    }
+    writeSceneLog('UrlSyncManager', 'handleNewLocation');
 
-    const urlParams = new URLSearchParams(location.search);
-    // Rebuild key mapper index before starting sync
-    this._urlKeyMapper.rebuildIndex(this._sceneRoot);
+    this._lastLocation = location;
+
     // Sync scene state tree from url
-    syncStateFromUrl(this._sceneRoot, urlParams, this._urlKeyMapper);
-    this._lastPath = location.pathname;
-  };
+    syncStateFromUrl(this._sceneRoot!, this._paramsCache.getParams(), this._urlKeyMapper);
+  }
 
-  private _onStateChanged = ({ payload }: SceneObjectStateChangedEvent) => {
-    const changedObject = payload.changedObject;
+  public handleNewObject(sceneObj: SceneObject) {
+    if (!this._sceneRoot) {
+      return;
+    }
 
-    if (changedObject.urlSync) {
-      const newUrlState = changedObject.urlSync.getUrlState();
+    syncStateFromUrl(sceneObj, this._paramsCache.getParams(), this._urlKeyMapper);
+  }
 
-      const searchParams = locationService.getSearch();
-      const mappedUpdated: SceneObjectUrlValues = {};
+  private handleSceneObjectStateChanged(changedObject: SceneObject) {
+    if (!changedObject.urlSync) {
+      return;
+    }
 
-      this._urlKeyMapper.rebuildIndex(this._sceneRoot);
+    const newUrlState = changedObject.urlSync.getUrlState();
 
-      for (const [key, newUrlValue] of Object.entries(newUrlState)) {
-        const uniqueKey = this._urlKeyMapper.getUniqueKey(key, changedObject);
-        const currentUrlValue = searchParams.getAll(uniqueKey);
+    const searchParams = this._locationService.getSearch();
+    const mappedUpdated: SceneObjectUrlValues = {};
 
-        if (!isUrlValueEqual(currentUrlValue, newUrlValue)) {
-          mappedUpdated[uniqueKey] = newUrlValue;
-        }
-      }
+    for (const [key, newUrlValue] of Object.entries(newUrlState)) {
+      const uniqueKey = this._urlKeyMapper.getUniqueKey(key, changedObject);
+      const currentUrlValue = searchParams.getAll(uniqueKey);
 
-      if (Object.keys(mappedUpdated).length > 0) {
-        this._ignoreNextLocationUpdate = true;
-        locationService.partial(mappedUpdated, true);
+      if (!isUrlValueEqual(currentUrlValue, newUrlValue)) {
+        mappedUpdated[uniqueKey] = newUrlValue;
       }
     }
-  };
+
+    if (Object.keys(mappedUpdated).length > 0) {
+      const shouldCreateHistoryEntry = changedObject.urlSync.shouldCreateHistoryStep?.(newUrlState);
+      const shouldReplace = shouldCreateHistoryEntry !== true;
+
+      writeSceneLog('UrlSyncManager', 'onStateChange updating URL');
+      this._locationService.partial(mappedUpdated, shouldReplace);
+
+      /// Mark the location already handled
+      this._lastLocation = this._locationService.getLocation();
+    }
+  }
 
   public getUrlState(root: SceneObject): SceneObjectUrlValues {
     return getUrlState(root);
   }
 }
 
-let urlSyncManager: UrlSyncManagerLike | undefined;
+class UrlParamsCache {
+  #cache: URLSearchParams | undefined;
+  #location: Location | undefined;
 
-export function getUrlSyncManager(): UrlSyncManagerLike {
-  if (!urlSyncManager) {
-    urlSyncManager = new UrlSyncManager();
+  public constructor(private locationService: LocationService) {}
+
+  public getParams(): URLSearchParams {
+    const location = this.locationService.getLocation();
+
+    if (this.#location === location) {
+      return this.#cache!;
+    }
+
+    this.#location = location;
+    this.#cache = new URLSearchParams(location.search);
+
+    return this.#cache;
+  }
+}
+
+function isUrlStateDifferent(sceneUrlState: SceneObjectUrlValues, currentParams: URLSearchParams) {
+  for (let key in sceneUrlState) {
+    if (!isUrlValueEqual(currentParams.getAll(key), sceneUrlState[key])) {
+      return true;
+    }
   }
 
-  return urlSyncManager;
+  return false;
+}
+
+/**
+ * Creates a new memoized instance of the UrlSyncManager based on options
+ */
+export function useUrlSyncManager(options: SceneUrlSyncOptions, locationService: LocationService): UrlSyncManagerLike {
+  return useMemo(
+    () =>
+      new UrlSyncManager(
+        {
+          updateUrlOnInit: options.updateUrlOnInit,
+          createBrowserHistorySteps: options.createBrowserHistorySteps,
+        },
+        locationService
+      ),
+    [options.updateUrlOnInit, options.createBrowserHistorySteps, locationService]
+  );
 }

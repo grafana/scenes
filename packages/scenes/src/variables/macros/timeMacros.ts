@@ -20,6 +20,9 @@ export class UrlTimeRangeMacro implements FormatVariable {
   public getValue(): SkipFormattingValue {
     const timeRange = getTimeRange(this._sceneObject);
     const urlState = timeRange.urlSync?.getUrlState();
+    if (urlState?.timezone === 'browser') {
+      urlState.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
     return new SkipFormattingValue(urlUtil.toUrlParams(urlState));
   }
 
@@ -73,7 +76,13 @@ export class TimezoneMacro implements FormatVariable {
 
   public getValue() {
     const timeRange = getTimeRange(this._sceneObject);
-    return timeRange.getTimeZone();
+    const timeZone = timeRange.getTimeZone();
+
+    if (timeZone === 'browser') {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+
+    return timeZone;
   }
 
   public getValueText?(): string {
@@ -85,7 +94,7 @@ export class TimezoneMacro implements FormatVariable {
  * Handles $__interval and $__intervalMs expression.
  */
 export class IntervalMacro implements FormatVariable {
-  public state: { name: string; type: string, match: string };
+  public state: { name: string; type: string; match: string };
   private _sceneObject: SceneObject;
 
   public constructor(name: string, sceneObject: SceneObject, match: string) {

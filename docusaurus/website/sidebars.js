@@ -58,7 +58,17 @@ const sidebars = {
         'advanced-behaviors',
         'advanced-custom-datasource',
         'advanced-time-range-comparison',
+        'url-sync',
       ],
+    },
+    {
+      type: 'category',
+      label: '@grafana/scenes-ml',
+      collapsible: true,
+      collapsed: false,
+      items: ['getting-started', 'baselines-and-forecasts', 'outlier-detection', 'changepoint-detection'].map(
+        (id) => `scenes-ml/${id}`
+      ),
     },
   ],
 };

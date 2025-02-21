@@ -1,7 +1,7 @@
 import { ComponentType } from 'react';
-import { DataRequestEnricher, SceneObject, SceneObjectState } from '../../core/types';
+import { DataRequestEnricher, SceneObject, SceneObjectState, SceneUrlSyncOptions } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
-import { IconName } from '@grafana/data';
+import { IconName, PageLayoutType } from '@grafana/data';
 
 export interface SceneRouteMatch<Params extends { [K in keyof Params]?: string } = {}> {
   params: Params;
@@ -14,6 +14,7 @@ export interface SceneAppState extends SceneObjectState {
   // Array of SceneAppPage objects that are considered app's top level pages
   pages: SceneAppPageLike[];
   name?: string;
+  urlSyncOptions?: SceneUrlSyncOptions;
 }
 
 export interface SceneAppRoute {
@@ -41,7 +42,9 @@ export interface SceneAppPageState extends SceneObjectState {
   // Use to provide page absolute URL, i.e. /app/overview
   url: string;
   // Use to provide parametrized page URL, i.e. /app/overview/:clusterId
-  routePath?: string;
+  // Needs to be a wildcard route if the page has tabs or drilldowns (e.g. /app/overview/*)
+  // Needs to be relative to the parent if the page is a tab or drilldown
+  routePath: string;
   /** Array of scene object to be rendered at the top right of the page, inline with the page title */
   controls?: SceneObject[];
   // Whether or not page should be visible in the breadcrumbs path
@@ -66,6 +69,8 @@ export interface SceneAppPageState extends SceneObjectState {
    * to be rendered when url does not match current page exactly or any of tabs or drilldowns.
    */
   getFallbackPage?: () => SceneAppPageLike;
+
+  layout?: PageLayoutType;
 }
 
 export interface SceneAppPageLike extends SceneObject<SceneAppPageState>, DataRequestEnricher {

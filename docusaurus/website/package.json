@@ -6,6 +6,7 @@
     "docusaurus": "docusaurus",
     "start": "docusaurus start --port 8080",
     "build": "docusaurus build",
+    "build:dev": "docusaurus build --config docusaurus.config.dev.js",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -15,19 +16,20 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@docusaurus/core": "2.4.0",
-    "@docusaurus/preset-classic": "2.4.0",
-    "@iconscout/unicons": "^4.0.8",
-    "@mdx-js/react": "^1.6.22",
+    "@docusaurus/core": "^3.0.1",
+    "@docusaurus/preset-classic": "^3.0.1",
+    "@grafana/scenes": "workspace:*",
+    "@grafana/scenes-react": "workspace:*",
+    "@mdx-js/react": "^3.0.0",
     "clsx": "^1.2.1",
-    "docusaurus-lunr-search": "^2.4.1",
-    "prism-react-renderer": "^1.3.5",
+    "docusaurus-lunr-search": "^3.3.1",
+    "prism-react-renderer": "^2.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.4.0",
-    "@tsconfig/docusaurus": "^1.0.5",
+    "@docusaurus/tsconfig": "^3.0.1",
     "typescript": "^5.4.3"
   },
   "browserslist": {

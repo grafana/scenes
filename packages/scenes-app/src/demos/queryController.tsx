@@ -45,7 +45,6 @@ export function getQueryControllerDemo(defaults: SceneAppPageState) {
 
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Shows how to see query state of a sub scene and cancel all sub scene queries',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

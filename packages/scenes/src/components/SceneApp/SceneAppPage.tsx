@@ -1,14 +1,12 @@
 import React from 'react';
-import { Route, RouteComponentProps, Switch } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObject, isDataRequestEnricher } from '../../core/types';
-import { getUrlSyncManager } from '../../services/UrlSyncManager';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneReactObject } from '../SceneReactObject';
 import { SceneAppDrilldownViewRender, SceneAppPageView } from './SceneAppPageView';
 import { SceneAppDrilldownView, SceneAppPageLike, SceneAppPageState, SceneRouteMatch } from './types';
-import { renderSceneComponentWithRouteProps } from './utils';
 
 /**
  * Responsible for page's drilldown & tabs routing
@@ -20,15 +18,10 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
 
   public constructor(state: SceneAppPageState) {
     super(state);
-
-    this.addActivationHandler(() => {
-      return () => getUrlSyncManager().cleanUp(this);
-    });
   }
 
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });
-    getUrlSyncManager().initSync(this);
   }
 
   public getScene(routeMatch: SceneRouteMatch): EmbeddedScene {
@@ -78,14 +71,11 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
     return null;
   }
 }
-
-export interface SceneAppPageRendererProps extends SceneComponentProps<SceneAppPage> {
-  routeProps: RouteComponentProps;
-}
-
-function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) {
+function SceneAppPageRenderer({ model }: SceneComponentProps<SceneAppPage>) {
   const { tabs, drilldowns } = model.useState();
   const routes: React.ReactNode[] = [];
+
+  routes.push(getFallbackRoute(model));
 
   if (tabs && tabs.length > 0) {
     for (let tabIndex = 0; tabIndex < tabs.length; tabIndex++) {
@@ -93,33 +83,20 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
 
       // Add first tab as a default route, this makes it possible for the first tab to render with the url of the parent page
       if (tabIndex === 0) {
-        routes.push(
-          <Route
-            exact={true}
-            key={model.state.url}
-            path={model.state.routePath ?? model.state.url}
-            render={(props) => renderSceneComponentWithRouteProps(tab, props)}
-          ></Route>
-        );
+        routes.push(<Route key={model.state.routePath} path="" element={<tab.Component model={tab} />}></Route>);
       }
 
       routes.push(
-        <Route
-          exact={true}
-          key={tab.state.url}
-          path={tab.state.routePath ?? tab.state.url}
-          render={(props) => renderSceneComponentWithRouteProps(tab, props)}
-        ></Route>
+        <Route key={tab.state.url} path={tab.state.routePath} element={<tab.Component model={tab} />}></Route>
       );
 
       if (tab.state.drilldowns) {
         for (const drilldown of tab.state.drilldowns) {
           routes.push(
             <Route
-              exact={false}
               key={drilldown.routePath}
               path={drilldown.routePath}
-              render={(props) => <SceneAppDrilldownViewRender drilldown={drilldown} parent={tab} routeProps={props} />}
+              element={<SceneAppDrilldownViewRender drilldown={drilldown} parent={tab} />}
             ></Route>
           );
         }
@@ -132,55 +109,28 @@ function SceneAppPageRenderer({ model, routeProps }: SceneAppPageRendererProps) 
       routes.push(
         <Route
           key={drilldown.routePath}
-          exact={false}
           path={drilldown.routePath}
-          render={(props) => <SceneAppDrilldownViewRender drilldown={drilldown} parent={model} routeProps={props} />}
+          Component={() => <SceneAppDrilldownViewRender drilldown={drilldown} parent={model} />}
         ></Route>
       );
     }
   }
 
-  if (!tabs && isCurrentPageRouteMatch(model, routeProps.match)) {
-    return <SceneAppPageView page={model} routeProps={routeProps} />;
+  if (!tabs) {
+    routes.push(<Route key="home route" path="/" element={<SceneAppPageView page={model} />}></Route>);
   }
 
-  routes.push(getFallbackRoute(model, routeProps));
-
-  return <Switch>{routes}</Switch>;
+  return <Routes>{routes}</Routes>;
 }
 
-function getFallbackRoute(page: SceneAppPage, routeProps: RouteComponentProps) {
+function getFallbackRoute(page: SceneAppPage) {
   return (
     <Route
       key={'fallback route'}
-      render={(props) => {
-        const fallbackPage = page.state.getFallbackPage?.() ?? getDefaultFallbackPage();
-        return <SceneAppPageView page={fallbackPage} routeProps={routeProps} />;
-      }}
+      path="*"
+      element={<SceneAppPageView page={page.state.getFallbackPage?.() ?? getDefaultFallbackPage()} />}
     ></Route>
   );
-}
-
-function isCurrentPageRouteMatch(page: SceneAppPage, match: SceneRouteMatch) {
-  if (!match.isExact) {
-    return false;
-  }
-
-  // current page matches the route url
-  if (match.url === page.state.url) {
-    return true;
-  }
-
-  // check if we are a tab and the first tab, then we should also render on the parent url
-  if (
-    page.parent instanceof SceneAppPage &&
-    page.parent.state.tabs![0] === page &&
-    page.parent.state.url === match.url
-  ) {
-    return true;
-  }
-
-  return false;
 }
 
 function getDefaultFallbackPage() {
@@ -188,6 +138,7 @@ function getDefaultFallbackPage() {
     url: '',
     title: 'Not found',
     subTitle: 'The url did not match any page',
+    routePath: '*',
     getScene: () => {
       return new EmbeddedScene({
         body: new SceneFlexLayout({

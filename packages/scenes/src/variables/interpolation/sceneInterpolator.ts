@@ -23,9 +23,9 @@ export function sceneInterpolator(
   target: string | undefined | null,
   scopedVars?: ScopedVars,
   format?: InterpolationFormatParameter,
-  interpolations?: VariableInterpolation[],
+  interpolations?: VariableInterpolation[]
 ): string {
-  if (!target) {
+  if (!target || typeof target !== 'string') {
     return target ?? '';
   }
 
@@ -43,10 +43,13 @@ export function sceneInterpolator(
       }
       return match;
     }
-    const value = formatValue(variable, variable.getValue(fieldPath), fmt);
+
+    const value = formatValue(sceneObject, variable, variable.getValue(fieldPath), fmt);
+
     if (interpolations) {
       interpolations.push({ match, variableName, fieldPath, format: fmt, value, found: value !== match });
     }
+
     return value;
   });
 }
@@ -57,10 +60,12 @@ function lookupFormatVariable(
   scopedVars: ScopedVars | undefined,
   sceneObject: SceneObject
 ): FormatVariable | null {
-  const scopedVar = scopedVars?.[name];
+  if (scopedVars && scopedVars.hasOwnProperty(name)) {
+    const scopedVar = scopedVars[name];
 
-  if (scopedVar) {
-    return getSceneVariableForScopedVar(name, scopedVar);
+    if (scopedVar) {
+      return getSceneVariableForScopedVar(name, scopedVar);
+    }
   }
 
   const variable = lookupVariable(name, sceneObject);
@@ -68,14 +73,16 @@ function lookupFormatVariable(
     return variable;
   }
 
-  if (macrosIndex[name]) {
-    return new macrosIndex[name](name, sceneObject, match, scopedVars);
+  const Macro = macrosIndex.get(name);
+  if (Macro) {
+    return new Macro(name, sceneObject, match, scopedVars);
   }
 
   return null;
 }
 
 function formatValue(
+  context: SceneObject,
   variable: FormatVariable,
   value: VariableValue | undefined | null,
   formatNameOrFn?: InterpolationFormatParameter
@@ -87,7 +94,7 @@ function formatValue(
   // Variable can return a custom value that handles formatting
   // This is useful for customAllValue and macros that return values that are already formatted or need special formatting
   if (isCustomVariableValue(value)) {
-    return value.formatter(formatNameOrFn);
+    return sceneInterpolator(context, value.formatter(formatNameOrFn));
   }
 
   // if it's an object transform value to string

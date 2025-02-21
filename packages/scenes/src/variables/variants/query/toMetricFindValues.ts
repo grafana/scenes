@@ -68,8 +68,8 @@ export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValu
           for (let index = 0; index < frame.length; index++) {
             const expandable = expandableIndex !== -1 ? frame.fields[expandableIndex].values.get(index) : undefined;
             const string = frame.fields[stringIndex].values.get(index);
-            const text = textIndex !== -1 ? frame.fields[textIndex].values.get(index) : null;
-            const value = valueIndex !== -1 ? frame.fields[valueIndex].values.get(index) : null;
+            const text = textIndex !== -1 ? frame.fields[textIndex].values.get(index) : '';
+            const value = valueIndex !== -1 ? frame.fields[valueIndex].values.get(index) : '';
 
             if (valueIndex === -1 && textIndex === -1) {
               metrics.push({ text: string, value: string, expandable });

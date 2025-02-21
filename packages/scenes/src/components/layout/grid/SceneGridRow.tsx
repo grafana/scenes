@@ -12,6 +12,7 @@ import { GRID_COLUMN_COUNT } from './constants';
 import { SceneGridItemLike, SceneGridItemStateLike } from './types';
 import { sceneGraph } from '../../../core/sceneGraph';
 import { selectors } from '@grafana/e2e-selectors';
+import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
 
 export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
@@ -23,6 +24,11 @@ export interface SceneGridRowState extends SceneGridItemStateLike {
 
 export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   public static Component = SceneGridRowRenderer;
+
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    statePaths: ['title'],
+    handleTimeMacros: true,
+  });
 
   public constructor(state: Partial<SceneGridRowState>) {
     super({
@@ -126,6 +132,7 @@ export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       cursor: 'pointer',
       background: 'transparent',
       border: 'none',
+      minWidth: 0,
       gap: theme.spacing(1),
     }),
     rowCollapsed: css({
@@ -134,6 +141,12 @@ export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
     rowTitle: css({
       fontSize: theme.typography.h5.fontSize,
       fontWeight: theme.typography.fontWeightMedium,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      maxWidth: '100%',
+      flexGrow: 1,
+      minWidth: 0,
     }),
     collapsedInfo: css({
       fontSize: theme.typography.bodySmall.fontSize,
@@ -144,6 +157,7 @@ export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
     }),
     rowTitleAndActionsGroup: css({
       display: 'flex',
+      minWidth: 0,
 
       '&:hover, &:focus-within': {
         '& > div': {
@@ -153,6 +167,7 @@ export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
     }),
     rowActions: css({
       display: 'flex',
+      whiteSpace: 'nowrap',
       opacity: 0,
       transition: '200ms opacity ease-in 200ms',
 
@@ -172,6 +187,7 @@ export const getSceneGridRowStyles = (theme: GrafanaTheme2) => {
       },
     }),
     panelCount: css({
+      whiteSpace: 'nowrap',
       paddingLeft: theme.spacing(2),
       color: theme.colors.text.secondary,
       fontStyle: 'italic',

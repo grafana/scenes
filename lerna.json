@@ -1,8 +1,6 @@
 {
   "npmClient": "yarn",
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
-  "version": "4.23.1",
-  "packages": [
-    "packages/*"
-  ]
+  "version": "6.1.0",
+  "packages": ["packages/*"]
 }
