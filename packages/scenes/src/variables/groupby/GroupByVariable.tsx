@@ -1,18 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AdHocVariableFilter, DataSourceApi, MetricFindValue, SelectableValue } from '@grafana/data';
+import { AdHocVariableFilter, DataSourceApi, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
 import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
 import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
-import { from, lastValueFrom, map, mergeMap, Observable, of, take } from 'rxjs';
+import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
-import { InputActionMeta, MultiSelect } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
 import { isArray } from 'lodash';
-import { getQueriesForVariables } from '../utils';
+import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
+import { getOptionSearcher } from '../components/getOptionSearcher';
+import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -52,7 +55,7 @@ export interface GroupByVariableState extends MultiValueVariableState {
 export type getTagKeysProvider = (
   set: GroupByVariable,
   currentKey: string | null
-) => Promise<{ replace?: boolean; values: MetricFindValue[] }>;
+) => Promise<{ replace?: boolean; values: MetricFindValue[] | GetTagResponse }>;
 
 export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
@@ -89,6 +92,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         this.state.defaultOptions.map((o) => ({
           label: o.text,
           value: String(o.value),
+          group: o.group,
         }))
       );
     }
@@ -97,17 +101,24 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     return from(
       getDataSource(this.state.datasource, {
-        __sceneObject: { text: '__sceneObject', value: this },
+        __sceneObject: wrapInSafeSerializableSceneObject(this),
       })
     ).pipe(
       mergeMap((ds) => {
         return from(this._getKeys(ds)).pipe(
+          tap((response) => {
+            if (responseHasError(response)) {
+              this.setState({ error: response.error.message });
+            }
+          }),
+          map((response) => dataFromResponse(response)),
           take(1),
-          mergeMap((data: MetricFindValue[]) => {
+          mergeMap((data) => {
             const a: VariableValueOption[] = data.map((i) => {
               return {
                 label: i.text,
                 value: i.value ? String(i.value) : i.text,
+                group: i.group,
               };
             });
             return of(a);
@@ -133,11 +144,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       noValueOnClear: true,
     });
 
-    this.addActivationHandler(() => {
-      allActiveGroupByVariables.add(this);
+    if (this.state.applyMode === 'auto') {
+      this.addActivationHandler(() => {
+        allActiveGroupByVariables.add(this);
 
-      return () => allActiveGroupByVariables.delete(this);
-    });
+        return () => allActiveGroupByVariables.delete(this);
+      });
+    }
   }
 
   /**
@@ -152,7 +165,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (this.state.defaultOptions) {
-      return this.state.defaultOptions.concat(override?.values ?? []);
+      return this.state.defaultOptions.concat(dataFromResponse(override?.values ?? []));
     }
 
     if (!ds.getTagKeys) {
@@ -163,10 +176,19 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    let keys = await ds.getTagKeys({ filters: otherFilters, queries, timeRange });
+    const response = await ds.getTagKeys({
+      filters: otherFilters,
+      queries,
+      timeRange,
+      ...getEnrichedFiltersRequest(this),
+    });
+    if (responseHasError(response)) {
+      this.setState({ error: response.error.message });
+    }
 
+    let keys = dataFromResponse(response);
     if (override) {
-      keys = keys.concat(override.values);
+      keys = keys.concat(dataFromResponse(override.values));
     }
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
@@ -184,8 +206,20 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return { value: [], text: [] };
   }
 }
+
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, maxVisibleValues, noValueOnClear } = model.useState();
+  const {
+    value,
+    text,
+    key,
+    isMulti = true,
+    maxVisibleValues,
+    noValueOnClear,
+    options,
+    includeAll,
+    allowCustomValue = true,
+  } = model.useState();
+
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
     const arrayText = isArray(text) ? text : [text];
@@ -195,12 +229,15 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       label: String(arrayText[idx] ?? value),
     }));
   }, [value, text]);
+
   const [isFetchingOptions, setIsFetchingOptions] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(values);
+
+  const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   // Detect value changes outside
   useEffect(() => {
@@ -224,21 +261,27 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     return inputValue;
   };
 
-  const placeholder = 'Select value';
+  const filteredOptions = useMemo(
+    () => handleOptionGroups(optionSearcher(inputValue).map(toSelectableValue)),
+    [optionSearcher, inputValue]
+  );
 
-  return (
+  return isMulti ? (
     <MultiSelect<VariableValueSingle>
+      aria-label="Group by selector"
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={placeholder}
+      placeholder={'Select value'}
       width="auto"
+      allowCustomValue={allowCustomValue}
       inputValue={inputValue}
       value={uncommittedValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
       virtualized
-      options={model.getOptionsForSelect()}
+      options={filteredOptions}
+      filterOption={filterNoOp}
       closeMenuOnSelect={false}
       isOpen={isOptionsOpen}
       isClearable={true}
@@ -249,12 +292,13 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       onBlur={() => {
         model.changeValueTo(
           uncommittedValue.map((x) => x.value!),
-          uncommittedValue.map((x) => x.label!)
+          uncommittedValue.map((x) => x.label!),
+          true
         );
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
-          model.changeValueTo([]);
+          model.changeValueTo([], undefined, true);
         }
         setUncommittedValue(newValue);
       }}
@@ -268,5 +312,67 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
         setIsOptionsOpen(false);
       }}
     />
+  ) : (
+    <Select
+      aria-label="Group by selector"
+      data-testid={`GroupBySelect-${key}`}
+      id={key}
+      placeholder={'Select value'}
+      width="auto"
+      inputValue={inputValue}
+      value={uncommittedValue}
+      allowCustomValue={allowCustomValue}
+      noMultiValueWrap={true}
+      maxVisibleValues={maxVisibleValues ?? 5}
+      tabSelectsValue={false}
+      virtualized
+      options={filteredOptions}
+      filterOption={filterNoOp}
+      closeMenuOnSelect={true}
+      isOpen={isOptionsOpen}
+      isClearable={true}
+      hideSelectedOptions={false}
+      noValueOnClear={true}
+      isLoading={isFetchingOptions}
+      onInputChange={onInputChange}
+      onChange={(newValue, action) => {
+        if (action.action === 'clear') {
+          setUncommittedValue([]);
+          if (noValueOnClear) {
+            model.changeValueTo([]);
+          }
+          return;
+        }
+        if (newValue?.value) {
+          setUncommittedValue([newValue]);
+          model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : undefined);
+        }
+      }}
+      onOpenMenu={async () => {
+        setIsFetchingOptions(true);
+        await lastValueFrom(model.validateAndUpdate());
+        setIsFetchingOptions(false);
+        setIsOptionsOpen(true);
+      }}
+      onCloseMenu={() => {
+        setIsOptionsOpen(false);
+      }}
+    />
   );
+}
+
+const filterNoOp = () => true;
+
+function toSelectableValue(input: VariableValueOption): SelectableValue<VariableValueSingle> {
+  const { label, value, group } = input;
+  const result: SelectableValue<VariableValueSingle> = {
+    label,
+    value,
+  };
+
+  if (group) {
+    result.group = group;
+  }
+
+  return result;
 }

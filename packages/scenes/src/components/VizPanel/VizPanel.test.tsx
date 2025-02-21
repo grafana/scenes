@@ -15,6 +15,7 @@ import {
   PanelProps,
   toUtc,
 } from '@grafana/data';
+import * as grafanaData from '@grafana/data';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel } from './VizPanel';
@@ -22,6 +23,7 @@ import { SceneDataNode } from '../../core/SceneDataNode';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { act, render, screen } from '@testing-library/react';
+import { RefreshEvent } from '@grafana/runtime';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -54,7 +56,7 @@ let panelProps: PanelProps | undefined;
 let panelRenderCount = 0;
 
 function getTestPlugin1(dataSupport?: PanelPluginDataSupport) {
-  const pluginToLoad = getPanelPlugin(
+  let pluginToLoad = getPanelPlugin(
     {
       id: 'custom-plugin-id',
     },
@@ -122,6 +124,72 @@ function getTestPlugin1(dataSupport?: PanelPluginDataSupport) {
     }
 
     return { option2: 'hello' };
+  });
+
+  return pluginToLoad;
+}
+
+function getTestPlugin2(dataSupport?: PanelPluginDataSupport) {
+  let pluginToLoad = getPanelPlugin(
+    {
+      id: 'custom2-plugin-id',
+    },
+    (props) => {
+      panelProps = props;
+      panelRenderCount++;
+      return <div>My custom2 panel</div>;
+    }
+  );
+
+  pluginToLoad.meta.info.version = '2.0.0';
+  pluginToLoad.meta.skipDataQuery = false;
+
+  if (dataSupport) {
+    pluginToLoad.setDataSupport(dataSupport);
+  }
+
+  pluginToLoad.setPanelOptions((builder) => {
+    builder.addBooleanSwitch({
+      name: 'Show thresholds',
+      path: 'showThresholds',
+      defaultValue: false,
+    });
+    builder.addTextInput({
+      name: 'option2',
+      path: 'option2',
+      defaultValue: undefined,
+    });
+  });
+
+  pluginToLoad.useFieldConfig({
+    standardOptions: {
+      [FieldConfigProperty.Unit]: {
+        defaultValue: 'flop',
+      },
+      [FieldConfigProperty.Decimals]: {
+        defaultValue: 2,
+      },
+    },
+    useCustomConfig: (builder) => {
+      builder.addBooleanSwitch({
+        name: 'CustomPropInOtherPlugin',
+        path: 'customPropInOtherPlugin',
+        defaultValue: false,
+      });
+      builder.addBooleanSwitch({
+        name: 'customProp2InOtherPlugin',
+        path: 'customProp2InOtherPlugin',
+        defaultValue: false,
+      });
+      builder.addTextInput({
+        name: 'customProp3',
+        path: 'customProp3',
+      });
+      builder.addTextInput({
+        name: 'Hide from',
+        path: 'hideFrom',
+      });
+    },
   });
 
   return pluginToLoad;
@@ -219,6 +287,86 @@ describe('VizPanel', () => {
     });
   });
 
+  describe('When changing plugin', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeEach(async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        fieldConfig: {
+          defaults: { custom: { customProp: true } },
+          overrides: [],
+        },
+      });
+
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+    });
+
+    it('Should successfully change from one viz type to another', async () => {
+      expect(panel.state.pluginId).toBe('custom-plugin-id');
+      expect(panel.state.pluginVersion).toBe('1.0.0');
+      pluginToLoad = getTestPlugin2();
+      panel.changePluginType('custom2-plugin-id', undefined, panel.state.fieldConfig);
+      await Promise.resolve();
+
+      expect(panel.state.pluginId).toBe('custom2-plugin-id');
+      expect(panel.state.pluginVersion).toBe('2.0.0');
+    });
+
+    it('Should change to new plugin with default options/fieldconfig', async () => {
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customProp');
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customProp2');
+      expect(panel.state.options.showThresholds).toBe(true);
+
+      pluginToLoad = getTestPlugin2();
+      panel.changePluginType('custom2-plugin-id');
+      await Promise.resolve();
+
+      expect(Object.keys(panel.state.fieldConfig.defaults.custom!).length).toBe(2);
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customPropInOtherPlugin');
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customProp2InOtherPlugin');
+      expect(panel.state.options.showThresholds).toBe(false);
+    });
+
+    it('Should ovewrite options/fieldConfig when they exist', async () => {
+      const overwriteOptions = {
+        showThresholds: true,
+      };
+
+      const overwriteFieldConfig = panel.state.fieldConfig;
+      overwriteFieldConfig.defaults.unit = 'test';
+
+      pluginToLoad = getTestPlugin2();
+      panel.changePluginType('custom2-plugin-id', overwriteOptions, overwriteFieldConfig);
+      await Promise.resolve();
+
+      expect(panel.state.options.showThresholds).toBe(true);
+      expect(panel.state.fieldConfig.defaults.unit).toBe('test');
+      expect(panel.state.fieldConfig.defaults.decimals).toBe(2);
+      expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customPropInOtherPlugin');
+    });
+
+    it('Should set options from plugins onPanelTypeChanged', async () => {
+      const overwriteOptions = {
+        showThresholds: true,
+      };
+
+      const overwriteFieldConfig = panel.state.fieldConfig;
+      overwriteFieldConfig.defaults.unit = 'test';
+
+      pluginToLoad = getTestPlugin2();
+      pluginToLoad.onPanelTypeChanged = (panel, prevPluginId, prevOptions, prevFieldConfig) => {
+        return { showThresholds: true, option2: 'hello' };
+      };
+      panel.changePluginType('custom2-plugin-id', overwriteOptions, overwriteFieldConfig);
+      await Promise.resolve();
+
+      expect(panel.state.options.showThresholds).toBe(true);
+      expect(panel.state.options.option2).toBe('hello');
+    });
+  });
+
   describe('getLegacyPanelId', () => {
     it('should return panel id', () => {
       const panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
@@ -226,6 +374,30 @@ describe('VizPanel', () => {
       });
 
       expect(panel.getLegacyPanelId()).toBe(12);
+    });
+
+    it('should return panel id for a panel in a clone chain', () => {
+      const panels = [
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-clone-0/panel-12-clone-1',
+        }),
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-12-clone-1',
+        }),
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-clone-0/grid-item-5/panel-12-clone-1',
+        }),
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-12-clone-0',
+        }),
+        new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          key: 'panel-12-clone-12',
+        }),
+      ];
+
+      panels.forEach((panel) => {
+        expect(panel.getLegacyPanelId()).toBe(12);
+      });
     });
   });
 
@@ -252,6 +424,18 @@ describe('VizPanel', () => {
 
       expect(panel.state.options.showThresholds).toBe(true);
       expect(panel.state.options.option2).toBe('updated option');
+    });
+
+    test('should update partial options values to undefined value', () => {
+      panel.onOptionsChange({
+        option2: 'updated option',
+      });
+      panel.onOptionsChange({
+        option2: undefined,
+      });
+
+      expect(panel.state.options.showThresholds).toBe(true);
+      expect(panel.state.options.option2).toBe(undefined);
     });
 
     test('should always allow overriding array values', () => {
@@ -289,6 +473,18 @@ describe('VizPanel', () => {
 
       expect(panel.state.options.showThresholds).toBe(false);
       expect(panel.state.options.option2).not.toBeDefined();
+    });
+
+    test('should allow to call getPanelOptionsWithDefaults to compute new color options for plugin', () => {
+      const spy = jest.spyOn(grafanaData, 'getPanelOptionsWithDefaults');
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+
+      panel.onOptionsChange({}, false, true);
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      // Marked as after plugin change to readjust to prefered field color setting
+      expect(spy.mock.calls[0][0].isAfterPluginChange).toBe(true);
     });
   });
 
@@ -542,6 +738,15 @@ describe('VizPanel', () => {
     beforeEach(() => {
       panelRenderCount = 0;
       panelProps = undefined;
+
+      global.ResizeObserver = class {
+        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+        observe() {}
+        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+        unobserve() {}
+        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+        disconnect() {}
+      };
     });
 
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
@@ -613,6 +818,34 @@ describe('VizPanel', () => {
 
         expect(panelRenderCount).toBe(2);
         expect(panelProps?.timeRange.from.toISOString()).toEqual('2020-01-01T00:00:00.000Z');
+      });
+
+      it('When refreshing should re-render and receive RefreshEvent', async () => {
+        const refreshEventHandler = jest.fn();
+        const timeRange = new SceneTimeRange();
+
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          pluginId: 'custom-plugin-id',
+          $timeRange: timeRange,
+        });
+
+        pluginToLoad = getTestPlugin1();
+        pluginToLoad.meta.skipDataQuery = true;
+
+        panelProps?.eventBus.subscribe(RefreshEvent, refreshEventHandler);
+
+        render(<panel.Component model={panel} />);
+
+        expect(await screen.findByText('My custom panel')).toBeInTheDocument();
+
+        expect(panelRenderCount).toBe(1);
+        expect(panelProps?.timeRange.raw.from).toBe('now-6h');
+
+        act(() => {
+          timeRange.onRefresh();
+        });
+
+        expect(panelRenderCount).toBe(2);
       });
     });
   });

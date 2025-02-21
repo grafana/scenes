@@ -29,7 +29,8 @@ export function VariableValueInput({ model }: SceneComponentProps<TextBoxVariabl
       id={key}
       placeholder="Enter value"
       minWidth={15}
-      defaultValue={value}
+      maxWidth={30}
+      value={value}
       loading={loading}
       onBlur={onBlur}
       onKeyDown={onKeyDown}

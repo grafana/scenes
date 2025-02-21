@@ -21,7 +21,9 @@ export function AdHocFilterBuilder({ model, addFilterButtonText }: Props) {
         aria-label="Add filter"
         data-testid={`AdHocFilter-add`}
         onClick={() => model._addWip()}
-      >{addFilterButtonText}</Button>
+      >
+        {addFilterButtonText}
+      </Button>
     );
   }
 

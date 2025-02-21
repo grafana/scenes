@@ -7,14 +7,18 @@ import {
   BusEventType,
   DataFrame,
   DataQueryRequest,
+  DataSourceGetTagKeysOptions,
+  DataSourceGetTagValuesOptions,
   DataTransformContext,
   PanelData,
   TimeRange,
 } from '@grafana/data';
-import { DataTopic, TimeZone } from '@grafana/schema';
+import { DataQuery, DataTopic, TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
+import { VizPanel } from '../components/VizPanel/VizPanel';
+import { WeekStart } from '@grafana/ui';
 
 export interface SceneObjectState {
   key?: string;
@@ -58,6 +62,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
 
   /** True when there is a React component mounted for this Object */
   readonly isActive: boolean;
+
+  /** Controls if activation blocks rendering */
+  readonly renderBeforeActivation: boolean;
 
   /** SceneObject parent */
   readonly parent?: SceneObject;
@@ -115,6 +122,11 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
    */
   forEachChild(callback: (child: SceneObject) => void): void;
+
+  /**
+   * Useful for edge cases when you want to move a scene object to another parent.
+   */
+  clearParent(): void;
 }
 
 export type SceneActivationHandler = () => SceneDeactivationHandler | void;
@@ -133,6 +145,7 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
   isDraggable(): boolean;
   getDragClass?(): string;
   getDragClassCancel?(): string;
+  getDragHooks?(): { onDragStart?: (e: React.PointerEvent, panel: VizPanel) => void };
 }
 
 export interface SceneTimeRangeState extends SceneObjectState {
@@ -142,13 +155,25 @@ export interface SceneTimeRangeState extends SceneObjectState {
   value: TimeRange;
   timeZone?: TimeZone;
   /** weekStart will change the global date locale so having multiple different weekStart values is not supported  */
-  weekStart?: string;
+  weekStart?: WeekStart;
   /**
    * @internal
    * To enable feature parity with the old time range picker, not sure if it will be kept.
    * Override the now time by entering a time delay. Use this option to accommodate known delays in data aggregation to avoid null values.
    * */
   UNSAFE_nowDelay?: string;
+
+  refreshOnActivate?: {
+    /**
+     * When set, the time range will invalidate relative ranges after the specified interval has elapsed
+     */
+    afterMs?: number;
+    /**
+     * When set, the time range will invalidate relative ranges after the specified percentage of the current interval has elapsed.
+     * If both invalidate values are set, the smaller value will be used for the given interval.
+     */
+    percent?: number;
+  };
 }
 
 export interface SceneTimeRangeLike extends SceneObject<SceneTimeRangeState> {
@@ -171,6 +196,8 @@ export interface SceneObjectUrlSyncHandler {
   getKeys(): string[];
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
+  shouldCreateHistoryStep?(values: SceneObjectUrlValues): boolean;
+  performBrowserHistoryAction?(callback: () => void): void;
 }
 
 export interface DataRequestEnricher {
@@ -178,8 +205,19 @@ export interface DataRequestEnricher {
   enrichDataRequest(source: SceneObject): Partial<DataQueryRequest> | null;
 }
 
+export interface FiltersRequestEnricher {
+  // Return partial getTagKeys or getTagValues query request that will be merged with the original request provided by ad hoc or group by variable
+  enrichFiltersRequest(
+    source: SceneObject
+  ): Partial<DataSourceGetTagKeysOptions | DataSourceGetTagValuesOptions> | null;
+}
+
 export function isDataRequestEnricher(obj: any): obj is DataRequestEnricher {
   return 'enrichDataRequest' in obj;
+}
+
+export function isFiltersRequestEnricher(obj: any): obj is FiltersRequestEnricher {
+  return 'enrichFiltersRequest' in obj;
 }
 
 export type SceneObjectUrlValue = string | string[] | undefined | null;
@@ -243,4 +281,25 @@ export interface UseStateHookOptions {
    * @experimental
    */
   shouldActivateOrKeepAlive?: boolean;
+}
+
+export interface SceneDataQuery extends DataQuery {
+  [key: string]: any;
+
+  // Opt this query out of time window comparison
+  timeRangeCompare?: boolean;
+}
+
+export interface SceneUrlSyncOptions {
+  /**
+   * This will update the url to contain all scene url state
+   * when the scene is initialized. Important for browser history "back" actions.
+   */
+  updateUrlOnInit?: boolean;
+  /**
+   * This is only supported by some objects if they implement
+   * shouldCreateHistoryStep where they can control what changes
+   * url changes should add a new browser history entry.
+   */
+  createBrowserHistorySteps?: boolean;
 }

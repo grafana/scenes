@@ -24,6 +24,10 @@ Define a new Scenes app using the `SceneApp` object :
 function getSceneApp() {
   return new SceneApp({
     pages: [],
+    urlSyncOptions: {
+      updateUrlOnInit: true,
+      createBrowserHistorySteps: true,
+    },
   });
 }
 ```

@@ -6,6 +6,7 @@ import { VARIABLE_REGEX } from './constants';
 
 import { SceneVariable, SceneVariableDependencyConfigLike } from './types';
 import { safeStringifyValue } from './utils';
+import { ConstantVariable } from './variants/ConstantVariable';
 
 interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   /**
@@ -36,6 +37,11 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    * Optional way to subscribe to all variable value changes, even to variables that are not dependencies.
    */
   onAnyVariableChanged?: (variable: SceneVariable) => void;
+
+  /**
+   * Handle time macros.
+   */
+  handleTimeMacros?: boolean;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
@@ -51,6 +57,10 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     private _options: VariableDependencyConfigOptions<TState>
   ) {
     this._statePaths = _options.statePaths;
+
+    if (this._options.handleTimeMacros) {
+      this.handleTimeMacros();
+    }
   }
 
   /**
@@ -189,5 +199,36 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       const variableName = var1 || var2 || var3;
       this._dependencies.add(variableName);
     }
+  }
+
+  private handleTimeMacros() {
+    this._sceneObject.addActivationHandler(() => {
+      const timeRange = sceneGraph.getTimeRange(this._sceneObject);
+
+      const sub = timeRange.subscribeToState((newState, oldState) => {
+        const deps = this.getNames();
+        const hasFromDep = deps.has('__from');
+        const hasToDep = deps.has('__to');
+        const hasTimeZone = deps.has('__timezone');
+
+        if (newState.value !== oldState.value) {
+          // If you have both __from & __to as dependencies you only get notified that from changed and vice versa
+          if (hasFromDep) {
+            const variable = new ConstantVariable({ name: '__from', value: newState.from });
+            this.variableUpdateCompleted(variable, true);
+          } else if (hasToDep) {
+            const variable = new ConstantVariable({ name: '__to', value: newState.to });
+            this.variableUpdateCompleted(variable, true);
+          }
+        }
+
+        if (newState.timeZone !== oldState.timeZone && hasTimeZone) {
+          const variable = new ConstantVariable({ name: '__timezone', value: newState.timeZone });
+          this.variableUpdateCompleted(variable, true);
+        }
+      });
+
+      return () => sub.unsubscribe();
+    });
   }
 }

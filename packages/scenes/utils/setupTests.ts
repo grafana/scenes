@@ -1,7 +1,4 @@
-import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
-
-import { matchers } from './test';
 
 Object.assign(global, { TextDecoder, TextEncoder });
 
@@ -28,5 +25,3 @@ global.IntersectionObserver = jest.fn(() => ({
   rootMargin: '',
   thresholds: [],
 }));
-
-expect.extend(matchers);

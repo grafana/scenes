@@ -1,4 +1,4 @@
-import { ArrayVector, DataFrame, FieldConfigSource, FieldMatcherID, FieldType } from '@grafana/data';
+import { DataFrame, FieldConfigSource, FieldMatcherID, FieldType } from '@grafana/data';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
 
 import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';
@@ -6,9 +6,9 @@ import { seriesVisibilityConfigFactory } from './seriesVisibilityConfigFactory';
 describe('seriesVisibilityConfigFactory', () => {
   const frame1: DataFrame = {
     fields: [
-      { name: 'field1', values: new ArrayVector(), config: {}, type: FieldType.string },
-      { name: 'field2', values: new ArrayVector(), config: {}, type: FieldType.string },
-      { name: 'field3', values: new ArrayVector(), config: {}, type: FieldType.string },
+      { name: 'field1', values: [], config: {}, type: FieldType.string },
+      { name: 'field2', values: [], config: {}, type: FieldType.string },
+      { name: 'field3', values: [], config: {}, type: FieldType.string },
     ],
     length: 0,
   };

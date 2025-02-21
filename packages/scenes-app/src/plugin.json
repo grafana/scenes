@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "app",
   "name": "Scenes Test App",
   "id": "grafana-scenes-app",
@@ -37,6 +37,13 @@
       "type": "page",
       "name": "Grafana monitoring",
       "path": "/a/%PLUGIN_ID%/grafana-monitoring",
+      "role": "Admin",
+      "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "React only demo",
+      "path": "/a/%PLUGIN_ID%/react-only",
       "role": "Admin",
       "addToNav": true
     }

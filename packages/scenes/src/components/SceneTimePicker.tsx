@@ -1,15 +1,18 @@
 import React from 'react';
+import { useLocalStorage } from 'react-use';
+import { uniqBy } from 'lodash';
 
+import { TimeOption, TimeRange, isDateTime, rangeUtil, toUtc } from '@grafana/data';
 import { TimeRangePicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObjectState } from '../core/types';
-import { TimeRange, toUtc } from '@grafana/data';
 
 export interface SceneTimePickerState extends SceneObjectState {
   hidePicker?: boolean;
   isOnCanvas?: boolean;
+  quickRanges?: TimeOption[];
 }
 
 export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
@@ -24,6 +27,14 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
   public onChangeFiscalYearStartMonth = (month: number) => {
     const timeRange = sceneGraph.getTimeRange(this);
     timeRange.setState({ fiscalYearStartMonth: month });
+  };
+
+  public toAbsolute = () => {
+    const timeRange = sceneGraph.getTimeRange(this);
+    const timeRangeVal = timeRange.state.value;
+    const from = toUtc(timeRangeVal.from);
+    const to = toUtc(timeRangeVal.to);
+    timeRange.onTimeRangeChange({ from, to, raw: { from, to } });
   };
 
   public onMoveBackward = () => {
@@ -46,10 +57,15 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
-  const { hidePicker, isOnCanvas } = model.useState();
+  const { hidePicker, isOnCanvas, quickRanges } = model.useState();
   const timeRange = sceneGraph.getTimeRange(model);
   const timeZone = timeRange.getTimeZone();
   const timeRangeState = timeRange.useState();
+  const [timeRangeHistory, setTimeRangeHistory] = useLocalStorage<TimeRange[]>(HISTORY_LOCAL_STORAGE_KEY, [], {
+    raw: false,
+    serializer: serializeHistory,
+    deserializer: deserializeHistory,
+  });
 
   if (hidePicker) {
     return null;
@@ -59,7 +75,13 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
     <TimeRangePicker
       isOnCanvas={isOnCanvas ?? true}
       value={timeRangeState.value}
-      onChange={timeRange.onTimeRangeChange}
+      onChange={(range) => {
+        if (isAbsolute(range)) {
+          setTimeRangeHistory([range, ...(timeRangeHistory ?? [])]);
+        }
+
+        timeRange.onTimeRangeChange(range);
+      }}
       timeZone={timeZone}
       fiscalYearStartMonth={timeRangeState.fiscalYearStartMonth}
       onMoveBackward={model.onMoveBackward}
@@ -67,6 +89,11 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
+      weekStart={timeRangeState.weekStart}
+      history={timeRangeHistory}
+      //TODO: remove once grafana/grafana updated to 11.6
+      //@ts-expect-error
+      quickRanges={quickRanges}
     />
   );
 }
@@ -115,4 +142,37 @@ export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRang
     to,
     raw: { from, to },
   };
+}
+
+const HISTORY_LOCAL_STORAGE_KEY = 'grafana.dashboard.timepicker.history';
+
+// Simplified object to store in local storage
+interface TimePickerHistoryItem {
+  from: string;
+  to: string;
+}
+
+function deserializeHistory(value: string): TimeRange[] {
+  const values: TimePickerHistoryItem[] = JSON.parse(value);
+  // The history is saved in UTC and with the default date format, so we need to pass those values to the convertRawToRange
+  return values.map((item) => rangeUtil.convertRawToRange(item, 'utc', undefined, 'YYYY-MM-DD HH:mm:ss'));
+}
+
+function serializeHistory(values: TimeRange[]) {
+  return JSON.stringify(
+    limit(
+      values.map((v) => ({
+        from: typeof v.raw.from === 'string' ? v.raw.from : v.raw.from.toISOString(),
+        to: typeof v.raw.to === 'string' ? v.raw.to : v.raw.to.toISOString(),
+      }))
+    )
+  );
+}
+
+function limit(value: TimePickerHistoryItem[]): TimePickerHistoryItem[] {
+  return uniqBy(value, (v) => v.from + v.to).slice(0, 4);
+}
+
+function isAbsolute(value: TimeRange): boolean {
+  return isDateTime(value.raw.from) || isDateTime(value.raw.to);
 }

@@ -76,6 +76,7 @@ function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<Scene
     <div className={style}>
       {children.map((item) => {
         const Component = item.Component as ComponentType<SceneCSSGridItemRenderProps<SceneObject>>;
+
         if (isLazy) {
           return (
             <LazyLoader key={item.state.key!} className={style}>

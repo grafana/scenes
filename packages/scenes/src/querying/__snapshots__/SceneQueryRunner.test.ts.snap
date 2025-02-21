@@ -1,0 +1,71 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SceneQueryRunner when running query should build DataQueryRequest object 2`] = `
+{
+  "app": "scenes",
+  "cacheTimeout": "30",
+  "interval": "30s",
+  "intervalMs": 30000,
+  "liveStreaming": undefined,
+  "maxDataPoints": 500,
+  "queryCachingTTL": 300000,
+  "range": {
+    "from": "2023-07-11T02:18:08.000Z",
+    "raw": {
+      "from": "now-6h",
+      "to": "now",
+    },
+    "to": "2023-07-11T08:18:08.000Z",
+  },
+  "rangeRaw": {
+    "from": "now-6h",
+    "to": "now",
+  },
+  "requestId": "SQR100",
+  "startTime": 1689063488000,
+  "targets": [
+    {
+      "datasource": {
+        "uid": "test-uid",
+      },
+      "refId": "A",
+    },
+  ],
+  "timezone": "browser",
+}
+`;
+
+exports[`SceneQueryRunner when running query should build DataQueryRequest object 4`] = `
+{
+  "app": "scenes",
+  "cacheTimeout": "30",
+  "interval": "30s",
+  "intervalMs": 30000,
+  "liveStreaming": undefined,
+  "maxDataPoints": 500,
+  "queryCachingTTL": 300000,
+  "range": {
+    "from": "2023-07-11T02:18:08.000Z",
+    "raw": {
+      "from": "now-6h",
+      "to": "now",
+    },
+    "to": "2023-07-11T08:18:08.000Z",
+  },
+  "rangeRaw": {
+    "from": "now-6h",
+    "to": "now",
+  },
+  "requestId": "SQR178",
+  "startTime": 1689063488000,
+  "targets": [
+    {
+      "datasource": {
+        "uid": "test-uid",
+      },
+      "refId": "A",
+    },
+  ],
+  "timezone": "browser",
+}
+`;

@@ -631,6 +631,132 @@ describe('SceneVariableList', () => {
 
       expect(A.state.error).toBe('Danger!');
     });
+
+    it('Should complete updating chained variables in case of error in all variables', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        throwError: 'Error in A',
+      });
+      const B = new TestVariable({
+        name: 'B',
+        query: 'A.$A.*',
+        value: '',
+        text: '',
+        options: [],
+        throwError: 'Error in B',
+      });
+      const C = new TestVariable({
+        name: 'C',
+        query: 'value=$B',
+        value: '',
+        text: '',
+        options: [],
+        throwError: 'Error in C',
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [C, B, A] }),
+      });
+
+      scene.activate();
+
+      expect(A.state.loading).toBe(false);
+      expect(A.state.error).toBe('Error in A');
+      expect(B.state.loading).toBe(false);
+      expect(B.state.error).toBe('Error in B');
+      expect(C.state.loading).toBe(false);
+      expect(C.state.error).toBe('Error in C');
+    });
+    it('Should complete updating chained variables in case of error in the first variable', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        throwError: 'Error in A',
+      });
+      const B = new TestVariable({
+        name: 'B',
+        query: 'A.$A.*',
+        value: '',
+        text: '',
+        options: [],
+      });
+      const C = new TestVariable({
+        name: 'C',
+        query: 'value=$B',
+        value: '',
+        text: '',
+        options: [],
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [C, B, A] }),
+      });
+
+      scene.activate();
+
+      expect(A.state.loading).toBe(false);
+      expect(A.state.error).toBe('Error in A');
+
+      B.signalUpdateCompleted();
+      expect(B.state.loading).toBe(false);
+      expect(B.state.value).toBe('');
+      expect(B.state.error).toBeUndefined();
+
+      C.signalUpdateCompleted();
+      expect(C.state.loading).toBe(false);
+      expect(C.state.value).toBe('value=');
+      expect(C.state.error).toBeUndefined();
+    });
+    it('Should complete updating chained variables in case of error in the middle variables', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+      });
+      const B = new TestVariable({
+        name: 'B',
+        query: 'A.$A.*',
+        value: '',
+        text: '',
+        options: [],
+        throwError: 'Error in B',
+      });
+      const C = new TestVariable({
+        name: 'C',
+        query: 'value=$B',
+        value: '',
+        text: '',
+        options: [],
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [C, B, A] }),
+      });
+
+      scene.activate();
+      A.signalUpdateCompleted();
+
+      expect(A.state.loading).toBe(false);
+      expect(A.state.error).toBeUndefined();
+
+      expect(B.state.loading).toBe(false);
+      expect(B.state.value).toBe('');
+      expect(B.state.error).toBe('Error in B');
+
+      C.signalUpdateCompleted();
+      expect(C.state.loading).toBe(false);
+      expect(C.state.value).toBe('value=');
+      expect(C.state.error).toBeUndefined();
+    });
   });
 
   describe('When nesting SceneVariableSet', () => {
@@ -683,7 +809,7 @@ describe('SceneVariableList', () => {
       expect(B.state.loading).toBe(true);
     });
 
-    describe('When local value overrides parent variable changes on top level should not propagate', () => {
+    it('When local value overrides parent variable changes on top level should propagate', () => {
       const topLevelVar = new TestVariable({
         name: 'test',
         options: [],
@@ -706,10 +832,11 @@ describe('SceneVariableList', () => {
 
       activateFullSceneTree(scene);
 
+      nestedScene.doSomethingThatRequiresVariables();
       topLevelVar.changeValueTo('E');
 
-      expect(nestedScene.state.didSomethingCount).toBe(0);
-      expect(nestedScene.state.variableValueChanged).toBe(0);
+      expect(nestedScene.state.didSomethingCount).toBe(2);
+      expect(nestedScene.state.variableValueChanged).toBe(1);
     });
   });
 

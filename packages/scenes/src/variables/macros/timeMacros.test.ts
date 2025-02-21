@@ -8,12 +8,22 @@ import { LoadingState } from '@grafana/schema';
 import { DataQueryRequest, getDefaultTimeRange } from '@grafana/data';
 
 describe('timeMacros', () => {
-  it('Can use use $__url_time_range', () => {
+  it('Can use use $__url_time_range with browser timeZone', () => {
     const scene = new TestScene({
       $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
     });
 
-    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now');
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe(
+      `from=now-5m&to=now&timezone=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`
+    );
+  });
+
+  it('Can use use $__url_time_range with custom timeZone', () => {
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now', timeZone: 'utc' }),
+    });
+
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now&timezone=utc');
   });
 
   it('Can use use $__from and $__to', () => {
@@ -58,7 +68,7 @@ describe('timeMacros', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene1, '$__timezone')).toBe('browser');
+    expect(sceneInterpolator(scene1, '$__timezone')).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
     expect(sceneInterpolator(scene2, '$__timezone')).toBe('America/New_York');
     expect(sceneInterpolator(nestedScene, '$__timezone')).toBe('Africa/Abidjan');
   });

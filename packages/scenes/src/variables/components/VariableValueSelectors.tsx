@@ -35,9 +35,11 @@ interface VariableSelectProps {
   variable: SceneVariable;
   /** To override hide from VariableValueSelectByName  */
   showAlways?: boolean;
+  /** To provide an option to hide the label in the variable value selector */
+  hideLabel?: boolean;
 }
 
-export function VariableValueSelectWrapper({ variable, layout, showAlways }: VariableSelectProps) {
+export function VariableValueSelectWrapper({ variable, layout, showAlways, hideLabel }: VariableSelectProps) {
   const state = useSceneObjectState<SceneVariableState>(variable, { shouldActivateOrKeepAlive: true });
 
   if (state.hide === VariableHide.hideVariable && !showAlways) {
@@ -47,7 +49,7 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways }: Var
   if (layout === 'vertical') {
     return (
       <div className={verticalContainer} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
-        <VariableLabel variable={variable} layout={layout} />
+        <VariableLabel variable={variable} layout={layout} hideLabel={hideLabel} />
         <variable.Component model={variable} />
       </div>
     );
@@ -55,21 +57,21 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways }: Var
 
   return (
     <div className={containerStyle} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
-      <VariableLabel variable={variable} />
+      <VariableLabel variable={variable} hideLabel={hideLabel} />
       <variable.Component model={variable} />
     </div>
   );
 }
 
-function VariableLabel({ variable, layout }: VariableSelectProps) {
+function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
   const { state } = variable;
 
-  if (variable.state.hide === VariableHide.hideLabel) {
+  if (variable.state.hide === VariableHide.hideLabel || hideLabel) {
     return null;
   }
 
   const elementId = `var-${state.key}`;
-  const labelOrName = state.label ?? state.name;
+  const labelOrName = state.label || state.name;
 
   return (
     <ControlsLabel
@@ -84,5 +86,13 @@ function VariableLabel({ variable, layout }: VariableSelectProps) {
   );
 }
 
-const containerStyle = css({ display: 'flex' });
+const containerStyle = css({
+  display: 'flex',
+  // No border for second element (inputs) as label and input border is shared
+  '> :nth-child(2)': css({
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+  }),
+});
+
 const verticalContainer = css({ display: 'flex', flexDirection: 'column' });

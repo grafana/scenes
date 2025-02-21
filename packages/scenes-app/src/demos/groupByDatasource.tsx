@@ -16,7 +16,6 @@ import { getEmbeddedSceneDefaults } from './utils';
 export function getGroupByDatasource(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'TODO description',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
@@ -50,7 +49,7 @@ export function getGroupByDatasource(defaults: SceneAppPageState) {
                     queries: [
                       {
                         refId: 'A',
-                        expr: 'ALERTS',
+                        expr: 'count(ALERTS)',
                         format: 'table',
                         instant: true,
                       },

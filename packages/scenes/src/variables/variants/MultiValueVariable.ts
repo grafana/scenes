@@ -25,6 +25,7 @@ export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
   text: VariableValue; // old current.value
   options: VariableValueOption[];
+  allowCustomValue?: boolean;
   isMulti?: boolean;
   includeAll?: boolean;
   defaultToAll?: boolean;
@@ -36,6 +37,7 @@ export interface MultiValueVariableState extends SceneVariableState {
    */
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
+  isReadOnly?: boolean;
 }
 
 export interface VariableGetOptionsArgs {
@@ -81,8 +83,30 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    */
   private updateValueGivenNewOptions(options: VariableValueOption[]) {
     // Remember current value and text
-    const { value: currentValue, text: currentText } = this.state;
+    const { value: currentValue, text: currentText, options: oldOptions } = this.state;
 
+    const stateUpdate = this.getStateUpdateGivenNewOptions(options, currentValue, currentText);
+
+    this.interceptStateUpdateAfterValidation(stateUpdate);
+
+    // Perform state change
+    this.setStateHelper(stateUpdate);
+
+    // Publish value changed event only if value changed
+    if (
+      stateUpdate.value !== currentValue ||
+      stateUpdate.text !== currentText ||
+      (this.hasAllValue() && !isEqual(options, oldOptions))
+    ) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
+
+  private getStateUpdateGivenNewOptions(
+    options: VariableValueOption[],
+    currentValue: VariableValue,
+    currentText: VariableValue
+  ): Partial<MultiValueVariableState> {
     const stateUpdate: Partial<MultiValueVariableState> = {
       options,
       loading: false,
@@ -101,9 +125,27 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         stateUpdate.value = '';
         stateUpdate.text = '';
       }
-    } else if (this.hasAllValue()) {
-      // If value is set to All then we keep it set to All but just store the options
-    } else if (this.state.isMulti) {
+
+      return stateUpdate;
+    }
+
+    if (this.hasAllValue()) {
+      if (this.state.includeAll) {
+        // Sometimes the text representation is also set the ALL_VARIABLE_VALUE, this fixes that
+        stateUpdate.text = ALL_VARIABLE_TEXT;
+      } else {
+        stateUpdate.value = options[0].value;
+        stateUpdate.text = options[0].label;
+        // If multi switch to arrays
+        if (this.state.isMulti) {
+          stateUpdate.value = [stateUpdate.value];
+          stateUpdate.text = [stateUpdate.text];
+        }
+      }
+      return stateUpdate;
+    }
+
+    if (this.state.isMulti) {
       // If we are a multi valued variable validate the current values are among the options
       const currentValues = Array.isArray(currentValue) ? currentValue : [currentValue];
       const validValues = currentValues.filter((v) => options.find((o) => o.value === v));
@@ -114,9 +156,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         const defaultState = this.getDefaultMultiState(options);
         stateUpdate.value = defaultState.value;
         stateUpdate.text = defaultState.text;
-      }
-      // We have valid values, if it's different from current valid values update current values
-      else {
+      } else {
+        // We have valid values, if it's different from current valid values update current values
         if (!isEqual(validValues, currentValue)) {
           stateUpdate.value = validValues;
         }
@@ -124,36 +165,26 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
           stateUpdate.text = validTexts;
         }
       }
+      return stateUpdate;
+    }
+
+    // Single value variable validation
+
+    // Try find by value then text
+    let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options);
+    if (matchingOption) {
+      // When updating the initial state from URL the text property is set the same as value
+      // Here we can correct the text value state
+      stateUpdate.text = matchingOption.label;
+      stateUpdate.value = matchingOption.value;
     } else {
-      // Try find by value then text
-      let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options);
-      if (matchingOption) {
-        // When updating the initial state from URL the text property is set the same as value
-        // Here we can correct the text value state
-        stateUpdate.text = matchingOption.label;
-        stateUpdate.value = matchingOption.value;
-      } else {
-        // Current value is found in options
-        if (this.state.defaultToAll) {
-          stateUpdate.value = ALL_VARIABLE_VALUE;
-          stateUpdate.text = ALL_VARIABLE_TEXT;
-        } else {
-          // Current value is not valid. Set to first of the available options
-          stateUpdate.value = options[0].value;
-          stateUpdate.text = options[0].label;
-        }
-      }
+      // Current value is found in options
+      const defaultState = this.getDefaultSingleState(options);
+      stateUpdate.value = defaultState.value;
+      stateUpdate.text = defaultState.text;
     }
 
-    this.interceptStateUpdateAfterValidation(stateUpdate);
-
-    // Perform state change
-    this.setStateHelper(stateUpdate);
-
-    // Publish value changed event only if value changed
-    if (stateUpdate.value !== currentValue || stateUpdate.text !== currentText || this.hasAllValue()) {
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    }
+    return stateUpdate;
   }
 
   /**
@@ -164,7 +195,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     // If the validation wants to fix the all value (All ==> $__all) then we should let that pass
     const isAllValueFix = stateUpdate.value === ALL_VARIABLE_VALUE && this.state.text === ALL_VARIABLE_TEXT;
 
-    if (this.skipNextValidation && stateUpdate.value !== this.state.value && !isAllValueFix) {
+    if (
+      this.skipNextValidation &&
+      stateUpdate.value !== this.state.value &&
+      stateUpdate.text !== this.state.text &&
+      !isAllValueFix
+    ) {
       stateUpdate.value = this.state.value;
       stateUpdate.text = this.state.text;
     }
@@ -211,10 +247,20 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
   }
 
+  protected getDefaultSingleState(options: VariableValueOption[]) {
+    if (this.state.defaultToAll) {
+      return { value: ALL_VARIABLE_VALUE, text: ALL_VARIABLE_TEXT };
+    } else if (options.length > 0) {
+      return { value: options[0].value, text: options[0].label };
+    } else {
+      return { value: '', text: '' };
+    }
+  }
+
   /**
    * Change the value and publish SceneVariableValueChangedEvent event.
    */
-  public changeValueTo(value: VariableValue, text?: VariableValue) {
+  public changeValueTo(value: VariableValue, text?: VariableValue, isUserAction = false) {
     // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
@@ -255,7 +301,18 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       return;
     }
 
-    this.setStateHelper({ value, text, loading: false });
+    const stateChangeAction = () => this.setStateHelper({ value, text, loading: false });
+
+    /**
+     * Because variable state changes can cause a whole chain of downstream state changes in other variables (that also cause URL update)
+     * Only some variable changes should add new history items to make sure the browser history contains valid URL states to go back to.
+     */
+    if (isUserAction) {
+      this._urlSync.performBrowserHistoryAction?.(stateChangeAction);
+    } else {
+      stateChangeAction();
+    }
+
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
   }
 
@@ -284,14 +341,14 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     setBaseClassState<MultiValueVariableState>(this, state);
   }
 
-  public getOptionsForSelect(): VariableValueOption[] {
+  public getOptionsForSelect(includeCurrentValue = true): VariableValueOption[] {
     let options = this.state.options;
 
     if (this.state.includeAll) {
       options = [{ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT }, ...options];
     }
 
-    if (!Array.isArray(this.state.value)) {
+    if (includeCurrentValue && !Array.isArray(this.state.value)) {
       const current = options.find((x) => x.value === this.state.value);
       if (!current) {
         options = [{ value: this.state.value, label: String(this.state.text) }, ...options];
@@ -299,6 +356,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     return options;
+  }
+
+  public refreshOptions() {
+    this.getValueOptions({}).subscribe((options) => {
+      this.updateValueGivenNewOptions(options);
+    });
   }
 
   /**
@@ -334,9 +397,11 @@ function findOptionMatchingCurrent(
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
   implements SceneObjectUrlSyncHandler
 {
-  public constructor(private _sceneObject: MultiValueVariable<TState>) {}
+  protected _nextChangeShouldAddHistoryStep = false;
 
-  private getKey(): string {
+  public constructor(protected _sceneObject: MultiValueVariable<TState>) {}
+
+  protected getKey(): string {
     return `var-${this._sceneObject.state.name}`;
   }
 
@@ -393,6 +458,16 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
 
       this._sceneObject.changeValueTo(urlValue);
     }
+  }
+
+  public performBrowserHistoryAction(callback: () => void) {
+    this._nextChangeShouldAddHistoryStep = true;
+    callback();
+    this._nextChangeShouldAddHistoryStep = false;
+  }
+
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._nextChangeShouldAddHistoryStep;
   }
 }
 

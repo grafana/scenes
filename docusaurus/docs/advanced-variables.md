@@ -154,8 +154,8 @@ The preceding code will render a scene with a template variable, text input, and
 You can register a custom variable macro using `sceneUtils.registerVariableMacro`. A variable macro is useful for variable expressions you want to be evaluted dynamically based on some context. Examples of core variables
 that are implemented as macros.
 
-- ${\_\_url.params:include:var-from,var-to}
-- ${\_\_user.login}
+- `${__url.params:include:var-from,var-to}`
+- `${__user.login}`
 
 Example:
 
