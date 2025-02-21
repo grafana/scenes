@@ -8,7 +8,7 @@ import { isSceneGridRow } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
-import { SceneGridItemLike, SceneGridItemPlacement } from './types';
+import { SceneGridItemLike, SceneGridItemPlacement, SceneGridLayoutDragStartEvent } from './types';
 import { fitPanelsInHeight } from './utils';
 import { VizPanel } from '../../VizPanel/VizPanel';
 
@@ -26,12 +26,6 @@ interface SceneGridLayoutState extends SceneObjectState {
    * UNSAFE: This feature is experimental and it might change in the future.
    */
   UNSAFE_fitPanels?: boolean;
-  /**
-   * Useful for capturing when dragging started
-   * @param e
-   * @param panel
-   */
-  onDragStart?: (e: PointerEvent, panel: VizPanel) => void;
   children: SceneGridItemLike[];
 }
 
@@ -65,7 +59,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 
   public getDragHooks() {
-    return { onDragStart: this.state.onDragStart };
+    return {
+      onDragStart: (evt: PointerEvent, panel: VizPanel) => {
+        this.publishEvent(new SceneGridLayoutDragStartEvent({ evt, panel }), true);
+      },
+    };
   }
 
   public toggleRow(row: SceneGridRow) {
