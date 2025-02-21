@@ -1,5 +1,5 @@
 import { isArray } from 'lodash';
-import React, { RefCallback, useEffect, useMemo, useState } from 'react';
+import React, { RefCallback, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Checkbox,
   InputActionMeta,
@@ -9,16 +9,32 @@ import {
   getSelectStyles,
   useStyles2,
   useTheme2,
+  Combobox,
+  ComboboxOption,
 } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
-import { MultiValueVariable } from '../variants/MultiValueVariable';
+import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
+import { reportInteraction, config } from '@grafana/runtime';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { sceneGraph } from '../../core/sceneGraph';
+import { containsSearchFilter } from '../variants/query/QueryVariable';
+
+const reportSelectedValue = (model: MultiValueVariable<MultiValueVariableState>, isAll: boolean, isCustom: boolean) => {
+  reportInteraction('grafana_dashboard_variable_change', {
+    // @ts-ignore
+    usesCombobox: config?.featureToggles?.templateVariablesUsesCombobox || false,
+    isAll,
+    isMulti: model.state.isMulti,
+    isCustom,
+    variableType: model.state.type,
+  });
+};
 
 const filterNoOp = () => true;
 
@@ -100,6 +116,8 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!, true);
         queryController?.startProfile(model);
+
+        reportSelectedValue(model, newValue.value?.toString() === ALL_VARIABLE_VALUE, newValue.__isNew__);
 
         if (hasCustomValue !== newValue.__isNew__) {
           setHasCustomValue(newValue.__isNew__);
@@ -188,6 +206,10 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([], undefined, true);
         }
+
+        const allSelected = newValue.find((v) => v.value === ALL_VARIABLE_VALUE);
+        reportSelectedValue(model, !!allSelected, action.action === 'create-option');
+
         setUncommittedValue(newValue.map((x) => x.value!));
       }}
     />
@@ -256,7 +278,79 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
+function VariableValueCombobox({ model }: SceneComponentProps<MultiValueVariable>) {
+  const { value, key, isReadOnly, options, includeAll, allowCustomValue = true, loading } = model.useState();
+
+  const isAsync = useMemo(() => model.isAsync, [model.isAsync]);
+
+  const staticOptions = useMemo(() => {
+    if (isAsync) {
+      return []; // so we don't map over the options needlessly because of async state updates
+    }
+    const opts = options.map((o) => ({ value: o.value.toString(), label: o.label }));
+
+    if (includeAll) {
+      opts.unshift({ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT });
+    }
+    return opts;
+  }, [isAsync, options, includeAll]);
+
+  const getOptions = useCallback(
+    (newInputValue: string) => {
+      if (!model.onSearchChange) {
+        throw new Error("onSearchChange is not defined, shouldn't happen lol");
+      }
+
+      const res = model.onSearchChange!(newInputValue).then((result) => {
+        return result.map((o) => ({
+          value: o.value.toString(),
+          label: o.value.toString() === ALL_VARIABLE_VALUE ? ALL_VARIABLE_TEXT : o.label,
+        }));
+      });
+      return res;
+    },
+    [model]
+  );
+
+  const finalOptions: ComboboxOption[] | ((s: string) => Promise<ComboboxOption[]>) = useMemo(() => {
+    if (!isAsync) {
+      return staticOptions;
+    }
+
+    return getOptions;
+  }, [isAsync, staticOptions, getOptions]);
+
+  return (
+    <Combobox
+      id={'var-' + key}
+      disabled={isReadOnly}
+      value={value.toString()}
+      placeholder="Select value"
+      width="auto"
+      minWidth={10}
+      options={finalOptions}
+      createCustomValue={allowCustomValue}
+      onChange={(newValue) => {
+        reportSelectedValue(
+          model,
+          newValue.value === ALL_VARIABLE_VALUE,
+          // This will work with the latest version of the Combobox. // TODO: Extra logic needed for reporting custom value. Consider adding an extra arg to onChange.
+          newValue.description?.startsWith('Use custom value') || false
+        );
+
+        model.changeValueTo(newValue.value, newValue.label);
+      }}
+      loading={loading}
+    />
+  );
+}
+
 export function renderSelectForVariable(model: MultiValueVariable) {
+  //@ts-ignore not available in runtime just yet
+  if (config?.featureToggles?.templateVariablesUsesCombobox && !model.state.isMulti) {
+    return <VariableValueCombobox model={model} />;
+  }
+
   if (model.state.isMulti) {
     return <VariableValueSelectMulti model={model} />;
   } else {
