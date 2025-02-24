@@ -1,3 +1,15 @@
+# v6.1.1 (Mon Feb 24 2025)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayout: Allow to hook into `onDragStart` event [#1059](https://github.com/grafana/scenes/pull/1059) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v6.1.0 (Thu Feb 20 2025)
 
 #### 🚀 Enhancement
