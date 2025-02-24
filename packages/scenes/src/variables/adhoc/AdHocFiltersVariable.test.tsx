@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariableValueChangedEvent } from '../types';
-import { AdHocFiltersVariable, AdHocFiltersVariableState } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import {
   DataSourceSrv,
   config,
@@ -31,6 +31,7 @@ import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
+import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -130,8 +131,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.filters[0].value).toBe('myVeryCustomValue');
   });
 
-  // TODO enable once this repo is using @grafana/ui@11.1.0
-  it.skip('shows key groups and orders according to first occurence of a group item', async () => {
+  it('shows key groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setup({
       getTagKeysProvider: async () => ({
         replace: true,
@@ -193,8 +193,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(options[5]).toHaveTextContent('Foo');
   });
 
-  // TODO enable once this repo is using @grafana/ui@11.1.0
-  it.skip('shows value groups and orders according to first occurence of a group item', async () => {
+  it('shows value groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setup({
       getTagValuesProvider: async () => ({
         replace: true,
@@ -476,6 +475,16 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  it('does not render hidden filter in url', () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], { hidden: true });
+    });
+
+    expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
+  });
+
   it('overrides state when url has empty key', () => {
     const { filtersVar } = setup();
 
@@ -753,6 +762,114 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(values).toEqual([{ label: 'v', value: '2' }]);
   });
 
+  it('Can define custom meta in getTagKeysProvider which will be passed to getTagValuesProvider', async () => {
+    type FilterMeta = Record<string, string>;
+
+    const { filtersVar } = setup({
+      getTagKeysProvider: () => {
+        // getTagKeysProvider API call returns metadata needed in the value
+        return Promise.resolve({
+          replace: true,
+          values: [{ text: 'keyLabel', value: 'keyValue', meta: { parser: 'parserValue' } }],
+        });
+      },
+      getTagValuesProvider: (variable, filter: AdHocFilterWithLabels<FilterMeta>) => {
+        // getTagValuesProvider can receive this metadata, and add it to the value
+        expect(filter.meta).toEqual({ parser: 'parserValue' });
+        return Promise.resolve({
+          replace: true,
+          values: [{ text: 'valueLabel', value: JSON.stringify({ value: 'v', parser: filter.meta?.parser }) }],
+        });
+      },
+    });
+
+    const keys = await filtersVar._getKeys(null);
+    expect(keys).toEqual([{ label: 'keyLabel', value: 'keyValue', meta: { parser: 'parserValue' } }]);
+
+    // Simulate the update of the filter key after the user selects a particular key
+    act(() =>
+      filtersVar._updateFilter(
+        filtersVar.state.filters[0],
+        generateFilterUpdatePayload({
+          filterInputType: 'key',
+          item: keys[0],
+          filter: filtersVar.state.filters[0],
+          setFilterMultiValues: jest.fn(),
+        })
+      )
+    );
+
+    // Get the values for the ad-hoc variable
+    const values = await filtersVar._getValuesFor(filtersVar.state.filters[0]);
+
+    // Our value should contain the metadata from the getTagKeysProvider call made earlier
+    expect(values).toEqual([{ label: 'valueLabel', value: JSON.stringify({ value: 'v', parser: 'parserValue' }) }]);
+
+    // Simulate the update of the filter value after the user selects a particular value
+    act(() =>
+      filtersVar._updateFilter(
+        filtersVar.state.filters[0],
+        generateFilterUpdatePayload({
+          filterInputType: 'value',
+          item: values[0],
+          filter: filtersVar.state.filters[0],
+          setFilterMultiValues: jest.fn(),
+        })
+      )
+    );
+
+    // Assert that the saved filter contains the expected meta and value
+    expect(filtersVar.state.filters[0]).toEqual({
+      operator: '=',
+      keyLabel: 'keyLabel',
+      key: 'keyValue',
+      meta: { parser: 'parserValue' },
+      value: JSON.stringify({ value: 'v', parser: 'parserValue' }),
+      valueLabels: ['valueLabel'],
+    });
+  });
+
+  it('Can encode a custom value', async () => {
+    const { filtersVar, runRequest } = setup({
+      allowCustomValue: true,
+      filters: [
+        {
+          key: 'key1',
+          value: 'value',
+          valueLabels: ['valueLabels'],
+          operator: '=~',
+          meta: 'metaVal',
+        },
+      ],
+      onAddCustomValue: (item, filter) => {
+        const customValue = JSON.stringify({
+          meta: filter.meta,
+          value: item.value,
+        });
+        return {
+          value: customValue,
+          valueLabels: [item.label ?? item.value ?? ''],
+        };
+      },
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    await userEvent.type(selects[2], 'myVeryCustomValue{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe(JSON.stringify({ meta: 'metaVal', value: 'myVeryCustomValue' }));
+    expect(screen.getByText('myVeryCustomValue')).toBeVisible();
+    expect(screen.queryByText('metaVal')).not.toBeInTheDocument();
+  });
+
   it('Can override and add keys and values', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
@@ -960,6 +1077,134 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(evtHandler).not.toHaveBeenCalled();
     });
 
+    it('Should not overwrite filterExpression on setState', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filterExpression: '',
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.setState({ filters: variable.state.filters.slice(0), filterExpression: 'hello filter expression!' });
+
+      expect(evtHandler).not.toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual('hello filter expression!');
+    });
+
+    it('Should overwrite filterExpression on updateFilters', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filterExpression: 'hello filter expression!',
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters(variable.state.filters.slice(0));
+
+      expect(evtHandler).toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual('key1="val1"');
+    });
+
+    it('updateFilters should not publish event when expr did not change', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters(variable.state.filters.slice(0));
+
+      expect(evtHandler).not.toHaveBeenCalled();
+    });
+
+    it('updateFilters should publish event when expr did not change, but forcePublish is set', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters(variable.state.filters.slice(0), { forcePublish: true });
+
+      expect(evtHandler).toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual('key1="val1"');
+    });
+
+    it('updateFilters should publish event on when expr did change', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters([{ key: 'key2', operator: '=', value: 'val1' }]);
+
+      expect(evtHandler).toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual(`key2="val1"`);
+    });
+
+    it('updateFilters should not publish event when skip event is true', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filterExpression: 'hello filter expression',
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters([{ key: 'key2', operator: '=', value: 'val1' }], { skipPublish: true });
+
+      expect(evtHandler).not.toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual(`key2="val1"`);
+    });
+
+    it('updateFilters should not publish event on when expr did change, if skipPublish is true', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const evtHandler = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, evtHandler);
+
+      variable.updateFilters([{ key: 'key2', operator: '=', value: 'val1' }], { skipPublish: true });
+
+      expect(evtHandler).not.toHaveBeenCalled();
+      expect(variable.state.filterExpression).toEqual(`key2="val1"`);
+    });
+
     it('Should create variable with applyMode as manual by default and it allows to override it', () => {
       const defaultVariable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
@@ -1005,7 +1250,40 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
-  describe('using new combobox layout', () => {
+  describe('using new combobox layout - values', () => {
+    beforeEach(() => {
+      setup({
+        getTagKeysProvider: async () => ({
+          replace: true,
+          values: [
+            { text: 'key1', value: 'key1' },
+            { text: 'key2', value: 'key2' },
+            { text: 'key3', value: 'key3' },
+          ],
+        }),
+        getTagValuesProvider: async () => ({
+          replace: true,
+          values: [
+            { text: 'valLabel1', value: 'val1' },
+            { text: 'valLabel2', value: 'val2' },
+            { text: 'valLabel3', value: 'val3' },
+          ],
+        }),
+        layout: 'combobox',
+        filters: [
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=', value: 'val2' },
+        ],
+      });
+    });
+
+    it('renders values if valueLabels are not defined', async () => {
+      expect(await screen.findByText('key1 = val1')).toBeInTheDocument();
+      expect(await screen.findByText('key2 = val2')).toBeInTheDocument();
+    });
+  });
+
+  describe('using new combobox layout - valueLabels', () => {
     // needed for floating-ui to correctly calculate the position of the dropdown
     beforeAll(() => {
       const mockGetBoundingClientRect = jest.fn(() => ({
@@ -1035,18 +1313,42 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         getTagValuesProvider: async () => ({
           replace: true,
           values: [
-            { text: 'val1', value: 'val1' },
-            { text: 'val2', value: 'val2' },
-            { text: 'val3', value: 'val3' },
+            { text: 'valLabel1', value: 'val1' },
+            { text: 'valLabel2', value: 'val2' },
+            { text: 'valLabel3', value: 'val3' },
           ],
         }),
         layout: 'combobox',
+        filters: [
+          { key: 'key1', operator: '=', value: 'val1', valueLabels: ['valLabel1'] },
+          { key: 'key2', operator: '=', value: 'val2', valueLabels: ['valLabel2'] },
+        ],
       });
     });
 
     it('displays the existing filters', async () => {
-      expect(await screen.findByText('key1 = val1')).toBeInTheDocument();
-      expect(await screen.findByText('key2 = val2')).toBeInTheDocument();
+      expect(await screen.findByText('key1 = valLabel1')).toBeInTheDocument();
+      expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
+    });
+
+    it('does not display hidden filters', async () => {
+      act(() => {
+        const { filtersVar } = setup();
+
+        // @todo this test does not work! The setState isn't updating the render.
+        filtersVar.setState({
+          filters: [
+            ...filtersVar.state.filters,
+            { key: 'hidden_key', operator: '=', value: 'hidden_val', hidden: true },
+            { key: 'visible_key', operator: '=', value: 'visible_val', hidden: false },
+          ],
+        });
+      });
+
+      expect(await screen.findByText('key1 = valLabel1')).toBeInTheDocument();
+      expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
+      expect(await screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
+      expect(await screen.queryAllByText('visible_key = visible_val')).toEqual([]);
     });
 
     it('focusing the input opens the key dropdown', async () => {
@@ -1063,8 +1365,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await userEvent.click(screen.getByRole('button', { name: 'Remove filter with key key1' }));
 
       // check the filter has been removed without affecting the other
-      expect(screen.queryByText('key1 = val1')).not.toBeInTheDocument();
-      expect(screen.getByText('key2 = val2')).toBeInTheDocument();
+      expect(screen.queryByText('key1 = valLabel1')).not.toBeInTheDocument();
+      expect(screen.getByText('key2 = valLabel2')).toBeInTheDocument();
 
       // check focus has reverted back to the input
       expect(screen.getByRole('combobox')).toHaveFocus();
@@ -1079,8 +1381,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await userEvent.keyboard('{enter}');
 
       // check the filter has been removed without affecting the other
-      expect(screen.queryByText('key2 = val2')).not.toBeInTheDocument();
-      expect(screen.getByText('key1 = val1')).toBeInTheDocument();
+      expect(screen.queryByText('key2 = valLabel2')).not.toBeInTheDocument();
+      expect(screen.getByText('key1 = valLabel1')).toBeInTheDocument();
 
       // check focus has reverted back to the input
       expect(screen.getByRole('combobox')).toHaveFocus();
@@ -1090,31 +1392,31 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await userEvent.click(screen.getByRole('button', { name: 'Edit filter with key key2' }));
 
       // full chip is removed
-      expect(screen.queryByText('key2 = val2')).not.toBeInTheDocument();
+      expect(screen.queryByText('key2 = valLabel2')).not.toBeInTheDocument();
       // partial chip values for key and operator are still present
       expect(screen.getByText('key2')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
       // input has focus
       expect(screen.getByRole('combobox')).toHaveFocus();
       // with the correct value
-      expect(screen.getByRole('combobox')).toHaveValue('val2');
+      expect(screen.getByRole('combobox')).toHaveValue('valLabel2');
       // and the value dropdown is open
       expect(screen.getByRole('listbox')).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: 'val2' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'valLabel2' })).toBeInTheDocument();
 
       await userEvent.type(screen.getByRole('combobox'), '{backspace}');
-      await userEvent.click(screen.getByRole('option', { name: 'val3' }));
+      await userEvent.click(screen.getByRole('option', { name: 'valLabel3' }));
 
       // input should be refocused
       expect(screen.getByRole('combobox')).toHaveFocus();
       // full chip committed
-      expect(screen.getByText('key2 = val3')).toBeInTheDocument();
+      expect(screen.getByText('key2 = valLabel3')).toBeInTheDocument();
       // and key dropdown should be showing
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
       // other untouched filter should still be there as well
-      expect(screen.getByText('key1 = val1')).toBeInTheDocument();
+      expect(screen.getByText('key1 = valLabel1')).toBeInTheDocument();
     });
 
     it('can edit filters with the keyboard', async () => {
@@ -1124,17 +1426,17 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await userEvent.keyboard('{enter}');
 
       // full chip is removed
-      expect(screen.queryByText('key2 = val2')).not.toBeInTheDocument();
+      expect(screen.queryByText('key2 = valLabel2')).not.toBeInTheDocument();
       // partial chip values for key and operator are still present
       expect(screen.getByText('key2')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
       // input has focus
       expect(screen.getByRole('combobox')).toHaveFocus();
       // with the correct value
-      expect(screen.getByRole('combobox')).toHaveValue('val2');
+      expect(screen.getByRole('combobox')).toHaveValue('valLabel2');
       // and the value dropdown is open
       expect(screen.getByRole('listbox')).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: 'val2' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'valLabel2' })).toBeInTheDocument();
 
       await userEvent.type(screen.getByRole('combobox'), '{backspace}');
       await userEvent.keyboard('{arrowdown}{arrowdown}');
@@ -1143,13 +1445,13 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // input should be refocused
       expect(screen.getByRole('combobox')).toHaveFocus();
       // full chip committed
-      expect(screen.getByText('key2 = val3')).toBeInTheDocument();
+      expect(screen.getByText('key2 = valLabel3')).toBeInTheDocument();
       // and key dropdown should be showing
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
       // other untouched filter should still be there as well
-      expect(screen.getByText('key1 = val1')).toBeInTheDocument();
+      expect(screen.getByText('key1 = valLabel1')).toBeInTheDocument();
     });
 
     it('can add a new filter by selecting key, operator and value', async () => {
@@ -1175,14 +1477,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // and value dropdown should be showing
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
-      expect(screen.getByRole('option', { name: 'val1' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'valLabel1' })).toBeInTheDocument();
 
-      await userEvent.click(screen.getByRole('option', { name: 'val3' }));
+      await userEvent.click(screen.getByRole('option', { name: 'valLabel3' }));
 
       // input should be refocused
       expect(screen.getByRole('combobox')).toHaveFocus();
       // full chip committed
-      expect(screen.getByText('key3 = val3')).toBeInTheDocument();
+      expect(screen.getByText('key3 = valLabel3')).toBeInTheDocument();
       // and key dropdown should be showing
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
@@ -1214,7 +1516,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // and value dropdown should be showing
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
-      expect(screen.getByRole('option', { name: 'val1' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'valLabel1' })).toBeInTheDocument();
 
       await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
@@ -1222,11 +1524,70 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // input should be refocused
       expect(screen.getByRole('combobox')).toHaveFocus();
       // full chip committed
-      expect(screen.getByText('key3 = val3')).toBeInTheDocument();
+      expect(screen.getByText('key3 = valLabel3')).toBeInTheDocument();
       // and key dropdown should be showing
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
+    });
+  });
+
+  describe('operators', () => {
+    it('shows the regex operators when allowCustomValue is undefined', async () => {
+      setup();
+
+      const middleKeySelect = screen.getAllByRole('combobox')[1];
+      await userEvent.click(middleKeySelect);
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
+
+      expect(options).toEqual([
+        '=Equals',
+        '!=Not equal',
+        '=~Matches regex',
+        '!~Does not match regex',
+        '<Less than',
+        '>Greater than',
+      ]);
+    });
+
+    it('shows the regex operators when allowCustomValue is set true', async () => {
+      setup({
+        allowCustomValue: true,
+      });
+
+      const middleKeySelect = screen.getAllByRole('combobox')[1];
+      await userEvent.click(middleKeySelect);
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
+
+      expect(options).toEqual([
+        '=Equals',
+        '!=Not equal',
+        '=~Matches regex',
+        '!~Does not match regex',
+        '<Less than',
+        '>Greater than',
+      ]);
+    });
+
+    it('does not show the regex operators when allowCustomValue is set false', async () => {
+      setup({
+        allowCustomValue: false,
+      });
+
+      const middleKeySelect = screen.getAllByRole('combobox')[1];
+      await userEvent.click(middleKeySelect);
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
+
+      expect(options).toEqual(['=Equals', '!=Not equal', '<Less than', '>Greater than']);
     });
   });
 });

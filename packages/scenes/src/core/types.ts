@@ -17,6 +17,8 @@ import { DataQuery, DataTopic, TimeZone } from '@grafana/schema';
 
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
+import { VizPanel } from '../components/VizPanel/VizPanel';
+import { WeekStart } from '@grafana/ui';
 
 export interface SceneObjectState {
   key?: string;
@@ -60,6 +62,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
 
   /** True when there is a React component mounted for this Object */
   readonly isActive: boolean;
+
+  /** Controls if activation blocks rendering */
+  readonly renderBeforeActivation: boolean;
 
   /** SceneObject parent */
   readonly parent?: SceneObject;
@@ -140,6 +145,7 @@ export interface SceneLayout<T extends SceneLayoutState = SceneLayoutState> exte
   isDraggable(): boolean;
   getDragClass?(): string;
   getDragClassCancel?(): string;
+  getDragHooks?(): { onDragStart?: (e: React.PointerEvent, panel: VizPanel) => void };
 }
 
 export interface SceneTimeRangeState extends SceneObjectState {
@@ -149,7 +155,7 @@ export interface SceneTimeRangeState extends SceneObjectState {
   value: TimeRange;
   timeZone?: TimeZone;
   /** weekStart will change the global date locale so having multiple different weekStart values is not supported  */
-  weekStart?: string;
+  weekStart?: WeekStart;
   /**
    * @internal
    * To enable feature parity with the old time range picker, not sure if it will be kept.
@@ -184,7 +190,6 @@ export function isSceneObject(obj: any): obj is SceneObject {
 export interface SceneObjectWithUrlSync extends SceneObject {
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
-  shouldCreateHistoryStep?(values: SceneObjectUrlValues): boolean;
 }
 
 export interface SceneObjectUrlSyncHandler {
@@ -192,6 +197,7 @@ export interface SceneObjectUrlSyncHandler {
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;
   shouldCreateHistoryStep?(values: SceneObjectUrlValues): boolean;
+  performBrowserHistoryAction?(callback: () => void): void;
 }
 
 export interface DataRequestEnricher {

@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes-react",
-  "version": "5.25.0",
+  "version": "6.1.1",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
@@ -48,7 +48,8 @@
     "@grafana/schema": "^11.0.0",
     "@grafana/ui": "^11.0.0",
     "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
     "@emotion/css": "11.10.5",
@@ -71,7 +72,6 @@
     "@types/react": "18.2.74",
     "@types/react-dom": "18.2.24",
     "@types/react-grid-layout": "1.3.2",
-    "@types/react-router-dom": "5.3.3",
     "@types/react-virtualized-auto-sizer": "1.0.1",
     "@types/uuid": "8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
@@ -89,7 +89,6 @@
     "jest-matcher-utils": "29.7.0",
     "lodash": "4.17.21",
     "prettier": "2.5.1",
-    "react-router-dom": "^5.2.0",
     "react-select-event": "^5.5.1",
     "rimraf": "^3.0.2",
     "rollup": "2.79.1",

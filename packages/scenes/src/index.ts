@@ -5,7 +5,12 @@ import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
 
 import { registerVariableMacro } from './variables/macros';
-import { renderPrometheusLabelFilters } from './variables/utils';
+import {
+  escapeLabelValueInExactSelector,
+  escapeLabelValueInRegexSelector,
+  escapeURLDelimiters,
+  renderPrometheusLabelFilters,
+} from './variables/utils';
 import {
   isAdHocVariable,
   isQueryVariable,
@@ -45,7 +50,8 @@ export type {
   SceneQueryControllerLike,
   SceneQueryControllerEntryType,
   SceneQueryControllerEntry,
-} from './behaviors/SceneQueryController';
+  SceneInteractionProfileEvent,
+} from './behaviors/types';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
@@ -67,6 +73,7 @@ export {
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
+export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
@@ -97,10 +104,12 @@ export {
 } from './components/layout/SceneFlexLayout';
 export { SceneCSSGridLayout, SceneCSSGridItem } from './components/layout/CSSGrid/SceneCSSGridLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
+export { SceneGridLayoutDragStartEvent } from './components/layout/grid/types';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';
 export { SplitLayout } from './components/layout/split/SplitLayout';
+export { LazyLoader } from './components/layout/LazyLoader';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,
@@ -137,6 +146,9 @@ export const sceneUtils = {
   syncStateFromSearchParams,
   getUrlState,
   renderPrometheusLabelFilters,
+  escapeLabelValueInRegexSelector,
+  escapeLabelValueInExactSelector,
+  escapeURLDelimiters,
 
   // Variable guards
   isAdHocVariable,

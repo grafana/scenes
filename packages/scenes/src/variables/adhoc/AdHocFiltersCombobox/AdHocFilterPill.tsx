@@ -20,8 +20,6 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
   const [populateInputOnEdit, setPopulateInputOnEdit] = useState(false);
 
   const keyLabel = filter.keyLabel ?? filter.key;
-  // TODO remove when we're on the latest version of @grafana/data
-  //@ts-expect-error
   const valueLabel = filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
 
   const handleChangeViewMode = useCallback(

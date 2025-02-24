@@ -12,7 +12,6 @@ import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './u
 export function getQueryCancellationTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Demo of query cancellation',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

@@ -60,14 +60,13 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
       };
     });
 
-    // If the element was loaded, we add the `hideEmpty` class to potentially
-    // hide the LazyLoader if it does not have any children. This is the case
-    // when children have the `isHidden` property set.
-    // We always include the `className` class, as this is coming from the
-    // caller of the `LazyLoader` component.
-    const classes = `${loaded ? hideEmpty : ''} ${className}`;
+    // since we will hide empty lazyloaded divs, we need to include a
+    // non-breaking space while the loader has not been loaded. after it has
+    // been loaded, we can remove the non-breaking space and show the children.
+    // If the children render empty, the whole loader will be hidden by css.
     return (
-      <div id={id} ref={innerRef} className={classes} {...rest}>
+      <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
+        {!loaded && '\u00A0'}
         {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
       </div>
     );

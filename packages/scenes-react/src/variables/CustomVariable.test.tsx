@@ -52,5 +52,5 @@ describe('CustomVariable', () => {
     expect(variable).toBeDefined();
     expect(variable.state.label).toBe('test2');
     expect(screen.getByText('test2')).toBeInTheDocument();
-  })
+  });
 });

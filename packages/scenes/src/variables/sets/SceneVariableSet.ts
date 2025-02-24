@@ -87,7 +87,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         this._variablesToUpdate.add(variable);
       }
     }
-
     this._updateNextBatch();
   }
 
@@ -330,7 +329,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
     if (sceneObject.state.$variables && sceneObject.state.$variables !== this) {
       const localVar = sceneObject.state.$variables.getByName(variable.state.name);
-      if (localVar) {
+      // If local variable is viewed as loading when ancestor is loading we propagate a change
+      if (localVar?.isAncestorLoading) {
+        variable = localVar;
+      } else if (localVar) {
         return;
       }
     }

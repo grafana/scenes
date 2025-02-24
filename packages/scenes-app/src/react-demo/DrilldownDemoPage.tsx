@@ -4,8 +4,9 @@ import React from 'react';
 import { DATASOURCE_REF } from '../constants';
 import { PageWrapper } from './PageWrapper';
 import { DemoVizLayout, urlBase } from './utils';
-import { Route, Switch, useParams } from 'react-router-dom';
+import { Route, Routes, useParams } from 'react-router-dom';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function DrilldownDemoPage() {
   /**
@@ -15,10 +16,10 @@ export function DrilldownDemoPage() {
   return (
     <BreadcrumbProvider>
       <Breadcrumb text="Drilldown demo" path={`${urlBase}/drilldown`} />
-      <Switch>
-        <Route path={`${urlBase}/drilldown`} component={DrilldownHome} exact />
-        <Route path={`${urlBase}/drilldown/lib/:lib`} component={DrilldownLibraryPage} />
-      </Switch>
+      <Routes>
+        <Route path="*" element={<DrilldownHome />} />
+        <Route path="lib/:lib" element={<DrilldownLibraryPage />} />
+      </Routes>
     </BreadcrumbProvider>
   );
 }
@@ -36,7 +37,15 @@ export function DrilldownHome() {
   });
 
   return (
-    <PageWrapper title="Drilldown demo" subTitle="The top level page (for the demo)">
+    <PageWrapper
+      title="Drilldown demo"
+      subTitle={
+        <DemoSubTitle
+          text={'The top level page (for the demo)'}
+          getSourceCodeModule={() => import('!!raw-loader!./DrilldownDemoPage')}
+        />
+      }
+    >
       <DemoVizLayout>
         <VizPanel title="JS Libraries" dataProvider={dataProvider} viz={tableWithDrilldown} />
       </DemoVizLayout>
@@ -48,7 +57,15 @@ export function DrilldownLibraryPage() {
   const libraryName = useParams<{ lib: string }>().lib;
 
   return (
-    <PageWrapper title={`Library: ${libraryName}`} subTitle="Library details drilldown page">
+    <PageWrapper
+      title={`Library: ${libraryName}`}
+      subTitle={
+        <DemoSubTitle
+          text={'Library details drilldown page'}
+          getSourceCodeModule={() => import('!!raw-loader!./DrilldownDemoPage')}
+        />
+      }
+    >
       <DemoVizLayout>
         <PlainGraphWithRandomWalk title={`${libraryName} trends`} />
       </DemoVizLayout>

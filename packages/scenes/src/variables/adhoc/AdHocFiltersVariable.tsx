@@ -1,5 +1,4 @@
 import React from 'react';
-// @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
@@ -18,11 +17,14 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 
-export interface AdHocFilterWithLabels extends AdHocVariableFilter {
+export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabels?: string[];
   // this is used to externally trigger edit mode in combobox filter UI
   forceEdit?: boolean;
+  // hide the filter from AdHocFiltersVariableRenderer and the URL
+  hidden?: boolean;
+  meta?: M;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -104,13 +106,23 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;
+
+  /**
+   * Allows custom formatting of a value before saving to filter state
+   */
+  onAddCustomValue?: OnAddCustomValueFn;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
+export type OnAddCustomValueFn = (
+  item: SelectableValue<string> & { isCustom?: boolean },
+  filter: AdHocFilterWithLabels
+) => { value: string | undefined; valueLabels: string[] };
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
-  currentKey: string | null
+  currentKey: string | null,
+  operators?: OperatorDefinition[]
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type getTagValuesProvider = (
@@ -124,6 +136,7 @@ export type OperatorDefinition = {
   value: string;
   description?: string;
   isMulti?: Boolean;
+  isRegex?: Boolean;
 };
 
 export const OPERATORS: OperatorDefinition[] = [
@@ -148,10 +161,12 @@ export const OPERATORS: OperatorDefinition[] = [
   {
     value: '=~',
     description: 'Matches regex',
+    isRegex: true,
   },
   {
     value: '!~',
     description: 'Does not match regex',
+    isRegex: true,
   },
   {
     value: '<',
@@ -201,6 +216,36 @@ export class AdHocFiltersVariable
     super.setState(update);
 
     if (filterExpressionChanged) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
+
+  /**
+   * Updates the variable's `filters` and `filterExpression` state.
+   * If `skipPublish` option is true, this will not emit the `SceneVariableValueChangedEvent`,
+   * allowing consumers to update the filters without triggering dependent data providers.
+   */
+  public updateFilters(
+    filters: AdHocFilterWithLabels[],
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void {
+    let filterExpressionChanged = false;
+    let filterExpression = undefined;
+
+    if (filters && filters !== this.state.filters) {
+      filterExpression = renderExpression(this.state.expressionBuilder, filters);
+      filterExpressionChanged = filterExpression !== this.state.filterExpression;
+    }
+
+    super.setState({
+      filters,
+      filterExpression,
+    });
+
+    if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -310,7 +355,6 @@ export class AdHocFiltersVariable
     });
 
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 
@@ -321,7 +365,6 @@ export class AdHocFiltersVariable
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
     if (tagKeyRegexFilter) {
-      // @ts-expect-error Remove when 11.1.x is released
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
@@ -353,13 +396,12 @@ export class AdHocFiltersVariable
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
-      timeRange, // @ts-expect-error TODO: remove this once 11.1.x is released
+      timeRange,
       queries,
       ...getEnrichedFiltersRequest(this),
     });
 
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 
@@ -378,10 +420,17 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const filteredOperators = this.state.supportsMultiValueOperators
-      ? OPERATORS
-      : OPERATORS.filter((operator) => !operator.isMulti);
-    return filteredOperators.map<SelectableValue<string>>(({ value, description }) => ({
+    const { supportsMultiValueOperators, allowCustomValue = true } = this.state;
+
+    return OPERATORS.filter(({ isMulti, isRegex }) => {
+      if (!supportsMultiValueOperators && isMulti) {
+        return false;
+      }
+      if (!allowCustomValue && isRegex) {
+        return false;
+      }
+      return true;
+    }).map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
       description,
@@ -406,11 +455,13 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
 
   return (
     <div className={styles.wrapper}>
-      {filters.map((filter, index) => (
-        <React.Fragment key={index}>
-          <AdHocFilterRenderer filter={filter} model={model} />
-        </React.Fragment>
-      ))}
+      {filters
+        .filter((filter) => !filter.hidden)
+        .map((filter, index) => (
+          <React.Fragment key={index}>
+            <AdHocFilterRenderer filter={filter} model={model} />
+          </React.Fragment>
+        ))}
 
       {!readOnly && <AdHocFilterBuilder model={model} key="'builder" addFilterButtonText={addFilterButtonText} />}
     </div>
@@ -430,12 +481,18 @@ const getStyles = (theme: GrafanaTheme2) => ({
 export function toSelectableValue(input: MetricFindValue): SelectableValue<string> {
   const { text, value } = input;
   const result: SelectableValue<string> = {
-    label: text,
+    // converting text to string due to some edge cases where it can be a number
+    // TODO: remove once https://github.com/grafana/grafana/issues/99021 is closed
+    label: String(text),
     value: String(value ?? text),
   };
 
   if ('group' in input) {
     result.group = input.group;
+  }
+
+  if ('meta' in input) {
+    result.meta = input.meta;
   }
 
   return result;

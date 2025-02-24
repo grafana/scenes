@@ -14,6 +14,7 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
+import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
@@ -259,8 +260,25 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
   });
 
+  it('does NOT call addActivationHandler when applyMode is manual', async () => {
+    allActiveGroupByVariables.clear();
+
+    const { variable } = setupTest({
+      applyMode: 'manual',
+    });
+
+    const addActivationHandlerSpy = jest.spyOn(variable, 'addActivationHandler');
+
+    await act(async () => {
+      await lastValueFrom(variable.validateAndUpdate());
+    });
+
+    expect(addActivationHandlerSpy).not.toHaveBeenCalled();
+    expect(allActiveGroupByVariables.size).toBe(0);
+  });
+
   // TODO enable once this repo is using @grafana/ui@11.1.0
-  it.skip('shows groups and orders according to first occurence of a group item', async () => {
+  it.skip('shows groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setupTest({
       getTagKeysProvider: async () => ({
         replace: true,

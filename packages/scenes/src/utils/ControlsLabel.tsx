@@ -100,7 +100,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     fontSize: theme.typography.bodySmall.fontSize,
     height: theme.spacing(theme.components.height.md),
     lineHeight: theme.spacing(theme.components.height.md),
-    borderRadius: theme.shape.borderRadius(1),
+    borderRadius: `${theme.shape.radius.default} 0 0 ${theme.shape.radius.default}`,
     border: `1px solid ${theme.components.input.borderColor}`,
     position: 'relative',
     // To make the border line up with the input border

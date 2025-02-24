@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-// @ts-expect-error Remove when 11.1.x is released
 import { AdHocVariableFilter, DataSourceApi, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
@@ -9,7 +8,7 @@ import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } fro
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
-import { InputActionMeta, MultiSelect } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
 import { isArray } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
@@ -93,7 +92,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         this.state.defaultOptions.map((o) => ({
           label: o.text,
           value: String(o.value),
-          // @ts-expect-error Remove when we update to @grafana/data > 11.1.0
           group: o.group,
         }))
       );
@@ -116,7 +114,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
           map((response) => dataFromResponse(response)),
           take(1),
           mergeMap((data) => {
-            // @ts-expect-error Remove when 11.1.x is released
             const a: VariableValueOption[] = data.map((i) => {
               return {
                 label: i.text,
@@ -147,11 +144,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       noValueOnClear: true,
     });
 
-    this.addActivationHandler(() => {
-      allActiveGroupByVariables.add(this);
+    if (this.state.applyMode === 'auto') {
+      this.addActivationHandler(() => {
+        allActiveGroupByVariables.add(this);
 
-      return () => allActiveGroupByVariables.delete(this);
-    });
+        return () => allActiveGroupByVariables.delete(this);
+      });
+    }
   }
 
   /**
@@ -184,7 +183,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       ...getEnrichedFiltersRequest(this),
     });
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 
@@ -195,7 +193,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
     if (tagKeyRegexFilter) {
-      // @ts-expect-error Remove when 11.1.x is released
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
@@ -209,8 +206,19 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return { value: [], text: [] };
   }
 }
+
 export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, maxVisibleValues, noValueOnClear, options, includeAll } = model.useState();
+  const {
+    value,
+    text,
+    key,
+    isMulti = true,
+    maxVisibleValues,
+    noValueOnClear,
+    options,
+    includeAll,
+    allowCustomValue = true,
+  } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
@@ -258,13 +266,14 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
     [optionSearcher, inputValue]
   );
 
-  return (
+  return isMulti ? (
     <MultiSelect<VariableValueSingle>
+      aria-label="Group by selector"
       data-testid={`GroupBySelect-${key}`}
       id={key}
       placeholder={'Select value'}
       width="auto"
-      allowCustomValue={true}
+      allowCustomValue={allowCustomValue}
       inputValue={inputValue}
       value={uncommittedValue}
       noMultiValueWrap={true}
@@ -283,14 +292,61 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       onBlur={() => {
         model.changeValueTo(
           uncommittedValue.map((x) => x.value!),
-          uncommittedValue.map((x) => x.label!)
+          uncommittedValue.map((x) => x.label!),
+          true
         );
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
-          model.changeValueTo([]);
+          model.changeValueTo([], undefined, true);
         }
         setUncommittedValue(newValue);
+      }}
+      onOpenMenu={async () => {
+        setIsFetchingOptions(true);
+        await lastValueFrom(model.validateAndUpdate());
+        setIsFetchingOptions(false);
+        setIsOptionsOpen(true);
+      }}
+      onCloseMenu={() => {
+        setIsOptionsOpen(false);
+      }}
+    />
+  ) : (
+    <Select
+      aria-label="Group by selector"
+      data-testid={`GroupBySelect-${key}`}
+      id={key}
+      placeholder={'Select value'}
+      width="auto"
+      inputValue={inputValue}
+      value={uncommittedValue}
+      allowCustomValue={allowCustomValue}
+      noMultiValueWrap={true}
+      maxVisibleValues={maxVisibleValues ?? 5}
+      tabSelectsValue={false}
+      virtualized
+      options={filteredOptions}
+      filterOption={filterNoOp}
+      closeMenuOnSelect={true}
+      isOpen={isOptionsOpen}
+      isClearable={true}
+      hideSelectedOptions={false}
+      noValueOnClear={true}
+      isLoading={isFetchingOptions}
+      onInputChange={onInputChange}
+      onChange={(newValue, action) => {
+        if (action.action === 'clear') {
+          setUncommittedValue([]);
+          if (noValueOnClear) {
+            model.changeValueTo([]);
+          }
+          return;
+        }
+        if (newValue?.value) {
+          setUncommittedValue([newValue]);
+          model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : undefined);
+        }
       }}
       onOpenMenu={async () => {
         setIsFetchingOptions(true);

@@ -26,7 +26,7 @@ export function CustomVariable({
   let variable: CustomVariableObject | undefined = scene.findVariable(name);
 
   if (!variable) {
-    variable = new CustomVariableObject({ name, label, query, value: initialValue, isMulti, includeAll, hide});
+    variable = new CustomVariableObject({ name, label, query, value: initialValue, isMulti, includeAll, hide });
   }
 
   useEffect(() => {
@@ -41,8 +41,8 @@ export function CustomVariable({
       query,
       hide,
       isMulti,
-      includeAll
-    })
+      includeAll,
+    });
   }, [hide, includeAll, isMulti, label, query, variable]);
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable

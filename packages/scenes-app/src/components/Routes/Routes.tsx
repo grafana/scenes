@@ -1,19 +1,18 @@
 import * as React from 'react';
-import { Redirect, Route, Switch } from 'react-router-dom';
-import { prefixRoute } from '../../utils/utils.routing';
+import { Route, Routes } from 'react-router-dom';
 import { ROUTES } from '../../constants';
 import { DemoListPage } from '../../pages/DemoListPage';
 import GrafanaMonitoringApp from '../../monitoring-app/GrafanaMonitoringApp';
 import { ReactDemoPage } from '../../react-demo/Home';
+import { HomePage } from '../../home-demo/HomeApp';
 
-export const Routes = () => {
+export function AppRoutes() {
   return (
-    <Switch>
-      {/* Default page */}
-      <Route path={prefixRoute(`${ROUTES.Demos}`)} component={DemoListPage} />
-      <Route path={prefixRoute(`${ROUTES.GrafanaMonitoring}`)} component={GrafanaMonitoringApp} />
-      <Route path={prefixRoute(`${ROUTES.ReactDemo}`)} component={ReactDemoPage} />
-      <Redirect to={prefixRoute(ROUTES.Demos)} />
-    </Switch>
+    <Routes>
+      <Route path={`${ROUTES.Demos}/*`} Component={DemoListPage} />
+      <Route path={`${ROUTES.GrafanaMonitoring}/*`} Component={GrafanaMonitoringApp} />
+      <Route path={`${ROUTES.ReactDemo}/*`} Component={ReactDemoPage} />
+      <Route path="*" Component={HomePage} />
+    </Routes>
   );
-};
+}
