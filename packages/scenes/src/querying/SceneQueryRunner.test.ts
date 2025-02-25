@@ -1,4 +1,4 @@
-import { map, Observable, of } from 'rxjs';
+import { map, Observable, of, BehaviorSubject } from 'rxjs';
 
 import {
   DataQueryRequest,
@@ -39,6 +39,8 @@ import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
 import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
 import { SceneQueryStateControllerState } from '../behaviors/types';
 import { config } from '@grafana/runtime';
+import { SceneScopesBridge } from '../core/SceneScopesBridge';
+import { sceneGraph } from '../core/sceneGraph';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -2566,6 +2568,73 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
       expect(clone['_results']['_buffer']).not.toEqual([]);
     });
+  });
+  describe('scopes', () => {
+    let getScopesBridgeSpy = jest.spyOn(sceneGraph, 'getScopesBridge');
+
+    afterEach(() => {
+      getScopesBridgeSpy.mockReturnValue(undefined);
+    });
+
+    it('should run queries with scopes when scopesBridge is provided', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      const scopes = new SceneScopesBridge({});
+      const mockState = {
+        value: [
+          {
+            metadata: { name: 'Scope 1' },
+            spec: {
+              title: 'Scope 1',
+              type: 'test',
+              description: 'Test scope',
+              category: 'test',
+              filters: [],
+            },
+          },
+        ],
+        drawerOpened: false,
+        enabled: true,
+        loading: false,
+        readOnly: false,
+      };
+
+      scopes.updateContext({
+        state: mockState,
+        stateObservable: new BehaviorSubject(mockState),
+        changeScopes: () => {},
+        setReadOnly: () => {},
+        setEnabled: () => {},
+      });
+
+      getScopesBridgeSpy.mockReturnValue(scopes);
+
+      queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest?.scopes).toBeDefined();
+      expect(sentRequest?.scopes?.[0]).toMatchObject({
+        metadata: { name: 'Scope 1' },
+        spec: {
+          title: 'Scope 1',
+          type: 'test',
+        },
+      });
+    });
+  });
+  it('should not run queries with scopes when scopesBridge is not provided and the feature is disabled', async () => {
+    const queryRunner = new SceneQueryRunner({
+      queries: [{ refId: 'A' }],
+      $timeRange: new SceneTimeRange(),
+    });
+
+    queryRunner.activate();
+    await new Promise((r) => setTimeout(r, 1));
+
+    expect(sentRequest?.scopes).toBeUndefined();
   });
 });
 
