@@ -51,8 +51,10 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
         }
       }
       clonedState[key] = newArray;
-    } else {
+    } else if (typeof propValue === 'object') {
       clonedState[key] = cloneDeep(propValue);
+    } else {
+      clonedState[key] = propValue;
     }
   }
 
