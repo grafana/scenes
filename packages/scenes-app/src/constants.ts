@@ -7,8 +7,7 @@ export enum ROUTES {
   Demos = 'demos',
   GrafanaMonitoring = 'grafana-monitoring',
   ReactDemo = 'react-only',
-  PluginSceneApp1 = 'plugin-scene-app-1',
-  PluginSceneApp2 = 'plugin-scene-app-2',
+  AppTest = 'app-test',
 }
 
 export const DATASOURCE_REF = {

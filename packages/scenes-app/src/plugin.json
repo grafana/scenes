@@ -50,14 +50,14 @@
     {
       "type": "page",
       "name": "Page 1",
-      "path": "/a/%PLUGIN_ID%/plugin-scene-app-1",
+      "path": "/a/%PLUGIN_ID%/app-test/plugin-scene-app-1",
       "role": "Admin",
       "addToNav": true
     },
     {
       "type": "page",
       "name": "Page 2",
-      "path": "/a/%PLUGIN_ID%/plugin-scene-app-2",
+      "path": "/a/%PLUGIN_ID%/app-test/plugin-scene-app-2",
       "role": "Admin",
       "addToNav": true
     }
