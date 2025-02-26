@@ -1,3 +1,15 @@
+# v6.1.3 (Wed Feb 26 2025)
+
+#### 🐛 Bug Fix
+
+- Profiling: explicitly set profiling names [#1063](https://github.com/grafana/scenes/pull/1063) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v6.1.2 (Wed Feb 26 2025)
 
 #### 🐛 Bug Fix
