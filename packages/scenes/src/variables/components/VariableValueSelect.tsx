@@ -99,7 +99,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!, true);
-        queryController?.startProfile(model);
+        queryController?.startProfile('VariableValueSelect');
 
         if (hasCustomValue !== newValue.__isNew__) {
           setHasCustomValue(newValue.__isNew__);
@@ -180,7 +180,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(uncommittedValue, undefined, true);
-        queryController?.startProfile(model);
+        queryController?.startProfile('VariableValueSelectMulti');
       }}
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}

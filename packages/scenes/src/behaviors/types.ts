@@ -38,6 +38,6 @@ export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateCon
 
   queryStarted(entry: SceneQueryControllerEntry): void;
   queryCompleted(entry: SceneQueryControllerEntry): void;
-  startProfile(source: SceneObject): void;
+  startProfile(name: string): void;
   runningQueriesCount(): number;
 }

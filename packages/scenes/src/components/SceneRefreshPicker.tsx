@@ -85,7 +85,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   public onRefresh = () => {
     const queryController = sceneGraph.getQueryController(this);
 
-    queryController?.startProfile(this);
+    queryController?.startProfile('SceneRefreshPicker');
 
     if (queryController?.state.isRunning) {
       queryController.cancelAll();
@@ -191,7 +191,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     this._intervalTimer = setInterval(() => {
       if (this.isTabVisible()) {
         const queryController = sceneGraph.getQueryController(this);
-        queryController?.startProfile(this);
+        queryController?.startProfile('SceneRefreshPicker');
         timeRange.onRefresh();
       } else {
         this._autoRefreshBlocked = true;
