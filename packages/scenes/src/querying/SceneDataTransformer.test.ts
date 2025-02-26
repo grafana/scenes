@@ -681,11 +681,11 @@ describe('SceneDataTransformer', () => {
       deactivate();
 
       transformer.activate();
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
 
       const clone = transformer.clone();
       clone.activate();
-
-      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
     });
 
     it('When series and annotations are the same but loading state is not', async () => {
