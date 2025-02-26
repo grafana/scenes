@@ -1,3 +1,15 @@
+# v6.1.2 (Wed Feb 26 2025)
+
+#### 🐛 Bug Fix
+
+- Utils: Spread objects in cloneSceneObjectState [#967](https://github.com/grafana/scenes/pull/967) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v6.1.1 (Mon Feb 24 2025)
 
 #### 🐛 Bug Fix
