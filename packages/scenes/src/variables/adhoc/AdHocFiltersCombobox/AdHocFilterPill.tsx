@@ -27,14 +27,14 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
   const handleChangeViewMode = useCallback(
     (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => {
       event?.stopPropagation();
-      if (readOnly || filter.source) {
+      if (readOnly) {
         return;
       }
 
       setShouldFocusOnPillWrapper(shouldFocusOnPillWrapperOverride ?? !viewMode);
       setViewMode(!viewMode);
     },
-    [readOnly, viewMode, filter.source]
+    [readOnly, viewMode]
   );
 
   useEffect(() => {
@@ -115,12 +115,25 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         ) : null}
 
-        {filter.source && (
+        {filter.source && !filter.originalValue && (
           <IconButton
             name="info-circle"
             size="md"
             className={styles.pillIcon}
             tooltip={`This is a ${filter.source} injected filter`}
+          />
+        )}
+
+        {filter.source && filter.originalValue && (
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              model.restoreBaseFilter(filter);
+            }}
+            name="history"
+            size="md"
+            className={styles.pillIcon}
+            tooltip={`Restore filter to its original value`}
           />
         )}
       </div>

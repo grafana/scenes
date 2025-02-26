@@ -10,44 +10,75 @@ import { escapeUrlPipeDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimite
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
 
-  private getKey(): string {
+  private getKey(isInjected?: boolean): string {
+    if (isInjected) {
+      return `var-injected-${this._variable.state.name}`;
+    }
+
     return `var-${this._variable.state.name}`;
   }
 
   public getKeys(): string[] {
-    return [this.getKey()];
+    return [this.getKey(), this.getKey(true)];
   }
 
   public getUrlState(): SceneObjectUrlValues {
     const filters = this._variable.state.filters;
+    const baseFilters = this._variable.state.baseFilters;
 
-    if (filters.length === 0) {
-      return { [this.getKey()]: [''] };
+    let value = [''];
+    let baseValues = [''];
+
+    if (filters.length === 0 && baseFilters?.length === 0) {
+      return { [this.getKey()]: value, [this.getKey(true)]: baseValues };
     }
 
-    const value = filters
-      .filter(isFilterComplete)
-      .filter((filter) => !filter.hidden)
-      .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'));
-    return { [this.getKey()]: value };
+    if (filters.length) {
+      value = filters
+        .filter(isFilterComplete)
+        .filter((filter) => !filter.hidden)
+        .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'));
+    }
+
+    if (baseFilters?.length) {
+      baseValues = baseFilters
+        ?.filter(isFilterComplete)
+        .filter((filter) => !filter.hidden && filter.source)
+        .map((filter) =>
+          toArray(filter)
+            .map(escapeUrlPipeDelimiters)
+            .join('|')
+            .concat(`/${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}/${filter.source}`)
+        );
+    }
+
+    return { [this.getKey()]: value, [this.getKey(true)]: baseValues };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
     const urlValue = values[this.getKey()];
+    const urlValueBaseFilters = values[this.getKey(true)];
 
-    if (urlValue == null) {
+    if (urlValue == null && urlValueBaseFilters == null) {
       return;
     }
 
-    const filters = deserializeUrlToFilters(urlValue);
-    this._variable.setState({ filters });
+    if (urlValue) {
+      const filters = deserializeUrlToFilters(urlValue);
+      this._variable.setState({ filters });
+    }
+
+    if (urlValueBaseFilters) {
+      const baseFilters = deserializeUrlToFilters(urlValueBaseFilters);
+      this._variable.setState({ baseFilters });
+    }
   }
 }
 
 function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLabels[] {
   if (Array.isArray(value)) {
     const values = value;
-    return values.map(toFilter).filter(isFilter);
+    return values.map((value) => toFilter(value)).filter(isFilter);
   }
 
   const filter = toFilter(value);
@@ -73,7 +104,9 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [key, keyLabel, operator, _operatorLabel, ...values] = urlValue
+  const [filter, originalValues, source] = urlValue.split('/');
+
+  const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
     .reduce<string[]>((acc, v) => {
       const [key, label] = v.split(',');
@@ -92,6 +125,8 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
+    source: source,
+    originalValue: originalValues && originalValues.length ? originalValues.split('|') ?? [originalValues] : undefined,
   };
 }
 

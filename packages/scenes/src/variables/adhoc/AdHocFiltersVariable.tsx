@@ -27,7 +27,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   meta?: M;
   // filter source, it can be either scopes, dashboards or undefined,
   // which means it won't appear in the UI
-  source?: FilterSource;
+  source?: FilterSource | string;
+  originalValue?: string[];
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -216,8 +217,15 @@ export class AdHocFiltersVariable
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
 
-    if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {
-      update.filterExpression = renderExpression(this.state.expressionBuilder, update.filters);
+    if (
+      ((update.filters && update.filters !== this.state.filters) ||
+        (update.baseFilters && update.baseFilters !== this.state.baseFilters)) &&
+      !update.filterExpression
+    ) {
+      update.filterExpression = renderExpression(this.state.expressionBuilder, [
+        ...(update.baseFilters?.filter((filter) => filter.source) ?? []),
+        ...(update.filters ?? []),
+      ]);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
     }
 
@@ -258,12 +266,43 @@ export class AdHocFiltersVariable
     }
   }
 
+  public restoreBaseFilter(filter: AdHocFilterWithLabels) {
+    if (filter) {
+      const originalBaseFilter = filter.originalValue;
+
+      if (originalBaseFilter?.length) {
+        this._updateFilter(filter, {
+          value: originalBaseFilter[0],
+          values: originalBaseFilter,
+          valueLabels: originalBaseFilter,
+          originalValue: undefined,
+        });
+      }
+    }
+  }
+
   public getValue(): VariableValue | undefined {
     return this.state.filterExpression;
   }
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
-    const { filters, _wip } = this.state;
+    const { baseFilters, filters, _wip } = this.state;
+
+    const isBaseFilter = baseFilters?.includes(filter);
+
+    if (isBaseFilter && filter.source) {
+      if (!filter.originalValue) {
+        update.originalValue = filter.values ? filter.values : [filter.value];
+      }
+
+      const updatedBaseFilters =
+        baseFilters?.map((f) => {
+          return f === filter ? { ...f, ...update } : f;
+        }) ?? [];
+      this.setState({ baseFilters: updatedBaseFilters });
+
+      return;
+    }
 
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
@@ -395,8 +434,9 @@ export class AdHocFiltersVariable
       return [];
     }
 
+    const filteredBaseFilters = this.state.baseFilters?.filter((f) => f.source && f.key !== filter.key) ?? [];
     // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters ?? []);
+    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(filteredBaseFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
