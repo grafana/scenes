@@ -30,7 +30,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     let baseValues = [''];
 
     if (filters.length === 0 && baseFilters?.length === 0) {
-      return { [this.getKey()]: value, [this.getKey(true)]: baseValues };
+      return { [this.getKey()]: value };
     }
 
     if (filters.length) {
@@ -52,7 +52,10 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
         );
     }
 
-    return { [this.getKey()]: value, [this.getKey(true)]: baseValues };
+    return {
+      [this.getKey()]: value,
+      ...(baseFilters?.length ? { [this.getKey(true)]: baseValues } : {}),
+    };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
