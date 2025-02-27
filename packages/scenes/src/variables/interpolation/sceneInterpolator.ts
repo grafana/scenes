@@ -7,7 +7,7 @@ import { InterpolationFormatParameter, isCustomVariableValue, VariableValue } fr
 
 import { getSceneVariableForScopedVar } from './ScopedVarsVariable';
 import { formatRegistry, FormatVariable } from './formatRegistry';
-import { UNESCAPED_BACKSLASH, VARIABLE_REGEX } from '../constants';
+import { VARIABLE_REGEX } from '../constants';
 import { lookupVariable } from '../lookupVariable';
 import { macrosIndex } from '../macros';
 
@@ -51,7 +51,7 @@ export function sceneInterpolator(
     }
 
     return value;
-  }).replaceAll(UNESCAPED_BACKSLASH, '\\\\');
+  });
 }
 
 function lookupFormatVariable(
