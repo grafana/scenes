@@ -304,11 +304,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     await userEvent.clear(selects[2]);
     await userEvent.type(selects[2], 'a');
     const customValueOption = screen.getByText('Use custom value: a');
-    const options = screen.getAllByRole('option')
-    expect(options[0].textContent).toEqual('Alice')
-    expect(options[1].textContent).toEqual('Anise')
-    expect(options[2].textContent).toEqual('Use custom value: a')
-
+    const options = screen.getAllByRole('option');
+    expect(options[0].textContent).toEqual('Alice');
+    expect(options[1].textContent).toEqual('Anise');
+    expect(options[2].textContent).toEqual('Use custom value: a');
 
     expect(customValueOption).toBeInTheDocument();
 
@@ -369,11 +368,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     await userEvent.clear(selects[2]);
     await userEvent.type(selects[2], 'a');
     const customValueOption = screen.getByText('Use custom value: a');
-    const options = screen.getAllByRole('option')
-    expect(options[1].textContent).toEqual('Alice')
-    expect(options[2].textContent).toEqual('Anise')
-    expect(options[0].textContent).toEqual('Use custom value: a')
-
+    const options = screen.getAllByRole('option');
+    expect(options[1].textContent).toEqual('Alice');
+    expect(options[2].textContent).toEqual('Anise');
+    expect(options[0].textContent).toEqual('Use custom value: a');
 
     expect(customValueOption).toBeInTheDocument();
 
