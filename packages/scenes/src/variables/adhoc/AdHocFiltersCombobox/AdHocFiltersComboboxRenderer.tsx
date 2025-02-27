@@ -28,7 +28,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
       {baseFilters?.map((filter, index) =>
-        filter.source ? (
+        filter.origin ? (
           <AdHocFilterPill
             key={`${index}-${filter.key}`}
             filter={filter}

@@ -25,14 +25,14 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // hide the filter from AdHocFiltersVariableRenderer and the URL
   hidden?: boolean;
   meta?: M;
-  // filter source, it can be either scopes, dashboards or undefined,
+  // filter origin, it can be either scopes, dashboards or undefined,
   // which means it won't appear in the UI
-  source?: FilterSource;
+  origin?: FilterOrigin;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
-export enum FilterSource {
+export enum FilterOrigin {
   Scopes = 'scopes',
   Dashboards = 'dashboards',
 }
