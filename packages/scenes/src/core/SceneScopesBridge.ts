@@ -120,6 +120,10 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
     }
 
     if (this.context !== newContext || this.context?.state !== newContext?.state) {
+      // Checking if we should trigger a re-render before pushing new value for the context
+      // Doing it here because otherwise the check would not be valid (this.context would be newContext due to the value push)
+      const shouldUpdate = this.context?.state.value !== newContext?.state.value;
+
       this._contextSubject.next(newContext);
 
       /**
@@ -127,7 +131,7 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
        * Without this, the URL would never be updated when the scopes change
        * TODO: This is a workaround and should be removed once we have a better way to handle this (aka trigger URL sync handler on demand)
        */
-      if (this.context?.state?.value !== newContext?.state?.value) {
+      if (shouldUpdate) {
         this.forceRender();
       }
     }
