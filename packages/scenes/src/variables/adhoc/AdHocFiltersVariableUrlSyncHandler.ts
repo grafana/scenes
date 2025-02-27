@@ -10,16 +10,16 @@ import { escapeUrlPipeDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimite
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
 
-  private getKey(isInjected?: boolean): string {
-    if (isInjected) {
-      return `var-injected-${this._variable.state.name}`;
-    }
+  private getInjectedKey(): string {
+    return `var-injected-${this._variable.state.name}`;
+  }
 
+  private getKey(): string {
     return `var-${this._variable.state.name}`;
   }
 
   public getKeys(): string[] {
-    return [this.getKey(), this.getKey(true)];
+    return [this.getKey(), this.getInjectedKey()];
   }
 
   public getUrlState(): SceneObjectUrlValues {
@@ -54,13 +54,13 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
 
     return {
       [this.getKey()]: value,
-      ...(baseFilters?.length ? { [this.getKey(true)]: baseValues } : {}),
+      ...(baseFilters?.length ? { [this.getInjectedKey()]: baseValues } : {}),
     };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
     const urlValue = values[this.getKey()];
-    const urlValueBaseFilters = values[this.getKey(true)];
+    const urlValueBaseFilters = values[this.getInjectedKey()];
 
     if (urlValue == null && urlValueBaseFilters == null) {
       return;
@@ -81,7 +81,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
 function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLabels[] {
   if (Array.isArray(value)) {
     const values = value;
-    return values.map((value) => toFilter(value)).filter(isFilter);
+    return values.map(toFilter).filter(isFilter);
   }
 
   const filter = toFilter(value);
