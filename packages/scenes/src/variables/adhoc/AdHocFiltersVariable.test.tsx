@@ -364,8 +364,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     // should run new query when filter changed
     expect(runRequest.mock.calls.length).toBe(2);
     expect(filtersVar.state.filters[0].value).toBe('a');
-    // console.log('filtersVar.state.filters', filtersVar.state.filters)
-    // expect(filtersVar.state.filters[filtersVar.state.filters.length - 1].value).toBe('alice');
 
     await userEvent.click(selects[2]);
     await userEvent.clear(selects[2]);

@@ -115,10 +115,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     <Select
       virtualized
       allowCustomValue={model.state.allowCustomValue !== false ?? true}
+      createOptionPosition={model.state.allowCustomValue === 'first' ? 'first' : 'last'}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
-      createOptionPosition={model.state.allowCustomValue === 'first' ? 'first' : 'last'}
       disabled={model.state.readOnly}
       className={cx(styles.value, isValuesOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
