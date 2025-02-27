@@ -213,11 +213,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
   if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
-    filteredDropDownItems.push({
-      value: inputValue.trim(),
-      label: inputValue.trim(),
-      isCustom: true,
-    });
+    if(allowCustomValue === 'first'){
+      filteredDropDownItems.unshift({
+        value: inputValue.trim(),
+        label: inputValue.trim(),
+        isCustom: true,
+      });
+    }else{
+      filteredDropDownItems.push({
+        value: inputValue.trim(),
+        label: inputValue.trim(),
+        isCustom: true,
+      });
+    }
   }
 
   // Get the optional onAddCustomValue method from the AdHocFiltersVariable if defined

@@ -255,6 +255,137 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(options[5]).toHaveTextContent('Foo');
   });
 
+  it('can set custom value position - last', async () => {
+    const { filtersVar, runRequest } = setup({
+      getTagKeysProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+      getTagValuesProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    // Select the first value starting with "a"
+    await userEvent.type(selects[2], 'a{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('alice');
+
+    await userEvent.click(selects[2]);
+    await userEvent.clear(selects[2]);
+    await userEvent.type(selects[2], 'a');
+    const customValueOption = screen.getByText('Use custom value: a');
+    const options = screen.getAllByRole('option')
+    expect(options[0].textContent).toEqual('Alice')
+    expect(options[1].textContent).toEqual('Anise')
+    expect(options[2].textContent).toEqual('Use custom value: a')
+
+
+    expect(customValueOption).toBeInTheDocument();
+
+    await userEvent.type(selects[2], '[ArrowDown][ArrowDown]{enter}');
+
+    // should run a new query because the value has changed
+    expect(runRequest.mock.calls.length).toBe(3);
+    expect(filtersVar.state.filters[0].value).toBe('a');
+  });
+
+  it('can set custom value position - first', async () => {
+    const { filtersVar, runRequest } = setup({
+      allowCustomValue: 'first',
+      getTagKeysProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+      getTagValuesProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    // Select the first value starting with "a"
+    await userEvent.type(selects[2], 'a{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('a');
+    // console.log('filtersVar.state.filters', filtersVar.state.filters)
+    // expect(filtersVar.state.filters[filtersVar.state.filters.length - 1].value).toBe('alice');
+
+    await userEvent.click(selects[2]);
+    await userEvent.clear(selects[2]);
+    await userEvent.type(selects[2], 'a');
+    const customValueOption = screen.getByText('Use custom value: a');
+    const options = screen.getAllByRole('option')
+    expect(options[1].textContent).toEqual('Alice')
+    expect(options[2].textContent).toEqual('Anise')
+    expect(options[0].textContent).toEqual('Use custom value: a')
+
+
+    expect(customValueOption).toBeInTheDocument();
+
+    await userEvent.type(selects[2], '{enter}');
+
+    // should not run a new query since the value is the same
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('a');
+  });
+
   it('can set the same custom value again', async () => {
     const { filtersVar, runRequest } = setup();
 
