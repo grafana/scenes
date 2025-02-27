@@ -27,14 +27,14 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
   const handleChangeViewMode = useCallback(
     (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => {
       event?.stopPropagation();
-      if (readOnly || filter.origin) {
+      if (readOnly) {
         return;
       }
 
       setShouldFocusOnPillWrapper(shouldFocusOnPillWrapperOverride ?? !viewMode);
       setViewMode(!viewMode);
     },
-    [readOnly, viewMode, filter.origin]
+    [readOnly, viewMode]
   );
 
   useEffect(() => {
