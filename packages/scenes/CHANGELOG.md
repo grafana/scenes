@@ -1,3 +1,15 @@
+# v6.1.4 (Thu Feb 27 2025)
+
+#### 🐛 Bug Fix
+
+- AdhocVariable: `baseFilters` with origin appear readonly in the UI [#1060](https://github.com/grafana/scenes/pull/1060) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.1.3 (Wed Feb 26 2025)
 
 #### 🐛 Bug Fix
