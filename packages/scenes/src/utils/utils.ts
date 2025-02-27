@@ -19,3 +19,24 @@ export function useLocationServiceSafe() {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   return useLocationService ? useLocationService() : locationServiceRuntime;
 }
+
+export function deepIterate<T extends object>(obj: T, doSomething: (current: any) => any): T;
+// eslint-disable-next-line no-redeclare
+export function deepIterate(obj: any, doSomething: (current: any) => any): any {
+  if (Array.isArray(obj)) {
+    return obj.map((o) => deepIterate(o, doSomething));
+  }
+
+  const res = doSomething(obj);
+  if (res) {
+    return res;
+  }
+
+  if (typeof obj === 'object') {
+    for (const key in obj) {
+      obj[key] = deepIterate(obj[key], doSomething);
+    }
+  }
+
+  return obj;
+}

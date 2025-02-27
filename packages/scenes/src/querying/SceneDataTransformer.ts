@@ -6,6 +6,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
+import { deepIterate } from '../utils/utils';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -236,7 +237,11 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     // If all transformations are config object we can interpolate them all at once
     if (onlyObjects) {
-      return JSON.parse(sceneGraph.interpolate(this, JSON.stringify(transformations), data.request?.scopedVars));
+      return deepIterate(transformations, (v) => {
+        if (typeof v === 'string') {
+          return sceneGraph.interpolate(this, v, data.request?.scopedVars)
+        }
+      });
     }
 
     return transformations.map((t) => {
