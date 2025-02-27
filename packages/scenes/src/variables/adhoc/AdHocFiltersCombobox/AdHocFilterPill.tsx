@@ -5,6 +5,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 
+const LABEL_MAX_VISIBLE_LENGTH = 20;
+
 interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
@@ -25,14 +27,14 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
   const handleChangeViewMode = useCallback(
     (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => {
       event?.stopPropagation();
-      if (readOnly) {
+      if (readOnly || filter.origin) {
         return;
       }
 
       setShouldFocusOnPillWrapper(shouldFocusOnPillWrapperOverride ?? !viewMode);
       setViewMode(!viewMode);
     },
-    [readOnly, viewMode]
+    [readOnly, viewMode, filter.origin]
   );
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     );
     return (
       <div
-        className={cx(styles.combinedFilterPill, { [styles.readOnlyCombinedFilter]: readOnly })}
+        className={cx(styles.combinedFilterPill, readOnly && styles.readOnlyCombinedFilter)}
         onClick={(e) => {
           e.stopPropagation();
           setPopulateInputOnEdit(true);
@@ -83,7 +85,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         tabIndex={0}
         ref={pillWrapperRef}
       >
-        {valueLabel.length < 20 ? (
+        {valueLabel.length < LABEL_MAX_VISIBLE_LENGTH ? (
           pillText
         ) : (
           <Tooltip content={<div className={styles.tooltipText}>{valueLabel}</div>} placement="top">
@@ -91,7 +93,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {!readOnly ? (
+        {!readOnly && !filter.origin ? (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
@@ -108,10 +110,19 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             }}
             name="times"
             size="md"
-            className={styles.removeButton}
+            className={styles.pillIcon}
             tooltip={`Remove filter with key ${keyLabel}`}
           />
         ) : null}
+
+        {filter.origin && (
+          <IconButton
+            name="info-circle"
+            size="md"
+            className={styles.pillIcon}
+            tooltip={`This is a ${filter.origin} injected filter`}
+          />
+        )}
       </div>
     );
   }
@@ -154,7 +165,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
       background: theme.colors.action.selected,
     },
   }),
-  removeButton: css({
+  pillIcon: css({
     marginInline: theme.spacing(0.5),
     cursor: 'pointer',
     '&:hover': {

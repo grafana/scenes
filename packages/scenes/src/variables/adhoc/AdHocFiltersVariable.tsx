@@ -25,9 +25,17 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // hide the filter from AdHocFiltersVariableRenderer and the URL
   hidden?: boolean;
   meta?: M;
+  // filter origin, it can be either scopes, dashboards or undefined,
+  // which means it won't appear in the UI
+  origin?: FilterOrigin;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
+
+export enum FilterOrigin {
+  Scopes = 'scopes',
+  Dashboards = 'dashboards',
+}
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
@@ -233,7 +241,7 @@ export class AdHocFiltersVariable
     }
   ): void {
     let filterExpressionChanged = false;
-    let filterExpression = undefined;
+    let filterExpression: string | undefined = undefined;
 
     if (filters && filters !== this.state.filters) {
       filterExpression = renderExpression(this.state.expressionBuilder, filters);

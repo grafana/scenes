@@ -72,7 +72,7 @@ export {
 } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
-export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
+export { AdHocFiltersVariable, FilterOrigin } from './variables/adhoc/AdHocFiltersVariable';
 export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
