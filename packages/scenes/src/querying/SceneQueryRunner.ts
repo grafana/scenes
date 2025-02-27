@@ -534,7 +534,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       request.filters = [];
 
       if (this._adhocFiltersVar.state.baseFilters?.length) {
-        const injectedBaseFilters = this._adhocFiltersVar.state.baseFilters.filter((filter) => filter.source);
+        const injectedBaseFilters = this._adhocFiltersVar.state.baseFilters.filter((filter) => filter.origin);
         request.filters = request.filters.concat(injectedBaseFilters);
       }
 

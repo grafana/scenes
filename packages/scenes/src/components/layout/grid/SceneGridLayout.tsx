@@ -1,3 +1,4 @@
+import { PointerEvent } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
@@ -7,8 +8,9 @@ import { isSceneGridRow } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
-import { SceneGridItemLike, SceneGridItemPlacement } from './types';
+import { SceneGridItemLike, SceneGridItemPlacement, SceneGridLayoutDragStartEvent } from './types';
 import { fitPanelsInHeight } from './utils';
+import { VizPanel } from '../../VizPanel/VizPanel';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -54,6 +56,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
   public getDragClassCancel() {
     return `grid-drag-cancel`;
+  }
+
+  public getDragHooks() {
+    return {
+      onDragStart: (evt: PointerEvent, panel: VizPanel) => {
+        this.publishEvent(new SceneGridLayoutDragStartEvent({ evt, panel }), true);
+      },
+    };
   }
 
   public toggleRow(row: SceneGridRow) {

@@ -292,12 +292,13 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<MultiValu
       onBlur={() => {
         model.changeValueTo(
           uncommittedValue.map((x) => x.value!),
-          uncommittedValue.map((x) => x.label!)
+          uncommittedValue.map((x) => x.label!),
+          true
         );
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
-          model.changeValueTo([]);
+          model.changeValueTo([], undefined, true);
         }
         setUncommittedValue(newValue);
       }}

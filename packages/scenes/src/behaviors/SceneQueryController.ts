@@ -31,11 +31,11 @@ export class SceneQueryController
   public runningQueriesCount = () => {
     return this.#running.size;
   };
-  public startProfile(source: SceneObject) {
+  public startProfile(name: string) {
     if (!this.state.enableProfiling) {
       return;
     }
-    this.profiler.startProfile(source.constructor.name);
+    this.profiler.startProfile(name);
   }
 
   public queryStarted(entry: SceneQueryControllerEntry) {

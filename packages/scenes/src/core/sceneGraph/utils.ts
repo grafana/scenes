@@ -2,6 +2,7 @@ import { SceneObject, SceneObjectState } from '../types';
 
 import { SceneObjectBase } from '../SceneObjectBase';
 import { SceneObjectRef } from '../SceneObjectRef';
+import { cloneDeep } from 'lodash';
 
 /**
  * Will create new SceneItem with shalled cloned state, but all states items of type SceneObject are deep cloned
@@ -30,26 +31,30 @@ export function cloneSceneObjectState<TState extends SceneObjectState>(
     }
 
     const propValue = clonedState[key];
-    if (propValue instanceof SceneObjectBase) {
-      clonedState[key] = propValue.clone();
-    }
 
     if (propValue instanceof SceneObjectRef) {
       console.warn('Cloning object with SceneObjectRef');
       continue;
     }
 
-    // Clone scene objects in arrays
-    if (Array.isArray(propValue)) {
-      const newArray: any = [];
+    if (propValue instanceof SceneObjectBase) {
+      clonedState[key] = propValue.clone();
+    } else if (Array.isArray(propValue)) {
+      const newArray: typeof propValue[0] = [];
       for (const child of propValue) {
         if (child instanceof SceneObjectBase) {
           newArray.push(child.clone());
+        } else if (typeof child === 'object') {
+          newArray.push(cloneDeep(child));
         } else {
           newArray.push(child);
         }
       }
       clonedState[key] = newArray;
+    } else if (typeof propValue === 'object') {
+      clonedState[key] = cloneDeep(propValue);
+    } else {
+      clonedState[key] = propValue;
     }
   }
 

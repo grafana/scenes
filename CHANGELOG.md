@@ -1,3 +1,63 @@
+# v6.1.3 (Wed Feb 26 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Profiling: explicitly set profiling names [#1063](https://github.com/grafana/scenes/pull/1063) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v6.1.2 (Wed Feb 26 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Utils: Spread objects in cloneSceneObjectState [#967](https://github.com/grafana/scenes/pull/967) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v6.1.1 (Mon Feb 24 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridLayout: Allow to hook into `onDragStart` event [#1059](https://github.com/grafana/scenes/pull/1059) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v6.1.0 (Thu Feb 20 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - UrlSync: Variable changes adds browser history steps [#882](https://github.com/grafana/scenes/pull/882) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fallback page: fix infinite loop [#1057](https://github.com/grafana/scenes/pull/1057) ([@domasx2](https://github.com/domasx2))
+  - Fix issue were operators do not appear properly in adhoc vars [#1054](https://github.com/grafana/scenes/pull/1054) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 3
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.0.2 (Thu Feb 13 2025)
 
 #### 🐛 Bug Fix

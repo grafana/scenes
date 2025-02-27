@@ -25,15 +25,15 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // hide the filter from AdHocFiltersVariableRenderer and the URL
   hidden?: boolean;
   meta?: M;
-  // filter source, it can be either scopes, dashboards or undefined,
+  // filter origin, it can be either scopes, dashboards or undefined,
   // which means it won't appear in the UI
-  source?: FilterSource | string;
+  origin?: FilterOrigin;
   originalValue?: string[];
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
-export enum FilterSource {
+export enum FilterOrigin {
   Scopes = 'scopes',
   Dashboards = 'dashboards',
 }
@@ -223,7 +223,7 @@ export class AdHocFiltersVariable
       !update.filterExpression
     ) {
       update.filterExpression = renderExpression(this.state.expressionBuilder, [
-        ...(update.baseFilters?.filter((filter) => filter.source) ?? []),
+        ...(update.baseFilters?.filter((filter) => filter.origin) ?? []),
         ...(update.filters ?? []),
       ]);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
@@ -290,7 +290,7 @@ export class AdHocFiltersVariable
 
     const isBaseFilter = baseFilters?.includes(filter);
 
-    if (isBaseFilter && filter.source) {
+    if (isBaseFilter && filter.origin) {
       if (!filter.originalValue) {
         update.originalValue = filter.values ? filter.values : [filter.value];
       }
@@ -434,7 +434,7 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const filteredBaseFilters = this.state.baseFilters?.filter((f) => f.source && f.key !== filter.key) ?? [];
+    const filteredBaseFilters = this.state.baseFilters?.filter((f) => f.origin && f.key !== filter.key) ?? [];
     // Filter out the current filter key from the list of all filters
     const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(filteredBaseFilters);
 
