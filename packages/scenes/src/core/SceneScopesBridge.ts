@@ -18,6 +18,7 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
 
   private _contextSubject = new BehaviorSubject<ScopesContextValue | undefined>(undefined);
 
+  // Needed to maintain scopes values received from URL until the context is available
   private _pendingScopes: string[] | null = null;
 
   public getUrlState(): SceneObjectUrlValues {
@@ -86,20 +87,47 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
     this.context?.setReadOnly(readOnly);
   }
 
+  /**
+   * This method is used to keep the context up to date with the scopes context received from React
+   *
+   * Its rationale is:
+   *   - When a new context is available, check if we have pending scopes passed from the URL
+   *      - If we have pending scopes, ask the new context to load them
+   *      - The loading should happen in a setTimeout to allow the existing context to pass its values to the URL sync handler
+   *   - If a new context is received, propagate it as a new value in the behavior subject
+   *   - If a new value is received, force a re-render to trigger the URL sync handler
+   */
   public updateContext(newContext: ScopesContextValue | undefined) {
     if (this._pendingScopes && newContext) {
+      /**
+       * The setTimeout here is needed to avoid a potential race condition in the URL sync handler
+       * One way to test this is:
+       * - navigate to a dashboard and select some scopes
+       * - navigate to a suggested dashboard and change the selected scopes
+       * - observe the URL not containing any scopes
+       */
       setTimeout(() => {
         newContext?.changeScopes(this._pendingScopes!);
         this._pendingScopes = null;
       });
+
+      /**
+       * If we return here and don't allow the context to be propagated, scopes will never get activated when
+       * navigating from a page without scopes to a page that has scopes.
+       *
+       * This is happening because the app will try to call `enable` on the context, but the context would not be available yet
+       */
     }
 
     if (this.context !== newContext || this.context?.state !== newContext?.state) {
-      const shouldUpdate = this.context?.state.value !== newContext?.state.value;
-
       this._contextSubject.next(newContext);
 
-      if (shouldUpdate) {
+      /**
+       * Whenever we got a new set of scopes, we force a re-render in order to trigger the URL sync handler
+       * Without this, the URL would never be updated when the scopes change
+       * TODO: This is a workaround and should be removed once we have a better way to handle this (aka trigger URL sync handler on demand)
+       */
+      if (this.context?.state?.value !== newContext?.state?.value) {
         this.forceRender();
       }
     }
