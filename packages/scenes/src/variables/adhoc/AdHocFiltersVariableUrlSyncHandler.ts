@@ -43,12 +43,12 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     if (baseFilters?.length) {
       baseValues = baseFilters
         ?.filter(isFilterComplete)
-        .filter((filter) => !filter.hidden && filter.source)
+        .filter((filter) => !filter.hidden && filter.origin)
         .map((filter) =>
           toArray(filter)
             .map(escapeUrlPipeDelimiters)
             .join('|')
-            .concat(`/${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}/${filter.source}`)
+            .concat(`/${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}/${filter.origin}`)
         );
     }
 
@@ -107,7 +107,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [filter, originalValues, source] = urlValue.split('/');
+  const [filter, originalValues, origin] = urlValue.split('/');
 
   const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
@@ -128,7 +128,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
-    source: source,
+    origin: origin,
     originalValue: originalValues && originalValues.length ? originalValues.split('|') ?? [originalValues] : undefined,
   };
 }

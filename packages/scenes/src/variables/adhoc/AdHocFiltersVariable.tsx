@@ -27,7 +27,7 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   meta?: M;
   // filter origin, it can be either scopes, dashboards or undefined,
   // which means it won't appear in the UI
-  origin?: FilterOrigin;
+  origin?: FilterOrigin | string;
   originalValue?: string[];
 }
 
