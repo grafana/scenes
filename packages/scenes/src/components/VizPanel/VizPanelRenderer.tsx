@@ -19,6 +19,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
     title,
     options,
+    customTooltip,
     fieldConfig,
     _pluginLoadError,
     displayMode,
@@ -214,6 +215,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           timeRange={timeRange}
                           timeZone={timeZone}
                           options={options}
+                          customTooltip={customTooltip}
                           fieldConfig={fieldConfig}
                           transparent={false}
                           width={innerWidth}

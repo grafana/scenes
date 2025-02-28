@@ -37,6 +37,7 @@ import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
+import React from 'react';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -47,6 +48,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   title: string;
   description?: string;
   options: DeepPartial<TOptions>;
+  customTooltip?: React.ReactNode;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
