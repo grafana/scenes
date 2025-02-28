@@ -2,6 +2,7 @@ import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } 
 import {
   AdHocFiltersVariable,
   AdHocFilterWithLabels,
+  FilterOrigin,
   isFilterComplete,
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
@@ -128,9 +129,13 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
-    origin: origin,
+    origin: isFilterOrigin(origin) ? origin : undefined,
     originalValue: originalValues && originalValues.length ? originalValues.split('|') ?? [originalValues] : undefined,
   };
+}
+
+function isFilterOrigin(value: string): value is FilterOrigin {
+  return value === FilterOrigin.Scopes || value === FilterOrigin.Dashboards;
 }
 
 function isFilter(filter: AdHocFilterWithLabels | null): filter is AdHocFilterWithLabels {
