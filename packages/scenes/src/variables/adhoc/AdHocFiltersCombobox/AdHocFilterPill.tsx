@@ -128,7 +128,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
-              model.restoreBaseFilter(filter);
+              model.restoreOriginalFilterValue(filter);
             }}
             name="history"
             size="md"

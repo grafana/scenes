@@ -205,7 +205,12 @@ export class AdHocFiltersVariable
       filters: [],
       datasource: null,
       applyMode: 'auto',
-      filterExpression: state.filterExpression ?? renderExpression(state.expressionBuilder, state.filters),
+      filterExpression:
+        state.filterExpression ??
+        renderExpression(state.expressionBuilder, [
+          ...(state.baseFilters?.filter((filter) => filter.origin) ?? []),
+          ...(state.filters ?? []),
+        ]),
       ...state,
     });
 
@@ -222,9 +227,12 @@ export class AdHocFiltersVariable
         (update.baseFilters && update.baseFilters !== this.state.baseFilters)) &&
       !update.filterExpression
     ) {
+      const filters = update.filters ?? this.state.filters;
+      const baseFilters = update.baseFilters ?? this.state.baseFilters;
+
       update.filterExpression = renderExpression(this.state.expressionBuilder, [
-        ...(update.baseFilters?.filter((filter) => filter.origin) ?? []),
-        ...(update.filters ?? []),
+        ...(baseFilters?.filter((filter) => filter.origin) ?? []),
+        ...(filters ?? []),
       ]);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
     }
@@ -252,7 +260,10 @@ export class AdHocFiltersVariable
     let filterExpression: string | undefined = undefined;
 
     if (filters && filters !== this.state.filters) {
-      filterExpression = renderExpression(this.state.expressionBuilder, filters);
+      filterExpression = renderExpression(this.state.expressionBuilder, [
+        ...(this.state.baseFilters?.filter((filter) => filter.origin) ?? []),
+        ...filters,
+      ]);
       filterExpressionChanged = filterExpression !== this.state.filterExpression;
     }
 
@@ -266,18 +277,16 @@ export class AdHocFiltersVariable
     }
   }
 
-  public restoreBaseFilter(filter: AdHocFilterWithLabels) {
-    if (filter) {
-      const originalBaseFilter = filter.originalValue;
+  public restoreOriginalFilterValue(filter: AdHocFilterWithLabels) {
+    const originalBaseFilter = filter.originalValue;
 
-      if (originalBaseFilter?.length) {
-        this._updateFilter(filter, {
-          value: originalBaseFilter[0],
-          values: originalBaseFilter,
-          valueLabels: originalBaseFilter,
-          originalValue: undefined,
-        });
-      }
+    if (originalBaseFilter?.length) {
+      this._updateFilter(filter, {
+        value: originalBaseFilter[0],
+        values: originalBaseFilter,
+        valueLabels: originalBaseFilter,
+        originalValue: undefined,
+      });
     }
   }
 
@@ -288,10 +297,8 @@ export class AdHocFiltersVariable
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
     const { baseFilters, filters, _wip } = this.state;
 
-    const isBaseFilter = baseFilters?.includes(filter);
-
-    if (isBaseFilter && filter.origin) {
-      if (!filter.originalValue) {
+    if (filter.origin) {
+      if (!filter.originalValue && !update.originalValue) {
         update.originalValue = filter.values ? filter.values : [filter.value];
       }
 

@@ -27,7 +27,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     const baseFilters = this._variable.state.baseFilters;
 
     let value = [''];
-    let baseValues = [''];
+    let baseValue = [''];
 
     if (filters.length === 0 && baseFilters?.length === 0) {
       return { [this.getKey()]: value };
@@ -41,20 +41,20 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     }
 
     if (baseFilters?.length) {
-      baseValues = baseFilters
+      baseValue = baseFilters
         ?.filter(isFilterComplete)
         .filter((filter) => !filter.hidden && filter.origin)
         .map((filter) =>
           toArray(filter)
             .map(escapeUrlPipeDelimiters)
             .join('|')
-            .concat(`/${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}/${filter.origin}`)
+            .concat(`\\${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}\\${filter.origin}`)
         );
     }
 
     return {
       [this.getKey()]: value,
-      ...(baseFilters?.length ? { [this.getInjectedKey()]: baseValues } : {}),
+      ...(baseFilters?.length ? { [this.getInjectedKey()]: baseValue } : {}),
     };
   }
 
@@ -107,7 +107,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [filter, originalValues, origin] = urlValue.split('/');
+  const [filter, originalValues, origin] = urlValue.split('\\');
 
   const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
