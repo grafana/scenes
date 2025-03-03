@@ -27,7 +27,7 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
-import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable, FilterOrigin } from '../variables/adhoc/AdHocFiltersVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController } from '../behaviors/SceneQueryController';
@@ -527,6 +527,64 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].filters).toEqual(filtersVar.state.filters);
+    });
+
+    it('should pass adhoc baseFilters via request object if they have a source defined', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
+        baseFilters: [{ key: 'C', operator: '=', value: 'D', condition: '', origin: FilterOrigin.Scopes }],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].filters).toEqual([...filtersVar.state.baseFilters!, ...filtersVar.state.filters]);
+    });
+
+    it('should not pass adhoc baseFilters via request object if they do not have a source defined', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
+        baseFilters: [{ key: 'C', operator: '=', value: 'D', condition: '' }],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
     });
 
     it('only passes fully completed adhoc filters', async () => {
