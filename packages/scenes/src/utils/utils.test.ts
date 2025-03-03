@@ -23,6 +23,13 @@ describe('deepIterate', () => {
       }
     });
 
+    expect(nestedObject.a.b.c).toBe('cabbage');
+    expect(nestedObject.a.b.c2).toBe(99);
+    expect(nestedObject.a.b2).toBe('lettuce');
+    expect(nestedObject.a.b3).toBe(true);
+    expect(nestedObject.a2).toBe('eggplant');
+    expect(nestedObject.a3).toBe(420);
+
     expect(transformedObject.a.b.c).toBe('CABBAGE');
     expect(transformedObject.a.b.c2).toBe(198);
     expect(transformedObject.a.b2).toBe('LETTUCE');

@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { locationService as locationServiceRuntime, useLocationService } from '@grafana/runtime';
 
@@ -20,11 +21,9 @@ export function useLocationServiceSafe() {
   return useLocationService ? useLocationService() : locationServiceRuntime;
 }
 
-export function deepIterate<T extends object>(obj: T, doSomething: (current: any) => any): T;
-// eslint-disable-next-line no-redeclare
-export function deepIterate(obj: any, doSomething: (current: any) => any): any {
+function deepIterateInternal(obj: any, doSomething: (current: any) => any): any {
   if (Array.isArray(obj)) {
-    return obj.map((o) => deepIterate(o, doSomething));
+    return obj.map((o) => deepIterateInternal(o, doSomething));
   }
 
   const res = doSomething(obj);
@@ -34,9 +33,16 @@ export function deepIterate(obj: any, doSomething: (current: any) => any): any {
 
   if (typeof obj === 'object') {
     for (const key in obj) {
-      obj[key] = deepIterate(obj[key], doSomething);
+      obj[key] = deepIterateInternal(obj[key], doSomething);
     }
   }
 
   return obj;
+}
+
+export function deepIterate<T extends object>(obj: Readonly<T>, doSomething: (current: any) => any): T;
+// eslint-disable-next-line no-redeclare
+export function deepIterate(obj: Readonly<any>, doSomething: (current: any) => any): any {
+  const transformedObject = cloneDeep(obj);
+  return deepIterateInternal(transformedObject, doSomething);
 }

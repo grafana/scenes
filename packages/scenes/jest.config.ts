@@ -13,7 +13,7 @@ module.exports = {
     '^.+\\.(t|j)sx?$': [
       '@swc/jest',
       {
-        sourceMaps: true,
+        sourceMaps: process.env.NODE_ENV === 'production',
         jsc: {
           parser: {
             syntax: 'typescript',

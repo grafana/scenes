@@ -150,19 +150,15 @@ describe('SceneDataTransformer', () => {
         operator: (options) => (source) => {
           transformerSpy(options);
           return source.pipe(
-            map((data) => {
-              return data.map((frame) => {
-                return {
-                  ...frame,
-                  fields: frame.fields.map((field) => {
-                    return {
-                      ...field,
-                      values: field.values.map((v) => v * 2),
-                    };
-                  }),
-                };
-              });
-            })
+            map((data) =>
+              data.map((frame) => ({
+                ...frame,
+                fields: frame.fields.map((field) => ({
+                  ...field,
+                  values: field.values.map((v) => v * 2),
+                })),
+              }))
+            )
           );
         },
       },
@@ -172,19 +168,15 @@ describe('SceneDataTransformer', () => {
         operator: (options) => (source) => {
           // transformerSpy2(options);
           return source.pipe(
-            map((data) => {
-              return data.map((frame) => {
-                return {
-                  ...frame,
-                  fields: frame.fields.map((field) => {
-                    return {
-                      ...field,
-                      values: field.values.map((v) => v * 3),
-                    };
-                  }),
-                };
-              });
-            })
+            map((data) =>
+              data.map((frame) => ({
+                ...frame,
+                fields: frame.fields.map((field) => ({
+                  ...field,
+                  values: field.values.map((v) => v * 3),
+                })),
+              }))
+            )
           );
         },
       },
@@ -194,17 +186,15 @@ describe('SceneDataTransformer', () => {
         operator: (options) => (source) => {
           annotationTransformerSpy(options);
           return source.pipe(
-            map((data) => {
-              return data.map((frame) => ({
+            map((data) =>
+              data.map((frame) => ({
                 ...frame,
-                fields: frame.fields.map((field) => {
-                  return {
-                    ...field,
-                    values: field.values.map((v) => v + 4),
-                  };
-                }),
-              }));
-            })
+                fields: frame.fields.map((field) => ({
+                  ...field,
+                  values: field.values.map((v) => v + 4),
+                })),
+              }))
+            )
           );
         },
       },
