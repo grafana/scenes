@@ -781,7 +781,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // injected filters stored in the following format: normal|adhoc|values\original|values\filterOrigin
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=newKey%7C%3D%7Cval1&var-injected-filters=baseKey1%7C%3D%7CbaseValue1%5C%5Cscopes&var-injected-filters=baseKey2%7C%21%3D%7CbaseValue2%5C%5Cscopes'
+      '?var-filters=newKey%7C%3D%7Cval1&var-filters=baseKey1%7C%3D%7CbaseValue1%5C%5Cscopes&var-filters=baseKey2%7C%21%3D%7CbaseValue2%5C%5Cscopes'
     );
   });
 
@@ -811,9 +811,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     // injected filters stored in the following format: normal|adhoc|values\original|values\filterOrigin
-    expect(locationService.getLocation().search).toBe(
-      '?var-filters=&var-injected-filters=baseKey1%7C%3D%7CnewValue%5CbaseValue1%5Cscopes'
-    );
+    expect(locationService.getLocation().search).toBe('?var-filters=baseKey1%7C%3D%7CnewValue%5CbaseValue1%5Cscopes');
   });
 
   it('url syncs multi-value base filters as injected filters', async () => {
@@ -843,7 +841,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // injected filters stored in the following format: normal|adhoc|values|~original|values~filterOrigin
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=&var-injected-filters=baseKey1%7C%3D__gfp__%7CnewValue1%7CnewValue2%5CbaseValue1%7CbaseValue2%5Cscopes'
+      '?var-filters=baseKey1%7C%3D__gfp__%7CnewValue1%7CnewValue2%5CbaseValue1%7CbaseValue2%5Cscopes'
     );
   });
 

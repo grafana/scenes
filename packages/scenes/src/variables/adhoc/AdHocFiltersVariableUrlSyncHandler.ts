@@ -11,70 +11,65 @@ import { escapeUrlPipeDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimite
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
 
-  private getInjectedKey(): string {
-    return `var-injected-${this._variable.state.name}`;
-  }
-
   private getKey(): string {
     return `var-${this._variable.state.name}`;
   }
 
   public getKeys(): string[] {
-    return [this.getKey(), this.getInjectedKey()];
+    return [this.getKey()];
   }
 
   public getUrlState(): SceneObjectUrlValues {
     const filters = this._variable.state.filters;
     const baseFilters = this._variable.state.baseFilters;
 
-    let value = [''];
-    let baseValue = [''];
+    let value = [];
 
     if (filters.length === 0 && baseFilters?.length === 0) {
-      return { [this.getKey()]: value };
+      return { [this.getKey()]: [''] };
     }
 
     if (filters.length) {
-      value = filters
-        .filter(isFilterComplete)
-        .filter((filter) => !filter.hidden)
-        .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'));
+      value.push(
+        ...filters
+          .filter(isFilterComplete)
+          .filter((filter) => !filter.hidden)
+          .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'))
+      );
     }
 
     if (baseFilters?.length) {
-      baseValue = baseFilters
-        ?.filter(isFilterComplete)
-        .filter((filter) => !filter.hidden && filter.origin)
-        .map((filter) =>
-          toArray(filter)
-            .map(escapeUrlPipeDelimiters)
-            .join('|')
-            .concat(`\\${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}\\${filter.origin}`)
-        );
+      value.push(
+        ...baseFilters
+          ?.filter(isFilterComplete)
+          .filter((filter) => !filter.hidden && filter.origin && filter.originalValue)
+          .map((filter) =>
+            toArray(filter)
+              .map(escapeUrlPipeDelimiters)
+              .join('|')
+              .concat(`\\${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}\\${filter.origin}`)
+          )
+      );
     }
 
     return {
-      [this.getKey()]: value,
-      ...(baseFilters?.length ? { [this.getInjectedKey()]: baseValue } : {}),
+      [this.getKey()]: value.length ? value : [''],
     };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
     const urlValue = values[this.getKey()];
-    const urlValueBaseFilters = values[this.getInjectedKey()];
 
-    if (urlValue == null && urlValueBaseFilters == null) {
+    if (urlValue == null) {
       return;
     }
 
     if (urlValue) {
       const filters = deserializeUrlToFilters(urlValue);
-      this._variable.setState({ filters });
-    }
-
-    if (urlValueBaseFilters) {
-      const baseFilters = deserializeUrlToFilters(urlValueBaseFilters);
-      this._variable.setState({ baseFilters });
+      this._variable.setState({
+        filters: filters.filter((f) => !f.origin),
+        baseFilters: filters.filter((f) => f.origin),
+      });
     }
   }
 }

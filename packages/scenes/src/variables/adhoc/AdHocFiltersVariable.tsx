@@ -29,6 +29,7 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // which means it won't appear in the UI
   origin?: FilterOrigin;
   originalValue?: string[];
+  originalOperator?: string;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -298,10 +299,6 @@ export class AdHocFiltersVariable
     const { baseFilters, filters, _wip } = this.state;
 
     if (filter.origin) {
-      if (!filter.originalValue && !update.originalValue) {
-        update.originalValue = filter.values ? filter.values : [filter.value];
-      }
-
       const updatedBaseFilters =
         baseFilters?.map((f) => {
           return f === filter ? { ...f, ...update } : f;
