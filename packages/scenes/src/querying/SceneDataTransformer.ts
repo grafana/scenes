@@ -233,7 +233,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     return deepIterate(this.state.transformations, (v) => {
       if (typeof v === 'string') {
-        return sceneGraph.interpolate(this, v, data.request?.scopedVars)
+        return sceneGraph.interpolate(this, v, data.request?.scopedVars);
       }
     });
   }
