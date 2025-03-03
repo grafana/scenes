@@ -37,4 +37,42 @@ describe('deepIterate', () => {
     expect(transformedObject.a2).toBe('EGGPLANT');
     expect(transformedObject.a3).toBe(840);
   });
+
+  it('should transform nested object values #2', () => {
+    const nestedObject = {
+      id: 'filterByValue',
+      options: {
+        filters: [
+          {
+            config: {
+              id: 'equal',
+              options: {
+                value: '${myvar}',
+              },
+            },
+            fieldName: 'str',
+          },
+        ],
+        match: 'any',
+        type: 'exclude',
+      },
+    };
+
+    const nestedExpect = JSON.parse(JSON.stringify(nestedObject));
+
+    const transformedExpect = JSON.parse(JSON.stringify(nestedObject));
+    transformedExpect.options.filters[0].config.options.value = 'yay!';
+
+    const transformedObject = deepIterate(nestedObject, (o) => {
+      if (typeof o === 'string') {
+        // mock interpolation
+        if (o === '${myvar}') {
+          return 'yay!';
+        }
+      }
+    });
+
+    expect(nestedObject).toEqual(nestedExpect);
+    expect(transformedObject).toEqual(transformedExpect);
+  });
 });
