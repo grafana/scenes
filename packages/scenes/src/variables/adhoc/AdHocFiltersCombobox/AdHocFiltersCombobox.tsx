@@ -120,7 +120,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         });
 
         const currentValues = filter.values ? filter.values : [filter.value];
-        const originalValue = !filter.originalValue && !isEqual(currentValues, values) ? currentValues : undefined;
+        const originalValue =
+          filter.origin && !filter.originalValue && !isEqual(currentValues, values) ? currentValues : undefined;
 
         model._updateFilter(filter!, { valueLabels, values, originalValue, value: values[0] });
         setFilterMultiValues([]);

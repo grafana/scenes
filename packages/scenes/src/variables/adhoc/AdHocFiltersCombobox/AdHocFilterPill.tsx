@@ -23,6 +23,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
 
   const keyLabel = filter.keyLabel ?? filter.key;
   const valueLabel = filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
+  console.log(valueLabel, filter);
 
   const handleChangeViewMode = useCallback(
     (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => {
@@ -115,7 +116,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         ) : null}
 
-        {filter.origin && !filter.originalValue && (
+        {filter.origin && !filter.originalValue && !filter.originalOperator && (
           <IconButton
             name="info-circle"
             size="md"
@@ -124,11 +125,11 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         )}
 
-        {filter.origin && filter.originalValue && (
+        {filter.origin && (filter.originalValue || filter.originalOperator) && (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
-              model.restoreOriginalFilterValue(filter);
+              model.restoreOriginalFilter(filter);
             }}
             name="history"
             size="md"

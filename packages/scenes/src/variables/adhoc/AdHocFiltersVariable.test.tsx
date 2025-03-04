@@ -750,7 +750,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
   });
 
-  it('url syncs only base filters with an origin as injected filters', async () => {
+  it('url does not sync injected filters if they are not modified', async () => {
     const { filtersVar } = setup({
       filters: [{ key: 'key1', operator: '=', value: 'val1' }],
       baseFilters: [
@@ -779,13 +779,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
     });
 
-    // injected filters stored in the following format: normal|adhoc|values\original|values\filterOrigin
-    expect(locationService.getLocation().search).toBe(
-      '?var-filters=newKey%7C%3D%7Cval1&var-filters=baseKey1%7C%3D%7CbaseValue1%5C%5Cscopes&var-filters=baseKey2%7C%21%3D%7CbaseValue2%5C%5Cscopes'
-    );
+    expect(locationService.getLocation().search).toBe('?var-filters=newKey%7C%3D%7Cval1');
   });
 
-  it('url syncs base filters as injected filters together with original value', async () => {
+  it('url syncs base filters as injected filters together with original value and original operator', async () => {
     const { filtersVar } = setup({
       filters: [],
       baseFilters: [
@@ -807,14 +804,50 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         value: 'newValue',
         valueLabels: ['newValue'],
         originalValue: ['baseValue1'],
+        originalOperator: '!=',
       });
     });
 
-    // injected filters stored in the following format: normal|adhoc|values\original|values\filterOrigin
-    expect(locationService.getLocation().search).toBe('?var-filters=baseKey1%7C%3D%7CnewValue%5CbaseValue1%5Cscopes');
+    // injected filters stored in the following format: normal|adhoc|values\original|values\escaped_operator\filterOrigin
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=baseKey1%7C%3D%7CnewValue%5CbaseValue1%5C%21%3D%5Cscopes'
+    );
   });
 
   it('url syncs multi-value base filters as injected filters', async () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '!=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get synced
+        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3' },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue1',
+        values: ['newValue1', 'newValue2'],
+        originalValue: ['baseValue1', 'baseValue2'],
+        operator: '=|',
+        originalOperator: '!=|',
+      });
+    });
+
+    // injected filters stored in the following format: normal|adhoc|values\original|values\escaped_operator\filterOrigin
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=baseKey1%7C%3D__gfp__%7CnewValue1%7CnewValue2%5CbaseValue1%7CbaseValue2%5C%21%3D__gfp__%5Cscopes'
+    );
+  });
+
+  it('will ignore missing original operator', () => {
     const { filtersVar } = setup({
       filters: [],
       baseFilters: [
@@ -839,9 +872,37 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // injected filters stored in the following format: normal|adhoc|values|~original|values~filterOrigin
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%3D__gfp__%7CnewValue1%7CnewValue2%5CbaseValue1%7CbaseValue2%5Cscopes'
+      '?var-filters=baseKey1%7C%3D__gfp__%7CnewValue1%7CnewValue2%5CbaseValue1%7CbaseValue2%5C%5Cscopes'
+    );
+  });
+
+  it('will ignore missing original values', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get synced
+        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3' },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        operator: '!=|',
+        originalOperator: '=|',
+      });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=baseKey1%7C%21%3D__gfp__%7CbaseValue1%7CbaseValue2%5C%5C%3D__gfp__%5Cscopes'
     );
   });
 
@@ -879,6 +940,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     act(() => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue1',
+        operator: '!=',
+        originalValue: ['baseValue1'],
+        originalOperator: '=',
       });
 
       // no origin, so this does not get updated
@@ -888,8 +952,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.baseFilters![0].value).toBe('newValue1');
+    expect(filtersVar.state.baseFilters![0].operator).toBe('!=');
     expect(filtersVar.state.baseFilters![1].value).toBe('baseValue3');
     expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1']);
+    expect(filtersVar.state.baseFilters![0].originalOperator).toEqual('=');
     expect(filtersVar.state.baseFilters![1].originalValue).toBe(undefined);
   });
 
@@ -914,6 +980,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue1',
         values: ['newValue1'],
+        originalValue: ['baseValue1', 'baseValue2'],
       });
 
       // no origin, so this does not get updated
@@ -984,7 +1051,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     act(() => {
-      filtersVar.restoreOriginalFilterValue(filtersVar.state.baseFilters![0]);
+      filtersVar.restoreOriginalFilter(filtersVar.state.baseFilters![0]);
     });
 
     expect(filtersVar.state.baseFilters![0].value).toEqual('originalValue1');
@@ -1008,7 +1075,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     act(() => {
-      filtersVar.restoreOriginalFilterValue(filtersVar.state.baseFilters![0]);
+      filtersVar.restoreOriginalFilter(filtersVar.state.baseFilters![0]);
     });
 
     expect(filtersVar.state.baseFilters![0].value).toEqual('baseValue1');

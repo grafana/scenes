@@ -278,17 +278,24 @@ export class AdHocFiltersVariable
     }
   }
 
-  public restoreOriginalFilterValue(filter: AdHocFilterWithLabels) {
-    const originalBaseFilter = filter.originalValue;
+  public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
+    const original: Partial<AdHocFilterWithLabels> = {
+      originalValue: undefined,
+      originalOperator: undefined,
+    };
 
-    if (originalBaseFilter?.length) {
-      this._updateFilter(filter, {
-        value: originalBaseFilter[0],
-        values: originalBaseFilter,
-        valueLabels: originalBaseFilter,
-        originalValue: undefined,
-      });
+    if (filter.originalValue?.length) {
+      original.value = filter.originalValue[0];
+      original.values = filter.originalValue;
+      original.valueLabels = filter.originalValue;
     }
+
+    if (filter.originalOperator) {
+      original.operator = filter.originalOperator;
+    }
+
+    this._updateFilter(filter, original);
+    console.log(filter, original);
   }
 
   public getValue(): VariableValue | undefined {

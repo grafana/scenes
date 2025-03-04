@@ -42,12 +42,16 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       value.push(
         ...baseFilters
           ?.filter(isFilterComplete)
-          .filter((filter) => !filter.hidden && filter.origin && filter.originalValue)
+          .filter((filter) => !filter.hidden && filter.origin && (filter.originalValue || filter.originalOperator))
           .map((filter) =>
             toArray(filter)
               .map(escapeUrlPipeDelimiters)
               .join('|')
-              .concat(`\\${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}\\${filter.origin}`)
+              .concat(
+                `\\${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}\\${escapeUrlPipeDelimiters(
+                  filter.originalOperator
+                )}\\${filter.origin}`
+              )
           )
       );
     }
@@ -103,8 +107,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [filter, originalValues, origin] = urlValue.split('\\');
-
+  const [filter, originalValues, originalOperator, origin] = urlValue.split('\\');
   const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
     .reduce<string[]>((acc, v) => {
@@ -126,6 +129,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     condition: '',
     origin: isFilterOrigin(origin) ? origin : undefined,
     originalValue: originalValues && originalValues.length ? originalValues.split('|') ?? [originalValues] : undefined,
+    originalOperator: originalOperator ? unescapeUrlDelimiters(originalOperator) : undefined,
   };
 }
 
