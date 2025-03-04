@@ -139,8 +139,6 @@ export const generateFilterUpdatePayload = ({
     return {
       value: item.value,
       valueLabels: [item.label ? item.label : item.value!],
-      originalValue:
-        filter.origin && !filter.originalValue && filter.value !== item.value ? [filter.value] : filter.originalValue,
     };
   }
 
@@ -154,9 +152,6 @@ export const generateFilterUpdatePayload = ({
         operator: item.value,
         valueLabels: [filter.valueLabels?.[0] || filter.values?.[0] || filter.value],
         values: undefined,
-        originalValue: filter.origin && !filter.originalValue && filter.values ? filter.values : [filter.value],
-        originalOperator:
-          filter.origin && !filter.originalOperator && filter.operator ? filter.operator : filter.originalOperator,
       };
     }
 
@@ -180,8 +175,6 @@ export const generateFilterUpdatePayload = ({
         operator: item.value,
         valueLabels: valueLabels,
         values: values,
-        originalValue: filter.origin && !filter.originalValue ? [filter.value] : undefined,
-        originalOperator: filter.origin && !filter.originalOperator ? filter.operator : undefined,
       };
     }
   }
@@ -189,7 +182,6 @@ export const generateFilterUpdatePayload = ({
   // default operator update of same multi/single type
   return {
     [filterInputType]: item.value,
-    originalOperator: filter.origin && !filter.originalOperator ? filter.operator : filter.originalOperator,
   };
 };
 

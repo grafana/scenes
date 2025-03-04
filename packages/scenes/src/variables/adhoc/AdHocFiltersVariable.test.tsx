@@ -789,7 +789,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         {
           key: 'baseKey1',
           keyLabel: 'baseKey1',
-          operator: '=',
+          operator: '!=',
           value: 'baseValue1',
           valueLabels: ['baseValue1'],
           origin: FilterOrigin.Scopes,
@@ -803,8 +803,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue',
         valueLabels: ['newValue'],
-        originalValue: ['baseValue1'],
-        originalOperator: '!=',
+        operator: '=',
       });
     });
 
@@ -835,9 +834,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue1',
         values: ['newValue1', 'newValue2'],
-        originalValue: ['baseValue1', 'baseValue2'],
         operator: '=|',
-        originalOperator: '!=|',
       });
     });
 
@@ -868,7 +865,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue1',
         values: ['newValue1', 'newValue2'],
-        originalValue: ['baseValue1', 'baseValue2'],
       });
     });
 
@@ -897,7 +893,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     act(() => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         operator: '!=|',
-        originalOperator: '=|',
       });
     });
 
@@ -941,8 +936,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue1',
         operator: '!=',
-        originalValue: ['baseValue1'],
-        originalOperator: '=',
       });
 
       // no origin, so this does not get updated
@@ -980,7 +973,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue1',
         values: ['newValue1'],
-        originalValue: ['baseValue1', 'baseValue2'],
       });
 
       // no origin, so this does not get updated
@@ -994,6 +986,64 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.baseFilters![1].value).toBe('baseValue3');
     expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1', 'baseValue2']);
     expect(filtersVar.state.baseFilters![1].originalValue).toBe(undefined);
+  });
+
+  it('does not update originalValue if new and old filter changes are the same', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get updated
+        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3' },
+      ],
+    });
+
+    act(() => {
+      // same value, so no change
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'baseValue1',
+        values: ['baseValue1', 'baseValue2'],
+      });
+    });
+
+    expect(filtersVar.state.baseFilters![0].value).toBe('baseValue1');
+    expect(filtersVar.state.baseFilters![0].values).toEqual(['baseValue1', 'baseValue2']);
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(undefined);
+    expect(filtersVar.state.baseFilters![0].originalOperator).toEqual(undefined);
+  });
+
+  it('does not update originalOperator if new and old filter changes are the same', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    });
+
+    act(() => {
+      // same value, so no change
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        operator: '=|',
+      });
+    });
+
+    expect(filtersVar.state.baseFilters![0].operator).toBe('=|');
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(undefined);
+    expect(filtersVar.state.baseFilters![0].originalOperator).toEqual(undefined);
   });
 
   it('does not overwrite originalValue if it already exists, unless explicitly requested', () => {

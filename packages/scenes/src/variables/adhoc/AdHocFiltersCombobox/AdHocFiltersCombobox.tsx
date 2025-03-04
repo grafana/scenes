@@ -39,7 +39,6 @@ import {
 import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
 import { MultiValuePill } from './MultiValuePill';
-import { isEqual } from 'lodash';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -119,11 +118,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           values.push(item.value!);
         });
 
-        const currentValues = filter.values ? filter.values : [filter.value];
-        const originalValue =
-          filter.origin && !filter.originalValue && !isEqual(currentValues, values) ? currentValues : undefined;
-
-        model._updateFilter(filter!, { valueLabels, values, originalValue, value: values[0] });
+        model._updateFilter(filter!, { valueLabels, values, value: values[0] });
         setFilterMultiValues([]);
       }
       if (!preventFocus) {

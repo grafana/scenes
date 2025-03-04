@@ -16,6 +16,7 @@ import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
+import { isEqual } from 'lodash';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -295,7 +296,6 @@ export class AdHocFiltersVariable
     }
 
     this._updateFilter(filter, original);
-    console.log(filter, original);
   }
 
   public getValue(): VariableValue | undefined {
@@ -306,6 +306,27 @@ export class AdHocFiltersVariable
     const { baseFilters, filters, _wip } = this.state;
 
     if (filter.origin) {
+      const currentValues = filter.values ? filter.values : [filter.value];
+      const updateValues = update.values || (update.value ? [update.value] : undefined);
+
+      if (
+        !update.hasOwnProperty('originalValue') &&
+        !filter.originalValue &&
+        updateValues &&
+        !isEqual(currentValues, updateValues)
+      ) {
+        update.originalValue = currentValues;
+      }
+
+      if (
+        !update.hasOwnProperty('originalOperator') &&
+        !filter.originalOperator &&
+        update.operator &&
+        filter.operator !== update.operator
+      ) {
+        update.originalOperator = filter.operator;
+      }
+
       const updatedBaseFilters =
         baseFilters?.map((f) => {
           return f === filter ? { ...f, ...update } : f;

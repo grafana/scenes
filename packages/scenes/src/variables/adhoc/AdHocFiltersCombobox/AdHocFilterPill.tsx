@@ -23,7 +23,6 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
 
   const keyLabel = filter.keyLabel ?? filter.key;
   const valueLabel = filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
-  console.log(valueLabel, filter);
 
   const handleChangeViewMode = useCallback(
     (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => {
