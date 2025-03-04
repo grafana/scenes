@@ -325,6 +325,7 @@ export class AdHocFiltersVariable
         filter.operator !== update.operator
       ) {
         update.originalOperator = filter.operator;
+        update.originalValue = currentValues;
       }
 
       const updatedBaseFilters =
@@ -473,12 +474,20 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
+    //TODO REVERT THIS
+    let enrich = getEnrichedFiltersRequest(this);
+    if (filter.origin) {
+      enrich = {
+        scopes: [],
+      };
+    }
+
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
       timeRange,
       queries,
-      ...getEnrichedFiltersRequest(this),
+      ...enrich,
     });
 
     if (responseHasError(response)) {

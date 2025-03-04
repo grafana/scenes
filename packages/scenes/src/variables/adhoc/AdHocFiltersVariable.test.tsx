@@ -873,7 +873,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     );
   });
 
-  it('will ignore missing original values', () => {
+  it('will serialize original values even though they are not changed', () => {
     const { filtersVar } = setup({
       filters: [],
       baseFilters: [
@@ -892,13 +892,44 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
-        operator: '!=|',
+        operator: '!=',
       });
     });
 
+    // we need to always serialize the original values because of a specific scenario where we change from
+    // a multi value operator to a single value one, and we want to preserve all the original values, not just
+    // the new single value set for the new single value operator. If we do not do this, on restore we lose
+    // the original values array and only have the single value.
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%21%3D__gfp__%7CbaseValue1%7CbaseValue2%5C%5C%3D__gfp__%5Cscopes'
+      '?var-filters=baseKey1%7C%21%3D%7CbaseValue1%5CbaseValue1%7CbaseValue2%5C%3D__gfp__%5Cscopes'
     );
+  });
+
+  it('will save original values properly when switching from a multi value operator to a single value one', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        operator: '!=',
+      });
+    });
+
+    expect(filtersVar.state.baseFilters![0].value).toBe('baseValue1');
+    expect(filtersVar.state.baseFilters![0].operator).toBe('!=');
+    expect(filtersVar.state.baseFilters![0].originalOperator).toBe('=|');
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1', 'baseValue2']);
   });
 
   it('will default to just showing empty var-filters if no filters or base filters present', () => {
