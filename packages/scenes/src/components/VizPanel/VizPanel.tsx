@@ -48,7 +48,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   title: string;
   description?: string;
   options: DeepPartial<TOptions>;
-  customTooltip?: React.ReactNode;
+  /**  * When set, it disregards the <options.tooltip> in favor of a fully customizable one.*/
+  getCustomTooltip?: (props: any) => React.ReactNode;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';

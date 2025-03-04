@@ -64,8 +64,8 @@ export class VizPanelBuilder<TOptions extends {}, TFieldConfig extends {}>
   /**
    * Set custom tooltip.
    */
-  public setCustomTooltip(customTooltip: VizPanelState['customTooltip']): this {
-    this._state.customTooltip = customTooltip;
+  public setCustomTooltip(customTooltip: VizPanelState['getCustomTooltip']): this {
+    this._state.getCustomTooltip = customTooltip;
     return this;
   }
 
