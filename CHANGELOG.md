@@ -1,3 +1,16 @@
+# v6.2.0 (Wed Mar 05 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneObjectBase: Fixes crash TypeError circular reference when stringifying scene object [#1070](https://github.com/grafana/scenes/pull/1070) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.1.4 (Thu Feb 27 2025)
 
 #### 🐛 Bug Fix
