@@ -782,7 +782,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(locationService.getLocation().search).toBe('?var-filters=newKey%7C%3D%7Cval1');
   });
 
-  it('url syncs base filters as injected filters together with original value and original operator', async () => {
+  it('url syncs base filters as injected filters together with original value', async () => {
     const { filtersVar } = setup({
       filters: [],
       baseFilters: [
@@ -803,13 +803,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue',
         valueLabels: ['newValue'],
-        operator: '=',
       });
     });
 
-    // injected filters stored in the following format: normal|adhoc|values\original|values\escaped_operator\filterOrigin
+    // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%3D%7CnewValue%5CbaseValue1%5C%21%3D%5Cscopes'
+      '?var-filters=baseKey1%7C%21%3D%7CnewValue%23baseValue1%23scopes'
     );
   });
 
@@ -834,102 +833,41 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue1',
         values: ['newValue1', 'newValue2'],
-        operator: '=|',
       });
     });
 
-    // injected filters stored in the following format: normal|adhoc|values\original|values\escaped_operator\filterOrigin
+    // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%3D__gfp__%7CnewValue1%7CnewValue2%5CbaseValue1%7CbaseValue2%5C%21%3D__gfp__%5Cscopes'
+      '?var-filters=baseKey1%7C%21%3D__gfp__%7CnewValue1%7CnewValue2%23baseValue1%7CbaseValue2%23scopes'
     );
   });
 
-  it('will ignore missing original operator', () => {
+  it('will properly escape injected filter hash delimiter if found within values', () => {
     const { filtersVar } = setup({
       filters: [],
       baseFilters: [
         {
           key: 'baseKey1',
           keyLabel: 'baseKey1',
-          operator: '=|',
-          value: 'baseValue1',
-          values: ['baseValue1', 'baseValue2'],
+          operator: '=',
+          value: 'baseValue1#',
+          values: ['baseValue1#'],
           origin: FilterOrigin.Scopes,
         },
         // no origin, so this does not get synced
-        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3' },
       ],
     });
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
-        value: 'newValue1',
-        values: ['newValue1', 'newValue2'],
+        value: 'newValue1#',
       });
     });
 
+    // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%3D__gfp__%7CnewValue1%7CnewValue2%5CbaseValue1%7CbaseValue2%5C%5Cscopes'
+      '?var-filters=baseKey1%7C%3D%7CnewValue1__gfh__%23baseValue1__gfh__%23scopes'
     );
-  });
-
-  it('will serialize original values even though they are not changed', () => {
-    const { filtersVar } = setup({
-      filters: [],
-      baseFilters: [
-        {
-          key: 'baseKey1',
-          keyLabel: 'baseKey1',
-          operator: '=|',
-          value: 'baseValue1',
-          values: ['baseValue1', 'baseValue2'],
-          origin: FilterOrigin.Scopes,
-        },
-        // no origin, so this does not get synced
-        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3' },
-      ],
-    });
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
-        operator: '!=',
-      });
-    });
-
-    // we need to always serialize the original values because of a specific scenario where we change from
-    // a multi value operator to a single value one, and we want to preserve all the original values, not just
-    // the new single value set for the new single value operator. If we do not do this, on restore we lose
-    // the original values array and only have the single value.
-    expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%21%3D%7CbaseValue1%5CbaseValue1%7CbaseValue2%5C%3D__gfp__%5Cscopes'
-    );
-  });
-
-  it('will save original values properly when switching from a multi value operator to a single value one', () => {
-    const { filtersVar } = setup({
-      filters: [],
-      baseFilters: [
-        {
-          key: 'baseKey1',
-          keyLabel: 'baseKey1',
-          operator: '=|',
-          value: 'baseValue1',
-          values: ['baseValue1', 'baseValue2'],
-          origin: FilterOrigin.Scopes,
-        },
-      ],
-    });
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
-        operator: '!=',
-      });
-    });
-
-    expect(filtersVar.state.baseFilters![0].value).toBe('baseValue1');
-    expect(filtersVar.state.baseFilters![0].operator).toBe('!=');
-    expect(filtersVar.state.baseFilters![0].originalOperator).toBe('=|');
-    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1', 'baseValue2']);
   });
 
   it('will default to just showing empty var-filters if no filters or base filters present', () => {
@@ -966,7 +904,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     act(() => {
       filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
         value: 'newValue1',
-        operator: '!=',
       });
 
       // no origin, so this does not get updated
@@ -976,10 +913,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.baseFilters![0].value).toBe('newValue1');
-    expect(filtersVar.state.baseFilters![0].operator).toBe('!=');
     expect(filtersVar.state.baseFilters![1].value).toBe('baseValue3');
     expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1']);
-    expect(filtersVar.state.baseFilters![0].originalOperator).toEqual('=');
     expect(filtersVar.state.baseFilters![1].originalValue).toBe(undefined);
   });
 
@@ -1047,34 +982,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.baseFilters![0].value).toBe('baseValue1');
     expect(filtersVar.state.baseFilters![0].values).toEqual(['baseValue1', 'baseValue2']);
     expect(filtersVar.state.baseFilters![0].originalValue).toEqual(undefined);
-    expect(filtersVar.state.baseFilters![0].originalOperator).toEqual(undefined);
-  });
-
-  it('does not update originalOperator if new and old filter changes are the same', () => {
-    const { filtersVar } = setup({
-      filters: [],
-      baseFilters: [
-        {
-          key: 'baseKey1',
-          keyLabel: 'baseKey1',
-          operator: '=|',
-          value: 'baseValue1',
-          values: ['baseValue1', 'baseValue2'],
-          origin: FilterOrigin.Scopes,
-        },
-      ],
-    });
-
-    act(() => {
-      // same value, so no change
-      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
-        operator: '=|',
-      });
-    });
-
-    expect(filtersVar.state.baseFilters![0].operator).toBe('=|');
-    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(undefined);
-    expect(filtersVar.state.baseFilters![0].originalOperator).toEqual(undefined);
   });
 
   it('does not overwrite originalValue if it already exists, unless explicitly requested', () => {
@@ -1113,6 +1020,79 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // original value has been updated since it is explicitly requested
     expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['newOriginalValue1']);
+  });
+
+  it('deletes originalValue if we set the same value from the UI', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=',
+          value: 'baseValue1',
+          values: ['baseValue1'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue1',
+        values: ['newValue1'],
+      });
+    });
+
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1']);
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'baseValue1',
+        values: ['baseValue1'],
+      });
+    });
+
+    // like a manual restore, but done from the UI by manually picking the same value
+    // as the original
+    expect(filtersVar.state.baseFilters![0].originalValue).toBe(undefined);
+  });
+
+  it('maintains originalValue if we return to original values, but in different order', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'baseValue2',
+        values: ['baseValue2', 'baseValue3'],
+      });
+    });
+
+    // we change values, and store originalValue
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1', 'baseValue2']);
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'baseValue2',
+        values: ['baseValue2', 'baseValue1'],
+      });
+    });
+
+    // we change the values again, this time with the same values as originalValue but
+    // in a different order. This will maintain the originalValue key
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1', 'baseValue2']);
   });
 
   it('restores original value if it exists', () => {

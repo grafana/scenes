@@ -30,7 +30,6 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // which means it won't appear in the UI
   origin?: FilterOrigin;
   originalValue?: string[];
-  originalOperator?: string;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -282,17 +281,15 @@ export class AdHocFiltersVariable
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
     const original: Partial<AdHocFilterWithLabels> = {
       originalValue: undefined,
-      originalOperator: undefined,
     };
 
     if (filter.originalValue?.length) {
       original.value = filter.originalValue[0];
       original.values = filter.originalValue;
+      // we don't care much about the labels in this injected filters scenario
+      // but this is needed to rerender the filter with the proper values
+      // in the UI. E.g.: in a multi-value on hover, it shows the correct values
       original.valueLabels = filter.originalValue;
-    }
-
-    if (filter.originalOperator) {
-      original.operator = filter.originalOperator;
     }
 
     this._updateFilter(filter, original);
@@ -308,24 +305,18 @@ export class AdHocFiltersVariable
     if (filter.origin) {
       const currentValues = filter.values ? filter.values : [filter.value];
       const updateValues = update.values || (update.value ? [update.value] : undefined);
+      const originalValueOverride = update.hasOwnProperty('originalValue');
 
-      if (
-        !update.hasOwnProperty('originalValue') &&
-        !filter.originalValue &&
-        updateValues &&
-        !isEqual(currentValues, updateValues)
-      ) {
+      // if we do not override this logic by adding originalValue in update
+      // and there is no originalValue set and the updateValues are set and
+      // not equal to the currentValues we update the originalValue
+      if (!originalValueOverride && updateValues && !filter.originalValue && !isEqual(currentValues, updateValues)) {
         update.originalValue = currentValues;
       }
 
-      if (
-        !update.hasOwnProperty('originalOperator') &&
-        !filter.originalOperator &&
-        update.operator &&
-        filter.operator !== update.operator
-      ) {
-        update.originalOperator = filter.operator;
-        update.originalValue = currentValues;
+      // we are updating to the same values, no reason to hold original value
+      if (!originalValueOverride && isEqual(updateValues, filter.originalValue)) {
+        update.originalValue = undefined;
       }
 
       const updatedBaseFilters =
@@ -474,20 +465,12 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
-    //TODO REVERT THIS
-    let enrich = getEnrichedFiltersRequest(this);
-    if (filter.origin) {
-      enrich = {
-        scopes: [],
-      };
-    }
-
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
       timeRange,
       queries,
-      ...enrich,
+      ...getEnrichedFiltersRequest(this),
     });
 
     if (responseHasError(response)) {

@@ -519,11 +519,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           {filter?.key && filter?.operator && filterInputType !== 'operator' ? (
             <div
               id={operatorIdentifier}
-              className={cx(styles.basePill, styles.operatorPill, operatorIdentifier)}
-              role="button"
+              className={cx(
+                styles.basePill,
+                !filter.origin && styles.operatorPill,
+                filter.origin && styles.keyPill,
+                operatorIdentifier
+              )}
               aria-label="Edit filter operator"
               tabIndex={0}
               onClick={(event) => {
+                if (filter.origin) {
+                  return;
+                }
+
                 event.stopPropagation();
                 setInputValue('');
                 switchInputType('operator', setInputType, undefined, refs.domReference.current);
@@ -535,6 +543,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                   switchInputType('operator', setInputType, undefined, refs.domReference.current);
                 }
               }}
+              {...(!filter.origin && { role: 'button' })}
             >
               {filter.operator}
             </div>

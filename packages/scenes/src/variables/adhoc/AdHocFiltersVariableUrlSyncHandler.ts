@@ -6,7 +6,12 @@ import {
   isFilterComplete,
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
-import { escapeUrlPipeDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
+import {
+  escapeInjectedFilterUrlDelimiters,
+  escapeUrlPipeDelimiters,
+  toUrlCommaDelimitedString,
+  unescapeUrlDelimiters,
+} from '../utils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
@@ -42,15 +47,13 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       value.push(
         ...baseFilters
           ?.filter(isFilterComplete)
-          .filter((filter) => !filter.hidden && filter.origin && (filter.originalValue || filter.originalOperator))
+          .filter((filter) => !filter.hidden && filter.origin && filter.originalValue)
           .map((filter) =>
             toArray(filter)
-              .map(escapeUrlPipeDelimiters)
+              .map(escapeInjectedFilterUrlDelimiters)
               .join('|')
               .concat(
-                `\\${filter.originalValue?.map(escapeUrlPipeDelimiters).join('|') ?? ''}\\${escapeUrlPipeDelimiters(
-                  filter.originalOperator
-                )}\\${filter.origin}`
+                `#${filter.originalValue?.map(escapeInjectedFilterUrlDelimiters).join('|') ?? ''}#${filter.origin}`
               )
           )
       );
@@ -107,7 +110,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [filter, originalValues, originalOperator, origin] = urlValue.split('\\');
+  const [filter, originalValues, origin] = urlValue.split('#');
   const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
     .reduce<string[]>((acc, v) => {
@@ -129,7 +132,6 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     condition: '',
     origin: isFilterOrigin(origin) ? origin : undefined,
     originalValue: originalValues && originalValues.length ? originalValues.split('|') ?? [originalValues] : undefined,
-    originalOperator: originalOperator ? unescapeUrlDelimiters(originalOperator) : undefined,
   };
 }
 

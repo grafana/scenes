@@ -115,7 +115,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         ) : null}
 
-        {filter.origin && !filter.originalValue && !filter.originalOperator && (
+        {filter.origin && !filter.originalValue && (
           <IconButton
             name="info-circle"
             size="md"
@@ -124,7 +124,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         )}
 
-        {filter.origin && (filter.originalValue || filter.originalOperator) && (
+        {filter.origin && filter.originalValue && (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
