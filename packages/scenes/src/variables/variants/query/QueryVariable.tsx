@@ -28,6 +28,7 @@ import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
+import { config } from '@grafana/runtime';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -59,6 +60,10 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       sort: VariableSort.disabled,
       ...initialState,
     });
+  }
+
+  public get isAsync() {
+    return this.state.query !== undefined && containsSearchFilter(this.state.query);
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
@@ -140,23 +145,33 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
   onSearchChange = (searchFilter: string) => {
     if (!containsSearchFilter(this.state.query)) {
-      return;
+      return Promise.resolve([]); // Not called for Combobox, Select will treat this as void
     }
 
-    this._updateOptionsBasedOnSearchFilter(searchFilter);
+    // @ts-ignore
+    if (config?.featureToggles?.templateVariablesUsesCombobox) {
+      return this._getNewOptions(searchFilter);
+    }
+
+    // Undefined for first call
+    return this._updateOptionsBasedOnSearchFilter(searchFilter);
   };
 
-  private _updateOptionsBasedOnSearchFilter = debounce(async (searchFilter: string) => {
+  // Used for Combobox, as debouncing is done inside the component
+  private _getNewOptions = async (searchFilter: string) => {
     const result = await lastValueFrom(this.getValueOptions({ searchFilter }));
     this.setState({ options: result, loading: false });
-  }, 400);
+    return result;
+  };
+
+  private _updateOptionsBasedOnSearchFilter = debounce(this._getNewOptions, 400, { leading: true });
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
     return renderSelectForVariable(model);
   };
 }
 
-function containsSearchFilter(query: string | DataQuery) {
+export function containsSearchFilter(query: string | DataQuery) {
   const str = safeStringifyValue(query);
   return str.indexOf(SEARCH_FILTER_VARIABLE) > -1;
 }
