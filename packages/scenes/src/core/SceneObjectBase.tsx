@@ -372,7 +372,11 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   }
 
   public toJSON() {
-    return this.state;
+    return {
+      type: Object.getPrototypeOf(this).constructor.name,
+      isActive: this.isActive,
+      state: this.state,
+    };
   }
 }
 

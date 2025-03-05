@@ -137,7 +137,9 @@ describe('SceneObject', () => {
       nested: new TestScene({ key: 'nested' }),
     });
 
-    expect(JSON.stringify(scene)).toBe('{"key":"root","nested":{"key":"nested"}}');
+    expect(JSON.stringify(scene)).toBe(
+      '{"type":"TestScene","isActive":false,"state":{"key":"root","nested":{"type":"TestScene","isActive":false,"state":{"key":"nested"}}}}'
+    );
   });
 
   it('Cannot modify state', () => {
