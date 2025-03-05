@@ -5,7 +5,6 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
-import uFuzzy from '@leeoniya/ufuzzy';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -237,35 +236,4 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
   }
 
   return result;
-}
-
-export function getFuzzySearcher(haystack: string[], limit = 10_000) {
-  const ufuzzy = new uFuzzy();
-
-  const FIRST = Array.from({ length: Math.min(limit, haystack.length) }, (_, i) => i);
-
-  // returns matched indices by quality
-  return (search: string): number[] => {
-    if (search === '') {
-      return FIRST;
-    }
-
-    const [idxs, info, order] = ufuzzy.search(haystack, search);
-
-    if (idxs) {
-      if (info && order) {
-        const outIdxs = Array(Math.min(order.length, limit));
-
-        for (let i = 0; i < outIdxs.length; i++) {
-          outIdxs[i] = info.idx[order[i]];
-        }
-
-        return outIdxs;
-      }
-
-      return idxs.slice(0, limit);
-    }
-
-    return [];
-  };
 }
