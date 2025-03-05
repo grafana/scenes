@@ -25,7 +25,6 @@ import {
 import {
   ERROR_STATE_DROPDOWN_WIDTH,
   flattenOptionGroups,
-  searchOptions,
   generateFilterUpdatePayload,
   generatePlaceholder,
   populateInputValueOnInputTypeSwitch,
@@ -39,6 +38,7 @@ import {
 import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
 import { MultiValuePill } from './MultiValuePill';
+import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -81,7 +81,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const disabledIndicesRef = useRef<number[]>([]);
   const filterInputTypeRef = useRef<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
 
-  const optionsSearcher = useMemo(() => searchOptions(options), [options]);
+  const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
 
   const isLastFilter = useMemo(() => {
     if (isAlwaysWip) {
@@ -208,7 +208,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // operation order on fetched options:
   //    fuzzy search -> extract into groups -> flatten group labels and options
   const filteredDropDownItems = flattenOptionGroups(
-    handleOptionGroups(optionsSearcher(preventFiltering ? '' : inputValue, filterInputType))
+    handleOptionGroups(optionsSearcher(preventFiltering ? '' : inputValue))
   );
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
