@@ -370,6 +370,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
     return this._ref;
   }
+
+  public toJSON() {
+    return this.state;
+  }
 }
 
 /**
