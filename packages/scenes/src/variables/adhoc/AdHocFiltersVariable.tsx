@@ -228,14 +228,13 @@ export class AdHocFiltersVariable
   private _activationHandler = () => {
     this._scopesBridge = sceneGraph.getScopesBridge(this);
 
-    // const scopes = this._scopesBridge?.getValue();
+    const scopes = this._scopesBridge?.getValue();
 
-    // if (scopes) {
-    //   this._updateScopesFilters(scopes);
-    // }
+    if (scopes) {
+      this._updateScopesFilters(scopes);
+    }
 
     const sub = this._scopesBridge?.subscribeToValue((n, _) => {
-      console.log(this._scopesBridge?.getValue());
       this._updateScopesFilters(n);
     });
 
