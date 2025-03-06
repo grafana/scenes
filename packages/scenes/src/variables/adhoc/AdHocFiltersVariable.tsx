@@ -1,5 +1,12 @@
 import React from 'react';
-import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  GetTagResponse,
+  GrafanaTheme2,
+  MetricFindValue,
+  Scope,
+  SelectableValue,
+} from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
@@ -17,6 +24,7 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { SceneScopesBridge } from '../../core/SceneScopesBridge';
+import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -219,6 +227,29 @@ export class AdHocFiltersVariable
 
   private _activationHandler = () => {
     this._scopesBridge = sceneGraph.getScopesBridge(this);
+
+    const scopes = this._scopesBridge?.getValue();
+
+    if (scopes) {
+      this._updateScopesFilters(scopes);
+    }
+
+    const sub = this._scopesBridge?.subscribeToValue((n, _) => {
+      this._updateScopesFilters(n);
+    });
+
+    return () => {
+      sub?.unsubscribe();
+    };
+  };
+
+  private _updateScopesFilters = (scopes: Scope[]) => {
+    // maintain other baseFilters in the array, only update scopes ones
+    const newFilters = [
+      ...(this.state.baseFilters?.filter((f) => f.origin && f.origin !== FilterOrigin.Scopes) ?? []),
+      ...getAdHocFiltersFromScopes(scopes),
+    ];
+    this.setState({ baseFilters: newFilters });
   };
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
