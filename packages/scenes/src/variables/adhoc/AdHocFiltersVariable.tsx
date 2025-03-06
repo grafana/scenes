@@ -25,7 +25,6 @@ import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFilter
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { SceneScopesBridge } from '../../core/SceneScopesBridge';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
-import { Unsubscribable } from 'rxjs';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -229,13 +228,14 @@ export class AdHocFiltersVariable
   private _activationHandler = () => {
     this._scopesBridge = sceneGraph.getScopesBridge(this);
 
-    const scopes = this._scopesBridge?.getValue();
+    // const scopes = this._scopesBridge?.getValue();
 
-    if (scopes) {
-      this._updateScopesFilters(scopes);
-    }
+    // if (scopes) {
+    //   this._updateScopesFilters(scopes);
+    // }
 
     const sub = this._scopesBridge?.subscribeToValue((n, _) => {
+      console.log(this._scopesBridge?.getValue());
       this._updateScopesFilters(n);
     });
 

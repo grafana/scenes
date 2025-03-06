@@ -1,9 +1,10 @@
 import { isEqual } from 'lodash';
 import { useEffect } from 'react';
-import { BehaviorSubject, filter, map, Observable, pairwise, Unsubscribable } from 'rxjs';
+import { BehaviorSubject, filter, map, Observable, pairwise, tap, Unsubscribable } from 'rxjs';
 
 import { Scope } from '@grafana/data';
-import { ScopesContextValue, useScopes } from '@grafana/runtime';
+// @ts-expect-error Remove this when @grafana/runtime version 11.6.0 is released and the package is updated in scenes
+import { ScopesContextValue, useScopes } from '@grafana/runtime/src/unstable';
 
 import { SceneObjectBase } from './SceneObjectBase';
 import { SceneComponentProps, SceneObjectUrlValues, SceneObjectWithUrlSync } from './types';
@@ -51,8 +52,7 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
         map(
           ([prevContext, newContext]) =>
             [prevContext?.state.value ?? [], newContext?.state.value ?? []] as [Scope[], Scope[]]
-        ),
-        filter(([prevScopes, newScopes]) => !isEqual(prevScopes, newScopes))
+        )
       )
       .subscribe(([prevScopes, newScopes]) => {
         cb(newScopes, prevScopes);

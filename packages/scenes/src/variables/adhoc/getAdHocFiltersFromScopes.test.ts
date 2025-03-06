@@ -1,6 +1,6 @@
 import { Scope, ScopeSpecFilter } from '@grafana/data';
-import { FilterOrigin } from '@grafana/scenes';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
+import { FilterOrigin } from './AdHocFiltersVariable';
 
 describe('getAdHocFiltersFromScopes', () => {
   it('should return empty filters when no scopes are provided', () => {
