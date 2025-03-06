@@ -1,6 +1,5 @@
-import { isEqual } from 'lodash';
 import { useEffect } from 'react';
-import { BehaviorSubject, filter, map, Observable, pairwise, tap, Unsubscribable } from 'rxjs';
+import { BehaviorSubject, filter, map, Observable, pairwise, Unsubscribable } from 'rxjs';
 
 import { Scope } from '@grafana/data';
 // @ts-expect-error Remove this when @grafana/runtime version 11.6.0 is released and the package is updated in scenes
