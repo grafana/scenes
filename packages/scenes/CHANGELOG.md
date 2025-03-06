@@ -1,3 +1,15 @@
+# v6.2.1 (Thu Mar 06 2025)
+
+#### 🐛 Bug Fix
+
+- Variables: Unify options filtering to use most up to date implementation [#1071](https://github.com/grafana/scenes/pull/1071) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v6.2.0 (Wed Mar 05 2025)
 
 #### 🚀 Enhancement
