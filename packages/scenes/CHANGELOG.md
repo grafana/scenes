@@ -1,3 +1,15 @@
+# v6.3.0 (Fri Mar 07 2025)
+
+#### 🚀 Enhancement
+
+- Variables: Fix for data source variable support [#1069](https://github.com/grafana/scenes/pull/1069) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.2.1 (Thu Mar 06 2025)
 
 #### 🐛 Bug Fix
