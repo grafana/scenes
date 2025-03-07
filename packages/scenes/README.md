@@ -29,20 +29,21 @@ To work on @grafana/scenes SDK, please follow the guides below.
 
 ### Setting up @grafana/scenes with a local Grafana instance
 
-To setup scenes with local Grafana, the following setup is required:
+To set up scenes with local Grafana, the following setup is required:
 
 1. Clone the [Grafana Scenes repository](https://github.com/grafana/scenes/).
-1. Clone the [Grafana](https://github.com/grafana/grafana/) repository and follow the [Development guide](https://github.com/grafana/grafana/blob/main/contribute/developer-guide.md#developer-guide).
-1. Setup env variable `GRAFANA_PATH` to point to your Grafana repository directory, `export GRAFANA_PATH=<path-to-grafana-directory>`
-1. From Grafana Scenes root directory run `./scripts/dev.sh`. This will compile @grafana/scenes with watch mode enabled and link it to your Grafana.
-1. From Grafana directory run `yarn install`.
+2. Clone the [Grafana](https://github.com/grafana/grafana/) repository and follow the [Development guide](https://github.com/grafana/grafana/blob/main/contribute/developer-guide.md#developer-guide).
+3. Setup env variable `GRAFANA_PATH` to point to your Grafana repository directory, `export GRAFANA_PATH=<path-to-grafana-directory>`
+4. From Grafana Scenes root directory run `./scripts/dev.sh`. This will compile @grafana/scenes with watch mode enabled and link it to your Grafana.
+5. From Grafana directory run `yarn install`.
+6. From Grafana directory run `make run`.
 
 ### Setting up local version of @grafana/scenes with app plugin
 
 1. Run `YARN_IGNORE_PATH=1 yarn link` from `packages/scenes` directory.
-1. Run `yarn dev` from `packages/scenes` directory.
-1. Run `yarn link @grafana/scenes` from app plugin directory.
-1. Start app plugin development server.
+2. Run `yarn dev` from `packages/scenes` directory.
+3. Run `yarn link @grafana/scenes` from app plugin directory.
+4. Start app plugin development server.
 
 ### Demo app
 
