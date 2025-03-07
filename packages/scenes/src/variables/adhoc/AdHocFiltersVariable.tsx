@@ -108,7 +108,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * Flag that decides whether custom values can be added to the filter
    */
-  allowCustomValue?: boolean;
+  allowCustomValue?: boolean | 'first';
 
   /**
    * @internal state of the new filter being added
