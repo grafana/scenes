@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import { useEffect } from 'react';
 import { BehaviorSubject, filter, map, Observable, pairwise, Unsubscribable } from 'rxjs';
 
@@ -50,7 +51,8 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
         map(
           ([prevContext, newContext]) =>
             [prevContext?.state.value ?? [], newContext?.state.value ?? []] as [Scope[], Scope[]]
-        )
+        ),
+        filter(([prevScopes, newScopes]) => !isEqual(prevScopes, newScopes))
       )
       .subscribe(([prevScopes, newScopes]) => {
         cb(newScopes, prevScopes);
