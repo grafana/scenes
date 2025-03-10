@@ -1,13 +1,17 @@
-import {
-  Scope,
-  ScopeSpecFilter,
-  // @ts-expect-error Remove this when @grafana/data version 11.6.0 is released and the package is updated in scenes
-  isEqualityOrMultiOperator,
-  // @ts-expect-error Remove this when @grafana/data version 11.6.0 is released and the package is updated in scenes
-  reverseScopeFilterOperatorMap,
-  scopeFilterOperatorMap,
-} from '@grafana/data';
+import { Scope, ScopeFilterOperator, ScopeSpecFilter, scopeFilterOperatorMap } from '@grafana/data';
 import { AdHocFilterWithLabels, FilterOrigin } from './AdHocFiltersVariable';
+
+export type EqualityOrMultiOperator = Extract<ScopeFilterOperator, 'equals' | 'not-equals' | 'one-of' | 'not-one-of'>;
+
+export const reverseScopeFilterOperatorMap: Record<ScopeFilterOperator, string> = Object.fromEntries(
+  Object.entries(scopeFilterOperatorMap).map(([symbol, operator]) => [operator, symbol])
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+) as Record<ScopeFilterOperator, string>;
+
+export function isEqualityOrMultiOperator(value: string): value is EqualityOrMultiOperator {
+  const operators = new Set(['equals', 'not-equals', 'one-of', 'not-one-of']);
+  return operators.has(value);
+}
 
 export function getAdHocFiltersFromScopes(scopes: Scope[]): AdHocFilterWithLabels[] {
   const formattedFilters: Map<string, AdHocFilterWithLabels> = new Map();
