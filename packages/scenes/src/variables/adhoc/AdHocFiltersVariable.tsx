@@ -465,12 +465,26 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
+    // TODO: refactor this after scopesBridge is merged
+    const injectedScopes = getEnrichedFiltersRequest(this)?.scopes?.map((scope) => {
+      return {
+        ...scope,
+        spec: {
+          ...scope.spec,
+          filters: scope.spec.filters.filter(
+            (f) => !this.state.baseFilters?.find((bf) => bf.key === f.key && FilterOrigin.Scopes)
+          ),
+        },
+      };
+    });
+
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
       timeRange,
       queries,
-      ...getEnrichedFiltersRequest(this),
+      scopes: injectedScopes,
+      scopesInjected: true,
     });
 
     if (responseHasError(response)) {
