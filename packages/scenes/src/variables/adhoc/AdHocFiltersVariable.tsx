@@ -1,5 +1,12 @@
 import React from 'react';
-import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  GetTagResponse,
+  GrafanaTheme2,
+  MetricFindValue,
+  Scope,
+  SelectableValue,
+} from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
@@ -478,13 +485,19 @@ export class AdHocFiltersVariable
       };
     });
 
+    const scopeProps: { scopes?: Scope[]; scopesInjected?: boolean } = {};
+
+    if (injectedScopes) {
+      scopeProps.scopes = injectedScopes;
+      scopeProps.scopesInjected = true;
+    }
+
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
       timeRange,
       queries,
-      scopes: injectedScopes,
-      scopesInjected: true,
+      ...scopeProps,
     });
 
     if (responseHasError(response)) {
