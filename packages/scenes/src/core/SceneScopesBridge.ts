@@ -43,15 +43,15 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
     return this.context?.state.value ?? [];
   }
 
+  /**
+   * Emits values of the selected scopes array. It emits the current value and the previous value if there is a change.
+   * @param cb
+   */
   public subscribeToValue(cb: (newScopes: Scope[], prevScopes: Scope[]) => void): Unsubscribable {
     return this.contextObservable
       .pipe(
-        filter((context) => !!context && !context.state.loading),
+        map((context) => context?.state.value ?? []),
         pairwise(),
-        map(
-          ([prevContext, newContext]) =>
-            [prevContext?.state.value ?? [], newContext?.state.value ?? []] as [Scope[], Scope[]]
-        ),
         filter(([prevScopes, newScopes]) => !isEqual(prevScopes, newScopes))
       )
       .subscribe(([prevScopes, newScopes]) => {
