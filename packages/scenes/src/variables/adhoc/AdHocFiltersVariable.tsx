@@ -16,6 +16,7 @@ import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
+import { SceneScopesBridge } from '../../core/SceneScopesBridge';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -194,6 +195,7 @@ export class AdHocFiltersVariable
 
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
+  private _scopesBridge: SceneScopesBridge | undefined;
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
@@ -211,7 +213,13 @@ export class AdHocFiltersVariable
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
     }
+
+    this.addActivationHandler(this._activationHandler);
   }
+
+  private _activationHandler = () => {
+    this._scopesBridge = sceneGraph.getScopesBridge(this);
+  };
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
@@ -359,6 +367,7 @@ export class AdHocFiltersVariable
       filters: otherFilters,
       queries,
       timeRange,
+      scopes: this._scopesBridge?.getValue(),
       ...getEnrichedFiltersRequest(this),
     });
 
@@ -406,6 +415,7 @@ export class AdHocFiltersVariable
       filters: otherFilters,
       timeRange,
       queries,
+      scopes: this._scopesBridge?.getValue(),
       ...getEnrichedFiltersRequest(this),
     });
 
