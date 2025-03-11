@@ -1,3 +1,18 @@
+# v6.3.1 (Tue Mar 11 2025)
+
+#### 🐛 Bug Fix
+
+- Scopes: Add `ScopesBridge` object [#990](https://github.com/grafana/scenes/pull/990) ([@bfmatei](https://github.com/bfmatei) [@tskarhed](https://github.com/tskarhed) [@aocenas](https://github.com/aocenas) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 4
+
+- Andrej Ocenas ([@aocenas](https://github.com/aocenas))
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.3.0 (Fri Mar 07 2025)
 
 #### 🚀 Enhancement
