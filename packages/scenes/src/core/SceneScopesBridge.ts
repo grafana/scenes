@@ -36,9 +36,7 @@ export class SceneScopesBridge extends SceneObjectBase implements SceneObjectWit
       return;
     }
 
-    if (scopes.length) {
-      this.context?.changeScopes(scopes);
-    }
+    this.context?.changeScopes(scopes);
   }
 
   public getValue(): Scope[] {
