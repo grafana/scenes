@@ -522,8 +522,8 @@ export class AdHocFiltersVariable
       filters: otherFilters,
       timeRange,
       queries,
-      scopes,
       ...getEnrichedFiltersRequest(this),
+      scopes,
     });
 
     if (responseHasError(response)) {
