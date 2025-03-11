@@ -1,3 +1,66 @@
+# v6.3.1 (Tue Mar 11 2025)
+
+#### 🐛 Bug Fix
+
+- Scopes: Add `ScopesBridge` object [#990](https://github.com/grafana/scenes/pull/990) ([@bfmatei](https://github.com/bfmatei) [@tskarhed](https://github.com/tskarhed) [@aocenas](https://github.com/aocenas) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 4
+
+- Andrej Ocenas ([@aocenas](https://github.com/aocenas))
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.3.0 (Fri Mar 07 2025)
+
+#### 🚀 Enhancement
+
+- Variables: Fix for data source variable support [#1069](https://github.com/grafana/scenes/pull/1069) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.2.1 (Thu Mar 06 2025)
+
+#### 🐛 Bug Fix
+
+- Variables: Unify options filtering to use most up to date implementation [#1071](https://github.com/grafana/scenes/pull/1071) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v6.2.0 (Wed Mar 05 2025)
+
+#### 🚀 Enhancement
+
+- SceneObjectBase: Fixes crash TypeError circular reference when stringifying scene object [#1070](https://github.com/grafana/scenes/pull/1070) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.1.4 (Thu Feb 27 2025)
+
+#### 🐛 Bug Fix
+
+- AdhocVariable: `baseFilters` with origin appear readonly in the UI [#1060](https://github.com/grafana/scenes/pull/1060) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.1.3 (Wed Feb 26 2025)
 
 #### 🐛 Bug Fix
