@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  AdHocVariableFilter,
-  GetTagResponse,
-  GrafanaTheme2,
-  MetricFindValue,
-  SelectableValue,
-} from '@grafana/data';
+import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
@@ -480,12 +474,24 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
+    const scopes = this._scopesBridge?.getValue().map((scope) => {
+      return {
+        ...scope,
+        spec: {
+          ...scope.spec,
+          filters: scope.spec.filters.filter(
+            (f) => !this.state.baseFilters?.find((bf) => bf.key === f.key && FilterOrigin.Scopes)
+          ),
+        },
+      };
+    });
+
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
       timeRange,
       queries,
-      scopes: this._scopesBridge?.getValue(),
+      scopes,
       ...getEnrichedFiltersRequest(this),
     });
 
