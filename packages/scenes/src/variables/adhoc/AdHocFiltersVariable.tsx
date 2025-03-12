@@ -251,11 +251,25 @@ export class AdHocFiltersVariable
   };
 
   private _updateScopesFilters = (scopes: Scope[]) => {
+    const scopeInjectedFilters: AdHocFilterWithLabels[] = [];
+    const remainingFilters: AdHocFilterWithLabels[] = [];
+
+    this.state.baseFilters?.forEach((filter) => {
+      if (filter.origin === FilterOrigin.Scopes) {
+        scopeInjectedFilters.push(filter);
+      } else {
+        remainingFilters.push(filter);
+      }
+    });
+
+    const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.originalValue?.length);
+    const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
+    const scopeFilters = getAdHocFiltersFromScopes(scopes).filter(
+      (filter) => !editedScopeFilterKeys.includes(filter.key)
+    );
+
     // maintain other baseFilters in the array, only update scopes ones
-    const newFilters = [
-      ...(this.state.baseFilters?.filter((f) => f.origin && f.origin !== FilterOrigin.Scopes) ?? []),
-      ...getAdHocFiltersFromScopes(scopes),
-    ];
+    const newFilters = [...editedScopeFilters, ...scopeFilters, ...remainingFilters];
     this.setState({ baseFilters: newFilters });
   };
 
