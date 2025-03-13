@@ -263,13 +263,21 @@ export class AdHocFiltersVariable
     });
 
     const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.originalValue?.length);
+    const scopeFilters = getAdHocFiltersFromScopes(scopes);
     const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
-    const scopeFilters = getAdHocFiltersFromScopes(scopes).filter(
-      (filter) => !editedScopeFilterKeys.includes(filter.key)
-    );
+    const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
+
+    // if the scope filters contain the key of an edited scope one, we replace
+    // with the edited one, otherwise if an edited filter is not found in
+    // the scope filters (this can happend when changing scopes alltogether)
+    // we drop the edited one and use the new filters from the new scopes
+    const finalFilters = [
+      ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
+      ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
+    ];
 
     // maintain other baseFilters in the array, only update scopes ones
-    const newFilters = [...editedScopeFilters, ...scopeFilters, ...remainingFilters];
+    const newFilters = [...finalFilters, ...remainingFilters];
     this.setState({ baseFilters: newFilters });
   };
 
@@ -519,25 +527,29 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
-    const scopes = this._scopesBridge?.getValue().map((scope) => {
-      return {
-        ...scope,
-        spec: {
-          ...scope.spec,
-          filters: scope.spec.filters.filter(
-            (f) => !this.state.baseFilters?.find((bf) => bf.key === f.key && FilterOrigin.Scopes)
-          ),
-        },
-      };
-    });
+    let scopes = this._scopesBridge?.getValue();
+
+    if (this.state.baseFilters?.some((filter) => filter.origin === FilterOrigin.Scopes)) {
+      scopes = scopes?.map((scope) => {
+        return {
+          ...scope,
+          spec: {
+            ...scope.spec,
+            filters: scope.spec.filters.filter(
+              (f) => !this.state.baseFilters?.find((bf) => bf.key === f.key && FilterOrigin.Scopes)
+            ),
+          },
+        };
+      });
+    }
 
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
       timeRange,
       queries,
-      ...getEnrichedFiltersRequest(this),
       scopes,
+      ...getEnrichedFiltersRequest(this),
     });
 
     if (responseHasError(response)) {

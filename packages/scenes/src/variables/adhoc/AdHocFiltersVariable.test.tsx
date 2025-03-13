@@ -22,8 +22,10 @@ import {
   getDefaultTimeRange,
   LoadingState,
   PanelData,
+  Scope,
+  ScopeSpecFilter,
 } from '@grafana/data';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import userEvent from '@testing-library/user-event';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexLayout, SceneFlexItem } from '../../components/layout/SceneFlexLayout';
@@ -37,6 +39,8 @@ import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
+import { SceneScopesBridge } from '../../core/SceneScopesBridge';
+import { sceneGraph } from '../../core/sceneGraph';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -1142,6 +1146,249 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.baseFilters![0].value).toEqual('baseValue1');
     expect(filtersVar.state.baseFilters![0].values).toEqual(['baseValue1']);
     expect(filtersVar.state.baseFilters![0].originalValue).toBe(undefined);
+  });
+
+  it.each([
+    [
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'scopeBaseFilter2',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+      ],
+      [
+        [
+          { key: 'scopeBaseFilter1', operator: 'equals', value: 'val' },
+          { key: 'scopeBaseFilter2', operator: 'equals', value: 'val' },
+        ],
+        [{ key: 'scopeBaseFilter3', operator: 'equals', value: 'val' }],
+      ],
+      [
+        {
+          key: 'scopeBaseFilter2',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'scopeBaseFilter3',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+      ],
+    ],
+    [
+      [],
+      [
+        [
+          { key: 'scopeBaseFilter1', operator: 'equals', value: 'val' },
+          { key: 'scopeBaseFilter2', operator: 'equals', value: 'val' },
+        ],
+        [{ key: 'scopeBaseFilter3', operator: 'equals', value: 'val' }],
+      ],
+      [
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'scopeBaseFilter2',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'scopeBaseFilter3',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    ],
+    [
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+      ],
+      [],
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+      ],
+    ],
+    [
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+      [[{ key: 'scopeBaseFilter3', operator: 'equals', value: 'val' }]],
+      [
+        {
+          key: 'scopeBaseFilter3',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+      ],
+    ],
+    [
+      [
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+      ],
+      [[{ key: 'scopeBaseFilter1', operator: 'equals', value: 'val' }]],
+      [
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+      ],
+    ],
+    [
+      [
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+      ],
+      [[{ key: 'scopeBaseFilter2', operator: 'equals', value: 'val' }]],
+      [
+        {
+          key: 'scopeBaseFilter2',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    ],
+    [[], [], []],
+  ])('maintains correct filters and scope injected filters on activation', (baseFilters, scopeFilters, expected) => {
+    // in this scenario we need to preserve whatever non injected filters exist, together
+    // with either edited scope injected filters or directly filters pulled from scopes
+    let getScopesBridgeSpy = jest.spyOn(sceneGraph, 'getScopesBridge');
+
+    const scopes = new SceneScopesBridge({});
+    const mockState = {
+      value: [] as Scope[],
+      drawerOpened: false,
+      enabled: true,
+      loading: false,
+      readOnly: false,
+    };
+
+    for (let i = 0; i < scopeFilters.length; i++) {
+      mockState.value.push({
+        metadata: { name: `Scope ${i}` },
+        spec: {
+          title: `Scope ${i}`,
+          type: 'test',
+          description: 'Test scope',
+          category: 'test',
+          filters: scopeFilters[i] as ScopeSpecFilter[],
+        },
+      });
+    }
+
+    scopes.updateContext({
+      state: mockState,
+      stateObservable: new BehaviorSubject(mockState),
+      changeScopes: () => {},
+      setReadOnly: () => {},
+      setEnabled: () => {},
+    });
+
+    getScopesBridgeSpy.mockReturnValue(scopes);
+
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters,
+    });
+
+    filtersVar.state.baseFilters?.forEach((filter, index) => {
+      expect(filter).toEqual(expected[index]);
+    });
+
+    getScopesBridgeSpy.mockReturnValue(undefined);
   });
 
   it('Can override and replace getTagKeys and getTagValues', async () => {
