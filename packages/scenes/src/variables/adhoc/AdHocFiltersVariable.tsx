@@ -529,6 +529,8 @@ export class AdHocFiltersVariable
 
     let scopes = this._scopesBridge?.getValue();
 
+    // if we have scope injected filters we need to filter them out of the scopes
+    // as they will be sent twice and cause issues with value resolution
     if (this.state.baseFilters?.some((filter) => filter.origin === FilterOrigin.Scopes)) {
       scopes = scopes?.map((scope) => {
         return {
