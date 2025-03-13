@@ -242,7 +242,7 @@ export class AdHocFiltersVariable
     }
 
     const sub = this._scopesBridge?.subscribeToValue((n, _) => {
-      this._updateScopesFilters(n);
+      this._updateScopesFilters(n, true);
     });
 
     return () => {
@@ -250,7 +250,7 @@ export class AdHocFiltersVariable
     };
   };
 
-  private _updateScopesFilters = (scopes: Scope[]) => {
+  private _updateScopesFilters = (scopes: Scope[], overwrite?: boolean) => {
     const scopeInjectedFilters: AdHocFilterWithLabels[] = [];
     const remainingFilters: AdHocFilterWithLabels[] = [];
 
@@ -262,19 +262,25 @@ export class AdHocFiltersVariable
       }
     });
 
-    const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.originalValue?.length);
     const scopeFilters = getAdHocFiltersFromScopes(scopes);
-    const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
-    const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
+    let finalFilters = scopeFilters;
 
-    // if the scope filters contain the key of an edited scope one, we replace
-    // with the edited one, otherwise if an edited filter is not found in
-    // the scope filters (this can happend when changing scopes alltogether)
-    // we drop the edited one and use the new filters from the new scopes
-    const finalFilters = [
-      ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
-      ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
-    ];
+    // if we are updating scopes we do not care to preserve edited filters,
+    // we overwrite everything with the newly set scopes
+    if (!overwrite) {
+      const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.originalValue?.length);
+      const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
+      const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
+
+      // if the scope filters contain the key of an edited scope one, we replace
+      // with the edited one, otherwise if an edited filter is not found in
+      // the scope filters (this can happend when changing scopes alltogether)
+      // we drop the edited one and use the new filters from the new scopes
+      finalFilters = [
+        ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
+        ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
+      ];
+    }
 
     // maintain other baseFilters in the array, only update scopes ones
     const newFilters = [...finalFilters, ...remainingFilters];
