@@ -535,17 +535,15 @@ export class AdHocFiltersVariable
 
     let scopes = this._scopesBridge?.getValue();
 
-    // if we have scope injected filters we need to filter them out of the scopes
-    // as they will be sent twice and cause issues with value resolution
-    if (this.state.baseFilters?.some((filter) => filter.origin === FilterOrigin.Scopes)) {
+    // if current filter is a scope injected one we need to filter out
+    // filters with same key in scopes prop, similar to how we do in adhocFilters prop
+    if (filter.origin === FilterOrigin.Scopes) {
       scopes = scopes?.map((scope) => {
         return {
           ...scope,
           spec: {
             ...scope.spec,
-            filters: scope.spec.filters.filter(
-              (f) => !this.state.baseFilters?.find((bf) => bf.key === f.key && FilterOrigin.Scopes)
-            ),
+            filters: scope.spec.filters.filter((f) => f.key !== filter.key),
           },
         };
       });
