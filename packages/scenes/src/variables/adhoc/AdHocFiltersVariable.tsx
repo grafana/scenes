@@ -24,6 +24,7 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { SceneScopesBridge } from '../../core/SceneScopesBridge';
+import { isEqual } from 'lodash';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
@@ -37,6 +38,7 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // filter origin, it can be either scopes, dashboards or undefined,
   // which means it won't appear in the UI
   origin?: FilterOrigin;
+  originalValue?: string[];
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -214,7 +216,12 @@ export class AdHocFiltersVariable
       filters: [],
       datasource: null,
       applyMode: 'auto',
-      filterExpression: state.filterExpression ?? renderExpression(state.expressionBuilder, state.filters),
+      filterExpression:
+        state.filterExpression ??
+        renderExpression(state.expressionBuilder, [
+          ...(state.baseFilters?.filter((filter) => filter.origin) ?? []),
+          ...(state.filters ?? []),
+        ]),
       ...state,
     });
 
@@ -235,7 +242,7 @@ export class AdHocFiltersVariable
     }
 
     const sub = this._scopesBridge?.subscribeToValue((n, _) => {
-      this._updateScopesFilters(n);
+      this._updateScopesFilters(n, true);
     });
 
     return () => {
@@ -243,20 +250,58 @@ export class AdHocFiltersVariable
     };
   };
 
-  private _updateScopesFilters = (scopes: Scope[]) => {
+  private _updateScopesFilters = (scopes: Scope[], overwrite?: boolean) => {
+    const scopeInjectedFilters: AdHocFilterWithLabels[] = [];
+    const remainingFilters: AdHocFilterWithLabels[] = [];
+
+    this.state.baseFilters?.forEach((filter) => {
+      if (filter.origin === FilterOrigin.Scopes) {
+        scopeInjectedFilters.push(filter);
+      } else {
+        remainingFilters.push(filter);
+      }
+    });
+
+    const scopeFilters = getAdHocFiltersFromScopes(scopes);
+    let finalFilters = scopeFilters;
+
+    // if we are updating scopes we do not care to preserve edited filters,
+    // we overwrite everything with the newly set scopes
+    if (!overwrite) {
+      const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.originalValue?.length);
+      const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
+      const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
+
+      // if the scope filters contain the key of an edited scope one, we replace
+      // with the edited one, otherwise if an edited filter is not found in
+      // the scope filters (this can happend when changing scopes alltogether)
+      // we drop the edited one and use the new filters from the new scopes
+      finalFilters = [
+        ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
+        ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
+      ];
+    }
+
     // maintain other baseFilters in the array, only update scopes ones
-    const newFilters = [
-      ...(this.state.baseFilters?.filter((f) => f.origin && f.origin !== FilterOrigin.Scopes) ?? []),
-      ...getAdHocFiltersFromScopes(scopes),
-    ];
+    const newFilters = [...finalFilters, ...remainingFilters];
     this.setState({ baseFilters: newFilters });
   };
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
 
-    if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {
-      update.filterExpression = renderExpression(this.state.expressionBuilder, update.filters);
+    if (
+      ((update.filters && update.filters !== this.state.filters) ||
+        (update.baseFilters && update.baseFilters !== this.state.baseFilters)) &&
+      !update.filterExpression
+    ) {
+      const filters = update.filters ?? this.state.filters;
+      const baseFilters = update.baseFilters ?? this.state.baseFilters;
+
+      update.filterExpression = renderExpression(this.state.expressionBuilder, [
+        ...(baseFilters?.filter((filter) => filter.origin) ?? []),
+        ...(filters ?? []),
+      ]);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
     }
 
@@ -283,7 +328,10 @@ export class AdHocFiltersVariable
     let filterExpression: string | undefined = undefined;
 
     if (filters && filters !== this.state.filters) {
-      filterExpression = renderExpression(this.state.expressionBuilder, filters);
+      filterExpression = renderExpression(this.state.expressionBuilder, [
+        ...(this.state.baseFilters?.filter((filter) => filter.origin) ?? []),
+        ...filters,
+      ]);
       filterExpressionChanged = filterExpression !== this.state.filterExpression;
     }
 
@@ -297,12 +345,55 @@ export class AdHocFiltersVariable
     }
   }
 
+  public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
+    const original: Partial<AdHocFilterWithLabels> = {
+      originalValue: undefined,
+    };
+
+    if (filter.originalValue?.length) {
+      original.value = filter.originalValue[0];
+      original.values = filter.originalValue;
+      // we don't care much about the labels in this injected filters scenario
+      // but this is needed to rerender the filter with the proper values
+      // in the UI. E.g.: in a multi-value on hover, it shows the correct values
+      original.valueLabels = filter.originalValue;
+    }
+
+    this._updateFilter(filter, original);
+  }
+
   public getValue(): VariableValue | undefined {
     return this.state.filterExpression;
   }
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
-    const { filters, _wip } = this.state;
+    const { baseFilters, filters, _wip } = this.state;
+
+    if (filter.origin) {
+      const currentValues = filter.values ? filter.values : [filter.value];
+      const updateValues = update.values || (update.value ? [update.value] : undefined);
+      const originalValueOverride = update.hasOwnProperty('originalValue');
+
+      // if we do not override this logic by adding originalValue in update
+      // and there is no originalValue set and the updateValues are set and
+      // not equal to the currentValues we update the originalValue
+      if (!originalValueOverride && updateValues && !filter.originalValue && !isEqual(currentValues, updateValues)) {
+        update.originalValue = currentValues;
+      }
+
+      // we are updating to the same values, no reason to hold original value
+      if (!originalValueOverride && isEqual(updateValues, filter.originalValue)) {
+        update.originalValue = undefined;
+      }
+
+      const updatedBaseFilters =
+        baseFilters?.map((f) => {
+          return f === filter ? { ...f, ...update } : f;
+        }) ?? [];
+      this.setState({ baseFilters: updatedBaseFilters });
+
+      return;
+    }
 
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
@@ -435,18 +526,35 @@ export class AdHocFiltersVariable
       return [];
     }
 
+    const filteredBaseFilters = this.state.baseFilters?.filter((f) => f.origin && f.key !== filter.key) ?? [];
     // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters ?? []);
+    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(filteredBaseFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    let scopes = this._scopesBridge?.getValue();
+
+    // if current filter is a scope injected one we need to filter out
+    // filters with same key in scopes prop, similar to how we do in adhocFilters prop
+    if (filter.origin === FilterOrigin.Scopes) {
+      scopes = scopes?.map((scope) => {
+        return {
+          ...scope,
+          spec: {
+            ...scope.spec,
+            filters: scope.spec.filters.filter((f) => f.key !== filter.key),
+          },
+        };
+      });
+    }
 
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
       timeRange,
       queries,
-      scopes: this._scopesBridge?.getValue(),
+      scopes,
       ...getEnrichedFiltersRequest(this),
     });
 
