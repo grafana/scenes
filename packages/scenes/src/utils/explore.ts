@@ -19,7 +19,6 @@ export async function getExploreURL(
   }
 
   const { from, to } = timeRange;
-
   const filters = data.request?.filters;
 
   const scopedVars: ScopedVars = {
@@ -35,28 +34,27 @@ export async function getExploreURL(
     )
   )
     .filter((promise): promise is PromiseFulfilledResult<DataQuery> => promise.status === 'fulfilled')
-    .map((q) => q.value);
+    .map((q) => q.value)
+    .map((q) => transform?.(q) ?? q);
 
-  let queries: DataQuery[];
+  const queries: DataQuery[] = interpolatedQueries?.flat() ?? [];
 
-  const hasMixedDatasources = new Set(interpolatedQueries.map((q) => q.datasource?.uid)).size > 1;
+  // Check if we have mixed datasources (more than one unique datasource)
+  const hasMixedDatasources = new Set(queries.map((q) => q.datasource?.uid)).size > 1;
 
-  // Apply transform based on whether we're dealing with multiple queries or a single query
-  if (transform) {
-    const result = transform(
-      hasMixedDatasources || interpolatedQueries.length > 1 ? interpolatedQueries : interpolatedQueries[0]
-    );
-    queries = Array.isArray(result) ? result : [result];
-  } else {
-    queries = interpolatedQueries;
-  }
+  // For mixed datasources, mark the datasource as "-- Mixed --"
+  let datasource = hasMixedDatasources
+    ? '-- Mixed --'
+    : queries.find((query) => !!query.datasource?.uid)?.datasource?.uid;
 
-  // For mixed datasource panels, use "-- Mixed --" as the datasource
-  let datasource;
+  // If there are multiple queries with different data sources, ensure all queries are included.
+  // Maintain all queries and just update the datasource for mixed case
   if (hasMixedDatasources) {
-    datasource = '-- Mixed --';
-  } else {
-    datasource = queries.find((query) => !!query.datasource?.uid)?.datasource?.uid;
+    queries.forEach((query) => {
+      if (!query.datasource?.uid) {
+        query.datasource = { uid: '-- Mixed --' }; // For mixed datasource, mark as "-- Mixed --"
+      }
+    });
   }
 
   if (queries?.length && datasource && from && to) {
