@@ -14,7 +14,7 @@ export interface ExploreButtonOptions {
   onClick?: () => void;
 
   // Callback to modify interpolated query before passing it to explore
-  transform?: (query: DataQuery) => DataQuery;
+  transform?: (query: DataQuery | DataQuery[]) => DataQuery | DataQuery[];
 
   // Title and href for the return to previous button
   returnToPrevious?: {
@@ -42,10 +42,13 @@ function VizPanelExploreButtonComponent({ model }: SceneComponentProps<VizPanelE
 
   const { from, to } = sceneGraph.getTimeRange(model).useState();
 
-  const { value: exploreLink } = useAsync(
-    async () => (data ? getExploreURL(data, model, { from, to }, options.transform) : ''),
-    [data, model, from, to]
-  );
+  const { value: exploreLink } = useAsync(async () => {
+    if (!data) {
+      return '';
+    }
+
+    return getExploreURL(data, model, { from, to }, options.transform);
+  }, [data, model, from, to]);
 
   const returnToPrevious = useReturnToPrevious();
 

@@ -11,7 +11,7 @@ export async function getExploreURL(
   data: PanelData,
   model: SceneObject,
   timeRange: RawTimeRange,
-  transform?: (query: DataQuery) => DataQuery
+  transform?: (query: DataQuery | DataQuery[]) => DataQuery | DataQuery[]
 ): Promise<string> {
   const targets = data.request?.targets;
   if (!targets) {
@@ -35,12 +35,29 @@ export async function getExploreURL(
     )
   )
     .filter((promise): promise is PromiseFulfilledResult<DataQuery> => promise.status === 'fulfilled')
-    .map((q) => q.value)
-    .map((q) => transform?.(q) ?? q);
+    .map((q) => q.value);
 
-  const queries: DataQuery[] = interpolatedQueries ?? [];
+  let queries: DataQuery[];
 
-  const datasource = queries.find((query) => !!query.datasource?.uid)?.datasource?.uid;
+  const hasMixedDatasources = new Set(interpolatedQueries.map((q) => q.datasource?.uid)).size > 1;
+
+  // Apply transform based on whether we're dealing with multiple queries or a single query
+  if (transform) {
+    const result = transform(
+      hasMixedDatasources || interpolatedQueries.length > 1 ? interpolatedQueries : interpolatedQueries[0]
+    );
+    queries = Array.isArray(result) ? result : [result];
+  } else {
+    queries = interpolatedQueries;
+  }
+
+  // For mixed datasource panels, use "-- Mixed --" as the datasource
+  let datasource;
+  if (hasMixedDatasources) {
+    datasource = '-- Mixed --';
+  } else {
+    datasource = queries.find((query) => !!query.datasource?.uid)?.datasource?.uid;
+  }
 
   if (queries?.length && datasource && from && to) {
     const left = encodeURIComponent(
