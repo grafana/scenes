@@ -16,6 +16,9 @@ import {
   PluginType,
   renderMarkdown,
   PanelPluginDataSupport,
+  DataFrame,
+  Field,
+  LinkModel,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -38,6 +41,26 @@ import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
 import React from 'react';
+import { SortOrder } from '@grafana/schema';
+
+export interface PanelCustomTimeSeriesTooltip {
+  data: DataFrame[]; // Unified structure including both series & non-series data
+  isGraphable?: (field: Field) => boolean; // Optional helper to check if a field is graphable
+
+  // hovered points
+  dataIdxs: Array<number | null>;
+  // closest/hovered series
+  seriesIdx?: number | null;
+  sortOrder?: SortOrder;
+
+  isPinned: boolean;
+
+  maxHeight?: number;
+
+  replaceVariables?: InterpolateFunction;
+  dataLinks: LinkModel[];
+  hideZeros?: boolean;
+}
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -48,8 +71,9 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   title: string;
   description?: string;
   options: DeepPartial<TOptions>;
+  
   /**  * When set, it disregards the <options.tooltip> in favor of a fully customizable one.*/
-  getCustomTooltip?: (props: any) => React.ReactNode;
+  getCustomTooltip?: (props: PanelCustomTimeSeriesTooltip) => React.ReactNode;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;
   displayMode?: 'default' | 'transparent';
