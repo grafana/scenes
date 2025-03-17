@@ -11,7 +11,7 @@ export async function getExploreURL(
   data: PanelData,
   model: SceneObject,
   timeRange: RawTimeRange,
-  transform?: (query: DataQuery | DataQuery[]) => DataQuery | DataQuery[]
+  transform?: (query: DataQuery) => DataQuery
 ): Promise<string> {
   const targets = data.request?.targets;
   if (!targets) {

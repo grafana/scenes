@@ -14,7 +14,7 @@ export interface ExploreButtonOptions {
   onClick?: () => void;
 
   // Callback to modify interpolated query before passing it to explore
-  transform?: (query: DataQuery | DataQuery[]) => DataQuery | DataQuery[];
+  transform?: (query: DataQuery) => DataQuery;
 
   // Title and href for the return to previous button
   returnToPrevious?: {
