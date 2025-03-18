@@ -47,16 +47,6 @@ export async function getExploreURL(
     ? '-- Mixed --'
     : queries.find((query) => !!query.datasource?.uid)?.datasource?.uid;
 
-  // If there are multiple queries with different data sources, ensure all queries are included.
-  // Maintain all queries and just update the datasource for mixed case
-  if (hasMixedDatasources) {
-    queries.forEach((query) => {
-      if (!query.datasource?.uid) {
-        query.datasource = { uid: '-- Mixed --' }; // For mixed datasource, mark as "-- Mixed --"
-      }
-    });
-  }
-
   if (queries?.length && datasource && from && to) {
     const left = encodeURIComponent(
       JSON.stringify({
