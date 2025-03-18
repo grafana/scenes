@@ -283,7 +283,7 @@ export class AdHocFiltersVariable
     }
 
     // maintain other baseFilters in the array, only update scopes ones
-    const newFilters = [...finalFilters, ...remainingFilters];
+    const newFilters = [...remainingFilters, ...finalFilters];
     this.setState({ baseFilters: newFilters });
   };
 
@@ -442,6 +442,36 @@ export class AdHocFiltersVariable
 
       this.setState({
         filters: this.state.filters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
+          // adjust forceEdit of preceding filter
+          if (index === filterToForceIndex) {
+            return [
+              ...acc,
+              {
+                ...f,
+                forceEdit: true,
+              },
+            ];
+          }
+          // remove current filter
+          if (f === filter) {
+            return acc;
+          }
+
+          return [...acc, f];
+        }, []),
+      });
+    } else if (this.state.baseFilters?.length) {
+      // default forceEdit last filter (when triggering from wip filter)
+      let filterToForceIndex = this.state.baseFilters.length - 1;
+
+      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
+      //  to avoid triggering forceEdit logic
+      if (filter !== this.state._wip) {
+        filterToForceIndex = -1;
+      }
+
+      this.setState({
+        baseFilters: this.state.baseFilters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
           // adjust forceEdit of preceding filter
           if (index === filterToForceIndex) {
             return [

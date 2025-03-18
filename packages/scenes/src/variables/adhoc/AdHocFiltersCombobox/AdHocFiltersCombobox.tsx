@@ -289,6 +289,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               return;
             }
           }
+          if (filter?.origin) {
+            return;
+          }
+
           setInputType('operator');
           return;
         }
@@ -526,9 +530,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 operatorIdentifier
               )}
               aria-label="Edit filter operator"
-              tabIndex={0}
+              tabIndex={filter.origin ? -1 : 0}
               onClick={(event) => {
                 if (filter.origin) {
+                  handleChangeViewMode?.();
                   return;
                 }
 
@@ -537,6 +542,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 switchInputType('operator', setInputType, undefined, refs.domReference.current);
               }}
               onKeyDown={(event) => {
+                if (filter.origin) {
+                  return;
+                }
+
                 handleShiftTabInput(event, hasMultiValueOperator);
                 if (event.key === 'Enter') {
                   setInputValue('');

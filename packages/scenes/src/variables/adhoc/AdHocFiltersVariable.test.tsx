@@ -1182,6 +1182,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       ],
       [
         {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+        {
           key: 'scopeBaseFilter2',
           operator: '=',
           value: 'val',
@@ -1202,12 +1208,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           value: 'val',
           values: ['val'],
           origin: FilterOrigin.Scopes,
-        },
-        {
-          key: 'nonScopeBaseFilter',
-          operator: '=',
-          value: 'val',
-          values: ['val'],
         },
       ],
     ],
@@ -1282,17 +1282,17 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       [[{ key: 'scopeBaseFilter3', operator: 'equals', value: 'val' }]],
       [
         {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+        {
           key: 'scopeBaseFilter3',
           operator: '=',
           value: 'val',
           values: ['val'],
           origin: FilterOrigin.Scopes,
-        },
-        {
-          key: 'nonScopeBaseFilter',
-          operator: '=',
-          value: 'val',
-          values: ['val'],
         },
       ],
     ],
