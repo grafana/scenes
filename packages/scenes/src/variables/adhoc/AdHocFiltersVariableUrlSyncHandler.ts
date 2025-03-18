@@ -44,6 +44,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     }
 
     if (baseFilters?.length) {
+      // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
       value.push(
         ...baseFilters
           ?.filter(isFilterComplete)
