@@ -37,7 +37,7 @@ export async function getExploreURL(
     .map((q) => q.value)
     .map((q) => transform?.(q) ?? q);
 
-  const queries: DataQuery[] = interpolatedQueries?.flat() ?? [];
+  const queries: DataQuery[] = interpolatedQueries ?? [];
 
   // Check if we have mixed datasources (more than one unique datasource)
   const hasMixedDatasources = new Set(queries.map((q) => q.datasource?.uid)).size > 1;
