@@ -1,3 +1,16 @@
+# v6.4.1 (Wed Mar 19 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdhocVariable: Inject scopes in baseFilters [#1073](https://github.com/grafana/scenes/pull/1073) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.4.0 (Wed Mar 19 2025)
 
 #### 🚀 Enhancement
