@@ -1,3 +1,16 @@
+# v6.5.0 (Wed Mar 19 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocVariable: Edit injected filters [#1062](https://github.com/grafana/scenes/pull/1062) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.4.1 (Wed Mar 19 2025)
 
 #### 🐛 Bug Fix
