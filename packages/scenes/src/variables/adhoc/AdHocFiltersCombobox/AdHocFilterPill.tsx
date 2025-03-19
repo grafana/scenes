@@ -130,6 +130,13 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
               e.stopPropagation();
               model.restoreOriginalFilter(filter);
             }}
+            onKeyDownCapture={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                model.restoreOriginalFilter(filter);
+              }
+            }}
             name="history"
             size="md"
             className={styles.pillIcon}
