@@ -38,6 +38,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // filter origin, it can be either scopes, dashboards or undefined,
   // which means it won't appear in the UI
   origin?: FilterOrigin;
+  // this holds the original/initial value of a injected filter that
+  // was edited.
   originalValue?: string[];
 }
 
@@ -206,6 +208,7 @@ export class AdHocFiltersVariable
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
   private _scopesBridge: SceneScopesBridge | undefined;
+  private _overwriteScopes: boolean | undefined;
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
@@ -242,7 +245,7 @@ export class AdHocFiltersVariable
     }
 
     const sub = this._scopesBridge?.subscribeToValue((n, _) => {
-      this._updateScopesFilters(n, true);
+      this._updateScopesFilters(n, this._scopesBridge?.isLoading());
     });
 
     return () => {
@@ -250,7 +253,15 @@ export class AdHocFiltersVariable
     };
   };
 
-  private _updateScopesFilters = (scopes: Scope[], overwrite?: boolean) => {
+  private _updateScopesFilters = (scopes: Scope[], areScopesLoading?: boolean) => {
+    const scopeFilters = getAdHocFiltersFromScopes(scopes);
+
+    if (!scopeFilters.length) {
+      this._overwriteScopes = areScopesLoading;
+      return;
+    }
+
+    let finalFilters = scopeFilters;
     const scopeInjectedFilters: AdHocFilterWithLabels[] = [];
     const remainingFilters: AdHocFilterWithLabels[] = [];
 
@@ -262,24 +273,19 @@ export class AdHocFiltersVariable
       }
     });
 
-    const scopeFilters = getAdHocFiltersFromScopes(scopes);
-    let finalFilters = scopeFilters;
-
-    // if we are updating scopes we do not care to preserve edited filters,
-    // we overwrite everything with the newly set scopes
-    if (!overwrite) {
+    if (!this._overwriteScopes) {
       const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.originalValue?.length);
       const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
       const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
 
-      // if the scope filters contain the key of an edited scope one, we replace
-      // with the edited one, otherwise if an edited filter is not found in
-      // the scope filters (this can happend when changing scopes alltogether)
-      // we drop the edited one and use the new filters from the new scopes
+      // if the scope filters contain the key of an edited scope filter, we replace
+      // with the edited filter. We also add the remaining unedited scope filters
+      // when not overwriting
       finalFilters = [
         ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
         ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
       ];
+      this._overwriteScopes = false;
     }
 
     // maintain other baseFilters in the array, only update scopes ones
