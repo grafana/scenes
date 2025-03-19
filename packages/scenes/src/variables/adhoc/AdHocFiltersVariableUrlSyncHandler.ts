@@ -2,10 +2,16 @@ import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } 
 import {
   AdHocFiltersVariable,
   AdHocFilterWithLabels,
+  FilterOrigin,
   isFilterComplete,
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
-import { escapeUrlPipeDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
+import {
+  escapeInjectedFilterUrlDelimiters,
+  escapeUrlPipeDelimiters,
+  toUrlCommaDelimitedString,
+  unescapeUrlDelimiters,
+} from '../utils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
@@ -20,16 +26,43 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
 
   public getUrlState(): SceneObjectUrlValues {
     const filters = this._variable.state.filters;
+    const baseFilters = this._variable.state.baseFilters;
 
-    if (filters.length === 0) {
+    let value = [];
+
+    if (filters.length === 0 && baseFilters?.length === 0) {
       return { [this.getKey()]: [''] };
     }
 
-    const value = filters
-      .filter(isFilterComplete)
-      .filter((filter) => !filter.hidden)
-      .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'));
-    return { [this.getKey()]: value };
+    if (filters.length) {
+      value.push(
+        ...filters
+          .filter(isFilterComplete)
+          .filter((filter) => !filter.hidden)
+          .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'))
+      );
+    }
+
+    if (baseFilters?.length) {
+      // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
+      value.push(
+        ...baseFilters
+          ?.filter(isFilterComplete)
+          .filter((filter) => !filter.hidden && filter.origin && filter.originalValue)
+          .map((filter) =>
+            toArray(filter)
+              .map(escapeInjectedFilterUrlDelimiters)
+              .join('|')
+              .concat(
+                `#${filter.originalValue?.map(escapeInjectedFilterUrlDelimiters).join('|') ?? ''}#${filter.origin}`
+              )
+          )
+      );
+    }
+
+    return {
+      [this.getKey()]: value.length ? value : [''],
+    };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
@@ -39,8 +72,13 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return;
     }
 
-    const filters = deserializeUrlToFilters(urlValue);
-    this._variable.setState({ filters });
+    if (urlValue) {
+      const filters = deserializeUrlToFilters(urlValue);
+      this._variable.setState({
+        filters: filters.filter((f) => !f.origin),
+        baseFilters: filters.filter((f) => f.origin),
+      });
+    }
   }
 }
 
@@ -73,7 +111,8 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [key, keyLabel, operator, _operatorLabel, ...values] = urlValue
+  const [filter, originalValues, origin] = urlValue.split('#');
+  const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
     .reduce<string[]>((acc, v) => {
       const [key, label] = v.split(',');
@@ -92,7 +131,13 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
+    origin: isFilterOrigin(origin) ? origin : undefined,
+    originalValue: originalValues && originalValues.length ? originalValues.split('|') ?? [originalValues] : undefined,
   };
+}
+
+function isFilterOrigin(value: string): value is FilterOrigin {
+  return value === FilterOrigin.Scopes || value === FilterOrigin.Dashboards;
 }
 
 function isFilter(filter: AdHocFilterWithLabels | null): filter is AdHocFilterWithLabels {

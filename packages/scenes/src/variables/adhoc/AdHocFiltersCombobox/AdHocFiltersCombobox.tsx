@@ -117,6 +117,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           valueLabels.push(item.label ?? item.value!);
           values.push(item.value!);
         });
+
         model._updateFilter(filter!, { valueLabels, values, value: values[0] });
         setFilterMultiValues([]);
       }
@@ -288,6 +289,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               return;
             }
           }
+          if (filter?.origin) {
+            return;
+          }
+
           setInputType('operator');
           return;
         }
@@ -518,22 +523,36 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           {filter?.key && filter?.operator && filterInputType !== 'operator' ? (
             <div
               id={operatorIdentifier}
-              className={cx(styles.basePill, styles.operatorPill, operatorIdentifier)}
-              role="button"
+              className={cx(
+                styles.basePill,
+                !filter.origin && styles.operatorPill,
+                filter.origin && styles.keyPill,
+                operatorIdentifier
+              )}
               aria-label="Edit filter operator"
-              tabIndex={0}
+              tabIndex={filter.origin ? -1 : 0}
               onClick={(event) => {
+                if (filter.origin) {
+                  handleChangeViewMode?.();
+                  return;
+                }
+
                 event.stopPropagation();
                 setInputValue('');
                 switchInputType('operator', setInputType, undefined, refs.domReference.current);
               }}
               onKeyDown={(event) => {
+                if (filter.origin) {
+                  return;
+                }
+
                 handleShiftTabInput(event, hasMultiValueOperator);
                 if (event.key === 'Enter') {
                   setInputValue('');
                   switchInputType('operator', setInputType, undefined, refs.domReference.current);
                 }
               }}
+              {...(!filter.origin && { role: 'button' })}
             >
               {filter.operator}
             </div>

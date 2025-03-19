@@ -179,6 +179,19 @@ export function escapeUrlCommaDelimiters(value: string | undefined): string {
   return /,/g[Symbol.replace](value, '__gfc__');
 }
 
+export function escapeUrlHashDelimiters(value: string | undefined): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  // Replace the hash due to using it as a value/label separator
+  return /#/g[Symbol.replace](value, '__gfh__');
+}
+
+export function escapeInjectedFilterUrlDelimiters(value: string | undefined): string {
+  return escapeUrlHashDelimiters(escapeUrlPipeDelimiters(value));
+}
+
 export function escapeURLDelimiters(value: string | undefined): string {
   return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(value));
 }
@@ -190,6 +203,7 @@ export function unescapeUrlDelimiters(value: string | undefined): string {
 
   value = /__gfp__/g[Symbol.replace](value, '|');
   value = /__gfc__/g[Symbol.replace](value, ',');
+  value = /__gfh__/g[Symbol.replace](value, '#');
 
   return value;
 }

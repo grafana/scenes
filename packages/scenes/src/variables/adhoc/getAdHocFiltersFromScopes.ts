@@ -13,6 +13,15 @@ export function isEqualityOrMultiOperator(value: string): value is EqualityOrMul
   return operators.has(value);
 }
 
+// this function returns processed adhoc filters after parsing and processing
+// all scope filters from a scope list. The reason we need to process these filters is
+// because scopes can have multiple filter values with the same key. For example:
+// we have selected ScopeA which has a filter with a key1, operator one-of, a value1,
+// and a ScopeB which has a filter with key1, operator one-of, and value2. After processing,
+// the result will be just one adhoc filter with both values. This is held in formattedFilters.
+// DuplicatedFilters will containg unprocessable filters: if scopeA has instead of the one-of op
+// an equal op, then the result will be 2 adhoc filters with the same key, but diferent operator
+// and value. We return them this way and let the adhoc interface deal with this.
 export function getAdHocFiltersFromScopes(scopes: Scope[]): AdHocFilterWithLabels[] {
   const formattedFilters: Map<string, AdHocFilterWithLabels> = new Map();
   // duplicated filters that could not be processed in any way are just appended to the list

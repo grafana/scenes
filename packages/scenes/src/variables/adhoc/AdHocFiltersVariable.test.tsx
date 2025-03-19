@@ -1,7 +1,12 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariableValueChangedEvent } from '../types';
-import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import {
+  AdHocFiltersVariable,
+  AdHocFiltersVariableState,
+  AdHocFilterWithLabels,
+  FilterOrigin,
+} from './AdHocFiltersVariable';
 import {
   DataSourceSrv,
   config,
@@ -17,8 +22,10 @@ import {
   getDefaultTimeRange,
   LoadingState,
   PanelData,
+  Scope,
+  ScopeSpecFilter,
 } from '@grafana/data';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import userEvent from '@testing-library/user-event';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexLayout, SceneFlexItem } from '../../components/layout/SceneFlexLayout';
@@ -32,6 +39,8 @@ import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
+import { SceneScopesBridge } from '../../core/SceneScopesBridge';
+import { sceneGraph } from '../../core/sceneGraph';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -745,6 +754,643 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
   });
 
+  it('url does not sync injected filters if they are not modified', async () => {
+    const { filtersVar } = setup({
+      filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=',
+          value: 'baseValue1',
+          valueLabels: ['baseValue1'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'baseKey2',
+          keyLabel: 'baseKey2',
+          operator: '!=',
+          value: 'baseValue2',
+          valueLabels: ['baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get synced
+        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3', valueLabels: ['baseValue3'] },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+    });
+
+    expect(locationService.getLocation().search).toBe('?var-filters=newKey%7C%3D%7Cval1');
+  });
+
+  it('url syncs base filters as injected filters together with original value', async () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '!=',
+          value: 'baseValue1',
+          valueLabels: ['baseValue1'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get synced
+        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3', valueLabels: ['baseValue3'] },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue',
+        valueLabels: ['newValue'],
+      });
+    });
+
+    // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=baseKey1%7C%21%3D%7CnewValue%23baseValue1%23scopes'
+    );
+  });
+
+  it('url syncs multi-value base filters as injected filters', async () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '!=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get synced
+        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3' },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue1',
+        values: ['newValue1', 'newValue2'],
+      });
+    });
+
+    // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=baseKey1%7C%21%3D__gfp__%7CnewValue1%7CnewValue2%23baseValue1%7CbaseValue2%23scopes'
+    );
+  });
+
+  it('will properly escape injected filter hash delimiter if found within values', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=',
+          value: 'baseValue1#',
+          values: ['baseValue1#'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get synced
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue1#',
+      });
+    });
+
+    // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=baseKey1%7C%3D%7CnewValue1__gfh__%23baseValue1__gfh__%23scopes'
+    );
+  });
+
+  it('will default to just showing empty var-filters if no filters or base filters present', () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar.setState({
+        filters: [],
+      });
+    });
+
+    expect(filtersVar.state.filters).toEqual([]);
+    expect(filtersVar.state.baseFilters).toBe(undefined);
+    expect(locationService.getLocation().search).toBe('?var-filters=');
+  });
+
+  it('will save the original value in base filter if it has origin so it can be later restored', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=',
+          value: 'baseValue1',
+          values: ['baseValue1'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get updated
+        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3' },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue1',
+      });
+
+      // no origin, so this does not get updated
+      filtersVar._updateFilter(filtersVar.state.baseFilters![1], {
+        value: 'newValue3',
+      });
+    });
+
+    expect(filtersVar.state.baseFilters![0].value).toBe('newValue1');
+    expect(filtersVar.state.baseFilters![1].value).toBe('baseValue3');
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1']);
+    expect(filtersVar.state.baseFilters![1].originalValue).toBe(undefined);
+  });
+
+  it('will save the original multi values in base filter if it has origin so it can be later restored', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get updated
+        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3' },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue1',
+        values: ['newValue1'],
+      });
+
+      // no origin, so this does not get updated
+      filtersVar._updateFilter(filtersVar.state.baseFilters![1], {
+        value: 'newValue3',
+      });
+    });
+
+    expect(filtersVar.state.baseFilters![0].value).toBe('newValue1');
+    expect(filtersVar.state.baseFilters![0].values).toEqual(['newValue1']);
+    expect(filtersVar.state.baseFilters![1].value).toBe('baseValue3');
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1', 'baseValue2']);
+    expect(filtersVar.state.baseFilters![1].originalValue).toBe(undefined);
+  });
+
+  it('does not update originalValue if new and old filter changes are the same', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+        // no origin, so this does not get updated
+        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3' },
+      ],
+    });
+
+    act(() => {
+      // same value, so no change
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'baseValue1',
+        values: ['baseValue1', 'baseValue2'],
+      });
+    });
+
+    expect(filtersVar.state.baseFilters![0].value).toBe('baseValue1');
+    expect(filtersVar.state.baseFilters![0].values).toEqual(['baseValue1', 'baseValue2']);
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(undefined);
+  });
+
+  it('does not overwrite originalValue if it already exists, unless explicitly requested', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['originalValue1'],
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue1',
+        values: ['newValue1'],
+      });
+    });
+
+    // original value has not been updated since it is already set
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['originalValue1']);
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue1',
+        values: ['newValue1'],
+        originalValue: ['newOriginalValue1'],
+      });
+    });
+
+    // original value has been updated since it is explicitly requested
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['newOriginalValue1']);
+  });
+
+  it('deletes originalValue if we set the same value from the UI', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=',
+          value: 'baseValue1',
+          values: ['baseValue1'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'newValue1',
+        values: ['newValue1'],
+      });
+    });
+
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1']);
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'baseValue1',
+        values: ['baseValue1'],
+      });
+    });
+
+    // like a manual restore, but done from the UI by manually picking the same value
+    // as the original
+    expect(filtersVar.state.baseFilters![0].originalValue).toBe(undefined);
+  });
+
+  it('maintains originalValue if we return to original values, but in different order', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'baseValue2',
+        values: ['baseValue2', 'baseValue3'],
+      });
+    });
+
+    // we change values, and store originalValue
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1', 'baseValue2']);
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+        value: 'baseValue2',
+        values: ['baseValue2', 'baseValue1'],
+      });
+    });
+
+    // we change the values again, this time with the same values as originalValue but
+    // in a different order. This will maintain the originalValue key
+    expect(filtersVar.state.baseFilters![0].originalValue).toEqual(['baseValue1', 'baseValue2']);
+  });
+
+  it('restores original value if it exists', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['originalValue1'],
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar.restoreOriginalFilter(filtersVar.state.baseFilters![0]);
+    });
+
+    expect(filtersVar.state.baseFilters![0].value).toEqual('originalValue1');
+    expect(filtersVar.state.baseFilters![0].values).toEqual(['originalValue1']);
+    expect(filtersVar.state.baseFilters![0].originalValue).toBe(undefined);
+  });
+
+  it('does not restore original value if it does not exists', () => {
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseKey1',
+          keyLabel: 'baseKey1',
+          operator: '=|',
+          value: 'baseValue1',
+          values: ['baseValue1'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar.restoreOriginalFilter(filtersVar.state.baseFilters![0]);
+    });
+
+    expect(filtersVar.state.baseFilters![0].value).toEqual('baseValue1');
+    expect(filtersVar.state.baseFilters![0].values).toEqual(['baseValue1']);
+    expect(filtersVar.state.baseFilters![0].originalValue).toBe(undefined);
+  });
+
+  it.each([
+    [
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'scopeBaseFilter2',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+      ],
+      [
+        [
+          { key: 'scopeBaseFilter1', operator: 'equals', value: 'val' },
+          { key: 'scopeBaseFilter2', operator: 'equals', value: 'val' },
+        ],
+        [{ key: 'scopeBaseFilter3', operator: 'equals', value: 'val' }],
+      ],
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+        {
+          key: 'scopeBaseFilter2',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'scopeBaseFilter3',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    ],
+    [
+      [],
+      [
+        [
+          { key: 'scopeBaseFilter1', operator: 'equals', value: 'val' },
+          { key: 'scopeBaseFilter2', operator: 'equals', value: 'val' },
+        ],
+        [{ key: 'scopeBaseFilter3', operator: 'equals', value: 'val' }],
+      ],
+      [
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'scopeBaseFilter2',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+        {
+          key: 'scopeBaseFilter3',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    ],
+    [
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+      ],
+      [],
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+      ],
+    ],
+    [
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+      [[{ key: 'scopeBaseFilter3', operator: 'equals', value: 'val' }]],
+      [
+        {
+          key: 'nonScopeBaseFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+        },
+        {
+          key: 'scopeBaseFilter3',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    ],
+    [
+      [
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+      ],
+      [[{ key: 'scopeBaseFilter1', operator: 'equals', value: 'val' }]],
+      [
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+      ],
+    ],
+    [
+      [
+        {
+          key: 'scopeBaseFilter1',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+          originalValue: ['original'],
+        },
+      ],
+      [[{ key: 'scopeBaseFilter2', operator: 'equals', value: 'val' }]],
+      [
+        {
+          key: 'scopeBaseFilter2',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: FilterOrigin.Scopes,
+        },
+      ],
+    ],
+    [[], [], []],
+  ])('maintains correct filters and scope injected filters on activation', (baseFilters, scopeFilters, expected) => {
+    // in this scenario we need to preserve whatever non injected filters exist, together
+    // with either edited scope injected filters or directly filters pulled from scopes
+    let getScopesBridgeSpy = jest.spyOn(sceneGraph, 'getScopesBridge');
+
+    const scopes = new SceneScopesBridge({});
+    const mockState = {
+      value: [] as Scope[],
+      drawerOpened: false,
+      enabled: true,
+      loading: false,
+      readOnly: false,
+    };
+
+    for (let i = 0; i < scopeFilters.length; i++) {
+      mockState.value.push({
+        metadata: { name: `Scope ${i}` },
+        spec: {
+          title: `Scope ${i}`,
+          type: 'test',
+          description: 'Test scope',
+          category: 'test',
+          filters: scopeFilters[i] as ScopeSpecFilter[],
+        },
+      });
+    }
+
+    scopes.updateContext({
+      state: mockState,
+      stateObservable: new BehaviorSubject(mockState),
+      changeScopes: () => {},
+      setReadOnly: () => {},
+      setEnabled: () => {},
+    });
+
+    getScopesBridgeSpy.mockReturnValue(scopes);
+
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters,
+    });
+
+    filtersVar.state.baseFilters?.forEach((filter, index) => {
+      expect(filter).toEqual(expected[index]);
+    });
+
+    getScopesBridgeSpy.mockReturnValue(undefined);
+  });
+
   it('Can override and replace getTagKeys and getTagValues', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
@@ -1010,6 +1656,63 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       expect(stateUpdates).toHaveLength(1);
       expect(stateUpdates[0].filterExpression).toBe('key1="val2"');
+    });
+
+    it('renders correct filterExpression on constructor', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      expect(variable.getValue()).toBe(`key1="val1"`);
+
+      const variable2 = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key2', operator: '=', value: 'val2' }],
+        baseFilters: [
+          { key: 'baseKey1', operator: '=', value: 'baseVal1', origin: FilterOrigin.Scopes },
+          { key: 'baseKey2', operator: '=', value: 'baseVal2' },
+        ],
+      });
+
+      expect(variable2.getValue()).toBe(`baseKey1="baseVal1",key2="val2"`);
+
+      const variable3 = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        baseFilters: [
+          { key: 'baseKey3', operator: '=', value: 'baseVal3', origin: FilterOrigin.Scopes },
+          { key: 'baseKey4', operator: '=', value: 'baseVal4' },
+        ],
+      });
+
+      expect(variable3.getValue()).toBe(`baseKey3="baseVal3"`);
+    });
+
+    it('renders correct filterExpression when baseFilters are added and they have an origin on setState', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+      });
+
+      variable.activate();
+
+      const stateUpdates = subscribeToStateUpdates(variable);
+
+      expect(stateUpdates.length).toBe(0);
+
+      variable.setState({
+        baseFilters: [
+          { key: 'baseKey1', operator: '=', value: 'baseVal1', origin: FilterOrigin.Scopes },
+          { key: 'baseKey2', operator: '=', value: 'baseVal2' },
+        ],
+      });
+
+      expect(stateUpdates).toHaveLength(1);
+      expect(stateUpdates[0].filterExpression).toBe('baseKey1="baseVal1",key1="val1"');
     });
 
     it('Renders correct expression when passed an expression builder', () => {
