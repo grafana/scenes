@@ -1,3 +1,15 @@
+# v6.4.0 (Wed Mar 19 2025)
+
+#### 🚀 Enhancement
+
+- fix: explore button to preserve datasource selection in mixed datasource panels [#1074](https://github.com/grafana/scenes/pull/1074) ([@joannaWebDev](https://github.com/joannaWebDev))
+
+#### Authors: 1
+
+- Joanna ([@joannaWebDev](https://github.com/joannaWebDev))
+
+---
+
 # v6.3.1 (Tue Mar 11 2025)
 
 #### 🐛 Bug Fix
