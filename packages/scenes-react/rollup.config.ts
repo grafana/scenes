@@ -13,7 +13,10 @@ const pkg = rq('./package.json');
 const plugins = [
   nodeExternals({ deps: true, devDeps: true, packagePath: './package.json' }),
   resolve({ browser: true }),
-  esbuild(),
+  esbuild({
+    target: 'es2018',
+    tsconfig: './tsconfig.json',
+  }),
   eslint(),
 ];
 
@@ -26,6 +29,8 @@ export default [
         format: 'cjs',
         sourcemap: env === 'production' ? true : 'inline',
         dir: path.dirname(pkg.main),
+        esModule: true,
+        interop: 'compat',
       },
       {
         format: 'esm',
