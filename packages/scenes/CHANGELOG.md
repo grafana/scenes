@@ -1,3 +1,15 @@
+# v6.5.2 (Thu Mar 20 2025)
+
+#### 🐛 Bug Fix
+
+- Scopes: Fix panels stuck in loading on scopes remove [#1079](https://github.com/grafana/scenes/pull/1079) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.5.1 (Thu Mar 20 2025)
 
 #### 🐛 Bug Fix
