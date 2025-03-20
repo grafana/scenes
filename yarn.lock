@@ -3682,7 +3682,6 @@ __metadata:
     rollup-plugin-dts: "npm:^6.2.0"
     rollup-plugin-esbuild: "npm:^6.2.1"
     rollup-plugin-node-externals: "npm:^8.0.0"
-    rollup-plugin-svg-import: "npm:^3.0.0"
     rxjs: "npm:7.8.1"
     ts-jest: "npm:29.1.2"
     ts-node: "npm:10.9.2"
@@ -3754,7 +3753,6 @@ __metadata:
     rollup-plugin-dts: "npm:^6.2.0"
     rollup-plugin-esbuild: "npm:^6.2.1"
     rollup-plugin-node-externals: "npm:^8.0.0"
-    rollup-plugin-svg-import: "npm:^3.0.0"
     rxjs: "npm:7.8.1"
     ts-jest: "npm:29.1.2"
     ts-node: "npm:10.9.2"
@@ -23666,17 +23664,6 @@ __metadata:
   peerDependencies:
     rollup: ^4.0.0
   checksum: 10/ef5565e8fdba4acbba81c4b214f789e03d3a3d049cbbe372679151c4f749a21a7f51d8448eff82b0b1bbbe5d2d64862cd292795e0f92e1fcad2afc9954a6fbdd
-  languageName: node
-  linkType: hard
-
-"rollup-plugin-svg-import@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "rollup-plugin-svg-import@npm:3.0.0"
-  dependencies:
-    "@rollup/pluginutils": "npm:^5.0.1"
-  peerDependencies:
-    rollup: ^3.0.0||^4.0.0
-  checksum: 10/4489b8cd702eeb82b693cb4b11557cbb24c4bac68f8c5997ad7288a998b9db821c11d4682cd2892dc17ddb19228ee725de274b396b262d5fef4e05066cd07616
   languageName: node
   linkType: hard
 
