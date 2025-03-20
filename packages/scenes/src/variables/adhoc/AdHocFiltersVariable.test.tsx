@@ -1391,6 +1391,95 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     getScopesBridgeSpy.mockReturnValue(undefined);
   });
 
+  it.only('Removes all scope injected filters when scopes themselves are removed', () => {
+    let getScopesBridgeSpy = jest.spyOn(sceneGraph, 'getScopesBridge');
+
+    const scopes = new SceneScopesBridge({});
+    let mockState = {
+      value: [
+        {
+          metadata: { name: `Scope` },
+          spec: {
+            title: `Scope`,
+            type: 'test',
+            description: 'Test scope',
+            category: 'test',
+            filters: [{ key: 'scopeBaseFilter', operator: 'equals', value: 'val' }],
+          },
+        },
+      ] as Scope[],
+      drawerOpened: false,
+      enabled: true,
+      loading: false,
+      readOnly: false,
+    };
+
+    scopes.updateContext({
+      state: mockState,
+      stateObservable: new BehaviorSubject(mockState),
+      changeScopes: () => {},
+      setReadOnly: () => {},
+      setEnabled: () => {},
+    });
+
+    getScopesBridgeSpy.mockReturnValue(scopes);
+
+    const { filtersVar } = setup({
+      filters: [],
+      baseFilters: [
+        {
+          key: 'baseFilter',
+          operator: '=',
+          value: 'val2',
+          values: ['val2'],
+        },
+      ],
+    });
+
+    expect(filtersVar.state.baseFilters).toEqual([
+      {
+        key: 'baseFilter',
+        operator: '=',
+        value: 'val2',
+        values: ['val2'],
+      },
+      {
+        key: 'scopeBaseFilter',
+        operator: '=',
+        value: 'val',
+        values: ['val'],
+        origin: FilterOrigin.Scopes,
+      },
+    ]);
+
+    mockState = {
+      value: [],
+      drawerOpened: false,
+      enabled: true,
+      loading: false,
+      readOnly: false,
+    };
+
+    scopes.updateContext({
+      state: mockState,
+      stateObservable: new BehaviorSubject(mockState),
+      changeScopes: () => {},
+      setReadOnly: () => {},
+      setEnabled: () => {},
+    });
+
+    expect(filtersVar.state.baseFilters).toEqual([
+      {
+        key: 'baseFilter',
+        operator: '=',
+        value: 'val2',
+        values: ['val2'],
+      },
+    ]);
+
+    getScopesBridgeSpy.mockReturnValue(undefined);
+  });
+
   it('Can override and replace getTagKeys and getTagValues', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {

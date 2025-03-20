@@ -254,6 +254,13 @@ export class AdHocFiltersVariable
   };
 
   private _updateScopesFilters = (scopes: Scope[], areScopesLoading?: boolean) => {
+    if (!scopes.length) {
+      this.setState({
+        baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes),
+      });
+      return;
+    }
+
     const scopeFilters = getAdHocFiltersFromScopes(scopes);
 
     if (!scopeFilters.length) {
