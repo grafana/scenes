@@ -1391,7 +1391,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     getScopesBridgeSpy.mockReturnValue(undefined);
   });
 
-  it.only('Removes all scope injected filters when scopes themselves are removed', () => {
+  it('Removes all scope injected filters when scopes themselves are removed', () => {
     let getScopesBridgeSpy = jest.spyOn(sceneGraph, 'getScopesBridge');
 
     const scopes = new SceneScopesBridge({});
