@@ -1,3 +1,16 @@
+# v6.5.1 (Thu Mar 20 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Fix removing all scopes and cleaning up the adhoc [#1078](https://github.com/grafana/scenes/pull/1078) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.5.0 (Wed Mar 19 2025)
 
 #### 🚀 Enhancement
