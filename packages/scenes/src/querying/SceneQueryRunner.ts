@@ -463,7 +463,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    // Skip executing queries if scopes are in loading state
+    // Skip executing queries if scopes are in loading state and there are values, meaning further
+    // data will be received after scope filters are loaded
     if (scopesBridge?.isLoading() && scopesBridge?.getValue().length) {
       writeSceneLog('SceneQueryRunner', 'Scopes are in loading state, skipping query execution');
       this.setState({ data: { ...(this.state.data ?? emptyPanelData), state: LoadingState.Loading } });
