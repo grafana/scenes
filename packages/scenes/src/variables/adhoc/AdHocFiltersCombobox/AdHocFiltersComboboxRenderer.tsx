@@ -43,7 +43,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           key={`${index}-${filter.key}`}
           filter={filter}
           model={model}
-          readOnly={readOnly}
+          readOnly={readOnly || filter.readOnly}
           focusOnWipInputRef={focusOnWipInputRef.current}
         />
       ))}
