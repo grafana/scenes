@@ -1,3 +1,15 @@
+# v6.5.3 (Fri Mar 21 2025)
+
+#### 🐛 Bug Fix
+
+- Remove url sync from ScopesBridge [#1080](https://github.com/grafana/scenes/pull/1080) ([@aocenas](https://github.com/aocenas))
+
+#### Authors: 1
+
+- Andrej Ocenas ([@aocenas](https://github.com/aocenas))
+
+---
+
 # v6.5.2 (Thu Mar 20 2025)
 
 #### 🐛 Bug Fix
