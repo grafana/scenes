@@ -1,3 +1,16 @@
+# v6.6.0 (Mon Mar 24 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Combobox: Support individual read-only filters [#1081](https://github.com/grafana/scenes/pull/1081) ([@adrapereira](https://github.com/adrapereira))
+
+#### Authors: 1
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+
+---
+
 # v6.5.3 (Fri Mar 21 2025)
 
 #### 🐛 Bug Fix
