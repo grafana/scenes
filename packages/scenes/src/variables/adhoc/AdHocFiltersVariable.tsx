@@ -41,6 +41,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // this holds the original/initial value of a injected filter that
   // was edited.
   originalValue?: string[];
+  // whether this specific filter is read-only and cannot be edited
+  readOnly?: boolean;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
