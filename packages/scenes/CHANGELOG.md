@@ -1,3 +1,15 @@
+# v6.6.1 (Tue Apr 01 2025)
+
+#### 🐛 Bug Fix
+
+- Bump rollup and related deps [#1077](https://github.com/grafana/scenes/pull/1077) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v6.6.0 (Mon Mar 24 2025)
 
 #### 🚀 Enhancement
