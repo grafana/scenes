@@ -1,3 +1,16 @@
+# v6.6.2 (Wed Apr 02 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Fix issue where scope injected filter would not update properly [#1085](https://github.com/grafana/scenes/pull/1085) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.6.1 (Tue Apr 01 2025)
 
 #### 🐛 Bug Fix
