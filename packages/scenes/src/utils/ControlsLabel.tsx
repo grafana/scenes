@@ -14,9 +14,6 @@ interface ControlsLabelProps {
   error?: string;
   icon?: IconName;
   layout?: ControlsLayout;
-  isSelected?: boolean;
-  isSelectable?: boolean;
-  onSelect?: (e: React.PointerEvent) => void;
   onCancel?: () => void;
   onRemove?: () => void;
 }
@@ -29,9 +26,6 @@ export function ControlsLabel({
   error,
   icon,
   layout,
-  isSelectable,
-  isSelected,
-  onSelect,
   onCancel,
   onRemove,
 }: ControlsLabelProps) {
@@ -79,16 +73,7 @@ export function ControlsLabel({
 
   if (isVertical) {
     labelElement = (
-      <label
-        className={cx(
-          styles.verticalLabel,
-          isSelected && 'dashboard-selected-element',
-          isSelectable && !isSelected && 'dashboard-selectable-element'
-        )}
-        data-testid={testId}
-        htmlFor={htmlFor}
-        onPointerDown={onSelect}
-      >
+      <label className={styles.verticalLabel} data-testid={testId} htmlFor={htmlFor}>
         {label}
         {descriptionIndicator}
         {errorIndicator}
@@ -99,16 +84,7 @@ export function ControlsLabel({
     );
   } else {
     labelElement = (
-      <label
-        className={cx(
-          styles.horizontalLabel,
-          isSelected && 'dashboard-selected-element',
-          isSelectable && !isSelected && 'dashboard-selectable-element'
-        )}
-        data-testid={testId}
-        htmlFor={htmlFor}
-        onPointerDown={onSelect}
-      >
+      <label className={styles.horizontalLabel} data-testid={testId} htmlFor={htmlFor}>
         {errorIndicator}
         {icon && <Icon name={icon} className={styles.normalIcon} />}
         {label}

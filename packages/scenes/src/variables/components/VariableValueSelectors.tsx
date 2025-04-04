@@ -7,7 +7,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { ControlsLayout, SceneComponentProps, SceneObjectState } from '../../core/types';
 import { SceneVariable, SceneVariableState } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { selectors } from '@grafana/e2e-selectors';
 import { useElementSelection } from '@grafana/ui';
 
@@ -42,14 +42,29 @@ interface VariableSelectProps {
 
 export function VariableValueSelectWrapper({ variable, layout, showAlways, hideLabel }: VariableSelectProps) {
   const state = useSceneObjectState<SceneVariableState>(variable, { shouldActivateOrKeepAlive: true });
+  const { isSelected, onSelect, isSelectable } = useElementSelection(variable.state.key);
 
   if (state.hide === VariableHide.hideVariable && !showAlways) {
     return null;
   }
 
+  const onPointerDown = (evt: React.PointerEvent) => {
+    if (isSelectable && onSelect) {
+      onSelect(evt);
+    }
+  };
+
   if (layout === 'vertical') {
     return (
-      <div className={verticalContainer} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
+      <div
+        className={cx(
+          verticalContainer,
+          isSelected && 'dashboard-selected-element',
+          isSelectable && !isSelected && 'dashboard-selectable-element'
+        )}
+        onPointerDown={onPointerDown}
+        data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}
+      >
         <VariableLabel variable={variable} layout={layout} hideLabel={hideLabel} />
         <variable.Component model={variable} />
       </div>
@@ -57,7 +72,15 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways, hideL
   }
 
   return (
-    <div className={containerStyle} data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}>
+    <div
+      className={cx(
+        containerStyle,
+        isSelected && 'dashboard-selected-element',
+        isSelectable && !isSelected && 'dashboard-selectable-element'
+      )}
+      onPointerDown={onPointerDown}
+      data-testid={selectors.pages.Dashboard.SubMenu.submenuItem}
+    >
       <VariableLabel variable={variable} hideLabel={hideLabel} />
       <variable.Component model={variable} />
     </div>
@@ -66,8 +89,6 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways, hideL
 
 function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
   const { state } = variable;
-
-  const { isSelected, onSelect, isSelectable } = useElementSelection(variable.state.key);
 
   if (variable.state.hide === VariableHide.hideLabel || hideLabel) {
     return null;
@@ -85,9 +106,6 @@ function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
       error={state.error}
       layout={layout}
       description={state.description ?? undefined}
-      isSelected={isSelected}
-      isSelectable={isSelectable}
-      onSelect={onSelect}
     />
   );
 }
