@@ -2,7 +2,7 @@ import React from 'react';
 import { Icon, IconButton, Tooltip, useStyles2, useTheme2 } from '@grafana/ui';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, IconName } from '@grafana/data';
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { LoadingIndicator } from './LoadingIndicator';
 import { ControlsLayout } from '../core/types';
 
@@ -14,16 +14,32 @@ interface ControlsLabelProps {
   error?: string;
   icon?: IconName;
   layout?: ControlsLayout;
+  isSelected?: boolean;
+  isSelectable?: boolean;
+  onSelect?: (e: React.PointerEvent) => void;
   onCancel?: () => void;
   onRemove?: () => void;
 }
 
-export function ControlsLabel(props: ControlsLabelProps) {
+export function ControlsLabel({
+  htmlFor,
+  label,
+  description,
+  isLoading,
+  error,
+  icon,
+  layout,
+  isSelectable,
+  isSelected,
+  onSelect,
+  onCancel,
+  onRemove,
+}: ControlsLabelProps) {
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
-  const isVertical = props.layout === 'vertical';
+  const isVertical = layout === 'vertical';
 
-  const loadingIndicator = Boolean(props.isLoading) ? (
+  const loadingIndicator = Boolean(isLoading) ? (
     <div
       style={{ marginLeft: theme.spacing(1), marginTop: '-1px' }}
       aria-label={selectors.components.LoadingIndicator.icon}
@@ -32,55 +48,70 @@ export function ControlsLabel(props: ControlsLabelProps) {
         onCancel={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          props.onCancel?.();
+          onCancel?.();
         }}
       />
     </div>
   ) : null;
 
   let errorIndicator = null;
-  if (props.error) {
+  if (error) {
     errorIndicator = (
-      <Tooltip content={props.error} placement={'bottom'}>
+      <Tooltip content={error} placement={'bottom'}>
         <Icon className={styles.errorIcon} name="exclamation-triangle" />
       </Tooltip>
     );
   }
 
   let descriptionIndicator = null;
-  if (props.description) {
+  if (description) {
     descriptionIndicator = (
-      <Tooltip content={props.description} placement={isVertical ? 'top' : 'bottom'}>
+      <Tooltip content={description} placement={isVertical ? 'top' : 'bottom'}>
         <Icon className={styles.normalIcon} name="info-circle" />
       </Tooltip>
     );
   }
 
-  const testId =
-    typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : '';
+  const testId = typeof label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(label) : '';
   let labelElement: JSX.Element;
 
   // The vertical layout has different css class and order of elements (label always first)
 
   if (isVertical) {
     labelElement = (
-      <label className={styles.verticalLabel} data-testid={testId} htmlFor={props.htmlFor}>
-        {props.label}
+      <label
+        className={cx(
+          styles.verticalLabel,
+          isSelected && 'dashboard-selected-element',
+          isSelectable && !isSelected && 'dashboard-selectable-element'
+        )}
+        data-testid={testId}
+        htmlFor={htmlFor}
+        onPointerDown={onSelect}
+      >
+        {label}
         {descriptionIndicator}
         {errorIndicator}
-        {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
+        {icon && <Icon name={icon} className={styles.normalIcon} />}
         {loadingIndicator}
-        {props.onRemove && (
-          <IconButton variant="secondary" size="xs" name="times" onClick={props.onRemove} tooltip={'Remove'} />
-        )}
+        {onRemove && <IconButton variant="secondary" size="xs" name="times" onClick={onRemove} tooltip={'Remove'} />}
       </label>
     );
   } else {
     labelElement = (
-      <label className={styles.horizontalLabel} data-testid={testId} htmlFor={props.htmlFor}>
+      <label
+        className={cx(
+          styles.horizontalLabel,
+          isSelected && 'dashboard-selected-element',
+          isSelectable && !isSelected && 'dashboard-selectable-element'
+        )}
+        data-testid={testId}
+        htmlFor={htmlFor}
+        onPointerDown={onSelect}
+      >
         {errorIndicator}
-        {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
-        {props.label}
+        {icon && <Icon name={icon} className={styles.normalIcon} />}
+        {label}
         {descriptionIndicator}
         {loadingIndicator}
       </label>

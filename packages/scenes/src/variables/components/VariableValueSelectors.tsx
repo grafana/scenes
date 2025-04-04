@@ -9,6 +9,7 @@ import { SceneVariable, SceneVariableState } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 import { selectors } from '@grafana/e2e-selectors';
+import { useElementSelection } from '@grafana/ui';
 
 export interface VariableValueSelectorsState extends SceneObjectState {
   layout?: ControlsLayout;
@@ -65,6 +66,7 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways, hideL
 
 function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
   const { state } = variable;
+  const { isSelected, onSelect, isSelectable } = useElementSelection(`var-${variable.state.name}`);
 
   if (variable.state.hide === VariableHide.hideLabel || hideLabel) {
     return null;
@@ -82,6 +84,9 @@ function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
       error={state.error}
       layout={layout}
       description={state.description ?? undefined}
+      isSelected={isSelected}
+      isSelectable={isSelectable}
+      onSelect={onSelect}
     />
   );
 }
