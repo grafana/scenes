@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin } from '../AdHocFiltersVariable';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -93,7 +93,9 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {!readOnly && !filter.origin ? (
+        {!readOnly &&
+        !filter.matchAllFilter &&
+        (filter.origin === undefined || filter.origin === FilterOrigin.Dashboards) ? (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();

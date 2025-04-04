@@ -41,6 +41,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // this holds the original/initial value of a injected filter that
   // was edited.
   originalValue?: string[];
+  // whether this is basically a cancelled filter through filter-key =~ .*
+  matchAllFilter?: boolean;
   // whether this specific filter is read-only and cannot be edited
   readOnly?: boolean;
 }
@@ -292,7 +294,7 @@ export class AdHocFiltersVariable
     ];
 
     // maintain other baseFilters in the array, only update scopes ones
-    this.setState({ baseFilters: [...remainingFilters, ...finalFilters] });
+    this.setState({ baseFilters: [...finalFilters, ...remainingFilters] });
   };
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
@@ -365,6 +367,12 @@ export class AdHocFiltersVariable
       // but this is needed to rerender the filter with the proper values
       // in the UI. E.g.: in a multi-value on hover, it shows the correct values
       original.valueLabels = filter.originalValue;
+
+      if (filter.origin === FilterOrigin.Dashboards) {
+        original.matchAllFilter = false;
+        // TODO this cannot be hardcoded
+        original.operator = '=';
+      }
     }
 
     this._updateFilter(filter, original);
@@ -420,7 +428,16 @@ export class AdHocFiltersVariable
     this.setState({ filters: updatedFilters });
   }
 
+  private _matchAllFilter(filter: AdHocFilterWithLabels) {
+    this._updateFilter(filter, { operator: '=~', value: '.*', values: ['.*'], matchAllFilter: true });
+  }
+
   public _removeFilter(filter: AdHocFilterWithLabels) {
+    if (filter.origin === FilterOrigin.Dashboards) {
+      this._matchAllFilter(filter);
+      return;
+    }
+
     if (filter === this.state._wip) {
       this.setState({ _wip: undefined });
       return;
