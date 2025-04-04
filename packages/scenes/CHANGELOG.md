@@ -1,3 +1,15 @@
+# v6.6.3 (Fri Apr 04 2025)
+
+#### 🐛 Bug Fix
+
+- GroupByVariable: Add browser history action support for GroupBy var [#1087](https://github.com/grafana/scenes/pull/1087) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.6.2 (Wed Apr 02 2025)
 
 #### 🐛 Bug Fix
