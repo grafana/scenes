@@ -66,14 +66,15 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways, hideL
 
 function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
   const { state } = variable;
-  const { isSelected, onSelect, isSelectable } = useElementSelection(`var-${variable.state.name}`);
+
+  const { isSelected, onSelect, isSelectable } = useElementSelection(variable.state.key);
 
   if (variable.state.hide === VariableHide.hideLabel || hideLabel) {
     return null;
   }
 
-  const elementId = `var-${state.key}`;
   const labelOrName = state.label || state.name;
+  const elementId = `var-${state.key}`;
 
   return (
     <ControlsLabel
