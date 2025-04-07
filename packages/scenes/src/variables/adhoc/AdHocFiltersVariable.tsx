@@ -143,7 +143,7 @@ export type OnAddCustomValueFn = (
 ) => { value: string | undefined; valueLabels: string[] };
 
 export interface CustomFindValue extends MetricFindValue {
-  description?: string
+  description?: string;
 }
 
 export type getTagKeysProvider = (
@@ -155,7 +155,7 @@ export type getTagKeysProvider = (
 export type getTagValuesProvider = (
   variable: AdHocFiltersVariable,
   filter: AdHocFilterWithLabels
-) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] | CustomFindValue[]}>;
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] | CustomFindValue[] }>;
 
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
 
