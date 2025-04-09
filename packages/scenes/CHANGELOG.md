@@ -1,3 +1,15 @@
+# v6.7.0 (Wed Apr 09 2025)
+
+#### 🚀 Enhancement
+
+- VariableControl: Add props needed in core dashboards [#1091](https://github.com/grafana/scenes/pull/1091) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.6.3 (Fri Apr 04 2025)
 
 #### 🐛 Bug Fix
