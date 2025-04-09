@@ -874,7 +874,7 @@ describe('VizPanel', () => {
     it('should toggle collapsed state', () => {
       panel.onToggleCollapse(true);
       expect(panel.state.collapsed).toBe(true);
-      
+
       panel.onToggleCollapse(false);
       expect(panel.state.collapsed).toBe(false);
     });
@@ -934,7 +934,7 @@ describe('VizPanel', () => {
     it('should toggle menu visibility', () => {
       panel.setState({ showMenuAlways: false });
       expect(panel.state.showMenuAlways).toBe(false);
-      
+
       panel.setState({ showMenuAlways: true });
       expect(panel.state.showMenuAlways).toBe(true);
     });
