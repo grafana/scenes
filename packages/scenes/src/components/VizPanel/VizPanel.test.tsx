@@ -877,6 +877,9 @@ describe('VizPanel', () => {
 
       panel.onToggleCollapse(false);
       expect(panel.state.collapsed).toBe(false);
+
+      panel.setState({ showMenuAlways: true });
+      expect(panel.state.showMenuAlways).toBe(true);
     });
   });
 

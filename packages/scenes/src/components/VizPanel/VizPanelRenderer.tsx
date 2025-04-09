@@ -169,6 +169,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
+          // @ts-expect-error showMenuAlways remove when updating to @grafana/ui@12 fixed in https://github.com/grafana/grafana/pull/103553
           <PanelChrome
             title={titleInterpolated}
             description={description?.trim() ? model.getDescription : undefined}
