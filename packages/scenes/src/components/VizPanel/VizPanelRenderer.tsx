@@ -192,14 +192,14 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onDragStart={(e: React.PointerEvent) => {
               dragHooks.onDragStart?.(e, model);
             }}
-            {...(collapsible
-              ? {
-                  collapsible: Boolean(collapsible),
-                  collapsed,
-                  onToggleCollapse: model.onToggleCollapse,
-                  showMenuAlways,
-                }
-              : { hoverHeader, hoverHeaderOffset })}
+            {...{
+              ...(collapsible !== undefined && { collapsible: Boolean(collapsible) }),
+              ...(collapsed !== undefined && { collapsed }),
+              ...(model.onToggleCollapse && { onToggleCollapse: model.onToggleCollapse }),
+              ...(showMenuAlways !== undefined && { showMenuAlways }),
+              ...(hoverHeader !== undefined && { hoverHeader }),
+              ...(hoverHeaderOffset !== undefined && { hoverHeaderOffset }),
+            }}
           >
             {(innerWidth, innerHeight) => (
               <>
