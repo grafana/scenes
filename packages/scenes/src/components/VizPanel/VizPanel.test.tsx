@@ -849,6 +849,96 @@ describe('VizPanel', () => {
       });
     });
   });
+
+  describe('Collapsible panel functionality', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeEach(async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        title: 'Collapsible Panel',
+        pluginId: 'custom-plugin-id',
+        collapsible: true,
+        collapsed: false,
+        $data: getDataNodeWithTestData(),
+      });
+
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+    });
+
+    it('should initialize with correct collapsible state', () => {
+      expect(panel.state.collapsible).toBe(true);
+      expect(panel.state.collapsed).toBe(false);
+    });
+
+    it('should toggle collapsed state', () => {
+      panel.onToggleCollapse(true);
+      expect(panel.state.collapsed).toBe(true);
+      
+      panel.onToggleCollapse(false);
+      expect(panel.state.collapsed).toBe(false);
+    });
+  });
+
+  describe('Hover header functionality', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeEach(async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        title: 'Hover Panel',
+        pluginId: 'custom-plugin-id',
+        hoverHeader: true,
+        hoverHeaderOffset: 10,
+        $data: getDataNodeWithTestData(),
+      });
+
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+    });
+
+    it('should initialize with correct hover header state', () => {
+      expect(panel.state.hoverHeader).toBe(true);
+      expect(panel.state.hoverHeaderOffset).toBe(10);
+    });
+
+    it('should update hover header offset', () => {
+      panel.setState({ hoverHeaderOffset: 20 });
+      expect(panel.state.hoverHeaderOffset).toBe(20);
+    });
+
+    it('should disable hover header', () => {
+      panel.setState({ hoverHeader: false });
+      expect(panel.state.hoverHeader).toBe(false);
+    });
+  });
+
+  describe('Menu visibility functionality', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeEach(async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        title: 'Menu Panel',
+        pluginId: 'custom-plugin-id',
+        showMenuAlways: true,
+        $data: getDataNodeWithTestData(),
+      });
+
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+    });
+
+    it('should initialize with correct menu visibility state', () => {
+      expect(panel.state.showMenuAlways).toBe(true);
+    });
+
+    it('should toggle menu visibility', () => {
+      panel.setState({ showMenuAlways: false });
+      expect(panel.state.showMenuAlways).toBe(false);
+      
+      panel.setState({ showMenuAlways: true });
+      expect(panel.state.showMenuAlways).toBe(true);
+    });
+  });
 });
 
 function getDataNodeWithTestData() {
