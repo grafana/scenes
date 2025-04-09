@@ -133,6 +133,7 @@ export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
 export { ControlsLabel } from './utils/ControlsLabel';
 export { renderSelectForVariable } from './variables/components/VariableValueSelect';
+export { SceneShareLinksButton } from './components/SceneShareLinksButton';
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
 export { type VizConfig } from './core/PanelBuilders/types';
