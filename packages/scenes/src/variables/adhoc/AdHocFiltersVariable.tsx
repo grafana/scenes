@@ -38,15 +38,6 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // filter origin, it can be either scopes, dashboards or undefined,
   // which means it won't appear in the UI
   origin?: FilterOrigin;
-  // this holds the original/initial value of an injected filter that
-  // was edited.
-  // originalValue?: string[];
-  // // this holds the original operator on an injected filter
-  // // Note: a user cannot manually override the operator of an injected filter
-  // // but in some cases the operator will be changed and we need to save the original.
-  // // This can happen for dashboard injected filters that are set to match-all or when
-  // // changing dashboards and there is some other filter with the same key but different operator
-  // originalOperator?: string;
   // whether this is basically a cancelled filter through filter-key =~ .*
   matchAllFilter?: boolean;
   // whether this specific filter is read-only and cannot be edited
