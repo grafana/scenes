@@ -1,6 +1,3 @@
-import { lastValueFrom } from 'rxjs';
-
-import { CustomVariable } from './CustomVariable';
 import { TestScene } from '../TestScene';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { ConstantVariable } from './ConstantVariable';
@@ -21,7 +18,7 @@ describe('ConstantVariable', () => {
       });
       const varC = new TestVariable({
         name: 'C',
-        query: `$B`,
+        query: `A.$B.*`,
         delayMs: 0,
       });
 
@@ -32,12 +29,13 @@ describe('ConstantVariable', () => {
       scene.activate();
 
       expect(varB.getValue()).toEqual('AA');
-      expect(varC.state.issuedQuery).toBe('AA');
-      //expect(varC.getValue()).toEqual('AA');
+      expect(varC.state.issuedQuery).toBe('A.AA.*');
+      expect(varC.getValue()).toEqual('AAA');
 
-      varA.changeValueTo('B');
-      expect(varC.state.issuedQuery).toBe('B');
-      // expect(varC.getValue()).toEqual('A');
+      varA.changeValueTo('AB');
+      expect(varB.getValue()).toEqual('AB');
+      expect(varC.state.issuedQuery).toBe('A.AB.*');
+      expect(varC.getValue()).toEqual('ABA');
     });
   });
 });

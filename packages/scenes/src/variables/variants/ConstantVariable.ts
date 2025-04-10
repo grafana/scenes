@@ -20,11 +20,9 @@ export class ConstantVariable
 {
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['value'],
-    onReferencedVariableValueChanged: (variable) => {
-      console.log('asd');
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    },
   });
+
+  private _prevValue: VariableValue = '';
 
   public constructor(initialState: Partial<ConstantVariableState>) {
     super({
@@ -40,6 +38,13 @@ export class ConstantVariable
    * This function is called on when SceneVariableSet is activated or when a dependency changes.
    */
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
+    const newValue = this.getValue();
+
+    if (this._prevValue !== newValue) {
+      this._prevValue = newValue;
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+
     return of({});
   }
 
