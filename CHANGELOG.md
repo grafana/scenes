@@ -1,3 +1,55 @@
+# v6.7.0 (Wed Apr 09 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VariableControl: Add props needed in core dashboards [#1091](https://github.com/grafana/scenes/pull/1091) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.6.3 (Fri Apr 04 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupByVariable: Add browser history action support for GroupBy var [#1087](https://github.com/grafana/scenes/pull/1087) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.6.2 (Wed Apr 02 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Fix issue where scope injected filter would not update properly [#1085](https://github.com/grafana/scenes/pull/1085) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.6.1 (Tue Apr 01 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Bump rollup and related deps [#1077](https://github.com/grafana/scenes/pull/1077) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v6.6.0 (Mon Mar 24 2025)
 
 #### 🚀 Enhancement

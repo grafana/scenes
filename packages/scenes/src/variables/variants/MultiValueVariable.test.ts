@@ -397,6 +397,22 @@ describe('MultiValueVariable', () => {
 
       expect(stateUpdates).toHaveLength(0);
     });
+
+    it('changes when performing browser history action on user action', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        isMulti: true,
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+
+      variable.changeValueTo(['1'], undefined, true);
+      expect(variable.state.value).toEqual(['1']);
+    });
   });
 
   describe('getValue and getValueText', () => {
