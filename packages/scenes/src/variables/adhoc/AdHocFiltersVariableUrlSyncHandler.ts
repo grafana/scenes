@@ -13,6 +13,8 @@ import {
   unescapeUrlDelimiters,
 } from '../utils';
 
+const FILTER_EDITED_FLAG = 'edited';
+
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
 
@@ -44,18 +46,16 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     }
 
     if (baseFilters?.length) {
-      // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
+      // injected filters stored in the following format: normal|adhoc|values#filterOrigin
       value.push(
         ...baseFilters
           ?.filter(isFilterComplete)
-          .filter((filter) => !filter.hidden && filter.origin && filter.originalValue)
+          .filter((filter) => !filter.hidden && filter.origin)
           .map((filter) =>
             toArray(filter)
               .map(escapeInjectedFilterUrlDelimiters)
               .join('|')
-              .concat(
-                `#${filter.originalValue?.map(escapeInjectedFilterUrlDelimiters).join('|') ?? ''}#${filter.origin}`
-              )
+              .concat(`#${filter.origin}${filter.isEdited ? `#${FILTER_EDITED_FLAG}` : ''}`)
           )
       );
     }
@@ -73,10 +73,37 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     }
 
     if (urlValue) {
-      const filters = deserializeUrlToFilters(urlValue);
+      // get filters together with only edited dashboard filters.
+      // if a dashboard filter is not edited, we do not carry it over
+      const filters = deserializeUrlToFilters(urlValue).filter(
+        (filter) =>
+          filter.origin !== FilterOrigin.Dashboards || (filter.origin === FilterOrigin.Dashboards && filter.isEdited)
+      );
+      const baseFilters = [...(this._variable.state.baseFilters || [])];
+
+      for (let i = 0; i < filters.length; i++) {
+        const foundBaseFilterIndex = baseFilters.findIndex((f) => f.key === filters[i].key);
+
+        // if we find a filter from the URL we update baseFilters,
+        // otherwise if the URL contains a dashboard originated filter
+        // which has no match in a dashboard we turn it into
+        // a normal filter
+        if (foundBaseFilterIndex > -1) {
+          if (!filters[i].origin && baseFilters[foundBaseFilterIndex].origin === FilterOrigin.Dashboards) {
+            filters[i].origin = FilterOrigin.Dashboards;
+          }
+
+          baseFilters[foundBaseFilterIndex] = filters[i];
+        } else if (filters[i].origin === FilterOrigin.Dashboards) {
+          filters[i].origin = undefined;
+        } else {
+          baseFilters.push(filters[i]);
+        }
+      }
+
       this._variable.setState({
         filters: filters.filter((f) => !f.origin),
-        baseFilters: filters.filter((f) => f.origin),
+        baseFilters,
       });
     }
   }
@@ -111,7 +138,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [filter, originalValues, origin] = urlValue.split('#');
+  const [filter, origin, isEdited] = urlValue.split('#');
   const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
     .reduce<string[]>((acc, v) => {
@@ -132,7 +159,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
     origin: isFilterOrigin(origin) ? origin : undefined,
-    originalValue: originalValues && originalValues.length ? originalValues.split('|') ?? [originalValues] : undefined,
+    isEdited: !!isEdited,
   };
 }
 

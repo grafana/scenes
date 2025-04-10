@@ -38,13 +38,20 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // filter origin, it can be either scopes, dashboards or undefined,
   // which means it won't appear in the UI
   origin?: FilterOrigin;
-  // this holds the original/initial value of a injected filter that
+  // this holds the original/initial value of an injected filter that
   // was edited.
-  originalValue?: string[];
+  // originalValue?: string[];
+  // // this holds the original operator on an injected filter
+  // // Note: a user cannot manually override the operator of an injected filter
+  // // but in some cases the operator will be changed and we need to save the original.
+  // // This can happen for dashboard injected filters that are set to match-all or when
+  // // changing dashboards and there is some other filter with the same key but different operator
+  // originalOperator?: string;
   // whether this is basically a cancelled filter through filter-key =~ .*
   matchAllFilter?: boolean;
   // whether this specific filter is read-only and cannot be edited
   readOnly?: boolean;
+  isEdited?: boolean;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -212,6 +219,7 @@ export class AdHocFiltersVariable
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
   private _scopesBridge: SceneScopesBridge | undefined;
+  private _originalValues: Map<string, { value: string[]; operator: string }> = new Map();
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
@@ -235,6 +243,16 @@ export class AdHocFiltersVariable
       patchGetAdhocFilters(this);
     }
 
+    // set dashboard lvl original values in constructor, since we have them from schema
+    this.state.baseFilters?.forEach((baseFilter) => {
+      if (baseFilter.origin === FilterOrigin.Dashboards) {
+        this._originalValues.set(baseFilter.key, {
+          operator: baseFilter.operator,
+          value: baseFilter.values ?? [baseFilter.value],
+        });
+      }
+    });
+
     this.addActivationHandler(this._activationHandler);
   }
 
@@ -248,15 +266,33 @@ export class AdHocFiltersVariable
     }
 
     const sub = this._scopesBridge?.subscribeToValue((n, _) => {
-      this._updateScopesFilters(n, this._scopesBridge?.isLoading());
+      this._updateScopesFilters(n, true);
     });
+
+    this._updateFiltersIfEdited();
 
     return () => {
       sub?.unsubscribe();
     };
   };
 
-  private _updateScopesFilters = (scopes: Scope[], areScopesLoading?: boolean) => {
+  private _updateFiltersIfEdited() {
+    this.state.baseFilters?.forEach((filter) => {
+      const update: { isEdited?: boolean; matchAllFilter?: boolean } = {};
+
+      if (this.isEditedFilter(filter)) {
+        update.isEdited = true;
+      }
+
+      if (filter.value === '.*' && filter.operator === '=~') {
+        update.matchAllFilter = true;
+      }
+
+      this._updateFilter(filter, update);
+    });
+  }
+
+  private _updateScopesFilters = (scopes: Scope[], overwriteScopes?: boolean) => {
     if (!scopes.length) {
       this.setState({
         baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes),
@@ -265,9 +301,22 @@ export class AdHocFiltersVariable
     }
 
     const scopeFilters = getAdHocFiltersFromScopes(scopes);
+
+    if (!scopeFilters.length) {
+      return;
+    }
+
     let finalFilters = scopeFilters;
     const scopeInjectedFilters: AdHocFilterWithLabels[] = [];
     const remainingFilters: AdHocFilterWithLabels[] = [];
+
+    // set original values for scope filters as well
+    finalFilters.forEach((scopeFilter) => {
+      this._originalValues.set(scopeFilter.key, {
+        value: scopeFilter.values ?? [scopeFilter.value],
+        operator: scopeFilter.operator,
+      });
+    });
 
     this.state.baseFilters?.forEach((filter) => {
       if (filter.origin === FilterOrigin.Scopes) {
@@ -277,21 +326,23 @@ export class AdHocFiltersVariable
       }
     });
 
-    if (!scopeFilters.length) {
-      return;
+    // when changing scopes alltogether, we might still have some filters from the previous
+    // scope with the same keys, but potentially different values. We don't want to keep
+    // those (and add a restore button to the new scope filters) but overwrite them
+    // alltogether
+    if (!overwriteScopes) {
+      const editedScopeFilters = scopeInjectedFilters.filter((filter) => this.isEditedFilter(filter));
+      const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
+      const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
+
+      // if the scope filters contain the key of an edited scope filter, we replace
+      // with the edited filter. We also add the remaining unedited scope filters
+      // when not overwriting
+      finalFilters = [
+        ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
+        ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
+      ];
     }
-
-    const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.originalValue?.length);
-    const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
-    const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
-
-    // if the scope filters contain the key of an edited scope filter, we replace
-    // with the edited filter. We also add the remaining unedited scope filters
-    // when not overwriting
-    finalFilters = [
-      ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
-      ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
-    ];
 
     // maintain other baseFilters in the array, only update scopes ones
     this.setState({ baseFilters: [...finalFilters, ...remainingFilters] });
@@ -357,22 +408,20 @@ export class AdHocFiltersVariable
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
     const original: Partial<AdHocFilterWithLabels> = {
-      originalValue: undefined,
+      matchAllFilter: false,
+      isEdited: false,
     };
 
-    if (filter.originalValue?.length) {
-      original.value = filter.originalValue[0];
-      original.values = filter.originalValue;
+    if (filter.isEdited) {
+      const originalFilter = this._originalValues.get(filter.key);
+
+      original.value = originalFilter?.value[0];
+      original.values = originalFilter?.value;
       // we don't care much about the labels in this injected filters scenario
       // but this is needed to rerender the filter with the proper values
       // in the UI. E.g.: in a multi-value on hover, it shows the correct values
-      original.valueLabels = filter.originalValue;
-
-      if (filter.origin === FilterOrigin.Dashboards) {
-        original.matchAllFilter = false;
-        // TODO this cannot be hardcoded
-        original.operator = '=';
-      }
+      original.valueLabels = originalFilter?.value;
+      original.operator = originalFilter?.operator;
     }
 
     this._updateFilter(filter, original);
@@ -386,20 +435,16 @@ export class AdHocFiltersVariable
     const { baseFilters, filters, _wip } = this.state;
 
     if (filter.origin) {
-      const currentValues = filter.values ? filter.values : [filter.value];
+      const originalValues = this._originalValues.get(filter.key);
       const updateValues = update.values || (update.value ? [update.value] : undefined);
-      const originalValueOverride = update.hasOwnProperty('originalValue');
 
-      // if we do not override this logic by adding originalValue in update
-      // and there is no originalValue set and the updateValues are set and
-      // not equal to the currentValues we update the originalValue
-      if (!originalValueOverride && updateValues && !filter.originalValue && !isEqual(currentValues, updateValues)) {
-        update.originalValue = currentValues;
-      }
-
-      // we are updating to the same values, no reason to hold original value
-      if (!originalValueOverride && isEqual(updateValues, filter.originalValue)) {
-        update.originalValue = undefined;
+      const isEditedOverride = update.hasOwnProperty('isEdited');
+      if (
+        !isEditedOverride &&
+        ((updateValues && !isEqual(updateValues, originalValues?.value)) ||
+          (update.operator && update.operator !== originalValues?.operator))
+      ) {
+        update.isEdited = true;
       }
 
       const updatedBaseFilters =
@@ -429,7 +474,14 @@ export class AdHocFiltersVariable
   }
 
   private _matchAllFilter(filter: AdHocFilterWithLabels) {
-    this._updateFilter(filter, { operator: '=~', value: '.*', values: ['.*'], matchAllFilter: true });
+    this._updateFilter(filter, {
+      operator: '=~',
+      value: '.*',
+      values: ['.*'],
+      valueLabels: ['All'],
+      matchAllFilter: true,
+      isEdited: true,
+    });
   }
 
   public _removeFilter(filter: AdHocFilterWithLabels) {
@@ -647,6 +699,18 @@ export class AdHocFiltersVariable
       value,
       description,
     }));
+  }
+
+  private isEditedFilter(filter: AdHocFilterWithLabels): boolean {
+    const original = this._originalValues.get(filter.key);
+
+    if (!original) {
+      return false;
+    }
+
+    return (
+      !isEqual(original.value, filter.values ? filter.values : [filter.value]) || original.operator !== filter.operator
+    );
   }
 }
 
