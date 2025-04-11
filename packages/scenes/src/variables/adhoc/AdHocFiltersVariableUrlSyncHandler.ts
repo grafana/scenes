@@ -13,7 +13,7 @@ import {
   unescapeUrlDelimiters,
 } from '../utils';
 
-const FILTER_EDITED_FLAG = 'edited';
+const RESTORABLE_FILTER_FLAG = 'edited';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
@@ -55,7 +55,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
             toArray(filter)
               .map(escapeInjectedFilterUrlDelimiters)
               .join('|')
-              .concat(`#${filter.origin}${filter.isEdited ? `#${FILTER_EDITED_FLAG}` : ''}`)
+              .concat(`#${filter.origin}${filter.restorable ? `#${RESTORABLE_FILTER_FLAG}` : ''}`)
           )
       );
     }
@@ -77,7 +77,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       // if a dashboard filter is not edited, we do not carry it over
       const filters = deserializeUrlToFilters(urlValue).filter(
         (filter) =>
-          filter.origin !== FilterOrigin.Dashboards || (filter.origin === FilterOrigin.Dashboards && filter.isEdited)
+          filter.origin !== FilterOrigin.Dashboards || (filter.origin === FilterOrigin.Dashboards && filter.restorable)
       );
       const baseFilters = [...(this._variable.state.baseFilters || [])];
 
@@ -138,7 +138,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [filter, origin, isEdited] = urlValue.split('#');
+  const [filter, origin, restorable] = urlValue.split('#');
   const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
     .reduce<string[]>((acc, v) => {
@@ -159,7 +159,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
     origin: isFilterOrigin(origin) ? origin : undefined,
-    isEdited: !!isEdited,
+    restorable: !!restorable,
   };
 }
 

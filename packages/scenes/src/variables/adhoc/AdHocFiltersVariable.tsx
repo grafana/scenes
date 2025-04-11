@@ -42,7 +42,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   matchAllFilter?: boolean;
   // whether this specific filter is read-only and cannot be edited
   readOnly?: boolean;
-  isEdited?: boolean;
+  // whether this specific filter is restorable to some value from _originalValues
+  restorable?: boolean;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -260,19 +261,19 @@ export class AdHocFiltersVariable
       this._updateScopesFilters(n, true);
     });
 
-    this._updateFiltersIfEdited();
+    this._updateFiltersIfRestorable();
 
     return () => {
       sub?.unsubscribe();
     };
   };
 
-  private _updateFiltersIfEdited() {
+  private _updateFiltersIfRestorable() {
     this.state.baseFilters?.forEach((filter) => {
-      const update: { isEdited?: boolean; matchAllFilter?: boolean } = {};
+      const update: { restorable?: boolean; matchAllFilter?: boolean } = {};
 
-      if (this.isEditedFilter(filter)) {
-        update.isEdited = true;
+      if (this.isRestorableFilters(filter)) {
+        update.restorable = true;
       }
 
       if (filter.value === '.*' && filter.operator === '=~') {
@@ -322,7 +323,7 @@ export class AdHocFiltersVariable
     // those (and add a restore button to the new scope filters) but overwrite them
     // alltogether
     if (!overwriteScopes) {
-      const editedScopeFilters = scopeInjectedFilters.filter((filter) => this.isEditedFilter(filter));
+      const editedScopeFilters = scopeInjectedFilters.filter((filter) => this.isRestorableFilters(filter));
       const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
       const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
 
@@ -400,10 +401,10 @@ export class AdHocFiltersVariable
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
     const original: Partial<AdHocFilterWithLabels> = {
       matchAllFilter: false,
-      isEdited: false,
+      restorable: false,
     };
 
-    if (filter.isEdited) {
+    if (filter.restorable) {
       const originalFilter = this._originalValues.get(filter.key);
 
       original.value = originalFilter?.value[0];
@@ -429,13 +430,18 @@ export class AdHocFiltersVariable
       const originalValues = this._originalValues.get(filter.key);
       const updateValues = update.values || (update.value ? [update.value] : undefined);
 
-      const isEditedOverride = update.hasOwnProperty('isEdited');
+      console.log(originalValues, updateValues);
+      const isRestorableOverride = update.hasOwnProperty('restorable');
       if (
-        !isEditedOverride &&
+        !isRestorableOverride &&
         ((updateValues && !isEqual(updateValues, originalValues?.value)) ||
           (update.operator && update.operator !== originalValues?.operator))
       ) {
-        update.isEdited = true;
+        update.restorable = true;
+      } else if (updateValues && isEqual(updateValues, originalValues?.value)) {
+        // todo test this out. We don't need to verify operator, that will never be
+        // manually changed
+        update.restorable = false;
       }
 
       const updatedBaseFilters =
@@ -471,7 +477,7 @@ export class AdHocFiltersVariable
       values: ['.*'],
       valueLabels: ['All'],
       matchAllFilter: true,
-      isEdited: true,
+      restorable: true,
     });
   }
 
@@ -692,7 +698,7 @@ export class AdHocFiltersVariable
     }));
   }
 
-  private isEditedFilter(filter: AdHocFilterWithLabels): boolean {
+  private isRestorableFilters(filter: AdHocFilterWithLabels): boolean {
     const original = this._originalValues.get(filter.key);
 
     if (!original) {

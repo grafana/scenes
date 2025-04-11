@@ -117,7 +117,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         ) : null}
 
-        {filter.origin && !filter.isEdited && (
+        {filter.origin && !filter.restorable && (
           <IconButton
             name="info-circle"
             size="md"
@@ -126,7 +126,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         )}
 
-        {filter.origin && filter.isEdited && (
+        {filter.origin && filter.restorable && (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
