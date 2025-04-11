@@ -75,6 +75,8 @@ export interface QueryRunnerState extends SceneObjectState {
   dataLayerFilter?: DataLayerFilter;
   // Private runtime state
   _hasFetchedData?: boolean;
+  // Optional timeRange to use instead of sceneGraph timeRange
+  timeRange?: SceneTimeRangeLike;
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -140,9 +142,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this.addActivationHandler(() => this._onActivate());
   }
 
+  private getTimeRange(): SceneTimeRangeLike {
+    // If timeRange is provided in state, use that, otherwise fall back to sceneGraph
+    return this.state.timeRange ?? sceneGraph.getTimeRange(this);
+  }
+
   private _onActivate() {
     if (this.isQueryModeAuto()) {
-      const timeRange = sceneGraph.getTimeRange(this);
+      const timeRange = this.getTimeRange();
       const scopesBridge = sceneGraph.getScopesBridge(this);
 
       // Add subscriptions to any extra providers so that they rerun queries
@@ -188,7 +195,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _onLayersReceived(results: Iterable<SceneDataProviderResult>) {
-    const timeRange = sceneGraph.getTimeRange(this);
+    const timeRange = this.getTimeRange();
     const { dataLayerFilter } = this.state;
 
     let annotations: DataFrame[] = [];
@@ -312,7 +319,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _isDataTimeRangeStale(data: PanelData) {
-    const timeRange = sceneGraph.getTimeRange(this);
+    const timeRange = this.getTimeRange();
 
     const stateTimeRange = timeRange.state.value;
     const dataTimeRange = data.timeRange;
@@ -390,13 +397,17 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._scopesSubBridge = scopesBridge;
 
     this._scopesSub = scopesBridge.subscribeToValue(() => {
-      this.runWithTimeRangeAndScopes(sceneGraph.getTimeRange(this), scopesBridge);
+      this.runWithTimeRangeAndScopes(this.getTimeRange(), scopesBridge);
     });
   }
 
   private subscribeToTimeRangeChanges(timeRange: SceneTimeRangeLike) {
+    // Only subscribe to time range changes if we're not using a prop
+    if (this.state.timeRange) {
+      return;
+    }
+
     if (this._timeSubRange === timeRange) {
-      // Nothing to do, already subscribed
       return;
     }
 
@@ -411,7 +422,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   public runQueries() {
-    const timeRange = sceneGraph.getTimeRange(this);
+    const timeRange = this.getTimeRange();
     const scopesBridge = sceneGraph.getScopesBridge(this);
     if (this.isQueryModeAuto()) {
       this.subscribeToTimeRangeChanges(timeRange);

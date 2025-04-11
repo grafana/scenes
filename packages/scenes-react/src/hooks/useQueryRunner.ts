@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
-import { SceneDataQuery, SceneQueryRunner } from '@grafana/scenes';
+import { SceneDataQuery, SceneQueryRunner, SceneTimeRangeLike } from '@grafana/scenes';
 import { DataSourceRef } from '@grafana/schema';
 import { isEqual } from 'lodash';
 import { CacheKey } from '../caching/SceneObjectCache';
 import { useSceneObject } from './useSceneObject';
-
 export interface UseQueryOptions {
   queries: SceneDataQuery[];
   maxDataPoints?: number;
@@ -12,6 +11,9 @@ export interface UseQueryOptions {
   cacheKey?: CacheKey;
   liveStreaming?: boolean;
   maxDataPointsFromWidth?: boolean;
+  // Optional timeRange to use instead of sceneGraph timeRange
+  runQueriesMode?: 'auto' | 'manual';
+  timeRange?: SceneTimeRangeLike;
 }
 
 /**
@@ -31,6 +33,8 @@ export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
         datasource: options.datasource,
         liveStreaming: options.liveStreaming,
         maxDataPointsFromWidth: options.maxDataPointsFromWidth,
+        runQueriesMode: options.runQueriesMode,
+        timeRange: options.timeRange,
       }),
     objectConstructor: SceneQueryRunner,
     cacheKey: options.cacheKey,
