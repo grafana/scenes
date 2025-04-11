@@ -44,18 +44,13 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     }
 
     if (baseFilters?.length) {
-      // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
+      // injected filters stored in the following format: normal|adhoc|values#filterOrigin
       value.push(
         ...baseFilters
           ?.filter(isFilterComplete)
-          .filter((filter) => !filter.hidden && filter.origin && filter.originalValue)
+          .filter((filter) => !filter.hidden && filter.origin && filter.restorable)
           .map((filter) =>
-            toArray(filter)
-              .map(escapeInjectedFilterUrlDelimiters)
-              .join('|')
-              .concat(
-                `#${filter.originalValue?.map(escapeInjectedFilterUrlDelimiters).join('|') ?? ''}#${filter.origin}`
-              )
+            toArray(filter).map(escapeInjectedFilterUrlDelimiters).join('|').concat(`#${filter.origin}#restorable`)
           )
       );
     }
@@ -72,13 +67,36 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return;
     }
 
-    if (urlValue) {
-      const filters = deserializeUrlToFilters(urlValue);
-      this._variable.setState({
-        filters: filters.filter((f) => !f.origin),
-        baseFilters: filters.filter((f) => f.origin),
-      });
+    const filters = deserializeUrlToFilters(urlValue);
+    const baseFilters = [...(this._variable.state.baseFilters || [])];
+
+    for (let i = 0; i < filters.length; i++) {
+      const foundBaseFilterIndex = baseFilters.findIndex((f) => f.key === filters[i].key);
+
+      // if we find a match we update baseFilter with what's in the URL.
+      // If there is a normal filter without an origin that matches keys with
+      // some dashboard lvl filter we maintain it as dashboard lvl filter in the
+      // new dashboard
+      if (foundBaseFilterIndex > -1) {
+        if (!filters[i].origin && baseFilters[foundBaseFilterIndex].origin === FilterOrigin.Dashboards) {
+          filters[i].origin = FilterOrigin.Dashboards;
+        }
+
+        baseFilters[foundBaseFilterIndex] = filters[i];
+      } else if (filters[i].origin === FilterOrigin.Dashboards) {
+        // if it was originating from a dashoard but has no match in the new dashboard
+        // remove it's origin, turn it into a normal filter to be set below
+        filters[i].origin = undefined;
+      } else if (foundBaseFilterIndex === -1 && filters[i].origin === FilterOrigin.Scopes && filters[i].restorable) {
+        // if the URL contains a modified scope filter than we persist that
+        baseFilters.push(filters[i]);
+      }
     }
+
+    this._variable.setState({
+      filters: filters.filter((f) => !f.origin),
+      baseFilters,
+    });
   }
 }
 
@@ -111,7 +129,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [filter, originalValues, origin] = urlValue.split('#');
+  const [filter, origin, restorable] = urlValue.split('#');
   const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
     .reduce<string[]>((acc, v) => {
@@ -131,8 +149,8 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
-    origin: isFilterOrigin(origin) ? origin : undefined,
-    originalValue: originalValues && originalValues.length ? originalValues.split('|') ?? [originalValues] : undefined,
+    ...(isFilterOrigin(origin) && { origin }),
+    ...(!!restorable && { restorable: true }),
   };
 }
 
