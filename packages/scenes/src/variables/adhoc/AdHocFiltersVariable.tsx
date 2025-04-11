@@ -258,7 +258,7 @@ export class AdHocFiltersVariable
     }
 
     const sub = this._scopesBridge?.subscribeToValue((n, _) => {
-      this._updateScopesFilters(n, true);
+      this._updateScopesFilters(n);
     });
 
     this._updateFiltersIfRestorable();
@@ -296,7 +296,7 @@ export class AdHocFiltersVariable
     });
   }
 
-  private _updateScopesFilters = (scopes: Scope[], overwriteScopes?: boolean) => {
+  private _updateScopesFilters(scopes: Scope[]) {
     if (!scopes.length) {
       this.setState({
         baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes),
@@ -330,27 +330,21 @@ export class AdHocFiltersVariable
       }
     });
 
-    // when changing scopes alltogether, we might still have some filters from the previous
-    // scope with the same keys, but potentially different values. We don't want to keep
-    // those (and add a restore button to the new scope filters) but overwrite them
-    // alltogether
-    if (!overwriteScopes) {
-      const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.restorable);
-      const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
-      const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
+    const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.restorable);
+    const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
+    const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
 
-      // if the scope filters contain the key of an edited scope filter, we replace
-      // with the edited filter. We also add the remaining unedited scope filters
-      // when not overwriting
-      finalFilters = [
-        ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
-        ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
-      ];
-    }
+    // if the scope filters contain the key of an edited scope filter, we replace
+    // with the edited filter. We also add the remaining unedited scope filters
+    // when not overwriting
+    finalFilters = [
+      ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
+      ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
+    ];
 
     // maintain other baseFilters in the array, only update scopes ones
     this.setState({ baseFilters: [...finalFilters, ...remainingFilters] });
-  };
+  }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
