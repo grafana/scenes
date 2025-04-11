@@ -132,7 +132,7 @@ export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
 export { ControlsLabel } from './utils/ControlsLabel';
-export { MultiOrSingleValueSelect as renderSelectForVariable } from './variables/components/VariableValueSelect';
+export { MultiOrSingleValueSelect } from './variables/components/VariableValueSelect';
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
 export { type VizConfig } from './core/PanelBuilders/types';
