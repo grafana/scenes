@@ -93,9 +93,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {!readOnly &&
-        !filter.matchAllFilter &&
-        (filter.origin === undefined || filter.origin === FilterOrigin.Dashboards) ? (
+        {!readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === FilterOrigin.Dashboards) ? (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();

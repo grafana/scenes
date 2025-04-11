@@ -13,8 +13,6 @@ import {
   unescapeUrlDelimiters,
 } from '../utils';
 
-const RESTORABLE_FILTER_FLAG = 'restorable';
-
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
 
@@ -52,10 +50,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
           ?.filter(isFilterComplete)
           .filter((filter) => !filter.hidden && filter.origin && filter.restorable)
           .map((filter) =>
-            toArray(filter)
-              .map(escapeInjectedFilterUrlDelimiters)
-              .join('|')
-              .concat(`#${filter.origin}${filter.restorable ? `#${RESTORABLE_FILTER_FLAG}` : ''}`)
+            toArray(filter).map(escapeInjectedFilterUrlDelimiters).join('|').concat(`#${filter.origin}#restorable`)
           )
       );
     }
@@ -72,41 +67,36 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return;
     }
 
-    if (urlValue) {
-      const filters = deserializeUrlToFilters(urlValue);
-      const baseFilters = [...(this._variable.state.baseFilters || [])];
+    const filters = deserializeUrlToFilters(urlValue);
+    const baseFilters = [...(this._variable.state.baseFilters || [])];
 
-      for (let i = 0; i < filters.length; i++) {
-        const foundBaseFilterIndex = baseFilters.findIndex((f) => f.key === filters[i].key);
+    for (let i = 0; i < filters.length; i++) {
+      const foundBaseFilterIndex = baseFilters.findIndex((f) => f.key === filters[i].key);
 
-        // if we find a filter from the URL we update baseFilters,
-        // otherwise if the URL contains a dashboard originated filter
-        // which has no match in a dashboard we turn it into
-        // a normal filter
-        if (foundBaseFilterIndex > -1) {
-          if (!filters[i].origin && baseFilters[foundBaseFilterIndex].origin === FilterOrigin.Dashboards) {
-            filters[i].origin = FilterOrigin.Dashboards;
-          }
-
-          baseFilters[foundBaseFilterIndex] = filters[i];
-        } else if (filters[i].origin === FilterOrigin.Dashboards) {
-          filters[i].origin = undefined;
-        } else if (!filters[i].origin) {
-          delete filters[i].origin;
-          delete filters[i].restorable;
-          if (!filters[i].values) {
-            delete filters[i].values;
-          }
-
-          baseFilters.push(filters[i]);
+      // if we find a match we update baseFilter with what's in the URL.
+      // If there is a normal filter without an origin that matches keys with
+      // some dashboard lvl filter we maintain it as dashboard lvl filter in the
+      // new dashboard
+      if (foundBaseFilterIndex > -1) {
+        if (!filters[i].origin && baseFilters[foundBaseFilterIndex].origin === FilterOrigin.Dashboards) {
+          filters[i].origin = FilterOrigin.Dashboards;
         }
-      }
 
-      this._variable.setState({
-        filters: filters.filter((f) => !f.origin),
-        baseFilters,
-      });
+        baseFilters[foundBaseFilterIndex] = filters[i];
+      } else if (filters[i].origin === FilterOrigin.Dashboards) {
+        // if it was originating from a dashoard but has no match in the new dashboard
+        // remove it's origin, turn it into a normal filter to be set below
+        filters[i].origin = undefined;
+      } else if (foundBaseFilterIndex === -1 && filters[i].origin === FilterOrigin.Scopes && filters[i].restorable) {
+        // if the URL contains a modified scope filter than we persist that
+        baseFilters.push(filters[i]);
+      }
     }
+
+    this._variable.setState({
+      filters: filters.filter((f) => !f.origin),
+      baseFilters,
+    });
   }
 }
 
@@ -159,8 +149,8 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
-    origin: isFilterOrigin(origin) ? origin : undefined,
-    restorable: !!restorable,
+    ...(isFilterOrigin(origin) && { origin }),
+    ...(!!restorable && { restorable: true }),
   };
 }
 

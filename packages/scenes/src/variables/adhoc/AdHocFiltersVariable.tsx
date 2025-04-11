@@ -265,8 +265,11 @@ export class AdHocFiltersVariable
 
     return () => {
       sub?.unsubscribe();
+      this.setState({
+        baseFilters: [...(this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes) ?? [])],
+      });
       this.state.baseFilters?.forEach((filter) => {
-        if (filter.restorable) {
+        if (filter.origin === FilterOrigin.Dashboards) {
           this.restoreOriginalFilter(filter);
         }
       });
@@ -275,6 +278,10 @@ export class AdHocFiltersVariable
 
   private _updateFiltersIfRestorable() {
     this.state.baseFilters?.forEach((filter) => {
+      if (!filter.origin) {
+        return;
+      }
+
       const update: { restorable?: boolean; matchAllFilter?: boolean } = {};
 
       if (this.isRestorableFilters(filter)) {
@@ -328,7 +335,7 @@ export class AdHocFiltersVariable
     // those (and add a restore button to the new scope filters) but overwrite them
     // alltogether
     if (!overwriteScopes) {
-      const editedScopeFilters = scopeInjectedFilters.filter((filter) => this.isRestorableFilters(filter));
+      const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.restorable);
       const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
       const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
 
