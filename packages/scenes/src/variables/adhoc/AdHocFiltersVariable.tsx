@@ -265,6 +265,11 @@ export class AdHocFiltersVariable
 
     return () => {
       sub?.unsubscribe();
+      this.state.baseFilters?.forEach((filter) => {
+        if (filter.restorable) {
+          this.restoreOriginalFilter(filter);
+        }
+      });
     };
   };
 
@@ -430,7 +435,6 @@ export class AdHocFiltersVariable
       const originalValues = this._originalValues.get(filter.key);
       const updateValues = update.values || (update.value ? [update.value] : undefined);
 
-      console.log(originalValues, updateValues);
       const isRestorableOverride = update.hasOwnProperty('restorable');
       if (
         !isRestorableOverride &&
@@ -439,8 +443,6 @@ export class AdHocFiltersVariable
       ) {
         update.restorable = true;
       } else if (updateValues && isEqual(updateValues, originalValues?.value)) {
-        // todo test this out. We don't need to verify operator, that will never be
-        // manually changed
         update.restorable = false;
       }
 

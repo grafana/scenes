@@ -13,7 +13,7 @@ import {
   unescapeUrlDelimiters,
 } from '../utils';
 
-const RESTORABLE_FILTER_FLAG = 'edited';
+const RESTORABLE_FILTER_FLAG = 'restorable';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
@@ -50,7 +50,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       value.push(
         ...baseFilters
           ?.filter(isFilterComplete)
-          .filter((filter) => !filter.hidden && filter.origin)
+          .filter((filter) => !filter.hidden && filter.origin && filter.restorable)
           .map((filter) =>
             toArray(filter)
               .map(escapeInjectedFilterUrlDelimiters)
@@ -73,12 +73,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     }
 
     if (urlValue) {
-      // get filters together with only edited dashboard filters.
-      // if a dashboard filter is not edited, we do not carry it over
-      const filters = deserializeUrlToFilters(urlValue).filter(
-        (filter) =>
-          filter.origin !== FilterOrigin.Dashboards || (filter.origin === FilterOrigin.Dashboards && filter.restorable)
-      );
+      const filters = deserializeUrlToFilters(urlValue);
       const baseFilters = [...(this._variable.state.baseFilters || [])];
 
       for (let i = 0; i < filters.length; i++) {
@@ -96,7 +91,13 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
           baseFilters[foundBaseFilterIndex] = filters[i];
         } else if (filters[i].origin === FilterOrigin.Dashboards) {
           filters[i].origin = undefined;
-        } else {
+        } else if (!filters[i].origin) {
+          delete filters[i].origin;
+          delete filters[i].restorable;
+          if (!filters[i].values) {
+            delete filters[i].values;
+          }
+
           baseFilters.push(filters[i]);
         }
       }
