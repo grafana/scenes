@@ -2754,6 +2754,97 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
     expect(sentRequest?.scopes).toBeUndefined();
   });
+
+  describe('when timeRange is provided as prop', () => {
+    it('should use provided timeRange instead of sceneGraph timeRange', async () => {
+      const customTimeRange = new SceneTimeRange({
+        from: '2023-02-01',
+        to: '2023-02-02',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        timeRange: customTimeRange,
+      });
+
+      const scene = new TestScene({
+        $timeRange: new SceneTimeRange({
+          from: '2023-03-01',
+          to: '2023-03-02',
+        }),
+        $data: queryRunner,
+      });
+
+      scene.activate();
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest?.range).toEqual(customTimeRange.state.value);
+    });
+
+    it('should not subscribe to sceneGraph timeRange changes when using prop timeRange', async () => {
+      const customTimeRange = new SceneTimeRange({
+        from: '2023-01-01',
+        to: '2023-01-02',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        timeRange: customTimeRange,
+      });
+
+      const sceneTimeRange = new SceneTimeRange({
+        from: '2023-02-01',
+        to: '2023-02-02',
+      });
+
+      const scene = new TestScene({
+        $timeRange: sceneTimeRange,
+        $data: queryRunner,
+      });
+
+      scene.activate();
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Change scene time range
+      sceneTimeRange.setState({
+        from: '2023-03-01',
+        to: '2023-03-02',
+      });
+      sceneTimeRange.onRefresh();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should still use custom time range
+      expect(sentRequest?.range).toEqual(customTimeRange.state.value);
+    });
+
+    it('should fall back to sceneGraph timeRange when prop timeRange is not provided', async () => {
+      const sceneTimeRange = new SceneTimeRange({
+        from: '2023-01-01',
+        to: '2023-01-02',
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+      });
+
+      const scene = new TestScene({
+        $timeRange: sceneTimeRange,
+        $data: queryRunner,
+      });
+
+      scene.activate();
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest?.range).toEqual(sceneTimeRange.state.value);
+    });
+  });
 });
 
 class CustomDataSource extends RuntimeDataSource {
