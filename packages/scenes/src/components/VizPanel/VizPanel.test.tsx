@@ -872,7 +872,7 @@ describe('VizPanel', () => {
       it('should showMenuAlways when panel is not collapsible', async () => {
         expect(panel.state.showMenuAlways).toBe(true);
         render(<panel.Component model={panel} />);
-        
+
         // The menu should be visible despite collapsible being false
         const menuButton = screen.queryByRole('button', { name: /menu/i });
         expect(menuButton).toBeInTheDocument();
@@ -923,7 +923,7 @@ describe('VizPanel', () => {
       it('should showMenuAlways when panel is not collapsible', async () => {
         expect(panel.state.showMenuAlways).toBe(true);
         render(<panel.Component model={panel} />);
-        
+
         // The menu should be visible despite collapsible being false
         const menuButton = screen.queryByRole('button', { name: /menu/i });
         expect(menuButton).toBeInTheDocument();
@@ -947,7 +947,7 @@ describe('VizPanel', () => {
       it('should not showMenuAlways', async () => {
         expect(panel.state.showMenuAlways).toBe(false);
         render(<panel.Component model={panel} />);
-        
+
         const menuButton = screen.queryByRole('button', { name: /menu/i });
         expect(menuButton).toHaveClass('show-on-hover');
       });
