@@ -4,7 +4,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
 import { queryMetricTree } from '../../utils/metricTree';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
-import { renderSelectForVariable } from '../components/VariableValueSelect';
+import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
@@ -12,6 +12,7 @@ import { VariableRefresh } from '@grafana/data';
 import { getClosest } from '../../core/sceneGraph/utils';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { SceneQueryControllerEntry } from '../../behaviors/types';
+import React from 'react';
 
 export interface TestVariableState extends MultiValueVariableState {
   query: string;
@@ -136,6 +137,6 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
-    return renderSelectForVariable(model);
+    return <MultiOrSingleValueSelect model={model} />;
   };
 }

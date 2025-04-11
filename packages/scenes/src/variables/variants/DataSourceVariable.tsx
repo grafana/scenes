@@ -6,10 +6,11 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
-import { renderSelectForVariable } from '../components/VariableValueSelect';
+import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
+import React from 'react';
 
 export interface DataSourceVariableState extends MultiValueVariableState {
   /**
@@ -81,7 +82,7 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
-    return renderSelectForVariable(model);
+    return <MultiOrSingleValueSelect model={model} />;
   };
 }
 
