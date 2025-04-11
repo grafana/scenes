@@ -40,6 +40,7 @@ import { getUrlSyncTest } from './urlSyncTest';
 import { getMlDemo } from './ml';
 import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
+import { getCustomTooltipDemo } from './customTooltip';
 
 export interface DemoDescriptor {
   title: string;
@@ -297,6 +298,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Test panel series limit feature',
       getPage: getSeriesLimitTest,
       getSourceCodeModule: () => import('!!raw-loader!../demos/seriesLimit'),
+    },
+    {
+      title: 'Customize tooltip',
+      description: 'Extends time series tooltip',
+      getPage: getCustomTooltipDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/customTooltip'),
     },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
