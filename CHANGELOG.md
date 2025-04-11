@@ -1,3 +1,17 @@
+# v6.8.0 (Fri Apr 11 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Switch between multi and single select if state changes [#1096](https://github.com/grafana/scenes/pull/1096) ([@torkelo](https://github.com/torkelo))
+  - ConstantVariable: Support interpolation and dependency of other variables in constant value [#1094](https://github.com/grafana/scenes/pull/1094) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.7.0 (Wed Apr 09 2025)
 
 #### 🚀 Enhancement
