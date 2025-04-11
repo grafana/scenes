@@ -1,3 +1,23 @@
+# v6.8.1 (Fri Apr 11 2025)
+
+### Release Notes
+
+#### Variables: Rename renderSelectForVariable to MultiOrSingleValueSelect ([#1097](https://github.com/grafana/scenes/pull/1097))
+
+RenderSelectForVariable was renamed to MultiOrSingleValueSelect and is now React component.
+
+---
+
+#### 🐛 Bug Fix
+
+- Variables: Rename renderSelectForVariable to MultiOrSingleValueSelect [#1097](https://github.com/grafana/scenes/pull/1097) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.8.0 (Fri Apr 11 2025)
 
 #### 🚀 Enhancement
