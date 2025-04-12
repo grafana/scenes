@@ -270,25 +270,32 @@ export class AdHocFiltersVariable
       // we reset the value, and then come back to the initial dashboard, that dashboard still has the edited scope
       // because the URL will not hold any value, since on reset we clear the url, but the initial dashboard still
       // has the changed value in the schema, unless we reset it here
-      this.setState({
-        baseFilters: [...(this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes) ?? [])],
-      });
-      // same for dashboard level filters if we edit one and go to another dashboard, reset to whatever initial value is there
-      // and come back to the initial one it will use the last modified value it has, since URL is empty from the reset done
-      // before
-      this.state.baseFilters?.forEach((filter) => {
-        if (filter.origin === FilterOrigin.Dashboards && filter.restorable) {
-          this.restoreOriginalFilter(filter);
-        }
-      });
+      if (this.state.baseFilters?.length) {
+        this.setState({
+          baseFilters: [...this.state.baseFilters.filter((filter) => filter.origin !== FilterOrigin.Scopes)],
+        });
+        // same for dashboard level filters if we edit one and go to another dashboard, reset to whatever initial value is there
+        // and come back to the initial one it will use the last modified value it has, since URL is empty from the reset done
+        // before
+        this.state.baseFilters?.forEach((filter) => {
+          if (filter.origin === FilterOrigin.Dashboards && filter.restorable) {
+            this.restoreOriginalFilter(filter);
+          }
+        });
+      }
     };
   };
 
   private _updateScopesFilters(scopes: Scope[]) {
     if (!scopes.length) {
-      this.setState({
-        baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes),
-      });
+      const remainingBaseFilters = this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes);
+
+      if (remainingBaseFilters?.length) {
+        this.setState({
+          baseFilters: remainingBaseFilters,
+        });
+      }
+
       return;
     }
 
