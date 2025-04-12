@@ -261,40 +261,28 @@ export class AdHocFiltersVariable
       this._updateScopesFilters(n);
     });
 
-    this._updateFiltersIfRestorable();
-
     return () => {
       sub?.unsubscribe();
+
+      // we clear both scopes and dashboard level filters before leaving a dashboard to maintain accuracy for both
+      // when/if we return to the same dashboard
+      // e.g.: we edit a scope filter and go to another dashboard, it gets carried over, but then on that dashboard
+      // we reset the value, and then come back to the initial dashboard, that dashboard still has the edited scope
+      // because the URL will not hold any value, since on reset we clear the url, but the initial dashboard still
+      // has the changed value in the schema, unless we reset it here
       this.setState({
         baseFilters: [...(this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes) ?? [])],
       });
+      // same for dashboard level filters if we edit one and go to another dashboard, reset to whatever initial value is there
+      // and come back to the initial one it will use the last modified value it has, since URL is empty from the reset done
+      // before
       this.state.baseFilters?.forEach((filter) => {
-        if (filter.origin === FilterOrigin.Dashboards) {
+        if (filter.origin === FilterOrigin.Dashboards && filter.restorable) {
           this.restoreOriginalFilter(filter);
         }
       });
     };
   };
-
-  private _updateFiltersIfRestorable() {
-    this.state.baseFilters?.forEach((filter) => {
-      if (!filter.origin) {
-        return;
-      }
-
-      const update: { restorable?: boolean; matchAllFilter?: boolean } = {};
-
-      if (this.isRestorableFilters(filter)) {
-        update.restorable = true;
-      }
-
-      if (filter.value === '.*' && filter.operator === '=~') {
-        update.matchAllFilter = true;
-      }
-
-      this._updateFilter(filter, update);
-    });
-  }
 
   private _updateScopesFilters(scopes: Scope[]) {
     if (!scopes.length) {
@@ -473,7 +461,7 @@ export class AdHocFiltersVariable
     this.setState({ filters: updatedFilters });
   }
 
-  private _matchAllFilter(filter: AdHocFilterWithLabels) {
+  public updateToMatchAll(filter: AdHocFilterWithLabels) {
     this._updateFilter(filter, {
       operator: '=~',
       value: '.*',
@@ -485,11 +473,6 @@ export class AdHocFiltersVariable
   }
 
   public _removeFilter(filter: AdHocFilterWithLabels) {
-    if (filter.origin === FilterOrigin.Dashboards) {
-      this._matchAllFilter(filter);
-      return;
-    }
-
     if (filter === this.state._wip) {
       this.setState({ _wip: undefined });
       return;
@@ -699,18 +682,6 @@ export class AdHocFiltersVariable
       value,
       description,
     }));
-  }
-
-  private isRestorableFilters(filter: AdHocFilterWithLabels): boolean {
-    const original = this._originalValues.get(filter.key);
-
-    if (!original) {
-      return false;
-    }
-
-    return (
-      !isEqual(original.value, filter.values ? filter.values : [filter.value]) || original.operator !== filter.operator
-    );
   }
 }
 

@@ -97,14 +97,23 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
-              model._removeFilter(filter);
+              if (filter.origin && filter.origin === FilterOrigin.Dashboards) {
+                model.updateToMatchAll(filter);
+              } else {
+                model._removeFilter(filter);
+              }
+
               setTimeout(() => focusOnWipInputRef?.());
             }}
             onKeyDownCapture={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
-                model._removeFilter(filter);
+                if (filter.origin && filter.origin === FilterOrigin.Dashboards) {
+                  model.updateToMatchAll(filter);
+                } else {
+                  model._removeFilter(filter);
+                }
                 setTimeout(() => focusOnWipInputRef?.());
               }
             }}

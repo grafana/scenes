@@ -44,7 +44,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     }
 
     if (baseFilters?.length) {
-      // injected filters stored in the following format: normal|adhoc|values#filterOrigin
+      // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable
       value.push(
         ...baseFilters
           ?.filter(isFilterComplete)
@@ -80,15 +80,19 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       if (foundBaseFilterIndex > -1) {
         if (!filters[i].origin && baseFilters[foundBaseFilterIndex].origin === FilterOrigin.Dashboards) {
           filters[i].origin = FilterOrigin.Dashboards;
+          filters[i].restorable = true;
         }
 
         baseFilters[foundBaseFilterIndex] = filters[i];
       } else if (filters[i].origin === FilterOrigin.Dashboards) {
         // if it was originating from a dashoard but has no match in the new dashboard
         // remove it's origin, turn it into a normal filter to be set below
-        filters[i].origin = undefined;
+        delete filters[i].origin;
+        delete filters[i].restorable;
       } else if (foundBaseFilterIndex === -1 && filters[i].origin === FilterOrigin.Scopes && filters[i].restorable) {
-        // if the URL contains a modified scope filter than we persist that
+        // scopes are being set sometimes (when the observable emits actual filters) after urlSync
+        // so we maintain all modified scopes in the adhoc
+        // and leave the scopes update to reconciliate on what filters will actually show up
         baseFilters.push(filters[i]);
       }
     }

@@ -870,6 +870,237 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     clearScopes();
   });
 
+  it('should maintain modified scopes and reconciliate after scopes update', () => {
+    // scope filters are fully emitted sometimes after urlSync happens, so we maintain all
+    // scope filters we find in the URL even tho at that point there are no scope
+    // injected filters actually saved in the adhoc
+    const { filtersVar } = setup();
+
+    // url contains a modified scope injected filter carried from somewhere else
+    const urlValues = {
+      'var-filters': ['scopesFilterKey1|=|newScopesFilterValue1#scopes#restorable'],
+    };
+
+    act(() => {
+      locationService.partial(urlValues);
+    });
+
+    expect(filtersVar.state.baseFilters![0]).toEqual({
+      key: 'scopesFilterKey1',
+      keyLabel: 'scopesFilterKey1',
+      operator: '=',
+      value: 'newScopesFilterValue1',
+      valueLabels: ['newScopesFilterValue1'],
+      restorable: true,
+      origin: FilterOrigin.Scopes,
+      condition: '',
+    });
+  });
+
+  it('should maintain dashboard injected filter as a normal filter if there is no match', () => {
+    // this dashboard has no baseFilters
+    const { filtersVar } = setup();
+
+    // but the URL sends a modified dashboard level filter
+    const urlValues = {
+      'var-filters': ['dbFilterKey|!=|newDbFilterValue#dashboards#restorable'],
+    };
+
+    act(() => {
+      locationService.partial(urlValues);
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'dbFilterKey',
+      keyLabel: 'dbFilterKey',
+      operator: '!=',
+      value: 'newDbFilterValue',
+      valueLabels: ['newDbFilterValue'],
+      condition: '',
+    });
+  });
+
+  it('should turn normal filter with same key as dashboard injected one to a dashboard one that can be restored', () => {
+    const { filtersVar } = setup({
+      baseFilters: [
+        {
+          key: 'dbFilterKey',
+          operator: '=',
+          value: 'dbFilterValue',
+          origin: FilterOrigin.Dashboards,
+        },
+      ],
+    });
+
+    // this is a normal filter but the key matches the
+    // dashboard filter so we overwrite this filter
+    // with the dashboard injected one
+    const urlValues = {
+      'var-filters': ['dbFilterKey|!=|newDbFilterValue'],
+    };
+
+    act(() => {
+      locationService.partial(urlValues);
+    });
+
+    // new filter will take values from the URL normal filter
+    // but keep it as a dashboard level filter
+    expect(filtersVar.state.baseFilters![0]).toEqual({
+      key: 'dbFilterKey',
+      keyLabel: 'dbFilterKey',
+      operator: '!=',
+      value: 'newDbFilterValue',
+      valueLabels: ['newDbFilterValue'],
+      origin: FilterOrigin.Dashboards,
+      condition: '',
+      restorable: true,
+    });
+  });
+
+  it('url updates injected filters properly', async () => {
+    const scopesClear = setupScopes([
+      {
+        key: 'scopeFilterKey1',
+        operator: 'equals',
+        value: 'scopeFilterValue1',
+      },
+      {
+        key: 'scopeFilterKey2',
+        operator: 'equals',
+        value: 'scopeFilterValue2',
+      },
+    ]);
+
+    const { filtersVar } = setup({
+      filters: [
+        {
+          key: 'filterKey',
+          operator: '=',
+          value: 'filterValue',
+        },
+      ],
+      baseFilters: [
+        {
+          key: 'baseFilterKey',
+          operator: '=',
+          value: 'baseFilterValue',
+        },
+        {
+          key: 'dbFilterKey',
+          operator: '=',
+          value: 'dbFilterValue',
+          origin: FilterOrigin.Dashboards,
+        },
+      ],
+    });
+
+    const urlValues = {
+      'var-filters': [
+        'dbFilterKey|!=|newDbFilterValue#dashboards#restorable',
+        'filterKey|!=|newFilterValue',
+        'scopeFilterKey1|=|newScopeFilterValue#scopes#restorable',
+      ],
+    };
+
+    act(() => {
+      locationService.partial(urlValues);
+    });
+
+    // normal filters are updated as per URL
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'filterKey',
+      keyLabel: 'filterKey',
+      operator: '!=',
+      value: 'newFilterValue',
+      valueLabels: ['newFilterValue'],
+      condition: '',
+    });
+
+    // so are scope filters from the URL
+    expect(filtersVar.state.baseFilters![0]).toEqual({
+      key: 'scopeFilterKey1',
+      keyLabel: 'scopeFilterKey1',
+      operator: '=',
+      value: 'newScopeFilterValue',
+      valueLabels: ['newScopeFilterValue'],
+      restorable: true,
+      origin: FilterOrigin.Scopes,
+      condition: '',
+    });
+
+    expect(filtersVar.state.baseFilters![1]).toEqual({
+      key: 'scopeFilterKey2',
+      operator: '=',
+      value: 'scopeFilterValue2',
+      values: ['scopeFilterValue2'],
+      origin: FilterOrigin.Scopes,
+    });
+
+    // normal baseFilters are simply maintained if they exist in the adhoc
+    expect(filtersVar.state.baseFilters![2]).toEqual({
+      key: 'baseFilterKey',
+      operator: '=',
+      value: 'baseFilterValue',
+    });
+
+    // db injected filters are also updated
+    expect(filtersVar.state.baseFilters![3]).toEqual({
+      key: 'dbFilterKey',
+      keyLabel: 'dbFilterKey',
+      operator: '!=',
+      value: 'newDbFilterValue',
+      valueLabels: ['newDbFilterValue'],
+      restorable: true,
+      origin: FilterOrigin.Dashboards,
+      condition: '',
+    });
+
+    scopesClear();
+  });
+
+  it('show dashboard injected filters in the URL only if they have been changed', () => {
+    const { filtersVar } = setup({
+      filters: [
+        {
+          key: 'someFilter',
+          operator: '=',
+          value: 'someValue',
+        },
+      ],
+      baseFilters: [
+        {
+          key: 'baseFilters',
+          operator: '=',
+          value: 'baseValue',
+        },
+        {
+          key: 'dbFilter',
+          operator: '=',
+          value: 'dbValue',
+          origin: FilterOrigin.Dashboards,
+        },
+      ],
+    });
+
+    //update the dashboard filter value
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.baseFilters![1], {
+        value: 'newDbValue',
+      });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=someFilter%7C%3D%7CsomeValue&var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboards%23restorable'
+    );
+
+    // restore it, URL should be cleaned
+    act(() => {
+      filtersVar.restoreOriginalFilter(filtersVar.state.baseFilters![1]);
+    });
+
+    expect(locationService.getLocation().search).toBe('?var-filters=someFilter%7C%3D%7CsomeValue');
+  });
+
   it('will default to just showing empty var-filters if no filters or base filters present', () => {
     const { filtersVar } = setup();
 
@@ -882,6 +1113,139 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.filters).toEqual([]);
     expect(filtersVar.state.baseFilters).toBe(undefined);
     expect(locationService.getLocation().search).toBe('?var-filters=');
+  });
+
+  it('will set original values for dashboard/scope injected filters on adhoc constructor', () => {
+    const clearScopes = setupScopes([
+      {
+        key: 'scopeKey',
+        operator: 'equals',
+        value: 'scopeValue',
+      },
+    ]);
+
+    const { filtersVar } = setup({
+      baseFilters: [
+        {
+          key: 'dbKey1',
+          operator: '=',
+          value: 'dbValue1',
+          origin: FilterOrigin.Dashboards,
+        },
+        {
+          key: 'dbKey2',
+          operator: '=',
+          value: 'dbValue2',
+          origin: FilterOrigin.Dashboards,
+        },
+      ],
+    });
+
+    expect(filtersVar['_originalValues'].get('dbKey1')).toEqual({ value: ['dbValue1'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey2')).toEqual({ value: ['dbValue2'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('scopeKey')).toEqual({ value: ['scopeValue'], operator: '=' });
+
+    clearScopes();
+  });
+
+  it('should clear scope filters from adhoc on unmount', () => {
+    const clearScopes = setupScopes([
+      {
+        key: 'scopeKey1',
+        operator: 'equals',
+        value: 'scopeValue1',
+        values: ['scopeValue1'],
+      },
+    ]);
+
+    const { filtersVar, unmount } = setup({
+      filters: [],
+      baseFilters: [
+        // no origin, so this does not get updated
+        { key: 'baseKey2', keyLabel: 'baseKey2', operator: '!=', value: 'baseValue2' },
+      ],
+    });
+
+    expect(filtersVar.state.baseFilters![0].value).toBe('scopeValue1');
+    expect(filtersVar.state.baseFilters![1].value).toBe('baseValue2');
+
+    unmount();
+
+    expect(filtersVar.state.baseFilters!.length).toBe(1);
+    expect(filtersVar.state.baseFilters![0].value).toBe('baseValue2');
+
+    clearScopes();
+  });
+
+  it('should reset dashboard level filters if they are edited on unmount', () => {
+    const { filtersVar, unmount } = setup({
+      baseFilters: [
+        // this one is not restorable, thus has no edits and should not be restored
+        {
+          key: 'dbFilter1',
+          operator: '=',
+          value: 'dbValue1',
+          origin: FilterOrigin.Dashboards,
+        },
+        // this is restorable, so should be restored on unmount
+        {
+          key: 'dbFilter2',
+          operator: '!=',
+          value: 'dbValue2',
+          origin: FilterOrigin.Dashboards,
+          restorable: true,
+        },
+        // just a normal baseFilter,
+        {
+          key: 'baseFilter1',
+          operator: '=',
+          value: 'baseValue1',
+        },
+      ],
+    });
+
+    expect(filtersVar.state.baseFilters!.length).toBe(3);
+
+    const restoreFilterSpyOn = jest.spyOn(filtersVar, 'restoreOriginalFilter');
+
+    unmount();
+
+    expect(filtersVar.state.baseFilters!.length).toBe(3);
+    expect(filtersVar.state.baseFilters![1].restorable).toBe(false);
+    expect(restoreFilterSpyOn).toHaveBeenCalledTimes(1);
+  });
+
+  it('should restore dashboard filter to its original value', () => {
+    const { filtersVar } = setup({
+      baseFilters: [
+        {
+          key: 'dbFilter1',
+          operator: '=',
+          value: 'dbValue1',
+          origin: FilterOrigin.Dashboards,
+        },
+      ],
+    });
+
+    act(() => {
+      // will turn it into a matchall filter, on update it will set restorable true
+      filtersVar.updateToMatchAll(filtersVar.state.baseFilters![0]);
+    });
+
+    expect(filtersVar.state.baseFilters![0].key).toBe('dbFilter1');
+    expect(filtersVar.state.baseFilters![0].value).toBe('.*');
+    expect(filtersVar.state.baseFilters![0].operator).toBe('=~');
+    expect(filtersVar.state.baseFilters![0].restorable).toBe(true);
+
+    act(() => {
+      filtersVar.restoreOriginalFilter(filtersVar.state.baseFilters![0]);
+    });
+
+    expect(filtersVar.state.baseFilters![0].key).toBe('dbFilter1');
+    expect(filtersVar.state.baseFilters![0].value).toBe('dbValue1');
+    expect(filtersVar.state.baseFilters![0].valueLabels).toEqual(['dbValue1']);
+    expect(filtersVar.state.baseFilters![0].operator).toBe('=');
+    expect(filtersVar.state.baseFilters![0].restorable).toBe(false);
   });
 
   it('will save the original value and set baseFilter as restorable if it has an origin', () => {
