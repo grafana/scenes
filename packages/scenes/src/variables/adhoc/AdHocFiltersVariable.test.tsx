@@ -870,6 +870,44 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     clearScopes();
   });
 
+  it('sets url dashboard injected filter as a matchAll filter if it has the correct structure', () => {
+    const { filtersVar } = setup({
+      baseFilters: [
+        {
+          key: 'baseFilters',
+          operator: '=',
+          value: 'baseValue',
+        },
+        {
+          key: 'dbFilterKey',
+          operator: '=',
+          value: 'dbFilterValue',
+          origin: FilterOrigin.Dashboards,
+        },
+      ],
+    });
+
+    const urlValues = {
+      'var-filters': ['dbFilterKey|=~|.*#dashboards#restorable'],
+    };
+
+    act(() => {
+      locationService.partial(urlValues);
+    });
+
+    expect(filtersVar.state.baseFilters![1]).toEqual({
+      condition: '',
+      key: 'dbFilterKey',
+      keyLabel: 'dbFilterKey',
+      operator: '=~',
+      value: '.*',
+      valueLabels: ['.*'],
+      restorable: true,
+      matchAllFilter: true,
+      origin: FilterOrigin.Dashboards,
+    });
+  });
+
   it('should maintain modified scopes and reconciliate after scopes update', () => {
     // scope filters are fully emitted sometimes after urlSync happens, so we maintain all
     // scope filters we find in the URL even tho at that point there are no scope

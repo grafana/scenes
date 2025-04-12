@@ -745,6 +745,10 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
   return result;
 }
 
+export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
+  return filter.operator === '=~' && filter.value === '.*';
+}
+
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
   return filter.key !== '' && filter.operator !== '' && filter.value !== '';
 }

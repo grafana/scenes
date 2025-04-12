@@ -4,6 +4,7 @@ import {
   AdHocFilterWithLabels,
   FilterOrigin,
   isFilterComplete,
+  isMatchAllFilter,
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
 import {
@@ -81,6 +82,10 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
         if (!filters[i].origin && baseFilters[foundBaseFilterIndex].origin === FilterOrigin.Dashboards) {
           filters[i].origin = FilterOrigin.Dashboards;
           filters[i].restorable = true;
+        }
+
+        if (isMatchAllFilter(filters[i])) {
+          filters[i].matchAllFilter = true;
         }
 
         baseFilters[foundBaseFilterIndex] = filters[i];
