@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -68,7 +68,11 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     );
     return (
       <div
-        className={cx(styles.combinedFilterPill, readOnly && styles.readOnlyCombinedFilter)}
+        className={cx(
+          styles.combinedFilterPill,
+          readOnly && styles.readOnlyCombinedFilter,
+          isMatchAllFilter(filter) && styles.matchAllPill
+        )}
         onClick={(e) => {
           e.stopPropagation();
           setPopulateInputOnEdit(true);
@@ -148,7 +152,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             }}
             name="history"
             size="md"
-            className={styles.pillIcon}
+            className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
             tooltip={`Restore filter to its original value`}
           />
         )}
@@ -209,5 +213,18 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   tooltipText: css({
     textAlign: 'center',
+  }),
+  matchAllPillIcon: css({
+    marginInline: theme.spacing(0.5),
+    cursor: 'pointer',
+    color: theme.colors.text.disabled,
+  }),
+  matchAllPill: css({
+    background: theme.colors.action.selected,
+    color: theme.colors.text.disabled,
+    border: 0,
+    '&:hover': {
+      background: theme.colors.action.selected,
+    },
   }),
 });
