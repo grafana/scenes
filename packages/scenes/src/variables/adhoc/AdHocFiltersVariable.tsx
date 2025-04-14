@@ -288,14 +288,9 @@ export class AdHocFiltersVariable
 
   private _updateScopesFilters(scopes: Scope[]) {
     if (!scopes.length) {
-      const remainingBaseFilters = this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes);
-
-      if (remainingBaseFilters?.length) {
-        this.setState({
-          baseFilters: remainingBaseFilters,
-        });
-      }
-
+      this.setState({
+        baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scopes),
+      });
       return;
     }
 
