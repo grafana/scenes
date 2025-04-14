@@ -195,86 +195,89 @@ function VizPanelRenderer({ model }) {
     collapsible,
     collapsed,
     onToggleCollapse: model.onToggleCollapse
-  }, (innerWidth, innerHeight) => /* @__PURE__ */ React.createElement(React.Fragment, null, plugin.meta.id === "timeseries" && /* @__PURE__ */ React.createElement(Button, {
-    style: { top: "-32px", right: "28px", position: "absolute", border: 0, padding: 0 },
-    variant: "secondary",
-    fill: "outline",
-    type: "button",
-    "data-testid": "send-query-button",
-    tooltip: "Oodle insight",
-    tooltipPlacement: "top",
-    hidden: (datasource == null ? void 0 : datasource.type) !== "prometheus",
-    onClick: () => {
-      var _a2, _b2;
-      const variables = __spreadValues({}, (_a2 = data == null ? void 0 : data.request) == null ? void 0 : _a2.scopedVars);
-      variables.__interval = {
-        value: "$__interval"
-      };
-      variables.__interval_ms = {
-        value: "$__interval_ms"
-      };
-      let timeRange2 = (_b2 = data.request) == null ? void 0 : _b2.range;
-      let rangeDurationMs = timeRange2.to.valueOf() - timeRange2.from.valueOf();
-      getDataSourceSrv().get(datasource, variables).then((ds) => {
-        var _a3, _b3, _c2, _d, _e, _f;
-        if (ds.interpolateVariablesInQueries) {
-          let targets = ds.interpolateVariablesInQueries((_a3 = data.request) == null ? void 0 : _a3.targets, variables);
+  }, (innerWidth, innerHeight) => {
+    var _a2;
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, plugin.meta.id === "timeseries" && /* @__PURE__ */ React.createElement(Button, {
+      style: { top: ((_a2 = model.state.title) == null ? void 0 : _a2.length) > 0 ? "-32px" : "0px", right: "28px", position: "absolute", border: 0, padding: 0 },
+      variant: "secondary",
+      fill: "outline",
+      type: "button",
+      "data-testid": "send-query-button",
+      tooltip: "Oodle insight",
+      tooltipPlacement: "top",
+      hidden: (datasource == null ? void 0 : datasource.type) !== "prometheus",
+      onClick: () => {
+        var _a3, _b2;
+        const variables = __spreadValues({}, (_a3 = data == null ? void 0 : data.request) == null ? void 0 : _a3.scopedVars);
+        variables.__interval = {
+          value: "$__interval"
+        };
+        variables.__interval_ms = {
+          value: "$__interval_ms"
+        };
+        let timeRange2 = (_b2 = data.request) == null ? void 0 : _b2.range;
+        let rangeDurationMs = timeRange2.to.valueOf() - timeRange2.from.valueOf();
+        getDataSourceSrv().get(datasource, variables).then((ds) => {
+          var _a4, _b3, _c2, _d, _e, _f;
+          if (ds.interpolateVariablesInQueries) {
+            let targets = ds.interpolateVariablesInQueries((_a4 = data.request) == null ? void 0 : _a4.targets, variables);
+            sendOodleInsightEvent(
+              (_b3 = data.request) == null ? void 0 : _b3.dashboardUID,
+              "Insights",
+              model.state.title,
+              (_c2 = data.request) == null ? void 0 : _c2.panelId,
+              targets,
+              timeRange2,
+              rangeDurationMs,
+              (_f = (_e = (_d = model.state) == null ? void 0 : _d.fieldConfig) == null ? void 0 : _e.defaults) == null ? void 0 : _f.unit
+            );
+          } else {
+            throw new Error("datasource does not support variable interpolation");
+          }
+        }).catch((_) => {
+          var _a4, _b3, _c2, _d, _e, _f;
           sendOodleInsightEvent(
-            (_b3 = data.request) == null ? void 0 : _b3.dashboardUID,
+            (_a4 = data.request) == null ? void 0 : _a4.dashboardUID,
             "Insights",
             model.state.title,
-            (_c2 = data.request) == null ? void 0 : _c2.panelId,
-            targets,
+            (_b3 = data.request) == null ? void 0 : _b3.panelId,
+            (_c2 = data.request) == null ? void 0 : _c2.targets,
             timeRange2,
             rangeDurationMs,
             (_f = (_e = (_d = model.state) == null ? void 0 : _d.fieldConfig) == null ? void 0 : _e.defaults) == null ? void 0 : _f.unit
           );
-        } else {
-          throw new Error("datasource does not support variable interpolation");
-        }
-      }).catch((_) => {
-        var _a3, _b3, _c2, _d, _e, _f;
-        sendOodleInsightEvent(
-          (_a3 = data.request) == null ? void 0 : _a3.dashboardUID,
-          "Insights",
-          model.state.title,
-          (_b3 = data.request) == null ? void 0 : _b3.panelId,
-          (_c2 = data.request) == null ? void 0 : _c2.targets,
-          timeRange2,
-          rangeDurationMs,
-          (_f = (_e = (_d = model.state) == null ? void 0 : _d.fieldConfig) == null ? void 0 : _e.defaults) == null ? void 0 : _f.unit
-        );
-      });
-    }
-  }, /* @__PURE__ */ React.createElement("img", {
-    src: "https://imagedelivery.net/oP5rEbdkySYwiZY4N9HGRw/d0e74e50-902c-4b3c-90af-cabc367bcb00/public",
-    alt: "Insight icon",
-    "data-testid": "insight-icon",
-    style: { height: "25px" }
-  })), /* @__PURE__ */ React.createElement(ErrorBoundaryAlert, {
-    dependencies: [plugin, data]
-  }, /* @__PURE__ */ React.createElement(PluginContextProvider, {
-    meta: plugin.meta
-  }, /* @__PURE__ */ React.createElement(PanelContextProvider, {
-    value: context
-  }, isReadyToRender && /* @__PURE__ */ React.createElement(PanelComponent, {
-    id: panelId,
-    data,
-    title,
-    timeRange,
-    timeZone,
-    options,
-    fieldConfig,
-    transparent: false,
-    width: innerWidth,
-    height: innerHeight,
-    renderCounter: _renderCounter,
-    replaceVariables: model.interpolate,
-    onOptionsChange: model.onOptionsChange,
-    onFieldConfigChange: model.onFieldConfigChange,
-    onChangeTimeRange: model.onTimeRangeChange,
-    eventBus: context.eventBus
-  }))))))));
+        });
+      }
+    }, /* @__PURE__ */ React.createElement("img", {
+      src: "https://imagedelivery.net/oP5rEbdkySYwiZY4N9HGRw/d0e74e50-902c-4b3c-90af-cabc367bcb00/public",
+      alt: "Insight icon",
+      "data-testid": "insight-icon",
+      style: { height: "25px" }
+    })), /* @__PURE__ */ React.createElement(ErrorBoundaryAlert, {
+      dependencies: [plugin, data]
+    }, /* @__PURE__ */ React.createElement(PluginContextProvider, {
+      meta: plugin.meta
+    }, /* @__PURE__ */ React.createElement(PanelContextProvider, {
+      value: context
+    }, isReadyToRender && /* @__PURE__ */ React.createElement(PanelComponent, {
+      id: panelId,
+      data,
+      title,
+      timeRange,
+      timeZone,
+      options,
+      fieldConfig,
+      transparent: false,
+      width: innerWidth,
+      height: innerHeight,
+      renderCounter: _renderCounter,
+      replaceVariables: model.interpolate,
+      onOptionsChange: model.onOptionsChange,
+      onFieldConfigChange: model.onFieldConfigChange,
+      onChangeTimeRange: model.onTimeRangeChange,
+      eventBus: context.eventBus
+    })))));
+  })));
 }
 const sendOodleInsightEvent = (dashboardUId, dashboardTitle, panelTitle, panelId, expressionData, dashboardTime, rangeDurationMs, unit) => {
   const eventData = {

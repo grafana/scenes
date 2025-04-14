@@ -204,7 +204,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
               <>
                 {plugin.meta.id === 'timeseries' && (
                     <Button
-                        style={{top: "-32px",right: "28px", position: "absolute", border: 0, padding: 0}}
+                        style={{top: model.state.title?.length > 0 ? "-32px" : "0px", right: "28px", position: "absolute", border: 0, padding: 0}}
                         variant="secondary"
                         fill="outline"
                         type="button"
