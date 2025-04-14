@@ -1,6 +1,6 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { useStyles2, IconButton, Tooltip } from '@grafana/ui';
+import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
@@ -129,12 +129,9 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         ) : null}
 
         {filter.origin && !filter.restorable && (
-          <IconButton
-            name="info-circle"
-            size="md"
-            className={styles.pillIcon}
-            tooltip={`This is a ${filter.origin} injected filter`}
-          />
+          <Tooltip content={`This is a ${filter.origin} injected filter`} placement={'bottom'}>
+            <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
+          </Tooltip>
         )}
 
         {filter.origin && filter.restorable && (
@@ -213,6 +210,10 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   tooltipText: css({
     textAlign: 'center',
+  }),
+  infoPillIcon: css({
+    marginInline: theme.spacing(0.5),
+    cursor: 'pointer',
   }),
   matchAllPillIcon: css({
     marginInline: theme.spacing(0.5),
