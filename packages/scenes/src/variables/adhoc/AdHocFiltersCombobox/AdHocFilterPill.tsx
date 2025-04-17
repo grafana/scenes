@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin } from '../AdHocFiltersVariable';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -93,18 +93,27 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {!readOnly && !filter.origin ? (
+        {!readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === FilterOrigin.Dashboards) ? (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
-              model._removeFilter(filter);
+              if (filter.origin && filter.origin === FilterOrigin.Dashboards) {
+                model.updateToMatchAll(filter);
+              } else {
+                model._removeFilter(filter);
+              }
+
               setTimeout(() => focusOnWipInputRef?.());
             }}
             onKeyDownCapture={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
-                model._removeFilter(filter);
+                if (filter.origin && filter.origin === FilterOrigin.Dashboards) {
+                  model.updateToMatchAll(filter);
+                } else {
+                  model._removeFilter(filter);
+                }
                 setTimeout(() => focusOnWipInputRef?.());
               }
             }}
@@ -115,7 +124,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         ) : null}
 
-        {filter.origin && !filter.originalValue && (
+        {filter.origin && !filter.restorable && (
           <IconButton
             name="info-circle"
             size="md"
@@ -124,7 +133,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         )}
 
-        {filter.origin && filter.originalValue && (
+        {filter.origin && filter.restorable && (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
