@@ -1,3 +1,16 @@
+# v6.9.0 (Thu Apr 17 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - fix: (VizPanelRenderer) - move showMenuAlways prop to the top level [#1093](https://github.com/grafana/scenes/pull/1093) ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+#### Authors: 1
+
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+---
+
 # v6.8.1 (Fri Apr 11 2025)
 
 ### Release Notes
