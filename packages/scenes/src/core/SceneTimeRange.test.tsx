@@ -358,5 +358,22 @@ describe('SceneTimeRange', () => {
       simulateDelay(mocked10sLater, scene);
       expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked10sLater);
     });
+
+    it('should invalidate stale time range with custom percent', () => {
+      const timeRange = new SceneTimeRange({
+        from: 'now-10m',
+        to: 'now',
+        refreshOnActivate: { percent: 1 },
+      });
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        body: new SceneReactObject({}),
+      });
+
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mockedNow);
+      simulateDelay(mocked10sLater, scene);
+      // Should be stale since 1% of 10m is 6s
+      expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked10sLater);
+    });
   });
 });
