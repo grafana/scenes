@@ -312,8 +312,8 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     const hasChanged = this._variablesThatHaveChanged.has(variable);
 
     while (nodeQueue.length > 0) {
-      const node = nodeQueue.pop()!;
-      let localVariable = variable;
+      const node = nodeQueue.shift()!;
+      let variableThatChanged = variable;
 
       // ignore ourselfs
       if (this === node) {
@@ -330,14 +330,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         const localVar = node.state.$variables.getByName(variable.state.name);
         // If local variable is viewed as loading when ancestor is loading we propagate a change
         if (localVar?.isAncestorLoading) {
-          localVariable = localVar;
+          variableThatChanged = localVar;
         } else if (localVar) {
           return;
         }
       }
 
       if (node.variableDependency) {
-        node.variableDependency.variableUpdateCompleted(localVariable, hasChanged);
+        node.variableDependency.variableUpdateCompleted(variableThatChanged, hasChanged);
       }
 
       node.forEachChild((child) => nodeQueue.push(child));
