@@ -337,7 +337,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       }
 
       if (node.variableDependency) {
-        node.variableDependency.variableUpdateCompleted(variable, hasChanged);
+        node.variableDependency.variableUpdateCompleted(localVariable, hasChanged);
       }
 
       node.forEachChild((child) => nodeQueue.push(child));
