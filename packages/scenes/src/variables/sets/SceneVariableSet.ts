@@ -308,40 +308,42 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return;
     }
 
-    this._traverseSceneAndNotify(this.parent, variable, this._variablesThatHaveChanged.has(variable));
-    this._variablesThatHaveChanged.delete(variable);
-  }
+    const nodeQueue: SceneObject[] = [this.parent];
+    const hasChanged = this._variablesThatHaveChanged.has(variable);
 
-  /**
-   * Recursivly walk the full scene object graph and notify all objects with dependencies that include any of changed variables
-   */
-  private _traverseSceneAndNotify(sceneObject: SceneObject, variable: SceneVariable, hasChanged: boolean) {
-    // No need to notify variables under this SceneVariableSet
-    if (this === sceneObject) {
-      return;
-    }
+    while (nodeQueue.length > 0) {
+      const node = nodeQueue.pop()!;
+      let localVariable = variable;
 
-    // Skip non active scene objects
-    if (!sceneObject.isActive) {
-      return;
-    }
-
-    // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
-    if (sceneObject.state.$variables && sceneObject.state.$variables !== this) {
-      const localVar = sceneObject.state.$variables.getByName(variable.state.name);
-      // If local variable is viewed as loading when ancestor is loading we propagate a change
-      if (localVar?.isAncestorLoading) {
-        variable = localVar;
-      } else if (localVar) {
-        return;
+      // ignore ourselfs
+      if (this === node) {
+        continue;
       }
+
+      // Skip non active scene objects
+      if (!node.isActive) {
+        continue;
+      }
+
+      // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
+      if (node.state.$variables && node.state.$variables !== this) {
+        const localVar = node.state.$variables.getByName(variable.state.name);
+        // If local variable is viewed as loading when ancestor is loading we propagate a change
+        if (localVar?.isAncestorLoading) {
+          localVariable = localVar;
+        } else if (localVar) {
+          return;
+        }
+      }
+
+      if (node.variableDependency) {
+        node.variableDependency.variableUpdateCompleted(variable, hasChanged);
+      }
+
+      node.forEachChild((child) => nodeQueue.push(child));
     }
 
-    if (sceneObject.variableDependency) {
-      sceneObject.variableDependency.variableUpdateCompleted(variable, hasChanged);
-    }
-
-    sceneObject.forEachChild((child) => this._traverseSceneAndNotify(child, variable, hasChanged));
+    this._variablesThatHaveChanged.delete(variable);
   }
 
   /**
