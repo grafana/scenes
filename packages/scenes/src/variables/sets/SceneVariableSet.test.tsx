@@ -877,4 +877,42 @@ describe('SceneVariableList', () => {
       expect(C.state.value).toBe('ABBA');
     });
   });
+
+  describe('When propagating variable value changes', () => {
+    it('Should notify scene tree in depth order', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: 'A', text: '', options: [], delayMs: 0 });
+
+      let value = 1;
+
+      // So the nested.nested object multiplies value by 10 in value changed handler
+      // The nested2 handler adds 2 to the value
+      // This allows us to verify that the value is propagated in depth order
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A] }),
+        nested: new TestObjectWithVariableDependency({
+          nested: new TestObjectWithVariableDependency({
+            title: '$A',
+            onReferencedVariableValueChanged: () => {
+              // Multiply value by 10
+              value *= 10;
+            },
+          }),
+        }),
+        nested2: new TestObjectWithVariableDependency({
+          title: '$A',
+          onReferencedVariableValueChanged: () => {
+            // Add 1
+            value += 1;
+          },
+        }),
+      });
+
+      activateFullSceneTree(scene);
+
+      A.changeValueTo('B');
+
+      expect(value).toBe(20);
+    });
+  });
 });

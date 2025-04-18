@@ -308,14 +308,22 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return;
     }
 
-    this._traverseSceneAndNotify(this.parent, variable, this._variablesThatHaveChanged.has(variable));
+    const hasChanged = this._variablesThatHaveChanged.has(variable);
+    this._traverseSceneAndNotify(this.parent, variable, hasChanged, false);
+    this._traverseSceneAndNotify(this.parent, variable, hasChanged, true);
+
     this._variablesThatHaveChanged.delete(variable);
   }
 
   /**
    * Recursivly walk the full scene object graph and notify all objects with dependencies that include any of changed variables
    */
-  private _traverseSceneAndNotify(sceneObject: SceneObject, variable: SceneVariable, hasChanged: boolean) {
+  private _traverseSceneAndNotify(
+    sceneObject: SceneObject,
+    variable: SceneVariable,
+    hasChanged: boolean,
+    childrenOnly: boolean
+  ) {
     // No need to notify variables under this SceneVariableSet
     if (this === sceneObject) {
       return;
@@ -326,22 +334,25 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return;
     }
 
-    // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
-    if (sceneObject.state.$variables && sceneObject.state.$variables !== this) {
-      const localVar = sceneObject.state.$variables.getByName(variable.state.name);
-      // If local variable is viewed as loading when ancestor is loading we propagate a change
-      if (localVar?.isAncestorLoading) {
-        variable = localVar;
-      } else if (localVar) {
-        return;
+    if (childrenOnly) {
+      sceneObject.forEachChild((child) => this._traverseSceneAndNotify(child, variable, hasChanged, false));
+      sceneObject.forEachChild((child) => this._traverseSceneAndNotify(child, variable, hasChanged, true));
+    } else {
+      // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
+      if (sceneObject.state.$variables && sceneObject.state.$variables !== this) {
+        const localVar = sceneObject.state.$variables.getByName(variable.state.name);
+        // If local variable is viewed as loading when ancestor is loading we propagate a change
+        if (localVar?.isAncestorLoading) {
+          variable = localVar;
+        } else if (localVar) {
+          return;
+        }
+      }
+
+      if (sceneObject.variableDependency) {
+        sceneObject.variableDependency.variableUpdateCompleted(variable, hasChanged);
       }
     }
-
-    if (sceneObject.variableDependency) {
-      sceneObject.variableDependency.variableUpdateCompleted(variable, hasChanged);
-    }
-
-    sceneObject.forEachChild((child) => this._traverseSceneAndNotify(child, variable, hasChanged));
   }
 
   /**
