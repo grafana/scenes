@@ -16,6 +16,8 @@ const plugins = [
   esbuild({
     target: 'es2018',
     tsconfig: './tsconfig.json',
+    sourceMap: true,
+    minify: false,
   }),
   eslint(),
 ];
@@ -27,16 +29,28 @@ export default [
     output: [
       {
         format: 'cjs',
-        sourcemap: env === 'production' ? true : 'inline',
+        sourcemap: {
+          filename: 'src/index.ts',
+          sourcesContent: true
+        },
         dir: path.dirname(pkg.main),
         esModule: true,
         interop: 'compat',
+        sourcemapPathTransform: (relativeSourcePath) => {
+          return path.resolve(__dirname, relativeSourcePath);
+        },
       },
       {
         format: 'esm',
-        sourcemap: env === 'production' ? true : 'inline',
+        sourcemap: {
+          filename: 'src/index.ts',
+          sourcesContent: true
+        },
         dir: path.dirname(pkg.module),
         preserveModules: true,
+        sourcemapPathTransform: (relativeSourcePath) => {
+          return path.resolve(__dirname, relativeSourcePath);
+        },
       },
     ],
     watch: {

@@ -5,7 +5,11 @@
     "emitDeclarationOnly": true,
     "isolatedModules": true,
     "rootDirs": ["."],
-    "noImplicitReturns": false
+    "noImplicitReturns": false,
+    "sourceMap": true,
+    "inlineSources": true,
+    "sourceRoot": "",
+    "mapRoot": "./dist"
   },
   "exclude": ["dist/**/*"],
   "include": ["utils/**/*.ts*", "src/**/*.ts*"]
