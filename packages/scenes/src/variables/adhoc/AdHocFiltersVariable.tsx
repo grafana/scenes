@@ -211,6 +211,9 @@ export class AdHocFiltersVariable
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
   private _scopesBridge: SceneScopesBridge | undefined;
+  // holds the originalValues of all baseFilters in a map. The values
+  // are set on construct and used to restore a baseFilter with an origin
+  // to its original value if edited at some point
   private _originalValues: Map<string, { value: string[]; operator: string }> = new Map();
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
