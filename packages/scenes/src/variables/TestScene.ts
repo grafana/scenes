@@ -7,6 +7,7 @@ import { VariableDependencyConfig } from './VariableDependencyConfig';
  */
 export interface TestSceneState extends SceneObjectState {
   nested?: SceneObject;
+  nested2?: SceneObject;
   /** To test logic for inactive scene objects  */
   hidden?: SceneObject;
 }
@@ -17,6 +18,8 @@ interface TestSceneObjectState extends SceneObjectState {
   title: string;
   variableValueChanged: number;
   didSomethingCount: number;
+  onReferencedVariableValueChanged?: () => void;
+  nested?: TestObjectWithVariableDependency;
 }
 
 export class TestObjectWithVariableDependency extends SceneObjectBase<TestSceneObjectState> {
@@ -27,6 +30,7 @@ export class TestObjectWithVariableDependency extends SceneObjectBase<TestSceneO
     },
     onReferencedVariableValueChanged: () => {
       this.setState({ variableValueChanged: this.state.variableValueChanged + 1 });
+      this.state.onReferencedVariableValueChanged?.();
     },
   });
 

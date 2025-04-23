@@ -421,18 +421,35 @@ export function useSceneObjectState<TState extends SceneObjectState>(
   return model.state;
 }
 
-function forEachChild<T extends object>(state: T, callback: (child: SceneObjectBase) => void) {
-  for (const propValue of Object.values(state)) {
+function forEachChild<T extends SceneObjectState>(state: T, callback: (child: SceneObjectBase) => void) {
+  // Loop through behaviors first as that can be important when wanting to
+  // traverse the tree and want to process behaviors before other children
+  if (state.$behaviors) {
+    state.$behaviors.forEach((behavior) => {
+      if (behavior instanceof SceneObjectBase) {
+        callback(behavior);
+      }
+    });
+  }
+
+  Object.keys(state).forEach((key) => {
+    if (key === '$behaviors') {
+      // We have already processed $behaviors
+      return;
+    }
+
+    const propValue = (state as any)[key];
+
     if (propValue instanceof SceneObjectBase) {
       callback(propValue);
     }
 
     if (Array.isArray(propValue)) {
-      for (const child of propValue) {
+      propValue.forEach((child) => {
         if (child instanceof SceneObjectBase) {
           callback(child);
         }
-      }
+      });
     }
-  }
+  });
 }
