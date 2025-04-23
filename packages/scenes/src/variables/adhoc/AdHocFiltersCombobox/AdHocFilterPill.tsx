@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -97,11 +97,11 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {!readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === FilterOrigin.Dashboard) ? (
+        {!readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === 'dashboard') ? (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
-              if (filter.origin && filter.origin === FilterOrigin.Dashboard) {
+              if (filter.origin && filter.origin === 'dashboard') {
                 model.updateToMatchAll(filter);
               } else {
                 model._removeFilter(filter);
@@ -113,7 +113,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
-                if (filter.origin && filter.origin === FilterOrigin.Dashboard) {
+                if (filter.origin && filter.origin === 'dashboard') {
                   model.updateToMatchAll(filter);
                 } else {
                   model._removeFilter(filter);

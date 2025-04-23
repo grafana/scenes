@@ -48,10 +48,7 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
-export enum FilterOrigin {
-  Scope = 'scope',
-  Dashboard = 'dashboard',
-}
+export type FilterOrigin = 'dashboard' | 'scope';
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
@@ -240,7 +237,7 @@ export class AdHocFiltersVariable
 
     // set dashboard lvl original values in constructor, since we have them from schema
     this.state.baseFilters?.forEach((baseFilter) => {
-      if (baseFilter.origin === FilterOrigin.Dashboard) {
+      if (baseFilter.origin === 'dashboard') {
         this._originalValues.set(baseFilter.key, {
           operator: baseFilter.operator,
           value: baseFilter.values ?? [baseFilter.value],
@@ -275,13 +272,13 @@ export class AdHocFiltersVariable
       // has the changed value in the schema, unless we reset it here
       if (this.state.baseFilters?.length) {
         this.setState({
-          baseFilters: [...this.state.baseFilters.filter((filter) => filter.origin !== FilterOrigin.Scope)],
+          baseFilters: [...this.state.baseFilters.filter((filter) => filter.origin !== 'scope')],
         });
         // same for dashboard level filters if we edit one and go to another dashboard, reset to whatever initial value is there
         // and come back to the initial one it will use the last modified value it has, since URL is empty from the reset done
         // before
         this.state.baseFilters?.forEach((filter) => {
-          if (filter.origin === FilterOrigin.Dashboard && filter.restorable) {
+          if (filter.origin === 'dashboard' && filter.restorable) {
             this.restoreOriginalFilter(filter);
           }
         });
@@ -292,7 +289,7 @@ export class AdHocFiltersVariable
   private _updateScopesFilters(scopes: Scope[]) {
     if (!scopes.length) {
       this.setState({
-        baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== FilterOrigin.Scope),
+        baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== 'scope'),
       });
       return;
     }
@@ -316,7 +313,7 @@ export class AdHocFiltersVariable
     });
 
     this.state.baseFilters?.forEach((filter) => {
-      if (filter.origin === FilterOrigin.Scope) {
+      if (filter.origin === 'scope') {
         scopeInjectedFilters.push(filter);
       } else {
         remainingFilters.push(filter);
@@ -632,7 +629,7 @@ export class AdHocFiltersVariable
 
     // if current filter is a scope injected one we need to filter out
     // filters with same key in scopes prop, similar to how we do in adhocFilters prop
-    if (filter.origin === FilterOrigin.Scope) {
+    if (filter.origin === 'scope') {
       scopes = scopes?.map((scope) => {
         return {
           ...scope,

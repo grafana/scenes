@@ -269,9 +269,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                   hide: VariableHide.hideLabel,
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'has no text', condition: '' }],
-                  baseFilters: [
-                    { key: 'dbFilterKey', operator: '=', value: 'dbFilterValue', origin: FilterOrigin.Dashboard },
-                  ],
+                  baseFilters: [{ key: 'dbFilterKey', operator: '=', value: 'dbFilterValue', origin: 'dashboard' }],
                   layout: 'combobox',
                   supportsMultiValueOperators: true,
                 }),
