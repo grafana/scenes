@@ -12,6 +12,7 @@ import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 import { config, locationService, RefreshEvent } from '@grafana/runtime';
 import { isValid } from '../utils/date';
 import { getQueryController } from './sceneGraph/getQueryController';
+import { BROWSER } from './constants';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
@@ -173,7 +174,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeZoneChange = (timeZone: TimeZone) => {
     this._urlSync.performBrowserHistoryAction(() => {
-      this.setState({ timeZone: getValidTimeZone(timeZone) });
+      this.setState({ timeZone: getValidTimeZone(timeZone) ?? BROWSER });
     });
   };
 
@@ -276,7 +277,7 @@ function getValidTimeZone(timeZone?: string): string | undefined {
   if (timeZone === undefined) {
     return;
   }
-  if (timeZone === 'browser') {
+  if (timeZone === BROWSER) {
     return timeZone;
   }
   if (moment.tz.zone(timeZone)) {
