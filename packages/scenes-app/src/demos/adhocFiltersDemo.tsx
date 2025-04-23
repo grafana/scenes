@@ -270,7 +270,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                   datasource: { uid: 'gdev-prometheus' },
                   filters: [{ key: 'job', operator: '=', value: 'has no text', condition: '' }],
                   baseFilters: [
-                    { key: 'dbFilterKey', operator: '=', value: 'dbFilterValue', origin: FilterOrigin.Dashboards },
+                    { key: 'dbFilterKey', operator: '=', value: 'dbFilterValue', origin: FilterOrigin.Dashboard },
                   ],
                   layout: 'combobox',
                   supportsMultiValueOperators: true,

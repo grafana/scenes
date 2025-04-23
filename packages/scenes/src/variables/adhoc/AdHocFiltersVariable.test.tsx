@@ -764,7 +764,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'baseValue1',
           valueLabels: ['baseValue1'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
         {
           key: 'baseKey2',
@@ -772,7 +772,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '!=',
           value: 'baseValue2',
           valueLabels: ['baseValue2'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
         // no origin, so this does not get synced
         { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3', valueLabels: ['baseValue3'] },
@@ -882,7 +882,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'dbFilterKey',
           operator: '=',
           value: 'dbFilterValue',
-          origin: FilterOrigin.Dashboards,
+          origin: FilterOrigin.Dashboard,
         },
       ],
     });
@@ -904,7 +904,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       valueLabels: ['.*'],
       restorable: true,
       matchAllFilter: true,
-      origin: FilterOrigin.Dashboards,
+      origin: FilterOrigin.Dashboard,
     });
   });
 
@@ -930,7 +930,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       value: 'newScopesFilterValue1',
       valueLabels: ['newScopesFilterValue1'],
       restorable: true,
-      origin: FilterOrigin.Scopes,
+      origin: FilterOrigin.Scope,
       condition: '',
     });
   });
@@ -965,7 +965,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'dbFilterKey',
           operator: '=',
           value: 'dbFilterValue',
-          origin: FilterOrigin.Dashboards,
+          origin: FilterOrigin.Dashboard,
         },
       ],
     });
@@ -989,7 +989,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       operator: '!=',
       value: 'newDbFilterValue',
       valueLabels: ['newDbFilterValue'],
-      origin: FilterOrigin.Dashboards,
+      origin: FilterOrigin.Dashboard,
       condition: '',
       restorable: true,
     });
@@ -1027,7 +1027,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'dbFilterKey',
           operator: '=',
           value: 'dbFilterValue',
-          origin: FilterOrigin.Dashboards,
+          origin: FilterOrigin.Dashboard,
         },
       ],
     });
@@ -1062,7 +1062,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       value: 'newScopeFilterValue',
       valueLabels: ['newScopeFilterValue'],
       restorable: true,
-      origin: FilterOrigin.Scopes,
+      origin: FilterOrigin.Scope,
       condition: '',
     });
 
@@ -1071,7 +1071,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       operator: '=',
       value: 'scopeFilterValue2',
       values: ['scopeFilterValue2'],
-      origin: FilterOrigin.Scopes,
+      origin: FilterOrigin.Scope,
     });
 
     // normal baseFilters are simply maintained if they exist in the adhoc
@@ -1089,7 +1089,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       value: 'newDbFilterValue',
       valueLabels: ['newDbFilterValue'],
       restorable: true,
-      origin: FilterOrigin.Dashboards,
+      origin: FilterOrigin.Dashboard,
       condition: '',
     });
 
@@ -1115,7 +1115,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'dbFilter',
           operator: '=',
           value: 'dbValue',
-          origin: FilterOrigin.Dashboards,
+          origin: FilterOrigin.Dashboard,
         },
       ],
     });
@@ -1168,13 +1168,13 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'dbKey1',
           operator: '=',
           value: 'dbValue1',
-          origin: FilterOrigin.Dashboards,
+          origin: FilterOrigin.Dashboard,
         },
         {
           key: 'dbKey2',
           operator: '=',
           value: 'dbValue2',
-          origin: FilterOrigin.Dashboards,
+          origin: FilterOrigin.Dashboard,
         },
       ],
     });
@@ -1223,14 +1223,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'dbFilter1',
           operator: '=',
           value: 'dbValue1',
-          origin: FilterOrigin.Dashboards,
+          origin: FilterOrigin.Dashboard,
         },
         // this is restorable, so should be restored on unmount
         {
           key: 'dbFilter2',
           operator: '!=',
           value: 'dbValue2',
-          origin: FilterOrigin.Dashboards,
+          origin: FilterOrigin.Dashboard,
           restorable: true,
         },
         // just a normal baseFilter,
@@ -1260,7 +1260,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'dbFilter1',
           operator: '=',
           value: 'dbValue1',
-          origin: FilterOrigin.Dashboards,
+          origin: FilterOrigin.Dashboard,
         },
       ],
     });
@@ -1480,7 +1480,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=|',
           value: 'baseValue1',
           values: ['baseValue1'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
       ],
     });
@@ -1508,14 +1508,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
         {
           key: 'scopeBaseFilter2',
           operator: '=',
           value: 'editedVal',
           values: ['editedVal'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
           restorable: true,
         },
       ],
@@ -1532,7 +1532,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'editedVal',
           values: ['editedVal'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
           restorable: true,
         },
         {
@@ -1540,14 +1540,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
         {
           key: 'scopeBaseFilter3',
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
         {
           key: 'nonScopeBaseFilter',
@@ -1572,21 +1572,21 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
         {
           key: 'scopeBaseFilter2',
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
         {
           key: 'scopeBaseFilter3',
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
       ],
     ],
@@ -1622,7 +1622,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
       ],
       [[{ key: 'scopeBaseFilter3', operator: 'equals', value: 'val' }]],
@@ -1632,7 +1632,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
         {
           key: 'nonScopeBaseFilter',
@@ -1649,7 +1649,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'editedVal',
           values: ['editedVal'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
           restorable: true,
         },
       ],
@@ -1660,7 +1660,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'editedVal',
           values: ['editedVal'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
           restorable: true,
         },
       ],
@@ -1672,7 +1672,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
       ],
       [[{ key: 'scopeBaseFilter2', operator: 'equals', value: 'val' }]],
@@ -1682,7 +1682,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           operator: '=',
           value: 'val',
           values: ['val'],
-          origin: FilterOrigin.Scopes,
+          origin: FilterOrigin.Scope,
         },
       ],
     ],
@@ -1788,7 +1788,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         operator: '=',
         value: 'val',
         values: ['val'],
-        origin: FilterOrigin.Scopes,
+        origin: FilterOrigin.Scope,
       },
       {
         key: 'baseFilter',
@@ -2108,7 +2108,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         applyMode: 'manual',
         filters: [{ key: 'key2', operator: '=', value: 'val2' }],
         baseFilters: [
-          { key: 'baseKey1', operator: '=', value: 'baseVal1', origin: FilterOrigin.Scopes },
+          { key: 'baseKey1', operator: '=', value: 'baseVal1', origin: FilterOrigin.Scope },
           { key: 'baseKey2', operator: '=', value: 'baseVal2' },
         ],
       });
@@ -2119,7 +2119,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         datasource: { uid: 'hello' },
         applyMode: 'manual',
         baseFilters: [
-          { key: 'baseKey3', operator: '=', value: 'baseVal3', origin: FilterOrigin.Scopes },
+          { key: 'baseKey3', operator: '=', value: 'baseVal3', origin: FilterOrigin.Scope },
           { key: 'baseKey4', operator: '=', value: 'baseVal4' },
         ],
       });
@@ -2142,7 +2142,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       variable.setState({
         baseFilters: [
-          { key: 'baseKey1', operator: '=', value: 'baseVal1', origin: FilterOrigin.Scopes },
+          { key: 'baseKey1', operator: '=', value: 'baseVal1', origin: FilterOrigin.Scope },
           { key: 'baseKey2', operator: '=', value: 'baseVal2' },
         ],
       });

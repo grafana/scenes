@@ -93,11 +93,11 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {!readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === FilterOrigin.Dashboards) ? (
+        {!readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === FilterOrigin.Dashboard) ? (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
-              if (filter.origin && filter.origin === FilterOrigin.Dashboards) {
+              if (filter.origin && filter.origin === FilterOrigin.Dashboard) {
                 model.updateToMatchAll(filter);
               } else {
                 model._removeFilter(filter);
@@ -109,7 +109,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
-                if (filter.origin && filter.origin === FilterOrigin.Dashboards) {
+                if (filter.origin && filter.origin === FilterOrigin.Dashboard) {
                   model.updateToMatchAll(filter);
                 } else {
                   model._removeFilter(filter);

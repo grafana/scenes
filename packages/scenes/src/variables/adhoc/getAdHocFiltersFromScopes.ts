@@ -53,7 +53,7 @@ function processFilter(
       operator: reverseScopeFilterOperatorMap[filter.operator],
       value: filter.value,
       values: filter.values ?? [filter.value],
-      origin: FilterOrigin.Scopes,
+      origin: FilterOrigin.Scope,
     });
   } else {
     duplicatedFilters.push({
@@ -61,7 +61,7 @@ function processFilter(
       operator: reverseScopeFilterOperatorMap[filter.operator],
       value: filter.value,
       values: filter.values ?? [filter.value],
-      origin: FilterOrigin.Scopes,
+      origin: FilterOrigin.Scope,
     });
   }
 }

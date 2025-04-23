@@ -79,8 +79,8 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       // some dashboard lvl filter we maintain it as dashboard lvl filter in the
       // new dashboard
       if (foundBaseFilterIndex > -1) {
-        if (!filters[i].origin && baseFilters[foundBaseFilterIndex].origin === FilterOrigin.Dashboards) {
-          filters[i].origin = FilterOrigin.Dashboards;
+        if (!filters[i].origin && baseFilters[foundBaseFilterIndex].origin === FilterOrigin.Dashboard) {
+          filters[i].origin = FilterOrigin.Dashboard;
           filters[i].restorable = true;
         }
 
@@ -89,12 +89,12 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
         }
 
         baseFilters[foundBaseFilterIndex] = filters[i];
-      } else if (filters[i].origin === FilterOrigin.Dashboards) {
+      } else if (filters[i].origin === FilterOrigin.Dashboard) {
         // if it was originating from a dashoard but has no match in the new dashboard
         // remove it's origin, turn it into a normal filter to be set below
         delete filters[i].origin;
         delete filters[i].restorable;
-      } else if (foundBaseFilterIndex === -1 && filters[i].origin === FilterOrigin.Scopes && filters[i].restorable) {
+      } else if (foundBaseFilterIndex === -1 && filters[i].origin === FilterOrigin.Scope && filters[i].restorable) {
         // scopes are being set sometimes (when the observable emits actual filters) after urlSync
         // so we maintain all modified scopes in the adhoc
         // and leave the scopes update to reconciliate on what filters will actually show up
@@ -164,7 +164,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
 }
 
 function isFilterOrigin(value: string): value is FilterOrigin {
-  return value === FilterOrigin.Scopes || value === FilterOrigin.Dashboards;
+  return value === FilterOrigin.Scope || value === FilterOrigin.Dashboard;
 }
 
 function isFilter(filter: AdHocFilterWithLabels | null): filter is AdHocFilterWithLabels {
