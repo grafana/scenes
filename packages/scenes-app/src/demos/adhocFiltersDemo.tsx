@@ -15,7 +15,6 @@ import {
   SceneObjectBase,
   SceneObjectState,
   SceneObjectRef,
-  FilterOrigin,
 } from '@grafana/scenes';
 import { Button, Stack } from '@grafana/ui';
 import React from 'react';
