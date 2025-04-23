@@ -281,7 +281,7 @@ function getValidTimeZone(timeZone?: string): string | undefined {
     return timeZone;
   }
   if (moment.tz.zone(timeZone)) {
-      return timeZone;
+    return timeZone;
   }
   console.warn(`Invalid timeZone "${timeZone}" provided.`);
   return;
