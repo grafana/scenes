@@ -14,7 +14,7 @@ import {
 import { sceneGraph } from '../../../core/sceneGraph';
 import { SceneComponentProps, SceneDataQuery } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
-import { renderSelectForVariable } from '../../components/VariableValueSelect';
+import { MultiOrSingleValueSelect } from '../../components/VariableValueSelect';
 import { VariableValueOption } from '../../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../MultiValueVariable';
 
@@ -28,6 +28,7 @@ import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
+import React from 'react';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -152,7 +153,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
   }, 400);
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
-    return renderSelectForVariable(model);
+    return <MultiOrSingleValueSelect model={model} />;
   };
 }
 

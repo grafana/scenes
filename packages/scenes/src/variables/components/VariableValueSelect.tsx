@@ -11,8 +11,7 @@ import {
   useTheme2,
 } from '@grafana/ui';
 
-import { SceneComponentProps } from '../../core/types';
-import { MultiValueVariable } from '../variants/MultiValueVariable';
+import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
@@ -47,8 +46,8 @@ export function toSelectableValue<T>(value: T, label?: string): SelectableValue<
   };
 }
 
-export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
+export function VariableValueSelect({ model, state }: { model: MultiValueVariable; state: MultiValueVariableState }) {
+  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = state;
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
   const selectValue = toSelectableValue(value, String(text));
@@ -109,7 +108,13 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
   );
 }
 
-export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
+export function VariableValueSelectMulti({
+  model,
+  state,
+}: {
+  model: MultiValueVariable;
+  state: MultiValueVariableState;
+}) {
   const {
     value,
     options,
@@ -119,7 +124,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
     includeAll,
     isReadOnly,
     allowCustomValue = true,
-  } = model.useState();
+  } = state;
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
@@ -256,10 +261,12 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
-export function renderSelectForVariable(model: MultiValueVariable) {
-  if (model.state.isMulti) {
-    return <VariableValueSelectMulti model={model} />;
+export function MultiOrSingleValueSelect({ model }: { model: MultiValueVariable }) {
+  const state = model.useState();
+
+  if (state.isMulti) {
+    return <VariableValueSelectMulti model={model} state={state} />;
   } else {
-    return <VariableValueSelect model={model} />;
+    return <VariableValueSelect model={model} state={state} />;
   }
 }

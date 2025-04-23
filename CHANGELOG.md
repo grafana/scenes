@@ -1,3 +1,90 @@
+# v6.9.1 (Wed Apr 23 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Notify scene objects in depth order [#1104](https://github.com/grafana/scenes/pull/1104) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.9.0 (Thu Apr 17 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - fix: (VizPanelRenderer) - move showMenuAlways prop to the top level [#1093](https://github.com/grafana/scenes/pull/1093) ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+#### Authors: 1
+
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+---
+
+# v6.8.1 (Fri Apr 11 2025)
+
+### Release Notes
+
+#### Variables: Rename renderSelectForVariable to MultiOrSingleValueSelect ([#1097](https://github.com/grafana/scenes/pull/1097))
+
+RenderSelectForVariable was renamed to MultiOrSingleValueSelect and is now React component.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Rename renderSelectForVariable to MultiOrSingleValueSelect [#1097](https://github.com/grafana/scenes/pull/1097) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.8.0 (Fri Apr 11 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Switch between multi and single select if state changes [#1096](https://github.com/grafana/scenes/pull/1096) ([@torkelo](https://github.com/torkelo))
+  - ConstantVariable: Support interpolation and dependency of other variables in constant value [#1094](https://github.com/grafana/scenes/pull/1094) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.7.0 (Wed Apr 09 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VariableControl: Add props needed in core dashboards [#1091](https://github.com/grafana/scenes/pull/1091) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.6.3 (Fri Apr 04 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupByVariable: Add browser history action support for GroupBy var [#1087](https://github.com/grafana/scenes/pull/1087) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.6.2 (Wed Apr 02 2025)
 
 #### 🐛 Bug Fix

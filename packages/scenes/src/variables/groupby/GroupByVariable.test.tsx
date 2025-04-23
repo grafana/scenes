@@ -168,6 +168,38 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.value).toEqual(['a', 'b,something', 'c,something']);
       expect(variable.state.text).toEqual(['A,something', 'b,something', 'C,something']);
     });
+
+    it('should work with browser history action on user action', () => {
+      const { variable } = setupTest({
+        defaultOptions: [
+          { text: 'a', value: 'a' },
+          { text: 'b', value: 'b' },
+        ],
+      });
+
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+
+      act(() => {
+        variable.changeValueTo(['a'], undefined, true);
+      });
+
+      expect(locationService.getLocation().search).toBe('?var-test=a');
+
+      act(() => {
+        locationService.push('/?var-test=a&var-test=b');
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b']);
+      expect(variable.state.text).toEqual(['a', 'b']);
+
+      act(() => {
+        locationService.push('/?var-test=a&var-test=b&var-test=c');
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b', 'c']);
+      expect(variable.state.text).toEqual(['a', 'b', 'c']);
+    });
   });
 
   it('Can override and replace getTagKeys', async () => {

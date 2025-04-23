@@ -6,6 +6,8 @@ import { VariableValue } from '../types';
 export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _sceneObject: GroupByVariable) {}
 
+  protected _nextChangeShouldAddHistoryStep = false;
+
   private getKey(): string {
     return `var-${this._sceneObject.state.name}`;
   }
@@ -42,6 +44,16 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
 
       this._sceneObject.changeValueTo(values, texts);
     }
+  }
+
+  public performBrowserHistoryAction(callback: () => void) {
+    this._nextChangeShouldAddHistoryStep = true;
+    callback();
+    this._nextChangeShouldAddHistoryStep = false;
+  }
+
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._nextChangeShouldAddHistoryStep;
   }
 }
 
