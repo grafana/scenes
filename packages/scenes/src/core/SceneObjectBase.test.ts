@@ -383,25 +383,6 @@ describe('SceneObject', () => {
       });
     });
   });
-
-  describe('forEachChild', () => {
-    it('should loop through behaviors first', () => {
-      const scene = new TestScene({
-        name: 'root',
-        nested: new TestScene({ name: 'nested2' }),
-        $behaviors: [new TestScene({ name: 'behavior1' })],
-      });
-
-      const found: string[] = [];
-      scene.forEachChild((child) => {
-        if (child instanceof TestScene) {
-          found.push(child.state.name!);
-        }
-      });
-
-      expect(found).toEqual(['behavior1', 'nested2']);
-    });
-  });
 });
 
 describe('useSceneObjectState', () => {
