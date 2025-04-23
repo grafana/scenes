@@ -4,7 +4,7 @@ import { TimeZone } from '@grafana/schema';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
 import { SceneObjectBase } from './SceneObjectBase';
-import moment from 'moment-timezone';
+import { tz } from 'moment-timezone';
 import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from './types';
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
@@ -280,7 +280,7 @@ function getValidTimeZone(timeZone?: string): string | undefined {
   if (timeZone === BROWSER) {
     return timeZone;
   }
-  if (moment.tz.zone(timeZone)) {
+  if (tz.zone(timeZone)) {
     return timeZone;
   }
   console.warn(`Invalid timeZone "${timeZone}" provided.`);
