@@ -27,7 +27,7 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
-import { AdHocFiltersVariable, FilterOrigin } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController } from '../behaviors/SceneQueryController';
