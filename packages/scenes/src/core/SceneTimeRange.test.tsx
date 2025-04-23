@@ -186,6 +186,12 @@ describe('SceneTimeRange', () => {
         expect(timeRange.getTimeZone()).toBe('utc');
       });
     });
+    describe('when time zone is not valid', () => {
+      it('should default to browser', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'junk' });
+        expect(timeRange.getTimeZone()).toBe('browser');
+      });
+    });
   });
 
   describe('delay now', () => {
