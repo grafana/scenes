@@ -807,9 +807,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable?
-    expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%21%3D%7CnewValue%23scopes%23restorable'
-    );
+    expect(locationService.getLocation().search).toBe('?var-filters=baseKey1%7C%21%3D%7CnewValue%23scope%23restorable');
 
     clearScopes();
   });
@@ -837,7 +835,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable?
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%21%3D__gfp__%7CnewValue1%7CnewValue2%23scopes%23restorable'
+      '?var-filters=baseKey1%7C%21%3D__gfp__%7CnewValue1%7CnewValue2%23scope%23restorable'
     );
 
     clearScopes();
@@ -864,7 +862,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%3D%7CnewValue1__gfh__%23scopes%23restorable'
+      '?var-filters=baseKey1%7C%3D%7CnewValue1__gfh__%23scope%23restorable'
     );
 
     clearScopes();
@@ -888,7 +886,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     const urlValues = {
-      'var-filters': ['dbFilterKey|=~|.*#dashboards#restorable'],
+      'var-filters': ['dbFilterKey|=~|.*#dashboard#restorable'],
     };
 
     act(() => {
@@ -916,7 +914,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // url contains a modified scope injected filter carried from somewhere else
     const urlValues = {
-      'var-filters': ['scopesFilterKey1|=|newScopesFilterValue1#scopes#restorable'],
+      'var-filters': ['scopesFilterKey1|=|newScopesFilterValue1#scope#restorable'],
     };
 
     act(() => {
@@ -941,7 +939,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // but the URL sends a modified dashboard level filter
     const urlValues = {
-      'var-filters': ['dbFilterKey|!=|newDbFilterValue#dashboards#restorable'],
+      'var-filters': ['dbFilterKey|!=|newDbFilterValue#dashboard#restorable'],
     };
 
     act(() => {
@@ -1034,9 +1032,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     const urlValues = {
       'var-filters': [
-        'dbFilterKey|!=|newDbFilterValue#dashboards#restorable',
+        'dbFilterKey|!=|newDbFilterValue#dashboard#restorable',
         'filterKey|!=|newFilterValue',
-        'scopeFilterKey1|=|newScopeFilterValue#scopes#restorable',
+        'scopeFilterKey1|=|newScopeFilterValue#scope#restorable',
       ],
     };
 
@@ -1128,7 +1126,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=someFilter%7C%3D%7CsomeValue&var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboards%23restorable'
+      '?var-filters=someFilter%7C%3D%7CsomeValue&var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable'
     );
 
     // restore it, URL should be cleaned
