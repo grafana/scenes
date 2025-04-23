@@ -1,3 +1,15 @@
+# v6.9.1 (Wed Apr 23 2025)
+
+#### 🐛 Bug Fix
+
+- Variables: Notify scene objects in depth order [#1104](https://github.com/grafana/scenes/pull/1104) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.9.0 (Thu Apr 17 2025)
 
 #### 🚀 Enhancement
