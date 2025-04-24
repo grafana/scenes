@@ -1,3 +1,16 @@
+# v6.10.1 (Thu Apr 24 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Validate timezone [#1109](https://github.com/grafana/scenes/pull/1109) ([@scottlepp](https://github.com/scottlepp))
+
+#### Authors: 1
+
+- Scott Lepper ([@scottlepp](https://github.com/scottlepp))
+
+---
+
 # v6.10.0 (Thu Apr 24 2025)
 
 #### 🚀 Enhancement
