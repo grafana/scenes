@@ -426,6 +426,11 @@ export class AdHocFiltersVariable
       const originalValues = this._originalValues.get(filter.key);
       const updateValues = update.values || (update.value ? [update.value] : undefined);
 
+      // if we don't have the restorable prop set but values differ we set it true
+      // this happens when editing the value of an injected filter
+      // we also make sure to set restorable false if values are the same as original
+      // e.g.: if we edit the value of a filter to whatever the original was, manually
+      // 'restoring' the filter
       const isRestorableOverride = update.hasOwnProperty('restorable');
       if (
         !isRestorableOverride &&
