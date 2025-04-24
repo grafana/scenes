@@ -1,3 +1,20 @@
+# v6.10.0 (Thu Apr 24 2025)
+
+#### 🚀 Enhancement
+
+- AdHocFilters: Dashboard level filters [#1095](https://github.com/grafana/scenes/pull/1095) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- Revert "Variables: Notify scene objects in depth order" [#1108](https://github.com/grafana/scenes/pull/1108) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.9.1 (Wed Apr 23 2025)
 
 #### 🐛 Bug Fix
