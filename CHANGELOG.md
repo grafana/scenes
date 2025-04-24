@@ -1,3 +1,16 @@
+# v6.10.2 (Thu Apr 24 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Use log util.  Direct console.warn fails tests in grafana. [#1110](https://github.com/grafana/scenes/pull/1110) ([@scottlepp](https://github.com/scottlepp))
+
+#### Authors: 1
+
+- Scott Lepper ([@scottlepp](https://github.com/scottlepp))
+
+---
+
 # v6.10.1 (Thu Apr 24 2025)
 
 #### 🐛 Bug Fix
