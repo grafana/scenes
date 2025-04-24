@@ -272,15 +272,11 @@ function getTimeWindow(time: string, timeWindow: string) {
  * @returns {string | undefined} - Returns the input time zone if it is valid, or undefined if the input is invalid or not provided.
  */
 function getValidTimeZone(timeZone?: string): string | undefined {
-  if (timeZone === undefined) {
-    return;
-  }
-  if (timeZone === defaultTimeZone) {
+  if (timeZone === undefined || timeZone === defaultTimeZone) {
     return timeZone;
   }
   if (getZone(timeZone)) {
     return timeZone;
   }
   console.warn(`Invalid timeZone "${timeZone}" provided.`);
-  return;
 }
