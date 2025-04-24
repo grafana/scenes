@@ -1,9 +1,9 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { useStyles2, IconButton, Tooltip } from '@grafana/ui';
+import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, isMatchAllFilter } from '../AdHocFiltersVariable';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -68,7 +68,11 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     );
     return (
       <div
-        className={cx(styles.combinedFilterPill, readOnly && styles.readOnlyCombinedFilter)}
+        className={cx(
+          styles.combinedFilterPill,
+          readOnly && styles.readOnlyCombinedFilter,
+          isMatchAllFilter(filter) && styles.matchAllPill
+        )}
         onClick={(e) => {
           e.stopPropagation();
           setPopulateInputOnEdit(true);
@@ -93,18 +97,27 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {!readOnly && !filter.origin ? (
+        {!readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === 'dashboard') ? (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
-              model._removeFilter(filter);
+              if (filter.origin && filter.origin === 'dashboard') {
+                model.updateToMatchAll(filter);
+              } else {
+                model._removeFilter(filter);
+              }
+
               setTimeout(() => focusOnWipInputRef?.());
             }}
             onKeyDownCapture={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
-                model._removeFilter(filter);
+                if (filter.origin && filter.origin === 'dashboard') {
+                  model.updateToMatchAll(filter);
+                } else {
+                  model._removeFilter(filter);
+                }
                 setTimeout(() => focusOnWipInputRef?.());
               }
             }}
@@ -115,16 +128,13 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         ) : null}
 
-        {filter.origin && !filter.originalValue && (
-          <IconButton
-            name="info-circle"
-            size="md"
-            className={styles.pillIcon}
-            tooltip={`This is a ${filter.origin} injected filter`}
-          />
+        {filter.origin && !filter.restorable && (
+          <Tooltip content={`This is a ${filter.origin} injected filter`} placement={'bottom'}>
+            <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
+          </Tooltip>
         )}
 
-        {filter.origin && filter.originalValue && (
+        {filter.origin && filter.restorable && (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
@@ -139,7 +149,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             }}
             name="history"
             size="md"
-            className={styles.pillIcon}
+            className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
             tooltip={`Restore filter to its original value`}
           />
         )}
@@ -200,5 +210,22 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   tooltipText: css({
     textAlign: 'center',
+  }),
+  infoPillIcon: css({
+    marginInline: theme.spacing(0.5),
+    cursor: 'pointer',
+  }),
+  matchAllPillIcon: css({
+    marginInline: theme.spacing(0.5),
+    cursor: 'pointer',
+    color: theme.colors.text.disabled,
+  }),
+  matchAllPill: css({
+    background: theme.colors.action.selected,
+    color: theme.colors.text.disabled,
+    border: 0,
+    '&:hover': {
+      background: theme.colors.action.selected,
+    },
   }),
 });

@@ -27,7 +27,7 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
-import { AdHocFiltersVariable, FilterOrigin } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController } from '../behaviors/SceneQueryController';
@@ -541,7 +541,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         datasource: { uid: 'test-uid' },
         applyMode: 'auto',
         filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
-        baseFilters: [{ key: 'C', operator: '=', value: 'D', condition: '', origin: FilterOrigin.Scopes }],
+        baseFilters: [{ key: 'C', operator: '=', value: 'D', condition: '', origin: 'scope' }],
       });
 
       const scene = new EmbeddedScene({
