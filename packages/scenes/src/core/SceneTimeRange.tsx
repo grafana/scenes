@@ -279,6 +279,6 @@ function getValidTimeZone(timeZone?: string): string | undefined {
   if (getZone(timeZone)) {
     return timeZone;
   }
-  writeSceneLog('SceneTimeRange', `Invalid timeZone "${timeZone}" provided.`)
+  writeSceneLog('SceneTimeRange', `Invalid timeZone "${timeZone}" provided.`);
   return;
 }
