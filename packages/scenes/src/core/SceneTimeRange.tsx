@@ -1,5 +1,5 @@
-import { getTimeZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
-import { TimeZone } from '@grafana/schema';
+import { getTimeZone, getZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
+import { defaultTimeZone, TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
@@ -18,7 +18,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
     const from = state.from && isValid(state.from) ? state.from : 'now-6h';
     const to = state.to && isValid(state.to) ? state.to : 'now';
-    const timeZone = state.timeZone;
+    const timeZone = getValidTimeZone(state.timeZone);
     const value = evaluateTimeRange(
       from,
       to,
@@ -122,13 +122,13 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public getTimeZone(): TimeZone {
     // Return local time zone if provided
-    if (this.state.timeZone) {
+    if (this.state.timeZone && getValidTimeZone(this.state.timeZone)) {
       return this.state.timeZone;
     }
 
     // Resolve higher level time zone source
     const timeZoneSource = this.getTimeZoneSource();
-    if (timeZoneSource !== this) {
+    if (timeZoneSource !== this && getValidTimeZone(timeZoneSource.state.timeZone)) {
       return timeZoneSource.state.timeZone!;
     }
 
@@ -172,7 +172,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeZoneChange = (timeZone: TimeZone) => {
     this._urlSync.performBrowserHistoryAction(() => {
-      this.setState({ timeZone });
+      this.setState({ timeZone: getValidTimeZone(timeZone) ?? defaultTimeZone });
     });
   };
 
@@ -264,4 +264,20 @@ function getTimeWindow(time: string, timeWindow: string) {
     from: toUtc(valueTime - timeWindowMs / 2).toISOString(),
     to: toUtc(valueTime + timeWindowMs / 2).toISOString(),
   };
+}
+
+/**
+ * Validates and returns a valid time zone string or undefined.
+ * @param {string} [timeZone] - The time zone to validate. Can be a valid IANA time zone string, the string "browser", or undefined.
+ * @returns {string | undefined} - Returns the input time zone if it is valid, or undefined if the input is invalid or not provided.
+ */
+function getValidTimeZone(timeZone?: string): string | undefined {
+  if (timeZone === undefined || timeZone === defaultTimeZone) {
+    return timeZone;
+  }
+  if (getZone(timeZone)) {
+    return timeZone;
+  }
+  console.warn(`Invalid timeZone "${timeZone}" provided.`);
+  return;
 }
