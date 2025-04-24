@@ -279,4 +279,5 @@ function getValidTimeZone(timeZone?: string): string | undefined {
     return timeZone;
   }
   console.warn(`Invalid timeZone "${timeZone}" provided.`);
+  return;
 }
