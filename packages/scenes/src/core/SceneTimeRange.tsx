@@ -11,6 +11,7 @@ import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 import { config, locationService, RefreshEvent } from '@grafana/runtime';
 import { isValid } from '../utils/date';
 import { getQueryController } from './sceneGraph/getQueryController';
+import { writeSceneLog } from '../utils/writeSceneLog';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
@@ -278,6 +279,6 @@ function getValidTimeZone(timeZone?: string): string | undefined {
   if (getZone(timeZone)) {
     return timeZone;
   }
-  console.warn(`Invalid timeZone "${timeZone}" provided.`);
+  writeSceneLog('SceneTimeRange', `Invalid timeZone "${timeZone}" provided.`)
   return;
 }
