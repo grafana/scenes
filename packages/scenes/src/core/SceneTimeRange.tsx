@@ -1,10 +1,9 @@
-import { getTimeZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
-import { TimeZone } from '@grafana/schema';
+import { getTimeZone, getZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
+import { defaultTimeZone, TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
 import { SceneObjectBase } from './SceneObjectBase';
-import moment from 'moment-timezone';
 import { SceneTimeRangeLike, SceneTimeRangeState, SceneObjectUrlValues } from './types';
 import { getClosest } from './sceneGraph/utils';
 import { parseUrlParam } from '../utils/parseUrlParam';
@@ -12,7 +11,6 @@ import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 import { config, locationService, RefreshEvent } from '@grafana/runtime';
 import { isValid } from '../utils/date';
 import { getQueryController } from './sceneGraph/getQueryController';
-import { BROWSER } from './constants';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
@@ -174,7 +172,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeZoneChange = (timeZone: TimeZone) => {
     this._urlSync.performBrowserHistoryAction(() => {
-      this.setState({ timeZone: getValidTimeZone(timeZone) ?? BROWSER });
+      this.setState({ timeZone: getValidTimeZone(timeZone) ?? defaultTimeZone });
     });
   };
 
@@ -277,10 +275,10 @@ function getValidTimeZone(timeZone?: string): string | undefined {
   if (timeZone === undefined) {
     return;
   }
-  if (timeZone === BROWSER) {
+  if (timeZone === defaultTimeZone) {
     return timeZone;
   }
-  if (moment.tz.zone(timeZone)) {
+  if (getZone(timeZone)) {
     return timeZone;
   }
   console.warn(`Invalid timeZone "${timeZone}" provided.`);

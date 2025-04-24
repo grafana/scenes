@@ -5,7 +5,7 @@ import { SceneTimeRange } from './SceneTimeRange';
 import { RefreshEvent, config } from '@grafana/runtime';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneReactObject } from '../components/SceneReactObject';
-import { BROWSER } from './constants';
+import { defaultTimeZone } from '@grafana/schema';
 
 jest.mock('@grafana/data', () => ({
   ...jest.requireActual('@grafana/data'),
@@ -58,7 +58,7 @@ describe('SceneTimeRange', () => {
     expect(timeRange.urlSync?.getUrlState()).toEqual({
       from: 'now-1h',
       to: 'now',
-      timezone: BROWSER,
+      timezone: defaultTimeZone,
     });
   });
 
@@ -67,7 +67,7 @@ describe('SceneTimeRange', () => {
     timeRange.urlSync?.updateFromUrl({
       from: '2021-01-01T10:00:00.000Z',
       to: '2021-02-03T01:20:00.000Z',
-      timezone: BROWSER,
+      timezone: defaultTimeZone,
     });
 
     expect(timeRange.state.from).toEqual('2021-01-01T10:00:00.000Z');
@@ -140,7 +140,7 @@ describe('SceneTimeRange', () => {
     describe('when time zone is not specified', () => {
       it('should return default time zone', () => {
         const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
-        expect(timeRange.getTimeZone()).toBe(BROWSER);
+        expect(timeRange.getTimeZone()).toBe(defaultTimeZone);
       });
       it('should return time zone of the closest range with time zone specified ', () => {
         const outerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'America/New_York' });
@@ -188,19 +188,19 @@ describe('SceneTimeRange', () => {
       });
     });
     describe('when time zone is not valid', () => {
-      it(`should default to ${BROWSER}`, () => {
+      it(`should default to ${defaultTimeZone}`, () => {
         const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'junk' });
-        expect(timeRange.getTimeZone()).toBe(BROWSER);
+        expect(timeRange.getTimeZone()).toBe(defaultTimeZone);
 
         timeRange.onTimeZoneChange('junk');
-        expect(timeRange.getTimeZone()).toBe(BROWSER);
+        expect(timeRange.getTimeZone()).toBe(defaultTimeZone);
       });
-      it(`should default to ${BROWSER} on update`, () => {
+      it(`should default to ${defaultTimeZone} on update`, () => {
         const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'utc' });
         expect(timeRange.getTimeZone()).toBe('utc');
 
         timeRange.onTimeZoneChange('junk');
-        expect(timeRange.getTimeZone()).toBe(BROWSER);
+        expect(timeRange.getTimeZone()).toBe(defaultTimeZone);
       });
     });
   });
