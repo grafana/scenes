@@ -12,7 +12,6 @@ import { config, locationService, RefreshEvent } from '@grafana/runtime';
 import { isValid } from '../utils/date';
 import { getQueryController } from './sceneGraph/getQueryController';
 import { writeSceneLog } from '../utils/writeSceneLog';
-import { time } from 'console';
 import { isEmpty } from 'lodash';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
