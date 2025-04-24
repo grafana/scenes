@@ -753,7 +753,7 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
 }
 
 export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
-  return filter.operator === '=~' && filter.value === '.*';
+  return filter.operator === '=~' && filter.value === '.*' && !!filter.origin;
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
