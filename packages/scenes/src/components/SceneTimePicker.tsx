@@ -72,6 +72,8 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
     return null;
   }
 
+  const rangesToUse = quickRanges || defaultQuickRanges;
+
   return (
     <TimeRangePicker
       isOnCanvas={isOnCanvas ?? true}
@@ -94,7 +96,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       history={timeRangeHistory}
       //TODO: remove once grafana/grafana updated to 11.6
       //@ts-expect-error
-      quickRanges={defaultQuickRanges || quickRanges}
+      quickRanges={rangesToUse}
     />
   );
 }
