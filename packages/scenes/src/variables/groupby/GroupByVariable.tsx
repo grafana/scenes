@@ -324,7 +324,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       placeholder={'Select value'}
       width="auto"
       inputValue={inputValue}
-      value={uncommittedValue}
+      value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
       allowCustomValue={allowCustomValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
