@@ -131,6 +131,15 @@ function applyItemStyles(style: CSSObject, state: SceneFlexItemPlacement, parent
     } else {
       style.flexGrow = xSizing === 'fill' ? 1 : 0;
     }
+
+    if (state.wrap) {
+      style.flexWrap = state.wrap;
+      if (parentDirection === 'row' && state.wrap !== 'nowrap') {
+        style.rowGap = '8px';
+      } else {
+        style.columnGap = '8px';
+      }
+    }
   }
 
   style.minWidth = state.minWidth;
