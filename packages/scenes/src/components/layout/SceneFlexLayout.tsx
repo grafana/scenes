@@ -134,10 +134,12 @@ function applyItemStyles(style: CSSObject, state: SceneFlexItemPlacement, parent
 
     if (state.wrap) {
       style.flexWrap = state.wrap;
-      if (parentDirection === 'row' && state.wrap !== 'nowrap') {
-        style.rowGap = '8px';
-      } else {
-        style.columnGap = '8px';
+      if (state.wrap !== 'nowrap') {
+        if (parentDirection === 'row') {
+          style.rowGap = '8px';
+        } else {
+          style.columnGap = '8px';
+        }
       }
     }
   }
