@@ -8,6 +8,9 @@ on:
       - '.github/workflows/deploy-to-dev-portal-prod.yml'
       - 'docusaurus/**'
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy docs to Developer Portal Bucket
@@ -15,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -25,18 +30,20 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
-                
+
       - name: Build documentation website
         run: yarn docs:build
-        
+
       - id: 'auth'
-        uses: 'google-github-actions/auth@v2'
+        uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193' #v2.1.10
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
-      
+        uses: 'google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a' #v2.1.4
+
       - name: 'Deploy to Developer Portal Bucket'
         run: |
           gsutil -m rsync -r -d -c ./docusaurus/website/build/ gs://grafana-developer-portal/scenes
+        with:
+          persist-credentials: false
