@@ -116,7 +116,7 @@ describe('SceneTimePicker', () => {
     expect(screen.getByText('2024-09-04 00:00:00 to 2024-09-14 23:59:59')).toBeInTheDocument();
   });
 
-  it.only('renders default quick ranges from server config', async () => {
+  it('renders default quick ranges from server config', async () => {
     const { scene } = setupScene(
       {
         from: 'now-12h',

@@ -94,6 +94,8 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
       weekStart={timeRangeState.weekStart}
       history={timeRangeHistory}
+      //TODO: remove once grafana/grafana updated to 11.6
+      //@ts-expect-error
       quickRanges={rangesToUse}
     />
   );
