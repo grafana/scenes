@@ -1,11 +1,15 @@
 name: Deploy to Developer Portal DEV Bucket
 
 on:
-    workflow_dispatch:
-      inputs:
-        branch:
-          description: "Which branch to use?"
-          default: "main"
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Which branch to use?'
+        default: 'main'
+
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: Deploy docs to Developer Portal Bucket
@@ -14,8 +18,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-            ref: ${{ github.event.inputs.branch }}
-            fetch-depth: 0
+          ref: ${{ github.event.inputs.branch }}
+          fetch-depth: 0
+          persist-credentials: false
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -25,18 +30,18 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
-          
+
       - name: Build documentation website
         run: yarn docs:build:dev
-        
+
       - id: 'auth'
-        uses: 'google-github-actions/auth@v2'
+        uses: 'google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193' #v2.1.10
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY_DEV }}
 
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
-    
+        uses: 'google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a' #v2.1.4
+
       - name: 'Deploy to Developer Portal Bucket'
         run: |
           gsutil -m rsync -r -d -c ./docusaurus/website/build/ gs://staging-developer-portal/scenes
