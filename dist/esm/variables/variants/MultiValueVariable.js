@@ -113,7 +113,7 @@ class MultiValueVariable extends SceneObjectBase {
       if (this.state.allValue) {
         return new CustomAllValue(this.state.allValue, this);
       }
-      return this.state.options.map((x) => x.value);
+      return new CustomAllValue(".*", this);
     }
     return this.state.value;
   }
