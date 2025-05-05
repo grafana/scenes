@@ -52,13 +52,14 @@ jobs:
         uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets-v1.2.0
         with:
           repo_secrets: |
-            PRIVATE_KEY=scenes/github-app:privateKey
+            GITHUB_APP_ID=scenes/github-app:app-id
+            GITHUB_PRIVATE_KEY=scenes/github-app:private-key
       - name: Generate a token
         id: generate-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${PRIVATE_KEY}
+          app-id: ${{ env.GITHUB_APP_ID }}
+          private-key: ${{ env.GITHUB_APP_PRIVATE_KEY }}
 
       - uses: actions/checkout@v4
         with:
