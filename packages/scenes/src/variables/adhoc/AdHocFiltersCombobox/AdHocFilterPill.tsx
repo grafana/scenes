@@ -69,8 +69,8 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         className={cx(
           styles.combinedFilterPill,
           readOnly && styles.readOnlyCombinedFilter,
-          isMatchAllFilter(filter) && styles.matchAllPill,
-          filter.readOnly && styles.filterReadOnly
+          isMatchAllFilter(filter) && styles.matchAllPill
+          // filter.readOnly && styles.filterReadOnly
         )}
         onClick={(e) => {
           e.stopPropagation();
@@ -83,7 +83,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             handleChangeViewMode();
           }
         }}
-        role="button"
+        role={readOnly ? undefined : 'button'}
         aria-label={`Edit filter with key ${keyLabel}`}
         tabIndex={0}
         ref={pillWrapperRef}
@@ -195,12 +195,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   readOnlyCombinedFilter: css({
     paddingRight: theme.spacing(1),
-    cursor: 'text',
-    '&:hover': {
-      background: theme.colors.action.selected,
-    },
-  }),
-  filterReadOnly: css({
     background: theme.colors.background.canvas,
     cursor: 'text',
     '&:hover': {
@@ -225,7 +219,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   infoPillIcon: css({
     marginInline: theme.spacing(0.5),
-    cursor: 'pointer',
+    cursor: 'default',
   }),
   matchAllPillIcon: css({
     marginInline: theme.spacing(0.5),
