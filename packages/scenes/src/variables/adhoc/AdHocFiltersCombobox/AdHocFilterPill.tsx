@@ -66,6 +66,17 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         {keyLabel} {filter.operator} {valueLabel}
       </span>
     );
+
+    let injectedInfoText = '';
+    let injectedRestoreText = '';
+    if (filter.origin === 'dashboard') {
+      injectedInfoText = 'Applied by default in this dashboard. If edited, it carries over to other dashboards.';
+      injectedRestoreText = 'Restore the value defined by this dashboard.';
+    } else if (filter.origin === 'scope') {
+      injectedInfoText = 'Applied automatically from your selected scope.';
+      injectedRestoreText = 'Restore the value set by your selected scope';
+    }
+
     return (
       <div
         className={cx(
@@ -129,7 +140,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         ) : null}
 
         {filter.origin && !filter.restorable && (
-          <Tooltip content={`This is a ${filter.origin} injected filter`} placement={'bottom'}>
+          <Tooltip content={injectedInfoText} placement={'bottom'}>
             <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
           </Tooltip>
         )}
@@ -150,7 +161,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             name="history"
             size="md"
             className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
-            tooltip={`Restore filter to its original value`}
+            tooltip={injectedRestoreText}
           />
         )}
       </div>
