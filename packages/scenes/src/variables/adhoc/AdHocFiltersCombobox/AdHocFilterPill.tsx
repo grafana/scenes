@@ -74,7 +74,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
       injectedRestoreText = 'Restore the value defined by this dashboard.';
     } else if (filter.origin === 'scope') {
       injectedInfoText = 'Applied automatically from your selected scope.';
-      injectedRestoreText = 'Restore the value set by your selected scope';
+      injectedRestoreText = 'Restore the value set by your selected scope.';
     }
 
     return (
