@@ -51,6 +51,7 @@ jobs:
       - id: get-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
         with:
+          # Secrets placed in the ci/repo/grafana/scenes/ path in Vault
           repo_secrets: |
             GITHUB_APP_ID=github-app:app-id
             GITHUB_PRIVATE_KEY=github-app:private-key
