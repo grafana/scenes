@@ -55,7 +55,7 @@ jobs:
           # Secrets placed in the ci/repo/grafana/scenes/ path in Vault
           repo_secrets: |
             GITHUB_APP_ID=github-app:app-id
-            GITHUB_PRIVATE_KEY=github-app:private-key
+            GITHUB_APP_PRIVATE_KEY=github-app:private-key
       - name: Generate a token
         id: generate-token
         uses: actions/create-github-app-token@v1
