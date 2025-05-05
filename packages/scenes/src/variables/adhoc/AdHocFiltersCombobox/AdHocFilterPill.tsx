@@ -129,7 +129,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         ) : null}
 
         {filter.origin && !filter.restorable && (
-          <Tooltip content={`This is a ${filter.origin} injected test filter`} placement={'bottom'}>
+          <Tooltip content={`This is a ${filter.origin} injected filter`} placement={'bottom'}>
             <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
           </Tooltip>
         )}
