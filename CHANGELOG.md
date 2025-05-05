@@ -3,7 +3,7 @@
 #### 🐛 Bug Fix
 
 - `@grafana/scenes`
-  - Use log util.  Direct console.warn fails tests in grafana. [#1110](https://github.com/grafana/scenes/pull/1110) ([@scottlepp](https://github.com/scottlepp))
+  - Use log util. Direct console.warn fails tests in grafana. [#1110](https://github.com/grafana/scenes/pull/1110) ([@scottlepp](https://github.com/scottlepp))
 
 #### Authors: 1
 
