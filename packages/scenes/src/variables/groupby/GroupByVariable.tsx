@@ -61,14 +61,12 @@ export type getTagKeysProvider = (
 export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
   isLazy = true;
-  private _value = 5;
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
 
   private _scopesBridge: SceneScopesBridge | undefined;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
-    this._value++;
     return this.getValueOptions({}).pipe(
       map((options) => {
         this._updateValueGivenNewOptions(options);
