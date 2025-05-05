@@ -67,6 +67,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   private _scopesBridge: SceneScopesBridge | undefined;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
+    console.log('test');
     return this.getValueOptions({}).pipe(
       map((options) => {
         this._updateValueGivenNewOptions(options);
