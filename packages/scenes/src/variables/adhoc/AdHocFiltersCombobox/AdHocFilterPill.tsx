@@ -129,7 +129,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
 
         {filter.origin && filter.readOnly && (
           <Tooltip content={`${filter.origin} managed filter`} placement={'bottom'}>
-            <Icon name="lock" size="md" className={styles.infoPillIcon} />
+            <Icon name="lock" size="md" className={styles.readOnlyPillIcon} />
           </Tooltip>
         )}
 
@@ -226,6 +226,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
   infoPillIcon: css({
     marginInline: theme.spacing(0.5),
     cursor: 'pointer',
+  }),
+  readOnlyPillIcon: css({
+    marginInline: theme.spacing(0.5),
   }),
   matchAllPillIcon: css({
     marginInline: theme.spacing(0.5),
