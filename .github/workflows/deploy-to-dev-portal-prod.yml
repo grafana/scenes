@@ -38,6 +38,7 @@ jobs:
         id: login-to-gcs
         with:
           service_account: 'github-developer-portal@grafanalabs-workload-identity.iam.gserviceaccount.com'
+          bucket: 'grafana-developer-portal'
 
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@77e7a554d41e2ee56fc945c52dfd3f33d12def9a' #v2.1.4
