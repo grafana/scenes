@@ -48,7 +48,7 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
-export type FilterOrigin = 'dashboard' | 'scope';
+export type FilterOrigin = 'dashboard' | 'scope' | string;
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
@@ -509,8 +509,8 @@ export class AdHocFiltersVariable
 
       this.setState({
         filters: this.state.filters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
-          // adjust forceEdit of preceding filter
-          if (index === filterToForceIndex) {
+          // adjust forceEdit of preceding filter if not readOnly
+          if (index === filterToForceIndex && !f.readOnly) {
             return [
               ...acc,
               {
@@ -540,7 +540,7 @@ export class AdHocFiltersVariable
       this.setState({
         baseFilters: this.state.baseFilters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
           // adjust forceEdit of preceding filter
-          if (index === filterToForceIndex) {
+          if (index === filterToForceIndex && !f.readOnly) {
             return [
               ...acc,
               {

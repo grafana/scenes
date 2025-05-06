@@ -118,7 +118,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   private calculatePercentOfInterval(percent: number): number {
     const intervalMs = this.state.value.to.diff(this.state.value.from, 'milliseconds');
-    return Math.ceil(intervalMs / percent);
+    return Math.ceil((intervalMs / 100) * percent);
   }
 
   public getTimeZone(): TimeZone {

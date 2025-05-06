@@ -308,6 +308,76 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
           });
         },
       }),
+      new SceneAppPage({
+        title: 'Individually read-only filters',
+        routePath: `readonly-filters`,
+        url: `${defaults.url}/readonly-filters`,
+        getScene: () => {
+          return new EmbeddedScene({
+            ...getEmbeddedSceneDefaults(),
+            $variables: new SceneVariableSet({
+              variables: [
+                new AdHocFiltersVariable({
+                  name: 'ComboboxFilters',
+                  label: 'Without add filter button text',
+                  hide: VariableHide.hideLabel,
+                  datasource: { uid: 'gdev-prometheus' },
+                  filters: [
+                    {
+                      key: 'job',
+                      operator: '=',
+                      value: 'has no text',
+                      condition: '',
+                      readOnly: true,
+                      origin: 'Demo app',
+                    },
+                    {
+                      key: 'foo',
+                      operator: '=',
+                      value: 'bar',
+                      condition: '',
+                      readOnly: true,
+                    },
+                  ],
+                  layout: 'combobox',
+                  supportsMultiValueOperators: true,
+                }),
+              ],
+            }),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new SceneCanvasText({
+                    text: `The query below is interpolated to ALERTS{ComboboxFilters}`,
+                    fontSize: 14,
+                  }),
+                }),
+                new SceneFlexItem({
+                  body: PanelBuilders.table()
+                    .setTitle('ALERTS')
+                    .setData(
+                      new SceneQueryRunner({
+                        datasource: { uid: 'gdev-prometheus' },
+                        queries: [
+                          {
+                            refId: 'A',
+                            expr: 'ALERTS',
+                            format: 'table',
+                            instant: true,
+                          },
+                        ],
+                      })
+                    )
+                    .build(),
+                }),
+              ],
+            }),
+            $timeRange: new SceneTimeRange(),
+          });
+        },
+      }),
     ],
   });
 }
