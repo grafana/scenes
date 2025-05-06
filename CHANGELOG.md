@@ -1,3 +1,25 @@
+# v6.10.3 (Tue May 06 2025)
+
+#### 🐛 Bug Fix
+
+- Chore: Moving towards workflow federation instead of secrets [#1119](https://github.com/grafana/scenes/pull/1119) ([@tolzhabayev](https://github.com/tolzhabayev))
+- Tighten security for github actions in repo [#1114](https://github.com/grafana/scenes/pull/1114) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes`
+  - AdHocFiltersCombobox: Read-only filters improvements [#1115](https://github.com/grafana/scenes/pull/1115) ([@adrapereira](https://github.com/adrapereira))
+  - SceneTimeRange: Fix calculatePercentOfInterval [#1101](https://github.com/grafana/scenes/pull/1101) ([@edvard-falkskar](https://github.com/edvard-falkskar))
+  - Tighten repo security [#1116](https://github.com/grafana/scenes/pull/1116) ([@mdvictor](https://github.com/mdvictor))
+  - fix: GroupBy Select receives null [#1112](https://github.com/grafana/scenes/pull/1112) ([@joannaWebDev](https://github.com/joannaWebDev))
+
+#### Authors: 5
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+- Edvard Falkskär ([@edvard-falkskar](https://github.com/edvard-falkskar))
+- Joanna ([@joannaWebDev](https://github.com/joannaWebDev))
+- Timur Olzhabayev ([@tolzhabayev](https://github.com/tolzhabayev))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.10.2 (Thu Apr 24 2025)
 
 #### 🐛 Bug Fix
