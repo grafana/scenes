@@ -83,7 +83,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             handleChangeViewMode();
           }
         }}
-        role="button"
+        role={readOnly ? undefined : 'button'}
         aria-label={`Edit filter with key ${keyLabel}`}
         tabIndex={0}
         ref={pillWrapperRef}
