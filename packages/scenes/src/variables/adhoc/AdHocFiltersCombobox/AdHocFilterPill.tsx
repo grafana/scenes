@@ -60,23 +60,22 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     }
   }, [viewMode]);
 
-  const getOriginFilterRestoreTooltip = (origin: FilterOrigin) => {
-    if (filter.origin === 'dashboard') {
-      return 'Restore the value set by this dashboard.';
-    } else if (filter.origin === 'scope') {
-      return 'Restore the value set by your selected scope.';
+  const getOriginFilterTooltips = (origin: FilterOrigin): { info: string; restore: string } => {
+    if (origin === 'dashboard') {
+      return {
+        info: 'Restore the value set by this dashboard.',
+        restore: 'Applied by default in this dashboard. If edited, it carries over to other dashboards.',
+      };
+    } else if (origin === 'scope') {
+      return {
+        info: 'Restore the value set by your selected scope.',
+        restore: 'Applied automatically from your selected scope.',
+      };
     } else {
-      return `Restore filter to its original value.`;
-    }
-  };
-
-  const getOriginFilterInfoTooltip = (origin: FilterOrigin) => {
-    if (filter.origin === 'dashboard') {
-      return 'Applied by default in this dashboard. If edited, it carries over to other dashboards.';
-    } else if (filter.origin === 'scope') {
-      return 'Applied automatically from your selected scope.';
-    } else {
-      return `This is a ${origin} injected filter.`;
+      return {
+        info: `Restore filter to its original value.`,
+        restore: `This is a ${origin} injected filter.`,
+      };
     }
   };
 
@@ -154,7 +153,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         )}
 
         {filter.origin && !filter.restorable && !filter.readOnly && (
-          <Tooltip content={getOriginFilterInfoTooltip(filter.origin)} placement={'bottom'}>
+          <Tooltip content={getOriginFilterTooltips(filter.origin).info} placement={'bottom'}>
             <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
           </Tooltip>
         )}
@@ -175,7 +174,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             name="history"
             size="md"
             className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
-            tooltip={getOriginFilterRestoreTooltip(filter.origin)}
+            tooltip={getOriginFilterTooltips(filter.origin).restore}
           />
         )}
       </div>
