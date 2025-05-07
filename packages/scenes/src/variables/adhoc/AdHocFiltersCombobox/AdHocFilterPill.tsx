@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -60,17 +60,27 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     }
   }, [viewMode]);
 
-  if (viewMode) {
-    let injectedInfoText = '';
-    let injectedRestoreText = '';
+  const getOriginFilterRestoreTooltip = (origin: FilterOrigin) => {
     if (filter.origin === 'dashboard') {
-      injectedInfoText = 'Applied by default in this dashboard. If edited, it carries over to other dashboards.';
-      injectedRestoreText = 'Restore the value defined by this dashboard.';
+      return 'Restore the value defined by this dashboard.';
     } else if (filter.origin === 'scope') {
-      injectedInfoText = 'Applied automatically from your selected scope.';
-      injectedRestoreText = 'Restore the value set by your selected scope.';
+      return 'Restore the value set by your selected scope.';
+    } else {
+      return `Restore filter to its original value.`;
     }
+  };
 
+  const getOriginFilterInfoTooltip = (origin: FilterOrigin) => {
+    if (filter.origin === 'dashboard') {
+      return 'Applied by default in this dashboard. If edited, it carries over to other dashboards.';
+    } else if (filter.origin === 'scope') {
+      return 'Applied automatically from your selected scope.';
+    } else {
+      return `This is a ${origin} injected filter.`;
+    }
+  };
+
+  if (viewMode) {
     const pillTextContent = `${keyLabel} ${filter.operator} ${valueLabel}`;
     const pillText = <span className={styles.pillText}>{pillTextContent}</span>;
 
@@ -144,7 +154,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         )}
 
         {filter.origin && !filter.restorable && !filter.readOnly && (
-          <Tooltip content={injectedInfoText} placement={'bottom'}>
+          <Tooltip content={getOriginFilterInfoTooltip(filter.origin)} placement={'bottom'}>
             <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
           </Tooltip>
         )}
@@ -165,7 +175,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             name="history"
             size="md"
             className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
-            tooltip={injectedRestoreText}
+            tooltip={getOriginFilterRestoreTooltip(filter.origin)}
           />
         )}
       </div>
