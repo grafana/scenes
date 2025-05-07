@@ -63,18 +63,18 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
   const getOriginFilterTooltips = (origin: FilterOrigin): { info: string; restore: string } => {
     if (origin === 'dashboard') {
       return {
-        info: 'Restore the value set by this dashboard.',
-        restore: 'Applied by default in this dashboard. If edited, it carries over to other dashboards.',
+        info: 'Applied by default in this dashboard. If edited, it carries over to other dashboards.',
+        restore: 'Restore the value set by this dashboard.',
       };
     } else if (origin === 'scope') {
       return {
-        info: 'Restore the value set by your selected scope.',
-        restore: 'Applied automatically from your selected scope.',
+        info: 'Applied automatically from your selected scope.',
+        restore: 'Restore the value set by your selected scope.',
       };
     } else {
       return {
-        info: `Restore filter to its original value.`,
-        restore: `This is a ${origin} injected filter.`,
+        info: `This is a ${origin} injected filter.`,
+        restore: `Restore filter to its original value.`,
       };
     }
   };
