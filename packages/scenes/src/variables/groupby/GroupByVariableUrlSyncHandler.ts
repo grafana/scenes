@@ -42,6 +42,10 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
 
       const { values, texts } = fromUrlValues(urlValue);
 
+      if (this._sceneObject.checkIfRestorable(values)) {
+        this._sceneObject.setState({ restorable: true });
+      }
+
       this._sceneObject.changeValueTo(values, texts);
     }
   }

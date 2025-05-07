@@ -1,14 +1,30 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { AdHocVariableFilter, DataSourceApi, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
+import React, { forwardRef, useEffect, useMemo, useState } from 'react';
+import {
+  AdHocVariableFilter,
+  DataSourceApi,
+  GetTagResponse,
+  GrafanaTheme2,
+  MetricFindValue,
+  SelectableValue,
+} from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
 import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
-import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } from '../types';
+import { ValidateAndUpdateResult, VariableValue, VariableValueOption, VariableValueSingle } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
-import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
+import {
+  Icon,
+  IconButton,
+  InputActionMeta,
+  MultiSelect,
+  Select,
+  Tooltip,
+  getInputStyles,
+  useTheme2,
+} from '@grafana/ui';
 import { isArray } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
@@ -17,6 +33,7 @@ import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { SceneScopesBridge } from '../../core/SceneScopesBridge';
+import { css, cx } from '@emotion/css';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -30,6 +47,8 @@ export interface GroupByVariableState extends MultiValueVariableState {
   datasource: DataSourceRef | null;
   /** Controls if the group by can be changed */
   readOnly?: boolean;
+  origin?: 'dashboard';
+  restorable?: boolean;
   /**
    * @experimental
    * Controls the layout and design of the label.
@@ -65,6 +84,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
 
   private _scopesBridge: SceneScopesBridge | undefined;
+  private _originalValues: { text: VariableValue; value: VariableValue } = { text: [], value: [] };
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -154,6 +174,45 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         return () => allActiveGroupByVariables.delete(this);
       });
     }
+
+    if (initialState.origin && initialState.text && initialState.value) {
+      this._originalValues = {
+        text: initialState.text,
+        value: initialState.value,
+      };
+    }
+  }
+
+  public checkIfRestorable(values: string[]) {
+    const originalValues = this._originalValues.value;
+
+    // currently only works for multi-value
+    if (!isArray(originalValues)) {
+      return false;
+    }
+
+    console.log(
+      values,
+      originalValues,
+      !(
+        values.every((element) => originalValues.includes(element)) &&
+        originalValues.every((element) => values.includes(element))
+      )
+    );
+
+    if (values.length !== originalValues.length) {
+      return true;
+    }
+
+    return !(
+      values.every((element) => originalValues.includes(element)) &&
+      originalValues.every((element) => values.includes(element))
+    );
+  }
+
+  public restoreDefaultValues() {
+    this.changeValueTo(this._originalValues.value, this._originalValues.text, true);
+    this.setState({ restorable: false });
   }
 
   /**
@@ -222,6 +281,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     options,
     includeAll,
     allowCustomValue = true,
+    origin,
   } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
@@ -291,7 +351,14 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       isClearable={true}
       hideSelectedOptions={false}
       isLoading={isFetchingOptions}
-      components={{ Option: OptionWithCheckbox }}
+      components={{
+        Option: OptionWithCheckbox,
+        ...(origin
+          ? {
+              IndicatorsContainer: (props) => <DefaultGroupByCustomIndicatorContainer {...props} model={model} />,
+            }
+          : {}),
+      }}
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(
@@ -299,6 +366,9 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           uncommittedValue.map((x) => x.label!),
           true
         );
+        if (model.checkIfRestorable(uncommittedValue.map((v) => v.value))) {
+          model.setState({ restorable: true });
+        }
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
@@ -380,3 +450,107 @@ function toSelectableValue(input: VariableValueOption): SelectableValue<Variable
 
   return result;
 }
+
+export const IndicatorsContainer = forwardRef<HTMLDivElement, React.PropsWithChildren>((props, ref) => {
+  const { children } = props;
+  const theme = useTheme2();
+  const styles = getInputStyles({ theme, invalid: false });
+
+  return (
+    <div
+      onMouseDown={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      className={cx(
+        styles.suffix,
+        css({
+          position: 'relative',
+        })
+      )}
+      ref={ref}
+    >
+      {children}
+    </div>
+  );
+});
+
+IndicatorsContainer.displayName = 'IndicatorsContainer';
+
+type DefaultGroupByCustomIndicatorProps = {
+  model: GroupByVariable;
+  selectProps: any;
+};
+
+function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCustomIndicatorProps) {
+  const { model, selectProps } = props;
+  const { restorable } = model.useState();
+  const theme = useTheme2();
+  const styles = getStyles(theme);
+
+  let buttons: React.ReactNode[] = [];
+
+  // should always be array, this works only for multivalues
+  if (isArray(model.state.value) && model.state.value.length) {
+    buttons.push(
+      <IconButton
+        aria-label="clear"
+        key="clear"
+        name="times"
+        size="md"
+        className={styles.clearIcon}
+        onClick={(e) => {
+          model.changeValueTo([], undefined, true);
+          if (model.checkIfRestorable([])) {
+            model.setState({ restorable: true });
+          }
+        }}
+      />
+    );
+  }
+
+  if (restorable) {
+    buttons.push(
+      <IconButton
+        onClick={(e) => {
+          props.model.restoreDefaultValues();
+        }}
+        onKeyDownCapture={(e) => {
+          if (e.key === 'Enter') {
+            props.model.restoreDefaultValues();
+          }
+        }}
+        key="restore"
+        name="history"
+        size="md"
+        className={styles.clearIcon}
+        tooltip={`Restore filter to its original value`}
+      />
+    );
+  }
+
+  buttons.push(
+    <Tooltip
+      key="tooltip"
+      content={'Applied by default in this dashboard. If edited, it carries over to other dashboards.'}
+      placement={'bottom'}
+    >
+      <Icon name="info-circle" size="md" />
+    </Tooltip>
+  );
+
+  return <IndicatorsContainer {...selectProps}>{buttons}</IndicatorsContainer>;
+}
+
+const getStyles = (theme: GrafanaTheme2) => ({
+  clearIcon: css({
+    color: theme.colors.action.disabledText,
+    cursor: 'pointer',
+    '&:hover:before': {
+      backgroundColor: 'transparent',
+    },
+    '&:hover': {
+      color: theme.colors.text.primary,
+    },
+  }),
+});
