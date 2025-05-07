@@ -62,7 +62,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
 
   const getOriginFilterRestoreTooltip = (origin: FilterOrigin) => {
     if (filter.origin === 'dashboard') {
-      return 'Restore the value defined by this dashboard.';
+      return 'Restore the value set by this dashboard.';
     } else if (filter.origin === 'scope') {
       return 'Restore the value set by your selected scope.';
     } else {
