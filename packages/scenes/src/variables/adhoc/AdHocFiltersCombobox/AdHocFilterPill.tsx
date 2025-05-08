@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -59,6 +59,25 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
       setPopulateInputOnEdit((prevValue) => (prevValue ? false : prevValue));
     }
   }, [viewMode]);
+
+  const getOriginFilterTooltips = (origin: FilterOrigin): { info: string; restore: string } => {
+    if (origin === 'dashboard') {
+      return {
+        info: 'Applied by default in this dashboard. If edited, it carries over to other dashboards.',
+        restore: 'Restore the value set by this dashboard.',
+      };
+    } else if (origin === 'scope') {
+      return {
+        info: 'Applied automatically from your selected scope.',
+        restore: 'Restore the value set by your selected scope.',
+      };
+    } else {
+      return {
+        info: `This is a ${origin} injected filter.`,
+        restore: `Restore filter to its original value.`,
+      };
+    }
+  };
 
   if (viewMode) {
     const pillTextContent = `${keyLabel} ${filter.operator} ${valueLabel}`;
@@ -134,7 +153,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
         )}
 
         {filter.origin && !filter.restorable && !filter.readOnly && (
-          <Tooltip content={`This is a ${filter.origin} injected filter`} placement={'bottom'}>
+          <Tooltip content={getOriginFilterTooltips(filter.origin).info} placement={'bottom'}>
             <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
           </Tooltip>
         )}
@@ -155,7 +174,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             name="history"
             size="md"
             className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
-            tooltip={`Restore filter to its original value`}
+            tooltip={getOriginFilterTooltips(filter.origin).restore}
           />
         )}
       </div>
