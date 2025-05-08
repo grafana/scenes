@@ -1,3 +1,15 @@
+# v6.10.4 (Thu May 08 2025)
+
+#### 🐛 Bug Fix
+
+- AdHocVariable: Add more suggestive injected filters tooltips [#1118](https://github.com/grafana/scenes/pull/1118) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.10.3 (Tue May 06 2025)
 
 #### 🐛 Bug Fix
