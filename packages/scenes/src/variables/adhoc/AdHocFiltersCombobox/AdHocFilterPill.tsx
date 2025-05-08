@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -60,18 +60,36 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     }
   }, [viewMode]);
 
+  const getOriginFilterTooltips = (origin: FilterOrigin): { info: string; restore: string } => {
+    if (origin === 'dashboard') {
+      return {
+        info: 'Applied by default in this dashboard. If edited, it carries over to other dashboards.',
+        restore: 'Restore the value set by this dashboard.',
+      };
+    } else if (origin === 'scope') {
+      return {
+        info: 'Applied automatically from your selected scope.',
+        restore: 'Restore the value set by your selected scope.',
+      };
+    } else {
+      return {
+        info: `This is a ${origin} injected filter.`,
+        restore: `Restore filter to its original value.`,
+      };
+    }
+  };
+
   if (viewMode) {
-    const pillText = (
-      <span className={styles.pillText}>
-        {keyLabel} {filter.operator} {valueLabel}
-      </span>
-    );
+    const pillTextContent = `${keyLabel} ${filter.operator} ${valueLabel}`;
+    const pillText = <span className={styles.pillText}>{pillTextContent}</span>;
+
     return (
       <div
         className={cx(
           styles.combinedFilterPill,
           readOnly && styles.readOnlyCombinedFilter,
-          isMatchAllFilter(filter) && styles.matchAllPill
+          isMatchAllFilter(filter) && styles.matchAllPill,
+          filter.readOnly && styles.filterReadOnly
         )}
         onClick={(e) => {
           e.stopPropagation();
@@ -84,15 +102,15 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             handleChangeViewMode();
           }
         }}
-        role="button"
+        role={readOnly ? undefined : 'button'}
         aria-label={`Edit filter with key ${keyLabel}`}
         tabIndex={0}
         ref={pillWrapperRef}
       >
-        {valueLabel.length < LABEL_MAX_VISIBLE_LENGTH ? (
+        {pillTextContent.length < LABEL_MAX_VISIBLE_LENGTH ? (
           pillText
         ) : (
-          <Tooltip content={<div className={styles.tooltipText}>{valueLabel}</div>} placement="top">
+          <Tooltip content={<div className={styles.tooltipText}>{pillTextContent}</div>} placement="top">
             {pillText}
           </Tooltip>
         )}
@@ -128,13 +146,19 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           />
         ) : null}
 
-        {filter.origin && !filter.restorable && (
-          <Tooltip content={`This is a ${filter.origin} injected filter`} placement={'bottom'}>
+        {filter.origin && filter.readOnly && (
+          <Tooltip content={`${filter.origin} managed filter`} placement={'bottom'}>
+            <Icon name="lock" size="md" className={styles.readOnlyPillIcon} />
+          </Tooltip>
+        )}
+
+        {filter.origin && !filter.restorable && !filter.readOnly && (
+          <Tooltip content={getOriginFilterTooltips(filter.origin).info} placement={'bottom'}>
             <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
           </Tooltip>
         )}
 
-        {filter.origin && filter.restorable && (
+        {filter.origin && filter.restorable && !filter.readOnly && (
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
@@ -150,7 +174,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             name="history"
             size="md"
             className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
-            tooltip={`Restore filter to its original value`}
+            tooltip={getOriginFilterTooltips(filter.origin).restore}
           />
         )}
       </div>
@@ -195,6 +219,13 @@ const getStyles = (theme: GrafanaTheme2) => ({
       background: theme.colors.action.selected,
     },
   }),
+  filterReadOnly: css({
+    background: theme.colors.background.canvas,
+    cursor: 'text',
+    '&:hover': {
+      background: theme.colors.background.canvas,
+    },
+  }),
   pillIcon: css({
     marginInline: theme.spacing(0.5),
     cursor: 'pointer',
@@ -214,6 +245,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
   infoPillIcon: css({
     marginInline: theme.spacing(0.5),
     cursor: 'pointer',
+  }),
+  readOnlyPillIcon: css({
+    marginInline: theme.spacing(0.5),
   }),
   matchAllPillIcon: css({
     marginInline: theme.spacing(0.5),
