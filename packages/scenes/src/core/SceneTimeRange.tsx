@@ -184,7 +184,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     );  
 
     this._urlSync.performBrowserHistoryAction(() => {
-      this.setState({ timeZone: newTimeZone, value });
+      this.setState({ timeZone: newTimeZone, value, from: value.raw.from, to: value.raw.to,});
     });
   };
 
