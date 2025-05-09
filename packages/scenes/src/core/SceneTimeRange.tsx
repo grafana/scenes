@@ -172,7 +172,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   public onTimeZoneChange = (timeZone: TimeZone) => {
-    const validTZ = getValidTimeZone(timeZone) ?? defaultTimeZone;
+    const newTimeZone = getValidTimeZone(timeZone) ?? defaultTimeZone;
 
     const value = evaluateTimeRange(
       this.state.from,
