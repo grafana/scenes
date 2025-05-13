@@ -4,6 +4,7 @@ import {
   SceneFlexItem,
   SceneFlexLayout,
   SceneVariableSet,
+  ScopesVariable,
   VizPanel,
 } from '@grafana/scenes';
 import { getEmbeddedSceneDefaults, getPromQueryInstant } from './utils';
@@ -12,13 +13,13 @@ import { EmbeddedSceneWithContext } from '@grafana/scenes-react';
 export function getScopesDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    useScopes: true,
+    $variables: new SceneVariableSet({
+      variables: [new ScopesVariable({})],
+    }),
     getScene: () => {
       return new EmbeddedSceneWithContext({
         ...getEmbeddedSceneDefaults(),
-        $variables: new SceneVariableSet({
-          variables: [],
-        }),
+
         key: 'Prometheus query that uses scopes',
         body: new SceneFlexLayout({
           direction: 'column',

@@ -1,8 +1,6 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneScopesBridge } from '../../core/SceneScopesBridge';
 import { SceneComponentProps, SceneObject, isDataRequestEnricher } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
@@ -17,31 +15,6 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   public static Component = SceneAppPageRenderer;
   private _sceneCache = new Map<string, EmbeddedScene>();
   private _drilldownCache = new Map<string, SceneAppPageLike>();
-  private _scopesBridge: SceneScopesBridge | undefined;
-
-  public constructor(state: SceneAppPageState) {
-    super(state);
-
-    this.addActivationHandler(this._activationHandler);
-  }
-
-  private _activationHandler = () => {
-    if (!this.state.useScopes) {
-      return;
-    }
-
-    this._scopesBridge = sceneGraph.getScopesBridge(this);
-
-    if (!this._scopesBridge) {
-      throw new Error('Use of scopes is enabled but no scopes bridge found');
-    }
-
-    this._scopesBridge.setEnabled(true);
-
-    return () => {
-      this._scopesBridge?.setEnabled(false);
-    };
-  };
 
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });

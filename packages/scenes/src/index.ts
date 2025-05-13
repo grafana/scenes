@@ -65,6 +65,7 @@ export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
+export { ScopesVariable } from './variables/variants/ScopesVariable';
 export {
   MultiValueVariable,
   type MultiValueVariableState,
