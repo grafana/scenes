@@ -42,6 +42,11 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    * Handle time macros.
    */
   handleTimeMacros?: boolean;
+
+  /**
+   * Depends on scopes
+   */
+  dependsOnScopes?: boolean;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
@@ -167,6 +172,10 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       for (const name of this._options.variableNames) {
         this._dependencies.add(name);
       }
+    }
+
+    if (this._options.dependsOnScopes) {
+      this._dependencies.add('__scopes');
     }
 
     if (this._statePaths) {

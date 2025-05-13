@@ -11,6 +11,7 @@ import {
   SceneComponentProps,
   SceneCSSGridLayout,
   SceneObject,
+  SceneScopesBridge,
 } from '@grafana/scenes';
 import React from 'react';
 import { demoUrl, prefixRoute } from '../utils/utils.routing';
@@ -25,6 +26,7 @@ import { DemoSubTitle } from '../pages/DemoSubTitle';
 function getDemoSceneApp() {
   return new SceneApp({
     name: 'scenes-demos-app',
+    scopesBridge: new SceneScopesBridge({}),
     urlSyncOptions: {
       updateUrlOnInit: true,
       createBrowserHistorySteps: true,

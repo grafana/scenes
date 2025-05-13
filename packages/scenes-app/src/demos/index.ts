@@ -40,6 +40,7 @@ import { getUrlSyncTest } from './urlSyncTest';
 import { getMlDemo } from './ml';
 import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
+import { getScopesDemo } from './scopesDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -297,6 +298,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Test panel series limit feature',
       getPage: getSeriesLimitTest,
       getSourceCodeModule: () => import('!!raw-loader!../demos/seriesLimit'),
+    },
+    {
+      title: 'Scopes demo',
+      description: 'Test scopes',
+      getPage: getScopesDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/scopesDemo'),
     },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
