@@ -97,3 +97,11 @@ function SceneScopesBridgeRenderer({ model }: SceneComponentProps<SceneScopesBri
 
   return null;
 }
+
+export interface ScopesBridgeParentState {
+  scopesBridge?: SceneScopesBridge;
+}
+
+export function isScopesBridgeParent(obj: Object): obj is ScopesBridgeParentState {
+  return 'scopesBridge' in obj;
+}

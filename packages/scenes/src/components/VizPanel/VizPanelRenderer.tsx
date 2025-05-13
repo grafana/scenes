@@ -35,7 +35,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     collapsed,
     _renderCounter = 0,
   } = model.useState();
-  const [ref, { width, height }] = useMeasure();
+
+  const [useMeasureRef, { width, height }] = useMeasure();
+  const wrapperRef = useScrollToAndHighlightPanel(model, useMeasureRef as RefCallback<HTMLDivElement>);
   const appEvents = useMemo(() => getAppEvents(), []);
 
   const setPanelAttention = useCallback(() => {
@@ -43,6 +45,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
     }
   }, [model.state.key, appEvents]);
+
   const debouncedMouseMove = useMemo(
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
     [setPanelAttention]
@@ -167,7 +170,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   return (
     <div className={relativeWrapper}>
-      <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
+      <div ref={wrapperRef} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
           // @ts-expect-error showMenuAlways remove when updating to @grafana/ui@12 fixed in https://github.com/grafana/grafana/pull/103553
           <PanelChrome
@@ -236,6 +239,29 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         )}
       </div>
     </div>
+  );
+}
+
+function useScrollToAndHighlightPanel(
+  panel: VizPanel,
+  otherRef: RefCallback<HTMLDivElement>
+): RefCallback<HTMLDivElement> {
+  return useCallback(
+    (element: HTMLDivElement) => {
+      otherRef(element);
+
+      if (window.location.search.indexOf('&__highlightPanel')) {
+        const highlightPanel = new URLSearchParams(window.location.search).get('__highlightPanel');
+        if (highlightPanel === panel.state.key) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('highlight-panel');
+          setTimeout(() => {
+            element.classList.remove('highlight-panel');
+          }, 2000);
+        }
+      }
+    },
+    [otherRef, panel]
   );
 }
 

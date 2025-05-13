@@ -2,7 +2,7 @@ import { ComponentType } from 'react';
 import { DataRequestEnricher, SceneObject, SceneObjectState, SceneUrlSyncOptions } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { IconName, PageLayoutType } from '@grafana/data';
-import { SceneScopesBridge } from '../../core/SceneScopesBridge';
+import { SceneScopesBridge, ScopesBridgeParentState } from '../../core/SceneScopesBridge';
 
 export interface SceneRouteMatch<Params extends { [K in keyof Params]?: string } = {}> {
   params: Params;
@@ -11,7 +11,7 @@ export interface SceneRouteMatch<Params extends { [K in keyof Params]?: string }
   url: string;
 }
 
-export interface SceneAppState extends SceneObjectState {
+export interface SceneAppState extends SceneObjectState, ScopesBridgeParentState {
   // Array of SceneAppPage objects that are considered app's top level pages
   pages: SceneAppPageLike[];
   name?: string;
