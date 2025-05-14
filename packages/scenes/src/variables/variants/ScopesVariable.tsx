@@ -68,7 +68,6 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
 
     // Subscribe to context state changes
     const sub = context.stateObservable.subscribe((state) => {
-      console.log('ScopesContext stateObservable update', state);
       this.updateStateFromContext(state);
     });
 
@@ -81,7 +80,7 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
     };
   }
 
-  private updateStateFromContext(state: ScopesContextValue['state']) {
+  public updateStateFromContext(state: { loading: boolean; value: Scope[] }) {
     // There was logic in SceneQueryRunner that said if there are no scopes then loading state should not block query execution
     const loading = state.value.length === 0 ? false : state.loading;
     this.setState({ scopes: state.value, loading });

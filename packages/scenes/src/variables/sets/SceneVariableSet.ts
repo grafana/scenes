@@ -15,9 +15,6 @@ import {
 import { VariableValueRecorder } from '../VariableValueRecorder';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
-  /** Variables that have changed in since the activation or since the first manual value change */
-  private _variablesThatHaveChanged = new Set<SceneVariable>();
-
   /** Variables that are scheduled to be validated and updated */
   private _variablesToUpdate = new Set<SceneVariable>();
 
@@ -184,7 +181,8 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   private _updateNextBatch() {
     for (const variable of this._variablesToUpdate) {
       if (!variable.validateAndUpdate) {
-        throw new Error('Variable added to variablesToUpdate but does not have validateAndUpdate');
+        console.error('Variable added to variablesToUpdate but does not have validateAndUpdate');
+        continue;
       }
 
       // Ignore it if it's already started
@@ -258,7 +256,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   private _handleVariableValueChanged(variableThatChanged: SceneVariable) {
-    this._variablesThatHaveChanged.add(variableThatChanged);
     this._addDependentVariablesToUpdateQueue(variableThatChanged);
 
     // Ignore this change if it is currently updating
@@ -294,7 +291,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
             otherVariable.onCancel();
           }
 
-          this._variablesToUpdate.add(otherVariable);
+          if (otherVariable.validateAndUpdate) {
+            this._variablesToUpdate.add(otherVariable);
+          }
+
+          otherVariable.variableDependency.variableUpdateCompleted(variableThatChanged, true);
         }
       }
     }
@@ -308,8 +309,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return;
     }
 
-    this._traverseSceneAndNotify(this.parent, variable, this._variablesThatHaveChanged.has(variable));
-    this._variablesThatHaveChanged.delete(variable);
+    this._traverseSceneAndNotify(this.parent, variable, true);
   }
 
   /**

@@ -25,6 +25,7 @@ import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFilter
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { isEqual } from 'lodash';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
+import { VariableDependencyConfig } from '../VariableDependencyConfig';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -211,6 +212,12 @@ export class AdHocFiltersVariable
   // to its original value if edited at some point
   private _originalValues: Map<string, { value: string[]; operator: string }> = new Map();
 
+  /** Needed for scopes dependency */
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    dependsOnScopes: true,
+    onReferencedVariableValueChanged: () => this._updateScopesFilters(),
+  });
+
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
   public constructor(state: Partial<AdHocFiltersVariableState>) {
@@ -247,15 +254,7 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    const scopes = sceneGraph.getScopes(this);
-
-    if (scopes) {
-      this._updateScopesFilters(scopes);
-    }
-
-    // const sub = this._scopesBridge?.subscribeToValue((n, _) => {
-    //   this._updateScopesFilters(n);
-    // });
+    this._updateScopesFilters();
 
     return () => {
       // we clear both scopes and dashboard level filters before leaving a dashboard to maintain accuracy for both
@@ -280,7 +279,15 @@ export class AdHocFiltersVariable
     };
   };
 
-  private _updateScopesFilters(scopes: Scope[]) {
+  private _updateScopesFilters() {
+    const scopes = sceneGraph.getScopes(this);
+
+    if (!scopes) {
+      return;
+    }
+
+    console.log('Updating scopes filters', scopes);
+
     if (!scopes.length) {
       this.setState({
         baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== 'scope'),
