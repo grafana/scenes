@@ -1,4 +1,5 @@
 import {
+  AdHocFiltersVariable,
   SceneAppPage,
   SceneAppPageState,
   SceneFlexItem,
@@ -14,7 +15,7 @@ export function getScopesDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
     $variables: new SceneVariableSet({
-      variables: [new ScopesVariable({ enable: true })],
+      variables: [new ScopesVariable({ enable: true }), new AdHocFiltersVariable({})],
     }),
     getScene: () => {
       return new EmbeddedSceneWithContext({

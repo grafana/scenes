@@ -84,7 +84,10 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
     // There was logic in SceneQueryRunner that said if there are no scopes then loading state should not block query execution
     const loading = state.value.length === 0 ? false : state.loading;
     this.setState({ scopes: state.value, loading });
-    this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+
+    if (!loading) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
   }
 
   /**
