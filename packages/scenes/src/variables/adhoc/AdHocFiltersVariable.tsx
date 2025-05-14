@@ -286,8 +286,6 @@ export class AdHocFiltersVariable
       return;
     }
 
-    console.log('Updating scopes filters', scopes);
-
     if (!scopes.length) {
       this.setState({
         baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== 'scope'),
