@@ -11,7 +11,6 @@ import {
   DataSourceApi,
   DataTopic,
   PanelData,
-  Scope,
   preProcessPanelData,
   rangeUtil,
 } from '@grafana/data';
