@@ -5,6 +5,7 @@ import { SceneComponentProps } from '../../core/types';
 import { ScopesContext, ScopesContextValue } from '@grafana/runtime';
 import React, { ReactNode, useContext, useEffect } from 'react';
 import { VariableHide } from '@grafana/schema';
+import { SCOPES_VARIABLE_NAME } from '../constants';
 
 export interface ScopesVariableState extends SceneVariableState {
   /**
@@ -28,7 +29,7 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
       scopes: [],
       ...state,
       type: 'system',
-      name: '__scopes',
+      name: SCOPES_VARIABLE_NAME,
       hide: VariableHide.hideVariable,
     });
   }

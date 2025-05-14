@@ -11,6 +11,7 @@ import { VariableInterpolation } from '@grafana/runtime';
 import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
 import { ScopesVariable } from '../../variables/variants/ScopesVariable';
+import { SCOPES_VARIABLE_NAME } from '../../variables/constants';
 
 /**
  * Get the closest node with variables
@@ -285,7 +286,7 @@ export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike 
  * Will return the scopes from the scopes variable if available.
  */
 export function getScopes(sceneObject: SceneObject): Scope[] | undefined {
-  const scopesVariable = lookupVariable('__scopes', sceneObject);
+  const scopesVariable = lookupVariable(SCOPES_VARIABLE_NAME, sceneObject);
   if (scopesVariable instanceof ScopesVariable) {
     return scopesVariable.state.scopes;
   }

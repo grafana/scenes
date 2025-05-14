@@ -2,7 +2,7 @@ import { DataLinkBuiltInVars } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
-import { VARIABLE_REGEX } from './constants';
+import { SCOPES_VARIABLE_NAME, VARIABLE_REGEX } from './constants';
 
 import { SceneVariable, SceneVariableDependencyConfigLike } from './types';
 import { safeStringifyValue } from './utils';
@@ -175,7 +175,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     }
 
     if (this._options.dependsOnScopes) {
-      this._dependencies.add('__scopes');
+      this._dependencies.add(SCOPES_VARIABLE_NAME);
     }
 
     if (this._statePaths) {
