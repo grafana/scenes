@@ -1,4 +1,4 @@
-import { map, Observable, of, BehaviorSubject } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 
 import {
   DataQueryRequest,
@@ -39,8 +39,6 @@ import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
 import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
 import { SceneQueryStateControllerState } from '../behaviors/types';
 import { config } from '@grafana/runtime';
-import { SceneScopesBridge } from '../core/SceneScopesBridge';
-import { sceneGraph } from '../core/sceneGraph';
 import { ScopesVariable } from '../variables/variants/ScopesVariable';
 
 const getDataSourceMock = jest.fn().mockReturnValue({

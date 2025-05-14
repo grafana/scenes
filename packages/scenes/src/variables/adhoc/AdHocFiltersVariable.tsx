@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  AdHocVariableFilter,
-  GetTagResponse,
-  GrafanaTheme2,
-  MetricFindValue,
-  Scope,
-  SelectableValue,
-} from '@grafana/data';
+import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';

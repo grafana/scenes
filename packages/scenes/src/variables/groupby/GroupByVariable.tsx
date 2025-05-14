@@ -16,7 +16,6 @@ import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
-import { VariableDependencyConfig } from '../VariableDependencyConfig';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
