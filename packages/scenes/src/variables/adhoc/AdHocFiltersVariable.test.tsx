@@ -20,7 +20,7 @@ import {
   Scope,
   ScopeSpecFilter,
 } from '@grafana/data';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import userEvent from '@testing-library/user-event';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexLayout, SceneFlexItem } from '../../components/layout/SceneFlexLayout';
@@ -34,7 +34,6 @@ import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
-import { sceneGraph } from '../../core/sceneGraph';
 import { ScopesVariable } from '../variants/ScopesVariable';
 
 const templateSrv = {
