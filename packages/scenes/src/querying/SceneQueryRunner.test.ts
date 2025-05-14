@@ -2630,66 +2630,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
   });
 
   describe('scopes', () => {
-    // it('should run queries normaly when scopes are removed', async () => {
-    //   const queryRunner = new SceneQueryRunner({
-    //     queries: [{ refId: 'A' }],
-    //     $timeRange: new SceneTimeRange(),
-    //   });
-
-    //   const scopes = new SceneScopesBridge({});
-    //   let mockState = {
-    //     value: [
-    //       {
-    //         metadata: { name: 'Scope 1' },
-    //         spec: {
-    //           title: 'Scope 1',
-    //           type: 'test',
-    //           description: 'Test scope',
-    //           category: 'test',
-    //           filters: [],
-    //         },
-    //       },
-    //     ],
-    //     drawerOpened: false,
-    //     enabled: true,
-    //     loading: false,
-    //     readOnly: false,
-    //   };
-
-    //   scopes.updateContext({
-    //     state: mockState,
-    //     stateObservable: new BehaviorSubject(mockState),
-    //     changeScopes: () => {},
-    //     setReadOnly: () => {},
-    //     setEnabled: () => {},
-    //   });
-
-    //   getScopesBridgeSpy.mockReturnValue(scopes);
-
-    //   // mimic removing scopes: no values, loading true
-    //   mockState = {
-    //     value: [],
-    //     drawerOpened: false,
-    //     enabled: true,
-    //     loading: true,
-    //     readOnly: false,
-    //   };
-
-    //   scopes.updateContext({
-    //     state: mockState,
-    //     stateObservable: new BehaviorSubject(mockState),
-    //     changeScopes: () => {},
-    //     setReadOnly: () => {},
-    //     setEnabled: () => {},
-    //   });
-
-    //   queryRunner.activate();
-    //   await new Promise((r) => setTimeout(r, 1));
-
-    //   expect(sentRequest?.scopes).toBeDefined();
-    //   expect(sentRequest?.scopes).toEqual([]);
-    // });
-
     it('should run queries with scopes when scopesBridge is provided', async () => {
       const scopesVariable = new ScopesVariable({
         scopes: [
@@ -2728,6 +2668,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
     });
   });
 
+  // This test does not make sense, wrong description?
   it('should not run queries with scopes when scopesBridge is not provided and the feature is disabled', async () => {
     const queryRunner = new SceneQueryRunner({
       queries: [{ refId: 'A' }],
