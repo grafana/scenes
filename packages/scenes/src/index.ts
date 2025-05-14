@@ -137,7 +137,6 @@ export { MultiOrSingleValueSelect } from './variables/components/VariableValueSe
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
 export { type VizConfig } from './core/PanelBuilders/types';
-export { SceneScopesBridge } from './core/SceneScopesBridge';
 
 export const sceneUtils = {
   getUrlWithAppState,

@@ -49,7 +49,6 @@ import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
 import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
-import { ScopesVariable } from '../variables/variants/ScopesVariable';
 
 let counter = 100;
 
@@ -131,6 +130,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     statePaths: ['queries', 'datasource', 'minInterval'],
     onVariableUpdateCompleted: this.onVariableUpdatesCompleted.bind(this),
     onAnyVariableChanged: this.onAnyVariableChanged.bind(this),
+    dependsOnScopes: true,
   });
 
   public constructor(initialState: QueryRunnerState) {
@@ -508,15 +508,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return clone;
   }
 
-  private getScopes(): Scope[] | undefined {
-    const scopesVariable = sceneGraph.lookupVariable('__scopes', this);
-    if (scopesVariable instanceof ScopesVariable) {
-      return scopesVariable.state.scopes;
-    }
-
-    return undefined;
-  }
-
   private prepareRequests(timeRange: SceneTimeRangeLike, ds: DataSourceApi): PreparedRequests {
     const { minInterval, queries } = this.state;
 
@@ -538,7 +529,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       },
       cacheTimeout: this.state.cacheTimeout,
       queryCachingTTL: this.state.queryCachingTTL,
-      scopes: this.getScopes(),
+      scopes: sceneGraph.getScopes(this),
       // This asks the scene root to provide context properties like app, panel and dashboardUID
       ...getEnrichedDataRequest(this),
     };
