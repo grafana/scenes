@@ -49,6 +49,8 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
 
   /**
    * This method is used to keep the context up to date with the scopes context received from React
+   * 1) Subscribes to ScopesContext state changes and synchronizes it with the variable state
+   * 2) Handles enable / disabling of scopes based on variable enable option.
    */
   public setContext(context: ScopesContextValue | undefined) {
     if (!context) {
@@ -59,9 +61,7 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
 
     const oldState = context.state;
 
-    // if scopesEnabled has value we enabled or disabled scopes
-    // scopesEnabled option allows scenes to disable or enable scopes when the variable is activated
-    // or leave it undefined allowing the app to enable it on a higher level (using useScopes)
+    // Update scopes enable state if state.enable is defined
     if (this.state.enable != null) {
       context.setEnabled(this.state.enable);
     }
