@@ -2668,8 +2668,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
     });
   });
 
-  // This test does not make sense, wrong description?
-  it('should not run queries with scopes when scopesBridge is not provided and the feature is disabled', async () => {
+  it('should not pass scopes in request when no ScopesVariable in scene', async () => {
     const queryRunner = new SceneQueryRunner({
       queries: [{ refId: 'A' }],
       $timeRange: new SceneTimeRange(),
