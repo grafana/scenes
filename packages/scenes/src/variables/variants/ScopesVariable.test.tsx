@@ -11,6 +11,8 @@ import { Scope } from '@grafana/data';
 import { BehaviorSubject } from 'rxjs';
 import { SceneCSSGridLayout } from '../../components/layout/CSSGrid/SceneCSSGridLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
+import { sceneInterpolator } from '../interpolation/sceneInterpolator';
+import { VariableFormatID } from '@grafana/schema';
 
 describe('ScopesVariable', () => {
   it('Should enable scopes on render and disable on unmount when enable: true', async () => {
@@ -49,23 +51,11 @@ describe('ScopesVariable', () => {
   });
 
   it('Should format as query parameters', async () => {
-    const variable = new ScopesVariable({
-      scopes: [
-        {
-          metadata: { name: 'scope1' },
-          spec: { title: 'scope1', type: 'type1', description: 'description1', category: 'scope', filters: [] },
-        },
-        {
-          metadata: { name: 'scope2' },
-          spec: { title: 'scope2', type: 'type2', description: 'description2', category: 'scope', filters: [] },
-        },
-      ],
-    });
+    const { scene } = renderTestScene({ initialScopes: ['scope1', 'scope2'] });
 
-    const value = variable.getValue() as ScopesVariableFormatter;
-
-    expect(value.formatter('queryparam')).toEqual('scope=scope1&scope=scope2');
-    expect(value.formatter()).toEqual('scope1, scope2');
+    // Interpolate using sceneInterpolator and the variable set as context
+    expect(sceneInterpolator(scene, '${__scopes:queryparam}')).toEqual('scope=scope1&scope=scope2');
+    expect(sceneInterpolator(scene, '${__scopes}')).toEqual('scope1, scope2');
   });
 });
 
