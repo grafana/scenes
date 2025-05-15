@@ -1,3 +1,15 @@
+# v6.11.1 (Thu May 15 2025)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Allow passing partial state when cloning [#1127](https://github.com/grafana/scenes/pull/1127) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
 # v6.11.0 (Thu May 15 2025)
 
 #### 🚀 Enhancement
