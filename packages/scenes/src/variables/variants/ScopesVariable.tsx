@@ -1,11 +1,18 @@
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
+import {
+  CustomVariableValue,
+  SceneVariable,
+  SceneVariableState,
+  SceneVariableValueChangedEvent,
+  VariableValue,
+} from '../types';
 import { Scope } from '@grafana/data';
 import { SceneComponentProps } from '../../core/types';
 import { ScopesContext, ScopesContextValue } from '@grafana/runtime';
 import React, { ReactNode, useContext, useEffect } from 'react';
-import { VariableHide } from '@grafana/schema';
+import { VariableFormatID, VariableHide } from '@grafana/schema';
 import { SCOPES_VARIABLE_NAME } from '../constants';
+import { formatRegistry } from '../interpolation/formatRegistry';
 
 export interface ScopesVariableState extends SceneVariableState {
   /**
@@ -37,10 +44,9 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
   /**
    * Temporary simple implementation to stringify the scopes.
    */
-  public getValue(fieldPath: string): VariableValue {
+  public getValue(): VariableValue {
     const scopes = this.state.scopes ?? [];
-    const scopeNames = scopes.map((scope) => scope.metadata.name);
-    return scopeNames.join(', ');
+    return new ScopesVariableFormatter(scopes.map((scope) => scope.metadata.name));
   }
 
   public getScopes(): Scope[] | undefined {
@@ -106,4 +112,16 @@ function ScopesVariableRenderer({ model }: SceneComponentProps<ScopesVariable>) 
   }, [context, model]);
 
   return null;
+}
+
+export class ScopesVariableFormatter implements CustomVariableValue {
+  public constructor(private _value: string[]) {}
+
+  public formatter(formatNameOrFn?: string): string {
+    if (formatNameOrFn === VariableFormatID.QueryParam) {
+      return this._value.map((scope) => `scope=${encodeURIComponent(scope)}`).join('&');
+    }
+
+    return this._value.join(', ');
+  }
 }

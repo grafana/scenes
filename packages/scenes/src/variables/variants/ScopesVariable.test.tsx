@@ -5,7 +5,7 @@ import { act, render, screen } from '@testing-library/react';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
-import { ScopesVariable } from './ScopesVariable';
+import { ScopesVariable, ScopesVariableFormatter } from './ScopesVariable';
 import { ScopesContext, ScopesContextValue } from '@grafana/runtime';
 import { Scope } from '@grafana/data';
 import { BehaviorSubject } from 'rxjs';
@@ -46,6 +46,26 @@ describe('ScopesVariable', () => {
     const set = new SceneVariableSet({ variables: [variable] });
 
     expect(set.isVariableLoadingOrWaitingToUpdate(variable)).toBe(true);
+  });
+
+  it('Should format as query parameters', async () => {
+    const variable = new ScopesVariable({
+      scopes: [
+        {
+          metadata: { name: 'scope1' },
+          spec: { title: 'scope1', type: 'type1', description: 'description1', category: 'scope', filters: [] },
+        },
+        {
+          metadata: { name: 'scope2' },
+          spec: { title: 'scope2', type: 'type2', description: 'description2', category: 'scope', filters: [] },
+        },
+      ],
+    });
+
+    const value = variable.getValue() as ScopesVariableFormatter;
+
+    expect(value.formatter('queryparam')).toEqual('scope=scope1&scope=scope2');
+    expect(value.formatter()).toEqual('scope1, scope2');
   });
 });
 
