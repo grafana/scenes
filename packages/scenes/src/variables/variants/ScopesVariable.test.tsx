@@ -5,14 +5,13 @@ import { act, render, screen } from '@testing-library/react';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
-import { ScopesVariable, ScopesVariableFormatter } from './ScopesVariable';
+import { ScopesVariable } from './ScopesVariable';
 import { ScopesContext, ScopesContextValue } from '@grafana/runtime';
 import { Scope } from '@grafana/data';
 import { BehaviorSubject } from 'rxjs';
 import { SceneCSSGridLayout } from '../../components/layout/CSSGrid/SceneCSSGridLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
 import { sceneInterpolator } from '../interpolation/sceneInterpolator';
-import { VariableFormatID } from '@grafana/schema';
 
 describe('ScopesVariable', () => {
   it('Should enable scopes on render and disable on unmount when enable: true', async () => {
