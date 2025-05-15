@@ -401,6 +401,18 @@ describe('VizPanel', () => {
     });
   });
 
+  describe('clone', () => {
+    it('Clone should ignore instanceState', () => {
+      const panel = new VizPanel({ key: 'panel-12' });
+      const instanceState = { prop: 'hello' };
+
+      panel.getPanelContext().onInstanceStateChange!(instanceState);
+
+      const clone = panel.clone();
+      expect(clone.state._pluginInstanceState).toBeUndefined();
+    });
+  });
+
   describe('updating options', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 

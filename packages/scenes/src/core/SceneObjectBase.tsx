@@ -18,7 +18,7 @@ import {
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
 import { SceneObjectStateChangedEvent } from './events';
-import { cloneSceneObject } from './sceneGraph/utils';
+import { cloneSceneObject } from './sceneGraph/cloneSceneObject';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
 
