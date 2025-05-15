@@ -295,6 +295,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
             this._variablesToUpdate.add(otherVariable);
           }
 
+          // Because _traverseSceneAndNotify skips itself (and this sets variables) we call this here to notify the variable of the change
           otherVariable.variableDependency.variableUpdateCompleted(variableThatChanged, true);
         }
       }
