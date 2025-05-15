@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config } from '@grafana/runtime';
-import { act, getAllByRole, render, screen, within } from '@testing-library/react';
+import { act, getAllByRole, render, screen } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import React from 'react';
 import { GroupByVariable, GroupByVariableState } from './GroupByVariable';
