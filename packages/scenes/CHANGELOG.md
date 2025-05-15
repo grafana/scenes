@@ -1,3 +1,22 @@
+# v6.11.0 (Thu May 15 2025)
+
+#### 🚀 Enhancement
+
+- VizPanel: Cloning should ignore pluginInstanceState [#1124](https://github.com/grafana/scenes/pull/1124) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- VizPanelBuilders: Update failing snapshot test [#1123](https://github.com/grafana/scenes/pull/1123) ([@torkelo](https://github.com/torkelo))
+- SceneTimePicker: Add defaultQuickRanges to override the default time range options [#1113](https://github.com/grafana/scenes/pull/1113) ([@joshhunt](https://github.com/joshhunt) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 3
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.10.4 (Thu May 08 2025)
 
 #### 🐛 Bug Fix
