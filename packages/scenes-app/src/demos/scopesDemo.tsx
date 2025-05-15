@@ -15,7 +15,7 @@ export function getScopesDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
     $variables: new SceneVariableSet({
-      variables: [new ScopesVariable({ enable: true }), new AdHocFiltersVariable({})],
+      variables: [new ScopesVariable({ enable: true }), new AdHocFiltersVariable({ layout: 'combobox' })],
     }),
     getScene: () => {
       return new EmbeddedSceneWithContext({
