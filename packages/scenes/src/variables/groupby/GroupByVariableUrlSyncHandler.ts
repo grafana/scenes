@@ -13,16 +13,12 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
     return `var-${this._sceneObject.state.name}`;
   }
 
-  private getRestorableKey(): string {
-    return `${this._sceneObject.state.name}-restorable`;
-  }
-
   public getKeys(): string[] {
     if (this._sceneObject.state.skipUrlSync) {
       return [];
     }
 
-    return [this.getKey(), this.getRestorableKey()];
+    return [this.getKey()];
   }
 
   public getUrlState(): SceneObjectUrlValues {
@@ -36,18 +32,11 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
         this._sceneObject.state.text,
         this._sceneObject.state.defaultValues?.value
       ),
-      [this.getRestorableKey()]:
-        this._sceneObject.state.defaultValues && this._sceneObject.state.restorable ? 'true' : undefined,
     };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
     let urlValue = values[this.getKey()];
-    const isRestorable = values[this.getRestorableKey()];
-
-    if (isRestorable !== null && isRestorable !== undefined) {
-      this._sceneObject.setState({ restorable: true });
-    }
 
     if (urlValue != null) {
       /**

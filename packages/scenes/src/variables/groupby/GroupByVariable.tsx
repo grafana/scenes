@@ -32,7 +32,7 @@ export interface GroupByVariableState extends MultiValueVariableState {
   defaultValues?: { text: VariableValue; value: VariableValue };
   /** Controls if the group by can be changed */
   readOnly?: boolean;
-  restorable?: boolean;
+  resetable?: boolean;
   /**
    * @experimental
    * Controls the layout and design of the label.
@@ -162,9 +162,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   private _activationHandler = () => {
-    console.log('activate', this.state.defaultValues, this.state.restorable);
     if (this.state.defaultValues && this.checkIfRestorable(this.state.value)) {
-      this.setState({ restorable: true });
+      this.setState({ resetable: true });
     }
   };
 
@@ -188,7 +187,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public restoreDefaultValues() {
-    this.setState({ restorable: false });
+    this.setState({ resetable: false });
 
     if (!this.state.defaultValues) {
       return;
@@ -319,7 +318,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       aria-label="Group by selector"
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={'Select value'}
+      placeholder={'Group by label'}
       width="auto"
       allowCustomValue={allowCustomValue}
       inputValue={inputValue}
@@ -353,8 +352,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 
         const restorable = model.checkIfRestorable(uncommittedValue.map((v) => v.value!));
 
-        if (restorable !== model.state.restorable) {
-          model.setState({ restorable });
+        if (restorable !== model.state.resetable) {
+          model.setState({ resetable: restorable });
         }
       }}
       onChange={(newValue, action) => {
@@ -378,7 +377,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       aria-label="Group by selector"
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={'Select value'}
+      placeholder={'Group by label'}
       width="auto"
       inputValue={inputValue}
       value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
