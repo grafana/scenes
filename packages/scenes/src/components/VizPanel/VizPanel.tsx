@@ -556,9 +556,9 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     );
   };
 
-  public clone() {
+  public clone(withState?: Partial<VizPanelState>) {
     // Clear _pluginInstanceState and _pluginLoadError as it's not safe to clone
-    return super.clone({ _pluginInstanceState: undefined, _pluginLoadError: undefined });
+    return super.clone({ _pluginInstanceState: undefined, _pluginLoadError: undefined, ...withState });
   }
 
   private buildPanelContext(): PanelContext {
