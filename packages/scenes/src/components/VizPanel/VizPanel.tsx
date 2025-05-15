@@ -556,6 +556,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     );
   };
 
+  public clone() {
+    // Clear _pluginInstanceState and _pluginLoadError as it's not safe to clone
+    return super.clone({ _pluginInstanceState: undefined, _pluginLoadError: undefined });
+  }
+
   private buildPanelContext(): PanelContext {
     const sync = getCursorSyncScope(this);
 

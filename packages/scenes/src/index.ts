@@ -1,6 +1,6 @@
 import { getUrlWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
-import { cloneSceneObjectState } from './core/sceneGraph/utils';
+import { cloneSceneObjectState } from './core/sceneGraph/cloneSceneObject';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
 
