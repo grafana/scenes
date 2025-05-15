@@ -170,8 +170,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   public checkIfRestorable(values: VariableValue) {
     const originalValues = isArray(this.state.defaultValues?.value)
       ? this.state.defaultValues?.value
-      : [this.state.defaultValues?.value ?? ''];
-    const vals = isArray(values) ? values : [values ?? ''];
+      : this.state.defaultValues?.value
+      ? [this.state.defaultValues?.value]
+      : [];
+    const vals = isArray(values) ? values : [values];
 
     if (vals.length !== originalValues.length) {
       return true;

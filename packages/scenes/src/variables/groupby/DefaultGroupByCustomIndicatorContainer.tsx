@@ -15,11 +15,11 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
   const theme = useTheme2();
   const styles = getStyles(theme);
   const inputStyles = getInputStyles({ theme, invalid: false });
+  const value = isArray(model.state.value) ? model.state.value : model.state.value ? [model.state.value] : [];
 
   let buttons: React.ReactNode[] = [];
 
-  // should always be array, this works only for multivalues
-  if (isArray(model.state.value) && model.state.value.length) {
+  if (value && value.length) {
     buttons.push(
       <IconButton
         aria-label="clear"
