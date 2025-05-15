@@ -12,7 +12,6 @@ import { ScopesContext, ScopesContextValue } from '@grafana/runtime';
 import React, { ReactNode, useContext, useEffect } from 'react';
 import { VariableFormatID, VariableHide } from '@grafana/schema';
 import { SCOPES_VARIABLE_NAME } from '../constants';
-import { formatRegistry } from '../interpolation/formatRegistry';
 
 export interface ScopesVariableState extends SceneVariableState {
   /**
