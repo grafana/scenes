@@ -183,8 +183,11 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       this.state.weekStart
     );  
 
+    const from = value.from.toISOString();
+    const to = value.to.toISOString();
+
     this._urlSync.performBrowserHistoryAction(() => {
-      this.setState({ timeZone: newTimeZone, value});
+      this.setState({ timeZone: newTimeZone, value, from, to});
       this.publishEvent(new RefreshEvent(), true);
     });
   };
