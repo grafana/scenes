@@ -57,12 +57,21 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
       if (isEqual(values, defaults) && this._sceneObject.state.defaultValues) {
         this._sceneObject.changeValueTo(
           this._sceneObject.state.defaultValues?.value,
-          this._sceneObject.state.defaultValues?.text
+          this._sceneObject.state.defaultValues?.text,
+          false
         );
         return;
       }
 
       this._sceneObject.changeValueTo(values, texts);
+    } else {
+      if (this._sceneObject.state.defaultValues) {
+        this._sceneObject.changeValueTo(
+          this._sceneObject.state.defaultValues?.value,
+          this._sceneObject.state.defaultValues?.text,
+          false
+        );
+      }
     }
   }
 

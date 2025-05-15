@@ -9,7 +9,7 @@ import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } f
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
-import { isArray } from 'lodash';
+import { isArray, isEqual } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
@@ -179,10 +179,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       return true;
     }
 
-    return !(
-      vals.every((element) => originalValues.includes(element)) &&
-      originalValues.every((element) => vals.includes(element))
-    );
+    return !isEqual(vals, originalValues);
   }
 
   public restoreDefaultValues() {
