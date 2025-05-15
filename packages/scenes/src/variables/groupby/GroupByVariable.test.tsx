@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config } from '@grafana/runtime';
-import { act, getAllByRole, render, screen } from '@testing-library/react';
+import { act, getAllByRole, render, screen, within } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import React from 'react';
 import { GroupByVariable, GroupByVariableState } from './GroupByVariable';
@@ -167,6 +167,71 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       expect(variable.state.value).toEqual(['a', 'b,something', 'c,something']);
       expect(variable.state.text).toEqual(['A,something', 'b,something', 'C,something']);
+    });
+
+    it('should mark default values', () => {
+      setupTest({
+        value: ['defaultVal1', 'normalVal'],
+        defaultValues: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1__gfp__default&var-test=normalVal');
+    });
+
+    it('should turn normal values to default ones if they match', () => {
+      const { variable } = setupTest({
+        value: ['normalVal'],
+        defaultValues: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      expect(locationService.getLocation().search).toBe('?var-test=normalVal');
+
+      act(() => {
+        locationService.push('/?var-test=defaultVal1');
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1']);
+      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1__gfp__default');
+    });
+
+    it('should see default values and be able to restore them', () => {
+      const { variable } = setupTest({
+        defaultValues: {
+          value: ['defaultVal1', 'defaultVal2'],
+          text: ['defaultVal1', 'defaultVal2'],
+        },
+      });
+
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+      expect(variable.state.restorable).toBe(true);
+
+      variable.restoreDefaultValues();
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.text).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValues!.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValues!.text).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.restorable).toBe(false);
+    });
+
+    it('should not set variable as restorable if values are the same as default ones', () => {
+      const { variable } = setupTest({
+        value: ['defaultVal1', 'defaultVal2'],
+        defaultValues: {
+          value: ['defaultVal1', 'defaultVal2'],
+          text: ['defaultVal1', 'defaultVal2'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.restorable).toBe(undefined);
     });
 
     it('should work with browser history action on user action', () => {
@@ -383,6 +448,23 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       await userEvent.click(selects[0]);
 
       expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should restore to default', async () => {
+      const { variable } = setupTest({
+        allowCustomValue: true,
+        defaultValues: {
+          value: ['defaultValue'],
+          text: ['defaultValue'],
+        },
+      });
+
+      const restore = screen.getByLabelText('Restore groupby set by this dashboard.');
+
+      await userEvent.click(restore);
+
+      expect(screen.queryByLabelText('Restore groupby set by this dashboard.')).not.toBeInTheDocument();
+      expect(variable.state.value).toEqual(['defaultValue']);
     });
   });
 });

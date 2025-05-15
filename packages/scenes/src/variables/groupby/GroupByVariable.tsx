@@ -32,7 +32,7 @@ export interface GroupByVariableState extends MultiValueVariableState {
   defaultValues?: { text: VariableValue; value: VariableValue };
   /** Controls if the group by can be changed */
   readOnly?: boolean;
-  resetable?: boolean;
+  restorable?: boolean;
   /**
    * @experimental
    * Controls the layout and design of the label.
@@ -163,31 +163,28 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
   private _activationHandler = () => {
     if (this.state.defaultValues && this.checkIfRestorable(this.state.value)) {
-      this.setState({ resetable: true });
+      this.setState({ restorable: true });
     }
   };
 
   public checkIfRestorable(values: VariableValue) {
-    const originalValues = this.state.defaultValues?.value;
+    const originalValues = isArray(this.state.defaultValues?.value)
+      ? this.state.defaultValues?.value
+      : [this.state.defaultValues?.value ?? ''];
+    const vals = isArray(values) ? values : [values ?? ''];
 
-    // currently only works for multi-value which is the only
-    // way to have a groupBy in dashboards
-    if (!isArray(originalValues) || !isArray(values)) {
-      return false;
-    }
-
-    if (values.length !== originalValues.length) {
+    if (vals.length !== originalValues.length) {
       return true;
     }
 
     return !(
-      values.every((element) => originalValues.includes(element)) &&
-      originalValues.every((element) => values.includes(element))
+      vals.every((element) => originalValues.includes(element)) &&
+      originalValues.every((element) => vals.includes(element))
     );
   }
 
   public restoreDefaultValues() {
-    this.setState({ resetable: false });
+    this.setState({ restorable: false });
 
     if (!this.state.defaultValues) {
       return;
@@ -352,8 +349,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 
         const restorable = model.checkIfRestorable(uncommittedValue.map((v) => v.value!));
 
-        if (restorable !== model.state.resetable) {
-          model.setState({ resetable: restorable });
+        if (restorable !== model.state.restorable) {
+          model.setState({ restorable: restorable });
         }
       }}
       onChange={(newValue, action) => {

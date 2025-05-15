@@ -11,7 +11,7 @@ type DefaultGroupByCustomIndicatorProps = {
 
 export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCustomIndicatorProps) {
   const { model } = props;
-  const { resetable } = model.useState();
+  const { restorable } = model.useState();
   const theme = useTheme2();
   const styles = getStyles(theme);
   const inputStyles = getInputStyles({ theme, invalid: false });
@@ -30,14 +30,14 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
         onClick={(e) => {
           model.changeValueTo([], undefined, true);
           if (model.checkIfRestorable([])) {
-            model.setState({ resetable: true });
+            model.setState({ restorable: true });
           }
         }}
       />
     );
   }
 
-  if (resetable) {
+  if (restorable) {
     buttons.push(
       <IconButton
         onClick={(e) => {
@@ -52,17 +52,17 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
         name="history"
         size="md"
         className={styles.clearIcon}
-        tooltip={`Restore groupby set by this dashboard.`}
+        tooltip="Restore groupby set by this dashboard."
       />
     );
   }
 
-  if (!resetable) {
+  if (!restorable) {
     buttons.push(
       <Tooltip
         key="tooltip"
-        content={'Applied by default in this dashboard. If edited, it carries over to other dashboards.'}
-        placement={'bottom'}
+        content="Applied by default in this dashboard. If edited, it carries over to other dashboards."
+        placement="bottom"
       >
         <Icon name="info-circle" size="md" />
       </Tooltip>
