@@ -162,6 +162,15 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   private _activationHandler = () => {
+    if (this.state.defaultValues && ((isArray(this.state.value) && !this.state.value.length) || !this.state.value)) {
+      this.setState({
+        value: this.state.defaultValues.value,
+        text: this.state.defaultValues.text,
+        restorable: false,
+      });
+      return;
+    }
+
     if (this.state.defaultValues && this.checkIfRestorable(this.state.value)) {
       this.setState({ restorable: true });
     }
