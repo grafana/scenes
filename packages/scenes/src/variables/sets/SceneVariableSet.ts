@@ -351,7 +351,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * For example if C depends on variable B which depends on variable A and A is loading this returns true for variable C and B.
    */
   public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable) {
-    // TODO add test for this condition
     if (variable.state.loading) {
       return true;
     }
