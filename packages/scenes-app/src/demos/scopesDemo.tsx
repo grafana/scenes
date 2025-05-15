@@ -29,7 +29,7 @@ export function getScopesDemo(defaults: SceneAppPageState) {
               body: new VizPanel({
                 title: 'ALERTS',
                 pluginId: 'table',
-                $data: getPromQueryInstant({ datasource: { uid: 'se-demo' }, expr: 'ALERTS', format: 'table' }),
+                $data: getPromQueryInstant({ expr: 'ALERTS', format: 'table' }),
               }),
             }),
           ],

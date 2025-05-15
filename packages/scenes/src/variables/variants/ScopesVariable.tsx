@@ -93,7 +93,7 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
   /**
    * Special function that enables variables to be hidden but still render to access react contexts
    */
-  public hiddenRender(): ReactNode {
+  public UNSAFE_hiddenRender(): ReactNode {
     return <ScopesVariableRenderer model={this} />;
   }
 }

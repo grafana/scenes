@@ -53,7 +53,7 @@ export function getRowWithText(text: string) {
 
 export function getPromQueryInstant(query: Partial<SceneDataQuery>): SceneQueryRunner {
   return new SceneQueryRunner({
-    datasource: { uid: 'se-demo' },
+    datasource: { uid: 'gdev-prometheus' },
     queries: [
       {
         refId: 'A',

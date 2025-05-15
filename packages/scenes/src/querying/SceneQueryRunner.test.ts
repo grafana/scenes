@@ -2628,7 +2628,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
   });
 
   describe('scopes', () => {
-    it('should run queries with scopes when scopesBridge is provided', async () => {
+    it('should run queries with scopes when ScopesVariable is provided', async () => {
       const scopesVariable = new ScopesVariable({
         scopes: [
           {

@@ -45,7 +45,7 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
   onCancel?(): void;
 
   /**
-   * Edge case for variables that is hidden but wants to be render to access react contexts (ScopesVariable)
+   * Edge case for variables that are hidden but wants to be render to access react contexts (ScopesVariable)
    */
   hiddenRender?(): React.ReactNode;
 

@@ -44,7 +44,7 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
   handleTimeMacros?: boolean;
 
   /**
-   * Depends on scopes
+   * Will add ScopesVariable as a dependency which will cause updates when the scopes change.
    */
   dependsOnScopes?: boolean;
 }
