@@ -37,6 +37,16 @@ To setup scenes with local Grafana, the following setup is required:
 1. From Grafana Scenes root directory run `./scripts/dev.sh`. This will compile @grafana/scenes with watch mode enabled and link it to your Grafana.
 1. From Grafana directory run `yarn install`.
 
+If you are working on a feature in core, that needs a certain Scenes change:
+
+1. Add the "release" label to your PR. This will create a release for each commit you make and one when the PR is merged.
+2. Update the `@grafana/scenes` version in `package.json` to use the release you want to try
+3. Let people review your PR with this change
+4. Merge your Scenes PR
+5. Bump the Scenes version in core Grafana
+6. Sync with your branch
+7. Merge PR into grafana/grafana
+
 ### Setting up local version of @grafana/scenes with app plugin
 
 1. Run `YARN_IGNORE_PATH=1 yarn link` from `packages/scenes` directory.
