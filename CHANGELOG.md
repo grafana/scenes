@@ -1,3 +1,32 @@
+# v6.12.0 (Fri May 16 2025)
+
+### Release Notes
+
+#### Scopes: Replace ScopesBridge with ScopesVariable ([#1121](https://github.com/grafana/scenes/pull/1121))
+
+SceneScopesBridge is now replaced by ScopesVariable, which now needs to be added to a SceneVariableSet attached to every SceneAppPage or EmbeddedScene (whatever suits your scenario) where you want to use scopes. This variable is not visible in the UI. You can control whether scopes are enabled or disabled on a specific page/scene using the ScopesVariable or control this on a higher level using ScopesContext. 
+
+sceneGraph.getScopesBridge is replaced by sceneGraph.getScopes, which just returns the scopes (by looking up the ScopesVariable and getting it from it's value).
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Scopes: Replace ScopesBridge with ScopesVariable [#1121](https://github.com/grafana/scenes/pull/1121) ([@torkelo](https://github.com/torkelo) [@tskarhed](https://github.com/tskarhed))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - README: Explain usage of the "release" label [#1126](https://github.com/grafana/scenes/pull/1126) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 2
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.11.1 (Thu May 15 2025)
 
 #### 🐛 Bug Fix
