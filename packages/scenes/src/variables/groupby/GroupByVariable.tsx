@@ -16,7 +16,6 @@ import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
-import { SceneScopesBridge } from '../../core/SceneScopesBridge';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -63,8 +62,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   isLazy = true;
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
-
-  private _scopesBridge: SceneScopesBridge | undefined;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -183,7 +180,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       filters: otherFilters,
       queries,
       timeRange,
-      scopes: this._scopesBridge?.getValue(),
+      scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
     if (responseHasError(response)) {

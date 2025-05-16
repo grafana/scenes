@@ -65,6 +65,7 @@ export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
+export { ScopesVariable } from './variables/variants/ScopesVariable';
 export {
   MultiValueVariable,
   type MultiValueVariableState,
@@ -136,7 +137,6 @@ export { MultiOrSingleValueSelect } from './variables/components/VariableValueSe
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
 export { type VizConfig } from './core/PanelBuilders/types';
-export { SceneScopesBridge } from './core/SceneScopesBridge';
 
 export const sceneUtils = {
   getUrlWithAppState,
