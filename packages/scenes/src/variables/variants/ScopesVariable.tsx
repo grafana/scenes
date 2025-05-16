@@ -9,7 +9,7 @@ import {
 import { Scope } from '@grafana/data';
 import { SceneComponentProps } from '../../core/types';
 import { ScopesContext, ScopesContextValue } from '@grafana/runtime';
-import React, { ReactNode, useContext, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { VariableFormatID, VariableHide } from '@grafana/schema';
 import { SCOPES_VARIABLE_NAME } from '../constants';
 
