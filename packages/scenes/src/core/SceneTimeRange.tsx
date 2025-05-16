@@ -172,23 +172,17 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   };
 
   public onTimeZoneChange = (timeZone: TimeZone) => {
-    const newTimeZone = getValidTimeZone(timeZone) ?? defaultTimeZone;
-
-    const value = evaluateTimeRange(
-      this.state.from,
-      this.state.to,
-      newTimeZone,
-      this.state.fiscalYearStartMonth,
-      this.state.UNSAFE_nowDelay,
-      this.state.weekStart
-    );  
-
-    const from = value.from.toISOString();
-    const to = value.to.toISOString();
-
     this._urlSync.performBrowserHistoryAction(() => {
-      this.setState({ timeZone: newTimeZone, value, from, to});
-      this.publishEvent(new RefreshEvent(), true);
+      const validTimeZone = getValidTimeZone(timeZone) ?? defaultTimeZone;
+      const updatedValue = evaluateTimeRange(
+        this.state.from,
+        this.state.to,
+        validTimeZone,
+        this.state.fiscalYearStartMonth,
+        this.state.UNSAFE_nowDelay,
+        this.state.weekStart
+      );
+      this.setState({ timeZone: validTimeZone, value: updatedValue });
     });
   };
 
