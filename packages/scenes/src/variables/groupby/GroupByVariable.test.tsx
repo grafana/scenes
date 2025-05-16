@@ -169,6 +169,91 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.text).toEqual(['A,something', 'b,something', 'C,something']);
     });
 
+    it('should mark default values', async () => {
+      const { variable } = setupTest({
+        value: ['defaultVal1', 'normalVal'],
+        defaultValues: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      await act(async () => {
+        await lastValueFrom(variable.validateAndUpdate());
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'normalVal']);
+      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1__gfp__default&var-test=normalVal');
+    });
+
+    it('should turn normal values to default ones if they match', async () => {
+      const { variable } = setupTest({
+        value: ['normalVal'],
+        defaultValues: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      await act(async () => {
+        await lastValueFrom(variable.validateAndUpdate());
+      });
+
+      expect(locationService.getLocation().search).toBe('?var-test=normalVal');
+
+      act(() => {
+        locationService.push('/?var-test=defaultVal1');
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1']);
+      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1__gfp__default');
+    });
+
+    it('should set default values as current values if none are set', () => {
+      const { variable } = setupTest({
+        defaultValues: {
+          value: ['defaultVal1', 'defaultVal2'],
+          text: ['defaultVal1', 'defaultVal2'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.text).toEqual(['defaultVal1', 'defaultVal2']);
+    });
+
+    it('should see default values and be able to restore them', () => {
+      const { variable } = setupTest({
+        value: ['val1'],
+        text: ['val1'],
+        defaultValues: {
+          value: ['defaultVal1', 'defaultVal2'],
+          text: ['defaultVal1', 'defaultVal2'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['val1']);
+      expect(variable.state.text).toEqual(['val1']);
+
+      variable.restoreDefaultValues();
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.text).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValues!.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValues!.text).toEqual(['defaultVal1', 'defaultVal2']);
+    });
+
+    it('should not set variable as restorable if values are the same as default ones', () => {
+      const { variable } = setupTest({
+        value: ['defaultVal1', 'defaultVal2'],
+        defaultValues: {
+          value: ['defaultVal1', 'defaultVal2'],
+          text: ['defaultVal1', 'defaultVal2'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+    });
+
     it('should work with browser history action on user action', () => {
       const { variable } = setupTest({
         defaultOptions: [
@@ -383,6 +468,23 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       await userEvent.click(selects[0]);
 
       expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should restore to default', async () => {
+      const { variable } = setupTest({
+        value: ['val'],
+        defaultValues: {
+          value: ['defaultValue'],
+          text: ['defaultValue'],
+        },
+      });
+
+      const restore = screen.getByLabelText('Restore groupby set by this dashboard.');
+
+      await userEvent.click(restore);
+
+      expect(screen.queryByLabelText('Restore groupby set by this dashboard.')).not.toBeInTheDocument();
+      expect(variable.state.value).toEqual(['defaultValue']);
     });
   });
 });
