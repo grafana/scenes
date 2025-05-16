@@ -11,6 +11,7 @@ import { Scope } from '@grafana/data';
 import { BehaviorSubject } from 'rxjs';
 import { SceneCSSGridLayout } from '../../components/layout/CSSGrid/SceneCSSGridLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
+import { sceneInterpolator } from '../interpolation/sceneInterpolator';
 
 describe('ScopesVariable', () => {
   it('Should enable scopes on render and disable on unmount when enable: true', async () => {
@@ -46,6 +47,14 @@ describe('ScopesVariable', () => {
     const set = new SceneVariableSet({ variables: [variable] });
 
     expect(set.isVariableLoadingOrWaitingToUpdate(variable)).toBe(true);
+  });
+
+  it('Should format as query parameters', async () => {
+    const { scene } = renderTestScene({ initialScopes: ['scope1', 'scope2'] });
+
+    // Interpolate using sceneInterpolator and the variable set as context
+    expect(sceneInterpolator(scene, '${__scopes:queryparam}')).toEqual('scope=scope1&scope=scope2');
+    expect(sceneInterpolator(scene, '${__scopes}')).toEqual('scope1, scope2');
   });
 });
 

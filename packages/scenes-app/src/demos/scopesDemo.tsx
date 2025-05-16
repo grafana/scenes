@@ -1,5 +1,6 @@
 import {
   AdHocFiltersVariable,
+  PanelBuilders,
   SceneAppPage,
   SceneAppPageState,
   SceneFlexItem,
@@ -8,8 +9,8 @@ import {
   ScopesVariable,
   VizPanel,
 } from '@grafana/scenes';
-import { getEmbeddedSceneDefaults, getPromQueryInstant } from './utils';
 import { EmbeddedSceneWithContext } from '@grafana/scenes-react';
+import { getEmbeddedSceneDefaults, getPromQueryInstant } from './utils';
 
 export function getScopesDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -31,6 +32,17 @@ export function getScopesDemo(defaults: SceneAppPageState) {
                 pluginId: 'table',
                 $data: getPromQueryInstant({ expr: 'ALERTS', format: 'table' }),
               }),
+            }),
+            new SceneFlexItem({
+              body: PanelBuilders.text()
+                .setTitle('Text panel with scopes')
+                .setOption(
+                  'content',
+                  `\`__scopes\`:  $__scopes
+                  \`__scopes:queryparam\`: \${__scopes:queryparam}
+                  `
+                )
+                .build(),
             }),
           ],
         }),
