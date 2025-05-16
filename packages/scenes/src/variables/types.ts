@@ -47,7 +47,7 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
   /**
    * Edge case for variables that are hidden but wants to be render to access react contexts (ScopesVariable)
    */
-  hiddenRender?(): React.ReactNode;
+  UNSAFE_renderAsHidden: boolean;
 
   /**
    * @experimental

@@ -43,8 +43,8 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways, hideL
   const state = useSceneObjectState<SceneVariableState>(variable, { shouldActivateOrKeepAlive: true });
 
   if (state.hide === VariableHide.hideVariable && !showAlways) {
-    if (variable.UNSAFE_hiddenRender) {
-      return variable.UNSAFE_hiddenRender();
+    if (variable.UNSAFE_renderAsHidden) {
+      return <variable.Component model={variable} />;
     }
 
     return null;

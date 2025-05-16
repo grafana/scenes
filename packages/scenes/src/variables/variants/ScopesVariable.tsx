@@ -22,6 +22,10 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
   protected _renderBeforeActivation = true;
   protected _context: ScopesContextValue | undefined;
 
+  // Special options that enables variables to be hidden but still render to access react contexts
+  public UNSAFE_renderAsHidden = true;
+  public static Component = ScopesVariableRenderer;
+
   public constructor(state: Partial<ScopesVariableState>) {
     super({
       skipUrlSync: true,
@@ -88,13 +92,6 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
     if (!loading) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
-  }
-
-  /**
-   * Special function that enables variables to be hidden but still render to access react contexts
-   */
-  public hiddenRender(): ReactNode {
-    return <ScopesVariableRenderer model={this} />;
   }
 }
 
