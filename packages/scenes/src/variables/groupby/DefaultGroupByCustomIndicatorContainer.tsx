@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Icon, IconButton, Tooltip, getInputStyles, useTheme2 } from '@grafana/ui';
 import { GroupByVariable } from './GroupByVariable';
 import { isArray } from 'lodash';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
+import { VariableValueSingle } from '../types';
 
 type DefaultGroupByCustomIndicatorProps = {
   model: GroupByVariable;
@@ -11,11 +12,17 @@ type DefaultGroupByCustomIndicatorProps = {
 
 export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCustomIndicatorProps) {
   const { model } = props;
-  const { restorable } = model.useState();
   const theme = useTheme2();
   const styles = getStyles(theme);
   const inputStyles = getInputStyles({ theme, invalid: false });
-  const value = isArray(model.state.value) ? model.state.value : model.state.value ? [model.state.value] : [];
+  const value = useMemo<VariableValueSingle[]>(
+    () => (isArray(model.state.value) ? model.state.value : model.state.value ? [model.state.value] : []),
+    [model.state.value]
+  );
+
+  const isRestorable = useMemo<boolean>(() => {
+    return model.checkIfRestorable(value);
+  }, [value, model]);
 
   let buttons: React.ReactNode[] = [];
 
@@ -29,15 +36,12 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
         className={styles.clearIcon}
         onClick={(e) => {
           model.changeValueTo([], undefined, true);
-          if (model.checkIfRestorable([])) {
-            model.setState({ restorable: true });
-          }
         }}
       />
     );
   }
 
-  if (restorable) {
+  if (isRestorable) {
     buttons.push(
       <IconButton
         onClick={(e) => {
@@ -57,7 +61,7 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
     );
   }
 
-  if (!restorable) {
+  if (!isRestorable) {
     buttons.push(
       <Tooltip
         key="tooltip"

@@ -32,7 +32,6 @@ export interface GroupByVariableState extends MultiValueVariableState {
   defaultValues?: { text: VariableValue; value: VariableValue };
   /** Controls if the group by can be changed */
   readOnly?: boolean;
-  restorable?: boolean;
   /**
    * @experimental
    * Controls the layout and design of the label.
@@ -166,13 +165,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       this.setState({
         value: this.state.defaultValues.value,
         text: this.state.defaultValues.text,
-        restorable: false,
       });
       return;
-    }
-
-    if (this.state.defaultValues && this.checkIfRestorable(this.state.value)) {
-      this.setState({ restorable: true });
     }
   };
 
@@ -192,8 +186,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public restoreDefaultValues() {
-    this.setState({ restorable: false });
-
     if (!this.state.defaultValues) {
       return;
     }
@@ -270,8 +262,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     defaultValues,
   } = model.useState();
 
-  const hasDefaultValues = defaultValues !== undefined;
-
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
     const arrayText = isArray(text) ? text : [text];
@@ -290,6 +280,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
   const [uncommittedValue, setUncommittedValue] = useState(values);
 
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
+
+  const hasDefaultValues = defaultValues !== undefined;
 
   // Detect value changes outside
   useEffect(() => {
@@ -354,12 +346,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           uncommittedValue.map((x) => x.label!),
           true
         );
-
-        const restorable = model.checkIfRestorable(uncommittedValue.map((v) => v.value!));
-
-        if (restorable !== model.state.restorable) {
-          model.setState({ restorable: restorable });
-        }
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
