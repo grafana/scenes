@@ -16,8 +16,7 @@ import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { LocalValueVariable } from '../variants/LocalValueVariable';
 import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
-import { SceneVariable, SceneVariableState, ValidateAndUpdateResult, VariableValue } from '../types';
-import { Observable } from 'rxjs';
+import { SceneVariable, SceneVariableState, VariableValue } from '../types';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
