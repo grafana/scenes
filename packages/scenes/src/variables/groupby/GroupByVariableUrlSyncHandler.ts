@@ -30,7 +30,7 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
       [this.getKey()]: toUrlValues(
         this._sceneObject.state.value,
         this._sceneObject.state.text,
-        this._sceneObject.state.defaultValues?.value
+        this._sceneObject.state.defaultValue?.value
       ),
     };
   }
@@ -54,10 +54,10 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
       // values of the new dashboard instead of carrying these ones with us.
       // If there are also other values, then the variable is modified and we
       // do want to carry them all across
-      if (isEqual(values, defaults) && this._sceneObject.state.defaultValues) {
+      if (isEqual(values, defaults) && this._sceneObject.state.defaultValue) {
         this._sceneObject.changeValueTo(
-          this._sceneObject.state.defaultValues?.value,
-          this._sceneObject.state.defaultValues?.text,
+          this._sceneObject.state.defaultValue?.value,
+          this._sceneObject.state.defaultValue?.text,
           false
         );
         return;

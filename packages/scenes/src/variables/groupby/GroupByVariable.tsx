@@ -29,7 +29,8 @@ export interface GroupByVariableState extends MultiValueVariableState {
   baseFilters?: AdHocVariableFilter[];
   /** Datasource to use for getTagKeys and also controls which scene queries the group by should apply to */
   datasource: DataSourceRef | null;
-  defaultValues?: { text: VariableValue; value: VariableValue };
+  /** Default value set on the dashboard. When this field is set, changing value will allow the user to restore back to this default value */
+  defaultValue?: { text: VariableValue; value: VariableValue };
   /** Controls if the group by can be changed */
   readOnly?: boolean;
   /**
@@ -161,20 +162,22 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   private _activationHandler = () => {
-    if (this.state.defaultValues && ((isArray(this.state.value) && !this.state.value.length) || !this.state.value)) {
+    if (this.state.defaultValue && ((isArray(this.state.value) && !this.state.value.length) || !this.state.value)) {
       this.setState({
-        value: this.state.defaultValues.value,
-        text: this.state.defaultValues.text,
+        value: this.state.defaultValue.value,
+        text: this.state.defaultValue.text,
       });
-      return;
     }
   };
 
+  // This method is related to the defaultValue property. We check if the current value
+  // is different from the default value. If it is, the groupBy will show a button
+  // allowing the user to restore the default values.
   public checkIfRestorable(values: VariableValue) {
-    const originalValues = isArray(this.state.defaultValues?.value)
-      ? this.state.defaultValues?.value
-      : this.state.defaultValues?.value
-      ? [this.state.defaultValues?.value]
+    const originalValues = isArray(this.state.defaultValue?.value)
+      ? this.state.defaultValue?.value
+      : this.state.defaultValue?.value
+      ? [this.state.defaultValue?.value]
       : [];
     const vals = isArray(values) ? values : [values];
 
@@ -186,11 +189,11 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public restoreDefaultValues() {
-    if (!this.state.defaultValues) {
+    if (!this.state.defaultValue) {
       return;
     }
 
-    this.changeValueTo(this.state.defaultValues.value, this.state.defaultValues.text, true);
+    this.changeValueTo(this.state.defaultValue.value, this.state.defaultValue.text, true);
   }
 
   /**
@@ -259,7 +262,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     options,
     includeAll,
     allowCustomValue = true,
-    defaultValues,
+    defaultValue,
   } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
@@ -281,7 +284,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
-  const hasDefaultValues = defaultValues !== undefined;
+  const hasDefaultValue = defaultValue !== undefined;
 
   // Detect value changes outside
   useEffect(() => {
@@ -333,7 +336,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       isLoading={isFetchingOptions}
       components={{
         Option: OptionWithCheckbox,
-        ...(hasDefaultValues
+        ...(hasDefaultValue
           ? {
               IndicatorsContainer: () => <DefaultGroupByCustomIndicatorContainer model={model} />,
             }

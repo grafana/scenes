@@ -172,7 +172,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     it('should mark default values', async () => {
       const { variable } = setupTest({
         value: ['defaultVal1', 'normalVal'],
-        defaultValues: {
+        defaultValue: {
           value: ['defaultVal1'],
           text: ['defaultVal1'],
         },
@@ -189,7 +189,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     it('should turn normal values to default ones if they match', async () => {
       const { variable } = setupTest({
         value: ['normalVal'],
-        defaultValues: {
+        defaultValue: {
           value: ['defaultVal1'],
           text: ['defaultVal1'],
         },
@@ -211,7 +211,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
     it('should set default values as current values if none are set', () => {
       const { variable } = setupTest({
-        defaultValues: {
+        defaultValue: {
           value: ['defaultVal1', 'defaultVal2'],
           text: ['defaultVal1', 'defaultVal2'],
         },
@@ -225,7 +225,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const { variable } = setupTest({
         value: ['val1'],
         text: ['val1'],
-        defaultValues: {
+        defaultValue: {
           value: ['defaultVal1', 'defaultVal2'],
           text: ['defaultVal1', 'defaultVal2'],
         },
@@ -238,14 +238,14 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
       expect(variable.state.text).toEqual(['defaultVal1', 'defaultVal2']);
-      expect(variable.state.defaultValues!.value).toEqual(['defaultVal1', 'defaultVal2']);
-      expect(variable.state.defaultValues!.text).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValue!.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValue!.text).toEqual(['defaultVal1', 'defaultVal2']);
     });
 
     it('should not set variable as restorable if values are the same as default ones', () => {
       const { variable } = setupTest({
         value: ['defaultVal1', 'defaultVal2'],
-        defaultValues: {
+        defaultValue: {
           value: ['defaultVal1', 'defaultVal2'],
           text: ['defaultVal1', 'defaultVal2'],
         },
@@ -473,7 +473,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     it('should restore to default', async () => {
       const { variable } = setupTest({
         value: ['val'],
-        defaultValues: {
+        defaultValue: {
           value: ['defaultValue'],
           text: ['defaultValue'],
         },
