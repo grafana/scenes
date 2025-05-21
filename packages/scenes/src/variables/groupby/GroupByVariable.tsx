@@ -30,6 +30,8 @@ export interface GroupByVariableState extends MultiValueVariableState {
   datasource: DataSourceRef | null;
   /** Default value set for this groupBy. When this field is set, changing value will allow the user to restore back to this default value */
   defaultValue?: { text: VariableValue; value: VariableValue };
+  /** Needed for url sync when passing flag to another dashboard */
+  restorable?: boolean;
   /** Controls if the group by can be changed */
   readOnly?: boolean;
   /**
@@ -163,8 +165,17 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       this.setState({
         value: this.state.defaultValue.value,
         text: this.state.defaultValue.text,
+        restorable: false,
       });
     }
+
+    if (this.state.defaultValue && this.checkIfRestorable(this.state.value)) {
+      this.setState({ restorable: true });
+    }
+
+    return () => {
+      this.restoreDefaultValues();
+    };
   };
 
   // This method is related to the defaultValue property. We check if the current value
@@ -186,6 +197,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public restoreDefaultValues() {
+    this.setState({ restorable: false });
+
     if (!this.state.defaultValue) {
       return;
     }
@@ -346,6 +359,12 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           uncommittedValue.map((x) => x.label!),
           true
         );
+
+        const restorable = model.checkIfRestorable(uncommittedValue.map((v) => v.value!));
+
+        if (restorable !== model.state.restorable) {
+          model.setState({ restorable: restorable });
+        }
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
