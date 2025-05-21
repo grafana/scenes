@@ -169,7 +169,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.text).toEqual(['A,something', 'b,something', 'C,something']);
     });
 
-    it('should mark default values', async () => {
+    it('should set restorable if value differs from defaultValue', async () => {
       const { variable } = setupTest({
         value: ['defaultVal1', 'normalVal'],
         defaultValue: {
@@ -183,10 +183,12 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       });
 
       expect(variable.state.value).toEqual(['defaultVal1', 'normalVal']);
-      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1__gfp__default&var-test=normalVal');
+      expect(locationService.getLocation().search).toBe(
+        '?var-test=defaultVal1&var-test=normalVal&test-restorable=true'
+      );
     });
 
-    it('should turn normal values to default ones if they match', async () => {
+    it('should restore to default', async () => {
       const { variable } = setupTest({
         value: ['normalVal'],
         defaultValue: {
@@ -199,14 +201,14 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=normalVal');
+      expect(locationService.getLocation().search).toBe('?var-test=normalVal&test-restorable=true');
 
       act(() => {
-        locationService.push('/?var-test=defaultVal1');
+        variable.restoreDefaultValues();
       });
 
       expect(variable.state.value).toEqual(['defaultVal1']);
-      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1__gfp__default');
+      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1');
     });
 
     it('should set default values as current values if none are set', () => {
@@ -233,6 +235,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       expect(variable.state.value).toEqual(['val1']);
       expect(variable.state.text).toEqual(['val1']);
+      expect(variable.state.restorable).toBe(true);
 
       variable.restoreDefaultValues();
 
@@ -240,6 +243,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.text).toEqual(['defaultVal1', 'defaultVal2']);
       expect(variable.state.defaultValue!.value).toEqual(['defaultVal1', 'defaultVal2']);
       expect(variable.state.defaultValue!.text).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.restorable).toBe(false);
     });
 
     it('should not set variable as restorable if values are the same as default ones', () => {
