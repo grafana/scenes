@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  AdHocVariableFilter,
-  GetTagResponse,
-  GrafanaTheme2,
-  MetricFindValue,
-  Scope,
-  SelectableValue,
-} from '@grafana/data';
+import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
@@ -23,9 +16,9 @@ import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
-import { SceneScopesBridge } from '../../core/SceneScopesBridge';
 import { isEqual } from 'lodash';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
+import { VariableDependencyConfig } from '../VariableDependencyConfig';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -207,11 +200,16 @@ export class AdHocFiltersVariable
 
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
-  private _scopesBridge: SceneScopesBridge | undefined;
   // holds the originalValues of all baseFilters in a map. The values
   // are set on construct and used to restore a baseFilter with an origin
   // to its original value if edited at some point
   private _originalValues: Map<string, { value: string[]; operator: string }> = new Map();
+
+  /** Needed for scopes dependency */
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    dependsOnScopes: true,
+    onReferencedVariableValueChanged: () => this._updateScopesFilters(),
+  });
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
@@ -249,21 +247,9 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    this._scopesBridge = sceneGraph.getScopesBridge(this);
-
-    const scopes = this._scopesBridge?.getValue();
-
-    if (scopes) {
-      this._updateScopesFilters(scopes);
-    }
-
-    const sub = this._scopesBridge?.subscribeToValue((n, _) => {
-      this._updateScopesFilters(n);
-    });
+    this._updateScopesFilters();
 
     return () => {
-      sub?.unsubscribe();
-
       // we clear both scopes and dashboard level filters before leaving a dashboard to maintain accuracy for both
       // when/if we return to the same dashboard
       // e.g.: we edit a scope filter and go to another dashboard, it gets carried over, but then on that dashboard
@@ -286,7 +272,13 @@ export class AdHocFiltersVariable
     };
   };
 
-  private _updateScopesFilters(scopes: Scope[]) {
+  private _updateScopesFilters() {
+    const scopes = sceneGraph.getScopes(this);
+
+    if (!scopes) {
+      return;
+    }
+
     if (!scopes.length) {
       this.setState({
         baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== 'scope'),
@@ -586,7 +578,7 @@ export class AdHocFiltersVariable
       filters: otherFilters,
       queries,
       timeRange,
-      scopes: this._scopesBridge?.getValue(),
+      scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
 
@@ -630,7 +622,7 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
-    let scopes = this._scopesBridge?.getValue();
+    let scopes = sceneGraph.getScopes(this);
 
     // if current filter is a scope injected one we need to filter out
     // filters with same key in scopes prop, similar to how we do in adhocFilters prop

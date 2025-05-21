@@ -1,3 +1,79 @@
+# v6.12.0 (Fri May 16 2025)
+
+### Release Notes
+
+#### Scopes: Replace ScopesBridge with ScopesVariable ([#1121](https://github.com/grafana/scenes/pull/1121))
+
+SceneScopesBridge is now replaced by ScopesVariable, which now needs to be added to a SceneVariableSet attached to every SceneAppPage or EmbeddedScene (whatever suits your scenario) where you want to use scopes. This variable is not visible in the UI. You can control whether scopes are enabled or disabled on a specific page/scene using the ScopesVariable or control this on a higher level using ScopesContext. 
+
+sceneGraph.getScopesBridge is replaced by sceneGraph.getScopes, which just returns the scopes (by looking up the ScopesVariable and getting it from it's value).
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Scopes: Replace ScopesBridge with ScopesVariable [#1121](https://github.com/grafana/scenes/pull/1121) ([@torkelo](https://github.com/torkelo) [@tskarhed](https://github.com/tskarhed))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - README: Explain usage of the "release" label [#1126](https://github.com/grafana/scenes/pull/1126) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 2
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.11.1 (Thu May 15 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Allow passing partial state when cloning [#1127](https://github.com/grafana/scenes/pull/1127) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v6.11.0 (Thu May 15 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Cloning should ignore pluginInstanceState [#1124](https://github.com/grafana/scenes/pull/1124) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanelBuilders: Update failing snapshot test [#1123](https://github.com/grafana/scenes/pull/1123) ([@torkelo](https://github.com/torkelo))
+  - SceneTimePicker: Add defaultQuickRanges to override the default time range options [#1113](https://github.com/grafana/scenes/pull/1113) ([@joshhunt](https://github.com/joshhunt) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 3
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.10.4 (Thu May 08 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocVariable: Add more suggestive injected filters tooltips [#1118](https://github.com/grafana/scenes/pull/1118) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.10.3 (Tue May 06 2025)
 
 #### 🐛 Bug Fix
