@@ -29,7 +29,7 @@ export interface GroupByVariableState extends MultiValueVariableState {
   baseFilters?: AdHocVariableFilter[];
   /** Datasource to use for getTagKeys and also controls which scene queries the group by should apply to */
   datasource: DataSourceRef | null;
-  /** Default value set on the dashboard. When this field is set, changing value will allow the user to restore back to this default value */
+  /** Default value set for this groupBy. When this field is set, changing value will allow the user to restore back to this default value */
   defaultValue?: { text: VariableValue; value: VariableValue };
   /** Controls if the group by can be changed */
   readOnly?: boolean;
