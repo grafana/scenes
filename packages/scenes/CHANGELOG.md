@@ -1,3 +1,15 @@
+# v6.13.0 (Thu May 22 2025)
+
+#### 🚀 Enhancement
+
+- GroupByVariable: Add support for default values [#1122](https://github.com/grafana/scenes/pull/1122) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.12.0 (Fri May 16 2025)
 
 ### Release Notes
