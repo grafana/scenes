@@ -4,7 +4,7 @@
 
 #### Scopes: Replace ScopesBridge with ScopesVariable ([#1121](https://github.com/grafana/scenes/pull/1121))
 
-SceneScopesBridge is now replaced by ScopesVariable, which now needs to be added to a SceneVariableSet attached to every SceneAppPage or EmbeddedScene (whatever suits your scenario) where you want to use scopes. This variable is not visible in the UI. You can control whether scopes are enabled or disabled on a specific page/scene using the ScopesVariable or control this on a higher level using ScopesContext. 
+SceneScopesBridge is now replaced by ScopesVariable, which now needs to be added to a SceneVariableSet attached to every SceneAppPage or EmbeddedScene (whatever suits your scenario) where you want to use scopes. This variable is not visible in the UI. You can control whether scopes are enabled or disabled on a specific page/scene using the ScopesVariable or control this on a higher level using ScopesContext.
 
 sceneGraph.getScopesBridge is replaced by sceneGraph.getScopes, which just returns the scopes (by looking up the ScopesVariable and getting it from it's value).
 
