@@ -161,20 +161,27 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   private _activationHandler = () => {
-    if (this.state.defaultValue && ((isArray(this.state.value) && !this.state.value.length) || !this.state.value)) {
-      this.setState({
-        value: this.state.defaultValue.value,
-        text: this.state.defaultValue.text,
-        restorable: false,
-      });
-    }
+    if (this.state.defaultValue) {
+      const partial: Partial<GroupByVariableState> = {};
+      if ((isArray(this.state.value) && !this.state.value.length) || !this.state.value) {
+        partial.value = this.state.defaultValue.value;
+        partial.text = this.state.defaultValue.text;
+        partial.restorable = false;
+      }
 
-    if (this.state.defaultValue && this.checkIfRestorable(this.state.value)) {
-      this.setState({ restorable: true });
+      if (this.state.defaultValue && this.checkIfRestorable(this.state.value)) {
+        partial.restorable = true;
+      }
+
+      if (Object.keys(partial).length) {
+        this.setState(partial);
+      }
     }
 
     return () => {
-      this.restoreDefaultValues();
+      if (this.state.defaultValue) {
+        this.restoreDefaultValues();
+      }
     };
   };
 

@@ -9,7 +9,7 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
   protected _nextChangeShouldAddHistoryStep = false;
 
   private getRestorableKey(): string {
-    return `${this._sceneObject.state.name}-restorable`;
+    return `restorable-var-${this._sceneObject.state.name}`;
   }
 
   private getKey(): string {

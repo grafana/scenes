@@ -184,7 +184,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       expect(variable.state.value).toEqual(['defaultVal1', 'normalVal']);
       expect(locationService.getLocation().search).toBe(
-        '?var-test=defaultVal1&var-test=normalVal&test-restorable=true'
+        '?var-test=defaultVal1&var-test=normalVal&restorable-var-test=true'
       );
     });
 
@@ -201,7 +201,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=normalVal&test-restorable=true');
+      expect(locationService.getLocation().search).toBe('?var-test=normalVal&restorable-var-test=true');
 
       act(() => {
         variable.restoreDefaultValues();
