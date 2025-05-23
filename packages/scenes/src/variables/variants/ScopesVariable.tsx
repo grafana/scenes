@@ -95,7 +95,7 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
     this.setState({ scopes: state.value, loading });
 
     if (!loading) {
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+      //this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
 }
