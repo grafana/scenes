@@ -1,3 +1,16 @@
+# v6.14.0 (Mon May 26 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - ScopesVariable: Only emit value changed when value has changed [#1130](https://github.com/grafana/scenes/pull/1130) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.13.0 (Thu May 22 2025)
 
 #### 🚀 Enhancement
