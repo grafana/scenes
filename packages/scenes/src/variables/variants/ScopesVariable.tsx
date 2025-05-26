@@ -12,6 +12,7 @@ import { ScopesContext, ScopesContextValue } from '@grafana/runtime';
 import { useContext, useEffect } from 'react';
 import { VariableFormatID, VariableHide } from '@grafana/schema';
 import { SCOPES_VARIABLE_NAME } from '../constants';
+import { isEqual } from 'lodash';
 
 export interface ScopesVariableState extends SceneVariableState {
   /**
@@ -92,9 +93,11 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
   public updateStateFromContext(state: { loading: boolean; value: Scope[] }) {
     // There was logic in SceneQueryRunner that said if there are no scopes then loading state should not block query execution
     const loading = state.value.length === 0 ? false : state.loading;
+    const oldValue = this.state.scopes;
+
     this.setState({ scopes: state.value, loading });
 
-    if (!loading) {
+    if (!loading && !isEqual(oldValue, state.value)) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }

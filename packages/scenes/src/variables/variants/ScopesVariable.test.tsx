@@ -12,6 +12,7 @@ import { BehaviorSubject } from 'rxjs';
 import { SceneCSSGridLayout } from '../../components/layout/CSSGrid/SceneCSSGridLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
 import { sceneInterpolator } from '../interpolation/sceneInterpolator';
+import { SceneVariableValueChangedEvent } from '../types';
 
 describe('ScopesVariable', () => {
   it('Should enable scopes on render and disable on unmount when enable: true', async () => {
@@ -55,6 +56,21 @@ describe('ScopesVariable', () => {
     // Interpolate using sceneInterpolator and the variable set as context
     expect(sceneInterpolator(scene, '${__scopes:queryparam}')).toEqual('scope=scope1&scope=scope2');
     expect(sceneInterpolator(scene, '${__scopes}')).toEqual('scope1, scope2');
+  });
+
+  it('Should not emit value changed when scopes are the same', async () => {
+    const { scopesContext, variable } = renderTestScene({ initialScopes: ['scope1', 'scope2'] });
+    let valueChangedCount = 0;
+
+    variable.subscribeToEvent(SceneVariableValueChangedEvent, () => valueChangedCount++);
+
+    act(() => scopesContext.changeScopes(['scope3', 'scope4']));
+
+    expect(valueChangedCount).toEqual(1);
+
+    act(() => scopesContext.changeScopes(['scope3', 'scope4']));
+
+    expect(valueChangedCount).toEqual(1);
   });
 });
 
