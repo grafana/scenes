@@ -1,3 +1,16 @@
+# v6.15.0 (Tue May 27 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - ScopesVariable: Only compare scope names [#1131](https://github.com/grafana/scenes/pull/1131) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.14.0 (Mon May 26 2025)
 
 #### 🚀 Enhancement
