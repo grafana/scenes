@@ -66,9 +66,13 @@ describe('ScopesVariable', () => {
 
     act(() => scopesContext.changeScopes(['scope3', 'scope4']));
 
+    // await new Promise((resolve) => setTimeout(resolve, 10));
+
     expect(valueChangedCount).toEqual(1);
 
     act(() => scopesContext.changeScopes(['scope3', 'scope4']));
+
+    //await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(valueChangedCount).toEqual(1);
   });
@@ -124,7 +128,12 @@ export class FakeScopesContext {
 
   changeScopes = (scopeNames: string[]) => {
     const value = scopeNames.map((name) => ({ spec: { title: name }, metadata: { name } } as Scope));
-    this.state = { ...this.state, value };
+    this.state = { ...this.state, value, loading: true };
+    this.stateObservable.next(this.state);
+
+    // Simulate how the real context behaves, setting loading true and updating scopes
+    // Then switching to loading false after meta data added
+    this.state = { ...this.state, loading: false };
     this.stateObservable.next(this.state);
   };
 }
