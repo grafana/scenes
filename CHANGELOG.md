@@ -1,3 +1,16 @@
+# v6.16.0 (Wed May 28 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - ScopesVariable: Fixes diff check issue [#1134](https://github.com/grafana/scenes/pull/1134) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.15.0 (Tue May 27 2025)
 
 #### 🚀 Enhancement
