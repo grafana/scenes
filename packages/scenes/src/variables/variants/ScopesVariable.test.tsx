@@ -66,13 +66,9 @@ describe('ScopesVariable', () => {
 
     act(() => scopesContext.changeScopes(['scope3', 'scope4']));
 
-    // await new Promise((resolve) => setTimeout(resolve, 10));
-
     expect(valueChangedCount).toEqual(1);
 
     act(() => scopesContext.changeScopes(['scope3', 'scope4']));
-
-    //await new Promise((resolve) => setTimeout(resolve, 10));
 
     expect(valueChangedCount).toEqual(1);
   });
