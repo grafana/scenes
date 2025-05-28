@@ -193,7 +193,7 @@ export function escapeInjectedFilterUrlDelimiters(value: string | undefined): st
 }
 
 export function escapeURLDelimiters(value: string | undefined): string {
-  return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(value));
+  return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(escapeUrlHashDelimiters(value)));
 }
 
 export function unescapeUrlDelimiters(value: string | undefined): string {

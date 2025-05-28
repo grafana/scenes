@@ -8,7 +8,7 @@ import {
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
 import {
-  escapeInjectedFilterUrlDelimiters,
+  escapeInjectedFilterUrlDelimiters, escapeUrlHashDelimiters,
   escapeUrlPipeDelimiters,
   toUrlCommaDelimitedString,
   unescapeUrlDelimiters,
@@ -40,7 +40,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
         ...filters
           .filter(isFilterComplete)
           .filter((filter) => !filter.hidden)
-          .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'))
+          .map((filter) => toArray(filter).map(v => escapeUrlPipeDelimiters(escapeUrlHashDelimiters(v))).join('|'))
       );
     }
 
