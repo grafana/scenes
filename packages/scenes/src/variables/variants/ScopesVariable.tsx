@@ -95,9 +95,10 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
     const loading = state.value.length === 0 ? false : state.loading;
     const oldScopes = this.state.scopes.map((scope) => scope.metadata.name);
     const newScopes = state.value.map((scope) => scope.metadata.name);
+    const scopesHaveChanged = !isEqual(oldScopes, newScopes);
 
     // Only update scopes value state when loading is false and the scopes have changed
-    if (!loading && !isEqual(oldScopes, newScopes)) {
+    if (!loading && (scopesHaveChanged || newScopes.length === 0)) {
       this.setState({ scopes: state.value, loading });
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     } else {
