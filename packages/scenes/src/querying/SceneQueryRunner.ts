@@ -534,16 +534,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     };
 
     if (this._adhocFiltersVar) {
-      request.filters = [];
-
-      if (this._adhocFiltersVar.state.baseFilters?.length) {
-        const injectedBaseFilters = this._adhocFiltersVar.state.baseFilters.filter((filter) => filter.origin);
-        request.filters = request.filters.concat(injectedBaseFilters);
-      }
-
       // only pass filters that have both key and value
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.filters = request.filters.concat(this._adhocFiltersVar.state.filters.filter(isFilterComplete));
+      request.filters = [
+        ...(this._adhocFiltersVar.state.originFilters ?? []),
+        ...this._adhocFiltersVar.state.filters,
+      ].filter(isFilterComplete);
     }
 
     if (this._groupByVar) {
