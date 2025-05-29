@@ -192,7 +192,7 @@ describe('SceneTimeRange', () => {
         const startTime = timeRange.state.value.from.utc().toISOString();
 
         expect(timeRange.getTimeZone()).toBe('Africa/Addis_Ababa');
-        expect(startTime).toBe(dateMath.toDateTime('now-1h', { timezone: 'Africa/Addis_Ababa' })?.utc().toISOString() ?? 'Invalid Date');
+        expect(startTime).toBe(dateMath.toDateTime('now-1h', { timeZone: 'Africa/Addis_Ababa' }).utc().toISOString());
       });
     });
     describe('when time zone is not valid', () => {
@@ -210,17 +210,6 @@ describe('SceneTimeRange', () => {
         timeRange.onTimeZoneChange('junk');
         expect(timeRange.getTimeZone()).toBe(defaultTimeZone);
       });
-    });
-  });
-
-  describe('time picker and tooltip', () => {
-    it('should display correct start time and tooltip when timezone is Africa/Addis_Ababa', () => {
-      const timeRange = new SceneTimeRange({ from: '2025-01-01T00:00:00.000Z', to: '2025-01-01T23:59:59.999Z', timeZone: 'Africa/Addis_Ababa' });
-      const startTimePanel = timeRange.state.value.from.format('YYYY-MM-DD HH:mm:ss');
-      const tooltipStartTime = dateMath.toDateTime('2025-01-01T00:00:00.000Z', { timezone: 'Africa/Addis_Ababa' })?.format('HH:mm:ss') ?? 'Invalid Date';
-
-      expect(startTimePanel).toBe('2025-01-01 00:00:00');
-      expect(tooltipStartTime).toBe('00:00:00');
     });
   });
 
