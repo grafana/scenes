@@ -1,3 +1,22 @@
+# v6.17.0 (Thu May 29 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariableUrlSyncHandler: fix url state containing `#` char [#1139](https://github.com/grafana/scenes/pull/1139) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneFlexItem: respect `wrap` property [#1111](https://github.com/grafana/scenes/pull/1111) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
 # v6.16.0 (Wed May 28 2025)
 
 #### 🚀 Enhancement
