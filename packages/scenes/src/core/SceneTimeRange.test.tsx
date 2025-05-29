@@ -402,4 +402,3 @@ describe('SceneTimeRange', () => {
       expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked10sLater);
     });
   });
-});
