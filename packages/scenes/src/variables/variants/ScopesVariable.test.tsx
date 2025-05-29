@@ -59,18 +59,20 @@ describe('ScopesVariable', () => {
   });
 
   it('Should not emit value changed when scopes are the same', async () => {
-    const { scopesContext, variable } = renderTestScene({ initialScopes: ['scope1', 'scope2'] });
-    let valueChangedCount = 0;
-
-    variable.subscribeToEvent(SceneVariableValueChangedEvent, () => valueChangedCount++);
+    const { scopesContext, valueChangedCount } = renderTestScene({ initialScopes: ['scope1', 'scope2'] });
 
     act(() => scopesContext.changeScopes(['scope3', 'scope4']));
 
-    expect(valueChangedCount).toEqual(1);
+    expect(valueChangedCount.value).toEqual(2);
 
     act(() => scopesContext.changeScopes(['scope3', 'scope4']));
 
-    expect(valueChangedCount).toEqual(1);
+    expect(valueChangedCount.value).toEqual(2);
+  });
+
+  it('Should emit value changed when scopes are empty on first mount', async () => {
+    const { valueChangedCount } = renderTestScene({ initialScopes: [] });
+    expect(valueChangedCount.value).toEqual(1);
   });
 });
 
@@ -94,13 +96,16 @@ function renderTestScene(options: SetupOptions = {}) {
     scopesContext.changeScopes(options.initialScopes);
   }
 
+  const valueChangedCount = { value: 0 };
+  variable.subscribeToEvent(SceneVariableValueChangedEvent, () => (valueChangedCount.value += 1));
+
   const { unmount } = render(
     <ScopesContext.Provider value={scopesContext}>
       <scene.Component model={scene} />
     </ScopesContext.Provider>
   );
 
-  return { unmount, scene, variable, scopesContext };
+  return { unmount, scene, variable, scopesContext, valueChangedCount };
 }
 
 export class FakeScopesContext {
