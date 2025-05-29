@@ -701,6 +701,45 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  it('url sync with both key and value labels with hash', async () => {
+    const { filtersVar } = setup();
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'new#Key', keyLabel: 'New#Key' });
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'new#Value', valueLabels: ['New#Value'] });
+    });
+
+    expect(locationService.getLocation().search).toBe(
+      '?var-filters=new__gfh__Key,New__gfh__Key%7C%3D%7Cnew__gfh__Value,New__gfh__Value&var-filters=key2%7C%3D%7Cval2'
+    );
+
+    act(() => {
+      locationService.partial({
+        'var-filters': [
+          'new__gfh__Key,New__gfh__Key|=|new__gfh__Value,New__gfh__Value',
+          'new__gfh__Key__gfh__2,New__gfh__Key__gfh__2|=~|new__gfh__Value__gfh__2,New__gfh__Value__gfh__2',
+        ],
+      });
+    });
+
+    expect(filtersVar.state.filters[0]).toEqual({
+      key: 'new#Key',
+      keyLabel: 'New#Key',
+      operator: '=',
+      value: 'new#Value',
+      valueLabels: ['New#Value'],
+      condition: '',
+    });
+    expect(filtersVar.state.filters[1]).toEqual({
+      key: 'new#Key#2',
+      keyLabel: 'New#Key#2',
+      operator: '=~',
+      value: 'new#Value#2',
+      valueLabels: ['New#Value#2'],
+      condition: '',
+    });
+  });
+
   it('url sync with identical key and value labels', async () => {
     const { filtersVar } = setup();
 

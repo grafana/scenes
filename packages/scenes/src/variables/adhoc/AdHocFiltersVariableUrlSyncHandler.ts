@@ -7,12 +7,7 @@ import {
   isMatchAllFilter,
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
-import {
-  escapeInjectedFilterUrlDelimiters,
-  escapeUrlPipeDelimiters,
-  toUrlCommaDelimitedString,
-  unescapeUrlDelimiters,
-} from '../utils';
+import { escapeInjectedFilterUrlDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
@@ -40,7 +35,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
         ...filters
           .filter(isFilterComplete)
           .filter((filter) => !filter.hidden)
-          .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'))
+          .map((filter) => toArray(filter).map(escapeInjectedFilterUrlDelimiters).join('|'))
       );
     }
 
