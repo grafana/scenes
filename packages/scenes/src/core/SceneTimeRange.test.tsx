@@ -393,4 +393,18 @@ describe('SceneTimeRange', () => {
       expect(scene.state.$timeRange?.state.value.to.utc().toISOString()).toEqual(mocked10sLater);
     });
   });
+
+  describe('Time zone change to Africa/Addis_Ababa', () => {
+    it('should display the correct start time in the time start panel and time picker tooltip', () => {
+      const timeRange = new SceneTimeRange({ from: '2025-01-01T00:00:00.000Z', to: '2025-12-31T23:59:59.999Z' });
+      timeRange.onTimeZoneChange('Africa/Addis_Ababa');
+
+      // Verify the time start panel reads the correct start time
+      expect(timeRange.state.value.from.format('YYYY-MM-DD HH:mm:ss')).toBe('2025-01-01 00:00:00');
+
+      // Verify the time picker tooltip reads the correct start time
+      const tooltipStartTime = timeRange.state.value.from.format('HH:mm:ss');
+      expect(tooltipStartTime).toBe('00:00:00');
+    });
+  });
 });
