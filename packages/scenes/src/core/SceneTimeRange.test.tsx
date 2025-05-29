@@ -192,7 +192,8 @@ describe('SceneTimeRange', () => {
         const startTime = timeRange.state.value.from.utc().toISOString();
 
         expect(timeRange.getTimeZone()).toBe('Africa/Addis_Ababa');
-        expect(startTime).toBe(dateMath.toDateTime('now-1h', { timeZone: 'Africa/Addis_Ababa' }).utc().toISOString());
+        const parsedDate = dateMath.toDateTime('now-1h', { timezone: 'Africa/Addis_Ababa' });
+        expect(parsedDate?.utc().toISOString()).toBe(startTime);
       });
     });
     describe('when time zone is not valid', () => {
