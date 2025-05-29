@@ -49,7 +49,7 @@ Use `SceneTimePicker` object to display and control time range of a scene:
 const scene = new EmbeddedScene({
   $data: queryRunner,
   $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
-  controls: [new SceneTimePicker({})]
+  controls: [new SceneTimePicker({})],
   body: new SceneFlexLayout({
     direction: 'row',
     children: [
