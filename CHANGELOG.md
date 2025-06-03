@@ -1,3 +1,22 @@
+# v6.18.0 (Tue Jun 03 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - ScopesVariable: Emit value changed when there no scopes selected [#1136](https://github.com/grafana/scenes/pull/1136) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Frontend: fix:recompute time range on timezone change in SceneTimeRange [#1135](https://github.com/grafana/scenes/pull/1135) ([@keerthanamsys](https://github.com/keerthanamsys))
+
+#### Authors: 2
+
+- [@keerthanamsys](https://github.com/keerthanamsys)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.17.0 (Thu May 29 2025)
 
 #### 🚀 Enhancement
