@@ -24,6 +24,7 @@ import { SeriesVisibilityChangeMode } from '@grafana/ui';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { act, render, screen } from '@testing-library/react';
 import { RefreshEvent } from '@grafana/runtime';
+import { VizPanelMenu } from './VizPanelMenu';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -398,6 +399,18 @@ describe('VizPanel', () => {
       panels.forEach((panel) => {
         expect(panel.getLegacyPanelId()).toBe(12);
       });
+    });
+  });
+
+  describe('clone', () => {
+    it('Clone should ignore instanceState', () => {
+      const panel = new VizPanel({ key: 'panel-12' });
+      const instanceState = { prop: 'hello' };
+
+      panel.getPanelContext().onInstanceStateChange!(instanceState);
+
+      const clone = panel.clone();
+      expect(clone.state._pluginInstanceState).toBeUndefined();
     });
   });
 
@@ -846,6 +859,109 @@ describe('VizPanel', () => {
         });
 
         expect(panelRenderCount).toBe(2);
+      });
+    });
+  });
+
+  describe('Menu visibility functionality', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    describe('collapsible false and showMenuAlways true', () => {
+      beforeEach(async () => {
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          title: 'Menu Panel',
+          pluginId: 'custom-plugin-id',
+          collapsible: false,
+          showMenuAlways: true,
+          menu: new VizPanelMenu({}),
+          $data: getDataNodeWithTestData(),
+        });
+
+        pluginToLoad = getTestPlugin1();
+        panel.activate();
+      });
+
+      it('should showMenuAlways when panel is not collapsible', async () => {
+        expect(panel.state.showMenuAlways).toBe(true);
+        render(<panel.Component model={panel} />);
+
+        // The menu should be visible despite collapsible being false
+        const menuButton = screen.queryByRole('button', { name: /menu/i });
+        expect(menuButton).toBeInTheDocument();
+      });
+    });
+
+    describe('collapsible true and showMenuAlways true', () => {
+      beforeEach(async () => {
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          title: 'Menu Panel',
+          pluginId: 'custom-plugin-id',
+          collapsible: true,
+          showMenuAlways: true,
+          menu: new VizPanelMenu({}),
+          $data: getDataNodeWithTestData(),
+        });
+
+        pluginToLoad = getTestPlugin1();
+        panel.activate();
+      });
+
+      it('should show showMenuAlways when panel is collapsible', async () => {
+        expect(panel.state.showMenuAlways).toBe(true);
+        render(<panel.Component model={panel} />);
+        // The menu should be visible because both collapsible and showMenuAlways are true
+        // Query for all menu buttons and select the first one
+        const menuButtons = screen.queryAllByRole('button', { name: /menu/i });
+        const firstMenuButton = menuButtons[0]; // Get the first element
+        // Check if the first menu button is in the document
+        expect(firstMenuButton).toBeInTheDocument();
+      });
+    });
+
+    describe('showMenuAlways true', () => {
+      beforeEach(async () => {
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          title: 'Menu Panel',
+          pluginId: 'custom-plugin-id',
+          showMenuAlways: true,
+          menu: new VizPanelMenu({}),
+          $data: getDataNodeWithTestData(),
+        });
+
+        pluginToLoad = getTestPlugin1();
+        panel.activate();
+      });
+
+      it('should showMenuAlways when panel is not collapsible', async () => {
+        expect(panel.state.showMenuAlways).toBe(true);
+        render(<panel.Component model={panel} />);
+
+        // The menu should be visible despite collapsible being false
+        const menuButton = screen.queryByRole('button', { name: /menu/i });
+        expect(menuButton).toBeInTheDocument();
+      });
+    });
+
+    describe('showMenuAlways false', () => {
+      beforeEach(async () => {
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          title: 'Menu Panel',
+          pluginId: 'custom-plugin-id',
+          showMenuAlways: false,
+          menu: new VizPanelMenu({}),
+          $data: getDataNodeWithTestData(),
+        });
+
+        pluginToLoad = getTestPlugin1();
+        panel.activate();
+      });
+
+      it('should not showMenuAlways', async () => {
+        expect(panel.state.showMenuAlways).toBe(false);
+        render(<panel.Component model={panel} />);
+
+        const menuButton = screen.queryByRole('button', { name: /menu/i });
+        expect(menuButton).toHaveClass('show-on-hover');
       });
     });
   });

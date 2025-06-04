@@ -1,3 +1,310 @@
+# v6.18.0 (Tue Jun 03 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - ScopesVariable: Emit value changed when there no scopes selected [#1136](https://github.com/grafana/scenes/pull/1136) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Frontend: fix:recompute time range on timezone change in SceneTimeRange [#1135](https://github.com/grafana/scenes/pull/1135) ([@keerthanamsys](https://github.com/keerthanamsys))
+
+#### Authors: 2
+
+- [@keerthanamsys](https://github.com/keerthanamsys)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.17.0 (Thu May 29 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariableUrlSyncHandler: fix url state containing `#` char [#1139](https://github.com/grafana/scenes/pull/1139) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneFlexItem: respect `wrap` property [#1111](https://github.com/grafana/scenes/pull/1111) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v6.16.0 (Wed May 28 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - ScopesVariable: Fixes diff check issue [#1134](https://github.com/grafana/scenes/pull/1134) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.15.0 (Tue May 27 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - ScopesVariable: Only compare scope names [#1131](https://github.com/grafana/scenes/pull/1131) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.14.0 (Mon May 26 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - ScopesVariable: Only emit value changed when value has changed [#1130](https://github.com/grafana/scenes/pull/1130) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.13.0 (Thu May 22 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - GroupByVariable: Add support for default values [#1122](https://github.com/grafana/scenes/pull/1122) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.12.0 (Fri May 16 2025)
+
+### Release Notes
+
+#### Scopes: Replace ScopesBridge with ScopesVariable ([#1121](https://github.com/grafana/scenes/pull/1121))
+
+SceneScopesBridge is now replaced by ScopesVariable, which now needs to be added to a SceneVariableSet attached to every SceneAppPage or EmbeddedScene (whatever suits your scenario) where you want to use scopes. This variable is not visible in the UI. You can control whether scopes are enabled or disabled on a specific page/scene using the ScopesVariable or control this on a higher level using ScopesContext.
+
+sceneGraph.getScopesBridge is replaced by sceneGraph.getScopes, which just returns the scopes (by looking up the ScopesVariable and getting it from it's value).
+
+---
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Scopes: Replace ScopesBridge with ScopesVariable [#1121](https://github.com/grafana/scenes/pull/1121) ([@torkelo](https://github.com/torkelo) [@tskarhed](https://github.com/tskarhed))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - README: Explain usage of the "release" label [#1126](https://github.com/grafana/scenes/pull/1126) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 2
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.11.1 (Thu May 15 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Allow passing partial state when cloning [#1127](https://github.com/grafana/scenes/pull/1127) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 1
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+
+---
+
+# v6.11.0 (Thu May 15 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Cloning should ignore pluginInstanceState [#1124](https://github.com/grafana/scenes/pull/1124) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanelBuilders: Update failing snapshot test [#1123](https://github.com/grafana/scenes/pull/1123) ([@torkelo](https://github.com/torkelo))
+  - SceneTimePicker: Add defaultQuickRanges to override the default time range options [#1113](https://github.com/grafana/scenes/pull/1113) ([@joshhunt](https://github.com/joshhunt) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 3
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.10.4 (Thu May 08 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocVariable: Add more suggestive injected filters tooltips [#1118](https://github.com/grafana/scenes/pull/1118) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.10.3 (Tue May 06 2025)
+
+#### 🐛 Bug Fix
+
+- Chore: Moving towards workflow federation instead of secrets [#1119](https://github.com/grafana/scenes/pull/1119) ([@tolzhabayev](https://github.com/tolzhabayev))
+- Tighten security for github actions in repo [#1114](https://github.com/grafana/scenes/pull/1114) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes`
+  - AdHocFiltersCombobox: Read-only filters improvements [#1115](https://github.com/grafana/scenes/pull/1115) ([@adrapereira](https://github.com/adrapereira))
+  - SceneTimeRange: Fix calculatePercentOfInterval [#1101](https://github.com/grafana/scenes/pull/1101) ([@edvard-falkskar](https://github.com/edvard-falkskar))
+  - Tighten repo security [#1116](https://github.com/grafana/scenes/pull/1116) ([@mdvictor](https://github.com/mdvictor))
+  - fix: GroupBy Select receives null [#1112](https://github.com/grafana/scenes/pull/1112) ([@joannaWebDev](https://github.com/joannaWebDev))
+
+#### Authors: 5
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+- Edvard Falkskär ([@edvard-falkskar](https://github.com/edvard-falkskar))
+- Joanna ([@joannaWebDev](https://github.com/joannaWebDev))
+- Timur Olzhabayev ([@tolzhabayev](https://github.com/tolzhabayev))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.10.2 (Thu Apr 24 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Use log util. Direct console.warn fails tests in grafana. [#1110](https://github.com/grafana/scenes/pull/1110) ([@scottlepp](https://github.com/scottlepp))
+
+#### Authors: 1
+
+- Scott Lepper ([@scottlepp](https://github.com/scottlepp))
+
+---
+
+# v6.10.1 (Thu Apr 24 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Validate timezone [#1109](https://github.com/grafana/scenes/pull/1109) ([@scottlepp](https://github.com/scottlepp))
+
+#### Authors: 1
+
+- Scott Lepper ([@scottlepp](https://github.com/scottlepp))
+
+---
+
+# v6.10.0 (Thu Apr 24 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilters: Dashboard level filters [#1095](https://github.com/grafana/scenes/pull/1095) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Revert "Variables: Notify scene objects in depth order" [#1108](https://github.com/grafana/scenes/pull/1108) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.9.1 (Wed Apr 23 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Notify scene objects in depth order [#1104](https://github.com/grafana/scenes/pull/1104) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.9.0 (Thu Apr 17 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - fix: (VizPanelRenderer) - move showMenuAlways prop to the top level [#1093](https://github.com/grafana/scenes/pull/1093) ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+#### Authors: 1
+
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+---
+
+# v6.8.1 (Fri Apr 11 2025)
+
+### Release Notes
+
+#### Variables: Rename renderSelectForVariable to MultiOrSingleValueSelect ([#1097](https://github.com/grafana/scenes/pull/1097))
+
+RenderSelectForVariable was renamed to MultiOrSingleValueSelect and is now React component.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Rename renderSelectForVariable to MultiOrSingleValueSelect [#1097](https://github.com/grafana/scenes/pull/1097) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.8.0 (Fri Apr 11 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Switch between multi and single select if state changes [#1096](https://github.com/grafana/scenes/pull/1096) ([@torkelo](https://github.com/torkelo))
+  - ConstantVariable: Support interpolation and dependency of other variables in constant value [#1094](https://github.com/grafana/scenes/pull/1094) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.7.0 (Wed Apr 09 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VariableControl: Add props needed in core dashboards [#1091](https://github.com/grafana/scenes/pull/1091) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.6.3 (Fri Apr 04 2025)
 
 #### 🐛 Bug Fix

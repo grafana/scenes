@@ -4,19 +4,19 @@ import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
 import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
-import { ValidateAndUpdateResult, VariableValueOption, VariableValueSingle } from '../types';
+import { ValidateAndUpdateResult, VariableValue, VariableValueOption, VariableValueSingle } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
-import { isArray } from 'lodash';
+import { isArray, isEqual } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
-import { SceneScopesBridge } from '../../core/SceneScopesBridge';
+import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIndicatorContainer';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -28,6 +28,10 @@ export interface GroupByVariableState extends MultiValueVariableState {
   baseFilters?: AdHocVariableFilter[];
   /** Datasource to use for getTagKeys and also controls which scene queries the group by should apply to */
   datasource: DataSourceRef | null;
+  /** Default value set for this groupBy. When this field is set, changing value will allow the user to restore back to this default value */
+  defaultValue?: { text: VariableValue; value: VariableValue };
+  /** Needed for url sync when passing flag to another dashboard */
+  restorable?: boolean;
   /** Controls if the group by can be changed */
   readOnly?: boolean;
   /**
@@ -63,8 +67,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   isLazy = true;
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
-
-  private _scopesBridge: SceneScopesBridge | undefined;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -154,6 +156,61 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         return () => allActiveGroupByVariables.delete(this);
       });
     }
+
+    this.addActivationHandler(this._activationHandler);
+  }
+
+  private _activationHandler = () => {
+    if (this.state.defaultValue) {
+      const partial: Partial<GroupByVariableState> = {};
+      if ((isArray(this.state.value) && !this.state.value.length) || !this.state.value) {
+        partial.value = this.state.defaultValue.value;
+        partial.text = this.state.defaultValue.text;
+        partial.restorable = false;
+      }
+
+      if (this.state.defaultValue && this.checkIfRestorable(this.state.value)) {
+        partial.restorable = true;
+      }
+
+      if (Object.keys(partial).length) {
+        this.setState(partial);
+      }
+    }
+
+    return () => {
+      if (this.state.defaultValue) {
+        this.restoreDefaultValues();
+      }
+    };
+  };
+
+  // This method is related to the defaultValue property. We check if the current value
+  // is different from the default value. If it is, the groupBy will show a button
+  // allowing the user to restore the default values.
+  public checkIfRestorable(values: VariableValue) {
+    const originalValues = isArray(this.state.defaultValue?.value)
+      ? this.state.defaultValue?.value
+      : this.state.defaultValue?.value
+      ? [this.state.defaultValue?.value]
+      : [];
+    const vals = isArray(values) ? values : [values];
+
+    if (vals.length !== originalValues.length) {
+      return true;
+    }
+
+    return !isEqual(vals, originalValues);
+  }
+
+  public restoreDefaultValues() {
+    this.setState({ restorable: false });
+
+    if (!this.state.defaultValue) {
+      return;
+    }
+
+    this.changeValueTo(this.state.defaultValue.value, this.state.defaultValue.text, true);
   }
 
   /**
@@ -183,7 +240,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       filters: otherFilters,
       queries,
       timeRange,
-      scopes: this._scopesBridge?.getValue(),
+      scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
     if (responseHasError(response)) {
@@ -222,6 +279,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     options,
     includeAll,
     allowCustomValue = true,
+    defaultValue,
   } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
@@ -242,6 +300,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
   const [uncommittedValue, setUncommittedValue] = useState(values);
 
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
+
+  const hasDefaultValue = defaultValue !== undefined;
 
   // Detect value changes outside
   useEffect(() => {
@@ -275,7 +335,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       aria-label="Group by selector"
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={'Select value'}
+      placeholder={'Group by label'}
       width="auto"
       allowCustomValue={allowCustomValue}
       inputValue={inputValue}
@@ -291,7 +351,14 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       isClearable={true}
       hideSelectedOptions={false}
       isLoading={isFetchingOptions}
-      components={{ Option: OptionWithCheckbox }}
+      components={{
+        Option: OptionWithCheckbox,
+        ...(hasDefaultValue
+          ? {
+              IndicatorsContainer: () => <DefaultGroupByCustomIndicatorContainer model={model} />,
+            }
+          : {}),
+      }}
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(
@@ -299,6 +366,12 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           uncommittedValue.map((x) => x.label!),
           true
         );
+
+        const restorable = model.checkIfRestorable(uncommittedValue.map((v) => v.value!));
+
+        if (restorable !== model.state.restorable) {
+          model.setState({ restorable: restorable });
+        }
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
@@ -321,10 +394,10 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       aria-label="Group by selector"
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={'Select value'}
+      placeholder={'Group by label'}
       width="auto"
       inputValue={inputValue}
-      value={uncommittedValue}
+      value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
       allowCustomValue={allowCustomValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}

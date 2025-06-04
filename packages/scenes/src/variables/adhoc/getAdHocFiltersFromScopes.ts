@@ -1,5 +1,5 @@
 import { Scope, ScopeFilterOperator, ScopeSpecFilter, scopeFilterOperatorMap } from '@grafana/data';
-import { AdHocFilterWithLabels, FilterOrigin } from './AdHocFiltersVariable';
+import { AdHocFilterWithLabels } from './AdHocFiltersVariable';
 
 export type EqualityOrMultiOperator = Extract<ScopeFilterOperator, 'equals' | 'not-equals' | 'one-of' | 'not-one-of'>;
 
@@ -53,7 +53,7 @@ function processFilter(
       operator: reverseScopeFilterOperatorMap[filter.operator],
       value: filter.value,
       values: filter.values ?? [filter.value],
-      origin: FilterOrigin.Scopes,
+      origin: 'scope',
     });
   } else {
     duplicatedFilters.push({
@@ -61,7 +61,7 @@ function processFilter(
       operator: reverseScopeFilterOperatorMap[filter.operator],
       value: filter.value,
       values: filter.values ?? [filter.value],
-      origin: FilterOrigin.Scopes,
+      origin: 'scope',
     });
   }
 }

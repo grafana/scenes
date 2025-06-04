@@ -2,7 +2,7 @@ import { DataLinkBuiltInVars } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
-import { VARIABLE_REGEX } from './constants';
+import { SCOPES_VARIABLE_NAME, VARIABLE_REGEX } from './constants';
 
 import { SceneVariable, SceneVariableDependencyConfigLike } from './types';
 import { safeStringifyValue } from './utils';
@@ -42,6 +42,11 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    * Handle time macros.
    */
   handleTimeMacros?: boolean;
+
+  /**
+   * Will add ScopesVariable as a dependency which will cause updates when the scopes change.
+   */
+  dependsOnScopes?: boolean;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
@@ -167,6 +172,10 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       for (const name of this._options.variableNames) {
         this._dependencies.add(name);
       }
+    }
+
+    if (this._options.dependsOnScopes) {
+      this._dependencies.add(SCOPES_VARIABLE_NAME);
     }
 
     if (this._statePaths) {

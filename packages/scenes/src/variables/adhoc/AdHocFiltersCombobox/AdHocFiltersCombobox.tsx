@@ -110,6 +110,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       filterMultiValues: Array<SelectableValue<string>>,
       preventFocus?: boolean
     ) => {
+      if (!filterMultiValues.length && filter.origin) {
+        model.updateToMatchAll(filter);
+      }
+
       if (filterMultiValues.length) {
         const valueLabels: string[] = [];
         const values: string[] = [];
@@ -121,6 +125,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         model._updateFilter(filter!, { valueLabels, values, value: values[0] });
         setFilterMultiValues([]);
       }
+
       if (!preventFocus) {
         setTimeout(() => refs.domReference.current?.focus());
       }
