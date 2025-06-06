@@ -35,11 +35,13 @@ import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
-import { VARIABLE_NAMESPACE } from '../utils';
+import { getVariableName } from '../utils';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
 } as any;
+
+const testUrlNamespace = 'ns'
 
 describe('templateSrv.getAdhocFilters patch ', () => {
   it('calls original when scene object is not active', async () => {
@@ -446,620 +448,507 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
-  it('url sync works', async () => {
-    const { filtersVar } = setup();
+  describe.each([testUrlNamespace, undefined])('URL parameter namespace', (urlNamespace) => {
 
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['newValue'] });
-    });
+    // 1
+    it('url sync works', async () => {
+      const { filtersVar } = setup({urlNamespace});
 
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=key1%7C%3D%7CnewValue&${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
-    );
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['newValue'] });
+      });
 
-    act(() => {
-      locationService.partial({ [`${VARIABLE_NAMESPACE}-filters`]: ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
-    });
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=key1%7C%3D%7CnewValue`+
+        `&${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`
+      );
 
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'key1',
-      keyLabel: 'key1',
-      operator: '=',
-      value: 'valUrl',
-      valueLabels: ['valUrl'],
-      condition: '',
-    });
-    expect(filtersVar.state.filters[1]).toEqual({
-      key: 'keyUrl',
-      keyLabel: 'keyUrl',
-      operator: '=~',
-      value: 'urlVal',
-      valueLabels: ['urlVal'],
-      condition: '',
-    });
-  });
+      act(() => {
+        locationService.partial({ [getVariableName('filters', urlNamespace)]: ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
+      });
 
-  it('does not render hidden filter in url', () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { hidden: true });
-    });
-
-    expect(locationService.getLocation().search).toBe(`?${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`);
-  });
-
-  it('overrides state when url has empty key', () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      locationService.partial({ [`${VARIABLE_NAMESPACE}-filters`]: '' });
-    });
-
-    expect(filtersVar.state.filters.length).toBe(0);
-  });
-
-  it('reflects emtpy state in url', async () => {
-    const { filtersVar } = setup();
-
-    await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
-    await userEvent.click(screen.getByTestId('AdHocFilter-remove-key2'));
-
-    expect(filtersVar.state.filters.length).toBe(0);
-    expect(locationService.getLocation().search).toBe(`?${VARIABLE_NAMESPACE}-filters=`);
-  });
-
-  it('url sync from empty filters array works', async () => {
-    const { filtersVar } = setup({ filters: [] });
-
-    act(() => {
-      locationService.partial({ [`${VARIABLE_NAMESPACE}-filters`]: ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
-    });
-
-    expect(filtersVar.state.filters.length).toEqual(2);
-  });
-
-  it('url sync with both key and value labels', async () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['New Value'] });
-    });
-
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=newKey,New%20Key%7C%3D%7CnewValue,New%20Value&${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
-    );
-
-    act(() => {
-      locationService.partial({
-        [`${VARIABLE_NAMESPACE}-filters`]: ['newKey,New Key|=|newValue,New Value', 'newKey2,New Key 2|=~|newValue2,New Value 2'],
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'key1',
+        keyLabel: 'key1',
+        operator: '=',
+        value: 'valUrl',
+        valueLabels: ['valUrl'],
+        condition: '',
+      });
+      expect(filtersVar.state.filters[1]).toEqual({
+        key: 'keyUrl',
+        keyLabel: 'keyUrl',
+        operator: '=~',
+        value: 'urlVal',
+        valueLabels: ['urlVal'],
+        condition: '',
       });
     });
 
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'newKey',
-      keyLabel: 'New Key',
-      operator: '=',
-      value: 'newValue',
-      valueLabels: ['New Value'],
-      condition: '',
-    });
-    expect(filtersVar.state.filters[1]).toEqual({
-      key: 'newKey2',
-      keyLabel: 'New Key 2',
-      operator: '=~',
-      value: 'newValue2',
-      valueLabels: ['New Value 2'],
-      condition: '',
-    });
-  });
+    // 2
+    it('does not render hidden filter in url', () => {
+      const { filtersVar } = setup({urlNamespace});
 
-  it('url sync with key label and no value label', async () => {
-    const { filtersVar } = setup();
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { hidden: true });
+      });
 
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+      expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`);
     });
 
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=newKey,New%20Key%7C%3D%7CnewValue&${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
-    );
+    //3
+    it('overrides state when url has empty key', () => {
+      const { filtersVar } = setup({urlNamespace});
 
-    act(() => {
-      locationService.partial({
-        [`${VARIABLE_NAMESPACE}-filters`]: ['newKey,New Key|=|newValue', 'newKey2,New Key 2|=~|newValue2'],
+      act(() => {
+        locationService.partial({ [getVariableName('filters', urlNamespace)]: '' });
+      });
+
+      expect(filtersVar.state.filters.length).toBe(0);
+    });
+
+    //4
+    it('reflects emtpy state in url', async () => {
+      const { filtersVar } = setup({urlNamespace});
+
+      await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
+      await userEvent.click(screen.getByTestId('AdHocFilter-remove-key2'));
+
+      expect(filtersVar.state.filters.length).toBe(0);
+      expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=`);
+    });
+
+    // 5
+    it('url sync from empty filters array works', async () => {
+      const { filtersVar } = setup({ filters: [], urlNamespace });
+
+      act(() => {
+        locationService.partial({ [`${getVariableName('filters', urlNamespace)}`]: ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
+      });
+
+      expect(filtersVar.state.filters.length).toEqual(2);
+    });
+
+    // 6
+    it('url sync with both key and value labels', async () => {
+      const { filtersVar } = setup({urlNamespace});
+
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['New Value'] });
+      });
+
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=newKey,New%20Key%7C%3D%7CnewValue,New%20Value` +
+        `&${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`
+      );
+
+      act(() => {
+        locationService.partial({
+          [getVariableName('filters', urlNamespace)]: ['newKey,New Key|=|newValue,New Value', 'newKey2,New Key 2|=~|newValue2,New Value 2'],
+        });
+      });
+
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'newKey',
+        keyLabel: 'New Key',
+        operator: '=',
+        value: 'newValue',
+        valueLabels: ['New Value'],
+        condition: '',
+      });
+      expect(filtersVar.state.filters[1]).toEqual({
+        key: 'newKey2',
+        keyLabel: 'New Key 2',
+        operator: '=~',
+        value: 'newValue2',
+        valueLabels: ['New Value 2'],
+        condition: '',
       });
     });
 
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'newKey',
-      keyLabel: 'New Key',
-      operator: '=',
-      value: 'newValue',
-      valueLabels: ['newValue'],
-      condition: '',
-    });
-    expect(filtersVar.state.filters[1]).toEqual({
-      key: 'newKey2',
-      keyLabel: 'New Key 2',
-      operator: '=~',
-      value: 'newValue2',
-      valueLabels: ['newValue2'],
-      condition: '',
-    });
-  });
+    // 7
+    it('url sync with key label and no value label', async () => {
+      const { filtersVar } = setup({urlNamespace});
 
-  it('url sync with no key label and value label', async () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['New Value'] });
-    });
-
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7CnewValue,New%20Value&${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
-    );
-
-    act(() => {
-      locationService.partial({
-        [`${VARIABLE_NAMESPACE}-filters`]: ['newKey|=|newValue,New Value', 'newKey2|=~|newValue2,New Value 2'],
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'New Key' });
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
       });
-    });
 
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'newKey',
-      keyLabel: 'newKey',
-      operator: '=',
-      value: 'newValue',
-      valueLabels: ['New Value'],
-      condition: '',
-    });
-    expect(filtersVar.state.filters[1]).toEqual({
-      key: 'newKey2',
-      keyLabel: 'newKey2',
-      operator: '=~',
-      value: 'newValue2',
-      valueLabels: ['New Value 2'],
-      condition: '',
-    });
-  });
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=newKey,New%20Key%7C%3D%7CnewValue` +
+        `&${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`
+      );
 
-  it('url sync with no key and value labels', async () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
-    });
-
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7CnewValue&${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
-    );
-
-    act(() => {
-      locationService.partial({
-        [`${VARIABLE_NAMESPACE}-filters`]: ['newKey|=|newValue', 'newKey2|=~|newValue2'],
+      act(() => {
+        locationService.partial({
+          [getVariableName('filters', urlNamespace)]: ['newKey,New Key|=|newValue', 'newKey2,New Key 2|=~|newValue2'],
+        });
       });
-    });
 
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'newKey',
-      keyLabel: 'newKey',
-      operator: '=',
-      value: 'newValue',
-      valueLabels: ['newValue'],
-      condition: '',
-    });
-    expect(filtersVar.state.filters[1]).toEqual({
-      key: 'newKey2',
-      keyLabel: 'newKey2',
-      operator: '=~',
-      value: 'newValue2',
-      valueLabels: ['newValue2'],
-      condition: '',
-    });
-  });
-
-  it('url sync with both key and value labels with commas', async () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'new,Key', keyLabel: 'New,Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'new,Value', valueLabels: ['New,Value'] });
-    });
-
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=new__gfc__Key,New__gfc__Key%7C%3D%7Cnew__gfc__Value,New__gfc__Value&${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
-    );
-
-    act(() => {
-      locationService.partial({
-        [`${VARIABLE_NAMESPACE}-filters`]: [
-          'new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value',
-          'new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2',
-        ],
-      });
-    });
-
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'new,Key',
-      keyLabel: 'New,Key',
-      operator: '=',
-      value: 'new,Value',
-      valueLabels: ['New,Value'],
-      condition: '',
-    });
-    expect(filtersVar.state.filters[1]).toEqual({
-      key: 'new,Key,2',
-      keyLabel: 'New,Key,2',
-      operator: '=~',
-      value: 'new,Value,2',
-      valueLabels: ['New,Value,2'],
-      condition: '',
-    });
-  });
-
-  it('url sync with both key and value labels with hash', async () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'new#Key', keyLabel: 'New#Key' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'new#Value', valueLabels: ['New#Value'] });
-    });
-
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=new__gfh__Key,New__gfh__Key%7C%3D%7Cnew__gfh__Value,New__gfh__Value&${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
-    );
-
-    act(() => {
-      locationService.partial({
-        [`${VARIABLE_NAMESPACE}-filters`]: [
-          'new__gfh__Key,New__gfh__Key|=|new__gfh__Value,New__gfh__Value',
-          'new__gfh__Key__gfh__2,New__gfh__Key__gfh__2|=~|new__gfh__Value__gfh__2,New__gfh__Value__gfh__2',
-        ],
-      });
-    });
-
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'new#Key',
-      keyLabel: 'New#Key',
-      operator: '=',
-      value: 'new#Value',
-      valueLabels: ['New#Value'],
-      condition: '',
-    });
-    expect(filtersVar.state.filters[1]).toEqual({
-      key: 'new#Key#2',
-      keyLabel: 'New#Key#2',
-      operator: '=~',
-      value: 'new#Value#2',
-      valueLabels: ['New#Value#2'],
-      condition: '',
-    });
-  });
-
-  it('url sync with identical key and value labels', async () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['newValue'] });
-    });
-
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7CnewValue&${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
-    );
-
-    act(() => {
-      locationService.partial({
-        [`${VARIABLE_NAMESPACE}-filters`]: ['newKey|=|newValue', 'newKey2,newKey2|=~|newValue2,newValue2'],
-      });
-    });
-
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'newKey',
-      keyLabel: 'newKey',
-      operator: '=',
-      value: 'newValue',
-      valueLabels: ['newValue'],
-      condition: '',
-    });
-    expect(filtersVar.state.filters[1]).toEqual({
-      key: 'newKey2',
-      keyLabel: 'newKey2',
-      operator: '=~',
-      value: 'newValue2',
-      valueLabels: ['newValue2'],
-      condition: '',
-    });
-  });
-
-  it('only url sync fully completed filters', async () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: '', valueLabels: [''] });
-    });
-
-    expect(locationService.getLocation().search).toBe(`?${VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`);
-  });
-
-  it('url does not sync injected filters if they are not modified', async () => {
-    const { filtersVar } = setup({
-      filters: [{ key: 'key1', operator: '=', value: 'val1' }],
-      baseFilters: [
-        {
-          key: 'baseKey1',
-          keyLabel: 'baseKey1',
-          operator: '=',
-          value: 'baseValue1',
-          valueLabels: ['baseValue1'],
-          origin: 'scope',
-        },
-        {
-          key: 'baseKey2',
-          keyLabel: 'baseKey2',
-          operator: '!=',
-          value: 'baseValue2',
-          valueLabels: ['baseValue2'],
-          origin: 'scope',
-        },
-        // no origin, so this does not get synced
-        { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3', valueLabels: ['baseValue3'] },
-      ],
-    });
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
-    });
-
-    expect(locationService.getLocation().search).toBe(`?${VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7Cval1`);
-  });
-
-  it('url syncs base filters as injected filters together with original value', async () => {
-    const scopesVariable = newScopesVariableFromScopeFilters([
-      {
-        key: 'baseKey1',
-        operator: 'not-equals',
-        value: 'baseValue1',
-      },
-    ]);
-    const { filtersVar } = setup(
-      {
-        filters: [],
-      },
-      undefined,
-      scopesVariable
-    );
-
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'newKey',
+        keyLabel: 'New Key',
+        operator: '=',
         value: 'newValue',
         valueLabels: ['newValue'],
+        condition: '',
+      });
+      expect(filtersVar.state.filters[1]).toEqual({
+        key: 'newKey2',
+        keyLabel: 'New Key 2',
+        operator: '=~',
+        value: 'newValue2',
+        valueLabels: ['newValue2'],
+        condition: '',
       });
     });
 
-    // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable?
-    expect(locationService.getLocation().search).toBe(`?${VARIABLE_NAMESPACE}-filters=baseKey1%7C%21%3D%7CnewValue%23scope%23restorable`);
-  });
+    // 8
+    it('url sync with no key label and value label', async () => {
+      const { filtersVar } = setup({urlNamespace});
 
-  it('url syncs multi-value base filters as injected filters', async () => {
-    const scopesVariable = newScopesVariableFromScopeFilters([
-      {
-        key: 'baseKey1',
-        operator: 'not-one-of',
-        value: 'baseValue1',
-        values: ['baseValue1', 'baseValue2'],
-      },
-    ]);
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['New Value'] });
+      });
 
-    const { filtersVar } = setup(
-      {
-        filters: [],
-      },
-      undefined,
-      scopesVariable
-    );
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=newKey%7C%3D%7CnewValue,New%20Value` +
+        `&${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`
+      );
 
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
-        value: 'newValue1',
-        values: ['newValue1', 'newValue2'],
+      act(() => {
+        locationService.partial({
+          [getVariableName('filters', urlNamespace)]: ['newKey|=|newValue,New Value', 'newKey2|=~|newValue2,New Value 2'],
+        });
+      });
+
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'newKey',
+        keyLabel: 'newKey',
+        operator: '=',
+        value: 'newValue',
+        valueLabels: ['New Value'],
+        condition: '',
+      });
+      expect(filtersVar.state.filters[1]).toEqual({
+        key: 'newKey2',
+        keyLabel: 'newKey2',
+        operator: '=~',
+        value: 'newValue2',
+        valueLabels: ['New Value 2'],
+        condition: '',
       });
     });
 
-    // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable?
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=baseKey1%7C%21%3D__gfp__%7CnewValue1%7CnewValue2%23scope%23restorable`
-    );
-  });
+    // 9
+    it('url sync with no key and value labels', async () => {
+      const { filtersVar } = setup({urlNamespace});
 
-  it('will properly escape injected filter hash delimiter if found within values', () => {
-    const scopesVariable = newScopesVariableFromScopeFilters([
-      {
-        key: 'baseKey1',
-        operator: 'equals',
-        value: 'baseValue1#',
-      },
-    ]);
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey' });
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+      });
 
-    const { filtersVar } = setup(
-      {
-        filters: [],
-      },
-      undefined,
-      scopesVariable
-    );
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=newKey%7C%3D%7CnewValue` +
+        `&${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`
+      );
 
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
-        value: 'newValue1#',
+      act(() => {
+        locationService.partial({
+          [getVariableName('filters', urlNamespace)]: ['newKey|=|newValue', 'newKey2|=~|newValue2'],
+        });
+      });
+
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'newKey',
+        keyLabel: 'newKey',
+        operator: '=',
+        value: 'newValue',
+        valueLabels: ['newValue'],
+        condition: '',
+      });
+      expect(filtersVar.state.filters[1]).toEqual({
+        key: 'newKey2',
+        keyLabel: 'newKey2',
+        operator: '=~',
+        value: 'newValue2',
+        valueLabels: ['newValue2'],
+        condition: '',
       });
     });
 
-    // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=baseKey1%7C%3D%7CnewValue1__gfh__%23scope%23restorable`
-    );
-  });
+    // 10
+    it('url sync with both key and value labels with commas', async () => {
+      const { filtersVar } = setup({urlNamespace});
 
-  it('sets url dashboard injected filter as a matchAll filter if it has the correct structure', () => {
-    const { filtersVar } = setup({
-      baseFilters: [
-        {
-          key: 'baseFilters',
-          operator: '=',
-          value: 'baseValue',
-        },
-        {
-          key: 'dbFilterKey',
-          operator: '=',
-          value: 'dbFilterValue',
-          origin: 'dashboard',
-        },
-      ],
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'new,Key', keyLabel: 'New,Key' });
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'new,Value', valueLabels: ['New,Value'] });
+      });
+
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=new__gfc__Key,New__gfc__Key%7C%3D%7Cnew__gfc__Value,New__gfc__Value` +
+        `&${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`
+      );
+
+      act(() => {
+        locationService.partial({
+          [getVariableName('filters', urlNamespace)]: [
+            'new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value',
+            'new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2',
+          ],
+        });
+      });
+
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'new,Key',
+        keyLabel: 'New,Key',
+        operator: '=',
+        value: 'new,Value',
+        valueLabels: ['New,Value'],
+        condition: '',
+      });
+      expect(filtersVar.state.filters[1]).toEqual({
+        key: 'new,Key,2',
+        keyLabel: 'New,Key,2',
+        operator: '=~',
+        value: 'new,Value,2',
+        valueLabels: ['New,Value,2'],
+        condition: '',
+      });
     });
 
-    const urlValues = {
-      [`${VARIABLE_NAMESPACE}-filters`]: ['dbFilterKey|=~|.*#dashboard#restorable'],
-    };
+    //11
+    it('url sync with both key and value labels with hash', async () => {
+      const { filtersVar } = setup({urlNamespace});
 
-    act(() => {
-      locationService.partial(urlValues);
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'new#Key', keyLabel: 'New#Key' });
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'new#Value', valueLabels: ['New#Value'] });
+      });
+
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=new__gfh__Key,New__gfh__Key%7C%3D%7Cnew__gfh__Value,New__gfh__Value` +
+        `&${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`
+      );
+
+      act(() => {
+        locationService.partial({
+          [getVariableName('filters', urlNamespace)]: [
+            'new__gfh__Key,New__gfh__Key|=|new__gfh__Value,New__gfh__Value',
+            'new__gfh__Key__gfh__2,New__gfh__Key__gfh__2|=~|new__gfh__Value__gfh__2,New__gfh__Value__gfh__2',
+          ],
+        });
+      });
+
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'new#Key',
+        keyLabel: 'New#Key',
+        operator: '=',
+        value: 'new#Value',
+        valueLabels: ['New#Value'],
+        condition: '',
+      });
+      expect(filtersVar.state.filters[1]).toEqual({
+        key: 'new#Key#2',
+        keyLabel: 'New#Key#2',
+        operator: '=~',
+        value: 'new#Value#2',
+        valueLabels: ['New#Value#2'],
+        condition: '',
+      });
     });
 
-    expect(filtersVar.state.baseFilters![1]).toEqual({
-      condition: '',
-      key: 'dbFilterKey',
-      keyLabel: 'dbFilterKey',
-      operator: '=~',
-      value: '.*',
-      valueLabels: ['.*'],
-      restorable: true,
-      matchAllFilter: true,
-      origin: 'dashboard',
-    });
-  });
+    //12
+    it('url sync with identical key and value labels', async () => {
+      const { filtersVar } = setup({urlNamespace});
 
-  it('should maintain modified scopes and reconciliate after scopes update', () => {
-    // scope filters are fully emitted sometimes after urlSync happens, so we maintain all
-    // scope filters we find in the URL even tho at that point there are no scope
-    // injected filters actually saved in the adhoc
-    const { filtersVar } = setup();
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue', valueLabels: ['newValue'] });
+      });
 
-    // url contains a modified scope injected filter carried from somewhere else
-    const urlValues = {
-      [`${VARIABLE_NAMESPACE}-filters`]: ['scopesFilterKey1|=|newScopesFilterValue1#scope#restorable'],
-    };
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=newKey%7C%3D%7CnewValue` +
+        `&${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`
+      );
 
-    act(() => {
-      locationService.partial(urlValues);
-    });
+      act(() => {
+        locationService.partial({
+          [getVariableName('filters', urlNamespace)]: ['newKey|=|newValue', 'newKey2,newKey2|=~|newValue2,newValue2'],
+        });
+      });
 
-    expect(filtersVar.state.baseFilters![0]).toEqual({
-      key: 'scopesFilterKey1',
-      keyLabel: 'scopesFilterKey1',
-      operator: '=',
-      value: 'newScopesFilterValue1',
-      valueLabels: ['newScopesFilterValue1'],
-      restorable: true,
-      origin: 'scope',
-      condition: '',
-    });
-  });
-
-  it('should maintain dashboard injected filter as a normal filter if there is no match', () => {
-    // this dashboard has no baseFilters
-    const { filtersVar } = setup();
-
-    // but the URL sends a modified dashboard level filter
-    const urlValues = {
-      [`${VARIABLE_NAMESPACE}-filters`]: ['dbFilterKey|!=|newDbFilterValue#dashboard#restorable'],
-    };
-
-    act(() => {
-      locationService.partial(urlValues);
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'newKey',
+        keyLabel: 'newKey',
+        operator: '=',
+        value: 'newValue',
+        valueLabels: ['newValue'],
+        condition: '',
+      });
+      expect(filtersVar.state.filters[1]).toEqual({
+        key: 'newKey2',
+        keyLabel: 'newKey2',
+        operator: '=~',
+        value: 'newValue2',
+        valueLabels: ['newValue2'],
+        condition: '',
+      });
     });
 
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'dbFilterKey',
-      keyLabel: 'dbFilterKey',
-      operator: '!=',
-      value: 'newDbFilterValue',
-      valueLabels: ['newDbFilterValue'],
-      condition: '',
-    });
-  });
+    // 13
+    it('only url sync fully completed filters', async () => {
+      const { filtersVar } = setup({urlNamespace});
 
-  it('should turn normal filter with same key as dashboard injected one to a dashboard one that can be restored', () => {
-    const { filtersVar } = setup({
-      baseFilters: [
-        {
-          key: 'dbFilterKey',
-          operator: '=',
-          value: 'dbFilterValue',
-          origin: 'dashboard',
-        },
-      ],
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: '', valueLabels: [''] });
+      });
+
+      expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`);
     });
 
-    // this is a normal filter but the key matches the
-    // dashboard filter so we overwrite this filter
-    // with the dashboard injected one
-    const urlValues = {
-      [`${VARIABLE_NAMESPACE}-filters`]: ['dbFilterKey|!=|newDbFilterValue'],
-    };
-
-    act(() => {
-      locationService.partial(urlValues);
-    });
-
-    // new filter will take values from the URL normal filter
-    // but keep it as a dashboard level filter
-    expect(filtersVar.state.baseFilters![0]).toEqual({
-      key: 'dbFilterKey',
-      keyLabel: 'dbFilterKey',
-      operator: '!=',
-      value: 'newDbFilterValue',
-      valueLabels: ['newDbFilterValue'],
-      origin: 'dashboard',
-      condition: '',
-      restorable: true,
-    });
-  });
-
-  it('url updates injected filters properly', async () => {
-    const scopesVariable = newScopesVariableFromScopeFilters([
-      {
-        key: 'scopeFilterKey1',
-        operator: 'equals',
-        value: 'scopeFilterValue1',
-      },
-      {
-        key: 'scopeFilterKey2',
-        operator: 'equals',
-        value: 'scopeFilterValue2',
-      },
-    ]);
-
-    const { filtersVar } = setup(
-      {
-        filters: [
-          {
-            key: 'filterKey',
-            operator: '=',
-            value: 'filterValue',
-          },
-        ],
+    // 14
+    it('url does not sync injected filters if they are not modified', async () => {
+      const { filtersVar } = setup({
+        urlNamespace,
+        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
         baseFilters: [
           {
-            key: 'baseFilterKey',
+            key: 'baseKey1',
+            keyLabel: 'baseKey1',
             operator: '=',
-            value: 'baseFilterValue',
+            value: 'baseValue1',
+            valueLabels: ['baseValue1'],
+            origin: 'scope',
+          },
+          {
+            key: 'baseKey2',
+            keyLabel: 'baseKey2',
+            operator: '!=',
+            value: 'baseValue2',
+            valueLabels: ['baseValue2'],
+            origin: 'scope',
+          },
+          // no origin, so this does not get synced
+          { key: 'baseKey3', keyLabel: 'baseKey3', operator: '!=', value: 'baseValue3', valueLabels: ['baseValue3'] },
+        ],
+      });
+
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
+      });
+
+      expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=newKey%7C%3D%7Cval1`);
+    });
+
+    //15
+    it('url syncs base filters as injected filters together with original value', async () => {
+      const scopesVariable = newScopesVariableFromScopeFilters([
+        {
+          key: 'baseKey1',
+          operator: 'not-equals',
+          value: 'baseValue1',
+        },
+      ]);
+      const { filtersVar } = setup(
+        {
+          filters: [],
+          urlNamespace
+        },
+        undefined,
+        scopesVariable
+      );
+
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+          value: 'newValue',
+          valueLabels: ['newValue'],
+        });
+      });
+
+      // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable?
+      expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=baseKey1%7C%21%3D%7CnewValue%23scope%23restorable`);
+    });
+
+    // 15.1
+    it('url syncs multi-value base filters as injected filters', async () => {
+      const scopesVariable = newScopesVariableFromScopeFilters([
+        {
+          key: 'baseKey1',
+          operator: 'not-one-of',
+          value: 'baseValue1',
+          values: ['baseValue1', 'baseValue2'],
+        },
+      ]);
+
+      const { filtersVar } = setup(
+        {
+          filters: [],
+          urlNamespace
+        },
+        undefined,
+        scopesVariable
+      );
+
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+          value: 'newValue1',
+          values: ['newValue1', 'newValue2'],
+        });
+      });
+
+      // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable?
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=baseKey1%7C%21%3D__gfp__%7CnewValue1%7CnewValue2%23scope%23restorable`
+      );
+    });
+
+    // 15.2
+    it('will properly escape injected filter hash delimiter if found within values', () => {
+      const scopesVariable = newScopesVariableFromScopeFilters([
+        {
+          key: 'baseKey1',
+          operator: 'equals',
+          value: 'baseValue1#',
+        },
+      ]);
+
+      const { filtersVar } = setup(
+        {
+          filters: [],
+          urlNamespace
+        },
+        undefined,
+        scopesVariable
+      );
+
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.baseFilters![0], {
+          value: 'newValue1#',
+        });
+      });
+
+      // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=baseKey1%7C%3D%7CnewValue1__gfh__%23scope%23restorable`
+      );
+    });
+
+    // 16
+    it('sets url dashboard injected filter as a matchAll filter if it has the correct structure', () => {
+      const { filtersVar } = setup({
+        urlNamespace,
+        baseFilters: [
+          {
+            key: 'baseFilters',
+            operator: '=',
+            value: 'baseValue',
           },
           {
             key: 'dbFilterKey',
@@ -1068,129 +957,287 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
             origin: 'dashboard',
           },
         ],
-      },
-      undefined,
-      scopesVariable
-    );
+      });
 
-    const urlValues = {
-      [`${VARIABLE_NAMESPACE}-filters`]: [
-        'dbFilterKey|!=|newDbFilterValue#dashboard#restorable',
-        'filterKey|!=|newFilterValue',
-        'scopeFilterKey1|=|newScopeFilterValue#scope#restorable',
-      ],
-    };
+      const urlValues = {
+        [getVariableName('filters', urlNamespace)]: ['dbFilterKey|=~|.*#dashboard#restorable'],
+      };
 
-    act(() => {
-      locationService.partial(urlValues);
-    });
+      act(() => {
+        locationService.partial(urlValues);
+      });
 
-    // normal filters are updated as per URL
-    expect(filtersVar.state.filters[0]).toEqual({
-      key: 'filterKey',
-      keyLabel: 'filterKey',
-      operator: '!=',
-      value: 'newFilterValue',
-      valueLabels: ['newFilterValue'],
-      condition: '',
-    });
-
-    // so are scope filters from the URL
-    expect(filtersVar.state.baseFilters![0]).toEqual({
-      key: 'scopeFilterKey1',
-      keyLabel: 'scopeFilterKey1',
-      operator: '=',
-      value: 'newScopeFilterValue',
-      valueLabels: ['newScopeFilterValue'],
-      restorable: true,
-      origin: 'scope',
-      condition: '',
-    });
-
-    expect(filtersVar.state.baseFilters![1]).toEqual({
-      key: 'scopeFilterKey2',
-      operator: '=',
-      value: 'scopeFilterValue2',
-      values: ['scopeFilterValue2'],
-      origin: 'scope',
-    });
-
-    // normal baseFilters are simply maintained if they exist in the adhoc
-    expect(filtersVar.state.baseFilters![2]).toEqual({
-      key: 'baseFilterKey',
-      operator: '=',
-      value: 'baseFilterValue',
-    });
-
-    // db injected filters are also updated
-    expect(filtersVar.state.baseFilters![3]).toEqual({
-      key: 'dbFilterKey',
-      keyLabel: 'dbFilterKey',
-      operator: '!=',
-      value: 'newDbFilterValue',
-      valueLabels: ['newDbFilterValue'],
-      restorable: true,
-      origin: 'dashboard',
-      condition: '',
-    });
-  });
-
-  it('show dashboard injected filters in the URL only if they have been changed', () => {
-    const { filtersVar } = setup({
-      filters: [
-        {
-          key: 'someFilter',
-          operator: '=',
-          value: 'someValue',
-        },
-      ],
-      baseFilters: [
-        {
-          key: 'baseFilters',
-          operator: '=',
-          value: 'baseValue',
-        },
-        {
-          key: 'dbFilter',
-          operator: '=',
-          value: 'dbValue',
-          origin: 'dashboard',
-        },
-      ],
-    });
-
-    //update the dashboard filter value
-    act(() => {
-      filtersVar._updateFilter(filtersVar.state.baseFilters![1], {
-        value: 'newDbValue',
+      expect(filtersVar.state.baseFilters![1]).toEqual({
+        condition: '',
+        key: 'dbFilterKey',
+        keyLabel: 'dbFilterKey',
+        operator: '=~',
+        value: '.*',
+        valueLabels: ['.*'],
+        restorable: true,
+        matchAllFilter: true,
+        origin: 'dashboard',
       });
     });
 
-    expect(locationService.getLocation().search).toBe(
-      `?${VARIABLE_NAMESPACE}-filters=someFilter%7C%3D%7CsomeValue&${VARIABLE_NAMESPACE}-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable`
-    );
+    // 17
+    it('should maintain modified scopes and reconciliate after scopes update', () => {
+      // scope filters are fully emitted sometimes after urlSync happens, so we maintain all
+      // scope filters we find in the URL even tho at that point there are no scope
+      // injected filters actually saved in the adhoc
+      const { filtersVar } = setup({urlNamespace});
 
-    // restore it, URL should be cleaned
-    act(() => {
-      filtersVar.restoreOriginalFilter(filtersVar.state.baseFilters![1]);
-    });
+      // url contains a modified scope injected filter carried from somewhere else
+      const urlValues = {
+        [getVariableName('filters', urlNamespace)]: ['scopesFilterKey1|=|newScopesFilterValue1#scope#restorable'],
+      };
 
-    expect(locationService.getLocation().search).toBe(`?${VARIABLE_NAMESPACE}-filters=someFilter%7C%3D%7CsomeValue`);
-  });
+      act(() => {
+        locationService.partial(urlValues);
+      });
 
-  it(`will default to just showing empty ${VARIABLE_NAMESPACE}-filters if no filters or base filters present`, () => {
-    const { filtersVar } = setup();
-
-    act(() => {
-      filtersVar.setState({
-        filters: [],
+      expect(filtersVar.state.baseFilters![0]).toEqual({
+        key: 'scopesFilterKey1',
+        keyLabel: 'scopesFilterKey1',
+        operator: '=',
+        value: 'newScopesFilterValue1',
+        valueLabels: ['newScopesFilterValue1'],
+        restorable: true,
+        origin: 'scope',
+        condition: '',
       });
     });
 
-    expect(filtersVar.state.filters).toEqual([]);
-    expect(filtersVar.state.baseFilters).toBe(undefined);
-    expect(locationService.getLocation().search).toBe(`?${VARIABLE_NAMESPACE}-filters=`);
-  });
+    // 18
+    it('should maintain dashboard injected filter as a normal filter if there is no match', () => {
+      // this dashboard has no baseFilters
+      const { filtersVar } = setup({urlNamespace});
+
+      // but the URL sends a modified dashboard level filter
+      const urlValues = {
+        [getVariableName('filters', urlNamespace)]: ['dbFilterKey|!=|newDbFilterValue#dashboard#restorable'],
+      };
+
+      act(() => {
+        locationService.partial(urlValues);
+      });
+
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'dbFilterKey',
+        keyLabel: 'dbFilterKey',
+        operator: '!=',
+        value: 'newDbFilterValue',
+        valueLabels: ['newDbFilterValue'],
+        condition: '',
+      });
+    });
+
+    // 19
+    it('should turn normal filter with same key as dashboard injected one to a dashboard one that can be restored', () => {
+      const { filtersVar } = setup({
+        urlNamespace,
+        baseFilters: [
+          {
+            key: 'dbFilterKey',
+            operator: '=',
+            value: 'dbFilterValue',
+            origin: 'dashboard',
+          },
+        ],
+      });
+
+      // this is a normal filter but the key matches the
+      // dashboard filter so we overwrite this filter
+      // with the dashboard injected one
+      const urlValues = {
+        [getVariableName('filters', urlNamespace)]: ['dbFilterKey|!=|newDbFilterValue'],
+      };
+
+      act(() => {
+        locationService.partial(urlValues);
+      });
+
+      // new filter will take values from the URL normal filter
+      // but keep it as a dashboard level filter
+      expect(filtersVar.state.baseFilters![0]).toEqual({
+        key: 'dbFilterKey',
+        keyLabel: 'dbFilterKey',
+        operator: '!=',
+        value: 'newDbFilterValue',
+        valueLabels: ['newDbFilterValue'],
+        origin: 'dashboard',
+        condition: '',
+        restorable: true,
+      });
+    });
+
+    // 20
+    it('url updates injected filters properly', async () => {
+      const scopesVariable = newScopesVariableFromScopeFilters([
+        {
+          key: 'scopeFilterKey1',
+          operator: 'equals',
+          value: 'scopeFilterValue1',
+        },
+        {
+          key: 'scopeFilterKey2',
+          operator: 'equals',
+          value: 'scopeFilterValue2',
+        },
+      ]);
+
+      const { filtersVar } = setup(
+        {
+          urlNamespace,
+          filters: [
+            {
+              key: 'filterKey',
+              operator: '=',
+              value: 'filterValue',
+            },
+          ],
+          baseFilters: [
+            {
+              key: 'baseFilterKey',
+              operator: '=',
+              value: 'baseFilterValue',
+            },
+            {
+              key: 'dbFilterKey',
+              operator: '=',
+              value: 'dbFilterValue',
+              origin: 'dashboard',
+            },
+          ],
+        },
+        undefined,
+        scopesVariable
+      );
+
+      const urlValues = {
+        [getVariableName('filters', urlNamespace)]: [
+          'dbFilterKey|!=|newDbFilterValue#dashboard#restorable',
+          'filterKey|!=|newFilterValue',
+          'scopeFilterKey1|=|newScopeFilterValue#scope#restorable',
+        ],
+      };
+
+      act(() => {
+        locationService.partial(urlValues);
+      });
+
+      // normal filters are updated as per URL
+      expect(filtersVar.state.filters[0]).toEqual({
+        key: 'filterKey',
+        keyLabel: 'filterKey',
+        operator: '!=',
+        value: 'newFilterValue',
+        valueLabels: ['newFilterValue'],
+        condition: '',
+      });
+
+      // so are scope filters from the URL
+      expect(filtersVar.state.baseFilters![0]).toEqual({
+        key: 'scopeFilterKey1',
+        keyLabel: 'scopeFilterKey1',
+        operator: '=',
+        value: 'newScopeFilterValue',
+        valueLabels: ['newScopeFilterValue'],
+        restorable: true,
+        origin: 'scope',
+        condition: '',
+      });
+
+      expect(filtersVar.state.baseFilters![1]).toEqual({
+        key: 'scopeFilterKey2',
+        operator: '=',
+        value: 'scopeFilterValue2',
+        values: ['scopeFilterValue2'],
+        origin: 'scope',
+      });
+
+      // normal baseFilters are simply maintained if they exist in the adhoc
+      expect(filtersVar.state.baseFilters![2]).toEqual({
+        key: 'baseFilterKey',
+        operator: '=',
+        value: 'baseFilterValue',
+      });
+
+      // db injected filters are also updated
+      expect(filtersVar.state.baseFilters![3]).toEqual({
+        key: 'dbFilterKey',
+        keyLabel: 'dbFilterKey',
+        operator: '!=',
+        value: 'newDbFilterValue',
+        valueLabels: ['newDbFilterValue'],
+        restorable: true,
+        origin: 'dashboard',
+        condition: '',
+      });
+    });
+
+    // 21
+    it('show dashboard injected filters in the URL only if they have been changed', () => {
+      const { filtersVar } = setup({
+        urlNamespace,
+        filters: [
+          {
+            key: 'someFilter',
+            operator: '=',
+            value: 'someValue',
+          },
+        ],
+        baseFilters: [
+          {
+            key: 'baseFilters',
+            operator: '=',
+            value: 'baseValue',
+          },
+          {
+            key: 'dbFilter',
+            operator: '=',
+            value: 'dbValue',
+            origin: 'dashboard',
+          },
+        ],
+      });
+
+      //update the dashboard filter value
+      act(() => {
+        filtersVar._updateFilter(filtersVar.state.baseFilters![1], {
+          value: 'newDbValue',
+        });
+      });
+
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableName('filters', urlNamespace)}=someFilter%7C%3D%7CsomeValue` +
+        `&${getVariableName('filters', urlNamespace)}=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable`
+      );
+
+      // restore it, URL should be cleaned
+      act(() => {
+        filtersVar.restoreOriginalFilter(filtersVar.state.baseFilters![1]);
+      });
+
+      expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=someFilter%7C%3D%7CsomeValue`);
+    });
+
+    // 21
+    it(`will default to just showing empty ${getVariableName('filters', urlNamespace)} if no filters or base filters present`, () => {
+      const { filtersVar } = setup({urlNamespace});
+
+      act(() => {
+        filtersVar.setState({
+          filters: [],
+        });
+      });
+
+      expect(filtersVar.state.filters).toEqual([]);
+      expect(filtersVar.state.baseFilters).toBe(undefined);
+      expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=`);
+    });
+
+  })
 
   it('will set original values for dashboard/scope injected filters on adhoc constructor', () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
