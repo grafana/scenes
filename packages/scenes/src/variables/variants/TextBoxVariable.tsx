@@ -1,9 +1,10 @@
 import React from 'react';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { VARIABLE_NAMESPACE, SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
+import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
 import { VariableValueInput } from '../components/VariableValueInput';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
+import { getVariableName } from '../../utils/variableUtils';
 
 export interface TextBoxVariableState extends SceneVariableState {
   value: string;
@@ -36,7 +37,7 @@ export class TextBoxVariable
   }
 
   private getKey(): string {
-    return `${VARIABLE_NAMESPACE}-${this.state.name}`;
+    return getVariableName(this.state.name, this.state.urlNamespace)
   }
 
   public getUrlState() {

@@ -6,6 +6,7 @@ import { VariableType, VariableFormatID } from '@grafana/schema';
 import { VariableValue, VariableValueSingle } from '../types';
 import { ALL_VARIABLE_VALUE } from '../constants';
 import { VARIABLE_NAMESPACE, SceneObjectUrlSyncHandler } from '../../core/types';
+import { getVariableName } from '../../utils/variableUtils';
 
 export interface FormatRegistryItem extends RegistryItem {
   formatter(value: VariableValue, args: string[], variable: FormatVariable): string;
@@ -22,6 +23,7 @@ export interface FormatVariable {
     type: VariableType | string;
     isMulti?: boolean;
     includeAll?: boolean;
+    urlNamespace?: string;
   };
 
   getValue(fieldPath?: string): VariableValue | undefined | null;
@@ -288,10 +290,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
         }
 
         if (Array.isArray(value)) {
-          return value.map((v) => formatQueryParameter(variable.state.name, v)).join('&');
+          return value.map((v) => formatQueryParameter(variable.state.name, v, variable.state.urlNamespace)).join('&');
         }
 
-        return formatQueryParameter(variable.state.name, value);
+        return formatQueryParameter(variable.state.name, value, variable.state.urlNamespace);
       },
     },
     {
@@ -339,8 +341,8 @@ const replaceSpecialCharactersToASCII = (value: string): string =>
     return '%' + c.charCodeAt(0).toString(16).toUpperCase();
   });
 
-function formatQueryParameter(name: string, value: VariableValueSingle): string {
-  return `${VARIABLE_NAMESPACE}-${name}=${encodeURIComponentStrict(value)}`;
+function formatQueryParameter(name: string, value: VariableValueSingle, urlNamespace?: string): string {
+  return `${getVariableName(name, urlNamespace)}=${encodeURIComponentStrict(value)}`;
 }
 
 export function isAllValue(value: VariableValueSingle) {

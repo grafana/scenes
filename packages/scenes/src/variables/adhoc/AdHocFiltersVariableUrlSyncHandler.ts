@@ -1,9 +1,4 @@
-import {
-  VARIABLE_NAMESPACE,
-  SceneObjectUrlSyncHandler,
-  SceneObjectUrlValue,
-  SceneObjectUrlValues,
-} from '../../core/types';
+import { SceneObjectUrlSyncHandler, SceneObjectUrlValue, SceneObjectUrlValues } from '../../core/types';
 import {
   AdHocFiltersVariable,
   AdHocFilterWithLabels,
@@ -13,12 +8,13 @@ import {
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
 import { escapeInjectedFilterUrlDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
+import { getVariableName } from '../../utils/variableUtils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
 
   private getKey(): string {
-    return `${VARIABLE_NAMESPACE}-${this._variable.state.name}`;
+    return getVariableName(this._variable.state.name, this._variable.state.urlNamespace)
   }
 
   public getKeys(): string[] {

@@ -4,22 +4,23 @@ import { map, Observable } from 'rxjs';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { VARIABLE_NAMESPACE, SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
+import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import {
+  CustomVariableValue,
   SceneVariable,
-  SceneVariableValueChangedEvent,
   SceneVariableState,
+  SceneVariableValueChangedEvent,
   ValidateAndUpdateResult,
+  VariableCustomFormatterFn,
   VariableValue,
   VariableValueOption,
   VariableValueSingle,
-  CustomVariableValue,
-  VariableCustomFormatterFn,
 } from '../types';
 import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
+import { getVariableName } from '../../utils/variableUtils';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -402,7 +403,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   public constructor(protected _sceneObject: MultiValueVariable<TState>) {}
 
   protected getKey(): string {
-    return `${VARIABLE_NAMESPACE}-${this._sceneObject.state.name}`;
+    return getVariableName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace)
   }
 
   public getKeys(): string[] {

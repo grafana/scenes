@@ -4,11 +4,12 @@ import { VariableHide } from '@grafana/data';
 
 import { SceneObjectBase, useSceneObjectState } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { ControlsLayout, VARIABLE_NAMESPACE, SceneComponentProps, SceneObjectState } from '../../core/types';
+import { ControlsLayout, SceneComponentProps, SceneObjectState } from '../../core/types';
 import { SceneVariable, SceneVariableState } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 import { selectors } from '@grafana/e2e-selectors';
+import { getVariableName } from '../../utils/variableUtils';
 
 export interface VariableValueSelectorsState extends SceneObjectState {
   layout?: ControlsLayout;
@@ -74,7 +75,7 @@ function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
     return null;
   }
 
-  const elementId = `${VARIABLE_NAMESPACE}-${state.key}`;
+  const elementId = getVariableName(state.key ?? '', state.urlNamespace);
   const labelOrName = state.label || state.name;
 
   return (

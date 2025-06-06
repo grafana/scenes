@@ -5,7 +5,7 @@ import React from 'react';
 import { Observable, of } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { VARIABLE_NAMESPACE, SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
+import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
 import { AUTO_VARIABLE_TEXT, AUTO_VARIABLE_VALUE } from '../constants';
 import {
@@ -15,6 +15,7 @@ import {
   ValidateAndUpdateResult,
   VariableValue,
 } from '../types';
+import { getVariableName } from '../../utils/variableUtils';
 
 export interface IntervalVariableState extends SceneVariableState {
   intervals: string[];
@@ -46,7 +47,7 @@ export class IntervalVariable
   }
 
   private getKey(): string {
-    return `${VARIABLE_NAMESPACE}-${this.state.name}`;
+    return getVariableName(this.state.name, this.state.urlNamespace)
   }
 
   public getUrlState() {
