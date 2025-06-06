@@ -7,7 +7,8 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { TestObjectWithVariableDependency } from '../TestScene';
-import { VARIABLE_NAMESPACE } from '../../core/types';
+
+import { VARIABLE_NAMESPACE } from '../utils';
 
 describe('TextBoxVariable', () => {
   it('Should not cause variable change mounted', async () => {

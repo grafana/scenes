@@ -9,7 +9,8 @@ import { SceneVariable, SceneVariableState } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 import { selectors } from '@grafana/e2e-selectors';
-import { getVariableName } from '../../utils/variableUtils';
+
+import { getVariableName } from '../utils';
 
 export interface VariableValueSelectorsState extends SceneObjectState {
   layout?: ControlsLayout;

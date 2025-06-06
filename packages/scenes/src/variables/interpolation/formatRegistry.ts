@@ -5,8 +5,8 @@ import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { VariableValue, VariableValueSingle } from '../types';
 import { ALL_VARIABLE_VALUE } from '../constants';
-import { VARIABLE_NAMESPACE, SceneObjectUrlSyncHandler } from '../../core/types';
-import { getVariableName } from '../../utils/variableUtils';
+import { SceneObjectUrlSyncHandler } from '../../core/types';
+import { getVariableName, VARIABLE_NAMESPACE } from '../utils';
 
 export interface FormatRegistryItem extends RegistryItem {
   formatter(value: VariableValue, args: string[], variable: FormatVariable): string;

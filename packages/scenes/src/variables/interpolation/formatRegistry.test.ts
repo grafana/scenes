@@ -4,7 +4,8 @@ import { TestVariable } from '../variants/TestVariable';
 
 import { formatRegistry } from './formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
-import { VARIABLE_NAMESPACE } from '../../core/types';
+
+import { VARIABLE_NAMESPACE } from '../utils';
 
 function formatValue<T extends VariableValue>(
   formatId: VariableFormatID,

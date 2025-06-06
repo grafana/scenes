@@ -2,7 +2,8 @@ import { TestScene } from '../TestScene';
 
 import { sceneInterpolator } from '../interpolation/sceneInterpolator';
 import { config, locationService } from '@grafana/runtime';
-import { VARIABLE_NAMESPACE } from '../../core/types';
+
+import { VARIABLE_NAMESPACE } from '../utils';
 
 describe('url macros', () => {
   it('Can get full url via ${__url}', () => {

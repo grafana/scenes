@@ -187,9 +187,6 @@ export function isSceneObject(obj: any): obj is SceneObject {
   return obj.useState !== undefined;
 }
 
-// @todo move to variableUtils.ts
-export const VARIABLE_NAMESPACE = 'var'
-
 export interface SceneObjectWithUrlSync extends SceneObject {
   getUrlState(): SceneObjectUrlValues;
   updateFromUrl(values: SceneObjectUrlValues): void;

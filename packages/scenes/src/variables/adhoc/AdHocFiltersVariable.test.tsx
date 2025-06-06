@@ -32,9 +32,10 @@ import { select } from 'react-select-event';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
-import { VARIABLE_NAMESPACE, FiltersRequestEnricher } from '../../core/types';
+import { FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
+import { VARIABLE_NAMESPACE } from '../utils';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),

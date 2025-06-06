@@ -13,8 +13,9 @@ import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
-import { VARIABLE_NAMESPACE, FiltersRequestEnricher } from '../../core/types';
+import { FiltersRequestEnricher } from '../../core/types';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
+import { VARIABLE_NAMESPACE } from '../utils';
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject

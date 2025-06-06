@@ -8,7 +8,8 @@ import { CustomAllValue } from '../variants/MultiValueVariable';
 import { TestVariable } from './TestVariable';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { CustomVariable } from './CustomVariable';
-import { VARIABLE_NAMESPACE } from '../../core/types';
+
+import { VARIABLE_NAMESPACE } from '../utils';
 
 describe('MultiValueVariable', () => {
   describe('When validateAndUpdate is called', () => {

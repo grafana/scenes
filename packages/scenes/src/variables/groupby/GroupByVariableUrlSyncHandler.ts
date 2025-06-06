@@ -1,8 +1,7 @@
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import { GroupByVariable } from './GroupByVariable';
-import { toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
+import { getVariableName, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
 import { VariableValue } from '../types';
-import { getVariableName } from '../../utils/variableUtils';
 
 export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _sceneObject: GroupByVariable) {}

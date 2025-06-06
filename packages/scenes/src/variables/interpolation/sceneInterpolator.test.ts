@@ -9,7 +9,8 @@ import { VariableInterpolation } from '@grafana/runtime';
 import { VariableFormatID } from '@grafana/schema';
 
 import { sceneInterpolator } from './sceneInterpolator';
-import { VARIABLE_NAMESPACE } from '../../core/types';
+
+import { VARIABLE_NAMESPACE } from '../utils';
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {

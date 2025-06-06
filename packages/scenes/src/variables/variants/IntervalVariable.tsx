@@ -15,7 +15,8 @@ import {
   ValidateAndUpdateResult,
   VariableValue,
 } from '../types';
-import { getVariableName } from '../../utils/variableUtils';
+
+import { getVariableName } from '../utils';
 
 export interface IntervalVariableState extends SceneVariableState {
   intervals: string[];

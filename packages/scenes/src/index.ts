@@ -164,3 +164,4 @@ export const sceneUtils = {
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
 export { getExploreURL } from './utils/explore';
+export { VARIABLE_NAMESPACE } from './variables/utils';

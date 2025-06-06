@@ -20,7 +20,8 @@ import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
-import { getVariableName } from '../../utils/variableUtils';
+
+import { getVariableName } from '../utils';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text

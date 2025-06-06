@@ -4,7 +4,8 @@ import { lastValueFrom } from 'rxjs';
 import { AUTO_VARIABLE_VALUE, AUTO_VARIABLE_TEXT } from '../constants';
 import { SceneVariableValueChangedEvent } from '../types';
 import { IntervalVariable } from './IntervalVariable';
-import { VARIABLE_NAMESPACE } from '../../core/types';
+
+import { VARIABLE_NAMESPACE } from '../utils';
 
 describe('IntervalVariable', () => {
   describe('When intervals are provided', () => {

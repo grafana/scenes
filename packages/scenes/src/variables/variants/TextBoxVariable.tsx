@@ -4,7 +4,8 @@ import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
 import { VariableValueInput } from '../components/VariableValueInput';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
-import { getVariableName } from '../../utils/variableUtils';
+
+import { getVariableName } from '../utils';
 
 export interface TextBoxVariableState extends SceneVariableState {
   value: string;
