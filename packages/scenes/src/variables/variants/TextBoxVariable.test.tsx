@@ -7,7 +7,7 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { TestObjectWithVariableDependency } from '../TestScene';
-import { DEFAULT_VARIABLE_NAMESPACE } from '../../core/types';
+import { VARIABLE_NAMESPACE } from '../../core/types';
 
 describe('TextBoxVariable', () => {
   it('Should not cause variable change mounted', async () => {
@@ -31,10 +31,10 @@ describe('TextBoxVariable', () => {
   it('Should change url sync key when name changes', async () => {
     const variable = new TextBoxVariable({ name: 'search' });
 
-    expect(variable.urlSync?.getKeys()).toEqual([`${DEFAULT_VARIABLE_NAMESPACE}-search`]);
+    expect(variable.urlSync?.getKeys()).toEqual([`${VARIABLE_NAMESPACE}-search`]);
 
     variable.setState({ name: 'newName' });
 
-    expect(variable.urlSync?.getKeys()).toEqual([`${DEFAULT_VARIABLE_NAMESPACE}-newName`]);
+    expect(variable.urlSync?.getKeys()).toEqual([`${VARIABLE_NAMESPACE}-newName`]);
   });
 });

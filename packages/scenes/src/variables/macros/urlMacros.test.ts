@@ -2,7 +2,7 @@ import { TestScene } from '../TestScene';
 
 import { sceneInterpolator } from '../interpolation/sceneInterpolator';
 import { config, locationService } from '@grafana/runtime';
-import { DEFAULT_VARIABLE_NAMESPACE } from '../../core/types';
+import { VARIABLE_NAMESPACE } from '../../core/types';
 
 describe('url macros', () => {
   it('Can get full url via ${__url}', () => {
@@ -39,15 +39,15 @@ describe('url macros', () => {
 
   it('Can exclude query param via ${__url.params:exclude:from}', () => {
     const scene = new TestScene({});
-    locationService.push(`/my-plugin/my-page?from=now-5m&to=now&${DEFAULT_VARIABLE_NAMESPACE}-test=hello&${DEFAULT_VARIABLE_NAMESPACE}-test2=world`);
+    locationService.push(`/my-plugin/my-page?from=now-5m&to=now&${VARIABLE_NAMESPACE}-test=hello&${VARIABLE_NAMESPACE}-test2=world`);
 
-    expect(sceneInterpolator(scene, `$\{__url.params:exclude:from,${DEFAULT_VARIABLE_NAMESPACE}-test}`)).toBe(`?to=now&${DEFAULT_VARIABLE_NAMESPACE}-test2=world`);
+    expect(sceneInterpolator(scene, `$\{__url.params:exclude:from,${VARIABLE_NAMESPACE}-test}`)).toBe(`?to=now&${VARIABLE_NAMESPACE}-test2=world`);
   });
 
-  it(`Can specify query params to include via $\{__url.params:include:from,${DEFAULT_VARIABLE_NAMESPACE}-test}`, () => {
+  it(`Can specify query params to include via $\{__url.params:include:from,${VARIABLE_NAMESPACE}-test}`, () => {
     const scene = new TestScene({});
-    locationService.push(`/my-plugin/my-page?from=now-5m&to=now&${DEFAULT_VARIABLE_NAMESPACE}-test=hello&${DEFAULT_VARIABLE_NAMESPACE}-test2=world`);
+    locationService.push(`/my-plugin/my-page?from=now-5m&to=now&${VARIABLE_NAMESPACE}-test=hello&${VARIABLE_NAMESPACE}-test2=world`);
 
-    expect(sceneInterpolator(scene, `$\{__url.params:include:from,${DEFAULT_VARIABLE_NAMESPACE}-test}`)).toBe(`?from=now-5m&${DEFAULT_VARIABLE_NAMESPACE}-test=hello`);
+    expect(sceneInterpolator(scene, `$\{__url.params:include:from,${VARIABLE_NAMESPACE}-test}`)).toBe(`?from=now-5m&${VARIABLE_NAMESPACE}-test=hello`);
   });
 });

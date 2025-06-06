@@ -1,4 +1,4 @@
-import { DEFAULT_VARIABLE_NAMESPACE, SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
+import { VARIABLE_NAMESPACE, SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import { GroupByVariable } from './GroupByVariable';
 import { toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
 import { VariableValue } from '../types';
@@ -9,11 +9,11 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
   protected _nextChangeShouldAddHistoryStep = false;
 
   private getRestorableKey(): string {
-    return `restorable-${DEFAULT_VARIABLE_NAMESPACE}-${this._sceneObject.state.name}`;
+    return `restorable-${VARIABLE_NAMESPACE}-${this._sceneObject.state.name}`;
   }
 
   private getKey(): string {
-    return `${DEFAULT_VARIABLE_NAMESPACE}-${this._sceneObject.state.name}`;
+    return `${VARIABLE_NAMESPACE}-${this._sceneObject.state.name}`;
   }
 
   public getKeys(): string[] {

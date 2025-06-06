@@ -4,7 +4,7 @@ import { VariableHide } from '@grafana/data';
 
 import { SceneObjectBase, useSceneObjectState } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { ControlsLayout, DEFAULT_VARIABLE_NAMESPACE, SceneComponentProps, SceneObjectState } from '../../core/types';
+import { ControlsLayout, VARIABLE_NAMESPACE, SceneComponentProps, SceneObjectState } from '../../core/types';
 import { SceneVariable, SceneVariableState } from '../types';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
@@ -74,7 +74,7 @@ function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
     return null;
   }
 
-  const elementId = `${DEFAULT_VARIABLE_NAMESPACE}-${state.key}`;
+  const elementId = `${VARIABLE_NAMESPACE}-${state.key}`;
   const labelOrName = state.label || state.name;
 
   return (

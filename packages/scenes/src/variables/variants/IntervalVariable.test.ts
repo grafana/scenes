@@ -4,7 +4,7 @@ import { lastValueFrom } from 'rxjs';
 import { AUTO_VARIABLE_VALUE, AUTO_VARIABLE_TEXT } from '../constants';
 import { SceneVariableValueChangedEvent } from '../types';
 import { IntervalVariable } from './IntervalVariable';
-import { DEFAULT_VARIABLE_NAMESPACE } from '../../core/types';
+import { VARIABLE_NAMESPACE } from '../../core/types';
 
 describe('IntervalVariable', () => {
   describe('When intervals are provided', () => {
@@ -159,7 +159,7 @@ describe('IntervalVariable', () => {
         value: '1m',
       });
 
-      expect(variable.getUrlState()).toEqual({ [`${DEFAULT_VARIABLE_NAMESPACE}-intervalTest`]: '1m' });
+      expect(variable.getUrlState()).toEqual({ [`${VARIABLE_NAMESPACE}-intervalTest`]: '1m' });
     });
 
     it('getUrlState should return value $__auto when auto option is selected', () => {
@@ -173,7 +173,7 @@ describe('IntervalVariable', () => {
         value: AUTO_VARIABLE_VALUE,
       });
 
-      expect(variable.getUrlState()).toEqual({ [`${DEFAULT_VARIABLE_NAMESPACE}-intervalTest`]: '$__auto' });
+      expect(variable.getUrlState()).toEqual({ [`${VARIABLE_NAMESPACE}-intervalTest`]: '$__auto' });
     });
     it('fromUrlState should update value for intervalText variable', async () => {
       const variable = new IntervalVariable({
@@ -185,7 +185,7 @@ describe('IntervalVariable', () => {
         refresh: VariableRefresh.onTimeRangeChanged,
         value: AUTO_VARIABLE_VALUE,
       });
-      variable.urlSync?.updateFromUrl({ [`${DEFAULT_VARIABLE_NAMESPACE}-intervalTest`]: '2d' });
+      variable.urlSync?.updateFromUrl({ [`${VARIABLE_NAMESPACE}-intervalTest`]: '2d' });
       expect(variable.state.value).toEqual('2d');
     });
   });

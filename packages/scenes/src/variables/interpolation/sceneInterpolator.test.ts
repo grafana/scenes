@@ -9,7 +9,7 @@ import { VariableInterpolation } from '@grafana/runtime';
 import { VariableFormatID } from '@grafana/schema';
 
 import { sceneInterpolator } from './sceneInterpolator';
-import { DEFAULT_VARIABLE_NAMESPACE } from '../../core/types';
+import { VARIABLE_NAMESPACE } from '../../core/types';
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {
@@ -114,7 +114,7 @@ describe('sceneInterpolator', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene, '${test:queryparam}')).toBe(`${DEFAULT_VARIABLE_NAMESPACE}-test=hello`);
+    expect(sceneInterpolator(scene, '${test:queryparam}')).toBe(`${VARIABLE_NAMESPACE}-test=hello`);
   });
 
   it('Can format multi valued values', () => {
@@ -215,9 +215,9 @@ describe('sceneInterpolator', () => {
       }),
     });
 
-    expect(sceneInterpolator(scene, '$__all_variables')).toBe(`${DEFAULT_VARIABLE_NAMESPACE}-cluster=A`);
+    expect(sceneInterpolator(scene, '$__all_variables')).toBe(`${VARIABLE_NAMESPACE}-cluster=A`);
     // Should not url encode again if format is queryparam
-    expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe(`${DEFAULT_VARIABLE_NAMESPACE}-cluster=A`);
+    expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe(`${VARIABLE_NAMESPACE}-cluster=A`);
   });
 
   it('Can use use $__url_time_range with browser timezone', () => {

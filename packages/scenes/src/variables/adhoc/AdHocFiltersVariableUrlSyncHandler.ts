@@ -1,5 +1,5 @@
 import {
-  DEFAULT_VARIABLE_NAMESPACE,
+  VARIABLE_NAMESPACE,
   SceneObjectUrlSyncHandler,
   SceneObjectUrlValue,
   SceneObjectUrlValues,
@@ -18,7 +18,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
   public constructor(private _variable: AdHocFiltersVariable) {}
 
   private getKey(): string {
-    return `${DEFAULT_VARIABLE_NAMESPACE}-${this._variable.state.name}`;
+    return `${VARIABLE_NAMESPACE}-${this._variable.state.name}`;
   }
 
   public getKeys(): string[] {
