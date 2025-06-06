@@ -5,7 +5,7 @@ import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { VariableValue, VariableValueSingle } from '../types';
 import { ALL_VARIABLE_VALUE } from '../constants';
-import { SceneObjectUrlSyncHandler } from '../../core/types';
+import { DEFAULT_VARIABLE_NAMESPACE, SceneObjectUrlSyncHandler } from '../../core/types';
 
 export interface FormatRegistryItem extends RegistryItem {
   formatter(value: VariableValue, args: string[], variable: FormatVariable): string;
@@ -280,7 +280,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.QueryParam,
       name: 'Query parameter',
       description:
-        'Format variables as URL parameters. Example in multi-variable scenario A + B + C => var-foo=A&var-foo=B&var-foo=C.',
+        `Format variables as URL parameters. Example in multi-variable scenario A + B + C => ${DEFAULT_VARIABLE_NAMESPACE}-foo=A&${DEFAULT_VARIABLE_NAMESPACE}-foo=B&${DEFAULT_VARIABLE_NAMESPACE}-foo=C.`,
       formatter: (value, _args, variable) => {
         if (variable.urlSync) {
           const urlParam = variable.urlSync.getUrlState();
@@ -340,7 +340,7 @@ const replaceSpecialCharactersToASCII = (value: string): string =>
   });
 
 function formatQueryParameter(name: string, value: VariableValueSingle): string {
-  return `var-${name}=${encodeURIComponentStrict(value)}`;
+  return `${DEFAULT_VARIABLE_NAMESPACE}-${name}=${encodeURIComponentStrict(value)}`;
 }
 
 export function isAllValue(value: VariableValueSingle) {

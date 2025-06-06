@@ -32,7 +32,7 @@ import { select } from 'react-select-event';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
-import { FiltersRequestEnricher } from '../../core/types';
+import { DEFAULT_VARIABLE_NAMESPACE, FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
 
@@ -453,11 +453,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=key1%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=key1%7C%3D%7CnewValue&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
     );
 
     act(() => {
-      locationService.partial({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
+      locationService.partial({ [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
     });
 
     expect(filtersVar.state.filters[0]).toEqual({
@@ -485,14 +485,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.filters[0], { hidden: true });
     });
 
-    expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
+    expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`);
   });
 
   it('overrides state when url has empty key', () => {
     const { filtersVar } = setup();
 
     act(() => {
-      locationService.partial({ 'var-filters': '' });
+      locationService.partial({ [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: '' });
     });
 
     expect(filtersVar.state.filters.length).toBe(0);
@@ -505,14 +505,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     await userEvent.click(screen.getByTestId('AdHocFilter-remove-key2'));
 
     expect(filtersVar.state.filters.length).toBe(0);
-    expect(locationService.getLocation().search).toBe('?var-filters=');
+    expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-filters=`);
   });
 
   it('url sync from empty filters array works', async () => {
     const { filtersVar } = setup({ filters: [] });
 
     act(() => {
-      locationService.partial({ 'var-filters': ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
+      locationService.partial({ [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['key1|=|valUrl', 'keyUrl|=~|urlVal'] });
     });
 
     expect(filtersVar.state.filters.length).toEqual(2);
@@ -527,12 +527,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=newKey,New%20Key%7C%3D%7CnewValue,New%20Value&var-filters=key2%7C%3D%7Cval2'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=newKey,New%20Key%7C%3D%7CnewValue,New%20Value&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
     );
 
     act(() => {
       locationService.partial({
-        'var-filters': ['newKey,New Key|=|newValue,New Value', 'newKey2,New Key 2|=~|newValue2,New Value 2'],
+        [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['newKey,New Key|=|newValue,New Value', 'newKey2,New Key 2|=~|newValue2,New Value 2'],
       });
     });
 
@@ -563,12 +563,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=newKey,New%20Key%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=newKey,New%20Key%7C%3D%7CnewValue&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
     );
 
     act(() => {
       locationService.partial({
-        'var-filters': ['newKey,New Key|=|newValue', 'newKey2,New Key 2|=~|newValue2'],
+        [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['newKey,New Key|=|newValue', 'newKey2,New Key 2|=~|newValue2'],
       });
     });
 
@@ -599,12 +599,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=newKey%7C%3D%7CnewValue,New%20Value&var-filters=key2%7C%3D%7Cval2'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7CnewValue,New%20Value&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
     );
 
     act(() => {
       locationService.partial({
-        'var-filters': ['newKey|=|newValue,New Value', 'newKey2|=~|newValue2,New Value 2'],
+        [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['newKey|=|newValue,New Value', 'newKey2|=~|newValue2,New Value 2'],
       });
     });
 
@@ -635,12 +635,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=newKey%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+      `?$\{DEFAULT_VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7CnewValue&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
     );
 
     act(() => {
       locationService.partial({
-        'var-filters': ['newKey|=|newValue', 'newKey2|=~|newValue2'],
+        '${DEFAULT_VARIABLE_NAMESPACE}-filters': ['newKey|=|newValue', 'newKey2|=~|newValue2'],
       });
     });
 
@@ -671,12 +671,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=new__gfc__Key,New__gfc__Key%7C%3D%7Cnew__gfc__Value,New__gfc__Value&var-filters=key2%7C%3D%7Cval2'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=new__gfc__Key,New__gfc__Key%7C%3D%7Cnew__gfc__Value,New__gfc__Value&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
     );
 
     act(() => {
       locationService.partial({
-        'var-filters': [
+        [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: [
           'new__gfc__Key,New__gfc__Key|=|new__gfc__Value,New__gfc__Value',
           'new__gfc__Key__gfc__2,New__gfc__Key__gfc__2|=~|new__gfc__Value__gfc__2,New__gfc__Value__gfc__2',
         ],
@@ -710,12 +710,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=new__gfh__Key,New__gfh__Key%7C%3D%7Cnew__gfh__Value,New__gfh__Value&var-filters=key2%7C%3D%7Cval2'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=new__gfh__Key,New__gfh__Key%7C%3D%7Cnew__gfh__Value,New__gfh__Value&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
     );
 
     act(() => {
       locationService.partial({
-        'var-filters': [
+        [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: [
           'new__gfh__Key,New__gfh__Key|=|new__gfh__Value,New__gfh__Value',
           'new__gfh__Key__gfh__2,New__gfh__Key__gfh__2|=~|new__gfh__Value__gfh__2,New__gfh__Value__gfh__2',
         ],
@@ -749,12 +749,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=newKey%7C%3D%7CnewValue&var-filters=key2%7C%3D%7Cval2'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7CnewValue&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
     );
 
     act(() => {
       locationService.partial({
-        'var-filters': ['newKey|=|newValue', 'newKey2,newKey2|=~|newValue2,newValue2'],
+        [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['newKey|=|newValue', 'newKey2,newKey2|=~|newValue2,newValue2'],
       });
     });
 
@@ -784,7 +784,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.filters[0], { value: '', valueLabels: [''] });
     });
 
-    expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
+    expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`);
   });
 
   it('url does not sync injected filters if they are not modified', async () => {
@@ -816,7 +816,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar._updateFilter(filtersVar.state.filters[0], { key: 'newKey', keyLabel: 'newKey' });
     });
 
-    expect(locationService.getLocation().search).toBe('?var-filters=newKey%7C%3D%7Cval1');
+    expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7Cval1`);
   });
 
   it('url syncs base filters as injected filters together with original value', async () => {
@@ -843,7 +843,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable?
-    expect(locationService.getLocation().search).toBe('?var-filters=baseKey1%7C%21%3D%7CnewValue%23scope%23restorable');
+    expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-filters=baseKey1%7C%21%3D%7CnewValue%23scope%23restorable`);
   });
 
   it('url syncs multi-value base filters as injected filters', async () => {
@@ -873,7 +873,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable?
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%21%3D__gfp__%7CnewValue1%7CnewValue2%23scope%23restorable'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=baseKey1%7C%21%3D__gfp__%7CnewValue1%7CnewValue2%23scope%23restorable`
     );
   });
 
@@ -902,7 +902,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=baseKey1%7C%3D%7CnewValue1__gfh__%23scope%23restorable'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=baseKey1%7C%3D%7CnewValue1__gfh__%23scope%23restorable`
     );
   });
 
@@ -924,7 +924,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     const urlValues = {
-      'var-filters': ['dbFilterKey|=~|.*#dashboard#restorable'],
+      [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['dbFilterKey|=~|.*#dashboard#restorable'],
     };
 
     act(() => {
@@ -952,7 +952,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // url contains a modified scope injected filter carried from somewhere else
     const urlValues = {
-      'var-filters': ['scopesFilterKey1|=|newScopesFilterValue1#scope#restorable'],
+      [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['scopesFilterKey1|=|newScopesFilterValue1#scope#restorable'],
     };
 
     act(() => {
@@ -977,7 +977,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // but the URL sends a modified dashboard level filter
     const urlValues = {
-      'var-filters': ['dbFilterKey|!=|newDbFilterValue#dashboard#restorable'],
+      [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['dbFilterKey|!=|newDbFilterValue#dashboard#restorable'],
     };
 
     act(() => {
@@ -1010,7 +1010,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     // dashboard filter so we overwrite this filter
     // with the dashboard injected one
     const urlValues = {
-      'var-filters': ['dbFilterKey|!=|newDbFilterValue'],
+      [`${DEFAULT_VARIABLE_NAMESPACE}`]: ['dbFilterKey|!=|newDbFilterValue'],
     };
 
     act(() => {
@@ -1073,7 +1073,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     );
 
     const urlValues = {
-      'var-filters': [
+      [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: [
         'dbFilterKey|!=|newDbFilterValue#dashboard#restorable',
         'filterKey|!=|newFilterValue',
         'scopeFilterKey1|=|newScopeFilterValue#scope#restorable',
@@ -1166,7 +1166,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=someFilter%7C%3D%7CsomeValue&var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable'
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=someFilter%7C%3D%7CsomeValue&${DEFAULT_VARIABLE_NAMESPACE}-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable`
     );
 
     // restore it, URL should be cleaned
@@ -1174,10 +1174,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar.restoreOriginalFilter(filtersVar.state.baseFilters![1]);
     });
 
-    expect(locationService.getLocation().search).toBe('?var-filters=someFilter%7C%3D%7CsomeValue');
+    expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-filters=someFilter%7C%3D%7CsomeValue`);
   });
 
-  it('will default to just showing empty var-filters if no filters or base filters present', () => {
+  it(`will default to just showing empty ${DEFAULT_VARIABLE_NAMESPACE}-filters if no filters or base filters present`, () => {
     const { filtersVar } = setup();
 
     act(() => {
@@ -1188,7 +1188,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     expect(filtersVar.state.filters).toEqual([]);
     expect(filtersVar.state.baseFilters).toBe(undefined);
-    expect(locationService.getLocation().search).toBe('?var-filters=');
+    expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-filters=`);
   });
 
   it('will set original values for dashboard/scope injected filters on adhoc constructor', () => {

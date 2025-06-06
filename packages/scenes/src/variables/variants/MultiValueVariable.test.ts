@@ -8,6 +8,7 @@ import { CustomAllValue } from '../variants/MultiValueVariable';
 import { TestVariable } from './TestVariable';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { CustomVariable } from './CustomVariable';
+import { DEFAULT_VARIABLE_NAMESPACE } from '../../core/types';
 
 describe('MultiValueVariable', () => {
   describe('When validateAndUpdate is called', () => {
@@ -537,7 +538,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: '1' });
+      expect(variable.urlSync?.getUrlState()).toEqual({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: '1' });
     });
 
     it('getUrlState should return string array if value is string array', async () => {
@@ -550,7 +551,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['1', '2'] });
+      expect(variable.urlSync?.getUrlState()).toEqual({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: ['1', '2'] });
     });
 
     it('getUrlState should always return array if isMulti is true', async () => {
@@ -563,7 +564,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['A'] });
+      expect(variable.urlSync?.getUrlState()).toEqual({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: ['A'] });
     });
 
     it('updateFromUrl should update value for single value', async () => {
@@ -579,7 +580,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: '2' });
+      variable.urlSync?.updateFromUrl({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: '2' });
       expect(variable.state.value).toEqual('2');
       expect(variable.state.text).toEqual('B');
     });
@@ -597,7 +598,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: ['2', '1'] });
+      variable.urlSync?.updateFromUrl({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: ['2', '1'] });
       expect(variable.state.value).toEqual(['2', '1']);
       expect(variable.state.text).toEqual(['B', 'A']);
     });
@@ -613,7 +614,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: 'Custom value' });
+      variable.urlSync?.updateFromUrl({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: 'Custom value' });
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.getValue()).toEqual('Custom value');
@@ -637,7 +638,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: ALL_VARIABLE_TEXT });
+      variable.urlSync?.updateFromUrl({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: ALL_VARIABLE_TEXT });
 
       await lastValueFrom(variable.validateAndUpdate());
 
@@ -659,7 +660,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: [ALL_VARIABLE_TEXT] });
+      variable.urlSync?.updateFromUrl({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: [ALL_VARIABLE_TEXT] });
 
       await lastValueFrom(variable.validateAndUpdate());
 
@@ -681,7 +682,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: '.*' });
+      variable.urlSync?.updateFromUrl({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: '.*' });
       expect(variable.state.value).toEqual(ALL_VARIABLE_VALUE);
       expect(variable.state.text).toEqual(ALL_VARIABLE_TEXT);
     });
@@ -700,7 +701,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: ['1', '2'] });
+      variable.urlSync?.updateFromUrl({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: ['1', '2'] });
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.getValueText()).toEqual('A + B');
@@ -715,7 +716,7 @@ describe('MultiValueVariable', () => {
         query: 'A : 1,B : 2',
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: 'B' });
+      variable.urlSync?.updateFromUrl({ [`${DEFAULT_VARIABLE_NAMESPACE}-test`]: 'B' });
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.state.value).toEqual('2');

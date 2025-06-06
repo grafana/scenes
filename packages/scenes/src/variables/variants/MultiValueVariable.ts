@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
+import { DEFAULT_VARIABLE_NAMESPACE, SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import {
   SceneVariable,
   SceneVariableValueChangedEvent,
@@ -402,7 +402,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   public constructor(protected _sceneObject: MultiValueVariable<TState>) {}
 
   protected getKey(): string {
-    return `var-${this._sceneObject.state.name}`;
+    return `${DEFAULT_VARIABLE_NAMESPACE}-${this._sceneObject.state.name}`;
   }
 
   public getKeys(): string[] {

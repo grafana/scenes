@@ -1,6 +1,6 @@
 import React from 'react';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
+import { DEFAULT_VARIABLE_NAMESPACE, SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
 import { VariableValueInput } from '../components/VariableValueInput';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
@@ -36,7 +36,7 @@ export class TextBoxVariable
   }
 
   private getKey(): string {
-    return `var-${this.state.name}`;
+    return `${DEFAULT_VARIABLE_NAMESPACE}-${this.state.name}`;
   }
 
   public getUrlState() {

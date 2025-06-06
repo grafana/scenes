@@ -5,7 +5,7 @@ import React from 'react';
 import { Observable, of } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
+import { DEFAULT_VARIABLE_NAMESPACE, SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
 import { AUTO_VARIABLE_TEXT, AUTO_VARIABLE_VALUE } from '../constants';
 import {
@@ -46,7 +46,7 @@ export class IntervalVariable
   }
 
   private getKey(): string {
-    return `var-${this.state.name}`;
+    return `${DEFAULT_VARIABLE_NAMESPACE}-${this.state.name}`;
   }
 
   public getUrlState() {

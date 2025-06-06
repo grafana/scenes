@@ -13,7 +13,7 @@ import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
-import { FiltersRequestEnricher } from '../../core/types';
+import { DEFAULT_VARIABLE_NAMESPACE, FiltersRequestEnricher } from '../../core/types';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 
 // 11.1.2 - will use SafeSerializableSceneObject
@@ -72,17 +72,17 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         variable.changeValueTo(['a']);
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=a');
+      expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-test=a`);
 
       act(() => {
-        locationService.push('/?var-test=a&var-test=b');
+        locationService.push(`/?${DEFAULT_VARIABLE_NAMESPACE}-test=a&${DEFAULT_VARIABLE_NAMESPACE}-test=b`);
       });
 
       expect(variable.state.value).toEqual(['a', 'b']);
       expect(variable.state.text).toEqual(['a', 'b']);
 
       act(() => {
-        locationService.push('/?var-test=a&var-test=b&var-test=c');
+        locationService.push(`/?${DEFAULT_VARIABLE_NAMESPACE}-test=a&${DEFAULT_VARIABLE_NAMESPACE}-test=b&${DEFAULT_VARIABLE_NAMESPACE}-test=c`);
       });
 
       expect(variable.state.value).toEqual(['a', 'b', 'c']);
@@ -114,17 +114,17 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         variable.changeValueTo(['a']);
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=a,A');
+      expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-test=a,A`);
 
       act(() => {
-        locationService.push('/?var-test=a,A&var-test=b');
+        locationService.push(`/?${DEFAULT_VARIABLE_NAMESPACE}-test=a,A&${DEFAULT_VARIABLE_NAMESPACE}-test=b`);
       });
 
       expect(variable.state.value).toEqual(['a', 'b']);
       expect(variable.state.text).toEqual(['A', 'b']);
 
       act(() => {
-        locationService.push('/?var-test=a,A&var-test=b&var-test=c');
+        locationService.push(`/?${DEFAULT_VARIABLE_NAMESPACE}-test=a,A&${DEFAULT_VARIABLE_NAMESPACE}-test=b&${DEFAULT_VARIABLE_NAMESPACE}-test=c`);
       });
 
       expect(variable.state.value).toEqual(['a', 'b', 'c']);
@@ -150,10 +150,10 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         variable.changeValueTo(['a']);
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=a,A__gfc__something');
+      expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-test=a,A__gfc__something`);
 
       act(() => {
-        locationService.push('/?var-test=a,A__gfc__something&var-test=b__gfc__something');
+        locationService.push(`/?${DEFAULT_VARIABLE_NAMESPACE}-test=a,A__gfc__something&${DEFAULT_VARIABLE_NAMESPACE}-test=b__gfc__something`);
       });
 
       expect(variable.state.value).toEqual(['a', 'b,something']);
@@ -161,7 +161,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       act(() => {
         locationService.push(
-          '/?var-test=a,A__gfc__something&var-test=b__gfc__something&var-test=c__gfc__something,C__gfc__something'
+          `/?${DEFAULT_VARIABLE_NAMESPACE}-test=a,A__gfc__something&${DEFAULT_VARIABLE_NAMESPACE}-test=b__gfc__something&${DEFAULT_VARIABLE_NAMESPACE}-test=c__gfc__something,C__gfc__something`
         );
       });
 
@@ -184,7 +184,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       expect(variable.state.value).toEqual(['defaultVal1', 'normalVal']);
       expect(locationService.getLocation().search).toBe(
-        '?var-test=defaultVal1&var-test=normalVal&restorable-var-test=true'
+        `?${DEFAULT_VARIABLE_NAMESPACE}-test=defaultVal1&${DEFAULT_VARIABLE_NAMESPACE}-test=normalVal&restorable-${DEFAULT_VARIABLE_NAMESPACE}-test=true`
       );
     });
 
@@ -201,14 +201,14 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=normalVal&restorable-var-test=true');
+      expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-test=normalVal&restorable-${DEFAULT_VARIABLE_NAMESPACE}-test=true`);
 
       act(() => {
         variable.restoreDefaultValues();
       });
 
       expect(variable.state.value).toEqual(['defaultVal1']);
-      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1');
+      expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-test=defaultVal1`);
     });
 
     it('should set default values as current values if none are set', () => {
@@ -273,17 +273,17 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         variable.changeValueTo(['a'], undefined, true);
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=a');
+      expect(locationService.getLocation().search).toBe(`?${DEFAULT_VARIABLE_NAMESPACE}-test=a`);
 
       act(() => {
-        locationService.push('/?var-test=a&var-test=b');
+        locationService.push(`/?${DEFAULT_VARIABLE_NAMESPACE}-test=a&${DEFAULT_VARIABLE_NAMESPACE}-test=b`);
       });
 
       expect(variable.state.value).toEqual(['a', 'b']);
       expect(variable.state.text).toEqual(['a', 'b']);
 
       act(() => {
-        locationService.push('/?var-test=a&var-test=b&var-test=c');
+        locationService.push(`/?${DEFAULT_VARIABLE_NAMESPACE}-test=a&${DEFAULT_VARIABLE_NAMESPACE}-test=b&${DEFAULT_VARIABLE_NAMESPACE}-test=c`);
       });
 
       expect(variable.state.value).toEqual(['a', 'b', 'c']);
