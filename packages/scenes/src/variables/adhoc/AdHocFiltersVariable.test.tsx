@@ -635,12 +635,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      `?$\{DEFAULT_VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7CnewValue&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
+      `?${DEFAULT_VARIABLE_NAMESPACE}-filters=newKey%7C%3D%7CnewValue&${DEFAULT_VARIABLE_NAMESPACE}-filters=key2%7C%3D%7Cval2`
     );
 
     act(() => {
       locationService.partial({
-        '${DEFAULT_VARIABLE_NAMESPACE}-filters': ['newKey|=|newValue', 'newKey2|=~|newValue2'],
+        [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['newKey|=|newValue', 'newKey2|=~|newValue2'],
       });
     });
 
@@ -1010,7 +1010,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     // dashboard filter so we overwrite this filter
     // with the dashboard injected one
     const urlValues = {
-      [`${DEFAULT_VARIABLE_NAMESPACE}`]: ['dbFilterKey|!=|newDbFilterValue'],
+      [`${DEFAULT_VARIABLE_NAMESPACE}-filters`]: ['dbFilterKey|!=|newDbFilterValue'],
     };
 
     act(() => {
