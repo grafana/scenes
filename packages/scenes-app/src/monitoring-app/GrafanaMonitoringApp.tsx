@@ -1,7 +1,7 @@
 // Libraries
 import React, { useMemo } from 'react';
 
-import { SceneApp, SceneAppPage, SceneRouteMatch, SceneAppPageLike, DEFAULT_VARIABLE_NAMESPACE } from '@grafana/scenes';
+import { SceneApp, SceneAppPage, SceneRouteMatch, SceneAppPageLike, VARIABLE_NAMESPACE } from '@grafana/scenes';
 
 import {
   getOverviewScene,
@@ -39,14 +39,14 @@ export function getMainPageScene() {
         url: prefixRoute('grafana-monitoring'),
         routePath: '',
         getScene: getOverviewScene,
-        preserveUrlKeys: ['from', 'to', `${DEFAULT_VARIABLE_NAMESPACE}-instance`],
+        preserveUrlKeys: ['from', 'to', `${VARIABLE_NAMESPACE}-instance`],
       }),
       new SceneAppPage({
         title: 'HTTP handlers',
         url: prefixRoute('grafana-monitoring/handlers'),
         routePath: 'handlers/*',
         getScene: getHttpHandlerListScene,
-        preserveUrlKeys: ['from', 'to', `${DEFAULT_VARIABLE_NAMESPACE}-instance`],
+        preserveUrlKeys: ['from', 'to', `${VARIABLE_NAMESPACE}-instance`],
         drilldowns: [
           {
             routePath: prefixRoute('grafana-monitoring/handlers/:handler'),
@@ -59,14 +59,14 @@ export function getMainPageScene() {
         url: prefixRoute('grafana-monitoring/traffic'),
         routePath: 'traffic',
         getScene: getTrafficScene,
-        preserveUrlKeys: ['from', 'to', `${DEFAULT_VARIABLE_NAMESPACE}-instance`],
+        preserveUrlKeys: ['from', 'to', `${VARIABLE_NAMESPACE}-instance`],
       }),
       new SceneAppPage({
         title: 'Logs',
         url: prefixRoute('grafana-monitoring/logs'),
         routePath: 'logs',
         getScene: getOverviewLogsScene,
-        preserveUrlKeys: ['from', 'to', `${DEFAULT_VARIABLE_NAMESPACE}-instance`],
+        preserveUrlKeys: ['from', 'to', `${VARIABLE_NAMESPACE}-instance`],
       }),
     ],
   });
@@ -92,14 +92,14 @@ export function getHandlerDrilldownPage(
         url: baseUrl,
         routePath: '',
         getScene: () => getHandlerDetailsScene(handler),
-        preserveUrlKeys: ['from', 'to', `${DEFAULT_VARIABLE_NAMESPACE}-instance`],
+        preserveUrlKeys: ['from', 'to', `${VARIABLE_NAMESPACE}-instance`],
       }),
       new SceneAppPage({
         title: 'Logs',
         url: baseUrl + '/logs',
         routePath: 'logs',
         getScene: () => getHandlerLogsScene(handler),
-        preserveUrlKeys: ['from', 'to', `${DEFAULT_VARIABLE_NAMESPACE}-instance`],
+        preserveUrlKeys: ['from', 'to', `${VARIABLE_NAMESPACE}-instance`],
       }),
     ],
   });

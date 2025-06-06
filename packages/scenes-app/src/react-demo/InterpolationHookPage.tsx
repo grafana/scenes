@@ -5,7 +5,7 @@ import { PageWrapper } from './PageWrapper';
 import { locationService } from '@grafana/runtime';
 import { RenderCounter } from './utils';
 import { DemoSubTitle } from '../pages/DemoSubTitle';
-import { DEFAULT_VARIABLE_NAMESPACE } from '@grafana/scenes';
+import { VARIABLE_NAMESPACE } from '@grafana/scenes';
 
 export function InterpolationHookPage() {
   return (
@@ -37,7 +37,7 @@ const PageBody = React.memo(() => {
   };
 
   const onSetEnvVariable = () => {
-    locationService.partial({ [`${DEFAULT_VARIABLE_NAMESPACE}-env`]: 'prod' });
+    locationService.partial({ [`${VARIABLE_NAMESPACE}-env`]: 'prod' });
   };
 
   return (
