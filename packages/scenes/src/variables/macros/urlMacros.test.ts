@@ -3,8 +3,6 @@ import { TestScene } from '../TestScene';
 import { sceneInterpolator } from '../interpolation/sceneInterpolator';
 import { config, locationService } from '@grafana/runtime';
 
-import { VARIABLE_NAMESPACE } from '../utils';
-
 describe('url macros', () => {
   it('Can get full url via ${__url}', () => {
     const scene = new TestScene({});
@@ -40,15 +38,15 @@ describe('url macros', () => {
 
   it('Can exclude query param via ${__url.params:exclude:from}', () => {
     const scene = new TestScene({});
-    locationService.push(`/my-plugin/my-page?from=now-5m&to=now&${VARIABLE_NAMESPACE}-test=hello&${VARIABLE_NAMESPACE}-test2=world`);
+    locationService.push('/my-plugin/my-page?from=now-5m&to=now&var-test=hello&var-test2=world');
 
-    expect(sceneInterpolator(scene, `$\{__url.params:exclude:from,${VARIABLE_NAMESPACE}-test}`)).toBe(`?to=now&${VARIABLE_NAMESPACE}-test2=world`);
+    expect(sceneInterpolator(scene, '${__url.params:exclude:from,var-test}')).toBe('?to=now&var-test2=world');
   });
 
-  it(`Can specify query params to include via $\{__url.params:include:from,${VARIABLE_NAMESPACE}-test}`, () => {
+  it('Can specify query params to include via ${__url.params:include:from,var-test}', () => {
     const scene = new TestScene({});
-    locationService.push(`/my-plugin/my-page?from=now-5m&to=now&${VARIABLE_NAMESPACE}-test=hello&${VARIABLE_NAMESPACE}-test2=world`);
+    locationService.push('/my-plugin/my-page?from=now-5m&to=now&var-test=hello&var-test2=world');
 
-    expect(sceneInterpolator(scene, `$\{__url.params:include:from,${VARIABLE_NAMESPACE}-test}`)).toBe(`?from=now-5m&${VARIABLE_NAMESPACE}-test=hello`);
+    expect(sceneInterpolator(scene, '${__url.params:include:from,var-test}')).toBe('?from=now-5m&var-test=hello');
   });
 });

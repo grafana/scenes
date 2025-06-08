@@ -5,8 +5,6 @@ import { TestVariable } from '../variants/TestVariable';
 import { formatRegistry } from './formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 
-import { VARIABLE_NAMESPACE } from '../utils';
-
 function formatValue<T extends VariableValue>(
   formatId: VariableFormatID,
   value: T,
@@ -84,7 +82,7 @@ describe('formatRegistry', () => {
   describe('queryparam', () => {
     it('should url encode value', () => {
       const result = formatValue(VariableFormatID.QueryParam, 'helloAZ%=');
-      expect(result).toBe(`${VARIABLE_NAMESPACE}-server=helloAZ%25%3D`);
+      expect(result).toBe('var-server=helloAZ%25%3D');
     });
 
     it('should use variable url sync handler', () => {
@@ -98,7 +96,7 @@ describe('formatRegistry', () => {
       });
 
       const result = formatRegistry.get(VariableFormatID.QueryParam).formatter('asd', [], variable);
-      expect(result).toBe(`${VARIABLE_NAMESPACE}-Filters=key1%7C%3D%7Cval1&${VARIABLE_NAMESPACE}-Filters=key2%7C%3D~%7Cval2`);
+      expect(result).toBe('var-Filters=key1%7C%3D%7Cval1&var-Filters=key2%7C%3D~%7Cval2');
     });
   });
 });

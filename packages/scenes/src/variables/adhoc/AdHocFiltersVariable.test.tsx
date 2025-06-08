@@ -41,8 +41,6 @@ const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
 } as any;
 
-const testUrlNamespace = 'ns'
-
 describe('templateSrv.getAdhocFilters patch ', () => {
   it('calls original when scene object is not active', async () => {
     const { unmount } = setup();
@@ -448,9 +446,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
-  describe.each([testUrlNamespace, undefined])('URL parameter namespace', (urlNamespace) => {
-
-    // 1
+  describe.each(['ns', undefined])('URL parameter namespace', (urlNamespace) => {
     it('url sync works', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -485,7 +481,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 2
     it('does not render hidden filter in url', () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -496,7 +491,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`);
     });
 
-    //3
     it('overrides state when url has empty key', () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -507,7 +501,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(filtersVar.state.filters.length).toBe(0);
     });
 
-    //4
     it('reflects emtpy state in url', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -518,7 +511,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=`);
     });
 
-    // 5
     it('url sync from empty filters array works', async () => {
       const { filtersVar } = setup({ filters: [], urlNamespace });
 
@@ -529,7 +521,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(filtersVar.state.filters.length).toEqual(2);
     });
 
-    // 6
     it('url sync with both key and value labels', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -567,7 +558,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 7
     it('url sync with key label and no value label', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -605,7 +595,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 8
     it('url sync with no key label and value label', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -643,7 +632,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 9
     it('url sync with no key and value labels', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -681,7 +669,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 10
     it('url sync with both key and value labels with commas', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -722,7 +709,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    //11
     it('url sync with both key and value labels with hash', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -763,7 +749,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    //12
     it('url sync with identical key and value labels', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -801,7 +786,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 13
     it('only url sync fully completed filters', async () => {
       const { filtersVar } = setup({urlNamespace});
 
@@ -813,7 +797,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=key2%7C%3D%7Cval2`);
     });
 
-    // 14
     it('url does not sync injected filters if they are not modified', async () => {
       const { filtersVar } = setup({
         urlNamespace,
@@ -847,7 +830,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=newKey%7C%3D%7Cval1`);
     });
 
-    //15
     it('url syncs base filters as injected filters together with original value', async () => {
       const scopesVariable = newScopesVariableFromScopeFilters([
         {
@@ -876,7 +858,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=baseKey1%7C%21%3D%7CnewValue%23scope%23restorable`);
     });
 
-    // 15.1
     it('url syncs multi-value base filters as injected filters', async () => {
       const scopesVariable = newScopesVariableFromScopeFilters([
         {
@@ -909,7 +890,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       );
     });
 
-    // 15.2
     it('will properly escape injected filter hash delimiter if found within values', () => {
       const scopesVariable = newScopesVariableFromScopeFilters([
         {
@@ -940,7 +920,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       );
     });
 
-    // 16
     it('sets url dashboard injected filter as a matchAll filter if it has the correct structure', () => {
       const { filtersVar } = setup({
         urlNamespace,
@@ -980,7 +959,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 17
     it('should maintain modified scopes and reconciliate after scopes update', () => {
       // scope filters are fully emitted sometimes after urlSync happens, so we maintain all
       // scope filters we find in the URL even tho at that point there are no scope
@@ -1008,7 +986,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 18
     it('should maintain dashboard injected filter as a normal filter if there is no match', () => {
       // this dashboard has no baseFilters
       const { filtersVar } = setup({urlNamespace});
@@ -1032,7 +1009,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 19
     it('should turn normal filter with same key as dashboard injected one to a dashboard one that can be restored', () => {
       const { filtersVar } = setup({
         urlNamespace,
@@ -1071,7 +1047,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 20
     it('url updates injected filters properly', async () => {
       const scopesVariable = newScopesVariableFromScopeFilters([
         {
@@ -1176,7 +1151,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    // 21
     it('show dashboard injected filters in the URL only if they have been changed', () => {
       const { filtersVar } = setup({
         urlNamespace,
@@ -1222,7 +1196,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(locationService.getLocation().search).toBe(`?${getVariableName('filters', urlNamespace)}=someFilter%7C%3D%7CsomeValue`);
     });
 
-    // 21
     it(`will default to just showing empty ${getVariableName('filters', urlNamespace)} if no filters or base filters present`, () => {
       const { filtersVar } = setup({urlNamespace});
 

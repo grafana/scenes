@@ -6,7 +6,7 @@ import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
 
-export const VARIABLE_NAMESPACE = 'var'
+const VARIABLE_NAMESPACE = 'var'
 
 export const getVariableName = (name: string, namespace?: string) => {
   return `${VARIABLE_NAMESPACE}-${namespace ? (namespace + '-') : ''}${name}`;

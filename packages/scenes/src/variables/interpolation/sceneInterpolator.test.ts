@@ -10,7 +10,7 @@ import { VariableFormatID } from '@grafana/schema';
 
 import { sceneInterpolator } from './sceneInterpolator';
 
-import { VARIABLE_NAMESPACE } from '../utils';
+import { getVariableName } from '../utils';
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {
@@ -101,21 +101,6 @@ describe('sceneInterpolator', () => {
 
       expect(sceneInterpolator(scene, '${test.prop1}')).toBe('prop1Value');
     });
-  });
-
-  it('Can use format', () => {
-    const scene = new TestScene({
-      $variables: new SceneVariableSet({
-        variables: [
-          new ConstantVariable({
-            name: 'test',
-            value: 'hello',
-          }),
-        ],
-      }),
-    });
-
-    expect(sceneInterpolator(scene, '${test:queryparam}')).toBe(`${VARIABLE_NAMESPACE}-test=hello`);
   });
 
   it('Can format multi valued values', () => {
@@ -209,17 +194,35 @@ describe('sceneInterpolator', () => {
     expect(formatter.mock.calls[0][1]).toEqual({ name: 'cluster', type: 'custom', multi: true, includeAll: true });
   });
 
-  it('Can use use $__all_variables', () => {
-    const scene = new TestScene({
-      $variables: new SceneVariableSet({
-        variables: [new TestVariable({ name: 'cluster', value: 'A', text: 'A' })],
-      }),
+  describe.each(['namespace', undefined])('URL parameter namespace', (urlNamespace) => {
+    it('Can use format', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new ConstantVariable({
+              urlNamespace,
+              name: 'test',
+              value: 'hello',
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${test:queryparam}')).toBe(`${getVariableName('test', urlNamespace)}=hello`);
     });
 
-    expect(sceneInterpolator(scene, '$__all_variables')).toBe(`${VARIABLE_NAMESPACE}-cluster=A`);
-    // Should not url encode again if format is queryparam
-    expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe(`${VARIABLE_NAMESPACE}-cluster=A`);
-  });
+    it('Can use use $__all_variables', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [new TestVariable({ name: 'cluster', value: 'A', text: 'A', urlNamespace })],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '$__all_variables')).toBe(`${getVariableName('cluster', urlNamespace)}=A`);
+      // Should not url encode again if format is queryparam
+      expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe(`${getVariableName('cluster', urlNamespace)}=A`);
+    });
+  })
 
   it('Can use use $__url_time_range with browser timezone', () => {
     const scene = new TestScene({

@@ -1,12 +1,12 @@
 import { isArray, map, replace } from 'lodash';
 
-import { dateTime, Registry, RegistryItem, textUtil, escapeRegex, urlUtil } from '@grafana/data';
-import { VariableType, VariableFormatID } from '@grafana/schema';
+import { dateTime, escapeRegex, Registry, RegistryItem, textUtil, urlUtil } from '@grafana/data';
+import { VariableFormatID, VariableType } from '@grafana/schema';
 
 import { VariableValue, VariableValueSingle } from '../types';
 import { ALL_VARIABLE_VALUE } from '../constants';
 import { SceneObjectUrlSyncHandler } from '../../core/types';
-import { getVariableName, VARIABLE_NAMESPACE } from '../utils';
+import { getVariableName } from '../utils';
 
 export interface FormatRegistryItem extends RegistryItem {
   formatter(value: VariableValue, args: string[], variable: FormatVariable): string;
@@ -282,7 +282,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.QueryParam,
       name: 'Query parameter',
       description:
-        `Format variables as URL parameters. Example in multi-variable scenario A + B + C => ${VARIABLE_NAMESPACE}-foo=A&${VARIABLE_NAMESPACE}-foo=B&${VARIABLE_NAMESPACE}-foo=C.`,
+        `Format variables as URL parameters. Example in multi-variable scenario A + B + C => var-foo=A&var-foo=B&var-foo=C.`,
       formatter: (value, _args, variable) => {
         if (variable.urlSync) {
           const urlParam = variable.urlSync.getUrlState();

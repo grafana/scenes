@@ -6,13 +6,13 @@ import { AllVariablesMacro } from './AllVariablesMacro';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { TestScene } from '../TestScene';
 
-import { VARIABLE_NAMESPACE } from '../utils';
+import { getVariableName } from '../utils';
 
-describe('UrlVariables', () => {
+describe.each(['test', undefined])('UrlVariables', (urlNamespace) => {
   it('Should include variables from all levels', () => {
     const scene = new TestScene({
       $variables: new SceneVariableSet({
-        variables: [new TestVariable({ name: 'cluster', value: 'A', text: 'A' })],
+        variables: [new TestVariable({ name: 'cluster', value: 'A', text: 'A', urlNamespace })],
       }),
       nested: new TestScene({
         $variables: new SceneVariableSet({
@@ -27,7 +27,7 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene.state.nested!);
-    expect(urlVars.getValue().formatter()).toBe(`${VARIABLE_NAMESPACE}-cluster=A`);
+    expect(urlVars.getValue().formatter()).toBe(`${getVariableName('cluster', urlNamespace)}=A`);
   });
 
   it('Should handle variable with custom all value', () => {
@@ -35,6 +35,7 @@ describe('UrlVariables', () => {
       $variables: new SceneVariableSet({
         variables: [
           new TestVariable({
+            urlNamespace,
             name: 'cluster',
             value: ALL_VARIABLE_VALUE,
             text: ALL_VARIABLE_TEXT,
@@ -47,7 +48,7 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene);
-    expect(urlVars.getValue().formatter()).toBe(`${VARIABLE_NAMESPACE}-cluster=$__all`);
+    expect(urlVars.getValue().formatter()).toBe(`${getVariableName('cluster', urlNamespace)}=$__all`);
   });
 
   it('Should handle variable with all value', () => {
@@ -55,6 +56,7 @@ describe('UrlVariables', () => {
       $variables: new SceneVariableSet({
         variables: [
           new TestVariable({
+            urlNamespace,
             name: 'cluster',
             value: ALL_VARIABLE_VALUE,
             text: ALL_VARIABLE_TEXT,
@@ -66,14 +68,14 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene);
-    expect(urlVars.getValue().formatter()).toBe(`${VARIABLE_NAMESPACE}-cluster=$__all`);
+    expect(urlVars.getValue().formatter()).toBe(`${getVariableName('cluster', urlNamespace)}=$__all`);
   });
 
   it('Should ignore variables with skipUrlSync', () => {
     const scene = new TestScene({
       $variables: new SceneVariableSet({
         variables: [
-          new TestVariable({ name: 'cluster', value: 'A', text: 'A' }),
+          new TestVariable({ name: 'cluster', value: 'A', text: 'A', urlNamespace }),
           new TestVariable({ name: 'server', value: 'A', text: 'A', skipUrlSync: true }),
           new ObjectVariable({ name: 'test', type: 'custom', value: {} }),
           new ConstantVariable({ name: 'constant', value: 'Muahaha' }),
@@ -82,6 +84,6 @@ describe('UrlVariables', () => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene);
-    expect(urlVars.getValue().formatter()).toBe(`${VARIABLE_NAMESPACE}-cluster=A`);
+    expect(urlVars.getValue().formatter()).toBe(`${getVariableName('cluster', urlNamespace)}=A`);
   });
 });
