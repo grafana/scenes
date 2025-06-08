@@ -226,7 +226,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       });
 
       expect(variable.state.value).toEqual(['defaultVal1']);
-      expect(locationService.getLocation().search).toBe(`?${getVariableUrlName('test', urlNamespace)}=defaultVal1`);
+      expect(locationService.getLocation().search).toBe(`?${getVariableUrlName('test', urlNamespace)}=defaultVal1&restorable-${getVariableUrlName('test', urlNamespace)}=false`);
     });
 
     it('should set default values as current values if none are set', () => {
