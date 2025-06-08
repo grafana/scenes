@@ -150,7 +150,7 @@ export const sceneUtils = {
   escapeLabelValueInRegexSelector,
   escapeLabelValueInExactSelector,
   escapeURLDelimiters,
-  getVariableName: getVariableUrlName,
+  getVariableUrlName,
 
   // Variable guards
   isAdHocVariable,
