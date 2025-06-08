@@ -16,7 +16,6 @@ import { DrilldownDemoPage } from './DrilldownDemoPage';
 import { AnnotationDemoPage } from './AnnotationsDemoPage';
 import { TransformationsDemoPage } from './TransformationsDemoPage';
 import { UseQueryVariableHookPage } from './UseQueryVariableHookPage';
-import { VARIABLE_NAMESPACE } from '@grafana/scenes';
 
 export function ReactDemoPage() {
   return (
@@ -59,7 +58,7 @@ function HomePage() {
         <TextLink href={`${urlBase}/query-var-hook`}>Query variable hook</TextLink>
         <TextLink href={`${urlBase}/drilldown`}>Drilldown demo</TextLink>
         <TextLink href={`${urlBase}/annotations`}>Annotations demo page</TextLink>
-        <TextLink href={`${urlBase}/drilldown?from=now-5m&to=now&${VARIABLE_NAMESPACE}-env=prod`}>
+        <TextLink href={`${urlBase}/drilldown?from=now-5m&to=now&var-env=prod`}>
           Link with time range and variables
         </TextLink>
         <TextLink href={`${urlBase}/transformations`}>Transformation demo</TextLink>
