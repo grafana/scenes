@@ -404,7 +404,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   public constructor(protected _sceneObject: MultiValueVariable<TState>) {}
 
   protected getKey(): string {
-    return getVariableUrlName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace)
+    return getVariableUrlName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace);
   }
 
   public getKeys(): string[] {

@@ -220,9 +220,11 @@ describe('sceneInterpolator', () => {
 
       expect(sceneInterpolator(scene, '$__all_variables')).toBe(`${getVariableUrlName('cluster', urlNamespace)}=A`);
       // Should not url encode again if format is queryparam
-      expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe(`${getVariableUrlName('cluster', urlNamespace)}=A`);
+      expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe(
+        `${getVariableUrlName('cluster', urlNamespace)}=A`
+      );
     });
-  })
+  });
 
   it('Can use use $__url_time_range with browser timezone', () => {
     const scene = new TestScene({

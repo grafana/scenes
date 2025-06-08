@@ -281,8 +281,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.QueryParam,
       name: 'Query parameter',
-      description:
-        `Format variables as URL parameters. Example in multi-variable scenario A + B + C => var-foo=A&var-foo=B&var-foo=C.`,
+      description: `Format variables as URL parameters. Example in multi-variable scenario A + B + C => var-foo=A&var-foo=B&var-foo=C.`,
       formatter: (value, _args, variable) => {
         if (variable.urlSync) {
           const urlParam = variable.urlSync.getUrlState();

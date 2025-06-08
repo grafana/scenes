@@ -18,7 +18,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
   public constructor(private _variable: AdHocFiltersVariable) {}
 
   private getKey(): string {
-    return getVariableUrlName(this._variable.state.name, this._variable.state.urlNamespace)
+    return getVariableUrlName(this._variable.state.name, this._variable.state.urlNamespace);
   }
 
   public getKeys(): string[] {

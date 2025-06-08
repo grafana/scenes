@@ -29,7 +29,6 @@ describe('TextBoxVariable', () => {
     expect(nestedObj.state.variableValueChanged).toBe(0);
   });
 
-
   describe.each(['test', undefined])('URL parameter namespace', (urlNamespace) => {
     it('Should change url sync key when name changes', async () => {
       const variable = new TextBoxVariable({ name: 'search', urlNamespace });
@@ -40,5 +39,5 @@ describe('TextBoxVariable', () => {
 
       expect(variable.urlSync?.getKeys()).toEqual([getVariableUrlName('newName', urlNamespace)]);
     });
-  })
+  });
 });

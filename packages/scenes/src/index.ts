@@ -8,7 +8,8 @@ import { registerVariableMacro } from './variables/macros';
 import {
   escapeLabelValueInExactSelector,
   escapeLabelValueInRegexSelector,
-  escapeURLDelimiters, getVariableUrlName,
+  escapeURLDelimiters,
+  getVariableUrlName,
   renderPrometheusLabelFilters,
 } from './variables/utils';
 import {

@@ -13,7 +13,7 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
   }
 
   private getKey(): string {
-    return getVariableUrlName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace)
+    return getVariableUrlName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace);
   }
 
   public getKeys(): string[] {

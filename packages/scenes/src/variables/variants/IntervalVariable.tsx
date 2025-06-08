@@ -48,7 +48,7 @@ export class IntervalVariable
   }
 
   private getKey(): string {
-    return getVariableUrlName(this.state.name, this.state.urlNamespace)
+    return getVariableUrlName(this.state.name, this.state.urlNamespace);
   }
 
   public getUrlState() {
