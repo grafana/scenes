@@ -1,6 +1,6 @@
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import { GroupByVariable } from './GroupByVariable';
-import { getVariableName, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
+import { getVariableUrlName, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
 import { VariableValue } from '../types';
 
 export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
@@ -13,7 +13,7 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
   }
 
   private getKey(): string {
-    return getVariableName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace)
+    return getVariableUrlName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace)
   }
 
   public getKeys(): string[] {

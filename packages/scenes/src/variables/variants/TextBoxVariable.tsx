@@ -5,7 +5,7 @@ import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfi
 import { VariableValueInput } from '../components/VariableValueInput';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 
-import { getVariableName } from '../utils';
+import { getVariableUrlName } from '../utils';
 
 export interface TextBoxVariableState extends SceneVariableState {
   value: string;
@@ -38,7 +38,7 @@ export class TextBoxVariable
   }
 
   private getKey(): string {
-    return getVariableName(this.state.name, this.state.urlNamespace)
+    return getVariableUrlName(this.state.name, this.state.urlNamespace)
   }
 
   public getUrlState() {

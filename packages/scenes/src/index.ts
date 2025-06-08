@@ -8,7 +8,7 @@ import { registerVariableMacro } from './variables/macros';
 import {
   escapeLabelValueInExactSelector,
   escapeLabelValueInRegexSelector,
-  escapeURLDelimiters, getVariableName,
+  escapeURLDelimiters, getVariableUrlName,
   renderPrometheusLabelFilters,
 } from './variables/utils';
 import {
@@ -150,7 +150,7 @@ export const sceneUtils = {
   escapeLabelValueInRegexSelector,
   escapeLabelValueInExactSelector,
   escapeURLDelimiters,
-  getVariableName,
+  getVariableName: getVariableUrlName,
 
   // Variable guards
   isAdHocVariable,

@@ -21,7 +21,7 @@ import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
 
-import { getVariableName } from '../utils';
+import { getVariableUrlName } from '../utils';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -404,7 +404,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   public constructor(protected _sceneObject: MultiValueVariable<TState>) {}
 
   protected getKey(): string {
-    return getVariableName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace)
+    return getVariableUrlName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace)
   }
 
   public getKeys(): string[] {

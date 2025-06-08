@@ -6,7 +6,7 @@ import { AllVariablesMacro } from './AllVariablesMacro';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { TestScene } from '../TestScene';
 
-import { getVariableName } from '../utils';
+import { getVariableUrlName } from '../utils';
 
 describe.each(['test', undefined])('UrlVariables', (urlNamespace) => {
   it('Should include variables from all levels', () => {
@@ -27,7 +27,7 @@ describe.each(['test', undefined])('UrlVariables', (urlNamespace) => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene.state.nested!);
-    expect(urlVars.getValue().formatter()).toBe(`${getVariableName('cluster', urlNamespace)}=A`);
+    expect(urlVars.getValue().formatter()).toBe(`${getVariableUrlName('cluster', urlNamespace)}=A`);
   });
 
   it('Should handle variable with custom all value', () => {
@@ -48,7 +48,7 @@ describe.each(['test', undefined])('UrlVariables', (urlNamespace) => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene);
-    expect(urlVars.getValue().formatter()).toBe(`${getVariableName('cluster', urlNamespace)}=$__all`);
+    expect(urlVars.getValue().formatter()).toBe(`${getVariableUrlName('cluster', urlNamespace)}=$__all`);
   });
 
   it('Should handle variable with all value', () => {
@@ -68,7 +68,7 @@ describe.each(['test', undefined])('UrlVariables', (urlNamespace) => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene);
-    expect(urlVars.getValue().formatter()).toBe(`${getVariableName('cluster', urlNamespace)}=$__all`);
+    expect(urlVars.getValue().formatter()).toBe(`${getVariableUrlName('cluster', urlNamespace)}=$__all`);
   });
 
   it('Should ignore variables with skipUrlSync', () => {
@@ -84,6 +84,6 @@ describe.each(['test', undefined])('UrlVariables', (urlNamespace) => {
     });
 
     const urlVars = new AllVariablesMacro('__all_variables', scene);
-    expect(urlVars.getValue().formatter()).toBe(`${getVariableName('cluster', urlNamespace)}=A`);
+    expect(urlVars.getValue().formatter()).toBe(`${getVariableUrlName('cluster', urlNamespace)}=A`);
   });
 });

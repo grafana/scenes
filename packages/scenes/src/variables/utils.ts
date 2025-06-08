@@ -8,8 +8,8 @@ import { DataSourceRef } from '@grafana/schema';
 
 const VARIABLE_NAMESPACE = 'var'
 
-export const getVariableName = (name: string, namespace?: string) => {
-  return `${VARIABLE_NAMESPACE}-${namespace ? (namespace + '-') : ''}${name}`;
+export const getVariableUrlName = (variableName: string, namespace?: string) => {
+  return `${VARIABLE_NAMESPACE}-${namespace ? (namespace + '-') : ''}${variableName}`;
 }
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {

@@ -8,7 +8,7 @@ import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { TestObjectWithVariableDependency } from '../TestScene';
 
-import { getVariableName } from '../utils';
+import { getVariableUrlName } from '../utils';
 
 describe('TextBoxVariable', () => {
   it('Should not cause variable change mounted', async () => {
@@ -34,11 +34,11 @@ describe('TextBoxVariable', () => {
     it('Should change url sync key when name changes', async () => {
       const variable = new TextBoxVariable({ name: 'search', urlNamespace });
 
-      expect(variable.urlSync?.getKeys()).toEqual([getVariableName('search', urlNamespace)]);
+      expect(variable.urlSync?.getKeys()).toEqual([getVariableUrlName('search', urlNamespace)]);
 
       variable.setState({ name: 'newName' });
 
-      expect(variable.urlSync?.getKeys()).toEqual([getVariableName('newName', urlNamespace)]);
+      expect(variable.urlSync?.getKeys()).toEqual([getVariableUrlName('newName', urlNamespace)]);
     });
   })
 });

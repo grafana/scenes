@@ -6,7 +6,7 @@ import { VariableFormatID, VariableType } from '@grafana/schema';
 import { VariableValue, VariableValueSingle } from '../types';
 import { ALL_VARIABLE_VALUE } from '../constants';
 import { SceneObjectUrlSyncHandler } from '../../core/types';
-import { getVariableName } from '../utils';
+import { getVariableUrlName } from '../utils';
 
 export interface FormatRegistryItem extends RegistryItem {
   formatter(value: VariableValue, args: string[], variable: FormatVariable): string;
@@ -342,7 +342,7 @@ const replaceSpecialCharactersToASCII = (value: string): string =>
   });
 
 function formatQueryParameter(name: string, value: VariableValueSingle, urlNamespace?: string): string {
-  return `${getVariableName(name, urlNamespace)}=${encodeURIComponentStrict(value)}`;
+  return `${getVariableUrlName(name, urlNamespace)}=${encodeURIComponentStrict(value)}`;
 }
 
 export function isAllValue(value: VariableValueSingle) {

@@ -10,7 +10,7 @@ import { ControlsLabel } from '../../utils/ControlsLabel';
 import { css } from '@emotion/css';
 import { selectors } from '@grafana/e2e-selectors';
 
-import { getVariableName } from '../utils';
+import { getVariableUrlName } from '../utils';
 
 export interface VariableValueSelectorsState extends SceneObjectState {
   layout?: ControlsLayout;
@@ -76,7 +76,7 @@ function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
     return null;
   }
 
-  const elementId = getVariableName(state.key ?? '', state.urlNamespace);
+  const elementId = getVariableUrlName(state.key ?? '', state.urlNamespace);
   const labelOrName = state.label || state.name;
 
   return (

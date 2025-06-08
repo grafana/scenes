@@ -10,7 +10,7 @@ import { VariableFormatID } from '@grafana/schema';
 
 import { sceneInterpolator } from './sceneInterpolator';
 
-import { getVariableName } from '../utils';
+import { getVariableUrlName } from '../utils';
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {
@@ -208,7 +208,7 @@ describe('sceneInterpolator', () => {
         }),
       });
 
-      expect(sceneInterpolator(scene, '${test:queryparam}')).toBe(`${getVariableName('test', urlNamespace)}=hello`);
+      expect(sceneInterpolator(scene, '${test:queryparam}')).toBe(`${getVariableUrlName('test', urlNamespace)}=hello`);
     });
 
     it('Can use use $__all_variables', () => {
@@ -218,9 +218,9 @@ describe('sceneInterpolator', () => {
         }),
       });
 
-      expect(sceneInterpolator(scene, '$__all_variables')).toBe(`${getVariableName('cluster', urlNamespace)}=A`);
+      expect(sceneInterpolator(scene, '$__all_variables')).toBe(`${getVariableUrlName('cluster', urlNamespace)}=A`);
       // Should not url encode again if format is queryparam
-      expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe(`${getVariableName('cluster', urlNamespace)}=A`);
+      expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe(`${getVariableUrlName('cluster', urlNamespace)}=A`);
     });
   })
 

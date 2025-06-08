@@ -5,7 +5,7 @@ import { AUTO_VARIABLE_VALUE, AUTO_VARIABLE_TEXT } from '../constants';
 import { SceneVariableValueChangedEvent } from '../types';
 import { IntervalVariable } from './IntervalVariable';
 
-import { getVariableName } from '../utils';
+import { getVariableUrlName } from '../utils';
 
 describe('IntervalVariable', () => {
   describe('When intervals are provided', () => {
@@ -161,7 +161,7 @@ describe('IntervalVariable', () => {
         value: '1m',
       });
 
-      expect(variable.getUrlState()).toEqual({ [getVariableName('intervalTest', urlNamespace)]: '1m' });
+      expect(variable.getUrlState()).toEqual({ [getVariableUrlName('intervalTest', urlNamespace)]: '1m' });
     });
 
     it('getUrlState should return value $__auto when auto option is selected', () => {
@@ -176,7 +176,7 @@ describe('IntervalVariable', () => {
         value: AUTO_VARIABLE_VALUE,
       });
 
-      expect(variable.getUrlState()).toEqual({ [getVariableName('intervalTest', urlNamespace)]: '$__auto' });
+      expect(variable.getUrlState()).toEqual({ [getVariableUrlName('intervalTest', urlNamespace)]: '$__auto' });
     });
     it('fromUrlState should update value for intervalText variable', async () => {
       const variable = new IntervalVariable({
@@ -189,7 +189,7 @@ describe('IntervalVariable', () => {
         refresh: VariableRefresh.onTimeRangeChanged,
         value: AUTO_VARIABLE_VALUE,
       });
-      variable.urlSync?.updateFromUrl({ [getVariableName('intervalTest', urlNamespace)]: '2d' });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('intervalTest', urlNamespace)]: '2d' });
       expect(variable.state.value).toEqual('2d');
     });
   });
