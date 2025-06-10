@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataQueryResponse, DataSourceApi, Field, PanelData, toDataFrame } from '@grafana/data';
 import { AnnotationQuery, LoadingState } from '@grafana/schema';
-import { map, Observable, of } from 'rxjs';
+import { map, Observable, of, from } from 'rxjs';
 import { SceneFlexLayout } from '../../../components/layout/SceneFlexLayout';
 import { SceneTimeRange } from '../../../core/SceneTimeRange';
 import { SceneVariableSet } from '../../../variables/sets/SceneVariableSet';
@@ -11,6 +11,7 @@ import { AnnotationsDataLayer } from './AnnotationsDataLayer';
 import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithRequestEnricher';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 import { config, RefreshEvent } from '@grafana/runtime';
+import { ScopesVariable } from '../../../variables/variants/ScopesVariable';
 
 let mockedEvents: Array<Partial<Field>> = [];
 
@@ -41,7 +42,7 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
     timeRange: request.range,
   };
 
-  return (ds.query(request) as Observable<DataQueryResponse>).pipe(
+  return from(ds.query(request) as unknown as Observable<DataQueryResponse>).pipe(
     map((packet) => {
       result.state = LoadingState.Done;
       result.annotations = packet.data;
@@ -377,5 +378,78 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
     layer.onDisable();
 
     expect(eventHandler).toHaveBeenCalledTimes(2);
+  });
+
+  describe('scopes support', () => {
+    it('should include scopes in query request when available', async () => {
+      const scopesVariable = new ScopesVariable({
+        scopes: [
+          {
+            metadata: { name: 'test-scope' },
+            spec: {
+              title: 'Test Scope',
+              type: 'test',
+              description: 'Test scope',
+              category: 'test',
+              filters: [],
+            },
+          },
+        ],
+      });
+
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        query: { name: 'Test', enable: true, iconColor: 'red' },
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [scopesVariable] }),
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({
+          layers: [layer],
+        }),
+        children: [],
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock).toHaveBeenCalledTimes(1);
+      expect(sentRequest?.scopes).toEqual([
+        {
+          metadata: { name: 'test-scope' },
+          spec: {
+            title: 'Test Scope',
+            type: 'test',
+            description: 'Test scope',
+            category: 'test',
+            filters: [],
+          },
+        },
+      ]);
+    });
+
+    it('should not include scopes in query request when not available', async () => {
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        query: { name: 'Test', enable: true, iconColor: 'red' },
+      });
+
+      const scene = new SceneFlexLayout({
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({
+          layers: [layer],
+        }),
+        children: [],
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock).toHaveBeenCalledTimes(1);
+      expect(sentRequest?.scopes).toBeUndefined();
+    });
   });
 });
