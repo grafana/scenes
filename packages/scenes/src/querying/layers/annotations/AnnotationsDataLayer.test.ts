@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataQueryResponse, DataSourceApi, Field, PanelData, toDataFrame } from '@grafana/data';
 import { AnnotationQuery, LoadingState } from '@grafana/schema';
-import { map, Observable, of, from } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { SceneFlexLayout } from '../../../components/layout/SceneFlexLayout';
 import { SceneTimeRange } from '../../../core/SceneTimeRange';
 import { SceneVariableSet } from '../../../variables/sets/SceneVariableSet';
@@ -42,7 +42,7 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
     timeRange: request.range,
   };
 
-  return from(ds.query(request) as unknown as Observable<DataQueryResponse>).pipe(
+  return (ds.query(request) as unknown as Observable<DataQueryResponse>).pipe(
     map((packet) => {
       result.state = LoadingState.Done;
       result.annotations = packet.data;
