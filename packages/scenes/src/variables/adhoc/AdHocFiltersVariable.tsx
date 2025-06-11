@@ -37,6 +37,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   readOnly?: boolean;
   // whether this specific filter is restorable to some value from _originalValues
   restorable?: boolean;
+  // sets this filter as non-applicable
+  nonApplicable?: boolean;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -247,7 +249,9 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
+    console.log('LOL');
     this._updateScopesFilters();
+    this._verifyNonApplicableFilters();
 
     return () => {
       // we clear both scopes and dashboard level filters before leaving a dashboard to maintain accuracy for both
@@ -552,6 +556,47 @@ export class AdHocFiltersVariable
     }
   }
 
+  public async _verifyNonApplicableFilters() {
+    // originFilters after refactor
+    const filters = [...this.state.filters, ...(this.state.baseFilters?.filter((f) => f.origin) ?? [])];
+
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-ignore
+    if (!ds || !ds.getApplicableFilters) {
+      return [];
+    }
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    // @ts-ignore
+    const response: MetricFindValue[] = await ds.getApplicableFilters({
+      filters,
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+
+    this.state.filters.forEach((f) => {
+      // @ts-ignore
+      const isNonApplicable = response.find((filter) => filter.value === f.key && filter.nonApplicable);
+
+      if (isNonApplicable) {
+        this._updateFilter(f, { nonApplicable: true });
+      }
+    });
+
+    this.state.baseFilters?.forEach((f) => {
+      // @ts-ignore
+      const isNonApplicable = response.find((filter) => filter.value === f.key && filter.nonApplicable);
+
+      if (isNonApplicable) {
+        this._updateFilter(f, { nonApplicable: true });
+      }
+    });
+  }
+
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
@@ -749,7 +794,7 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+  return filter.key !== '' && filter.operator !== '' && filter.value !== '' && !filter.nonApplicable;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {

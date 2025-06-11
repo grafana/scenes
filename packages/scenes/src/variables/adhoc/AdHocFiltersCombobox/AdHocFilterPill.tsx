@@ -81,7 +81,13 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
 
   if (viewMode) {
     const pillTextContent = `${keyLabel} ${filter.operator} ${valueLabel}`;
-    const pillText = <span className={styles.pillText}>{pillTextContent}</span>;
+    const pillText = filter.nonApplicable ? (
+      <s>
+        <span className={styles.pillText}>{pillTextContent}</span>
+      </s>
+    ) : (
+      <span className={styles.pillText}>{pillTextContent}</span>
+    );
 
     return (
       <div
