@@ -1,3 +1,85 @@
+# v6.18.1 (Wed Jun 04 2025)
+
+#### 🐛 Bug Fix
+
+- GroupBy: Fix edge cases on dashboard default values [#1142](https://github.com/grafana/scenes/pull/1142) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.18.0 (Tue Jun 03 2025)
+
+#### 🚀 Enhancement
+
+- ScopesVariable: Emit value changed when there no scopes selected [#1136](https://github.com/grafana/scenes/pull/1136) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Frontend: fix:recompute time range on timezone change in SceneTimeRange [#1135](https://github.com/grafana/scenes/pull/1135) ([@keerthanamsys](https://github.com/keerthanamsys))
+
+#### Authors: 2
+
+- [@keerthanamsys](https://github.com/keerthanamsys)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.17.0 (Thu May 29 2025)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersVariableUrlSyncHandler: fix url state containing `#` char [#1139](https://github.com/grafana/scenes/pull/1139) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### 🐛 Bug Fix
+
+- SceneFlexItem: respect `wrap` property [#1111](https://github.com/grafana/scenes/pull/1111) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v6.16.0 (Wed May 28 2025)
+
+#### 🚀 Enhancement
+
+- ScopesVariable: Fixes diff check issue [#1134](https://github.com/grafana/scenes/pull/1134) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.15.0 (Tue May 27 2025)
+
+#### 🚀 Enhancement
+
+- ScopesVariable: Only compare scope names [#1131](https://github.com/grafana/scenes/pull/1131) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.14.0 (Mon May 26 2025)
+
+#### 🚀 Enhancement
+
+- ScopesVariable: Only emit value changed when value has changed [#1130](https://github.com/grafana/scenes/pull/1130) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.13.0 (Thu May 22 2025)
 
 #### 🚀 Enhancement

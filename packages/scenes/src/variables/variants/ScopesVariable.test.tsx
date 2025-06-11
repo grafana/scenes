@@ -12,6 +12,7 @@ import { BehaviorSubject } from 'rxjs';
 import { SceneCSSGridLayout } from '../../components/layout/CSSGrid/SceneCSSGridLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
 import { sceneInterpolator } from '../interpolation/sceneInterpolator';
+import { SceneVariableValueChangedEvent } from '../types';
 
 describe('ScopesVariable', () => {
   it('Should enable scopes on render and disable on unmount when enable: true', async () => {
@@ -56,6 +57,23 @@ describe('ScopesVariable', () => {
     expect(sceneInterpolator(scene, '${__scopes:queryparam}')).toEqual('scope=scope1&scope=scope2');
     expect(sceneInterpolator(scene, '${__scopes}')).toEqual('scope1, scope2');
   });
+
+  it('Should not emit value changed when scopes are the same', async () => {
+    const { scopesContext, valueChangedCount } = renderTestScene({ initialScopes: ['scope1', 'scope2'] });
+
+    act(() => scopesContext.changeScopes(['scope3', 'scope4']));
+
+    expect(valueChangedCount.value).toEqual(2);
+
+    act(() => scopesContext.changeScopes(['scope3', 'scope4']));
+
+    expect(valueChangedCount.value).toEqual(2);
+  });
+
+  it('Should emit value changed when scopes are empty on first mount', async () => {
+    const { valueChangedCount } = renderTestScene({ initialScopes: [] });
+    expect(valueChangedCount.value).toEqual(1);
+  });
 });
 
 interface SetupOptions {
@@ -78,13 +96,16 @@ function renderTestScene(options: SetupOptions = {}) {
     scopesContext.changeScopes(options.initialScopes);
   }
 
+  const valueChangedCount = { value: 0 };
+  variable.subscribeToEvent(SceneVariableValueChangedEvent, () => (valueChangedCount.value += 1));
+
   const { unmount } = render(
     <ScopesContext.Provider value={scopesContext}>
       <scene.Component model={scene} />
     </ScopesContext.Provider>
   );
 
-  return { unmount, scene, variable, scopesContext };
+  return { unmount, scene, variable, scopesContext, valueChangedCount };
 }
 
 export class FakeScopesContext {
@@ -108,7 +129,12 @@ export class FakeScopesContext {
 
   changeScopes = (scopeNames: string[]) => {
     const value = scopeNames.map((name) => ({ spec: { title: name }, metadata: { name } } as Scope));
-    this.state = { ...this.state, value };
+    this.state = { ...this.state, value, loading: true };
+    this.stateObservable.next(this.state);
+
+    // Simulate how the real context behaves, setting loading true and updating scopes
+    // Then switching to loading false after meta data added
+    this.state = { ...this.state, loading: false };
     this.stateObservable.next(this.state);
   };
 }
