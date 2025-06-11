@@ -56,7 +56,11 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
 
       if (restorableValue === 'false') {
         if (this._sceneObject.state.defaultValue) {
-          updateToDefaultValue(this._sceneObject);
+          this._sceneObject.changeValueTo(
+            this._sceneObject.state.defaultValue?.value,
+            this._sceneObject.state.defaultValue?.text,
+            false
+          );
           return;
         }
 
@@ -65,13 +69,21 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
       }
 
       if (restorableValue === undefined && this._sceneObject.state.defaultValue) {
-        updateToDefaultValue(this._sceneObject);
+        this._sceneObject.changeValueTo(
+          this._sceneObject.state.defaultValue?.value,
+          this._sceneObject.state.defaultValue?.text,
+          false
+        );
         return;
       }
 
       this._sceneObject.changeValueTo(values, texts);
     } else if (this._sceneObject.state.defaultValue) {
-      updateToDefaultValue(this._sceneObject);
+      this._sceneObject.changeValueTo(
+        this._sceneObject.state.defaultValue?.value,
+        this._sceneObject.state.defaultValue?.text,
+        false
+      );
       return;
     }
   }
@@ -85,14 +97,6 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
   public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
     return this._nextChangeShouldAddHistoryStep;
   }
-}
-
-function updateToDefaultValue(groupByVar: GroupByVariable) {
-  groupByVar.changeValueTo(
-    groupByVar.state.defaultValue?.value ?? [],
-    groupByVar.state.defaultValue?.text ?? [],
-    false
-  );
 }
 
 function toUrlValues(values: VariableValue, texts: VariableValue): string[] {
