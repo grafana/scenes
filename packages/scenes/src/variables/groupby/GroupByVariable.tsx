@@ -169,7 +169,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         partial.restorable = false;
       }
 
-      if (this.state.defaultValue && this.checkIfRestorable(this.state.value)) {
+      if (this.checkIfRestorable(this.state.value)) {
         partial.restorable = true;
       }
 
