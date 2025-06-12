@@ -1,3 +1,15 @@
+# v6.19.0 (Thu Jun 12 2025)
+
+#### 🚀 Enhancement
+
+- Scopes: Add annotation query support [#1144](https://github.com/grafana/scenes/pull/1144) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
 # v6.18.1 (Wed Jun 04 2025)
 
 #### 🐛 Bug Fix
