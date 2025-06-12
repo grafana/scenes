@@ -9,6 +9,8 @@ import { TestVariable } from './TestVariable';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { CustomVariable } from './CustomVariable';
 
+import { getVariableUrlName } from '../utils';
+
 describe('MultiValueVariable', () => {
   describe('When validateAndUpdate is called', () => {
     it('Should pick first value if current value is not valid', async () => {
@@ -526,9 +528,10 @@ describe('MultiValueVariable', () => {
     });
   });
 
-  describe('Url syncing', () => {
+  describe.each(['ns', undefined])('Url syncing', (urlNamespace) => {
     it('getUrlState should return single value state if value is single value', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         options: [],
         optionsToReturn: [],
@@ -537,11 +540,12 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: '1' });
+      expect(variable.urlSync?.getUrlState()).toEqual({ [getVariableUrlName('test', urlNamespace)]: '1' });
     });
 
     it('getUrlState should return string array if value is string array', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         options: [],
         optionsToReturn: [],
@@ -550,11 +554,12 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['1', '2'] });
+      expect(variable.urlSync?.getUrlState()).toEqual({ [getVariableUrlName('test', urlNamespace)]: ['1', '2'] });
     });
 
     it('getUrlState should always return array if isMulti is true', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         options: [],
         value: 'A',
@@ -563,11 +568,12 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: ['A'] });
+      expect(variable.urlSync?.getUrlState()).toEqual({ [getVariableUrlName('test', urlNamespace)]: ['A'] });
     });
 
     it('updateFromUrl should update value for single value', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         options: [
           { label: 'A', value: '1' },
@@ -579,13 +585,14 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: '2' });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('test', urlNamespace)]: '2' });
       expect(variable.state.value).toEqual('2');
       expect(variable.state.text).toEqual('B');
     });
 
     it('updateFromUrl should update value for array value', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         options: [
           { label: 'A', value: '1' },
@@ -597,13 +604,14 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: ['2', '1'] });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('test', urlNamespace)]: ['2', '1'] });
       expect(variable.state.value).toEqual(['2', '1']);
       expect(variable.state.text).toEqual(['B', 'A']);
     });
 
     it('updateFromUrl with custom value should survive validation', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         options: [],
         optionsToReturn: [
@@ -613,18 +621,19 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: 'Custom value' });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('test', urlNamespace)]: 'Custom value' });
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.getValue()).toEqual('Custom value');
 
-      // but a second call to valdiate and update should set default value
+      // but a second call to validate and update should set default value
       await lastValueFrom(variable.validateAndUpdate());
       expect(variable.getValue()).toEqual('1');
     });
 
     it('updateFromUrl with old arch All value', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         options: [],
         optionsToReturn: [
@@ -637,7 +646,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: ALL_VARIABLE_TEXT });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('test', urlNamespace)]: ALL_VARIABLE_TEXT });
 
       await lastValueFrom(variable.validateAndUpdate());
 
@@ -646,6 +655,7 @@ describe('MultiValueVariable', () => {
 
     it('updateFromUrl with old arch All value and isMulti: true', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         options: [],
         optionsToReturn: [
@@ -659,7 +669,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: [ALL_VARIABLE_TEXT] });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('test', urlNamespace)]: [ALL_VARIABLE_TEXT] });
 
       await lastValueFrom(variable.validateAndUpdate());
 
@@ -668,6 +678,7 @@ describe('MultiValueVariable', () => {
 
     it('updateFromUrl with the custom all value should set value to ALL_VARIABLE_VALUE', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         optionsToReturn: [
           { label: 'A', value: '1' },
@@ -681,13 +692,14 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: '.*' });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('test', urlNamespace)]: '.*' });
       expect(variable.state.value).toEqual(ALL_VARIABLE_VALUE);
       expect(variable.state.text).toEqual(ALL_VARIABLE_TEXT);
     });
 
     it('updateFromUrl with key value pair should lookup text representation ', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         options: [],
         optionsToReturn: [
@@ -700,7 +712,7 @@ describe('MultiValueVariable', () => {
         delayMs: 0,
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: ['1', '2'] });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('test', urlNamespace)]: ['1', '2'] });
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.getValueText()).toEqual('A + B');
@@ -708,6 +720,7 @@ describe('MultiValueVariable', () => {
 
     it('updateFromUrl should update value from label in the case of key/value custom variable', async () => {
       const variable = new CustomVariable({
+        urlNamespace,
         name: 'test',
         options: [],
         value: '',
@@ -715,7 +728,7 @@ describe('MultiValueVariable', () => {
         query: 'A : 1,B : 2',
       });
 
-      variable.urlSync?.updateFromUrl({ ['var-test']: 'B' });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('test', urlNamespace)]: 'B' });
       await lastValueFrom(variable.validateAndUpdate());
 
       expect(variable.state.value).toEqual('2');
@@ -724,6 +737,7 @@ describe('MultiValueVariable', () => {
 
     it('Can disable url sync', async () => {
       const variable = new TestVariable({
+        urlNamespace,
         name: 'test',
         value: '1',
         text: 'A',

@@ -5,6 +5,8 @@ import { AUTO_VARIABLE_VALUE, AUTO_VARIABLE_TEXT } from '../constants';
 import { SceneVariableValueChangedEvent } from '../types';
 import { IntervalVariable } from './IntervalVariable';
 
+import { getVariableUrlName } from '../utils';
+
 describe('IntervalVariable', () => {
   describe('When intervals are provided', () => {
     it('Should generate correctly the options', async () => {
@@ -146,9 +148,10 @@ describe('IntervalVariable', () => {
     });
   });
 
-  describe('Url syncing', () => {
+  describe.each(['test', undefined])('Url syncing', (urlNamespace) => {
     it('getUrlState should return value when variable is selected', () => {
       const variable = new IntervalVariable({
+        urlNamespace,
         name: 'intervalTest',
         intervals: ['1s', '1m', '1h'],
         autoEnabled: true,
@@ -158,11 +161,12 @@ describe('IntervalVariable', () => {
         value: '1m',
       });
 
-      expect(variable.getUrlState()).toEqual({ 'var-intervalTest': '1m' });
+      expect(variable.getUrlState()).toEqual({ [getVariableUrlName('intervalTest', urlNamespace)]: '1m' });
     });
 
     it('getUrlState should return value $__auto when auto option is selected', () => {
       const variable = new IntervalVariable({
+        urlNamespace,
         name: 'intervalTest',
         intervals: ['1s', '1m', '1h'],
         autoEnabled: true,
@@ -172,10 +176,11 @@ describe('IntervalVariable', () => {
         value: AUTO_VARIABLE_VALUE,
       });
 
-      expect(variable.getUrlState()).toEqual({ 'var-intervalTest': '$__auto' });
+      expect(variable.getUrlState()).toEqual({ [getVariableUrlName('intervalTest', urlNamespace)]: '$__auto' });
     });
     it('fromUrlState should update value for intervalText variable', async () => {
       const variable = new IntervalVariable({
+        urlNamespace,
         name: 'intervalTest',
         intervals: ['1s', '1m', '1h'],
         autoEnabled: true,
@@ -184,7 +189,7 @@ describe('IntervalVariable', () => {
         refresh: VariableRefresh.onTimeRangeChanged,
         value: AUTO_VARIABLE_VALUE,
       });
-      variable.urlSync?.updateFromUrl({ ['var-intervalTest']: '2d' });
+      variable.urlSync?.updateFromUrl({ [getVariableUrlName('intervalTest', urlNamespace)]: '2d' });
       expect(variable.state.value).toEqual('2d');
     });
   });

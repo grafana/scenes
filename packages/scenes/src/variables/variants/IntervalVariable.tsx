@@ -16,6 +16,8 @@ import {
   VariableValue,
 } from '../types';
 
+import { getVariableUrlName } from '../utils';
+
 export interface IntervalVariableState extends SceneVariableState {
   intervals: string[];
   value: string;
@@ -46,7 +48,7 @@ export class IntervalVariable
   }
 
   private getKey(): string {
-    return `var-${this.state.name}`;
+    return getVariableUrlName(this.state.name, this.state.urlNamespace);
   }
 
   public getUrlState() {

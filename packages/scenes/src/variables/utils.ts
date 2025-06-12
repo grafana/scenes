@@ -6,6 +6,17 @@ import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
 
+const VARIABLE_NAMESPACE = 'var';
+
+/**
+ * Returns the string used in the url for a given variable's name and namespace defined in the variable state.
+ * @param variableName
+ * @param namespace
+ */
+export const getVariableUrlName = (variableName: string, namespace?: string) => {
+  return `${VARIABLE_NAMESPACE}-${namespace ? namespace + '-' : ''}${variableName}`;
+};
+
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
     return true;

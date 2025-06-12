@@ -6,20 +6,22 @@ import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
 import {
+  CustomVariableValue,
   SceneVariable,
-  SceneVariableValueChangedEvent,
   SceneVariableState,
+  SceneVariableValueChangedEvent,
   ValidateAndUpdateResult,
+  VariableCustomFormatterFn,
   VariableValue,
   VariableValueOption,
   VariableValueSingle,
-  CustomVariableValue,
-  VariableCustomFormatterFn,
 } from '../types';
 import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
+
+import { getVariableUrlName } from '../utils';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -402,7 +404,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
   public constructor(protected _sceneObject: MultiValueVariable<TState>) {}
 
   protected getKey(): string {
-    return `var-${this._sceneObject.state.name}`;
+    return getVariableUrlName(this._sceneObject.state.name, this._sceneObject.state.urlNamespace);
   }
 
   public getKeys(): string[] {

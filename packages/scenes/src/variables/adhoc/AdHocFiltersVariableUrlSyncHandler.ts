@@ -7,13 +7,18 @@ import {
   isMatchAllFilter,
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
-import { escapeInjectedFilterUrlDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
+import {
+  escapeInjectedFilterUrlDelimiters,
+  getVariableUrlName,
+  toUrlCommaDelimitedString,
+  unescapeUrlDelimiters,
+} from '../utils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
 
   private getKey(): string {
-    return `var-${this._variable.state.name}`;
+    return getVariableUrlName(this._variable.state.name, this._variable.state.urlNamespace);
   }
 
   public getKeys(): string[] {
