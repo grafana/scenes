@@ -1,6 +1,5 @@
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneUrlSyncOptions } from '../core/types';
-import { locationService as locationServiceRuntime, LocationService } from '@grafana/runtime';
 import { getNamespacedKey } from './utils';
 
 export interface SceneObjectWithDepth {

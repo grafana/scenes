@@ -268,6 +268,11 @@ export function findDescendents<T extends SceneObject>(scene: SceneObject, desce
 /**
  * Returns the closest SceneObject that has a state property with the
  * name urlSyncManager that is of type UrlSyncManager
+ * This method is currently unused, and I don't think it works as `urlSyncManager` is never added to scene state
+ * I hacked the urlSyncManager to root scene state in useUrlSync to see what happens if we can grab the urlSyncManager,
+ * But I have the feeling this is breaking some fundamental laws of scenes...
+ * ^ Yes it does, we need the initial value from the url before activation of a scene object, so this method will only return undefined when we need the value
+ * This method should probably be removed.
  */
 export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike | undefined {
   let parent: SceneObject | undefined = sceneObject;

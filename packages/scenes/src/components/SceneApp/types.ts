@@ -2,6 +2,7 @@ import { ComponentType } from 'react';
 import { DataRequestEnricher, SceneObject, SceneObjectState, SceneUrlSyncOptions } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { IconName, PageLayoutType } from '@grafana/data';
+import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
 
 export interface SceneRouteMatch<Params extends { [K in keyof Params]?: string } = {}> {
   params: Params;
@@ -24,6 +25,8 @@ export interface SceneAppRoute {
 }
 
 export interface SceneAppPageState extends SceneObjectState {
+  // This is probably not ok
+  urlSyncManager?: UrlSyncManagerLike;
   /** Page title or tab label */
   title: string;
   /** Page subTitle */

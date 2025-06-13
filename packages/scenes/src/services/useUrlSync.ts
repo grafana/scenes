@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { useUrlSyncManager } from './UrlSyncManager';
 import { useLocationServiceSafe } from '../utils/utils';
+import { SceneAppPage } from '../components/SceneApp/SceneAppPage';
 
 export function useUrlSync(sceneRoot: SceneObject, options: SceneUrlSyncOptions = {}): boolean {
   const location = useLocation();
@@ -12,6 +13,15 @@ export function useUrlSync(sceneRoot: SceneObject, options: SceneUrlSyncOptions 
   const urlSyncManager = useUrlSyncManager(options, locationService);
 
   useEffect(() => {
+    // Manually make the relationship between the scene root and urlSyncManager
+    // However this won't help solve the problem as we can't query scene state in a scene object before activation.
+    if(sceneRoot instanceof SceneAppPage && !sceneRoot.state?.urlSyncManager){
+      console.log('useUrlSync init urlSyncManager', {urlSyncManager, sceneRoot, active: sceneRoot.isActive})
+      sceneRoot.setState({
+        urlSyncManager
+      })
+    }
+
     urlSyncManager.initSync(sceneRoot);
     setIsInitialized(true);
     return () => urlSyncManager.cleanUp(sceneRoot);

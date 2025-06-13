@@ -8,12 +8,28 @@ import {
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
 import { escapeInjectedFilterUrlDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
+import { getUrlSyncManager } from '../../core/sceneGraph/sceneGraph';
+import { getNamespacedKey } from '../../services/utils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
-  public constructor(private _variable: AdHocFiltersVariable) {}
+  private _urlSyncManagerNameSpace: string | undefined;
+  public constructor(private _variable: AdHocFiltersVariable) {
+    _variable.addActivationHandler(() => {
+      // This will always be undefined as getUrlSyncManager traverses the scenes tree to get the UrlSyncManager
+      const urlSyncManager = getUrlSyncManager(this._variable);
+      console.log('AdHocFiltersVariableUrlSyncHandler constructor', { urlSyncManager, ns: urlSyncManager?.getNamespace(), _variable });
+      this._urlSyncManagerNameSpace = getUrlSyncManager(this._variable)?.getNamespace()
+    })
+  }
 
   private getKey(): string {
-    return `var-${this._variable.state.name}`;
+    // This will also always be undefined because getKey is called before activation as well.
+    const urlSyncManager = getUrlSyncManager(this._variable);
+    console.log('AdHocFiltersVariableUrlSyncHandler getKey', { urlSyncManager, ns: urlSyncManager?.getNamespace() });
+
+    const key = getNamespacedKey(`var-${this._variable.state.name}`, urlSyncManager?.getNamespace());
+    console.log('getKey', key)
+    return key
   }
 
   public getKeys(): string[] {
@@ -21,6 +37,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
   }
 
   public getUrlState(): SceneObjectUrlValues {
+    console.log('AdHocFiltersVariableUrlSyncHandler getUrlState');
     const filters = this._variable.state.filters;
     const baseFilters = this._variable.state.baseFilters;
 

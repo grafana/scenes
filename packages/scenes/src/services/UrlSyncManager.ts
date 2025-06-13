@@ -37,6 +37,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   private _options: SceneUrlSyncOptions;
 
   public constructor(_options: SceneUrlSyncOptions = {}, locationService: LocationService = locationServiceRuntime) {
+    console.log('UrlSyncManager constructor')
     this._options = _options;
     this._locationService = locationService;
     this._paramsCache = new UrlParamsCache(locationService);
