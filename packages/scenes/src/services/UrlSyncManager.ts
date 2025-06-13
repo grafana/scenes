@@ -16,6 +16,7 @@ export interface UrlSyncManagerLike {
   cleanUp(root: SceneObject): void;
   handleNewLocation(location: Location): void;
   handleNewObject(sceneObj: SceneObject): void;
+  getNamespace(): string | undefined
 }
 
 /**
@@ -162,6 +163,10 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
   public getUrlState(root: SceneObject): SceneObjectUrlValues {
     return getUrlState(root);
+  }
+
+  public getNamespace(): string | undefined {
+    return this._options.namespace
   }
 }
 
