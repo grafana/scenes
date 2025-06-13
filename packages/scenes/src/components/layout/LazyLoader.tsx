@@ -12,7 +12,7 @@ export function useUniqueId(): string {
 }
 
 export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange' | 'children'> {
-  children: React.ReactNode | (({ isInView }: { isInView: boolean }) => React.ReactNode);
+  children: React.ReactNode;
   key: string;
   onLoad?: () => void;
   onChange?: (isInView: boolean) => void;
@@ -66,8 +66,8 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     // If the children render empty, the whole loader will be hidden by css.
     return (
       <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
-        {!loaded && '\u00A0'}
-        {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
+        {!isInView && '\u00A0'}
+        {loaded && isInView && children}
       </div>
     );
   }
