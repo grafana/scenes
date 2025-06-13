@@ -49,8 +49,11 @@ interface TableVizState extends SceneObjectState {
 }
 
 class TableViz extends SceneObjectBase<TableVizState> {
-  static Component = ({ model }: SceneComponentProps<TableViz>) => {
-    const { data } = sceneGraph.getData(model).useState();
+  static Component = TableVizRenderer
+}
+
+function TableVizRenderer({ model }: SceneComponentProps<TableViz>) {
+  const { data } = sceneGraph.getData(model).useState();
 
     const columns = useMemo(
       () => [
@@ -80,7 +83,6 @@ class TableViz extends SceneObjectBase<TableVizState> {
         renderExpandedRow={(row) => <TableVizExpandedRow tableViz={model} row={row} />}
       />
     );
-  };
 }
 
 interface TableRow {
