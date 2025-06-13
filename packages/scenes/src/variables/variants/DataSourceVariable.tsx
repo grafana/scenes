@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { Observable, of } from 'rxjs';
 
 import { stringToJsRegex, DataSourceInstanceSettings } from '@grafana/data';
@@ -68,7 +69,7 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
       }
 
       if (this.state.defaultOptionEnabled && isDefault(source, regex)) {
-        options.push({ label: 'default', value: 'default' });
+        options.push({ label: t("variables.data-source-variable.label.default", "default"), value: 'default' });
       }
     }
 

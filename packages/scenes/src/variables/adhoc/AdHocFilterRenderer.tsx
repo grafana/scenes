@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import React, { useMemo, useState } from 'react';
 
 import { AdHocFiltersVariable, AdHocFilterWithLabels, isMultiValueOperator } from './AdHocFiltersVariable';
@@ -123,7 +124,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       width="auto"
       value={valueValue}
       filterOption={filterNoOp}
-      placeholder={'Select value'}
+      placeholder={t("variables.ad-hoc-filter-renderer.value-select.placeholder-select-value", "Select value")}
       options={filteredValueOptions}
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
@@ -175,7 +176,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       width="auto"
       allowCustomValue={model.state.allowCustomValue ?? true}
       value={keyValue}
-      placeholder={'Select label'}
+      placeholder={t("variables.ad-hoc-filter-renderer.key-select.placeholder-select-label", "Select label")}
       options={handleOptionGroups(keys)}
       onChange={(v) => {
         model._updateFilter(filter, {
@@ -247,7 +248,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       );
     } else {
       return (
-        <Field label={'Select label'} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
+        <Field label={t("variables.ad-hoc-filter-renderer.label-select-label", "Select label")} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
           {keySelect}
         </Field>
       );
@@ -261,8 +262,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       {valueSelect}
       <Button
         variant="secondary"
-        aria-label="Remove filter"
-        title="Remove filter"
+        aria-label={t("variables.ad-hoc-filter-renderer.aria-label-remove-filter", "Remove filter")}
+        title={t("variables.ad-hoc-filter-renderer.title-remove-filter", "Remove filter")}
         className={styles.removeButton}
         icon="times"
         data-testid={`AdHocFilter-remove-${filter.key ?? ''}`}

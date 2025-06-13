@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AdHocVariableFilter, DataSourceApi, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
@@ -332,10 +333,10 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 
   return isMulti ? (
     <MultiSelect<VariableValueSingle>
-      aria-label="Group by selector"
+      aria-label={t("variables.group-by-variable-renderer.aria-label-group-by-selector", "Group by selector")}
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={'Group by label'}
+      placeholder={t("variables.group-by-variable-renderer.placeholder-group-by-label", "Group by label")}
       width="auto"
       allowCustomValue={allowCustomValue}
       inputValue={inputValue}
@@ -391,10 +392,10 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     />
   ) : (
     <Select
-      aria-label="Group by selector"
+      aria-label={t("variables.group-by-variable-renderer.aria-label-group-by-selector", "Group by selector")}
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={'Group by label'}
+      placeholder={t("variables.group-by-variable-renderer.placeholder-group-by-label", "Group by label")}
       width="auto"
       inputValue={inputValue}
       value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
