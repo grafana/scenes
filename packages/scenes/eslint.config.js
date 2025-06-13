@@ -1,6 +1,5 @@
 // @ts-check
 const path = require('path');
-const { defineConfig } = require('eslint/config');
 const grafanaConfig = require('@grafana/eslint-config/flat');
 const { includeIgnoreFile } = require('@eslint/compat');
 
