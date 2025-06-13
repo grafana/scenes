@@ -1,4 +1,4 @@
-import React, { RefCallback, useCallback, useMemo } from 'react';
+import React, { RefCallback, useCallback, useEffect, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
 // @ts-ignore
@@ -14,6 +14,8 @@ import { VizPanel } from './VizPanel';
 import { css, cx } from '@emotion/css';
 import { debounce } from 'lodash';
 import { VizPanelSeriesLimit } from './VizPanelSeriesLimit';
+import { useLazyLoaderIsInView } from '../layout/LazyLoader';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -61,9 +63,16 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const timeZone = sceneTimeRange.getTimeZone();
   const timeRange = model.getTimeRange(dataWithFieldConfig);
 
+  // Switch to manual query execution if the panel it outside viewport
+  const isInView = useLazyLoaderIsInView();
+  useEffect(() => {
+    if (dataObject.isInViewChanged) {
+      dataObject.isInViewChanged(isInView);
+    }
+  }, [isInView, dataObject]);
+
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
-
   const alertStateStyles = useStyles2(getAlertStateStyles);
 
   if (!plugin) {

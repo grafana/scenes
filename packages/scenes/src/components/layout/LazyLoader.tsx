@@ -12,7 +12,7 @@ export function useUniqueId(): string {
 }
 
 export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange' | 'children'> {
-  children: React.ReactNode | (({ isInView }: { isInView: boolean }) => React.ReactNode);
+  children: React.ReactNode;
   key: string;
   onLoad?: () => void;
   onChange?: (isInView: boolean) => void;
@@ -67,7 +67,7 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     return (
       <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
         {!loaded && '\u00A0'}
-        {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
+        {loaded && <LazyLoaderInViewContext.Provider value={isInView}>{children}</LazyLoaderInViewContext.Provider>}
       </div>
     );
   }
@@ -96,3 +96,9 @@ LazyLoader.observer = new IntersectionObserver(
   },
   { rootMargin: '100px' }
 );
+
+export const LazyLoaderInViewContext = React.createContext<boolean>(true);
+
+export function useLazyLoaderIsInView(): boolean {
+  return React.useContext(LazyLoaderInViewContext);
+}
