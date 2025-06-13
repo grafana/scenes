@@ -17,6 +17,12 @@ module.exports = [
         'error',
         {
           accessibility: 'explicit',
+
+          overrides: {
+            // previous version of the plugin has an incompatibility that meant that class properties weren't linted.
+            // matching that for now, and it can be updated later.
+            properties: 'off',
+          },
         },
       ],
     },
