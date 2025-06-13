@@ -8,10 +8,11 @@ const { includeIgnoreFile } = require('@eslint/compat');
  */
 module.exports = [
   includeIgnoreFile(path.resolve(__dirname, '../../.gitignore')),
-  grafanaConfig,
+  ...grafanaConfig,
   {
     files: ['src/**/*.{ts,tsx}'],
     rules: {
+      'react/jsx-key': 'error',
       '@typescript-eslint/explicit-member-accessibility': [
         'error',
         {

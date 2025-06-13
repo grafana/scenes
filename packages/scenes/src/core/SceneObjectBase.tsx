@@ -330,7 +330,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
    * Utility hook to get and subscribe to state
    */
   public useState(): TState {
-     
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     return useSceneObjectState(this);
   }
 
