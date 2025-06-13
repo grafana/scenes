@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import {
   AbsoluteTimeRange,
   FieldConfigSource,
@@ -119,7 +120,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     super({
       options: {} as TOptions,
       fieldConfig: { defaults: {}, overrides: [] },
-      title: 'Title',
+      title: t("components.viz-panel.title.title", "Title"),
       pluginId: 'timeseries',
       _renderCounter: 0,
       ...state,
