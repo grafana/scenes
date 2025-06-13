@@ -105,3 +105,7 @@ export function isUrlValueEqual(currentUrlValue: string[], newUrlValue: SceneObj
   // We have two arrays, lets compare them
   return isEqual(currentUrlValue, newUrlValue);
 }
+
+export const getNamespacedKey = (key: string, namespace?: string) => {
+  return `${namespace ? namespace + '-' : ''}${key}`;
+};

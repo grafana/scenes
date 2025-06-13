@@ -4,6 +4,8 @@ import { useUrlSync } from './useUrlSync';
 export interface UrlSyncContextProviderProps extends SceneUrlSyncOptions {
   scene: SceneObject;
   children: React.ReactNode;
+  namespace?: string
+  excludeParams?: string[]
 }
 
 /**
@@ -15,8 +17,10 @@ export function UrlSyncContextProvider({
   scene,
   updateUrlOnInit,
   createBrowserHistorySteps,
+  namespace,
+  excludeParams
 }: UrlSyncContextProviderProps) {
-  const isInitialized = useUrlSync(scene, { updateUrlOnInit, createBrowserHistorySteps });
+  const isInitialized = useUrlSync(scene, { updateUrlOnInit, createBrowserHistorySteps, namespace, excludeParams });
 
   if (!isInitialized) {
     return null;

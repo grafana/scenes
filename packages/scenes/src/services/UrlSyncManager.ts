@@ -27,7 +27,7 @@ export class NewSceneObjectAddedEvent extends BusEventWithPayload<SceneObject> {
 }
 
 export class UrlSyncManager implements UrlSyncManagerLike {
-  private _urlKeyMapper = new UniqueUrlKeyMapper();
+  private _urlKeyMapper;
   private _sceneRoot?: SceneObject;
   private _subs: Subscription | undefined;
   private _lastLocation: Location | undefined;
@@ -39,6 +39,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     this._options = _options;
     this._locationService = locationService;
     this._paramsCache = new UrlParamsCache(locationService);
+    this._urlKeyMapper = new UniqueUrlKeyMapper(_options);
   }
 
   /**
@@ -204,9 +205,11 @@ export function useUrlSyncManager(options: SceneUrlSyncOptions, locationService:
         {
           updateUrlOnInit: options.updateUrlOnInit,
           createBrowserHistorySteps: options.createBrowserHistorySteps,
+          namespace: options.namespace,
+          excludeParams: options.excludeParams,
         },
         locationService
       ),
-    [options.updateUrlOnInit, options.createBrowserHistorySteps, locationService]
+    [options.updateUrlOnInit, options.createBrowserHistorySteps, options.namespace, options.excludeParams, locationService]
   );
 }

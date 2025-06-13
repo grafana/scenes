@@ -1,5 +1,7 @@
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneObject } from '../core/types';
+import { SceneObject, SceneUrlSyncOptions } from '../core/types';
+import { locationService as locationServiceRuntime, LocationService } from '@grafana/runtime';
+import { getNamespacedKey } from './utils';
 
 export interface SceneObjectWithDepth {
   sceneObject: SceneObject;
@@ -8,8 +10,14 @@ export interface SceneObjectWithDepth {
 
 export class UniqueUrlKeyMapper {
   private index = new Map<string, SceneObject[]>();
+  private _options: SceneUrlSyncOptions;
 
-  public getUniqueKey(key: string, obj: SceneObject) {
+  public constructor(_options: SceneUrlSyncOptions = {}) {
+    this._options = _options;
+  }
+
+  public getUniqueKey(rawKey: string, obj: SceneObject) {
+    const key = getNamespacedKey(rawKey, this._options.namespace)
     const objectsWithKey = this.index.get(key);
 
     if (!objectsWithKey) {

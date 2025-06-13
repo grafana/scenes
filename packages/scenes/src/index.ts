@@ -2,7 +2,7 @@ import { getUrlWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
 import { cloneSceneObjectState } from './core/sceneGraph/cloneSceneObject';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
-import { getUrlState, syncStateFromSearchParams } from './services/utils';
+import { getNamespacedKey, getUrlState, syncStateFromSearchParams } from './services/utils';
 
 import { registerVariableMacro } from './variables/macros';
 import {
@@ -160,6 +160,7 @@ export const sceneUtils = {
   isQueryVariable,
   isTextBoxVariable,
   isGroupByVariable,
+  getNamespacedKey
 };
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
