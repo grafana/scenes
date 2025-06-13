@@ -49,40 +49,40 @@ interface TableVizState extends SceneObjectState {
 }
 
 class TableViz extends SceneObjectBase<TableVizState> {
-  static Component = TableVizRenderer
+  static Component = TableVizRenderer;
 }
 
 function TableVizRenderer({ model }: SceneComponentProps<TableViz>) {
   const { data } = sceneGraph.getData(model).useState();
 
-    const columns = useMemo(
-      () => [
-        { id: 'handler', header: 'Handler' },
-        { id: 'method', header: 'Method' },
-        { id: 'status_code', header: 'Status code' },
-        { id: 'Value', header: 'Value' },
-      ],
-      []
-    );
+  const columns = useMemo(
+    () => [
+      { id: 'handler', header: 'Handler' },
+      { id: 'method', header: 'Method' },
+      { id: 'status_code', header: 'Status code' },
+      { id: 'Value', header: 'Value' },
+    ],
+    []
+  );
 
-    const tableData = useMemo(() => {
-      if (!data || data.series.length === 0) {
-        return [];
-      }
+  const tableData = useMemo(() => {
+    if (!data || data.series.length === 0) {
+      return [];
+    }
 
-      const frame = data.series[0];
-      const view = new DataFrameView<TableRow>(frame);
-      return view.toArray();
-    }, [data]);
+    const frame = data.series[0];
+    const view = new DataFrameView<TableRow>(frame);
+    return view.toArray();
+  }, [data]);
 
-    return (
-      <InteractiveTable
-        columns={columns}
-        getRowId={(row: any) => row.handler}
-        data={tableData}
-        renderExpandedRow={(row) => <TableVizExpandedRow tableViz={model} row={row} />}
-      />
-    );
+  return (
+    <InteractiveTable
+      columns={columns}
+      getRowId={(row: any) => row.handler}
+      data={tableData}
+      renderExpandedRow={(row) => <TableVizExpandedRow tableViz={model} row={row} />}
+    />
+  );
 }
 
 interface TableRow {
