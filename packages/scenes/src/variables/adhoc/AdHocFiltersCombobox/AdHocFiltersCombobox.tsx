@@ -670,8 +670,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                       const shouldAddBottomBorder = nextItem && !nextItem.group && !nextItem.options && item.group;
 
                       return (
-                        // key is included in getItemProps()
-                        // eslint-disable-next-line react/jsx-key
                         <DropdownItem
                           {...getItemProps({
                             key: `${item.value!}-${index}`,
