@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { isArray } from 'lodash';
 import React, { RefCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -82,7 +83,7 @@ export function VariableValueSelect({ model, state }: { model: MultiValueVariabl
     <Select<VariableValue>
       id={key}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
-      placeholder="Select value"
+      placeholder={t("variables.variable-value-select.placeholder-select-value", "Select value")}
       width="auto"
       disabled={isReadOnly}
       value={selectValue}

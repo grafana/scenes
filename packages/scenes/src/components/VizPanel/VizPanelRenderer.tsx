@@ -1,3 +1,4 @@
+import { Trans } from '@grafana/i18n';
 import React, { RefCallback, useCallback, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
@@ -67,11 +68,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const alertStateStyles = useStyles2(getAlertStateStyles);
 
   if (!plugin) {
-    return <div>Loading plugin panel...</div>;
+    return <div><Trans i18nKey="components.viz-panel-renderer.loading-plugin-panel">Loading plugin panel...</Trans></div>;
   }
 
   if (!plugin.panel) {
-    return <div>Panel plugin has no panel component</div>;
+    return <div><Trans i18nKey="components.viz-panel-renderer.panel-plugin-has-no-panel-component">Panel plugin has no panel component</Trans></div>;
   }
 
   const PanelComponent = plugin.panel;

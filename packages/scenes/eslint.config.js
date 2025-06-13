@@ -1,6 +1,7 @@
 // @ts-check
 const path = require('path');
 const grafanaConfig = require('@grafana/eslint-config/flat');
+const grafanaI18nPlugin = require('@grafana/i18n/eslint-plugin');
 const { includeIgnoreFile } = require('@eslint/compat');
 
 /**
@@ -24,6 +25,23 @@ module.exports = [
           },
         },
       ],
+    },
+  },
+
+  {
+    // Sections of codebase that have all translation markup issues fixed
+    name: 'grafana/i18n-overrides',
+    plugins: {
+      '@grafana/i18n': grafanaI18nPlugin,
+    },
+    files: ['src/**/*.{ts,tsx,js,jsx}'],
+    ignores: ['src/**/*.{test,spec,story}.{ts,tsx}'],
+    rules: {
+      '@grafana/i18n/no-untranslated-strings': [
+        'error',
+        { calleesToIgnore: ['^css$', 'use[A-Z].*'], forceFix: ['src'] },
+      ],
+      '@grafana/i18n/no-translation-top-level': 'error',
     },
   },
 ];

@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { Observable, Subject } from 'rxjs';
 
 import { sceneGraph } from '../../core/sceneGraph';
@@ -42,7 +43,7 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       type: 'custom',
       name: 'Test',
       value: 'Value',
-      text: 'Text',
+      text: t("variables.test-variable.text.text", "Text"),
       query: 'Query',
       options: [],
       refresh: VariableRefresh.onDashboardLoad,

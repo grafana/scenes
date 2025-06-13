@@ -1,3 +1,4 @@
+import { Trans } from '@grafana/i18n';
 import React from 'react';
 
 import { LinkButton } from '@grafana/ui';
@@ -66,9 +67,9 @@ function VizPanelExploreButtonComponent({ model }: SceneComponentProps<VizPanelE
           }
           options.onClick?.();
         }}
-      >
+      ><Trans i18nKey="components.viz-panel-explore-button.explore">
         Explore
-      </LinkButton>
+      </Trans></LinkButton>
     );
   }
   return null;
