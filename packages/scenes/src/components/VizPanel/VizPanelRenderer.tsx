@@ -15,7 +15,6 @@ import { css, cx } from '@emotion/css';
 import { debounce } from 'lodash';
 import { VizPanelSeriesLimit } from './VizPanelSeriesLimit';
 import { useLazyLoaderIsInView } from '../layout/LazyLoader';
-import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
