@@ -67,7 +67,7 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     // If the children render empty, the whole loader will be hidden by css.
     return (
       <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
-        {!loaded || !isInView ? t('grafana-scenes.components.lazy-loader.placeholder', '\u00A0') : children}
+        {!loaded || !isInView ? t('grafana-scenes.components.lazy-loader.placeholder', '\u00A0') : <LazyLoaderInViewContext.Provider value={isInView}>children</LazyLoaderInViewContext.Provider>}
       </div>
     );
   }
@@ -96,3 +96,9 @@ LazyLoader.observer = new IntersectionObserver(
   },
   { rootMargin: '100px' }
 );
+
+export const LazyLoaderInViewContext = React.createContext<boolean>(true);
+
+export function useLazyLoaderIsInView(): boolean {
+  return React.useContext(LazyLoaderInViewContext);
+}

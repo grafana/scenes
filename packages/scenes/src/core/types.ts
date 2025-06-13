@@ -244,6 +244,10 @@ export interface SceneDataProvider<T extends SceneObjectState = SceneDataState> 
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
   getResultsStream(): Observable<SceneDataProviderResult>;
+  /**
+   * Can be used to disable query execution for scene elements that are out of view
+   */
+  isInViewChanged?(isInView: boolean): void;
 }
 
 export interface SceneDataLayerProviderState extends SceneDataState {
