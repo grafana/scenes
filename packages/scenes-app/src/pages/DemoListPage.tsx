@@ -126,29 +126,31 @@ export class DemoList extends SceneObjectBase<DemoListState> {
     this.updateLayout();
   };
 
-  public static Component = ({ model }: SceneComponentProps<DemoList>) => {
-    const { body, searchQuery } = model.useState();
-    const styles = useStyles2(getStyles);
+  public static Component = DemoListRenderer;
+}
 
-    if (!config.datasources[DATASOURCE_REF.uid]) {
-      return (
-        <Alert title={`Missing ${DATASOURCE_REF.uid} datasource`}>
-          These demos depend on <b>testdata</b> datasource: <code>{JSON.stringify(DATASOURCE_REF)}</code>. See{' '}
-          <a href="https://github.com/grafana/grafana/tree/main/devenv#set-up-your-development-environment">
-            https://github.com/grafana/grafana/tree/main/devenv#set-up-your-development-environment
-          </a>{' '}
-          for more details.
-        </Alert>
-      );
-    }
+function DemoListRenderer({ model }: SceneComponentProps<DemoList>) {
+  const { body, searchQuery } = model.useState();
+  const styles = useStyles2(getStyles);
 
+  if (!config.datasources[DATASOURCE_REF.uid]) {
     return (
-      <div className={styles.root}>
-        <Input value={searchQuery} placeholder="Search" onChange={model.onSearchChange} />
-        <body.Component model={body} />
-      </div>
+      <Alert title={`Missing ${DATASOURCE_REF.uid} datasource`}>
+        These demos depend on <b>testdata</b> datasource: <code>{JSON.stringify(DATASOURCE_REF)}</code>. See{' '}
+        <a href="https://github.com/grafana/grafana/tree/main/devenv#set-up-your-development-environment">
+          https://github.com/grafana/grafana/tree/main/devenv#set-up-your-development-environment
+        </a>{' '}
+        for more details.
+      </Alert>
     );
-  };
+  }
+
+  return (
+    <div className={styles.root}>
+      <Input value={searchQuery} placeholder="Search" onChange={model.onSearchChange} />
+      <body.Component model={body} />
+    </div>
+  );
 }
 
 function slugify(title: string) {

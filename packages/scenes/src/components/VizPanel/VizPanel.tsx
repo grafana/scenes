@@ -113,7 +113,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   private _plugin?: PanelPlugin;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
-  private _structureRev: number = 0;
+  private _structureRev = 0;
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
