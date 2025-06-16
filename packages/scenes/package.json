@@ -6,7 +6,7 @@
   "license": "AGPL-3.0-only",
   "homepage": "https://grafana.com/developers/scenes",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "src/index.ts",
   "module": "dist/esm/index.js",
   "directories": {
     "src": "src"
