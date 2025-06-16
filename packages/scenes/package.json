@@ -32,7 +32,7 @@
     "lint": "eslint --cache .",
     "prepack": "node ./scripts/prepack.js",
     "postpack": "node ./scripts/postpack.js",
-    "i18n:extract": "i18next --config src/locales/i18next-parser.config.cjs"
+    "i18n-extract": "i18next --config src/locales/i18next-parser.config.cjs"
   },
   "bugs": {
     "url": "https://github.com/grafana/scenes/issues"

@@ -90,7 +90,6 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
     <div className={cx(styles.row, isCollapsed && styles.rowCollapsed)}>
       <div className={styles.rowTitleAndActionsGroup}>
         <button
-          data-josh="hello"
           onClick={model.onCollapseToggle}
           className={styles.rowTitleButton}
           aria-label={

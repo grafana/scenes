@@ -37,10 +37,7 @@ module.exports = [
     files: ['src/**/*.{ts,tsx,js,jsx}'],
     ignores: ['src/**/*.{test,spec,story}.{ts,tsx}'],
     rules: {
-      '@grafana/i18n/no-untranslated-strings': [
-        'error',
-        { calleesToIgnore: ['^css$', 'use[A-Z].*'], forceFix: ['src'] },
-      ],
+      '@grafana/i18n/no-untranslated-strings': ['error', { calleesToIgnore: ['^css$', 'use[A-Z].*'] }],
       '@grafana/i18n/no-translation-top-level': 'error',
     },
   },
