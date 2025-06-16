@@ -1,3 +1,20 @@
+# v6.20.0 (Mon Jun 16 2025)
+
+#### 🚀 Enhancement
+
+- AdHocVariable: Refactor origin filters [#1132](https://github.com/grafana/scenes/pull/1132) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- VariableDependencyConfig: Simplify bits and pieces [#1145](https://github.com/grafana/scenes/pull/1145) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.19.0 (Thu Jun 12 2025)
 
 #### 🚀 Enhancement
