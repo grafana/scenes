@@ -203,7 +203,10 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
           },
         },
         undefined,
-        `/?${getVariableUrlName('test', urlNamespace)}=defaultVal1&${getVariableUrlName('test', urlNamespace)}=normalVal`
+        `/?${getVariableUrlName('test', urlNamespace)}=defaultVal1&${getVariableUrlName(
+          'test',
+          urlNamespace
+        )}=normalVal`
       );
 
       expect(variable.state.value).toEqual(['defaultVal1', 'normalVal']);
@@ -258,7 +261,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
         expect(locationService.getLocation().search).toBe(
           `?${getVariableUrlName('test', urlNamespace)}=defaultVal1` +
-          `&restorable-${getVariableUrlName('test', urlNamespace)}=false`,
+            `&restorable-${getVariableUrlName('test', urlNamespace)}=false`
         );
         expect(variable.state.value).toEqual(['defaultVal1']);
         expect(variable.state.text).toEqual(['defaultVal1']);
@@ -277,7 +280,12 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       await act(async () => {
         await lastValueFrom(variable.validateAndUpdate());
-        expect(locationService.getLocation().search).toBe(`?${getVariableUrlName('test', urlNamespace)}=defaultVal1&restorable-${getVariableUrlName('test', urlNamespace)}=false`);
+        expect(locationService.getLocation().search).toBe(
+          `?${getVariableUrlName('test', urlNamespace)}=defaultVal1&restorable-${getVariableUrlName(
+            'test',
+            urlNamespace
+          )}=false`
+        );
         expect(variable.state.value).toEqual(['defaultVal1']);
         expect(variable.state.text).toEqual(['defaultVal1']);
       });

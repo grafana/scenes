@@ -875,7 +875,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         scopesVariable.scopesVar
       );
 
-    scopesVariable.update();
+      scopesVariable.update();
 
       act(() => {
         filtersVar._updateFilter(filtersVar.state.originFilters![0], {
@@ -907,7 +907,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         },
         undefined,
         scopesVariable.scopesVar
-    );
+      );
       scopesVariable.update();
 
       act(() => {
@@ -942,7 +942,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         },
         undefined,
         scopesVariable.scopesVar
-    );
+      );
       scopesVariable.update();
 
       act(() => {
@@ -957,42 +957,42 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       );
     });
 
-  it('should maintain modified scopes and reconciliate after scopes update', () => {
-    const { filtersVar } = setup({urlNamespace});
+    it('should maintain modified scopes and reconciliate after scopes update', () => {
+      const { filtersVar } = setup({ urlNamespace });
 
-    // url contains a modified scope injected filter carried from somewhere else
-    const urlValues = {
-      [getVariableUrlName('filters', urlNamespace)]: ['scopesFilterKey1|=|newScopesFilterValue1#scope#restorable'],
-    };
+      // url contains a modified scope injected filter carried from somewhere else
+      const urlValues = {
+        [getVariableUrlName('filters', urlNamespace)]: ['scopesFilterKey1|=|newScopesFilterValue1#scope#restorable'],
+      };
 
-    act(() => {
-      locationService.partial(urlValues);
+      act(() => {
+        locationService.partial(urlValues);
+      });
+
+      expect(filtersVar.state.originFilters![0]).toEqual({
+        key: 'scopesFilterKey1',
+        keyLabel: 'scopesFilterKey1',
+        operator: '=',
+        value: 'newScopesFilterValue1',
+        valueLabels: ['newScopesFilterValue1'],
+        restorable: true,
+        origin: 'scope',
+        condition: '',
+      });
     });
 
-    expect(filtersVar.state.originFilters![0]).toEqual({
-      key: 'scopesFilterKey1',
-      keyLabel: 'scopesFilterKey1',
-      operator: '=',
-      value: 'newScopesFilterValue1',
-      valueLabels: ['newScopesFilterValue1'],
-      restorable: true,
-      origin: 'scope',
-      condition: '',
-    });
-  });
-
-  it('sets origin filter as match-all', () => {
-    const { filtersVar } = setup({
-      urlNamespace,
-      originFilters: [
-        {
-          key: 'dbFilterKey',
-          operator: '=',
-          value: 'dbFilterValue',
-          origin: 'dashboard',
-        },
-      ],
-    });
+    it('sets origin filter as match-all', () => {
+      const { filtersVar } = setup({
+        urlNamespace,
+        originFilters: [
+          {
+            key: 'dbFilterKey',
+            operator: '=',
+            value: 'dbFilterValue',
+            origin: 'dashboard',
+          },
+        ],
+      });
 
       const urlValues = {
         [getVariableUrlName('filters', urlNamespace)]: ['dbFilterKey|=~|.*#dashboard#restorable'],
@@ -1015,11 +1015,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-  it('should maintain dashboard originated filter as a normal filter if there is no match', () => {
-    // this dashboard has no baseFilters
-    const { filtersVar } = setup({ urlNamespace });
+    it('should maintain dashboard originated filter as a normal filter if there is no match', () => {
+      // this dashboard has no baseFilters
+      const { filtersVar } = setup({ urlNamespace });
 
-    // but the URL sends a modified dashboard level filter
+      // but the URL sends a modified dashboard level filter
       const urlValues = {
         [getVariableUrlName('filters', urlNamespace)]: ['dbFilterKey|!=|newDbFilterValue#dashboard#restorable'],
       };
@@ -1038,18 +1038,18 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-  it('filters are matched to origin ones if keys match', () => {
-    const { filtersVar } = setup({
-      urlNamespace,
-      originFilters: [
-        {
-          key: 'dbFilterKey',
-          operator: '=',
-          value: 'dbFilterValue',
-          origin: 'dashboard',
-        },
-      ],
-    });
+    it('filters are matched to origin ones if keys match', () => {
+      const { filtersVar } = setup({
+        urlNamespace,
+        originFilters: [
+          {
+            key: 'dbFilterKey',
+            operator: '=',
+            value: 'dbFilterValue',
+            origin: 'dashboard',
+          },
+        ],
+      });
 
       // this is a normal filter but the key matches the
       // dashboard filter so we overwrite this filter
@@ -1111,7 +1111,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         },
         undefined,
         scopesVariable.scopesVar
-      );scopesVariable.update();
+      );
+      scopesVariable.update();
 
       const urlValues = {
         [getVariableUrlName('filters', urlNamespace)]: [
