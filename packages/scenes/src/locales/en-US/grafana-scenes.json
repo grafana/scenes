@@ -25,8 +25,8 @@
       "title-scene-debugger": "Scene debugger"
     },
     "scene-grid-row": {
-      "collapse-row": "Collapse row",
-      "expand-row": "Expand row"
+      "collapse-row": "[scenes-lib] Collapse row",
+      "expand-row": "[scenes-lib] Expand row"
     },
     "scene-time-range-compare-renderer": {
       "button-label": "Comparison",

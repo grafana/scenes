@@ -2,6 +2,7 @@ import { createRequire } from 'node:module';
 import resolve from '@rollup/plugin-node-resolve';
 import path from 'path';
 import dts from 'rollup-plugin-dts';
+import json from '@rollup/plugin-json';
 import esbuild from 'rollup-plugin-esbuild';
 import eslint from '@rollup/plugin-eslint';
 import { nodeExternals } from 'rollup-plugin-node-externals';
@@ -18,6 +19,7 @@ const plugins = [
     tsconfig: './tsconfig.json',
   }),
   eslint(),
+  json(),
 ];
 
 export default [

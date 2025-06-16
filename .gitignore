@@ -26,6 +26,7 @@ dist
 node_modules
 .docusaurus
 build
+npm-artifacts
 
 .env
 
