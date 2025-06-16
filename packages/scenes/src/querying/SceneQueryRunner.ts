@@ -420,6 +420,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
+    if (this.isQueryModeAuto() && !this._isInView) {
+      this._queryNotExecutedWhenOutOfView = true;
+      return;
+    }
+
+    this._queryNotExecutedWhenOutOfView = false;
+
     // If data layers subscription doesn't exist, create one
     if (!this._dataLayersSub) {
       this._handleDataLayers();
@@ -691,6 +698,17 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private isQueryModeAuto(): boolean {
     return (this.state.runQueriesMode ?? 'auto') === 'auto';
+  }
+
+  private _isInView: boolean = true;
+  private _queryNotExecutedWhenOutOfView = false;
+
+  public isInViewChanged(isInView: boolean): void {
+    this._isInView = isInView;
+
+    if (isInView && this._queryNotExecutedWhenOutOfView) {
+      this.runQueries();
+    }
   }
 }
 
