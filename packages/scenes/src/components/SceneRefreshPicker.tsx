@@ -37,7 +37,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['refresh'] });
   private _intervalTimer: ReturnType<typeof setInterval> | undefined;
   private _autoTimeRangeListener: Unsubscribable | undefined;
-  private _autoRefreshBlocked: boolean = false;
+  private _autoRefreshBlocked = false;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
     const filterDissalowedIntervals = (i: string) => {

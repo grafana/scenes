@@ -8,7 +8,7 @@ import {
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
 import {
-  escapeInjectedFilterUrlDelimiters,
+  escapeOriginFilterUrlDelimiters,
   getVariableUrlName,
   toUrlCommaDelimitedString,
   unescapeUrlDelimiters,
@@ -27,11 +27,11 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
 
   public getUrlState(): SceneObjectUrlValues {
     const filters = this._variable.state.filters;
-    const baseFilters = this._variable.state.baseFilters;
+    const originFilters = this._variable.state.originFilters;
 
     let value = [];
 
-    if (filters.length === 0 && baseFilters?.length === 0) {
+    if (filters.length === 0 && originFilters?.length === 0) {
       return { [this.getKey()]: [''] };
     }
 
@@ -40,18 +40,18 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
         ...filters
           .filter(isFilterComplete)
           .filter((filter) => !filter.hidden)
-          .map((filter) => toArray(filter).map(escapeInjectedFilterUrlDelimiters).join('|'))
+          .map((filter) => toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|'))
       );
     }
 
-    if (baseFilters?.length) {
+    if (originFilters?.length) {
       // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable
       value.push(
-        ...baseFilters
+        ...originFilters
           ?.filter(isFilterComplete)
           .filter((filter) => !filter.hidden && filter.origin && filter.restorable)
           .map((filter) =>
-            toArray(filter).map(escapeInjectedFilterUrlDelimiters).join('|').concat(`#${filter.origin}#restorable`)
+            toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}#restorable`)
           )
       );
     }
@@ -69,44 +69,49 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     }
 
     const filters = deserializeUrlToFilters(urlValue);
-    const baseFilters = [...(this._variable.state.baseFilters || [])];
-
-    for (let i = 0; i < filters.length; i++) {
-      const foundBaseFilterIndex = baseFilters.findIndex((f) => f.key === filters[i].key);
-
-      // if we find a match we update baseFilter with what's in the URL.
-      // If there is a normal filter without an origin that matches keys with
-      // some dashboard lvl filter we maintain it as dashboard lvl filter in the
-      // new dashboard
-      if (foundBaseFilterIndex > -1) {
-        if (!filters[i].origin && baseFilters[foundBaseFilterIndex].origin === 'dashboard') {
-          filters[i].origin = 'dashboard';
-          filters[i].restorable = true;
-        }
-
-        if (isMatchAllFilter(filters[i])) {
-          filters[i].matchAllFilter = true;
-        }
-
-        baseFilters[foundBaseFilterIndex] = filters[i];
-      } else if (filters[i].origin === 'dashboard') {
-        // if it was originating from a dashoard but has no match in the new dashboard
-        // remove it's origin, turn it into a normal filter to be set below
-        delete filters[i].origin;
-        delete filters[i].restorable;
-      } else if (foundBaseFilterIndex === -1 && filters[i].origin === 'scope' && filters[i].restorable) {
-        // scopes are being set sometimes (when the observable emits actual filters) after urlSync
-        // so we maintain all modified scopes in the adhoc
-        // and leave the scopes update to reconciliate on what filters will actually show up
-        baseFilters.push(filters[i]);
-      }
-    }
+    const originFilters = updateOriginFilters([...(this._variable.state.originFilters || [])], filters);
 
     this._variable.setState({
       filters: filters.filter((f) => !f.origin),
-      baseFilters,
+      originFilters,
     });
   }
+}
+
+function updateOriginFilters(prevOriginFilters: AdHocFilterWithLabels[], filters: AdHocFilterWithLabels[]) {
+  const updatedOriginFilters: AdHocFilterWithLabels[] = [...prevOriginFilters];
+
+  for (let i = 0; i < filters.length; i++) {
+    const foundOriginFilterIndex = prevOriginFilters.findIndex((f) => f.key === filters[i].key);
+
+    // if we find a match we update originFilters with what's in the URL.
+    // If there is a normal filter without an origin that matches keys with
+    // some dashboard lvl filter we maintain it as dashboard lvl filter in the
+    // new dashboard
+    if (foundOriginFilterIndex > -1) {
+      if (!filters[i].origin && prevOriginFilters[foundOriginFilterIndex].origin === 'dashboard') {
+        filters[i].origin = 'dashboard';
+        filters[i].restorable = true;
+      }
+
+      if (isMatchAllFilter(filters[i])) {
+        filters[i].matchAllFilter = true;
+      }
+
+      updatedOriginFilters[foundOriginFilterIndex] = filters[i];
+    } else if (filters[i].origin === 'dashboard') {
+      // if it was originating from a dashoard but has no match in the new dashboard
+      // remove it's origin, turn it into a normal filter to be set below
+      delete filters[i].origin;
+      delete filters[i].restorable;
+    } else if (foundOriginFilterIndex === -1 && filters[i].origin === 'scope' && filters[i].restorable) {
+      // scopes are being set urlSync so we maintain all modified scopes in the adhoc
+      // and leave the scopes update to reconciliate on what filters will actually show up
+      updatedOriginFilters.push(filters[i]);
+    }
+  }
+
+  return updatedOriginFilters;
 }
 
 function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLabels[] {

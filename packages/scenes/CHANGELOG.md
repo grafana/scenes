@@ -1,3 +1,56 @@
+# v6.20.2 (Mon Jun 16 2025)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersVariable: Fix scopes crashing when scope filters are undefined [#1153](https://github.com/grafana/scenes/pull/1153) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.20.1 (Mon Jun 16 2025)
+
+#### 🐛 Bug Fix
+
+- GroupBy: Fix edge cases on default values on dashboard load [#1146](https://github.com/grafana/scenes/pull/1146) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.20.0 (Mon Jun 16 2025)
+
+#### 🚀 Enhancement
+
+- AdHocVariable: Refactor origin filters [#1132](https://github.com/grafana/scenes/pull/1132) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- VariableDependencyConfig: Simplify bits and pieces [#1145](https://github.com/grafana/scenes/pull/1145) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.19.0 (Thu Jun 12 2025)
+
+#### 🚀 Enhancement
+
+- Scopes: Add annotation query support [#1144](https://github.com/grafana/scenes/pull/1144) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
 # v6.18.1 (Wed Jun 04 2025)
 
 #### 🐛 Bug Fix
