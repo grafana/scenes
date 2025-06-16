@@ -29,7 +29,6 @@
     "precommit": "yarn run lint-staged",
     "prepare": "husky install",
     "packages:publish": "lerna exec --no-private -- npm publish",
-    "packages:pack": "mkdir -p npm-artifacts && yarn lerna exec --no-private -- yarn pack --out \"../../npm-artifacts/%s-%v.tgz\"",
     "docs": "yarn workspace website run start --port 8080",
     "docs:build": "yarn turbo build --filter=website",
     "docs:build:dev": "yarn turbo build:dev --filter=website",
