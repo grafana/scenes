@@ -40,6 +40,10 @@ function processFilter(
   duplicatedFilters: AdHocFilterWithLabels[],
   filter: ScopeSpecFilter
 ) {
+  if (!filter) {
+    return;
+  }
+
   const existingFilter = formattedFilters.get(filter.key);
 
   if (existingFilter && canValueBeMerged(existingFilter.operator, filter.operator)) {
