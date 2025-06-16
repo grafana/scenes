@@ -28,7 +28,7 @@ export function VariableValueInput({ model }: SceneComponentProps<TextBoxVariabl
   return (
     <AutoSizeInput
       id={key}
-      placeholder={t("variables.variable-value-input.placeholder-enter-value", "Enter value")}
+      placeholder={t('variables.variable-value-input.placeholder-enter-value', 'Enter value')}
       minWidth={15}
       maxWidth={30}
       value={value}

@@ -326,7 +326,7 @@ export function Splitter({
             aria-valuemax={100}
             aria-valuenow={50}
             aria-controls={`start-panel-${id}`}
-            aria-label={t("components.splitter.aria-label-pane-resize-widget", "Pane resize widget")}
+            aria-label={t('components.splitter.aria-label-pane-resize-widget', 'Pane resize widget')}
             tabIndex={0}
           ></div>
 

@@ -26,7 +26,7 @@ interface LoadingIndicatorProps {
 
 export function LoadingIndicator(props: LoadingIndicatorProps) {
   return (
-    <Tooltip content={t("utils.loading-indicator.content-cancel-query", "Cancel query")}>
+    <Tooltip content={t('utils.loading-indicator.content-cancel-query', 'Cancel query')}>
       <Icon
         className="spin-clockwise"
         name="sync"

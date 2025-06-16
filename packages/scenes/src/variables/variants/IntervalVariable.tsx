@@ -129,7 +129,7 @@ export class IntervalVariable
     return (
       <Select
         id={key}
-        placeholder={t("variables.interval-variable.placeholder-select-value", "Select value")}
+        placeholder={t('variables.interval-variable.placeholder-select-value', 'Select value')}
         width="auto"
         value={value}
         tabSelectsValue={false}

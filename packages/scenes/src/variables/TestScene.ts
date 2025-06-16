@@ -35,7 +35,7 @@ export class TestObjectWithVariableDependency extends SceneObjectBase<TestSceneO
     super({
       didSomethingCount: 0,
       variableValueChanged: 0,
-      title: t("variables.test-object-with-variable-dependency.title.hello", "Hello"),
+      title: t('variables.test-object-with-variable-dependency.title.hello', 'Hello'),
       ...state,
     });
   }

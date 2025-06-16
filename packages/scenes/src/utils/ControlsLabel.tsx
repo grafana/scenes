@@ -76,7 +76,13 @@ export function ControlsLabel(props: ControlsLabelProps) {
         {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
         {loadingIndicator}
         {props.onRemove && (
-          <IconButton variant="secondary" size="xs" name="times" onClick={props.onRemove} tooltip={t("utils.controls-label.tooltip-remove", "Remove")} />
+          <IconButton
+            variant="secondary"
+            size="xs"
+            name="times"
+            onClick={props.onRemove}
+            tooltip={t('utils.controls-label.tooltip-remove', 'Remove')}
+          />
         )}
         {props.suffix}
       </label>

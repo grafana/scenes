@@ -67,9 +67,9 @@ function VizPanelExploreButtonComponent({ model }: SceneComponentProps<VizPanelE
           }
           options.onClick?.();
         }}
-      ><Trans i18nKey="components.viz-panel-explore-button.explore">
-        Explore
-      </Trans></LinkButton>
+      >
+        <Trans i18nKey="components.viz-panel-explore-button.explore">Explore</Trans>
+      </LinkButton>
     );
   }
   return null;
