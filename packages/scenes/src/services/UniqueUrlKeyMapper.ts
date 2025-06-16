@@ -6,10 +6,43 @@ export interface SceneObjectWithDepth {
   depth: number;
 }
 
+export interface UniqueUrlKeyMapperOptions {
+  namespace?: string;
+  excludeFromNamespace?: string[];
+}
+
+const DEFAULT_NAMESPACE = '';
+const DEFAULT_EXCLUDE_FROM_NAMESPACE = ['from', 'to', 'timezone'];
+
 export class UniqueUrlKeyMapper {
   private index = new Map<string, SceneObject[]>();
+  private options: Required<UniqueUrlKeyMapperOptions>;
 
-  public getUniqueKey(key: string, obj: SceneObject) {
+  public constructor(options?: UniqueUrlKeyMapperOptions) {
+    this.options = {
+      namespace: options?.namespace || DEFAULT_NAMESPACE,
+      excludeFromNamespace: options?.excludeFromNamespace || DEFAULT_EXCLUDE_FROM_NAMESPACE,
+    };
+  }
+
+  public getOptions() {
+    return this.options;
+  }
+
+  private getNamespacedKey(keyWithoutNamespace: string) {
+    let key = keyWithoutNamespace;
+
+    if (this.options.namespace) {
+      key = this.options.excludeFromNamespace.includes(keyWithoutNamespace)
+        ? keyWithoutNamespace
+        : `${this.options.namespace}-${keyWithoutNamespace}`;
+    }
+
+    return key;
+  }
+
+  public getUniqueKey(keyWithoutNamespace: string, obj: SceneObject) {
+    const key = this.getNamespacedKey(keyWithoutNamespace);
     const objectsWithKey = this.index.get(key);
 
     if (!objectsWithKey) {

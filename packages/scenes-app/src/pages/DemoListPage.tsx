@@ -28,6 +28,7 @@ function getDemoSceneApp() {
     urlSyncOptions: {
       updateUrlOnInit: true,
       createBrowserHistorySteps: true,
+      namespace: 'xxx',
     },
     pages: [
       new SceneAppPage({

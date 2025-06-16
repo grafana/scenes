@@ -302,4 +302,6 @@ export interface SceneUrlSyncOptions {
    * url changes should add a new browser history entry.
    */
   createBrowserHistorySteps?: boolean;
+  namespace?: string;
+  excludeFromNamespace?: string[];
 }
