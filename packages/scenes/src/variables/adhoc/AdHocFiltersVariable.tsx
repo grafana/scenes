@@ -214,7 +214,7 @@ export class AdHocFiltersVariable
   // holds the originalValues of all baseFilters in a map. The values
   // are set on construct and used to restore a baseFilter with an origin
   // to its original value if edited at some point
-  private _originalValues: Map<string, { value: string[]; operator: string }> = new Map();
+  private _originalValues: Map<string, { value: string[]; operator: string; nonApplicable?: boolean }> = new Map();
   private _prevScopes: Scope[] = [];
 
   /** Needed for scopes dependency */
@@ -246,6 +246,7 @@ export class AdHocFiltersVariable
       this._originalValues.set(filter.key, {
         operator: filter.operator,
         value: filter.values ?? [filter.value],
+        nonApplicable: false,
       });
     });
 
@@ -253,8 +254,6 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    console.log('LOL');
-    // this._updateScopesFilters();
     this._verifyNonApplicableFilters();
 
     return () => {
@@ -397,6 +396,7 @@ export class AdHocFiltersVariable
       original.values = originalFilter?.value;
       original.valueLabels = originalFilter?.value;
       original.operator = originalFilter?.operator;
+      original.nonApplicable = originalFilter?.nonApplicable;
 
       this._updateFilter(filter, original);
     }
@@ -455,6 +455,7 @@ export class AdHocFiltersVariable
       values: ['.*'],
       valueLabels: ['All'],
       matchAllFilter: true,
+      nonApplicable: false,
       restorable: true,
     });
   }
@@ -541,11 +542,10 @@ export class AdHocFiltersVariable
   }
 
   public async _verifyNonApplicableFilters() {
-    // originFilters after refactor
-    const filters = [...this.state.filters, ...(this.state.baseFilters?.filter((f) => f.origin) ?? [])];
+    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
-    // @ts-ignore
+    // @ts-ignore (TODO)
     if (!ds || !ds.getApplicableFilters) {
       return [];
     }
@@ -553,7 +553,7 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
-    // @ts-ignore
+    // @ts-ignore (TODO)
     const response: MetricFindValue[] = await ds.getApplicableFilters({
       filters,
       queries,
@@ -563,7 +563,7 @@ export class AdHocFiltersVariable
     });
 
     this.state.filters.forEach((f) => {
-      // @ts-ignore
+      // @ts-ignore (TODO)
       const isNonApplicable = response.find((filter) => filter.value === f.key && filter.nonApplicable);
 
       if (isNonApplicable) {
@@ -571,12 +571,23 @@ export class AdHocFiltersVariable
       }
     });
 
-    this.state.baseFilters?.forEach((f) => {
-      // @ts-ignore
+    this.state.originFilters?.forEach((f) => {
+      // @ts-ignore (TODO)
       const isNonApplicable = response.find((filter) => filter.value === f.key && filter.nonApplicable);
 
-      if (isNonApplicable) {
+      if (isNonApplicable && !f.matchAllFilter) {
         this._updateFilter(f, { nonApplicable: true });
+      }
+
+      for (const key of this._originalValues.keys()) {
+        const isNonApplicable = response.find((filter) => filter.value === key && filter.nonApplicable);
+
+        if (isNonApplicable) {
+          const filter = this._originalValues.get(key);
+          if (filter) {
+            filter.nonApplicable = true;
+          }
+        }
       }
     });
   }
@@ -778,7 +789,11 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return filter.key !== '' && filter.operator !== '' && filter.value !== '' && !filter.nonApplicable;
+  return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+}
+
+export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
+  return !filter.nonApplicable;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {
