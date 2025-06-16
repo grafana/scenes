@@ -1,3 +1,16 @@
+# v6.20.1 (Mon Jun 16 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy: Fix edge cases on default values on dashboard load [#1146](https://github.com/grafana/scenes/pull/1146) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.20.0 (Mon Jun 16 2025)
 
 #### 🚀 Enhancement
