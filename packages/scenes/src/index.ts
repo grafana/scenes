@@ -164,4 +164,4 @@ export const sceneUtils = {
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
 export { getExploreURL } from './utils/explore';
-export { initTranslations } from './utils/loadTranslationResources';
+export { loadResources } from './utils/loadResources';
