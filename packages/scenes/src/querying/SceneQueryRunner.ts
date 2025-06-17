@@ -338,7 +338,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._timeSubRange = undefined;
     this._adhocFiltersVar = undefined;
     this._groupByVar = undefined;
-    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
   public setContainerWidth(width: number) {
@@ -434,6 +433,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.setState({ data: { ...(this.state.data ?? emptyPanelData), state: LoadingState.Loading } });
       return;
     }
+
+    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
 
     const { queries } = this.state;
 
