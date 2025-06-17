@@ -50,13 +50,16 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - id: get-secrets
+      - name: Get secrets from vault
+        id: get-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
         with:
           # Secrets placed in the ci/repo/grafana/scenes/ path in Vault
           repo_secrets: |
             GITHUB_APP_ID=github-app:app-id
             GITHUB_APP_PRIVATE_KEY=github-app:private-key
+            NPM_TOKEN=npm:token
+
       - name: Generate a token
         id: generate-token
         uses: actions/create-github-app-token@v1
@@ -87,5 +90,5 @@ jobs:
         run: yarn auto shipit
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+          NPM_TOKEN: ${{ env.NPM_TOKEN }}
