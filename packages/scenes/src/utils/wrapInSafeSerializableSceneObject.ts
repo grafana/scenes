@@ -33,6 +33,5 @@ export function wrapInSafeSerializableSceneObject(sceneObject: SceneObject): Sco
     return new SafeSerializableSceneObject(sceneObject);
   }
 
-  // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
   return { value: sceneObject, text: '__sceneObject' };
 }
