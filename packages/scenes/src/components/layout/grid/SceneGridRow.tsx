@@ -94,8 +94,8 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
           className={styles.rowTitleButton}
           aria-label={
             isCollapsed
-              ? t('components.scene-grid-row.expand-row', 'Expand row')
-              : t('components.scene-grid-row.collapse-row', 'Collapse row')
+              ? t('grafana-scenes.components.scene-grid-row.expand-row', 'Expand row')
+              : t('grafana-scenes.components.scene-grid-row.collapse-row', 'Collapse row')
           }
           data-testid={selectors.components.DashboardRow.title(sceneGraph.interpolate(model, title, undefined, 'text'))}
         >

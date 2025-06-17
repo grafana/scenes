@@ -57,7 +57,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.Raw,
       name: 'raw',
-      description: t('variables.format-registry.formats.description.keep-value-as-is', 'Keep value as is'),
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.keep-value-as-is',
+        'Keep value as is'
+      ),
       formatter: (value) => String(value),
     },
     {
@@ -92,7 +95,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.Pipe,
       name: 'Pipe',
       description: t(
-        'variables.format-registry.formats.description.values-are-separated-by-character',
+        'grafana-scenes.variables.format-registry.formats.description.values-are-separated-by-character',
         'Values are separated by | character'
       ),
       formatter: (value) => {
@@ -111,7 +114,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.Distributed,
       name: 'Distributed',
       description: t(
-        'variables.format-registry.formats.description.multiple-values-are-formatted-like-variablevalue',
+        'grafana-scenes.variables.format-registry.formats.description.multiple-values-are-formatted-like-variablevalue',
         'Multiple values are formatted like variable=value'
       ),
       formatter: (value, args, variable) => {
@@ -137,7 +140,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.CSV,
       name: 'Csv',
-      description: t('variables.format-registry.formats.description.commaseparated-values', 'Comma-separated values'),
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.commaseparated-values',
+        'Comma-separated values'
+      ),
       formatter: (value) => {
         if (typeof value === 'string') {
           return value;
@@ -154,7 +160,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.HTML,
       name: 'HTML',
       description: t(
-        'variables.format-registry.formats.description.html-escaping-of-values',
+        'grafana-scenes.variables.format-registry.formats.description.html-escaping-of-values',
         'HTML escaping of values'
       ),
       formatter: (value) => {
@@ -172,7 +178,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.JSON,
       name: 'JSON',
-      description: t('variables.format-registry.formats.description.json-stringify-value', 'JSON stringify value'),
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.json-stringify-value',
+        'JSON stringify value'
+      ),
       formatter: (value) => {
         if (typeof value === 'string') {
           return value;
@@ -184,7 +193,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.PercentEncode,
       name: 'Percent encode',
       description: t(
-        'variables.format-registry.formats.description.useful-for-url-escaping-values',
+        'grafana-scenes.variables.format-registry.formats.description.useful-for-url-escaping-values',
         'Useful for URL escaping values'
       ),
       formatter: (value) => {
@@ -199,7 +208,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.SingleQuote,
       name: 'Single quote',
-      description: t('variables.format-registry.formats.description.single-quoted-values', 'Single quoted values'),
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.single-quoted-values',
+        'Single quoted values'
+      ),
       formatter: (value) => {
         // escape single quotes with backslash
         const regExp = new RegExp(`'`, 'g');
@@ -215,7 +227,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.DoubleQuote,
       name: 'Double quote',
-      description: t('variables.format-registry.formats.description.double-quoted-values', 'Double quoted values'),
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.double-quoted-values',
+        'Double quoted values'
+      ),
       formatter: (value) => {
         // escape double quotes with backslash
         const regExp = new RegExp('"', 'g');
@@ -237,7 +252,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.Date,
       name: 'Date',
       description: t(
-        'variables.format-registry.formats.description.format-date-in-different-ways',
+        'grafana-scenes.variables.format-registry.formats.description.format-date-in-different-ways',
         'Format date in different ways'
       ),
       formatter: (value, args) => {
@@ -273,7 +288,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.Glob,
       name: 'Glob',
       description: t(
-        'variables.format-registry.formats.description.format-multivalued-variables-using-syntax-example',
+        'grafana-scenes.variables.format-registry.formats.description.format-multivalued-variables-using-syntax-example',
         'Format multi-valued variables using glob syntax, example {value1,value2}'
       ),
       formatter: (value) => {
@@ -317,7 +332,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.UriEncode,
       name: 'Percent encode as URI',
       description: t(
-        'variables.format-registry.formats.description.useful-escaping-values-taking-syntax-characters',
+        'grafana-scenes.variables.format-registry.formats.description.useful-escaping-values-taking-syntax-characters',
         'Useful for URL escaping values, taking into URI syntax characters'
       ),
       formatter: (value: VariableValue) => {

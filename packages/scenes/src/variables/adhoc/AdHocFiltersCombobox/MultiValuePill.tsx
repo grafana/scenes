@@ -70,9 +70,13 @@ export const MultiValuePill = ({
         size="sm"
         variant="secondary"
         className={styles.removeButton}
-        tooltip={t('components.adhoc-filters-combobox.remove-filter-value', 'Remove filter value - {{itemLabel}}', {
-          itemLabel: item.label ?? item.value,
-        })}
+        tooltip={t(
+          'grafana-scenes.components.adhoc-filters-combobox.remove-filter-value',
+          'Remove filter value - {{itemLabel}}',
+          {
+            itemLabel: item.label ?? item.value,
+          }
+        )}
       >
         <Icon name="times" size="md" id={`${item.value}-${index}-close-icon`} />
       </Button>

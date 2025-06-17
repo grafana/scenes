@@ -22,7 +22,7 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
   if (value && value.length) {
     buttons.push(
       <IconButton
-        aria-label={t('variables.default-group-by-custom-indicator-container.aria-label-clear', 'clear')}
+        aria-label={t('grafana-scenes.variables.default-group-by-custom-indicator-container.aria-label-clear', 'clear')}
         key="clear"
         name="times"
         size="md"
@@ -53,7 +53,7 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
         size="md"
         className={styles.clearIcon}
         tooltip={t(
-          'variables.default-group-by-custom-indicator-container.tooltip-restore-groupby-set-by-this-dashboard',
+          'grafana-scenes.variables.default-group-by-custom-indicator-container.tooltip-restore-groupby-set-by-this-dashboard',
           'Restore groupby set by this dashboard.'
         )}
       />
@@ -65,7 +65,7 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
       <Tooltip
         key="tooltip"
         content={t(
-          'variables.default-group-by-custom-indicator-container.tooltip',
+          'grafana-scenes.variables.default-group-by-custom-indicator-container.tooltip',
           'Applied by default in this dashboard. If edited, it carries over to other dashboards.'
         )}
         placement="bottom"

@@ -18,8 +18,8 @@ export function AdHocFilterBuilder({ model, addFilterButtonText }: Props) {
       <Button
         variant="secondary"
         icon="plus"
-        title={t('variables.ad-hoc-filter-builder.title-add-filter', 'Add filter')}
-        aria-label={t('variables.ad-hoc-filter-builder.aria-label-add-filter', 'Add filter')}
+        title={t('grafana-scenes.variables.ad-hoc-filter-builder.title-add-filter', 'Add filter')}
+        aria-label={t('grafana-scenes.variables.ad-hoc-filter-builder.aria-label-add-filter', 'Add filter')}
         data-testid={`AdHocFilter-add`}
         onClick={() => model._addWip()}
       >

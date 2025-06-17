@@ -81,7 +81,7 @@ export function ControlsLabel(props: ControlsLabelProps) {
             size="xs"
             name="times"
             onClick={props.onRemove}
-            tooltip={t('utils.controls-label.tooltip-remove', 'Remove')}
+            tooltip={t('grafana-scenes.utils.controls-label.tooltip-remove', 'Remove')}
           />
         )}
         {props.suffix}

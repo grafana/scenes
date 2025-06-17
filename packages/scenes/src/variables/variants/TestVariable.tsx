@@ -43,7 +43,7 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       type: 'custom',
       name: 'Test',
       value: 'Value',
-      text: t('variables.test-variable.text.text', 'Text'),
+      text: t('grafana-scenes.variables.test-variable.text.text', 'Text'),
       query: 'Query',
       options: [],
       refresh: VariableRefresh.onDashboardLoad,

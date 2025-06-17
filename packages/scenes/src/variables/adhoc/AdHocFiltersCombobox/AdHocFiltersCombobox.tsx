@@ -535,7 +535,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 filter.origin && styles.keyPill,
                 operatorIdentifier
               )}
-              aria-label={t('variables.ad-hoc-combobox.aria-label-edit-filter-operator', 'Edit filter operator')}
+              aria-label={t(
+                'grafana-scenes.variables.ad-hoc-combobox.aria-label-edit-filter-operator',
+                'Edit filter operator'
+              )}
               tabIndex={filter.origin ? -1 : 0}
               onClick={(event) => {
                 if (filter.origin) {
@@ -737,7 +740,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                           <span>
                             {item.isCustom
                               ? t(
-                                  'components.adhoc-filters-combobox.use-custom-value',
+                                  'grafana-scenes.components.adhoc-filters-combobox.use-custom-value',
                                   'Use custom value: {{itemLabel}}',
                                   { itemLabel }
                                 )

@@ -58,7 +58,7 @@ export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>)
         variant={'default'}
         onClick={model.onRemove}
         key="remove-button"
-        aria-label={t('components.nested-scene-renderer.remove-button-label', 'Remove scene')}
+        aria-label={t('grafana-scenes.components.nested-scene-renderer.remove-button-label', 'Remove scene')}
       />
     );
   }
@@ -71,8 +71,8 @@ export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>)
           className={gridRow.rowTitleButton}
           aria-label={
             isCollapsed
-              ? t('components.nested-scene-renderer.expand-button-label', 'Expand scene')
-              : t('components.nested-scene-renderer.collapse-button-label', 'Collapse scene')
+              ? t('grafana-scenes.components.nested-scene-renderer.expand-button-label', 'Expand scene')
+              : t('grafana-scenes.components.nested-scene-renderer.collapse-button-label', 'Collapse scene')
           }
         >
           {canCollapse && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}

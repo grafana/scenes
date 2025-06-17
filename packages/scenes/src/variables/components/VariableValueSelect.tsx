@@ -83,7 +83,7 @@ export function VariableValueSelect({ model, state }: { model: MultiValueVariabl
     <Select<VariableValue>
       id={key}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
-      placeholder={t('variables.variable-value-select.placeholder-select-value', 'Select value')}
+      placeholder={t('grafana-scenes.variables.variable-value-select.placeholder-select-value', 'Select value')}
       width="auto"
       disabled={isReadOnly}
       value={selectValue}

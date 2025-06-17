@@ -70,7 +70,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   if (!plugin) {
     return (
       <div>
-        <Trans i18nKey="components.viz-panel-renderer.loading-plugin-panel">Loading plugin panel...</Trans>
+        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.loading-plugin-panel">
+          Loading plugin panel...
+        </Trans>
       </div>
     );
   }
@@ -78,7 +80,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   if (!plugin.panel) {
     return (
       <div>
-        <Trans i18nKey="components.viz-panel-renderer.panel-plugin-has-no-panel-component">
+        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.panel-plugin-has-no-panel-component">
           Panel plugin has no panel component
         </Trans>
       </div>

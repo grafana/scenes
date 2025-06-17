@@ -133,8 +133,8 @@ function getFallbackRoute(page: SceneAppPage) {
 function getDefaultFallbackPage() {
   return new SceneAppPage({
     url: '',
-    title: t('components.fallback-page.title', 'Not found'),
-    subTitle: t('components.fallback-page.subTitle', 'The url did not match any page'),
+    title: t('grafana-scenes.components.fallback-page.title', 'Not found'),
+    subTitle: t('grafana-scenes.components.fallback-page.subTitle', 'The url did not match any page'),
     routePath: '*',
     getScene: () => {
       return new EmbeddedScene({
@@ -146,7 +146,7 @@ function getDefaultFallbackPage() {
                 component: () => {
                   return (
                     <div data-testid="default-fallback-content">
-                      <Trans i18nKey="components.fallback-page.content">
+                      <Trans i18nKey="grafana-scenes.components.fallback-page.content">
                         If you found your way here using a link then there might be a bug in this application.
                       </Trans>
                     </div>

@@ -26,9 +26,13 @@ export function VizPanelSeriesLimit({ data, showAll, seriesLimit, onShowAllSerie
       {!showAll && (
         <span className={styles.warningMessage}>
           <Icon
-            title={t('components.viz-panel-series-limit.warning-message', `Showing only {{seriesLimit}} series`, {
-              seriesLimit,
-            })}
+            title={t(
+              'grafana-scenes.components.viz-panel-series-limit.warning-message',
+              `Showing only {{seriesLimit}} series`,
+              {
+                seriesLimit,
+              }
+            )}
             name="exclamation-triangle"
             aria-hidden="true"
           />
@@ -36,7 +40,7 @@ export function VizPanelSeriesLimit({ data, showAll, seriesLimit, onShowAllSerie
       )}
       <Tooltip
         content={t(
-          'components.viz-panel-series-limit.content-rendering-series-single-panel-impact-performance',
+          'grafana-scenes.components.viz-panel-series-limit.content-rendering-series-single-panel-impact-performance',
           'Rendering too many series in a single panel may impact performance and make data harder to read.'
         )}
       >

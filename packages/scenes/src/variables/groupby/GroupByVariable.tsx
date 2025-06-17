@@ -326,10 +326,16 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 
   return isMulti ? (
     <MultiSelect<VariableValueSingle>
-      aria-label={t('variables.group-by-variable-renderer.aria-label-group-by-selector', 'Group by selector')}
+      aria-label={t(
+        'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
+        'Group by selector'
+      )}
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={t('variables.group-by-variable-renderer.placeholder-group-by-label', 'Group by label')}
+      placeholder={t(
+        'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
+        'Group by label'
+      )}
       width="auto"
       allowCustomValue={allowCustomValue}
       inputValue={inputValue}
@@ -385,10 +391,16 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     />
   ) : (
     <Select
-      aria-label={t('variables.group-by-variable-renderer.aria-label-group-by-selector', 'Group by selector')}
+      aria-label={t(
+        'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
+        'Group by selector'
+      )}
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={t('variables.group-by-variable-renderer.placeholder-group-by-label', 'Group by label')}
+      placeholder={t(
+        'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
+        'Group by label'
+      )}
       width="auto"
       inputValue={inputValue}
       value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}

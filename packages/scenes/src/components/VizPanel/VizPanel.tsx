@@ -120,7 +120,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     super({
       options: {} as TOptions,
       fieldConfig: { defaults: {}, overrides: [] },
-      title: t('components.viz-panel.title.title', 'Title'),
+      title: t('grafana-scenes.components.viz-panel.title.title', 'Title'),
       pluginId: 'timeseries',
       _renderCounter: 0,
       ...state,

@@ -244,7 +244,10 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
     <ButtonGroup>
       <ToolbarButton
         variant="canvas"
-        tooltip={t('components.scene-time-range-compare-renderer.button-tooltip', 'Enable time frame comparison')}
+        tooltip={t(
+          'grafana-scenes.components.scene-time-range-compare-renderer.button-tooltip',
+          'Enable time frame comparison'
+        )}
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
@@ -252,7 +255,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
         }}
       >
         <Checkbox label=" " value={enabled} onClick={onClick} />
-        <Trans i18nKey="components.scene-time-range-compare-renderer.button-label">Comparison</Trans>
+        <Trans i18nKey="grafana-scenes.components.scene-time-range-compare-renderer.button-label">Comparison</Trans>
       </ToolbarButton>
 
       {enabled ? (

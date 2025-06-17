@@ -104,9 +104,13 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           }
         }}
         role={readOnly ? undefined : 'button'}
-        aria-label={t('components.adhoc-filter-pill.edit-filter-with-key', 'Edit filter with key {{keyLabel}}', {
-          keyLabel,
-        })}
+        aria-label={t(
+          'grafana-scenes.components.adhoc-filter-pill.edit-filter-with-key',
+          'Edit filter with key {{keyLabel}}',
+          {
+            keyLabel,
+          }
+        )}
         tabIndex={0}
         ref={pillWrapperRef}
       >
@@ -145,15 +149,19 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             name="times"
             size="md"
             className={styles.pillIcon}
-            tooltip={t('components.adhoc-filter-pill.remove-filter-with-key', 'Remove filter with key {{keyLabel}}', {
-              keyLabel,
-            })}
+            tooltip={t(
+              'grafana-scenes.components.adhoc-filter-pill.remove-filter-with-key',
+              'Remove filter with key {{keyLabel}}',
+              {
+                keyLabel,
+              }
+            )}
           />
         ) : null}
 
         {filter.origin && filter.readOnly && (
           <Tooltip
-            content={t('components.adhoc-filter-pill.managed-filter', '{{origin}} managed filter', {
+            content={t('grafana-scenes.components.adhoc-filter-pill.managed-filter', '{{origin}} managed filter', {
               origin: filter.origin,
             })}
             placement={'bottom'}

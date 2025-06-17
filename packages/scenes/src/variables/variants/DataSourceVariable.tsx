@@ -69,7 +69,10 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
       }
 
       if (this.state.defaultOptionEnabled && isDefault(source, regex)) {
-        options.push({ label: t('variables.data-source-variable.label.default', 'default'), value: 'default' });
+        options.push({
+          label: t('grafana-scenes.variables.data-source-variable.label.default', 'default'),
+          value: 'default',
+        });
       }
     }
 
