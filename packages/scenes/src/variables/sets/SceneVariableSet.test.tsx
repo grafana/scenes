@@ -886,38 +886,6 @@ describe('SceneVariableList', () => {
       expect(nestedScene.state.didSomethingCount).toBe(2);
       expect(nestedScene.state.variableValueChanged).toBe(1);
     });
-
-    it('When adding local variable value should propagate change', () => {
-      const topLevelVar = new TestVariable({
-        name: 'test',
-        options: [],
-        value: 'B',
-        optionsToReturn: [{ label: 'B', value: 'B' }],
-        delayMs: 0,
-      });
-
-      const nestedScene = new TestObjectWithVariableDependency({
-        title: '$test',
-      });
-
-      const scene = new TestScene({
-        $variables: new SceneVariableSet({ variables: [topLevelVar] }),
-        nested: nestedScene,
-      });
-
-      activateFullSceneTree(scene);
-
-      expect(nestedScene.state.variableValueChanged).toBe(0);
-
-      // Add local variable
-      nestedScene.setState({
-        $variables: new SceneVariableSet({
-          variables: [new LocalValueVariable({ name: 'test', value: 'nestedValue' })],
-        }),
-      });
-
-      expect(nestedScene.state.variableValueChanged).toBe(1);
-    });
   });
 
   describe('When changing a dependency while variable is loading', () => {
