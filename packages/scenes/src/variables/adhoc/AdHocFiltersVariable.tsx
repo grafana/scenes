@@ -580,6 +580,7 @@ export class AdHocFiltersVariable
       }
 
       for (const key of this._originalValues.keys()) {
+        // @ts-ignore (TODO)
         const isNonApplicable = response.find((filter) => filter.value === key && filter.nonApplicable);
 
         if (isNonApplicable) {
@@ -611,7 +612,11 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
+    const applicableOriginFilters = this.state.originFilters?.filter((f) => !f.nonApplicable) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== currentKey && !f.nonApplicable)
+      .concat(this.state.baseFilters ?? [])
+      .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
     const response = await ds.getTagKeys({
