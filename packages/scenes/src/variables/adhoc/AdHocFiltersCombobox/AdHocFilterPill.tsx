@@ -4,6 +4,7 @@ import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { t } from '@grafana/i18n';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -103,7 +104,13 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           }
         }}
         role={readOnly ? undefined : 'button'}
-        aria-label={`Edit filter with key ${keyLabel}`}
+        aria-label={t(
+          'grafana-scenes.components.adhoc-filter-pill.edit-filter-with-key',
+          'Edit filter with key {{keyLabel}}',
+          {
+            keyLabel,
+          }
+        )}
         tabIndex={0}
         ref={pillWrapperRef}
       >
@@ -142,12 +149,23 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             name="times"
             size="md"
             className={styles.pillIcon}
-            tooltip={`Remove filter with key ${keyLabel}`}
+            tooltip={t(
+              'grafana-scenes.components.adhoc-filter-pill.remove-filter-with-key',
+              'Remove filter with key {{keyLabel}}',
+              {
+                keyLabel,
+              }
+            )}
           />
         ) : null}
 
         {filter.origin && filter.readOnly && (
-          <Tooltip content={`${filter.origin} managed filter`} placement={'bottom'}>
+          <Tooltip
+            content={t('grafana-scenes.components.adhoc-filter-pill.managed-filter', '{{origin}} managed filter', {
+              origin: filter.origin,
+            })}
+            placement={'bottom'}
+          >
             <Icon name="lock" size="md" className={styles.readOnlyPillIcon} />
           </Tooltip>
         )}

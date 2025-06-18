@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import React, {
   forwardRef,
   useCallback,
@@ -534,7 +535,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 filter.origin && styles.keyPill,
                 operatorIdentifier
               )}
-              aria-label="Edit filter operator"
+              aria-label={t(
+                'grafana-scenes.variables.ad-hoc-combobox.aria-label-edit-filter-operator',
+                'Edit filter operator'
+              )}
               tabIndex={filter.origin ? -1 : 0}
               onClick={(event) => {
                 if (filter.origin) {
@@ -669,6 +673,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                         filteredDropDownItems[virtualItem.index + 1];
                       const shouldAddBottomBorder = nextItem && !nextItem.group && !nextItem.options && item.group;
 
+                      const itemLabel = item.label ?? item.value;
+
                       return (
                         // key is included in getItemProps()
                         // eslint-disable-next-line react/jsx-key
@@ -732,7 +738,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                           checked={filterMultiValues.some((val) => val.value === item.value)}
                         >
                           <span>
-                            {item.isCustom ? 'Use custom value: ' : ''} {item.label ?? item.value}
+                            {item.isCustom
+                              ? t(
+                                  'grafana-scenes.components.adhoc-filters-combobox.use-custom-value',
+                                  'Use custom value: {{itemLabel}}',
+                                  { itemLabel }
+                                )
+                              : itemLabel}
                           </span>
                           {item.description ? <div className={styles.descriptionText}>{item.description}</div> : null}
                         </DropdownItem>
