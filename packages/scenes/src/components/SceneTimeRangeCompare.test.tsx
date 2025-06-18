@@ -405,4 +405,62 @@ describe('SceneTimeRangeCompare', () => {
     // Default value should be previously compared value
     expect(comparer.state.compareWith).toBe('1w');
   });
+
+  describe('hideCheckbox functionality', () => {
+    test('should properly initialize with hideCheckbox true', () => {
+      const comparer = new SceneTimeRangeCompare({
+        hideCheckbox: true,
+      });
+
+      // Should have hideCheckbox set to true
+      expect(comparer.state.hideCheckbox).toBe(true);
+    });
+
+    test('should properly initialize with hideCheckbox false', () => {
+      const comparer = new SceneTimeRangeCompare({
+        hideCheckbox: false,
+      });
+
+      // Should have hideCheckbox set to false
+      expect(comparer.state.hideCheckbox).toBe(false);
+    });
+
+    test('should default hideCheckbox to undefined when not specified', () => {
+      const comparer = new SceneTimeRangeCompare({});
+
+      // Should have hideCheckbox as undefined (default behavior)
+      expect(comparer.state.hideCheckbox).toBeUndefined();
+    });
+
+    test('should handle comparison state changes with hideCheckbox enabled', () => {
+      const comparer = new SceneTimeRangeCompare({
+        hideCheckbox: true,
+      });
+
+      // Initially no comparison
+      expect(comparer.state.compareWith).toBeUndefined();
+
+      // Should be able to set a comparison
+      comparer.onCompareWithChanged('1w');
+      expect(comparer.state.compareWith).toBe('1w');
+
+      // Should be able to clear comparison
+      comparer.onClearCompare();
+      expect(comparer.state.compareWith).toBeUndefined();
+    });
+
+    test('should handle NO_PERIOD_VALUE correctly with hideCheckbox', () => {
+      const comparer = new SceneTimeRangeCompare({
+        hideCheckbox: true,
+        compareWith: '1w',
+      });
+
+      // Initially has a comparison
+      expect(comparer.state.compareWith).toBe('1w');
+
+      // Should clear comparison when NO_PERIOD_VALUE is passed
+      comparer.onCompareWithChanged('__noPeriod');
+      expect(comparer.state.compareWith).toBeUndefined();
+    });
+  });
 });
