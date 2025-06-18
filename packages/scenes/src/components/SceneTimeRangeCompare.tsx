@@ -28,7 +28,7 @@ export const PREVIOUS_PERIOD_COMPARE_OPTION = {
 };
 
 export const NO_COMPARE_OPTION = {
-  label: 'No comparison',
+  label: 'None',
   value: NO_PERIOD_VALUE,
 };
 
@@ -244,6 +244,15 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
   const selectValue = hideCheckbox && !compareWith ? NO_COMPARE_OPTION : value;
   const showSelect = hideCheckbox || enabled;
 
+  // Create display value with "Comparison" prefix when hideCheckbox is true
+  const displayValue =
+    hideCheckbox && selectValue
+      ? {
+          ...selectValue,
+          label: `Comparison: ${selectValue.label}`,
+        }
+      : selectValue;
+
   return (
     <ButtonGroup>
       {!hideCheckbox && (
@@ -264,7 +273,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
       {showSelect ? (
         <ButtonSelect
           variant="canvas"
-          value={selectValue}
+          value={displayValue}
           options={compareOptions}
           onChange={(v) => {
             model.onCompareWithChanged(v.value!);
