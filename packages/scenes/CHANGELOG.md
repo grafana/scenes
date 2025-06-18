@@ -1,3 +1,19 @@
+# v6.21.0 (Wed Jun 18 2025)
+
+#### 🚀 Enhancement
+
+- Internationalisation: Add markup for translations [#1151](https://github.com/grafana/scenes/pull/1151) ([@joshhunt](https://github.com/joshhunt))
+
+#### 🐛 Bug Fix
+
+- Update eslint to v9 [#1150](https://github.com/grafana/scenes/pull/1150) ([@joshhunt](https://github.com/joshhunt))
+
+#### Authors: 1
+
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+
+---
+
 # v6.20.2 (Mon Jun 16 2025)
 
 #### 🐛 Bug Fix

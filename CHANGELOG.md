@@ -1,3 +1,23 @@
+# v6.21.0 (Wed Jun 18 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Internationalisation: Add markup for translations [#1151](https://github.com/grafana/scenes/pull/1151) ([@joshhunt](https://github.com/joshhunt))
+
+#### 🐛 Bug Fix
+
+- Chore: Move NPM_TOKEN to Vault [#1154](https://github.com/grafana/scenes/pull/1154) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Update eslint to v9 [#1150](https://github.com/grafana/scenes/pull/1150) ([@joshhunt](https://github.com/joshhunt))
+
+#### Authors: 2
+
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.20.2 (Mon Jun 16 2025)
 
 #### 🐛 Bug Fix
