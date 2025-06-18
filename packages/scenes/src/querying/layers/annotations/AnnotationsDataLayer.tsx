@@ -20,6 +20,7 @@ import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnota
 import { dedupAnnotations, postProcessQueryResult } from './utils';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 import { RefreshEvent } from '@grafana/runtime';
+import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
@@ -45,6 +46,12 @@ export class AnnotationsDataLayer
       ['query']
     );
   }
+
+  protected override _variableDependency: VariableDependencyConfig<AnnotationsDataLayerState> =
+    new VariableDependencyConfig(this, {
+      onVariableUpdateCompleted: super.onVariableUpdateCompleted.bind(this),
+      dependsOnScopes: true,
+    });
 
   public onEnable(): void {
     this.publishEvent(new RefreshEvent(), true);
