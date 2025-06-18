@@ -16,6 +16,7 @@ import { of } from 'rxjs';
 interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
   compareOptions: Array<{ label: string; value: string }>;
+  hideCheckbox?: boolean;
 }
 
 const PREVIOUS_PERIOD_VALUE = '__previousPeriod';
@@ -222,7 +223,7 @@ const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
   const styles = useStyles2(getStyles);
-  const { compareWith, compareOptions } = model.useState();
+  const { compareWith, compareOptions, hideCheckbox } = model.useState();
 
   const [previousCompare, setPreviousCompare] = React.useState(compareWith);
   const previousValue = compareOptions.find(({ value }) => value === previousCompare) ?? PREVIOUS_PERIOD_COMPARE_OPTION;
@@ -239,25 +240,31 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
     }
   };
 
+  // When hideCheckbox is true, always show select and use NO_COMPARE_OPTION when no comparison is active
+  const selectValue = hideCheckbox && !compareWith ? NO_COMPARE_OPTION : value;
+  const showSelect = hideCheckbox || enabled;
+
   return (
     <ButtonGroup>
-      <ToolbarButton
-        variant="canvas"
-        tooltip="Enable time frame comparison"
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          onClick();
-        }}
-      >
-        <Checkbox label=" " value={enabled} onClick={onClick} />
-        Comparison
-      </ToolbarButton>
+      {!hideCheckbox && (
+        <ToolbarButton
+          variant="canvas"
+          tooltip="Enable time frame comparison"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onClick();
+          }}
+        >
+          <Checkbox label=" " value={enabled} onClick={onClick} />
+          Comparison
+        </ToolbarButton>
+      )}
 
-      {enabled ? (
+      {showSelect ? (
         <ButtonSelect
           variant="canvas"
-          value={value}
+          value={selectValue}
           options={compareOptions}
           onChange={(v) => {
             model.onCompareWithChanged(v.value!);
