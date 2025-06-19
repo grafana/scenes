@@ -11,14 +11,7 @@ export interface SceneVariableState extends SceneObjectState {
   label?: string;
   hide?: VariableHide;
   skipUrlSync?: boolean;
-  /**
-   * True when possible values are being fetched
-   */
   loading?: boolean;
-  /**
-   * True when current value is not yet validated/updated and a dependency is in loading state
-   **/
-  dependencyLoading?: boolean;
   error?: any | null;
   description?: string | null;
 }
