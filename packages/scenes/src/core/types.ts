@@ -302,6 +302,14 @@ export interface SceneUrlSyncOptions {
    * url changes should add a new browser history entry.
    */
   createBrowserHistorySteps?: boolean;
+  /**
+   * This will automatically prefix url search parameters when syncing.
+   * Can be used to prevent collisions when multiple Scene apps are embedded in the page.
+   */
   namespace?: string;
+  /**
+   * When `namespace` is provided, this prevents some url search parameters to be automatically prefixed.
+   * Defaults to the timerange parameters (["from", "to", "timezone"])
+   */
   excludeFromNamespace?: string[];
 }
