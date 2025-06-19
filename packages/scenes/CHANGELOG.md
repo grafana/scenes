@@ -1,3 +1,15 @@
+# v6.22.0 (Thu Jun 19 2025)
+
+#### 🚀 Enhancement
+
+- SceneQueryRunner: Detect local variable change [#1155](https://github.com/grafana/scenes/pull/1155) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.21.1 (Thu Jun 19 2025)
 
 #### 🐛 Bug Fix
