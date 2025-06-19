@@ -62,7 +62,6 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   /**
    * For variables support in data layer provide variableDependencyStatePaths with keys of the state to be scanned for variables.
    */
-
   public constructor(initialState: T, variableDependencyStatePaths: Array<keyof T> = []) {
     super({
       isEnabled: true,
