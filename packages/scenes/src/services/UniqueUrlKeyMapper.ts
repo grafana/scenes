@@ -30,15 +30,10 @@ export class UniqueUrlKeyMapper {
   }
 
   private getNamespacedKey(keyWithoutNamespace: string) {
-    let key = keyWithoutNamespace;
-
-    if (this.options.namespace) {
-      key = this.options.excludeFromNamespace.includes(keyWithoutNamespace)
-        ? keyWithoutNamespace
-        : `${this.options.namespace}-${keyWithoutNamespace}`;
+    if (this.options.namespace && !this.options.excludeFromNamespace.includes(keyWithoutNamespace)) {
+      return `${this.options.namespace}-${keyWithoutNamespace}`;
     }
-
-    return key;
+    return keyWithoutNamespace;
   }
 
   public getUniqueKey(keyWithoutNamespace: string, obj: SceneObject) {
