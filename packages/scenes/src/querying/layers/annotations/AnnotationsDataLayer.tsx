@@ -47,12 +47,6 @@ export class AnnotationsDataLayer
     );
   }
 
-  protected override _variableDependency: VariableDependencyConfig<AnnotationsDataLayerState> =
-    new VariableDependencyConfig(this, {
-      onVariableUpdateCompleted: super.onVariableUpdateCompleted.bind(this),
-      dependsOnScopes: true,
-    });
-
   public onEnable(): void {
     this.publishEvent(new RefreshEvent(), true);
 
