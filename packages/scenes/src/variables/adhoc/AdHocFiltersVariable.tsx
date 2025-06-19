@@ -554,7 +554,7 @@ export class AdHocFiltersVariable
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-ignore (TODO)
-    const response: MetricFindValue[] = await ds.getApplicableFilters({
+    const response: string[] = await ds.getApplicableFilters({
       filters,
       queries,
       timeRange,
@@ -564,31 +564,19 @@ export class AdHocFiltersVariable
 
     this.state.filters.forEach((f) => {
       // @ts-ignore (TODO)
-      const isNonApplicable = response.find((filter) => filter.value === f.key && filter.nonApplicable);
+      const isApplicable = response.includes(f.key);
 
-      if (isNonApplicable) {
+      if (!isApplicable) {
         this._updateFilter(f, { nonApplicable: true });
       }
     });
 
     this.state.originFilters?.forEach((f) => {
       // @ts-ignore (TODO)
-      const isNonApplicable = response.find((filter) => filter.value === f.key && filter.nonApplicable);
+      const isApplicable = response.includes(f.key);
 
-      if (isNonApplicable && !f.matchAllFilter) {
+      if (!isApplicable && !f.matchAllFilter) {
         this._updateFilter(f, { nonApplicable: true });
-      }
-
-      for (const key of this._originalValues.keys()) {
-        // @ts-ignore (TODO)
-        const isNonApplicable = response.find((filter) => filter.value === key && filter.nonApplicable);
-
-        if (isNonApplicable) {
-          const filter = this._originalValues.get(key);
-          if (filter) {
-            filter.nonApplicable = true;
-          }
-        }
       }
     });
   }
