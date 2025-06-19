@@ -17,7 +17,7 @@ export class SceneObjectUrlSyncConfig implements SceneObjectUrlSyncHandler {
     this._namespace = _options.namespace ?? '';
     this._excludeFromNamespace = _options.excludeFromNamespace ?? [];
 
-    if (typeof this._keys !== 'function') {
+    if (this._namespace && typeof this._keys !== 'function') {
       this._keys = this._keys.map((key) => this._getNamespacedKey(key));
     }
   }
