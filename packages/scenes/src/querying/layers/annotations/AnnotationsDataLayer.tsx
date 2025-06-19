@@ -20,7 +20,6 @@ import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnota
 import { dedupAnnotations, postProcessQueryResult } from './utils';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 import { RefreshEvent } from '@grafana/runtime';
-import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
