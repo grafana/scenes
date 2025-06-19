@@ -8,6 +8,7 @@ import { SceneObject, SceneObjectState } from '../core/types';
 export interface SceneVariableState extends SceneObjectState {
   type: VariableType;
   name: string;
+  urlNamespace?: string;
   label?: string;
   hide?: VariableHide;
   skipUrlSync?: boolean;

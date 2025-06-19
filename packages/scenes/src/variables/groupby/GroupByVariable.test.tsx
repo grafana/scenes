@@ -15,6 +15,7 @@ import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
+import { getVariableUrlName } from '../utils';
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
@@ -56,9 +57,10 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
   });
 
-  describe('url sync', () => {
+  describe.each(['test', undefined])('URL parameter namespace', (urlNamespace) => {
     it('should work with default options', () => {
       const { variable } = setupTest({
+        urlNamespace,
         defaultOptions: [
           { text: 'a', value: 'a' },
           { text: 'b', value: 'b' },
@@ -72,17 +74,24 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         variable.changeValueTo(['a']);
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=a');
+      expect(locationService.getLocation().search).toBe(`?${getVariableUrlName('test', urlNamespace)}=a`);
 
       act(() => {
-        locationService.push('/?var-test=a&var-test=b');
+        locationService.push(
+          `/?${getVariableUrlName('test', urlNamespace)}=a&${getVariableUrlName('test', urlNamespace)}=b`
+        );
       });
 
       expect(variable.state.value).toEqual(['a', 'b']);
       expect(variable.state.text).toEqual(['a', 'b']);
 
       act(() => {
-        locationService.push('/?var-test=a&var-test=b&var-test=c');
+        locationService.push(
+          `/?${getVariableUrlName('test', urlNamespace)}=a&${getVariableUrlName(
+            'test',
+            urlNamespace
+          )}=b&${getVariableUrlName('test', urlNamespace)}=c`
+        );
       });
 
       expect(variable.state.value).toEqual(['a', 'b', 'c']);
@@ -91,6 +100,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
     it('should work with received options', async () => {
       const { variable } = setupTest({
+        urlNamespace,
         getTagKeysProvider: () => {
           return Promise.resolve({
             replace: true,
@@ -114,17 +124,22 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         variable.changeValueTo(['a']);
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=a,A');
+      expect(locationService.getLocation().search).toBe(`?${getVariableUrlName('test', urlNamespace)}=a,A`);
 
       act(() => {
-        locationService.push('/?var-test=a,A&var-test=b');
+        locationService.push(
+          `/?${getVariableUrlName('test', urlNamespace)}=a,A` + `&${getVariableUrlName('test', urlNamespace)}=b`
+        );
       });
 
       expect(variable.state.value).toEqual(['a', 'b']);
       expect(variable.state.text).toEqual(['A', 'b']);
 
       act(() => {
-        locationService.push('/?var-test=a,A&var-test=b&var-test=c');
+        locationService.push(
+          `/?${getVariableUrlName('test', urlNamespace)}=a,A` +
+            `&${getVariableUrlName('test', urlNamespace)}=b&${getVariableUrlName('test', urlNamespace)}=c`
+        );
       });
 
       expect(variable.state.value).toEqual(['a', 'b', 'c']);
@@ -133,6 +148,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
     it('should work with commas', async () => {
       const { variable } = setupTest({
+        urlNamespace,
         defaultOptions: [
           { text: 'A,something', value: 'a' },
           { text: 'B', value: 'b,something' },
@@ -150,10 +166,15 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         variable.changeValueTo(['a']);
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=a,A__gfc__something');
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableUrlName('test', urlNamespace)}=a,A__gfc__something`
+      );
 
       act(() => {
-        locationService.push('/?var-test=a,A__gfc__something&var-test=b__gfc__something');
+        locationService.push(
+          `/?${getVariableUrlName('test', urlNamespace)}=a,A__gfc__something` +
+            `&${getVariableUrlName('test', urlNamespace)}=b__gfc__something`
+        );
       });
 
       expect(variable.state.value).toEqual(['a', 'b,something']);
@@ -161,7 +182,10 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       act(() => {
         locationService.push(
-          '/?var-test=a,A__gfc__something&var-test=b__gfc__something&var-test=c__gfc__something,C__gfc__something'
+          `/?${getVariableUrlName('test', urlNamespace)}=a,A__gfc__something&${getVariableUrlName(
+            'test',
+            urlNamespace
+          )}=b__gfc__something&${getVariableUrlName('test', urlNamespace)}=c__gfc__something,C__gfc__something`
         );
       });
 
@@ -172,45 +196,61 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     it('should set restorable if value differs from defaultValue', async () => {
       const { variable } = setupTest(
         {
+          urlNamespace,
           defaultValue: {
             value: ['defaultVal1'],
             text: ['defaultVal1'],
           },
         },
         undefined,
-        '/?var-test=defaultVal1&var-test=normalVal'
+        `/?${getVariableUrlName('test', urlNamespace)}=defaultVal1&${getVariableUrlName(
+          'test',
+          urlNamespace
+        )}=normalVal`
       );
 
       expect(variable.state.value).toEqual(['defaultVal1', 'normalVal']);
       expect(locationService.getLocation().search).toBe(
-        '?var-test=defaultVal1&var-test=normalVal&restorable-var-test=true'
+        `?${getVariableUrlName('test', urlNamespace)}=defaultVal1` +
+          `&${getVariableUrlName('test', urlNamespace)}=normalVal` +
+          `&restorable-${getVariableUrlName('test', urlNamespace)}=true`
       );
     });
 
     it('should use url value and restore to default', async () => {
       const { variable } = setupTest(
         {
+          urlNamespace,
           defaultValue: {
             value: ['defaultVal1'],
             text: ['defaultVal1'],
           },
         },
         undefined,
-        '/?var-test=normalVal'
+        `/?${getVariableUrlName('test', urlNamespace)}=normalVal`
       );
 
-      expect(locationService.getLocation().search).toBe('?var-test=normalVal&restorable-var-test=true');
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableUrlName('test', urlNamespace)}=normalVal` +
+          `&restorable-${getVariableUrlName('test', urlNamespace)}=true`
+      );
 
       act(() => {
         variable.restoreDefaultValues();
       });
 
       expect(variable.state.value).toEqual(['defaultVal1']);
-      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+      expect(locationService.getLocation().search).toBe(
+        `?${getVariableUrlName('test', urlNamespace)}=defaultVal1&restorable-${getVariableUrlName(
+          'test',
+          urlNamespace
+        )}=false`
+      );
     });
 
     it('should use default value if nothing arrives from the url', async () => {
       const { variable } = setupTest({
+        urlNamespace,
         defaultValue: {
           value: ['defaultVal1'],
           text: ['defaultVal1'],
@@ -219,7 +259,10 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       await act(async () => {
         await lastValueFrom(variable.validateAndUpdate());
-        expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+        expect(locationService.getLocation().search).toBe(
+          `?${getVariableUrlName('test', urlNamespace)}=defaultVal1` +
+            `&restorable-${getVariableUrlName('test', urlNamespace)}=false`
+        );
         expect(variable.state.value).toEqual(['defaultVal1']);
         expect(variable.state.text).toEqual(['defaultVal1']);
       });
@@ -227,6 +270,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
     it('should overwrite any existing values with the default value if nothing arrives from the url', async () => {
       const { variable } = setupTest({
+        urlNamespace,
         value: ['existingVal1', 'existingVal2'],
         defaultValue: {
           value: ['defaultVal1'],
@@ -236,7 +280,12 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       await act(async () => {
         await lastValueFrom(variable.validateAndUpdate());
-        expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+        expect(locationService.getLocation().search).toBe(
+          `?${getVariableUrlName('test', urlNamespace)}=defaultVal1&restorable-${getVariableUrlName(
+            'test',
+            urlNamespace
+          )}=false`
+        );
         expect(variable.state.value).toEqual(['defaultVal1']);
         expect(variable.state.text).toEqual(['defaultVal1']);
       });
@@ -245,13 +294,14 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     it('should be able to restore to default values when they exist', () => {
       const { variable } = setupTest(
         {
+          urlNamespace,
           defaultValue: {
             value: ['defaultVal1', 'defaultVal2'],
             text: ['defaultVal1', 'defaultVal2'],
           },
         },
         undefined,
-        '/?var-test=val1'
+        `/?${getVariableUrlName('test', urlNamespace)}=val1`
       );
 
       expect(variable.state.value).toEqual(['val1']);
@@ -281,6 +331,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
     it('should work with browser history action on user action', () => {
       const { variable } = setupTest({
+        urlNamespace,
         defaultOptions: [
           { text: 'a', value: 'a' },
           { text: 'b', value: 'b' },
@@ -294,17 +345,24 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         variable.changeValueTo(['a'], undefined, true);
       });
 
-      expect(locationService.getLocation().search).toBe('?var-test=a');
+      expect(locationService.getLocation().search).toBe(`?${getVariableUrlName('test', urlNamespace)}=a`);
 
       act(() => {
-        locationService.push('/?var-test=a&var-test=b');
+        locationService.push(
+          `/?${getVariableUrlName('test', urlNamespace)}=a&${getVariableUrlName('test', urlNamespace)}=b`
+        );
       });
 
       expect(variable.state.value).toEqual(['a', 'b']);
       expect(variable.state.text).toEqual(['a', 'b']);
 
       act(() => {
-        locationService.push('/?var-test=a&var-test=b&var-test=c');
+        locationService.push(
+          `/?${getVariableUrlName('test', urlNamespace)}=a&${getVariableUrlName(
+            'test',
+            urlNamespace
+          )}=b&${getVariableUrlName('test', urlNamespace)}=c`
+        );
       });
 
       expect(variable.state.value).toEqual(['a', 'b', 'c']);

@@ -8,6 +8,8 @@ import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { TestObjectWithVariableDependency } from '../TestScene';
 
+import { getVariableUrlName } from '../utils';
+
 describe('TextBoxVariable', () => {
   it('Should not cause variable change mounted', async () => {
     const nestedObj = new TestObjectWithVariableDependency({ title: '$search', variableValueChanged: 0 });
@@ -27,13 +29,15 @@ describe('TextBoxVariable', () => {
     expect(nestedObj.state.variableValueChanged).toBe(0);
   });
 
-  it('Should change url sync key when name changes', async () => {
-    const variable = new TextBoxVariable({ name: 'search' });
+  describe.each(['test', undefined])('URL parameter namespace', (urlNamespace) => {
+    it('Should change url sync key when name changes', async () => {
+      const variable = new TextBoxVariable({ name: 'search', urlNamespace });
 
-    expect(variable.urlSync?.getKeys()).toEqual(['var-search']);
+      expect(variable.urlSync?.getKeys()).toEqual([getVariableUrlName('search', urlNamespace)]);
 
-    variable.setState({ name: 'newName' });
+      variable.setState({ name: 'newName' });
 
-    expect(variable.urlSync?.getKeys()).toEqual(['var-newName']);
+      expect(variable.urlSync?.getKeys()).toEqual([getVariableUrlName('newName', urlNamespace)]);
+    });
   });
 });

@@ -9,6 +9,7 @@ import {
   escapeLabelValueInExactSelector,
   escapeLabelValueInRegexSelector,
   escapeURLDelimiters,
+  getVariableUrlName,
   renderPrometheusLabelFilters,
 } from './variables/utils';
 import {
@@ -150,6 +151,7 @@ export const sceneUtils = {
   escapeLabelValueInRegexSelector,
   escapeLabelValueInExactSelector,
   escapeURLDelimiters,
+  getVariableUrlName,
 
   // Variable guards
   isAdHocVariable,
