@@ -165,7 +165,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
   }
 
   public getUrlState(root: SceneObject): SceneObjectUrlValues {
-    return getUrlState(root);
+    return getUrlState(root, this._urlKeyMapper.getOptions());
   }
 }
 
