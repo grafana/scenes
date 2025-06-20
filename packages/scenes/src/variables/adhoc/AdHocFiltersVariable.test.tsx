@@ -2225,6 +2225,106 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  describe('non-applicable filters', () => {
+    it('should set non-applicable filters on activation', async () => {
+      //pod and static are non-applicable
+      const { filtersVar, getApplicableFiltersSpy } = setup(
+        {
+          filters: [
+            {
+              key: 'cluster',
+              value: '1',
+              operator: '=',
+            },
+            {
+              key: 'container',
+              value: '2',
+              operator: '=',
+            },
+            {
+              key: 'pod',
+              value: '3',
+              operator: '=',
+            },
+          ],
+          originFilters: [
+            {
+              key: 'static',
+              value: '4',
+              operator: '=',
+              origin: 'dashboard',
+            },
+          ],
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(getApplicableFiltersSpy).toHaveBeenCalled();
+      expect(filtersVar.state.filters[0].nonApplicable).toBe(undefined);
+      expect(filtersVar.state.filters[1].nonApplicable).toBe(undefined);
+      expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
+      expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
+    });
+
+    it('should filter out non-applicable filters during getKeys call', async () => {
+      //pod and static are non-applicable
+      const { filtersVar, getTagKeysSpy } = setup(
+        {
+          filters: [
+            {
+              key: 'cluster',
+              value: '1',
+              operator: '=',
+            },
+            {
+              key: 'container',
+              value: '2',
+              operator: '=',
+            },
+            {
+              key: 'pod',
+              value: '3',
+              operator: '=',
+            },
+          ],
+          originFilters: [
+            {
+              key: 'static',
+              value: '4',
+              operator: '=',
+              origin: 'dashboard',
+            },
+          ],
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      filtersVar._getKeys(null);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(getTagKeysSpy).toHaveBeenCalled();
+      expect(getTagKeysSpy.mock.calls[0][0].filters).toEqual([
+        {
+          key: 'cluster',
+          value: '1',
+          operator: '=',
+        },
+        {
+          key: 'container',
+          value: '2',
+          operator: '=',
+        },
+      ]);
+    });
+  });
+
   describe('Component', () => {
     it('should use the model.state.set.Component to ensure the state filterset is activated', () => {
       const variable = new AdHocFiltersVariable({
@@ -2247,6 +2347,36 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(screen.getByText('!=')).toBeInTheDocument();
       expect(screen.getByText('key1')).toBeInTheDocument();
       expect(screen.getByText('val1')).toBeInTheDocument();
+    });
+  });
+
+  describe('non-applicable filters', () => {
+    it('should set non-applicable filters on activation', async () => {
+      const { filtersVar, getApplicableFiltersSpy } = setup(
+        {
+          filters: [
+            { key: 'pod', operator: '=', value: 'val1' },
+            { key: 'static', operator: '=', value: 'val2' },
+            { key: 'container', operator: '=', value: 'val3' },
+          ],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod = val1');
+      const staticElement = await screen.findByText('static = val2');
+      const containerElement = await screen.findByText('container = val3');
+
+      expect(podElement).toBeInTheDocument();
+      expect(staticElement).toBeInTheDocument();
+      expect(containerElement).toBeInTheDocument();
+
+      expect(podElement).toHaveStyle('text-decoration: line-through');
+      expect(staticElement).toHaveStyle('text-decoration: line-through');
+      expect(containerElement).not.toHaveStyle('text-decoration: line-through');
     });
   });
 
@@ -2601,10 +2731,12 @@ let runRequestSet = false;
 function setup(
   overrides?: Partial<AdHocFiltersVariableState>,
   filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
-  scopesVariable?: ScopesVariable
+  scopesVariable?: ScopesVariable,
+  useGetApplicableFilters?: boolean
 ) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
+  const getApplicableFiltersSpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
@@ -2619,6 +2751,12 @@ function setup(
         getRef() {
           return { uid: 'my-ds-uid' };
         },
+        ...(useGetApplicableFilters && {
+          getApplicableFilters(options: any) {
+            getApplicableFiltersSpy(options);
+            return ['cluster', 'container'];
+          },
+        }),
       };
     },
     getInstanceSettings() {
@@ -2690,7 +2828,16 @@ function setup(
     </TestContextProvider>
   );
 
-  return { scene, filtersVar, unmount, runRequest: runRequestMock.fn, getTagKeysSpy, getTagValuesSpy, timeRange };
+  return {
+    scene,
+    filtersVar,
+    unmount,
+    runRequest: runRequestMock.fn,
+    getTagKeysSpy,
+    getTagValuesSpy,
+    getApplicableFiltersSpy,
+    timeRange,
+  };
 }
 
 function newScopesVariableFromScopeFilters(filters: ScopeSpecFilter[]) {

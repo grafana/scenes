@@ -44,6 +44,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   readOnly?: boolean;
   // whether this specific filter is restorable to some value from _originalValues
   restorable?: boolean;
+  // sets this filter as non-applicable
+  nonApplicable?: boolean;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -201,6 +203,11 @@ export const OPERATORS: OperatorDefinition[] = [
   },
 ];
 
+interface OriginalValue {
+  value: string[];
+  operator: string;
+}
+
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
   implements SceneVariable<AdHocFiltersVariableState>
@@ -212,7 +219,7 @@ export class AdHocFiltersVariable
   // holds the originalValues of all baseFilters in a map. The values
   // are set on construct and used to restore a baseFilter with an origin
   // to its original value if edited at some point
-  private _originalValues: Map<string, { value: string[]; operator: string }> = new Map();
+  private _originalValues: Map<string, OriginalValue> = new Map();
   private _prevScopes: Scope[] = [];
 
   /** Needed for scopes dependency */
@@ -251,6 +258,8 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
+    this._verifyNonApplicableFilters();
+
     return () => {
       this.state.originFilters?.forEach((filter) => {
         if (filter.restorable) {
@@ -449,6 +458,7 @@ export class AdHocFiltersVariable
       values: ['.*'],
       valueLabels: ['All'],
       matchAllFilter: true,
+      nonApplicable: false,
       restorable: true,
     });
   }
@@ -534,6 +544,46 @@ export class AdHocFiltersVariable
     }
   }
 
+  public async _verifyNonApplicableFilters() {
+    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-ignore (TODO)
+    if (!ds || !ds.getApplicableFilters) {
+      return [];
+    }
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    // @ts-ignore (TODO)
+    const response: string[] = await ds.getApplicableFilters({
+      filters,
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+
+    this.state.filters.forEach((f) => {
+      // @ts-ignore (TODO)
+      const isApplicable = response.includes(f.key);
+
+      if (!isApplicable) {
+        this._updateFilter(f, { nonApplicable: true });
+      }
+    });
+
+    this.state.originFilters?.forEach((f) => {
+      // @ts-ignore (TODO)
+      const isApplicable = response.includes(f.key);
+
+      if (!isApplicable && !f.matchAllFilter) {
+        this._updateFilter(f, { nonApplicable: true });
+      }
+    });
+  }
+
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
@@ -553,7 +603,11 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
+    const applicableOriginFilters = this.state.originFilters?.filter((f) => !f.nonApplicable) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== currentKey && !f.nonApplicable)
+      .concat(this.state.baseFilters ?? [])
+      .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
     const response = await ds.getTagKeys({
@@ -732,6 +786,10 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
   return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+}
+
+export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
+  return !filter.nonApplicable;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {
