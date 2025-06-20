@@ -203,6 +203,11 @@ export const OPERATORS: OperatorDefinition[] = [
   },
 ];
 
+interface OriginalValue {
+  value: string[];
+  operator: string;
+}
+
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
   implements SceneVariable<AdHocFiltersVariableState>
@@ -214,7 +219,7 @@ export class AdHocFiltersVariable
   // holds the originalValues of all baseFilters in a map. The values
   // are set on construct and used to restore a baseFilter with an origin
   // to its original value if edited at some point
-  private _originalValues: Map<string, { value: string[]; operator: string; nonApplicable?: boolean }> = new Map();
+  private _originalValues: Map<string, OriginalValue> = new Map();
   private _prevScopes: Scope[] = [];
 
   /** Needed for scopes dependency */
@@ -246,7 +251,6 @@ export class AdHocFiltersVariable
       this._originalValues.set(filter.key, {
         operator: filter.operator,
         value: filter.values ?? [filter.value],
-        nonApplicable: false,
       });
     });
 
