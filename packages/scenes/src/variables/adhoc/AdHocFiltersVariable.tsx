@@ -400,7 +400,6 @@ export class AdHocFiltersVariable
       original.values = originalFilter?.value;
       original.valueLabels = originalFilter?.value;
       original.operator = originalFilter?.operator;
-      original.nonApplicable = originalFilter?.nonApplicable;
 
       this._updateFilter(filter, original);
     }
