@@ -1074,6 +1074,44 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
+    it('Should execute query when new local variable is added/removed', async () => {
+      const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*', delayMs: 0 });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const innerScene = new TestScene({
+        $data: queryRunner,
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        nested: innerScene,
+      });
+
+      scene.activate();
+      const deactivateInnerScene = innerScene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      // replace variable
+      const localVar = new LocalValueVariable({ name: 'A', value: 'localValue' });
+      innerScene.setState({ $variables: new SceneVariableSet({ variables: [localVar] }) });
+
+      // deactivate and activate
+      deactivateInnerScene();
+      innerScene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should execute query
+      expect(runRequestMock.mock.calls.length).toBe(2);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+
     it('Should execute query again after variable changed while whole scene was inactive', async () => {
       const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({

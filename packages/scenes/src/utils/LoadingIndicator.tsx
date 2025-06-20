@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { Icon, Tooltip } from '@grafana/ui';
 import React, { useCallback } from 'react';
 import { LoadingIndicatorProps as SelectLoadingIndicatorProps } from 'react-select';
@@ -25,7 +26,7 @@ interface LoadingIndicatorProps {
 
 export function LoadingIndicator(props: LoadingIndicatorProps) {
   return (
-    <Tooltip content="Cancel query">
+    <Tooltip content={t('grafana-scenes.utils.loading-indicator.content-cancel-query', 'Cancel query')}>
       <Icon
         className="spin-clockwise"
         name="sync"

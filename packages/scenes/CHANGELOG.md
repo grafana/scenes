@@ -1,3 +1,55 @@
+# v6.22.0 (Thu Jun 19 2025)
+
+#### 🚀 Enhancement
+
+- SceneQueryRunner: Detect local variable change [#1155](https://github.com/grafana/scenes/pull/1155) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.21.1 (Thu Jun 19 2025)
+
+#### 🐛 Bug Fix
+
+- i18n: fixes peer dependencies [#1162](https://github.com/grafana/scenes/pull/1162) ([@hugohaggmark](https://github.com/hugohaggmark))
+
+#### Authors: 1
+
+- Hugo Häggmark ([@hugohaggmark](https://github.com/hugohaggmark))
+
+---
+
+# v6.21.0 (Wed Jun 18 2025)
+
+#### 🚀 Enhancement
+
+- Internationalisation: Add markup for translations [#1151](https://github.com/grafana/scenes/pull/1151) ([@joshhunt](https://github.com/joshhunt))
+
+#### 🐛 Bug Fix
+
+- Update eslint to v9 [#1150](https://github.com/grafana/scenes/pull/1150) ([@joshhunt](https://github.com/joshhunt))
+
+#### Authors: 1
+
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+
+---
+
+# v6.20.2 (Mon Jun 16 2025)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersVariable: Fix scopes crashing when scope filters are undefined [#1153](https://github.com/grafana/scenes/pull/1153) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.20.1 (Mon Jun 16 2025)
 
 #### 🐛 Bug Fix

@@ -47,6 +47,15 @@ describe('getAdHocFiltersFromScopes', () => {
     ]);
   });
 
+  it('should not process if filter is undefined', () => {
+    let scopes = generateScopes([
+      // @ts-ignore
+      [undefined],
+    ]);
+
+    expect(getAdHocFiltersFromScopes(scopes)).toEqual([]);
+  });
+
   it('should return filters formatted for adHoc from multiple scopes with multiple values', () => {
     let scopes = generateScopes([
       [

@@ -1,3 +1,64 @@
+# v6.22.0 (Thu Jun 19 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Detect local variable change [#1155](https://github.com/grafana/scenes/pull/1155) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.21.1 (Thu Jun 19 2025)
+
+#### 🐛 Bug Fix
+
+- Internationalisation: Add crowdin tasks [#1158](https://github.com/grafana/scenes/pull/1158) ([@ashharrison90](https://github.com/ashharrison90))
+- `@grafana/scenes`
+  - i18n: fixes peer dependencies [#1162](https://github.com/grafana/scenes/pull/1162) ([@hugohaggmark](https://github.com/hugohaggmark))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Hugo Häggmark ([@hugohaggmark](https://github.com/hugohaggmark))
+
+---
+
+# v6.21.0 (Wed Jun 18 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Internationalisation: Add markup for translations [#1151](https://github.com/grafana/scenes/pull/1151) ([@joshhunt](https://github.com/joshhunt))
+
+#### 🐛 Bug Fix
+
+- Chore: Move NPM_TOKEN to Vault [#1154](https://github.com/grafana/scenes/pull/1154) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Update eslint to v9 [#1150](https://github.com/grafana/scenes/pull/1150) ([@joshhunt](https://github.com/joshhunt))
+
+#### Authors: 2
+
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.20.2 (Mon Jun 16 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: Fix scopes crashing when scope filters are undefined [#1153](https://github.com/grafana/scenes/pull/1153) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.20.1 (Mon Jun 16 2025)
 
 #### 🐛 Bug Fix
