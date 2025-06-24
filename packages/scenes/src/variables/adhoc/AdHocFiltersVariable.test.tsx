@@ -2352,7 +2352,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   describe('non-applicable filters', () => {
     it('should set non-applicable filters on activation', async () => {
-      const { filtersVar, getApplicableFiltersSpy } = setup(
+      setup(
         {
           filters: [
             { key: 'pod', operator: '=', value: 'val1' },
