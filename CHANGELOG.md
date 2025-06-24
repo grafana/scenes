@@ -1,3 +1,16 @@
+# v6.22.1 (Tue Jun 24 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Annotations: Add scopes variable dependency [#1159](https://github.com/grafana/scenes/pull/1159) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
 # v6.22.0 (Thu Jun 19 2025)
 
 #### 🚀 Enhancement
