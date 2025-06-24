@@ -587,10 +587,7 @@ export class AdHocFiltersVariable
 
         const originalValue = this._originalValues.get(f.key);
         if (originalValue) {
-          this._originalValues.set(f.key, {
-            ...originalValue,
-            nonApplicable: true,
-          });
+          originalValue.nonApplicable = true;
         }
       }
     });
