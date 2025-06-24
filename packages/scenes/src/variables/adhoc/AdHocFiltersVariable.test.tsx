@@ -2323,6 +2323,56 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         },
       ]);
     });
+
+    it('should maintain default filter as non-applicable if we turn filter to match-all and then restore', async () => {
+      //pod and static are non-applicable
+      const { filtersVar, getApplicableFiltersSpy } = setup(
+        {
+          filters: [
+            {
+              key: 'cluster',
+              value: '1',
+              operator: '=',
+            },
+            {
+              key: 'container',
+              value: '2',
+              operator: '=',
+            },
+            {
+              key: 'pod',
+              value: '3',
+              operator: '=',
+            },
+          ],
+          originFilters: [
+            {
+              key: 'static',
+              value: '4',
+              operator: '=',
+              origin: 'dashboard',
+            },
+          ],
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(getApplicableFiltersSpy).toHaveBeenCalled();
+      expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
+      expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
+
+      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+
+      expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(false);
+
+      filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
+
+      expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
+    });
   });
 
   describe('Component', () => {

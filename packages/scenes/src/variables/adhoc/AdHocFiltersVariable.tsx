@@ -206,6 +206,7 @@ export const OPERATORS: OperatorDefinition[] = [
 interface OriginalValue {
   value: string[];
   operator: string;
+  nonApplicable?: boolean;
 }
 
 export class AdHocFiltersVariable
@@ -400,6 +401,7 @@ export class AdHocFiltersVariable
       original.values = originalFilter?.value;
       original.valueLabels = originalFilter?.value;
       original.operator = originalFilter?.operator;
+      original.nonApplicable = originalFilter?.nonApplicable;
 
       this._updateFilter(filter, original);
     }
@@ -578,8 +580,18 @@ export class AdHocFiltersVariable
       // @ts-ignore (TODO)
       const isApplicable = response.includes(f.key);
 
-      if (!isApplicable && !f.matchAllFilter) {
-        this._updateFilter(f, { nonApplicable: true });
+      if (!isApplicable) {
+        if (!f.matchAllFilter) {
+          this._updateFilter(f, { nonApplicable: true });
+        }
+
+        const originalValue = this._originalValues.get(f.key);
+        if (originalValue) {
+          this._originalValues.set(f.key, {
+            ...originalValue,
+            nonApplicable: true,
+          });
+        }
       }
     });
 
