@@ -116,6 +116,68 @@ describe('sceneInterpolator', () => {
     expect(sceneInterpolator(scene, '${test:queryparam}')).toBe('var-test=hello');
   });
 
+  describe('join format', () => {
+    it("joins doesn't join arrays of 1 length", () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new ConstantVariable({
+              name: 'test',
+              value: ['hello'],
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${test:join}')).toBe('hello');
+    });
+
+    it("joins doesn't join non-arrays", () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new ConstantVariable({
+              name: 'test',
+              value: 'hello',
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${test:join}')).toBe('hello');
+    });
+
+    it('joins array values with a default separator', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new ConstantVariable({
+              name: 'test',
+              value: ['hello', 'world'],
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${test:join}')).toBe('hello,world');
+    });
+
+    it('joins array values with a custom separator', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new ConstantVariable({
+              name: 'test',
+              value: ['hello', 'world'],
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, 'p-tst=v-${test:join:&p-tst=v-}')).toBe('p-tst=v-hello&p-tst=v-world');
+    });
+  });
+
   it('Can format multi valued values', () => {
     const scene = new TestScene({
       $variables: new SceneVariableSet({
