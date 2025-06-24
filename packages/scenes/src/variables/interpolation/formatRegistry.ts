@@ -249,6 +249,18 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       formatter: sqlStringFormatter,
     },
     {
+      id: 'join',
+      name: 'Join',
+      description: 'Join values with a comma',
+      formatter: (value, args) => {
+        if (isArray(value)) {
+          const separator = args[0] ?? ',';
+          return value.join(separator);
+        }
+        return String(value);
+      },
+    },
+    {
       id: VariableFormatID.Date,
       name: 'Date',
       description: t(

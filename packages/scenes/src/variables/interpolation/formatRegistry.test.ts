@@ -74,6 +74,11 @@ describe('formatRegistry', () => {
     expect(formatValue(VariableFormatID.Date, 1594671549254, 'text', ['YYYY-MM', 'ss'])).toBe('2020-07:09');
     expect(formatValue(VariableFormatID.Date, 1594671549254, 'text', ['YYYY', 'MM', 'DD'])).toBe('2020:07:13');
 
+    expect(formatValue('join', 'hello', 'text', undefined)).toBe('hello'); // handles non-arrays
+    expect(formatValue('join', ['hello'], 'text', undefined)).toBe('hello'); // handles arrays of 1 length
+    expect(formatValue('join', ['hello', 'world'], 'text', undefined)).toBe('hello,world'); // has a default separator
+    expect(formatValue('join', ['hello', 'world'], 'text', [' | '])).toBe('hello | world'); // has a custom separator
+
     expect(formatValue(VariableFormatID.UriEncode, '/any-path/any-second-path?query=foo()bar BAZ')).toBe(
       '/any-path/any-second-path?query=foo%28%29bar%20BAZ'
     );
