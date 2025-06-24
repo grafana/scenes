@@ -176,6 +176,23 @@ describe('sceneInterpolator', () => {
 
       expect(sceneInterpolator(scene, 'p-tst=v-${test:join:&p-tst=v-}')).toBe('p-tst=v-hello&p-tst=v-world');
     });
+
+    it('joins array values with a quoted custom separator', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new ConstantVariable({
+              name: 'test',
+              value: ['hello', 'world'],
+            }),
+          ],
+        }),
+      });
+
+      // TODO - idk about this one (it currently fails). Should the argument support quotes? I imagine this
+      // could be disruptive to add in while maintaing backwards compatibility.
+      expect(sceneInterpolator(scene, 'p-tst=v-${test:join:"&p-tst=v-"}')).toBe('p-tst=v-hello&p-tst=v-world');
+    });
   });
 
   it('Can format multi valued values', () => {
