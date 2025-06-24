@@ -582,6 +582,8 @@ export class AdHocFiltersVariable
         this._updateFilter(f, { nonApplicable: true });
       }
     });
+
+    return;
   }
 
   /**
