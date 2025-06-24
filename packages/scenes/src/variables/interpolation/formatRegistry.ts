@@ -249,7 +249,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       formatter: sqlStringFormatter,
     },
     {
-      id: 'join',
+      id: 'join', // TODO: use enum when it's available
       name: 'Join',
       description: 'Join values with a comma',
       formatter: (value, args) => {
