@@ -3895,6 +3895,7 @@ __metadata:
     "@stylistic/eslint-plugin-ts": "npm:3.1.0"
     "@swc/core": "npm:^1.2.162"
     "@swc/jest": "npm:^0.2.36"
+    "@tanstack/react-query": "npm:^5.80.10"
     "@testing-library/dom": "npm:9.3.4"
     "@testing-library/jest-dom": "npm:6.4.2"
     "@testing-library/react": "npm:14.2.1"
@@ -6829,6 +6830,24 @@ __metadata:
   dependencies:
     defer-to-connect: "npm:^2.0.1"
   checksum: 10/fc9cb993e808806692e4a3337c90ece0ec00c89f4b67e3652a356b89730da98bc824273a6d67ca84d5f33cd85f317dcd5ce39d8cc0a2f060145a608a7cb8ce92
+  languageName: node
+  linkType: hard
+
+"@tanstack/query-core@npm:5.80.10":
+  version: 5.80.10
+  resolution: "@tanstack/query-core@npm:5.80.10"
+  checksum: 10/2bedb2cff698a601d4b025981049265c37848bb80b1854e2fe4774d5b01db89dc2636809289cd7e94123dbcec6cc89fca1b79f77d771b0bdc24c7d2f51a52820
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^5.80.10":
+  version: 5.80.10
+  resolution: "@tanstack/react-query@npm:5.80.10"
+  dependencies:
+    "@tanstack/query-core": "npm:5.80.10"
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 10/982cbcd3922976ae2a9e9829a317ab00d7d5c1c20851c28359b846644aa8fb9a1a6c7d9de307a76e448ea58a682972487da0b8ce3397d85b05a8c4a282be5183
   languageName: node
   linkType: hard
 
