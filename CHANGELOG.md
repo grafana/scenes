@@ -1,3 +1,16 @@
+# v6.23.0 (Wed Jun 25 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - feat(UrlSync): Allow namespacing when syncing the state of Scene variables with the URL search parameters [#1156](https://github.com/grafana/scenes/pull/1156) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
 # v6.22.1 (Tue Jun 24 2025)
 
 #### 🐛 Bug Fix
