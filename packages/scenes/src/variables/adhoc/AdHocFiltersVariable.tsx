@@ -740,7 +740,7 @@ function renderExpression(
   builder: AdHocVariableExpressionBuilderFn | undefined,
   filters: AdHocFilterWithLabels[] | undefined
 ) {
-  return (builder ?? renderPrometheusLabelFilters)(filters?.filter((f) => !f.nonApplicable) ?? []);
+  return (builder ?? renderPrometheusLabelFilters)(filters?.filter((f) => isFilterApplicable(f)) ?? []);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
