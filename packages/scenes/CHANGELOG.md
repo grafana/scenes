@@ -1,3 +1,15 @@
+# v6.24.0 (Wed Jun 25 2025)
+
+#### 🚀 Enhancement
+
+- sceneGraph: findObject should return first match [#1165](https://github.com/grafana/scenes/pull/1165) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.23.0 (Wed Jun 25 2025)
 
 #### 🚀 Enhancement
