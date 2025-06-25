@@ -74,9 +74,7 @@ export function parseVariableSyntax(input: string): VariableFormatter[] {
       // If we already have a name build an argument until the : or ;
       let arg = '';
       while (index < input.length && input[index] !== ':' && input[index] !== ';') {
-        if (input[index] !== ' ') {
-          arg += input[index];
-        }
+        arg += input[index];
         index++;
       }
 
