@@ -550,7 +550,7 @@ export class AdHocFiltersVariable
     const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
-    // @ts-ignore (TODO)
+    // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getApplicableFilters) {
       return [];
     }
@@ -558,7 +558,7 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
-    // @ts-ignore (TODO)
+    // @ts-expect-error (temporary till we update grafana/data)
     const response: string[] = await ds.getApplicableFilters({
       filters,
       queries,
@@ -567,22 +567,25 @@ export class AdHocFiltersVariable
       ...getEnrichedFiltersRequest(this),
     });
 
-    this.state.filters.forEach((f) => {
-      // @ts-ignore (TODO)
+    const update = {
+      filters: [...this.state.filters],
+      originFilters: [...(this.state.originFilters ?? [])],
+    };
+
+    update.filters.forEach((f) => {
       const isApplicable = response.includes(f.key);
 
       if (!isApplicable) {
-        this._updateFilter(f, { nonApplicable: true });
+        f.nonApplicable = true;
       }
     });
 
-    this.state.originFilters?.forEach((f) => {
-      // @ts-ignore (TODO)
+    update.originFilters?.forEach((f) => {
       const isApplicable = response.includes(f.key);
 
       if (!isApplicable) {
         if (!f.matchAllFilter) {
-          this._updateFilter(f, { nonApplicable: true });
+          f.nonApplicable = true;
         }
 
         const originalValue = this._originalValues.get(f.key);
@@ -591,6 +594,8 @@ export class AdHocFiltersVariable
         }
       }
     });
+
+    this.setState(update);
 
     return;
   }
@@ -735,7 +740,7 @@ function renderExpression(
   builder: AdHocVariableExpressionBuilderFn | undefined,
   filters: AdHocFilterWithLabels[] | undefined
 ) {
-  return (builder ?? renderPrometheusLabelFilters)(filters ?? []);
+  return (builder ?? renderPrometheusLabelFilters)(filters?.filter((f) => !f.nonApplicable) ?? []);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
