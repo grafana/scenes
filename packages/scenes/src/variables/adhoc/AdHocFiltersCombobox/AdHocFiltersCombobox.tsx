@@ -808,7 +808,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.primary,
     boxShadow: theme.shadows.z2,
     overflowY: 'auto',
-    zIndex: theme.zIndex.dropdown,
+    zIndex: theme.zIndex.portal,
   }),
   inputStyle: css({
     paddingBlock: 0,
