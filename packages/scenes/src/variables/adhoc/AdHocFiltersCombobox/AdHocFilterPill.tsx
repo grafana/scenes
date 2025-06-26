@@ -82,14 +82,16 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
 
   if (viewMode) {
     const pillTextContent = `${keyLabel} ${filter.operator} ${valueLabel}`;
-    const pillText = <span className={styles.pillText}>{pillTextContent}</span>;
+    const pillText = (
+      <span className={cx(styles.pillText, filter.nonApplicable && styles.strikethrough)}>{pillTextContent}</span>
+    );
 
     return (
       <div
         className={cx(
           styles.combinedFilterPill,
           readOnly && styles.readOnlyCombinedFilter,
-          isMatchAllFilter(filter) && styles.matchAllPill,
+          (isMatchAllFilter(filter) || filter.nonApplicable) && styles.disabledPill,
           filter.readOnly && styles.filterReadOnly
         )}
         onClick={(e) => {
@@ -148,7 +150,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             }}
             name="times"
             size="md"
-            className={styles.pillIcon}
+            className={cx(styles.pillIcon, filter.nonApplicable && styles.disabledPillIcon)}
             tooltip={t(
               'grafana-scenes.components.adhoc-filter-pill.remove-filter-with-key',
               'Remove filter with key {{keyLabel}}',
@@ -272,12 +274,23 @@ const getStyles = (theme: GrafanaTheme2) => ({
     cursor: 'pointer',
     color: theme.colors.text.disabled,
   }),
-  matchAllPill: css({
+  disabledPillIcon: css({
+    marginInline: theme.spacing(0.5),
+    cursor: 'pointer',
+    color: theme.colors.text.disabled,
+    '&:hover': {
+      color: theme.colors.text.disabled,
+    },
+  }),
+  disabledPill: css({
     background: theme.colors.action.selected,
     color: theme.colors.text.disabled,
     border: 0,
     '&:hover': {
       background: theme.colors.action.selected,
     },
+  }),
+  strikethrough: css({
+    textDecoration: 'line-through',
   }),
 });
