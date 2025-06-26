@@ -1,3 +1,15 @@
+# v6.25.0 (Thu Jun 26 2025)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersVariable: Non-applicable filters [#1152](https://github.com/grafana/scenes/pull/1152) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.24.0 (Wed Jun 25 2025)
 
 #### 🚀 Enhancement
