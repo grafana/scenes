@@ -1,3 +1,4 @@
+import { t, Trans } from '@grafana/i18n';
 import { DataQueryRequest, DateTime, dateTime, FieldType, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
@@ -258,7 +259,10 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
       {!hideCheckbox && (
         <ToolbarButton
           variant="canvas"
-          tooltip="Enable time frame comparison"
+          tooltip={t(
+            'grafana-scenes.components.scene-time-range-compare-renderer.button-tooltip',
+            'Enable time frame comparison'
+          )}
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -266,7 +270,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
           }}
         >
           <Checkbox label=" " value={enabled} onClick={onClick} />
-          Comparison
+          <Trans i18nKey="grafana-scenes.components.scene-time-range-compare-renderer.button-label">Comparison</Trans>
         </ToolbarButton>
       )}
 

@@ -43,6 +43,20 @@ describe('sceneGraph', () => {
     expect(sceneGraph.findObject(item2, (s) => s.state.key === 'time-picker')).toBe(timePicker);
   });
 
+  it('Returns first match', () => {
+    const item1 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A' }) });
+    const item2 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A2' }) });
+
+    const scene = new EmbeddedScene({
+      body: new SceneFlexLayout({
+        children: [item1, item2],
+      }),
+    });
+
+    // from root
+    expect(sceneGraph.findObject(scene, (s) => s.state.key === 'A')).toBe(item1);
+  });
+
   it('Can find all objects given a predicate', () => {
     const data = new SceneDataNode();
     const item1 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A' }), $data: data });
@@ -379,7 +393,7 @@ describe('sceneGraph', () => {
       expect(hasVariableDependencyInLoadingState(loadingDependecies)).toBe(true);
     });
 
-    it.only('should return false if the variable is a QueryVariable and it is loading because is refering itself', () => {
+    it('should return false if the variable is a QueryVariable and it is loading because is refering itself', () => {
       const logSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const loadingVariable = new QueryVariable({
         name: 'loadingVar',

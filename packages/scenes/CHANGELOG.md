@@ -1,3 +1,91 @@
+# v6.25.0 (Thu Jun 26 2025)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersVariable: Non-applicable filters [#1152](https://github.com/grafana/scenes/pull/1152) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.24.0 (Wed Jun 25 2025)
+
+#### 🚀 Enhancement
+
+- sceneGraph: findObject should return first match [#1165](https://github.com/grafana/scenes/pull/1165) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.23.0 (Wed Jun 25 2025)
+
+#### 🚀 Enhancement
+
+- feat(UrlSync): Allow namespacing when syncing the state of Scene variables with the URL search parameters [#1156](https://github.com/grafana/scenes/pull/1156) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.22.1 (Tue Jun 24 2025)
+
+#### 🐛 Bug Fix
+
+- Annotations: Add scopes variable dependency [#1159](https://github.com/grafana/scenes/pull/1159) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
+# v6.22.0 (Thu Jun 19 2025)
+
+#### 🚀 Enhancement
+
+- SceneQueryRunner: Detect local variable change [#1155](https://github.com/grafana/scenes/pull/1155) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.21.1 (Thu Jun 19 2025)
+
+#### 🐛 Bug Fix
+
+- i18n: fixes peer dependencies [#1162](https://github.com/grafana/scenes/pull/1162) ([@hugohaggmark](https://github.com/hugohaggmark))
+
+#### Authors: 1
+
+- Hugo Häggmark ([@hugohaggmark](https://github.com/hugohaggmark))
+
+---
+
+# v6.21.0 (Wed Jun 18 2025)
+
+#### 🚀 Enhancement
+
+- Internationalisation: Add markup for translations [#1151](https://github.com/grafana/scenes/pull/1151) ([@joshhunt](https://github.com/joshhunt))
+
+#### 🐛 Bug Fix
+
+- Update eslint to v9 [#1150](https://github.com/grafana/scenes/pull/1150) ([@joshhunt](https://github.com/joshhunt))
+
+#### Authors: 1
+
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+
+---
+
 # v6.20.2 (Mon Jun 16 2025)
 
 #### 🐛 Bug Fix

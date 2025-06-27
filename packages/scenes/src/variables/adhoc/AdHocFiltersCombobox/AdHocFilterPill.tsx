@@ -4,6 +4,7 @@ import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { t } from '@grafana/i18n';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -81,14 +82,16 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
 
   if (viewMode) {
     const pillTextContent = `${keyLabel} ${filter.operator} ${valueLabel}`;
-    const pillText = <span className={styles.pillText}>{pillTextContent}</span>;
+    const pillText = (
+      <span className={cx(styles.pillText, filter.nonApplicable && styles.strikethrough)}>{pillTextContent}</span>
+    );
 
     return (
       <div
         className={cx(
           styles.combinedFilterPill,
           readOnly && styles.readOnlyCombinedFilter,
-          isMatchAllFilter(filter) && styles.matchAllPill,
+          (isMatchAllFilter(filter) || filter.nonApplicable) && styles.disabledPill,
           filter.readOnly && styles.filterReadOnly
         )}
         onClick={(e) => {
@@ -103,7 +106,13 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           }
         }}
         role={readOnly ? undefined : 'button'}
-        aria-label={`Edit filter with key ${keyLabel}`}
+        aria-label={t(
+          'grafana-scenes.components.adhoc-filter-pill.edit-filter-with-key',
+          'Edit filter with key {{keyLabel}}',
+          {
+            keyLabel,
+          }
+        )}
         tabIndex={0}
         ref={pillWrapperRef}
       >
@@ -141,13 +150,24 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             }}
             name="times"
             size="md"
-            className={styles.pillIcon}
-            tooltip={`Remove filter with key ${keyLabel}`}
+            className={cx(styles.pillIcon, filter.nonApplicable && styles.disabledPillIcon)}
+            tooltip={t(
+              'grafana-scenes.components.adhoc-filter-pill.remove-filter-with-key',
+              'Remove filter with key {{keyLabel}}',
+              {
+                keyLabel,
+              }
+            )}
           />
         ) : null}
 
         {filter.origin && filter.readOnly && (
-          <Tooltip content={`${filter.origin} managed filter`} placement={'bottom'}>
+          <Tooltip
+            content={t('grafana-scenes.components.adhoc-filter-pill.managed-filter', '{{origin}} managed filter', {
+              origin: filter.origin,
+            })}
+            placement={'bottom'}
+          >
             <Icon name="lock" size="md" className={styles.readOnlyPillIcon} />
           </Tooltip>
         )}
@@ -254,12 +274,23 @@ const getStyles = (theme: GrafanaTheme2) => ({
     cursor: 'pointer',
     color: theme.colors.text.disabled,
   }),
-  matchAllPill: css({
+  disabledPillIcon: css({
+    marginInline: theme.spacing(0.5),
+    cursor: 'pointer',
+    color: theme.colors.text.disabled,
+    '&:hover': {
+      color: theme.colors.text.disabled,
+    },
+  }),
+  disabledPill: css({
     background: theme.colors.action.selected,
     color: theme.colors.text.disabled,
     border: 0,
     '&:hover': {
       background: theme.colors.action.selected,
     },
+  }),
+  strikethrough: css({
+    textDecoration: 'line-through',
   }),
 });

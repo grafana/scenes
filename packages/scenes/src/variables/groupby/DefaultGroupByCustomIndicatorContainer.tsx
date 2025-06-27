@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import React from 'react';
 import { Icon, IconButton, Tooltip, getInputStyles, useTheme2 } from '@grafana/ui';
 import { GroupByVariable } from './GroupByVariable';
@@ -21,7 +22,7 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
   if (value && value.length) {
     buttons.push(
       <IconButton
-        aria-label="clear"
+        aria-label={t('grafana-scenes.variables.default-group-by-custom-indicator-container.aria-label-clear', 'clear')}
         key="clear"
         name="times"
         size="md"
@@ -51,7 +52,10 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
         name="history"
         size="md"
         className={styles.clearIcon}
-        tooltip="Restore groupby set by this dashboard."
+        tooltip={t(
+          'grafana-scenes.variables.default-group-by-custom-indicator-container.tooltip-restore-groupby-set-by-this-dashboard',
+          'Restore groupby set by this dashboard.'
+        )}
       />
     );
   }
@@ -60,7 +64,10 @@ export function DefaultGroupByCustomIndicatorContainer(props: DefaultGroupByCust
     buttons.push(
       <Tooltip
         key="tooltip"
-        content="Applied by default in this dashboard. If edited, it carries over to other dashboards."
+        content={t(
+          'grafana-scenes.variables.default-group-by-custom-indicator-container.tooltip',
+          'Applied by default in this dashboard. If edited, it carries over to other dashboards.'
+        )}
         placement="bottom"
       >
         <Icon name="info-circle" size="md" />
