@@ -229,7 +229,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           timeZone={timeZone}
                           options={options}
                           fieldConfig={fieldConfig}
-                          transparent={false}
+                          transparent={displayMode === 'transparent'}
                           width={innerWidth}
                           height={innerHeight}
                           renderCounter={_renderCounter}
