@@ -26,7 +26,7 @@ describe('SceneTimeRangeCompare', () => {
         expect(result).toMatchInlineSnapshot(`
               [
                 {
-                  "label": "No comparison",
+                  "label": "None",
                   "value": "__noPeriod",
                 },
                 {
@@ -63,7 +63,7 @@ describe('SceneTimeRangeCompare', () => {
         expect(result).toMatchInlineSnapshot(`
               [
                 {
-                  "label": "No comparison",
+                  "label": "None",
                   "value": "__noPeriod",
                 },
                 {
@@ -104,7 +104,7 @@ describe('SceneTimeRangeCompare', () => {
         expect(result).toMatchInlineSnapshot(`
               [
                 {
-                  "label": "No comparison",
+                  "label": "None",
                   "value": "__noPeriod",
                 },
                 {
@@ -137,7 +137,7 @@ describe('SceneTimeRangeCompare', () => {
         expect(result).toMatchInlineSnapshot(`
               [
                 {
-                  "label": "No comparison",
+                  "label": "None",
                   "value": "__noPeriod",
                 },
                 {
@@ -170,7 +170,7 @@ describe('SceneTimeRangeCompare', () => {
         expect(result).toMatchInlineSnapshot(`
                 [
                   {
-                    "label": "No comparison",
+                    "label": "None",
                     "value": "__noPeriod",
                   },
                   {
@@ -206,7 +206,7 @@ describe('SceneTimeRangeCompare', () => {
         expect(result).toMatchInlineSnapshot(`
                   [
                     {
-                      "label": "No comparison",
+                      "label": "None",
                       "value": "__noPeriod",
                     },
                     {
@@ -235,7 +235,7 @@ describe('SceneTimeRangeCompare', () => {
         expect(result).toMatchInlineSnapshot(`
                     [
                       {
-                        "label": "No comparison",
+                        "label": "None",
                         "value": "__noPeriod",
                       },
                       {
@@ -264,7 +264,7 @@ describe('SceneTimeRangeCompare', () => {
         expect(result).toMatchInlineSnapshot(`
               [
                 {
-                  "label": "No comparison",
+                  "label": "None",
                   "value": "__noPeriod",
                 },
                 {
