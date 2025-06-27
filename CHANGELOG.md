@@ -1,3 +1,16 @@
+# v6.26.0 (Fri Jun 27 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimeRangeCompare: Add option to hide checkbox [#1157](https://github.com/grafana/scenes/pull/1157) ([@drew08t](https://github.com/drew08t))
+
+#### Authors: 1
+
+- Drew Slobodnjak ([@drew08t](https://github.com/drew08t))
+
+---
+
 # v6.25.0 (Thu Jun 26 2025)
 
 #### 🚀 Enhancement
