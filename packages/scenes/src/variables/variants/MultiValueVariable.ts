@@ -208,16 +208,25 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     this.skipNextValidation = false;
   }
 
-  public getValue(): VariableValue {
+  public getValue(fieldPath?: string): VariableValue {
+    let value = this.state.value;
+
     if (this.hasAllValue()) {
       if (this.state.allValue) {
         return new CustomAllValue(this.state.allValue, this);
       }
 
-      return this.state.options.map((x) => x.value);
+      value = this.state.options.map((x) => x.value);
     }
 
-    return this.state.value;
+    if (fieldPath != null && Array.isArray(value)) {
+      const index = parseInt(fieldPath, 10);
+      if (!isNaN(index) && index >= 0 && index < value.length) {
+        return value[index];
+      }
+    }
+
+    return value;
   }
 
   public getValueText(): string {
