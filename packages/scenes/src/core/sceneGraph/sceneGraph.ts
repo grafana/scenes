@@ -118,7 +118,11 @@ function findObjectInternal(
     let maybe = findObjectInternal(child, check);
     if (maybe) {
       found = maybe;
+      // break (exit early) the foreach loop
+      return false;
     }
+
+    return;
   });
 
   if (found) {

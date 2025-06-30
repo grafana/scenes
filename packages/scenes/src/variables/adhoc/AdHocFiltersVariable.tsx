@@ -1,5 +1,12 @@
 import React from 'react';
-import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  GetTagResponse,
+  GrafanaTheme2,
+  MetricFindValue,
+  Scope,
+  SelectableValue,
+} from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
@@ -37,6 +44,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   readOnly?: boolean;
   // whether this specific filter is restorable to some value from _originalValues
   restorable?: boolean;
+  // sets this filter as non-applicable
+  nonApplicable?: boolean;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -50,6 +59,8 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
   baseFilters?: AdHocFilterWithLabels[];
+  /** Filters originated from a source */
+  originFilters?: AdHocFilterWithLabels[];
   /** Datasource to use for getTagKeys and getTagValues and also controls which scene queries the filters should apply to */
   datasource: DataSourceRef | null;
   /** Controls if the filters can be changed */
@@ -196,6 +207,12 @@ export const OPERATORS: OperatorDefinition[] = [
   },
 ];
 
+interface OriginalValue {
+  value: string[];
+  operator: string;
+  nonApplicable?: boolean;
+}
+
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
   implements SceneVariable<AdHocFiltersVariableState>
@@ -207,7 +224,8 @@ export class AdHocFiltersVariable
   // holds the originalValues of all baseFilters in a map. The values
   // are set on construct and used to restore a baseFilter with an origin
   // to its original value if edited at some point
-  private _originalValues: Map<string, { value: string[]; operator: string }> = new Map();
+  private _originalValues: Map<string, OriginalValue> = new Map();
+  private _prevScopes: Scope[] = [];
 
   /** Needed for scopes dependency */
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -226,10 +244,7 @@ export class AdHocFiltersVariable
       applyMode: 'auto',
       filterExpression:
         state.filterExpression ??
-        renderExpression(state.expressionBuilder, [
-          ...(state.baseFilters?.filter((filter) => filter.origin) ?? []),
-          ...(state.filters ?? []),
-        ]),
+        renderExpression(state.expressionBuilder, [...(state.originFilters ?? []), ...(state.filters ?? [])]),
       ...state,
     });
 
@@ -237,55 +252,34 @@ export class AdHocFiltersVariable
       patchGetAdhocFilters(this);
     }
 
-    // set dashboard lvl original values in constructor, since we have them from schema
-    this.state.baseFilters?.forEach((baseFilter) => {
-      if (baseFilter.origin === 'dashboard') {
-        this._originalValues.set(baseFilter.key, {
-          operator: baseFilter.operator,
-          value: baseFilter.values ?? [baseFilter.value],
-        });
-      }
+    this.state.originFilters?.forEach((filter) => {
+      this._originalValues.set(filter.key, {
+        operator: filter.operator,
+        value: filter.values ?? [filter.value],
+      });
     });
 
     this.addActivationHandler(this._activationHandler);
   }
 
   private _activationHandler = () => {
-    this._updateScopesFilters();
+    this._verifyNonApplicableFilters();
 
     return () => {
-      // we clear both scopes and dashboard level filters before leaving a dashboard to maintain accuracy for both
-      // when/if we return to the same dashboard
-      // e.g.: we edit a scope filter and go to another dashboard, it gets carried over, but then on that dashboard
-      // we reset the value, and then come back to the initial dashboard, that dashboard still has the edited scope
-      // because the URL will not hold any value, since on reset we clear the url, but the initial dashboard still
-      // has the changed value in the schema, unless we reset it here
-      if (this.state.baseFilters?.length) {
-        this.setState({
-          baseFilters: [...this.state.baseFilters.filter((filter) => filter.origin !== 'scope')],
-        });
-        // same for dashboard level filters if we edit one and go to another dashboard, reset to whatever initial value is there
-        // and come back to the initial one it will use the last modified value it has, since URL is empty from the reset done
-        // before
-        this.state.baseFilters?.forEach((filter) => {
-          if (filter.origin === 'dashboard' && filter.restorable) {
-            this.restoreOriginalFilter(filter);
-          }
-        });
-      }
+      this.state.originFilters?.forEach((filter) => {
+        if (filter.restorable) {
+          this.restoreOriginalFilter(filter);
+        }
+      });
     };
   };
 
   private _updateScopesFilters() {
     const scopes = sceneGraph.getScopes(this);
 
-    if (!scopes) {
-      return;
-    }
-
-    if (!scopes.length) {
+    if (!scopes || !scopes.length) {
       this.setState({
-        baseFilters: this.state.baseFilters?.filter((filter) => filter.origin !== 'scope'),
+        originFilters: this.state.originFilters?.filter((filter) => filter.origin !== 'scope'),
       });
       return;
     }
@@ -308,13 +302,19 @@ export class AdHocFiltersVariable
       });
     });
 
-    this.state.baseFilters?.forEach((filter) => {
+    this.state.originFilters?.forEach((filter) => {
       if (filter.origin === 'scope') {
         scopeInjectedFilters.push(filter);
       } else {
         remainingFilters.push(filter);
       }
     });
+
+    if (this._prevScopes.length) {
+      this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
+      this._prevScopes = scopes;
+      return;
+    }
 
     const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.restorable);
     const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
@@ -328,8 +328,9 @@ export class AdHocFiltersVariable
       ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
     ];
 
-    // maintain other baseFilters in the array, only update scopes ones
-    this.setState({ baseFilters: [...finalFilters, ...remainingFilters] });
+    // maintain other originFilters in the array, only update scopes ones
+    this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
+    this._prevScopes = scopes;
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
@@ -337,16 +338,13 @@ export class AdHocFiltersVariable
 
     if (
       ((update.filters && update.filters !== this.state.filters) ||
-        (update.baseFilters && update.baseFilters !== this.state.baseFilters)) &&
+        (update.originFilters && update.originFilters !== this.state.originFilters)) &&
       !update.filterExpression
     ) {
       const filters = update.filters ?? this.state.filters;
-      const baseFilters = update.baseFilters ?? this.state.baseFilters;
+      const originFilters = update.originFilters ?? this.state.originFilters;
 
-      update.filterExpression = renderExpression(this.state.expressionBuilder, [
-        ...(baseFilters?.filter((filter) => filter.origin) ?? []),
-        ...(filters ?? []),
-      ]);
+      update.filterExpression = renderExpression(this.state.expressionBuilder, [...(originFilters ?? []), ...filters]);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
     }
 
@@ -374,7 +372,7 @@ export class AdHocFiltersVariable
 
     if (filters && filters !== this.state.filters) {
       filterExpression = renderExpression(this.state.expressionBuilder, [
-        ...(this.state.baseFilters?.filter((filter) => filter.origin) ?? []),
+        ...(this.state.originFilters ?? []),
         ...filters,
       ]);
       filterExpressionChanged = filterExpression !== this.state.filterExpression;
@@ -399,16 +397,18 @@ export class AdHocFiltersVariable
     if (filter.restorable) {
       const originalFilter = this._originalValues.get(filter.key);
 
+      if (!originalFilter) {
+        return;
+      }
+
       original.value = originalFilter?.value[0];
       original.values = originalFilter?.value;
-      // we don't care much about the labels in this injected filters scenario
-      // but this is needed to rerender the filter with the proper values
-      // in the UI. E.g.: in a multi-value on hover, it shows the correct values
       original.valueLabels = originalFilter?.value;
       original.operator = originalFilter?.operator;
-    }
+      original.nonApplicable = originalFilter?.nonApplicable;
 
-    this._updateFilter(filter, original);
+      this._updateFilter(filter, original);
+    }
   }
 
   public getValue(): VariableValue | undefined {
@@ -416,33 +416,26 @@ export class AdHocFiltersVariable
   }
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
-    const { baseFilters, filters, _wip } = this.state;
+    const { originFilters, filters, _wip } = this.state;
 
     if (filter.origin) {
       const originalValues = this._originalValues.get(filter.key);
       const updateValues = update.values || (update.value ? [update.value] : undefined);
 
-      // if we don't have the restorable prop set but values differ we set it true
-      // this happens when editing the value of an injected filter
-      // we also make sure to set restorable false if values are the same as original
-      // e.g.: if we edit the value of a filter to whatever the original was, manually
-      // 'restoring' the filter
-      const isRestorableOverride = update.hasOwnProperty('restorable');
       if (
-        !isRestorableOverride &&
-        ((updateValues && !isEqual(updateValues, originalValues?.value)) ||
-          (update.operator && update.operator !== originalValues?.operator))
+        (updateValues && !isEqual(updateValues, originalValues?.value)) ||
+        (update.operator && update.operator !== originalValues?.operator)
       ) {
         update.restorable = true;
       } else if (updateValues && isEqual(updateValues, originalValues?.value)) {
         update.restorable = false;
       }
 
-      const updatedBaseFilters =
-        baseFilters?.map((f) => {
+      const updatedFilters =
+        originFilters?.map((f) => {
           return f === filter ? { ...f, ...update } : f;
         }) ?? [];
-      this.setState({ baseFilters: updatedBaseFilters });
+      this.setState({ originFilters: updatedFilters });
 
       return;
     }
@@ -471,6 +464,7 @@ export class AdHocFiltersVariable
       values: ['.*'],
       valueLabels: ['All'],
       matchAllFilter: true,
+      nonApplicable: false,
       restorable: true,
     });
   }
@@ -523,9 +517,9 @@ export class AdHocFiltersVariable
           return [...acc, f];
         }, []),
       });
-    } else if (this.state.baseFilters?.length) {
+    } else if (this.state.originFilters?.length) {
       // default forceEdit last filter (when triggering from wip filter)
-      let filterToForceIndex = this.state.baseFilters.length - 1;
+      let filterToForceIndex = this.state.originFilters.length - 1;
 
       // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
       //  to avoid triggering forceEdit logic
@@ -534,7 +528,7 @@ export class AdHocFiltersVariable
       }
 
       this.setState({
-        baseFilters: this.state.baseFilters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
+        originFilters: this.state.originFilters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
           // adjust forceEdit of preceding filter
           if (index === filterToForceIndex && !f.readOnly) {
             return [
@@ -556,6 +550,60 @@ export class AdHocFiltersVariable
     }
   }
 
+  public async _verifyNonApplicableFilters() {
+    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-expect-error (temporary till we update grafana/data)
+    if (!ds || !ds.getApplicableFilters) {
+      return [];
+    }
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    // @ts-expect-error (temporary till we update grafana/data)
+    const response: string[] = await ds.getApplicableFilters({
+      filters,
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+
+    const update = {
+      filters: [...this.state.filters],
+      originFilters: [...(this.state.originFilters ?? [])],
+    };
+
+    update.filters.forEach((f) => {
+      const isApplicable = response.includes(f.key);
+
+      if (!isApplicable) {
+        f.nonApplicable = true;
+      }
+    });
+
+    update.originFilters?.forEach((f) => {
+      const isApplicable = response.includes(f.key);
+
+      if (!isApplicable) {
+        if (!f.matchAllFilter) {
+          f.nonApplicable = true;
+        }
+
+        const originalValue = this._originalValues.get(f.key);
+        if (originalValue) {
+          originalValue.nonApplicable = true;
+        }
+      }
+    });
+
+    this.setState(update);
+
+    return;
+  }
+
   /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
@@ -575,7 +623,11 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
+    const applicableOriginFilters = this.state.originFilters?.filter((f) => !f.nonApplicable) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== currentKey && !f.nonApplicable)
+      .concat(this.state.baseFilters ?? [])
+      .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
     const response = await ds.getTagKeys({
@@ -619,16 +671,16 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const filteredBaseFilters = this.state.baseFilters?.filter((f) => f.origin && f.key !== filter.key) ?? [];
+    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key) ?? [];
     // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(filteredBaseFilters);
+    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     let scopes = sceneGraph.getScopes(this);
 
-    // if current filter is a scope injected one we need to filter out
+    // if current filter is a scope originated one we need to filter out
     // filters with same key in scopes prop, similar to how we do in adhocFilters prop
     if (filter.origin === 'scope') {
       scopes = scopes?.map((scope) => {
@@ -692,7 +744,7 @@ function renderExpression(
   builder: AdHocVariableExpressionBuilderFn | undefined,
   filters: AdHocFilterWithLabels[] | undefined
 ) {
-  return (builder ?? renderPrometheusLabelFilters)(filters ?? []);
+  return (builder ?? renderPrometheusLabelFilters)(filters?.filter((f) => isFilterApplicable(f)) ?? []);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
@@ -758,6 +810,10 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
   return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+}
+
+export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
+  return !filter.nonApplicable;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {

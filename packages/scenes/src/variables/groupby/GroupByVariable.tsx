@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AdHocVariableFilter, DataSourceApi, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
@@ -149,6 +150,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       noValueOnClear: true,
     });
 
+    if (this.state.defaultValue) {
+      this.changeValueTo(this.state.defaultValue.value, this.state.defaultValue.text, false);
+    }
+
     if (this.state.applyMode === 'auto') {
       this.addActivationHandler(() => {
         allActiveGroupByVariables.add(this);
@@ -162,19 +167,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
   private _activationHandler = () => {
     if (this.state.defaultValue) {
-      const partial: Partial<GroupByVariableState> = {};
-      if ((isArray(this.state.value) && !this.state.value.length) || !this.state.value) {
-        partial.value = this.state.defaultValue.value;
-        partial.text = this.state.defaultValue.text;
-        partial.restorable = false;
-      }
-
-      if (this.state.defaultValue && this.checkIfRestorable(this.state.value)) {
-        partial.restorable = true;
-      }
-
-      if (Object.keys(partial).length) {
-        this.setState(partial);
+      if (this.checkIfRestorable(this.state.value)) {
+        this.setState({ restorable: true });
       }
     }
 
@@ -332,10 +326,16 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 
   return isMulti ? (
     <MultiSelect<VariableValueSingle>
-      aria-label="Group by selector"
+      aria-label={t(
+        'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
+        'Group by selector'
+      )}
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={'Group by label'}
+      placeholder={t(
+        'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
+        'Group by label'
+      )}
       width="auto"
       allowCustomValue={allowCustomValue}
       inputValue={inputValue}
@@ -391,10 +391,16 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     />
   ) : (
     <Select
-      aria-label="Group by selector"
+      aria-label={t(
+        'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
+        'Group by selector'
+      )}
       data-testid={`GroupBySelect-${key}`}
       id={key}
-      placeholder={'Group by label'}
+      placeholder={t(
+        'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
+        'Group by label'
+      )}
       width="auto"
       inputValue={inputValue}
       value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}

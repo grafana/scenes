@@ -21,7 +21,7 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
       return [];
     }
 
-    return [this.getKey(), ...(this._sceneObject.state.defaultValue ? [this.getRestorableKey()] : [])];
+    return [this.getKey(), this.getRestorableKey()];
   }
 
   public getUrlState(): SceneObjectUrlValues {
@@ -31,11 +31,11 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
 
     return {
       [this.getKey()]: toUrlValues(this._sceneObject.state.value, this._sceneObject.state.text),
-      ...(this._sceneObject.state.defaultValue
-        ? {
-            [this.getRestorableKey()]: this._sceneObject.state.restorable ? 'true' : undefined,
-          }
-        : {}),
+      [this.getRestorableKey()]: this._sceneObject.state.defaultValue
+        ? this._sceneObject.state.restorable
+          ? 'true'
+          : 'false'
+        : null,
     };
   }
 
@@ -54,12 +54,12 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
 
       const { values, texts } = fromUrlValues(urlValue);
 
-      if (this._sceneObject.state.defaultValue && !restorableValue) {
-        this._sceneObject.changeValueTo(
-          this._sceneObject.state.defaultValue?.value,
-          this._sceneObject.state.defaultValue?.text,
-          false
-        );
+      if (this._sceneObject.state.defaultValue && (restorableValue === 'false' || restorableValue === undefined)) {
+        return;
+      }
+
+      if (restorableValue === 'false') {
+        this._sceneObject.changeValueTo([], [], false);
         return;
       }
 

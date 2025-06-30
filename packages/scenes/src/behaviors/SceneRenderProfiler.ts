@@ -17,7 +17,7 @@ export class SceneRenderProfiler {
   // Will keep measured lengths trailing frames
   #recordedTrailingSpans: number[] = [];
 
-  lastFrameTime: number = 0;
+  lastFrameTime = 0;
 
   public constructor(private queryController: SceneQueryControllerLike) {}
 

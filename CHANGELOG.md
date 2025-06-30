@@ -1,3 +1,187 @@
+# v6.26.0 (Fri Jun 27 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimeRangeCompare: Add option to hide checkbox [#1157](https://github.com/grafana/scenes/pull/1157) ([@drew08t](https://github.com/drew08t))
+
+#### Authors: 1
+
+- Drew Slobodnjak ([@drew08t](https://github.com/drew08t))
+
+---
+
+# v6.25.0 (Thu Jun 26 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: Non-applicable filters [#1152](https://github.com/grafana/scenes/pull/1152) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.24.0 (Wed Jun 25 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - sceneGraph: findObject should return first match [#1165](https://github.com/grafana/scenes/pull/1165) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.23.0 (Wed Jun 25 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - feat(UrlSync): Allow namespacing when syncing the state of Scene variables with the URL search parameters [#1156](https://github.com/grafana/scenes/pull/1156) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.22.1 (Tue Jun 24 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Annotations: Add scopes variable dependency [#1159](https://github.com/grafana/scenes/pull/1159) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
+# v6.22.0 (Thu Jun 19 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Detect local variable change [#1155](https://github.com/grafana/scenes/pull/1155) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.21.1 (Thu Jun 19 2025)
+
+#### 🐛 Bug Fix
+
+- Internationalisation: Add crowdin tasks [#1158](https://github.com/grafana/scenes/pull/1158) ([@ashharrison90](https://github.com/ashharrison90))
+- `@grafana/scenes`
+  - i18n: fixes peer dependencies [#1162](https://github.com/grafana/scenes/pull/1162) ([@hugohaggmark](https://github.com/hugohaggmark))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Hugo Häggmark ([@hugohaggmark](https://github.com/hugohaggmark))
+
+---
+
+# v6.21.0 (Wed Jun 18 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Internationalisation: Add markup for translations [#1151](https://github.com/grafana/scenes/pull/1151) ([@joshhunt](https://github.com/joshhunt))
+
+#### 🐛 Bug Fix
+
+- Chore: Move NPM_TOKEN to Vault [#1154](https://github.com/grafana/scenes/pull/1154) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Update eslint to v9 [#1150](https://github.com/grafana/scenes/pull/1150) ([@joshhunt](https://github.com/joshhunt))
+
+#### Authors: 2
+
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.20.2 (Mon Jun 16 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: Fix scopes crashing when scope filters are undefined [#1153](https://github.com/grafana/scenes/pull/1153) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.20.1 (Mon Jun 16 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy: Fix edge cases on default values on dashboard load [#1146](https://github.com/grafana/scenes/pull/1146) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.20.0 (Mon Jun 16 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocVariable: Refactor origin filters [#1132](https://github.com/grafana/scenes/pull/1132) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VariableDependencyConfig: Simplify bits and pieces [#1145](https://github.com/grafana/scenes/pull/1145) ([@kaydelaney](https://github.com/kaydelaney))
+
+#### Authors: 2
+
+- kay delaney ([@kaydelaney](https://github.com/kaydelaney))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.19.0 (Thu Jun 12 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Scopes: Add annotation query support [#1144](https://github.com/grafana/scenes/pull/1144) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
+# v6.18.1 (Wed Jun 04 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy: Fix edge cases on dashboard default values [#1142](https://github.com/grafana/scenes/pull/1142) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.18.0 (Tue Jun 03 2025)
 
 #### 🚀 Enhancement

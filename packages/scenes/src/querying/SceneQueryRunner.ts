@@ -43,7 +43,7 @@ import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetA
 import { registerQueryWithController } from './registerQueryWithController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable, isFilterApplicable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
@@ -338,7 +338,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._timeSubRange = undefined;
     this._adhocFiltersVar = undefined;
     this._groupByVar = undefined;
-    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
   public setContainerWidth(width: number) {
@@ -434,6 +433,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.setState({ data: { ...(this.state.data ?? emptyPanelData), state: LoadingState.Loading } });
       return;
     }
+
+    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
 
     const { queries } = this.state;
 
@@ -534,16 +535,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     };
 
     if (this._adhocFiltersVar) {
-      request.filters = [];
-
-      if (this._adhocFiltersVar.state.baseFilters?.length) {
-        const injectedBaseFilters = this._adhocFiltersVar.state.baseFilters.filter((filter) => filter.origin);
-        request.filters = request.filters.concat(injectedBaseFilters);
-      }
-
       // only pass filters that have both key and value
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.filters = request.filters.concat(this._adhocFiltersVar.state.filters.filter(isFilterComplete));
+      request.filters = [
+        ...(this._adhocFiltersVar.state.originFilters ?? []),
+        ...this._adhocFiltersVar.state.filters,
+      ].filter((f) => isFilterComplete(f) && isFilterApplicable(f));
     }
 
     if (this._groupByVar) {
