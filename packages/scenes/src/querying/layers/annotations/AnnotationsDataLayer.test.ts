@@ -451,6 +451,26 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
       expect(sentRequest?.scopes).toBeUndefined();
     });
   });
+
+  it('should not run query when enable is false', async () => {
+    const layer = new AnnotationsDataLayer({
+      name: 'Test layer',
+      query: { name: 'Test', enable: false, iconColor: 'red', theActualQuery: '$A' },
+    });
+
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange(),
+      $data: new SceneDataLayerSet({
+        layers: [layer],
+      }),
+    });
+
+    scene.activate();
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    expect(runRequestMock).toHaveBeenCalledTimes(0);
+  });
 });
 
 function newScopesVariableFromScopeFilters(filters: ScopeSpecFilter[]) {
