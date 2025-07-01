@@ -241,8 +241,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     // Some panels mutate the transformations on the panel as part of migrations.
     // Unfortunately, these mutations are not available until the panel plugin is loaded.
     // At this time, the data provider is already set, so this is the easiest way to fix it.
-    // Bear in mind that we can't apply the transformations in the renderer as the transformations
-    // array returned by the mutation includes the original transformations as well.
     let $data = this.state.$data;
     if (panel.transformations && $data) {
       if ($data instanceof SceneDataTransformer) {
