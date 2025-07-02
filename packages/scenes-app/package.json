@@ -1,7 +1,7 @@
 {
   "name": "scenes-app",
   "private": true,
-  "version": "6.26.1",
+  "version": "6.27.0",
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
   "description": "A basic grafana app plugin",
