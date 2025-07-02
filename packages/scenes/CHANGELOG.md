@@ -1,3 +1,15 @@
+# v6.27.0 (Wed Jul 02 2025)
+
+#### 🚀 Enhancement
+
+- TableNG: expose configured transparent value instead of false [#1171](https://github.com/grafana/scenes/pull/1171) ([@fastfrwrd](https://github.com/fastfrwrd))
+
+#### Authors: 1
+
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
 # v6.26.1 (Wed Jul 02 2025)
 
 #### 🐛 Bug Fix
