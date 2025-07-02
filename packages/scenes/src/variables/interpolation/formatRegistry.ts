@@ -329,6 +329,24 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
+      id: VariableFormatID.Delimiter,
+      name: 'Custom Delimiter',
+      description: 'Join values using a custom delimiter. Example value1;value2',
+      formatter: (value, _args) => {
+        const delimiter = _args[0] ?? ','; // default to comma if no delimiter provided
+
+        if (typeof value === 'string') {
+          return value;
+        }
+
+        if (Array.isArray(value)) {
+          return value.join(delimiter);
+        }
+
+        return String(value);
+      },
+    },
+    {
       id: VariableFormatID.UriEncode,
       name: 'Percent encode as URI',
       description: t(
