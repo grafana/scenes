@@ -71,6 +71,10 @@ export class AnnotationsDataLayer
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     const { query } = this.state;
 
+    if (!query.enable) {
+      return;
+    }
+
     if (this.querySub) {
       this.querySub.unsubscribe();
     }
