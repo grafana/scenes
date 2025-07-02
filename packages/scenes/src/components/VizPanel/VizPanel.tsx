@@ -246,6 +246,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       if ($data instanceof SceneDataTransformer) {
         $data.setState({ transformations: panel.transformations });
       } else if ($data instanceof SceneQueryRunner) {
+        $data.clearParent();
         $data = new SceneDataTransformer({
           transformations: panel.transformations,
           $data,
