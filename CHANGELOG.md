@@ -1,3 +1,16 @@
+# v6.26.1 (Wed Jul 02 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Annotations: Don't run annotation query if it is disabled [#1174](https://github.com/grafana/scenes/pull/1174) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
 # v6.26.0 (Fri Jun 27 2025)
 
 #### 🚀 Enhancement
