@@ -479,6 +479,18 @@ describe('MultiValueVariable', () => {
       // Should not ignore url encoding
       expect(value.formatter(VariableFormatID.PercentEncode)).toBe('.%2A');
     });
+
+    it('GetValue should support index fieldPath', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        value: ['1', '2'],
+        isMulti: true,
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+
+      expect(variable.getValue('1')).toBe('2');
+    });
   });
 
   describe('getOptionsForSelect', () => {
