@@ -1,3 +1,20 @@
+# v6.27.1 (Mon Jul 07 2025)
+
+#### 🐛 Bug Fix
+
+- Internationalisation: Add `verify-i18n` workflow to ensure translation extraction has been committed [#1160](https://github.com/grafana/scenes/pull/1160) ([@ashharrison90](https://github.com/ashharrison90))
+- `@grafana/scenes`
+  - QueryVariable: Add ability to provide custom static options [#1177](https://github.com/grafana/scenes/pull/1177) ([@domasx2](https://github.com/domasx2))
+  - MultiValueVariable: Support field path array index [#1172](https://github.com/grafana/scenes/pull/1172) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 3
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Domas ([@domasx2](https://github.com/domasx2))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.27.0 (Wed Jul 02 2025)
 
 #### 🚀 Enhancement

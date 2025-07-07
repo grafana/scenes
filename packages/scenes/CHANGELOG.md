@@ -1,3 +1,17 @@
+# v6.27.1 (Mon Jul 07 2025)
+
+#### 🐛 Bug Fix
+
+- QueryVariable: Add ability to provide custom static options [#1177](https://github.com/grafana/scenes/pull/1177) ([@domasx2](https://github.com/domasx2))
+- MultiValueVariable: Support field path array index [#1172](https://github.com/grafana/scenes/pull/1172) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.27.0 (Wed Jul 02 2025)
 
 #### 🚀 Enhancement
