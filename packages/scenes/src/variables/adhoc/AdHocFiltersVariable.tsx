@@ -4,6 +4,8 @@ import {
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
+  // @ts-expect-error (temporary till we update grafana/data)
+  FiltersApplicability,
   Scope,
   SelectableValue,
 } from '@grafana/data';
@@ -46,6 +48,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   restorable?: boolean;
   // sets this filter as non-applicable
   nonApplicable?: boolean;
+  // reason with reason for nonApplicable filters
+  nonApplicableReason?: string;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -207,6 +211,7 @@ interface OriginalValue {
   value: string[];
   operator: string;
   nonApplicable?: boolean;
+  nonApplicableReason?: string;
 }
 
 export class AdHocFiltersVariable
@@ -551,7 +556,7 @@ export class AdHocFiltersVariable
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds || !ds.getApplicableFilters) {
+    if (!ds || !ds.getFiltersApplicability()) {
       return [];
     }
 
@@ -559,7 +564,7 @@ export class AdHocFiltersVariable
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response: string[] = await ds.getApplicableFilters({
+    const response: FiltersApplicability[] = await ds.getFiltersApplicability({
       filters,
       queries,
       timeRange,
@@ -573,24 +578,26 @@ export class AdHocFiltersVariable
     };
 
     update.filters.forEach((f) => {
-      const isApplicable = response.includes(f.key);
-
-      if (!isApplicable) {
-        f.nonApplicable = true;
+      const filter = response.find((filter) => filter.key === f.key);
+      if (filter) {
+        f.nonApplicable = !filter.applicable;
+        f.nonApplicableReason = filter.reason;
       }
     });
 
     update.originFilters?.forEach((f) => {
-      const isApplicable = response.includes(f.key);
+      const filter = response.find((filter) => filter.key === f.key);
 
-      if (!isApplicable) {
+      if (!filter?.applicable) {
         if (!f.matchAllFilter) {
           f.nonApplicable = true;
+          f.nonApplicableReason = filter?.reason;
         }
 
         const originalValue = this._originalValues.get(f.key);
         if (originalValue) {
           originalValue.nonApplicable = true;
+          originalValue.nonApplicableReason = filter?.reason;
         }
       }
     });

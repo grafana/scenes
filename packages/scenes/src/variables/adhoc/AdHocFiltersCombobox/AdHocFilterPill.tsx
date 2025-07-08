@@ -145,6 +145,8 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
                 } else {
                   model._removeFilter(filter);
                 }
+
+                model._verifyFiltersApplicability();
                 setTimeout(() => focusOnWipInputRef?.());
               }
             }}
@@ -172,7 +174,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {filter.origin && !filter.restorable && !filter.readOnly && (
+        {filter.origin && !filter.restorable && !filter.readOnly && !filter.nonApplicable && (
           <Tooltip content={getOriginFilterTooltips(filter.origin).info} placement={'bottom'}>
             <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
           </Tooltip>
@@ -196,6 +198,18 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
             tooltip={getOriginFilterTooltips(filter.origin).restore}
           />
+        )}
+
+        {filter.nonApplicable && (
+          <Tooltip
+            content={
+              filter.nonApplicableReason ??
+              t('grafana-scenes.components.adhoc-filter-pill.non-applicable', 'Filter is not applicable')
+            }
+            placement={'bottom'}
+          >
+            <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
+          </Tooltip>
         )}
       </div>
     );
