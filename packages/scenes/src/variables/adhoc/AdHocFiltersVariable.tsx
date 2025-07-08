@@ -264,7 +264,7 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    this._verifyNonApplicableFilters();
+    this._verifyFiltersApplicability();
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
@@ -551,7 +551,7 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async _verifyNonApplicableFilters() {
+  public async _verifyFiltersApplicability() {
     const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
