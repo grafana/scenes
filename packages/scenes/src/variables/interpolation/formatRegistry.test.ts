@@ -110,6 +110,9 @@ describe('formatRegistry', () => {
     expect(formatValue('customqueryparam', 'api', 'text', ['p-server'])).toBe('p-server=api'); // custom name, optional value
     // @ts-expect-error
     expect(formatValue('customqueryparam', 'api', 'text', ['p-server', 'v-'])).toBe('p-server=v-api'); // value prefix
+    expect(formatValue('customqueryparam', 'mysql&postgres', 'text', ['p-server', 'v-'])).toBe(
+      'p-server=v-mysql%26postgres'
+    ); // value prefix
 
     expect(formatValue(VariableFormatID.UriEncode, '/any-path/any-second-path?query=foo()bar BAZ')).toBe(
       '/any-path/any-second-path?query=foo%28%29bar%20BAZ'
