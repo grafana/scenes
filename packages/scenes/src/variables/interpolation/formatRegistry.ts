@@ -341,6 +341,22 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
+      id: 'customqueryparam',
+      name: 'Custom query parameter',
+      description:
+        'Format variables as URL parameters with custom name and value prefix. Example in multi-variable scenario A + B + C => p-foo=x-A&p-foo=x-B&p-foo=x-C.',
+      formatter: (value, args, variable) => {
+        const name = encodeURIComponentStrict(args[0] || variable.state.name);
+        const valuePrefix = encodeURIComponentStrict(args[1] || '');
+
+        if (Array.isArray(value)) {
+          return value.map((v) => customFormatQueryParameter(name, v, valuePrefix)).join('&');
+        }
+
+        return customFormatQueryParameter(name, value, valuePrefix);
+      },
+    },
+    {
       id: VariableFormatID.UriEncode,
       name: 'Percent encode as URI',
       description: t(
@@ -390,6 +406,10 @@ const replaceSpecialCharactersToASCII = (value: string): string =>
 
 function formatQueryParameter(name: string, value: VariableValueSingle): string {
   return `var-${name}=${encodeURIComponentStrict(value)}`;
+}
+
+function customFormatQueryParameter(name: string, value: VariableValueSingle, valuePrefix = ''): string {
+  return `${name}=${valuePrefix}${encodeURIComponentStrict(value)}`;
 }
 
 export function isAllValue(value: VariableValueSingle) {

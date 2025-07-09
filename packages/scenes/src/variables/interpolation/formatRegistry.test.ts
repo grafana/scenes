@@ -83,6 +83,44 @@ describe('formatRegistry', () => {
     // @ts-expect-error
     expect(formatValue('join', ['hello', 'world'], 'text', [' | '])).toBe('hello | world'); // has a custom separator
 
+    // customqueryparam - multi-array values
+    // @ts-expect-error customqueryparam not in depended @grafana/schema yet
+    expect(formatValue('customqueryparam', ['api', 'database'], 'text', undefined)).toBe('server=api&server=database'); // default name
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api', 'database'], 'text', ['p-server'])).toBe(
+      'p-server=api&p-server=database'
+    ); // custom name
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api', 'database'], 'text', ['p-server', 'v-'])).toBe(
+      'p-server=v-api&p-server=v-database'
+    ); // value prefix
+
+    // customqueryparam - multi-array values
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api'], 'text', undefined)).toBe('server=api'); // default name
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api'], 'text', ['p-server'])).toBe('p-server=api'); // custom name, optional value
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api'], 'text', ['p-server', 'v-'])).toBe('p-server=v-api'); // value prefix
+
+    // customqueryparam - string values
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', 'api', 'text', undefined)).toBe('server=api'); // default name
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', 'api', 'text', ['p-server'])).toBe('p-server=api'); // custom name, optional value
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', 'api', 'text', ['p-server', 'v-'])).toBe('p-server=v-api'); // value prefix
+
+    // customqueryparam - url encoding
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['mysql&postgres', 'databases!'], 'text', ['p-server', 'v-'])).toBe(
+      'p-server=v-mysql%26postgres&p-server=v-databases%21'
+    ); // variable value encoded
+    expect(
+      // @ts-expect-error
+      formatValue('customqueryparam', ['mysql&postgres', 'databases!'], 'text', ['space & ampersand!', 'v& '])
+    ).toBe('space%20%26%20ampersand%21=v%26%20mysql%26postgres&space%20%26%20ampersand%21=v%26%20databases%21'); // custom name + prefix encoded
+
     expect(formatValue(VariableFormatID.UriEncode, '/any-path/any-second-path?query=foo()bar BAZ')).toBe(
       '/any-path/any-second-path?query=foo%28%29bar%20BAZ'
     );
