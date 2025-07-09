@@ -1,3 +1,22 @@
+# v6.27.2 (Wed Jul 09 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add customqueryparam templating format for joining arrays with a custom separator [#1184](https://github.com/grafana/scenes/pull/1184) ([@joshhunt](https://github.com/joshhunt))
+  - Add join templating format for joining arrays with a custom separator [#1164](https://github.com/grafana/scenes/pull/1164) ([@joshhunt](https://github.com/joshhunt))
+  - TextBoxVariable: Support skipUrlSync [#1178](https://github.com/grafana/scenes/pull/1178) ([@harisrozajac](https://github.com/harisrozajac))
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - chore: unify license change in #327 [#1137](https://github.com/grafana/scenes/pull/1137) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 3
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+
+---
+
 # v6.27.1 (Mon Jul 07 2025)
 
 #### 🐛 Bug Fix
