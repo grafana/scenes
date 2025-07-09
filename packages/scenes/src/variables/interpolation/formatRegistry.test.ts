@@ -5,8 +5,11 @@ import { TestVariable } from '../variants/TestVariable';
 import { formatRegistry } from './formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 
+// 'join' is a new supported format not yet in the depended @grafana/schema version
+type FormatId = VariableFormatID | 'join';
+
 function formatValue<T extends VariableValue>(
-  formatId: VariableFormatID,
+  formatId: FormatId,
   value: T,
   text?: string,
   args: string[] = []
@@ -74,7 +77,6 @@ describe('formatRegistry', () => {
     expect(formatValue(VariableFormatID.Date, 1594671549254, 'text', ['YYYY-MM', 'ss'])).toBe('2020-07:09');
     expect(formatValue(VariableFormatID.Date, 1594671549254, 'text', ['YYYY', 'MM', 'DD'])).toBe('2020:07:13');
 
-    // TODO: use enum when it's available
     expect(formatValue('join', 'hello', 'text', undefined)).toBe('hello'); // handles non-arrays
     expect(formatValue('join', ['hello'], 'text', undefined)).toBe('hello'); // handles arrays of 1 length
     expect(formatValue('join', ['hello', 'world'], 'text', undefined)).toBe('hello,world'); // has a default separator

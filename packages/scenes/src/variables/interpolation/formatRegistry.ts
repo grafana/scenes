@@ -249,7 +249,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       formatter: sqlStringFormatter,
     },
     {
-      id: 'join', // TODO: use enum when it's available
+      id: 'join', // join not yet available in depended @grafana/schema version
       name: 'Join',
       description: 'Join values with a comma',
       formatter: (value, args) => {
