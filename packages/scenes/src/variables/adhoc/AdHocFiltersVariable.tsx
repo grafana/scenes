@@ -264,7 +264,10 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    this._verifyFiltersApplicability();
+    this._setStateWithFiltersApplicabilityCheck({
+      filters: [...this.state.filters],
+      originFilters: [...(this.state.originFilters ?? [])],
+    });
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
@@ -330,7 +333,10 @@ export class AdHocFiltersVariable
     ];
 
     // maintain other originFilters in the array, only update scopes ones
-    this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
+    this._setStateWithFiltersApplicabilityCheck(
+      { filters: [...this.state.filters], originFilters: [...finalFilters, ...remainingFilters] },
+      true
+    );
     this._prevScopes = scopes;
   }
 
@@ -444,7 +450,14 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
-        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
+        this._setStateWithFiltersApplicabilityCheck(
+          {
+            filters: [...filters, { ..._wip, ...update }],
+            originFilters: [...(this.state.originFilters ?? [])],
+            _wip: undefined,
+          },
+          true
+        );
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -476,7 +489,13 @@ export class AdHocFiltersVariable
       return;
     }
 
-    this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
+    this._setStateWithFiltersApplicabilityCheck(
+      {
+        filters: this.state.filters.filter((f) => f !== filter),
+        originFilters: [...(this.state.originFilters ?? [])],
+      },
+      true
+    );
   }
 
   public _removeLastFilter() {
@@ -551,13 +570,22 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async _verifyFiltersApplicability() {
-    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
-
+  public async _setStateWithFiltersApplicabilityCheck(
+    update: Partial<AdHocFiltersVariableState>,
+    setStateOnCheckFail?: boolean
+  ) {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getFiltersApplicability()) {
-      return [];
+      if (setStateOnCheckFail) {
+        this.setState(update);
+      }
+
+      return;
+    }
+
+    if (!update.filters) {
+      return;
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -565,20 +593,21 @@ export class AdHocFiltersVariable
 
     // @ts-expect-error (temporary till we update grafana/data)
     const response: FiltersApplicability[] = await ds.getFiltersApplicability({
-      filters,
+      filters: [...update.filters, ...(update.originFilters ?? [])],
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
 
-    const update = {
-      filters: [...this.state.filters],
-      originFilters: [...(this.state.originFilters ?? [])],
-    };
+    const responseMap = new Map<string, FiltersApplicability>();
+    response.forEach((filter) => {
+      responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
+    });
 
     update.filters.forEach((f) => {
-      const filter = response.find((filter) => filter.key === f.key);
+      const filter = responseMap.get(f.key);
+
       if (filter) {
         f.nonApplicable = !filter.applicable;
         f.nonApplicableReason = filter.reason;
@@ -586,25 +615,23 @@ export class AdHocFiltersVariable
     });
 
     update.originFilters?.forEach((f) => {
-      const filter = response.find((filter) => filter.key === f.key);
+      const filter = responseMap.get(`${f.key}-${f.origin}`);
 
-      if (!filter?.applicable) {
+      if (filter) {
         if (!f.matchAllFilter) {
-          f.nonApplicable = true;
-          f.nonApplicableReason = filter?.reason;
+          f.nonApplicable = !filter.applicable;
+          f.nonApplicableReason = filter.reason;
         }
 
         const originalValue = this._originalValues.get(f.key);
         if (originalValue) {
-          originalValue.nonApplicable = true;
+          originalValue.nonApplicable = !filter.applicable;
           originalValue.nonApplicableReason = filter?.reason;
         }
       }
     });
 
     this.setState(update);
-
-    return;
   }
 
   /**

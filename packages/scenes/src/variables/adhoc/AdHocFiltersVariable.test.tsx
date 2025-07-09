@@ -2316,11 +2316,15 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'cluster',
           value: '1',
           operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
         },
         {
           key: 'container',
           value: '2',
           operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
         },
       ]);
     });
@@ -2407,9 +2411,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         {
           filters: [
             { key: 'pod', operator: '=', value: 'val1' },
-            { key: 'static', operator: '=', value: 'val2' },
             { key: 'container', operator: '=', value: 'val3' },
           ],
+          originFilters: [{ key: 'static', operator: '=', value: 'val2', origin: 'dashboard' }],
           layout: 'combobox',
         },
         undefined,
@@ -2809,7 +2813,7 @@ function setup(
               { key: 'cluster', applicable: true },
               { key: 'container', applicable: true },
               { key: 'pod', applicable: false, reason: 'reason' },
-              { key: 'static', applicable: false },
+              { key: 'static', applicable: false, origin: 'dashboard' },
             ];
           },
         }),

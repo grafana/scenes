@@ -146,7 +146,6 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
                   model._removeFilter(filter);
                 }
 
-                model._verifyFiltersApplicability();
                 setTimeout(() => focusOnWipInputRef?.());
               }
             }}
