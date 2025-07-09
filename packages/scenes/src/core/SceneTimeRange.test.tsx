@@ -1,4 +1,4 @@
-import { toUtc, dateMath } from '@grafana/data';
+import { toUtc, dateMath, InternalTimeZones } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
@@ -163,7 +163,7 @@ describe('SceneTimeRange', () => {
     describe('when user selects default time zone', () => {
       it(`should return default time zone set in user profile settings`, () => {
         const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
-        timeRange.onTimeZoneChange('');
+        timeRange.onTimeZoneChange(InternalTimeZones.default);
         expect(timeRange.getTimeZone()).toBe(USER_PROFILE_DEFAULT_TIME_ZONE);
       });
     });
