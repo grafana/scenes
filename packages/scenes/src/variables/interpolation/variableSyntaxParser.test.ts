@@ -51,7 +51,7 @@ describe('parseVariableSyntax', () => {
 
     it('should handle whitespace around arguments', () => {
       expect(parseVariableSyntax('join:  " | "  ')).toEqual([{ name: 'join', args: [' | '] }]);
-      //   expect(parseVariableSyntax('join:  arg1  ')).toEqual([{ name: 'join', args: ['arg1'] }]);
+      expect(parseVariableSyntax('join:  arg1  ')).toEqual([{ name: 'join', args: ['arg1'] }]);
     });
 
     it('should handle whitespace around separators', () => {
