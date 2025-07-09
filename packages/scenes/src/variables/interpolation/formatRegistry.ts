@@ -346,8 +346,8 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       description:
         'Format variables as URL parameters with custom name and value prefix. Example in multi-variable scenario A + B + C => p-foo=x-A&p-foo=x-B&p-foo=x-C.',
       formatter: (value, args, variable) => {
-        const name = args[0] || variable.state.name;
-        const valuePrefix = args[1] || '';
+        const name = encodeURIComponentStrict(args[0] || variable.state.name);
+        const valuePrefix = encodeURIComponentStrict(args[1] || '');
 
         if (Array.isArray(value)) {
           return value.map((v) => customFormatQueryParameter(name, v, valuePrefix)).join('&');
