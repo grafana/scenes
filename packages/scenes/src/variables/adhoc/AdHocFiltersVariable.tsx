@@ -249,7 +249,7 @@ export class AdHocFiltersVariable
     }
 
     this.state.originFilters?.forEach((filter) => {
-      this._originalValues.set(filter.key, {
+      this._originalValues.set(`${filter.key}-${filter.origin}`, {
         operator: filter.operator,
         value: filter.values ?? [filter.value],
       });
@@ -292,7 +292,7 @@ export class AdHocFiltersVariable
 
     // set original values for scope filters as well
     finalFilters.forEach((scopeFilter) => {
-      this._originalValues.set(scopeFilter.key, {
+      this._originalValues.set(`${scopeFilter.key}-${scopeFilter.origin}`, {
         value: scopeFilter.values ?? [scopeFilter.value],
         operator: scopeFilter.operator,
       });
@@ -391,7 +391,7 @@ export class AdHocFiltersVariable
     };
 
     if (filter.restorable) {
-      const originalFilter = this._originalValues.get(filter.key);
+      const originalFilter = this._originalValues.get(`${filter.key}-${filter.origin}`);
 
       if (!originalFilter) {
         return;
@@ -415,7 +415,7 @@ export class AdHocFiltersVariable
     const { originFilters, filters, _wip } = this.state;
 
     if (filter.origin) {
-      const originalValues = this._originalValues.get(filter.key);
+      const originalValues = this._originalValues.get(`${filter.key}-${filter.origin}`);
       const updateValues = update.values || (update.value ? [update.value] : undefined);
 
       if (
@@ -588,7 +588,7 @@ export class AdHocFiltersVariable
           f.nonApplicable = true;
         }
 
-        const originalValue = this._originalValues.get(f.key);
+        const originalValue = this._originalValues.get(`${f.key}-${f.origin}`);
         if (originalValue) {
           originalValue.nonApplicable = true;
         }

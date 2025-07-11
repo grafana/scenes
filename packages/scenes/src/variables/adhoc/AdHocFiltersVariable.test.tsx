@@ -1206,9 +1206,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
-    expect(filtersVar['_originalValues'].get('dbKey1')).toEqual({ value: ['dbValue1'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('dbKey2')).toEqual({ value: ['dbValue2'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('scopeKey')).toEqual({ value: ['scopeValue'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({ value: ['dbValue1'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({ value: ['dbValue2'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({ value: ['scopeValue'], operator: '=' });
   });
 
   it('should reset dashboard level filters if they are edited on unmount', () => {
@@ -1341,11 +1341,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     expect(filtersVar.state.originFilters![0].value).toBe('newValue1');
     expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1']);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.value).toEqual([
-      'originValue1',
-      'originValue2',
-    ]);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.operator).toEqual('=|');
+    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1', 'originValue2']);
+    expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=|');
   });
 
   it('updated filter with no changes does not become restorable', async () => {
@@ -1397,8 +1395,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.originFilters![0].restorable).toEqual(true);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.value).toEqual(['originValue1']);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.operator).toEqual('=');
+    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1']);
+    expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=');
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
