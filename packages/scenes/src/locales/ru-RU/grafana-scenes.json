@@ -1,0 +1,148 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "Редактировать фильтр с ключом {{keyLabel}}",
+        "managed-filter": "фильтр, управляемый {{origin}}",
+        "remove-filter-with-key": "Удалить фильтр с ключом {{keyLabel}}"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Удалить значение фильтра ({{itemLabel}})",
+        "use-custom-value": "Использовать пользовательское значение: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "Если вы попали сюда по ссылке, возможна ошибка в приложении.",
+        "subTitle": "URL-адрес не соответствует ни одной странице",
+        "title": "Не найдена"
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Свернуть сцену",
+        "expand-button-label": "Развернуть сцену",
+        "remove-button-label": "Удалить сцену"
+      },
+      "scene-debugger": {
+        "object-details": "Сведения об объекте",
+        "scene-graph": "Граф сцены",
+        "title-scene-debugger": "Отладчик сцен"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Свернуть строку",
+        "expand-row": "Развернуть строку"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Сравнение",
+        "button-tooltip": "Включить сравнение временных рамок"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Виджет изменения размера панелей"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Заголовок"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Обзор"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Загрузка панели плагинов...",
+        "panel-plugin-has-no-panel-component": "Плагин не имеет свойства панели"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Отображение слишком большого количества рядов на одной панели может повлиять на производительность и затруднить чтение данных.",
+        "warning-message": "Макс. количество отображаемых рядов: {{seriesLimit}}"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Удалить"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "Отмена запроса"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Оператор редактирования фильтра"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Добавить фильтр",
+        "title-add-filter": "Добавить фильтр"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Удалить фильтр",
+        "key-select": {
+          "placeholder-select-label": "Выбрать метку"
+        },
+        "label-select-label": "Выбрать метку",
+        "title-remove-filter": "Удалить фильтр",
+        "value-select": {
+          "placeholder-select-value": "Выбрать значение"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "по умолчанию"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "очистить",
+        "tooltip": "Применяется по умолчанию на этом дашборде. При редактировании переносится на другие дашборды.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "Восстановить критерий группирования, заданный этим дашбордом."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Значения, разделенные запятыми",
+            "double-quoted-values": "Значения в двойных кавычках",
+            "format-date-in-different-ways": "Форматируйте дату разными способами",
+            "format-multivalued-variables-using-syntax-example": "Форматируйте многозначные переменные с использованием синтаксиса glob, например {value1,value2}",
+            "html-escaping-of-values": "HTML-экранирование значений",
+            "json-stringify-value": "Значение преобразования JSON в строку",
+            "keep-value-as-is": "Сохраните значение как есть",
+            "multiple-values-are-formatted-like-variablevalue": "Несколько значений форматируются как «переменная=значение»",
+            "single-quoted-values": "Значения в одинарных кавычках",
+            "useful-escaping-values-taking-syntax-characters": "Функция удобна при URL-экранировании значений с учетом символов синтаксиса URI",
+            "useful-for-url-escaping-values": "Функция удобна при URL-экранировании значений",
+            "values-are-separated-by-character": "Значения разделяются символом |"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Группировать по селектору",
+        "placeholder-group-by-label": "Группировать по меткам"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Выбрать значение"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Загрузка параметров..."
+      },
+      "multi-value-apply-button": {
+        "apply": "Применить"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "Параметры не найдены"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "Ошибка при получении меток. Нажмите, чтобы повторить попытку"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Привет"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Текст"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Ввести значение"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Выбрать значение"
+      }
+    }
+  }
+}
