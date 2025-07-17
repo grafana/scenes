@@ -2228,7 +2228,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   describe('non-applicable filters', () => {
     it('should set non-applicable filters on activation', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getApplicableFiltersSpy } = setup(
+      const { filtersVar, getFiltersApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2263,10 +2263,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(getApplicableFiltersSpy).toHaveBeenCalled();
-      expect(filtersVar.state.filters[0].nonApplicable).toBe(undefined);
-      expect(filtersVar.state.filters[1].nonApplicable).toBe(undefined);
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(filtersVar.state.filters[0].nonApplicable).toBe(false);
+      expect(filtersVar.state.filters[1].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
+      expect(filtersVar.state.filters[2].nonApplicableReason).toBe('reason');
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
     });
 
@@ -2315,18 +2316,22 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'cluster',
           value: '1',
           operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
         },
         {
           key: 'container',
           value: '2',
           operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
         },
       ]);
     });
 
     it('should maintain default filter as non-applicable if we turn filter to match-all and then restore', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getApplicableFiltersSpy } = setup(
+      const { filtersVar, getFiltersApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2361,7 +2366,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(getApplicableFiltersSpy).toHaveBeenCalled();
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
 
@@ -2406,9 +2411,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         {
           filters: [
             { key: 'pod', operator: '=', value: 'val1' },
-            { key: 'static', operator: '=', value: 'val2' },
             { key: 'container', operator: '=', value: 'val3' },
           ],
+          originFilters: [{ key: 'static', operator: '=', value: 'val2', origin: 'dashboard' }],
           layout: 'combobox',
         },
         undefined,
@@ -2782,11 +2787,11 @@ function setup(
   overrides?: Partial<AdHocFiltersVariableState>,
   filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
   scopesVariable?: ScopesVariable,
-  useGetApplicableFilters?: boolean
+  useGetFiltersApplicability?: boolean
 ) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
-  const getApplicableFiltersSpy = jest.fn();
+  const getFiltersApplicabilitySpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
@@ -2801,10 +2806,15 @@ function setup(
         getRef() {
           return { uid: 'my-ds-uid' };
         },
-        ...(useGetApplicableFilters && {
-          getApplicableFilters(options: any) {
-            getApplicableFiltersSpy(options);
-            return ['cluster', 'container'];
+        ...(useGetFiltersApplicability && {
+          getFiltersApplicability(options: any) {
+            getFiltersApplicabilitySpy(options);
+            return [
+              { key: 'cluster', applicable: true },
+              { key: 'container', applicable: true },
+              { key: 'pod', applicable: false, reason: 'reason' },
+              { key: 'static', applicable: false, origin: 'dashboard' },
+            ];
           },
         }),
       };
@@ -2885,7 +2895,7 @@ function setup(
     runRequest: runRequestMock.fn,
     getTagKeysSpy,
     getTagValuesSpy,
-    getApplicableFiltersSpy,
+    getFiltersApplicabilitySpy,
     timeRange,
   };
 }
