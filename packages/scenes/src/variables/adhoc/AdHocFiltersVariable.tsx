@@ -266,8 +266,8 @@ export class AdHocFiltersVariable
   private _activationHandler = () => {
     this._setStateWithFiltersApplicabilityCheck(
       {
-        filters: [...this.state.filters],
-        originFilters: [...(this.state.originFilters ?? [])],
+        filters: this.state.filters,
+        originFilters: this.state.originFilters,
       },
       true
     );
@@ -337,7 +337,7 @@ export class AdHocFiltersVariable
 
     // maintain other originFilters in the array, only update scopes ones
     this._setStateWithFiltersApplicabilityCheck({
-      filters: [...this.state.filters],
+      filters: this.state.filters,
       originFilters: [...finalFilters, ...remainingFilters],
     });
     this._prevScopes = scopes;
@@ -455,7 +455,7 @@ export class AdHocFiltersVariable
       if ('value' in update && update['value'] !== '') {
         this._setStateWithFiltersApplicabilityCheck({
           filters: [...filters, { ..._wip, ...update }],
-          originFilters: [...(this.state.originFilters ?? [])],
+          originFilters: this.state.originFilters,
           _wip: undefined,
         });
       } else {
@@ -491,7 +491,7 @@ export class AdHocFiltersVariable
 
     this._setStateWithFiltersApplicabilityCheck({
       filters: this.state.filters.filter((f) => f !== filter),
-      originFilters: [...(this.state.originFilters ?? [])],
+      originFilters: this.state.originFilters,
     });
   }
 
