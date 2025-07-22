@@ -569,12 +569,12 @@ export class AdHocFiltersVariable
 
   public async _setStateWithFiltersApplicabilityCheck(
     update: Partial<AdHocFiltersVariableState>,
-    exitWithNoStateUpdate?: boolean
+    returnWithoutStateUpdate?: boolean
   ) {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getFiltersApplicability) {
-      if (!exitWithNoStateUpdate) {
+      if (!returnWithoutStateUpdate) {
         this.setState(update);
       }
 
