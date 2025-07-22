@@ -264,10 +264,13 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    this._setStateWithFiltersApplicabilityCheck({
-      filters: [...this.state.filters],
-      originFilters: [...(this.state.originFilters ?? [])],
-    });
+    this._setStateWithFiltersApplicabilityCheck(
+      {
+        filters: [...this.state.filters],
+        originFilters: [...(this.state.originFilters ?? [])],
+      },
+      true
+    );
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
@@ -333,10 +336,10 @@ export class AdHocFiltersVariable
     ];
 
     // maintain other originFilters in the array, only update scopes ones
-    this._setStateWithFiltersApplicabilityCheck(
-      { filters: [...this.state.filters], originFilters: [...finalFilters, ...remainingFilters] },
-      true
-    );
+    this._setStateWithFiltersApplicabilityCheck({
+      filters: [...this.state.filters],
+      originFilters: [...finalFilters, ...remainingFilters],
+    });
     this._prevScopes = scopes;
   }
 
@@ -450,14 +453,11 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
-        this._setStateWithFiltersApplicabilityCheck(
-          {
-            filters: [...filters, { ..._wip, ...update }],
-            originFilters: [...(this.state.originFilters ?? [])],
-            _wip: undefined,
-          },
-          true
-        );
+        this._setStateWithFiltersApplicabilityCheck({
+          filters: [...filters, { ..._wip, ...update }],
+          originFilters: [...(this.state.originFilters ?? [])],
+          _wip: undefined,
+        });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -489,13 +489,10 @@ export class AdHocFiltersVariable
       return;
     }
 
-    this._setStateWithFiltersApplicabilityCheck(
-      {
-        filters: this.state.filters.filter((f) => f !== filter),
-        originFilters: [...(this.state.originFilters ?? [])],
-      },
-      true
-    );
+    this._setStateWithFiltersApplicabilityCheck({
+      filters: this.state.filters.filter((f) => f !== filter),
+      originFilters: [...(this.state.originFilters ?? [])],
+    });
   }
 
   public _removeLastFilter() {
@@ -572,12 +569,12 @@ export class AdHocFiltersVariable
 
   public async _setStateWithFiltersApplicabilityCheck(
     update: Partial<AdHocFiltersVariableState>,
-    setStateOnCheckFail?: boolean
+    exitWithNoStateUpdate?: boolean
   ) {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds || !ds.getFiltersApplicability()) {
-      if (setStateOnCheckFail) {
+    if (!ds || !ds.getFiltersApplicability) {
+      if (!exitWithNoStateUpdate) {
         this.setState(update);
       }
 
