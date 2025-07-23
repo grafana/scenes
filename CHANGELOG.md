@@ -1,3 +1,21 @@
+# v6.27.3 (Wed Jul 23 2025)
+
+#### 🐛 Bug Fix
+
+- Internationalisation: Add crowdin download action [#1179](https://github.com/grafana/scenes/pull/1179) ([@ashharrison90](https://github.com/ashharrison90))
+- `@grafana/scenes`
+  - AdHocFiltersCombobox: Update z-index [#1166](https://github.com/grafana/scenes/pull/1166) ([@ashharrison90](https://github.com/ashharrison90))
+  - AdHocFilters: Refactor original values to take origin in key as well [#1185](https://github.com/grafana/scenes/pull/1185) ([@mdvictor](https://github.com/mdvictor))
+  - Time zone selection: When selecting Default in time zone picker, interpolate timezone from user profile setting [#1186](https://github.com/grafana/scenes/pull/1186) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 3
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.27.2 (Wed Jul 09 2025)
 
 #### 🐛 Bug Fix
