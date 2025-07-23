@@ -6,7 +6,8 @@
     "isolatedModules": true,
     "rootDirs": ["."],
     "noImplicitReturns": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "jsx": "react-jsx"
   },
   "exclude": ["dist/**/*"],
   "include": ["utils/**/*.ts*", "src/**/*.ts*"]

@@ -13,6 +13,13 @@ module.exports = [
   {
     files: ['src/**/*.{ts,tsx}'],
     rules: {
+      'react/jsx-uses-react': 'off',
+      'react/react-in-jsx-scope': 'off',
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
       '@typescript-eslint/explicit-member-accessibility': [
         'error',
         {

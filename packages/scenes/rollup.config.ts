@@ -18,6 +18,7 @@ const plugins = [
   esbuild({
     target: 'es2018',
     tsconfig: './tsconfig.json',
+    jsx: 'automatic',
   }),
   eslint(),
   json(),
