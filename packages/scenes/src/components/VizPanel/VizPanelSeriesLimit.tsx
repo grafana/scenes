@@ -2,7 +2,6 @@ import { t } from '@grafana/i18n';
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PanelData } from '@grafana/data';
 import { Button, Icon, Tooltip, useStyles2 } from '@grafana/ui';
-import React from 'react';
 
 export interface Props {
   showAll?: boolean;

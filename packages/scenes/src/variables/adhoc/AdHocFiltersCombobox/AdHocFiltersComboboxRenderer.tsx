@@ -1,7 +1,7 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
-import React, { memo, useRef } from 'react';
+import { memo, useRef } from 'react';
 import { AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';

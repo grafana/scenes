@@ -1,5 +1,4 @@
 import { t } from '@grafana/i18n';
-import React from 'react';
 
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';

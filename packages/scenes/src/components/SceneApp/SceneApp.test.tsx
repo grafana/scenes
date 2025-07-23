@@ -1,7 +1,6 @@
 import { NavModelItem } from '@grafana/data';
 import { locationService, PluginPage, PluginPageProps } from '@grafana/runtime';
 import { screen, render } from '@testing-library/react';
-import React from 'react';
 import { renderAppInsideRouterWithStartingUrl } from '../../../utils/test/renderAppInsideRoutingWithStartingUrl';
 import { SceneObject } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';

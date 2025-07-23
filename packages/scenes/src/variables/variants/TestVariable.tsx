@@ -13,7 +13,6 @@ import { VariableRefresh } from '@grafana/data';
 import { getClosest } from '../../core/sceneGraph/utils';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { SceneQueryControllerEntry } from '../../behaviors/types';
-import React from 'react';
 
 export interface TestVariableState extends MultiValueVariableState {
   query: string;

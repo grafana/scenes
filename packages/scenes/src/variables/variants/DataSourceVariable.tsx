@@ -11,7 +11,6 @@ import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
-import React from 'react';
 
 export interface DataSourceVariableState extends MultiValueVariableState {
   /**

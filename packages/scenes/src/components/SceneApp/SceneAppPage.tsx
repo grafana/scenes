@@ -1,5 +1,4 @@
 import { t, Trans } from '@grafana/i18n';
-import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObject, isDataRequestEnricher } from '../../core/types';

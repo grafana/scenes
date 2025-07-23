@@ -1,4 +1,3 @@
-import React from 'react';
 import { Unsubscribable } from 'rxjs';
 import { rangeUtil } from '@grafana/data';
 import { config } from '@grafana/runtime';

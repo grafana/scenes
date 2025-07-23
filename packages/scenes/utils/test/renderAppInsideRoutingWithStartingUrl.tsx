@@ -1,4 +1,3 @@
-import React from 'react';
 import { locationService } from '@grafana/runtime';
 import { render } from '@testing-library/react';
 import { SceneApp } from '../../src/components/SceneApp/SceneApp';

@@ -2,7 +2,6 @@ import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, Pan
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config } from '@grafana/runtime';
 import { act, getAllByRole, render, screen } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
-import React from 'react';
 import { GroupByVariable, GroupByVariableState } from './GroupByVariable';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexLayout, SceneFlexItem } from '../../components/layout/SceneFlexLayout';

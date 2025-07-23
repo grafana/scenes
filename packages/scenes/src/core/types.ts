@@ -1,4 +1,3 @@
-import React from 'react';
 import { MonoTypeOperatorFunction, Observable, Unsubscribable } from 'rxjs';
 
 import {

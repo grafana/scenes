@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { IconName, Input, ToolbarButton } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
