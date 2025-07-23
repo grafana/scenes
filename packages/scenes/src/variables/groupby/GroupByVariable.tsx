@@ -18,6 +18,7 @@ import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIndicatorContainer';
+import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -276,6 +277,21 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     defaultValue,
   } = model.useState();
 
+  const arr = [
+    {
+      key: 'cluster',
+      isApplicable: false,
+    },
+    {
+      key: 'container',
+      isApplicable: false,
+    },
+    {
+      key: 'cpu',
+      isApplicable: true,
+    },
+  ];
+
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
     const arrayText = isArray(text) ? text : [text];
@@ -358,6 +374,11 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
               IndicatorsContainer: () => <DefaultGroupByCustomIndicatorContainer model={model} />,
             }
           : {}),
+        MultiValueContainer: ({ innerProps, children }: React.PropsWithChildren<GroupByContainerProps>) => (
+          <GroupByValueContainer innerProps={innerProps} filtersApplicability={arr}>
+            {children}
+          </GroupByValueContainer>
+        ),
       }}
       onInputChange={onInputChange}
       onBlur={() => {
