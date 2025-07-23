@@ -4,6 +4,8 @@ import {
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
+  // @ts-expect-error (temporary till we update grafana/data)
+  FiltersApplicability,
   Scope,
   SelectableValue,
 } from '@grafana/data';
@@ -46,6 +48,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   restorable?: boolean;
   // sets this filter as non-applicable
   nonApplicable?: boolean;
+  // reason with reason for nonApplicable filters
+  nonApplicableReason?: string;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -207,6 +211,7 @@ interface OriginalValue {
   value: string[];
   operator: string;
   nonApplicable?: boolean;
+  nonApplicableReason?: string;
 }
 
 export class AdHocFiltersVariable
@@ -259,7 +264,10 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    this._verifyNonApplicableFilters();
+    this._setStateWithFiltersApplicabilityCheck({
+      filters: this.state.filters,
+      originFilters: this.state.originFilters,
+    });
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
@@ -325,7 +333,10 @@ export class AdHocFiltersVariable
     ];
 
     // maintain other originFilters in the array, only update scopes ones
-    this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
+    this._setStateWithFiltersApplicabilityCheck({
+      filters: this.state.filters,
+      originFilters: [...finalFilters, ...remainingFilters],
+    });
     this._prevScopes = scopes;
   }
 
@@ -439,7 +450,11 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
-        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
+        this._setStateWithFiltersApplicabilityCheck({
+          filters: [...filters, { ..._wip, ...update }],
+          originFilters: this.state.originFilters,
+          _wip: undefined,
+        });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -471,7 +486,10 @@ export class AdHocFiltersVariable
       return;
     }
 
-    this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
+    this._setStateWithFiltersApplicabilityCheck({
+      filters: this.state.filters.filter((f) => f !== filter),
+      originFilters: this.state.originFilters,
+    });
   }
 
   public _removeLastFilter() {
@@ -546,58 +564,62 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async _verifyNonApplicableFilters() {
-    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
-
+  public async _setStateWithFiltersApplicabilityCheck(update: Partial<AdHocFiltersVariableState>) {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds || !ds.getApplicableFilters) {
-      return [];
+    if (!ds || !ds.getFiltersApplicability) {
+      this.setState(update);
+      return;
+    }
+
+    if (!update.filters) {
+      return;
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response: string[] = await ds.getApplicableFilters({
-      filters,
+    const response: FiltersApplicability[] = await ds.getFiltersApplicability({
+      filters: [...update.filters, ...(update.originFilters ?? [])],
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
 
-    const update = {
-      filters: [...this.state.filters],
-      originFilters: [...(this.state.originFilters ?? [])],
-    };
+    const responseMap = new Map<string, FiltersApplicability>();
+    response.forEach((filter) => {
+      responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
+    });
 
     update.filters.forEach((f) => {
-      const isApplicable = response.includes(f.key);
+      const filter = responseMap.get(f.key);
 
-      if (!isApplicable) {
-        f.nonApplicable = true;
+      if (filter) {
+        f.nonApplicable = !filter.applicable;
+        f.nonApplicableReason = filter.reason;
       }
     });
 
     update.originFilters?.forEach((f) => {
-      const isApplicable = response.includes(f.key);
+      const filter = responseMap.get(`${f.key}-${f.origin}`);
 
-      if (!isApplicable) {
+      if (filter) {
         if (!f.matchAllFilter) {
-          f.nonApplicable = true;
+          f.nonApplicable = !filter.applicable;
+          f.nonApplicableReason = filter.reason;
         }
 
         const originalValue = this._originalValues.get(`${f.key}-${f.origin}`);
         if (originalValue) {
-          originalValue.nonApplicable = true;
+          originalValue.nonApplicable = !filter.applicable;
+          originalValue.nonApplicableReason = filter?.reason;
         }
       }
     });
 
     this.setState(update);
-
-    return;
   }
 
   /**
