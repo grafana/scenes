@@ -52,6 +52,7 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
           return (
             <Menu.Item
               key={item.text}
+              role="menuitem"
               label={item.text}
               icon={item.iconClassName}
               childItems={item.subMenu ? renderItems(item.subMenu) : undefined}
