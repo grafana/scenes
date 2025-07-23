@@ -80,6 +80,9 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     }
   };
 
+  // filters that are in a clean, original state that are applicable and not readonly
+  const cleanFilter = !filter.restorable && !filter.readOnly && !filter.nonApplicable;
+
   if (viewMode) {
     const pillTextContent = `${keyLabel} ${filter.operator} ${valueLabel}`;
     const pillText = (
@@ -172,7 +175,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {filter.origin && !filter.restorable && !filter.readOnly && !filter.nonApplicable && (
+        {filter.origin && cleanFilter && (
           <Tooltip content={getOriginFilterTooltips(filter.origin).info} placement={'bottom'}>
             <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
           </Tooltip>

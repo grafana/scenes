@@ -264,13 +264,10 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    this._setStateWithFiltersApplicabilityCheck(
-      {
-        filters: this.state.filters,
-        originFilters: this.state.originFilters,
-      },
-      true
-    );
+    this._setStateWithFiltersApplicabilityCheck({
+      filters: this.state.filters,
+      originFilters: this.state.originFilters,
+    });
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
@@ -567,17 +564,11 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async _setStateWithFiltersApplicabilityCheck(
-    update: Partial<AdHocFiltersVariableState>,
-    returnWithoutStateUpdate?: boolean
-  ) {
+  public async _setStateWithFiltersApplicabilityCheck(update: Partial<AdHocFiltersVariableState>) {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getFiltersApplicability) {
-      if (!returnWithoutStateUpdate) {
-        this.setState(update);
-      }
-
+      this.setState(update);
       return;
     }
 
