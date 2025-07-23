@@ -1,3 +1,22 @@
+# v6.28.0 (Wed Jul 23 2025)
+
+#### 🚀 Enhancement
+
+- AdHocFilters: Show reason for non-applicable filters [#1181](https://github.com/grafana/scenes/pull/1181) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- I18n: Download translations from Crowdin [#1188](https://github.com/grafana/scenes/pull/1188) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@ashharrison90](https://github.com/ashharrison90) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 4
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.27.3 (Wed Jul 23 2025)
 
 #### 🐛 Bug Fix
