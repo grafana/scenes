@@ -1,0 +1,148 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "{{keyLabel}}キーでフィルターを編集 ",
+        "managed-filter": "{{origin}}管理フィルター",
+        "remove-filter-with-key": "{{keyLabel}}キーでフィルターを削除 "
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "フィルター値を削除 - {{itemLabel}}",
+        "use-custom-value": "カスタム値を使用：{{itemLabel}} "
+      },
+      "fallback-page": {
+        "content": "リンクからこのページにアクセスした場合、アプリケーションにバグがある可能性があります。",
+        "subTitle": "URLがどのページにも一致しません",
+        "title": "見つかりません"
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "シーンを折りたたむ",
+        "expand-button-label": "シーンを展開",
+        "remove-button-label": "シーンを削除"
+      },
+      "scene-debugger": {
+        "object-details": "オブジェクトの詳細",
+        "scene-graph": "シーングラフ",
+        "title-scene-debugger": "シーンデバッガー"
+      },
+      "scene-grid-row": {
+        "collapse-row": "行を折りたたむ",
+        "expand-row": "行を展開"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "比較",
+        "button-tooltip": "時間枠比較を有効にする"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "ペインリサイズウィジェット"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "タイトル"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "探検"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "プラグインパネルを読み込み中...",
+        "panel-plugin-has-no-panel-component": "パネルプラグインにパネルコンポーネントがありません"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "単一パネルで多数の系列を表示すると、パフォーマンスに影響し、データが読みにくくなる場合があります。",
+        "warning-message": "{{seriesLimit}}系列のみ表示"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "削除"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "クエリをキャンセル"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "フィルター演算子を編集"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "フィルターを追加",
+        "title-add-filter": "フィルターを追加"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "フィルターを削除",
+        "key-select": {
+          "placeholder-select-label": "ラベルを選択"
+        },
+        "label-select-label": "ラベルを選択",
+        "title-remove-filter": "フィルターを削除",
+        "value-select": {
+          "placeholder-select-value": "値を選択"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "デフォルト"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "クリア",
+        "tooltip": "このダッシュボードでデフォルトで適用されます。編集した場合、他のダッシュボードに引き継がれます。",
+        "tooltip-restore-groupby-set-by-this-dashboard": "このダッシュボードで設定されたgroupbyを復元します。"
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "カンマ区切り値",
+            "double-quoted-values": "二重引用符で囲まれた値",
+            "format-date-in-different-ways": "日付を様々な形式でフォーマット",
+            "format-multivalued-variables-using-syntax-example": "glob構文を使用して複数値変数をフォーマット（例: {value1,value2}）",
+            "html-escaping-of-values": "値のHTMLエスケープ",
+            "json-stringify-value": "JSON文字列化値",
+            "keep-value-as-is": "値をそのまま保持",
+            "multiple-values-are-formatted-like-variablevalue": "複数の値は変数=値の形式でフォーマットされます",
+            "single-quoted-values": "一重引用符で囲まれた値",
+            "useful-escaping-values-taking-syntax-characters": "URI構文文字を考慮したURLエスケープ値に便利",
+            "useful-for-url-escaping-values": "URLエスケープ値に便利",
+            "values-are-separated-by-character": "値は|文字で区切られます"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "セレクターでグループ化",
+        "placeholder-group-by-label": "ラベルでグループ化"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "値を選択"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "オプションを読み込み中..."
+      },
+      "multi-value-apply-button": {
+        "apply": "適用"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "オプションが見つかりません"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "ラベルの取得中にエラーが発生しました。クリックして再試行"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "こんにちは"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "テキスト"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "値を入力"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "値を選択"
+      }
+    }
+  }
+}
