@@ -1,3 +1,15 @@
+# v6.28.1 (Thu Jul 24 2025)
+
+#### 🐛 Bug Fix
+
+- Custom variable: support newline separated options [#1191](https://github.com/grafana/scenes/pull/1191) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 1
+
+- Domas ([@domasx2](https://github.com/domasx2))
+
+---
+
 # v6.28.0 (Wed Jul 23 2025)
 
 #### 🚀 Enhancement
