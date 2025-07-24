@@ -1,5 +1,4 @@
 import { Trans } from '@grafana/i18n';
-import React from 'react';
 
 import { LinkButton } from '@grafana/ui';
 import { DataQuery } from '@grafana/schema';

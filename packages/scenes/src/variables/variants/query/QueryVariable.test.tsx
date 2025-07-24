@@ -1,5 +1,4 @@
 import { lastValueFrom, of } from 'rxjs';
-import React from 'react';
 
 import {
   DataQueryRequest,

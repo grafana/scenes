@@ -1,5 +1,5 @@
 import { t } from '@grafana/i18n';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { AdHocFiltersVariable, AdHocFilterWithLabels, isMultiValueOperator } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';

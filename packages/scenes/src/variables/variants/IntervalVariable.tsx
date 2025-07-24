@@ -2,7 +2,6 @@ import { t } from '@grafana/i18n';
 import { rangeUtil, SelectableValue } from '@grafana/data';
 import { VariableRefresh } from '@grafana/schema';
 import { Select } from '@grafana/ui';
-import React from 'react';
 import { Observable, of } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';

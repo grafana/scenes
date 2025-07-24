@@ -2,6 +2,7 @@
 const path = require('path');
 const grafanaConfig = require('@grafana/eslint-config/flat');
 const grafanaI18nPlugin = require('@grafana/i18n/eslint-plugin');
+const reactPlugin = require('eslint-plugin-react');
 const { includeIgnoreFile } = require('@eslint/compat');
 
 /**
@@ -10,6 +11,7 @@ const { includeIgnoreFile } = require('@eslint/compat');
 module.exports = [
   includeIgnoreFile(path.resolve(__dirname, '../../.gitignore')),
   ...grafanaConfig,
+  reactPlugin.configs.flat['jsx-runtime'],
   {
     files: ['src/**/*.{ts,tsx}'],
     rules: {

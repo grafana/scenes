@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { VariableHide } from '@grafana/data';
 
 import { SceneObjectBase, useSceneObjectState } from '../../core/SceneObjectBase';

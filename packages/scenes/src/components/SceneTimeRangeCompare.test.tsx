@@ -5,7 +5,6 @@ import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 import { NO_COMPARE_OPTION, PREVIOUS_PERIOD_COMPARE_OPTION, SceneTimeRangeCompare } from './SceneTimeRangeCompare';
 import userEvent from '@testing-library/user-event';
 import { render } from '@testing-library/react';
-import React from 'react';
 
 describe('SceneTimeRangeCompare', () => {
   describe('given a time range', () => {
