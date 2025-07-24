@@ -288,7 +288,7 @@ function getValidTimeZone(timeZone?: string): string | undefined {
   }
 
   if (isEmpty(timeZone)) {
-    return config.bootData.user.timezone;
+    return config.bootData.user?.timezone;
   }
 
   if (timeZone === defaultTimeZone) {
