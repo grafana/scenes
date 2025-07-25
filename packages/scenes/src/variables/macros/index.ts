@@ -26,16 +26,26 @@ export const macrosIndex = new Map<string, MacroVariableConstructor>([
 /**
  * Allows you to register a variable expression macro that can then be used in strings with syntax ${<macro_name>.<fieldPath>}
  * Call this on app activation and unregister the macro on deactivation.
+ * @param replace WARNING! If true, this will replace the existing macro with the same name. This is global and will affect all apps. Unregistering the macro will restore the original macro.
  * @returns a function that unregisters the macro
  */
-export function registerVariableMacro(name: string, macro: MacroVariableConstructor): () => void {
-  if (macrosIndex.get(name)) {
+export function registerVariableMacro(name: string, macro: MacroVariableConstructor, replace = false): () => void {
+  if (macrosIndex.get(name) && !replace) {
     throw new Error(`Macro already registered ${name}`);
+  }
+
+  let replacedMacro: MacroVariableConstructor | undefined;
+  if (macrosIndex.has(name) && !replace) {
+    replacedMacro = macrosIndex.get(name);
   }
 
   macrosIndex.set(name, macro);
 
   return () => {
-    macrosIndex.delete(name);
+    if (replacedMacro) {
+      macrosIndex.set(name, replacedMacro);
+    } else {
+      macrosIndex.delete(name);
+    }
   };
 }
