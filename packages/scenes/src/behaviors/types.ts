@@ -13,7 +13,7 @@ export interface SceneQueryControllerEntry {
   cancel?: () => void;
 }
 
-export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts' | 'plugin';
+export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts' | 'plugin' | string;
 
 export interface SceneInteractionProfileEvent {
   origin: string;

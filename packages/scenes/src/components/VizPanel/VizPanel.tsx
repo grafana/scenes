@@ -165,7 +165,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         const queryControler = sceneGraph.getQueryController(this);
         if (queryControler && queryControler.state.enableProfiling) {
           wrapPromiseInStateObservable(panelPromise)
-            .pipe(registerQueryWithController({ type: 'plugin', origin: this }))
+            .pipe(registerQueryWithController({ type: `plugin/${pluginId}`, origin: this }))
             .subscribe(() => {});
         }
 

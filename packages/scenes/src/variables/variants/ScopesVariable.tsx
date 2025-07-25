@@ -13,6 +13,8 @@ import { useContext, useEffect } from 'react';
 import { VariableFormatID, VariableHide } from '@grafana/schema';
 import { SCOPES_VARIABLE_NAME } from '../constants';
 import { isEqual } from 'lodash';
+import { getQueryController } from '../../core/sceneGraph/getQueryController';
+import { SCOPES_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
 
 export interface ScopesVariableState extends SceneVariableState {
   /**
@@ -99,6 +101,8 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
 
     // Only update scopes value state when loading is false and the scopes have changed
     if (!loading && (scopesHaveChanged || newScopes.length === 0)) {
+      const queryController = getQueryController(this);
+      queryController?.startProfile(SCOPES_CHANGED_INTERACTION);
       this.setState({ scopes: state.value, loading });
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     } else {

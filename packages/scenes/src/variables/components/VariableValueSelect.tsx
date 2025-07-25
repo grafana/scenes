@@ -19,6 +19,7 @@ import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
 import { sceneGraph } from '../../core/sceneGraph';
+import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
 
 const filterNoOp = () => true;
 
@@ -99,7 +100,7 @@ export function VariableValueSelect({ model, state }: { model: MultiValueVariabl
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(newValue) => {
         model.changeValueTo(newValue.value!, newValue.label!, true);
-        queryController?.startProfile('VariableValueSelect');
+        queryController?.startProfile(VARIABLE_VALUE_CHANGED_INTERACTION);
 
         if (hasCustomValue !== newValue.__isNew__) {
           setHasCustomValue(newValue.__isNew__);
@@ -186,7 +187,7 @@ export function VariableValueSelectMulti({
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(uncommittedValue, undefined, true);
-        queryController?.startProfile('VariableValueSelectMulti');
+        queryController?.startProfile(VARIABLE_VALUE_CHANGED_INTERACTION);
       }}
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
