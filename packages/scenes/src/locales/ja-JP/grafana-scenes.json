@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}}キーでフィルターを編集 ",
         "managed-filter": "{{origin}}管理フィルター",
+        "non-applicable": "",
         "remove-filter-with-key": "{{keyLabel}}キーでフィルターを削除 "
       },
       "adhoc-filters-combobox": {

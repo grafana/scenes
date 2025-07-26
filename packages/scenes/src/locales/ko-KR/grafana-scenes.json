@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}} 키로 필터 편집",
         "managed-filter": "{{origin}} 관리 필터",
+        "non-applicable": "",
         "remove-filter-with-key": "{{keyLabel}} 키로 필터 제거"
       },
       "adhoc-filters-combobox": {

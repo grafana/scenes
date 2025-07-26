@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "使用键 {{keyLabel}} 编辑筛选器",
         "managed-filter": "{{origin}} 托管筛选器",
+        "non-applicable": "",
         "remove-filter-with-key": "使用键 {{keyLabel}} 移除筛选器"
       },
       "adhoc-filters-combobox": {

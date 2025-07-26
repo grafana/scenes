@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}} kulcsos szűrő szerkesztése",
         "managed-filter": "{{origin}} által kezelt szűrő",
+        "non-applicable": "",
         "remove-filter-with-key": "{{keyLabel}} kulcsos szűrő eltávolítása"
       },
       "adhoc-filters-combobox": {
