@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Edit filter dengan kunci {{keyLabel}}",
         "managed-filter": "Filter {{origin}} yang dikelola",
+        "non-applicable": "",
         "remove-filter-with-key": "Hapus filter dengan kunci {{keyLabel}}"
       },
       "adhoc-filters-combobox": {

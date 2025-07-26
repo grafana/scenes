@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Upravit filtr pomocí klíče {{keyLabel}}",
         "managed-filter": "Spravovaný filtr: {{origin}}",
+        "non-applicable": "",
         "remove-filter-with-key": "Odebrat filtr pomocí klíče {{keyLabel}}"
       },
       "adhoc-filters-combobox": {

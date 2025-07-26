@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "使用鍵 {{keyLabel}} 編輯篩選條件",
         "managed-filter": "{{origin}} 受管理的篩選條件",
+        "non-applicable": "",
         "remove-filter-with-key": "使用鍵 {{keyLabel}} 移除篩選條件"
       },
       "adhoc-filters-combobox": {

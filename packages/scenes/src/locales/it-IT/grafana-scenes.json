@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Modifica filtro con chiave {{keyLabel}}",
         "managed-filter": "filtro gestito da {{origin}}",
+        "non-applicable": "",
         "remove-filter-with-key": "Rimuovi filtro con chiave {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
