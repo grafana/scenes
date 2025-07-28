@@ -206,10 +206,10 @@ export function calculateNetworkTime(requests: PerformanceResourceTiming[]): num
 }
 
 export const REFRESH_INTERACTION = 'refresh';
-export const TIME_RANGE_CHANGE_INTERACTION = 'time-range-change';
-export const FILTER_ADDED_INTERACTION = 'filter-added';
-export const FILTER_REMOVED_INTERACTION = 'filter-removed';
-export const FILTER_CHANGED_INTERACTION = 'filter-changed';
-export const FILTER_RESTORED_INTERACTION = 'filter-restored';
-export const VARIABLE_VALUE_CHANGED_INTERACTION = 'variable-value-changed';
-export const SCOPES_CHANGED_INTERACTION = 'scopes-changed';
+export const TIME_RANGE_CHANGE_INTERACTION = 'time_range_change';
+export const FILTER_ADDED_INTERACTION = 'filter_added';
+export const FILTER_REMOVED_INTERACTION = 'filter_removed';
+export const FILTER_CHANGED_INTERACTION = 'filter_changed';
+export const FILTER_RESTORED_INTERACTION = 'filter_restored';
+export const VARIABLE_VALUE_CHANGED_INTERACTION = 'variable_value_changed';
+export const SCOPES_CHANGED_INTERACTION = 'scopes_changed';
