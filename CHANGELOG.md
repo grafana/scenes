@@ -1,3 +1,16 @@
+# v6.28.2 (Mon Jul 28 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Accessibility: Add `role="menuitem"` to `VizPanelMenu` items [#1189](https://github.com/grafana/scenes/pull/1189) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v6.28.1 (Thu Jul 24 2025)
 
 #### 🐛 Bug Fix
