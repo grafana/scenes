@@ -187,7 +187,6 @@ export function VariableValueSelectMulti({
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(uncommittedValue, undefined, true);
-        queryController?.startProfile(VARIABLE_VALUE_CHANGED_INTERACTION);
       }}
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
