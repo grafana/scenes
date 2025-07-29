@@ -1,3 +1,16 @@
+# v6.28.4 (Tue Jul 29 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add option to replace variable macros [#1196](https://github.com/grafana/scenes/pull/1196) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v6.28.3 (Tue Jul 29 2025)
 
 #### 🐛 Bug Fix
