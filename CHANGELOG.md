@@ -1,3 +1,16 @@
+# v6.28.3 (Tue Jul 29 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Enhance `SceneRenderProfiler` with additional interaction tracking [#1195](https://github.com/grafana/scenes/pull/1195) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.28.2 (Mon Jul 28 2025)
 
 #### 🐛 Bug Fix
