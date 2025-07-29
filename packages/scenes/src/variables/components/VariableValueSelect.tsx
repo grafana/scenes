@@ -131,7 +131,6 @@ export function VariableValueSelectMulti({
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
   const [inputValue, setInputValue] = useState('');
-  const queryController = sceneGraph.getQueryController(model);
 
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
