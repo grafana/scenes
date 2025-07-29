@@ -30,7 +30,7 @@ export const macrosIndex = new Map<string, MacroVariableConstructor>([
  * @returns a function that unregisters the macro
  */
 export function registerVariableMacro(name: string, macro: MacroVariableConstructor, replace = false): () => void {
-  if (!replace &&macrosIndex.get(name)) {
+  if (!replace && macrosIndex.get(name)) {
     throw new Error(`Macro already registered ${name}`);
   }
 
