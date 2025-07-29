@@ -35,7 +35,7 @@ export class SceneRenderProfiler {
         this.#profileStartTs = performance.now();
         writeSceneLog(this.constructor.name, 'Profile started:', this.#profileInProgress, this.#profileStartTs);
       } else {
-        // If there i a profile in progress but tail recording is not started, add a crumb to the current profile
+        // If there is a profile in progress but tail recording is not started, add a crumb to the current profile
         // and consider this a continuation of an interaction.
         this.addCrumb(name);
       }
