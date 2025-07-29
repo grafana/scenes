@@ -22,16 +22,28 @@ export class SceneRenderProfiler {
   public constructor(private queryController: SceneQueryControllerLike) {}
 
   public startProfile(name: string) {
-    if (this.#trailAnimationFrameId) {
-      cancelAnimationFrame(this.#trailAnimationFrameId);
-      this.#trailAnimationFrameId = null;
+    if (this.#profileInProgress) {
+      // When profile is in tail recording phase, we need to stop it and start a new profile
+      // TODO: consider capturing the profile that was in progress and marking it as canceled or sth like that.
+      if (this.#trailAnimationFrameId) {
+        cancelAnimationFrame(this.#trailAnimationFrameId);
+        this.#trailAnimationFrameId = null;
 
-      writeSceneLog(this.constructor.name, 'New profile: Stopped recording frames');
+        writeSceneLog(this.constructor.name, 'New profile: Stopped recording frames ');
+
+        this.#profileInProgress = { origin: name, crumbs: [] };
+        this.#profileStartTs = performance.now();
+        writeSceneLog(this.constructor.name, 'Profile started:', this.#profileInProgress, this.#profileStartTs);
+      } else {
+        // If there is a profile in progress but tail recording is not started, add a crumb to the current profile
+        // and consider this a continuation of an interaction.
+        this.addCrumb(name);
+      }
+    } else {
+      this.#profileInProgress = { origin: name, crumbs: [] };
+      this.#profileStartTs = performance.now();
+      writeSceneLog(this.constructor.name, 'Profile started:', this.#profileInProgress, this.#profileStartTs);
     }
-
-    this.#profileInProgress = { origin: name, crumbs: [] };
-    this.#profileStartTs = performance.now();
-    writeSceneLog(this.constructor.name, 'Profile started:', this.#profileInProgress, this.#profileStartTs);
   }
 
   private recordProfileTail(measurementStartTime: number, profileStartTs: number) {
@@ -72,14 +84,9 @@ export class SceneRenderProfiler {
       );
       this.#trailAnimationFrameId = null;
 
-      // performance.measure('DashboardInteraction tail', {
-      //   start: measurementStartTs,
-      //   end: measurementStartTs + n,
-      // });
-
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
 
-      performance.measure('DashboardInteraction', {
+      performance.measure(`DashboardInteraction ${this.#profileInProgress!.origin}`, {
         start: profileStartTs,
         end: profileEndTs,
       });
@@ -99,6 +106,7 @@ export class SceneRenderProfiler {
           // @ts-ignore
           totalJSHeapSize: performance.memory ? performance.memory.totalJSHeapSize : 0,
         });
+        this.#profileInProgress = null;
       }
       // @ts-ignore
       if (window.__runs) {
@@ -113,7 +121,6 @@ export class SceneRenderProfiler {
 
   public tryCompletingProfile() {
     writeSceneLog(this.constructor.name, 'Trying to complete profile', this.#profileInProgress);
-
     if (this.queryController.runningQueriesCount() === 0 && this.#profileInProgress) {
       writeSceneLog(this.constructor.name, 'All queries completed, stopping profile');
       this.recordProfileTail(performance.now(), this.#profileStartTs!);
@@ -133,6 +140,7 @@ export class SceneRenderProfiler {
 
   public addCrumb(crumb: string) {
     if (this.#profileInProgress) {
+      writeSceneLog(this.constructor.name, 'Adding crumb:', crumb);
       this.#profileInProgress.crumbs.push(crumb);
     }
   }
@@ -196,3 +204,12 @@ export function calculateNetworkTime(requests: PerformanceResourceTiming[]): num
 
   return totalNetworkTime;
 }
+
+export const REFRESH_INTERACTION = 'refresh';
+export const TIME_RANGE_CHANGE_INTERACTION = 'time_range_change';
+export const FILTER_ADDED_INTERACTION = 'filter_added';
+export const FILTER_REMOVED_INTERACTION = 'filter_removed';
+export const FILTER_CHANGED_INTERACTION = 'filter_changed';
+export const FILTER_RESTORED_INTERACTION = 'filter_restored';
+export const VARIABLE_VALUE_CHANGED_INTERACTION = 'variable_value_changed';
+export const SCOPES_CHANGED_INTERACTION = 'scopes_changed';

@@ -28,6 +28,8 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 import { isEqual } from 'lodash';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
+import { getQueryController } from '../../core/sceneGraph/getQueryController';
+import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -413,7 +415,8 @@ export class AdHocFiltersVariable
       original.valueLabels = originalFilter?.value;
       original.operator = originalFilter?.operator;
       original.nonApplicable = originalFilter?.nonApplicable;
-
+      const queryController = getQueryController(this);
+      queryController?.startProfile(FILTER_RESTORED_INTERACTION);
       this._updateFilter(filter, original);
     }
   }
@@ -485,6 +488,8 @@ export class AdHocFiltersVariable
       this.setState({ _wip: undefined });
       return;
     }
+    const queryController = getQueryController(this);
+    queryController?.startProfile(FILTER_REMOVED_INTERACTION);
 
     this._setStateWithFiltersApplicabilityCheck({
       filters: this.state.filters.filter((f) => f !== filter),
