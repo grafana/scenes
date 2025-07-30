@@ -76,7 +76,6 @@ export class SceneRenderProfiler {
       this.#trailAnimationFrameId = null;
 
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
-
       performance.measure(`DashboardInteraction ${this.#profileInProgress!.origin}`, {
         start: profileStartTs,
         end: profileEndTs,
@@ -90,6 +89,8 @@ export class SceneRenderProfiler {
           crumbs: this.#profileInProgress!.crumbs,
           duration: profileDuration + slowFramesTime,
           networkDuration,
+          startTs: profileStartTs,
+          endTs: profileEndTs,
           // @ts-ignore
           jsHeapSizeLimit: performance.memory ? performance.memory.jsHeapSizeLimit : 0,
           // @ts-ignore
