@@ -23,6 +23,8 @@ export interface SceneInteractionProfileEvent {
   usedJSHeapSize: number;
   totalJSHeapSize: number;
   crumbs: string[];
+  startTs: number;
+  endTs: number;
   // add more granular data,i.e. network times? slow frames?
 }
 
