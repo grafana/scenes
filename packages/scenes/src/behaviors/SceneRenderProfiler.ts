@@ -19,30 +19,19 @@ export class SceneRenderProfiler {
 
   lastFrameTime = 0;
 
-  public constructor(private queryController: SceneQueryControllerLike) {}
+  public constructor(private queryController?: SceneQueryControllerLike) {}
+
+  public setQueryController(queryController: SceneQueryControllerLike) {
+    this.queryController = queryController;
+  }
 
   public startProfile(name: string) {
     if (this.#profileInProgress) {
-      // When profile is in tail recording phase, we need to stop it and start a new profile
-      // TODO: consider capturing the profile that was in progress and marking it as canceled or sth like that.
-      if (this.#trailAnimationFrameId) {
-        cancelAnimationFrame(this.#trailAnimationFrameId);
-        this.#trailAnimationFrameId = null;
-
-        writeSceneLog(this.constructor.name, 'New profile: Stopped recording frames ');
-
-        this.#profileInProgress = { origin: name, crumbs: [] };
-        this.#profileStartTs = performance.now();
-        writeSceneLog(this.constructor.name, 'Profile started:', this.#profileInProgress, this.#profileStartTs);
-      } else {
-        // If there is a profile in progress but tail recording is not started, add a crumb to the current profile
-        // and consider this a continuation of an interaction.
-        this.addCrumb(name);
-      }
+      this.addCrumb(name);
     } else {
       this.#profileInProgress = { origin: name, crumbs: [] };
       this.#profileStartTs = performance.now();
-      writeSceneLog(this.constructor.name, 'Profile started:', this.#profileInProgress, this.#profileStartTs);
+      writeSceneLog('SceneRenderProfiler', 'Profile started:', this.#profileInProgress, this.#profileStartTs);
     }
   }
 
@@ -58,9 +47,11 @@ export class SceneRenderProfiler {
     this.#recordedTrailingSpans.push(frameLength);
 
     if (currentFrameTime - measurementStartTs! < POST_STORM_WINDOW) {
-      this.#trailAnimationFrameId = requestAnimationFrame(() =>
-        this.measureTrailingFrames(measurementStartTs, currentFrameTime, profileStartTs)
-      );
+      if (this.#profileInProgress) {
+        this.#trailAnimationFrameId = requestAnimationFrame(() =>
+          this.measureTrailingFrames(measurementStartTs, currentFrameTime, profileStartTs)
+        );
+      }
     } else {
       const slowFrames = processRecordedSpans(this.#recordedTrailingSpans);
       const slowFramesTime = slowFrames.reduce((acc, val) => acc + val, 0);
@@ -93,7 +84,7 @@ export class SceneRenderProfiler {
 
       const networkDuration = captureNetwork(profileStartTs, profileEndTs);
 
-      if (this.queryController.state.onProfileComplete) {
+      if (this.queryController?.state.onProfileComplete) {
         this.queryController.state.onProfileComplete({
           origin: this.#profileInProgress!.origin,
           crumbs: this.#profileInProgress!.crumbs,
@@ -106,7 +97,9 @@ export class SceneRenderProfiler {
           // @ts-ignore
           totalJSHeapSize: performance.memory ? performance.memory.totalJSHeapSize : 0,
         });
+
         this.#profileInProgress = null;
+        this.#trailAnimationFrameId = null;
       }
       // @ts-ignore
       if (window.__runs) {
@@ -120,9 +113,9 @@ export class SceneRenderProfiler {
   };
 
   public tryCompletingProfile() {
-    writeSceneLog(this.constructor.name, 'Trying to complete profile', this.#profileInProgress);
-    if (this.queryController.runningQueriesCount() === 0 && this.#profileInProgress) {
-      writeSceneLog(this.constructor.name, 'All queries completed, stopping profile');
+    writeSceneLog('SceneRenderProfiler', 'Trying to complete profile', this.#profileInProgress);
+    if (this.queryController?.runningQueriesCount() === 0 && this.#profileInProgress) {
+      writeSceneLog('SceneRenderProfiler', 'All queries completed, stopping profile');
       this.recordProfileTail(performance.now(), this.#profileStartTs!);
     }
   }
@@ -134,13 +127,13 @@ export class SceneRenderProfiler {
     if (this.#trailAnimationFrameId) {
       cancelAnimationFrame(this.#trailAnimationFrameId);
       this.#trailAnimationFrameId = null;
-      writeSceneLog(this.constructor.name, 'Cancelled recording frames, new profile started');
+      writeSceneLog('SceneRenderProfiler', 'Cancelled recording frames, new profile started');
     }
   }
 
   public addCrumb(crumb: string) {
     if (this.#profileInProgress) {
-      writeSceneLog(this.constructor.name, 'Adding crumb:', crumb);
+      writeSceneLog('SceneRenderProfiler', 'Adding crumb:', crumb);
       this.#profileInProgress.crumbs.push(crumb);
     }
   }

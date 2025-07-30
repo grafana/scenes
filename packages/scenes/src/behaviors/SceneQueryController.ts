@@ -13,14 +13,18 @@ export class SceneQueryController
   implements SceneQueryControllerLike
 {
   public isQueryController: true = true;
-  private profiler = new SceneRenderProfiler(this);
 
   #running = new Set<SceneQueryControllerEntry>();
 
   #tryCompleteProfileFrameId: number | null = null;
 
-  public constructor(state: Partial<SceneQueryStateControllerState> = {}) {
+  public constructor(state: Partial<SceneQueryStateControllerState> = {}, private profiler?: SceneRenderProfiler) {
     super({ ...state, isRunning: false });
+
+    if (profiler) {
+      this.profiler = profiler;
+      profiler.setQueryController(this);
+    }
 
     // Clear running state on deactivate
     this.addActivationHandler(() => {
@@ -35,7 +39,7 @@ export class SceneQueryController
     if (!this.state.enableProfiling) {
       return;
     }
-    this.profiler.startProfile(name);
+    this.profiler?.startProfile(name);
   }
 
   public queryStarted(entry: SceneQueryControllerEntry) {
@@ -70,11 +74,11 @@ export class SceneQueryController
     if (dir === 1 && this.state.enableProfiling) {
       if (entry) {
         // Collect profile crumbs, variables, annotations, queries and plugins
-        this.profiler.addCrumb(`${entry.origin.constructor.name}/${entry.type}`);
+        this.profiler?.addCrumb(`${entry.type}`);
       }
-      if (this.profiler.isTailRecording()) {
-        writeSceneLog(this.constructor.name, 'New query started, cancelling tail recording');
-        this.profiler.cancelTailRecording();
+      if (this.profiler?.isTailRecording()) {
+        writeSceneLog('SceneQueryController', 'New query started, cancelling tail recording');
+        this.profiler?.cancelTailRecording();
       }
     }
 
@@ -86,7 +90,7 @@ export class SceneQueryController
       }
 
       this.#tryCompleteProfileFrameId = requestAnimationFrame(() => {
-        this.profiler.tryCompletingProfile();
+        this.profiler?.tryCompletingProfile();
       });
     }
   }
