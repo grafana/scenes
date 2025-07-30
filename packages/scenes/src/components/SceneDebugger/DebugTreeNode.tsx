@@ -1,7 +1,7 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { SceneObject } from '../../core/types';
 
 export interface Props {

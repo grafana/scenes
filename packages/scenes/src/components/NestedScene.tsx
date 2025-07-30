@@ -1,6 +1,5 @@
 import { t } from '@grafana/i18n';
 import { css, cx } from '@emotion/css';
-import React from 'react';
 
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, ToolbarButton, useStyles2 } from '@grafana/ui';

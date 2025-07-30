@@ -1,5 +1,4 @@
 import { t } from '@grafana/i18n';
-import React from 'react';
 import { Icon, IconButton, Tooltip, useStyles2, useTheme2 } from '@grafana/ui';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, IconName } from '@grafana/data';
