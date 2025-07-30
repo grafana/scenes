@@ -74,7 +74,7 @@ export class SceneQueryController
     if (dir === 1 && this.state.enableProfiling) {
       if (entry) {
         // Collect profile crumbs, variables, annotations, queries and plugins
-        this.profiler?.addCrumb(`${entry.origin.constructor.name}/${entry.type}`);
+        this.profiler?.addCrumb(`${entry.type}`);
       }
       if (this.profiler?.isTailRecording()) {
         writeSceneLog('SceneQueryController', 'New query started, cancelling tail recording');

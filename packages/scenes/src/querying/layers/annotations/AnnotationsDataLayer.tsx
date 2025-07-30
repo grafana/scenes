@@ -89,7 +89,7 @@ export class AnnotationsDataLayer
 
       let stream = executeAnnotationQuery(ds, timeRange, query, this).pipe(
         registerQueryWithController({
-          type: 'annotations',
+          type: 'AnnotationsDataLayer/annotationsLoading',
           origin: this,
           cancel: () => this.cancelQuery(),
         }),
