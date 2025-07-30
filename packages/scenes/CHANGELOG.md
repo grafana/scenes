@@ -1,3 +1,15 @@
+# v6.28.6 (Wed Jul 30 2025)
+
+#### 🐛 Bug Fix
+
+- SceneRenderProfiler: add start and end timestamps to profile events [#1199](https://github.com/grafana/scenes/pull/1199) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.28.5 (Wed Jul 30 2025)
 
 #### 🐛 Bug Fix
