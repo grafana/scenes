@@ -1,3 +1,42 @@
+# v6.28.6 (Wed Jul 30 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRenderProfiler: add start and end timestamps to profile events [#1199](https://github.com/grafana/scenes/pull/1199) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.28.5 (Wed Jul 30 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Make `SceneRenderProfiler` optional and injectable [#1198](https://github.com/grafana/scenes/pull/1198) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.28.4 (Tue Jul 29 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add option to replace variable macros [#1196](https://github.com/grafana/scenes/pull/1196) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
 # v6.28.3 (Tue Jul 29 2025)
 
 #### 🐛 Bug Fix

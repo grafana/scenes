@@ -87,7 +87,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
         return runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request).pipe(
           registerQueryWithController({
-            type: 'variable',
+            type: 'QueryVariable/getValueOptions',
             request: request,
             origin: this,
           }),
