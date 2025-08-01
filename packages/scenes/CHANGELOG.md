@@ -1,3 +1,15 @@
+# v6.28.7 (Fri Aug 01 2025)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Apply transformations returned by the migration handler [#1173](https://github.com/grafana/scenes/pull/1173) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v6.28.6 (Wed Jul 30 2025)
 
 #### 🐛 Bug Fix
