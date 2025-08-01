@@ -18,6 +18,7 @@ export function CustomVariable({
   initialValue,
   isMulti,
   includeAll,
+  skipUrlSync,
   children,
 }: CustomVariableProps): React.ReactNode {
   const scene = useSceneContext();
@@ -26,7 +27,16 @@ export function CustomVariable({
   let variable: CustomVariableObject | undefined = scene.findVariable(name);
 
   if (!variable) {
-    variable = new CustomVariableObject({ name, label, query, value: initialValue, isMulti, includeAll, hide });
+    variable = new CustomVariableObject({
+      name,
+      label,
+      query,
+      value: initialValue,
+      isMulti,
+      includeAll,
+      hide,
+      skipUrlSync,
+    });
   }
 
   useEffect(() => {
@@ -42,8 +52,9 @@ export function CustomVariable({
       hide,
       isMulti,
       includeAll,
+      skipUrlSync,
     });
-  }, [hide, includeAll, isMulti, label, query, variable]);
+  }, [skipUrlSync, hide, includeAll, isMulti, label, query, variable]);
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {
