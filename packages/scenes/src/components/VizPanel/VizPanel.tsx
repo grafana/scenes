@@ -233,7 +233,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    if (plugin.onPanelMigration && currentVersion !== pluginVersion && !isAfterPluginChange) {
+    if (
+      plugin.onPanelMigration &&
+      (currentVersion !== pluginVersion ||
+        //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/103710)
+        plugin.shouldMigrate?.(panel)) &&
+      !isAfterPluginChange
+    ) {
       // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
       panel.options = await plugin.onPanelMigration(panel);
     }
