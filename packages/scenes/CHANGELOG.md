@@ -1,3 +1,16 @@
+# v6.29.0 (Fri Aug 01 2025)
+
+#### 🚀 Enhancement
+
+- LazyLoader: Improve the lazy loading mechanism [#1197](https://github.com/grafana/scenes/pull/1197) ([@bfmatei](https://github.com/bfmatei) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v6.28.7 (Fri Aug 01 2025)
 
 #### 🐛 Bug Fix
