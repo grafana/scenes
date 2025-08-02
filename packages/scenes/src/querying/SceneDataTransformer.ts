@@ -1,4 +1,11 @@
-import { DataTopic, DataTransformerConfig, LoadingState, PanelData, ScopedVars, transformDataFrame } from '@grafana/data';
+import {
+  DataTopic,
+  DataTransformerConfig,
+  LoadingState,
+  PanelData,
+  ScopedVars,
+  transformDataFrame,
+} from '@grafana/data';
 import { toDataQueryError } from '@grafana/runtime';
 import { catchError, forkJoin, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
@@ -177,7 +184,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     const ctx = {
       interpolate: (value: string, scopedVars?: ScopedVars) => {
-        return sceneGraph.interpolate(this, value, {...data.request?.scopedVars, ...scopedVars});
+        return sceneGraph.interpolate(this, value, { ...data.request?.scopedVars, ...scopedVars });
       },
     };
 
