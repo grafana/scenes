@@ -12,7 +12,6 @@ export interface SceneDataTransformerState extends SceneDataState {
    * Array of standard transformation configs and custom transform operators
    */
   transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
-
 }
 
 /**
@@ -177,8 +176,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     }
 
     const ctx = {
-      interpolate: (value: string, scopedVarsOverride?: ScopedVars) => {
-        return sceneGraph.interpolate(this, value, scopedVarsOverride ?? data.request?.scopedVars);
+      interpolate: (value: string, scopedVars?: ScopedVars) => {
+        return sceneGraph.interpolate(this, value, {...data.request?.scopedVars, ...scopedVars});
       },
     };
 
