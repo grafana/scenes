@@ -1,4 +1,4 @@
-import { DataTopic, DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
+import { DataTopic, DataTransformerConfig, LoadingState, PanelData, ScopedVars, transformDataFrame } from '@grafana/data';
 import { toDataQueryError } from '@grafana/runtime';
 import { catchError, forkJoin, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
@@ -12,6 +12,7 @@ export interface SceneDataTransformerState extends SceneDataState {
    * Array of standard transformation configs and custom transform operators
    */
   transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
+
 }
 
 /**
@@ -176,8 +177,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     }
 
     const ctx = {
-      interpolate: (value: string) => {
-        return sceneGraph.interpolate(this, value, data.request?.scopedVars);
+      interpolate: (value: string, scopedVarsOverride?: ScopedVars) => {
+        return sceneGraph.interpolate(this, value, scopedVarsOverride ?? data.request?.scopedVars);
       },
     };
 
