@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Filter mit Schlüssel {{keyLabel}} bearbeiten",
         "managed-filter": "{{origin}} verwalteter Filter",
+        "non-applicable": "",
         "remove-filter-with-key": "Filter mit Schlüssel {{keyLabel}} entfernen"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Wenn Sie über einen Link hierher gekommen sind, enthält diese Anwendung möglicherweise einen Fehler.",
         "subTitle": "Die URL stimmt mit keiner Seite überein",
         "title": "Nicht gefunden"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Szene ausblenden",
