@@ -837,6 +837,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
+    await new Promise((r) => setTimeout(r, 1));
+
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
         value: 'newValue',
@@ -868,6 +870,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
+    await new Promise((r) => setTimeout(r, 1));
+
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
         value: 'newValue1',
@@ -881,7 +885,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     );
   });
 
-  it('will properly escape injected filter hash delimiter', () => {
+  it('will properly escape injected filter hash delimiter', async () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {
         key: 'baseKey1',
@@ -899,6 +903,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     );
 
     scopesVariable.update();
+
+    await new Promise((r) => setTimeout(r, 1));
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
@@ -1067,6 +1073,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
+    await new Promise((r) => setTimeout(r, 1));
+
     const urlValues = {
       'var-filters': [
         'dbFilterKey|!=|newDbFilterValue#dashboard#restorable',
@@ -1206,9 +1214,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
-    expect(filtersVar['_originalValues'].get('dbKey1')).toEqual({ value: ['dbValue1'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('dbKey2')).toEqual({ value: ['dbValue2'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('scopeKey')).toEqual({ value: ['scopeValue'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({ value: ['dbValue1'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({ value: ['dbValue2'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({ value: ['scopeValue'], operator: '=' });
   });
 
   it('should reset dashboard level filters if they are edited on unmount', () => {
@@ -1282,7 +1290,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters![0].restorable).toBe(false);
   });
 
-  it('will save the original value and set filter as restorable if it has an origin', () => {
+  it('will save the original value and set filter as restorable if it has an origin', async () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {
         key: 'originKey1',
@@ -1302,6 +1310,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
+    await new Promise((r) => setTimeout(r, 1));
+
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
         value: 'newValue1',
@@ -1312,7 +1322,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters![0].restorable).toEqual(true);
   });
 
-  it('will save the original multi values if it has origin so it can be later restored', () => {
+  it('will save the original multi values if it has origin so it can be later restored', async () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {
         key: 'originKey1',
@@ -1332,6 +1342,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
+    await new Promise((r) => setTimeout(r, 1));
+
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
         value: 'newValue1',
@@ -1341,11 +1353,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     expect(filtersVar.state.originFilters![0].value).toBe('newValue1');
     expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1']);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.value).toEqual([
-      'originValue1',
-      'originValue2',
-    ]);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.operator).toEqual('=|');
+    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1', 'originValue2']);
+    expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=|');
   });
 
   it('updated filter with no changes does not become restorable', async () => {
@@ -1362,6 +1372,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
+    await new Promise((r) => setTimeout(r, 1));
+
     act(() => {
       // same value, so no change
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
@@ -1375,7 +1387,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters![0].restorable).toEqual(false);
   });
 
-  it('sets filter as non restorable if we set the original value manually', () => {
+  it('sets filter as non restorable if we set the original value manually', async () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {
         key: 'originKey1',
@@ -1389,6 +1401,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
+    await new Promise((r) => setTimeout(r, 1));
+
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
         value: 'newValue1',
@@ -1397,8 +1411,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.originFilters![0].restorable).toEqual(true);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.value).toEqual(['originValue1']);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.operator).toEqual('=');
+    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1']);
+    expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=');
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
@@ -1412,7 +1427,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters![0].restorable).toEqual(false);
   });
 
-  it('restores original value if it exists', () => {
+  it('restores original value if it exists', async () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {
         key: 'originalKey1',
@@ -1425,6 +1440,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const { filtersVar } = setup({}, undefined, scopesVariable.scopesVar);
 
     scopesVariable.update();
+
+    await new Promise((r) => setTimeout(r, 1));
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
@@ -1622,7 +1639,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     [[], [], []],
   ])(
     'maintains correct filters and scope originated filters on activation',
-    (originFilters, scopeFilters, expected) => {
+    async (originFilters, scopeFilters, expected) => {
       // we need to preserve either edited scope injected filters or directly filters pulled from scopes
       const scopes: Scope[] = [];
 
@@ -1652,6 +1669,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       act(() => {
         scopesVar.updateStateFromContext({ value: scopes, loading: false });
       });
+
+      await new Promise((r) => setTimeout(r, 1));
 
       filtersVar.state.originFilters?.forEach((filter, index) => {
         expect(filter).toEqual(expected[index]);
@@ -2228,7 +2247,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   describe('non-applicable filters', () => {
     it('should set non-applicable filters on activation', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getApplicableFiltersSpy } = setup(
+      const { filtersVar, getFiltersApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2263,10 +2282,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(getApplicableFiltersSpy).toHaveBeenCalled();
-      expect(filtersVar.state.filters[0].nonApplicable).toBe(undefined);
-      expect(filtersVar.state.filters[1].nonApplicable).toBe(undefined);
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(filtersVar.state.filters[0].nonApplicable).toBe(false);
+      expect(filtersVar.state.filters[1].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
+      expect(filtersVar.state.filters[2].nonApplicableReason).toBe('reason');
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
     });
 
@@ -2315,18 +2335,22 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'cluster',
           value: '1',
           operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
         },
         {
           key: 'container',
           value: '2',
           operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
         },
       ]);
     });
 
     it('should maintain default filter as non-applicable if we turn filter to match-all and then restore', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getApplicableFiltersSpy } = setup(
+      const { filtersVar, getFiltersApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2361,7 +2385,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(getApplicableFiltersSpy).toHaveBeenCalled();
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
 
@@ -2406,9 +2430,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         {
           filters: [
             { key: 'pod', operator: '=', value: 'val1' },
-            { key: 'static', operator: '=', value: 'val2' },
             { key: 'container', operator: '=', value: 'val3' },
           ],
+          originFilters: [{ key: 'static', operator: '=', value: 'val2', origin: 'dashboard' }],
           layout: 'combobox',
         },
         undefined,
@@ -2427,6 +2451,55 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(podElement).toHaveStyle('text-decoration: line-through');
       expect(staticElement).toHaveStyle('text-decoration: line-through');
       expect(containerElement).not.toHaveStyle('text-decoration: line-through');
+    });
+  });
+
+  describe('turning origin filter into match-all when no values are present', () => {
+    it('should turn single value origin filter to match-all when value is removed', async () => {
+      setup(
+        {
+          originFilters: [{ key: 'pod', operator: '=', value: 'test', origin: 'dashboard' }],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod = test');
+
+      await userEvent.click(podElement);
+
+      await userEvent.keyboard('{Backspace}');
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
+    });
+
+    it('should turn multi value origin filter to match-all when value is removed', async () => {
+      setup(
+        {
+          originFilters: [
+            { key: 'pod', operator: '=|', value: 'test1', values: ['test1', 'test2'], origin: 'dashboard' },
+          ],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod =| test1, test2');
+
+      await userEvent.click(podElement);
+
+      await userEvent.keyboard('{Backspace}');
+      await userEvent.keyboard('{Backspace}');
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
     });
   });
 
@@ -2512,10 +2585,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('does not display hidden filters', async () => {
-      act(() => {
-        const { filtersVar } = setup();
+      const { filtersVar } = setup({
+        filters: [
+          { key: 'key1', operator: '=', value: 'val1', valueLabels: ['valLabel1'] },
+          { key: 'key2', operator: '=', value: 'val2', valueLabels: ['valLabel2'] },
+        ],
+      });
 
-        // @todo this test does not work! The setState isn't updating the render.
+      act(() => {
         filtersVar.setState({
           filters: [
             ...filtersVar.state.filters,
@@ -2525,10 +2602,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         });
       });
 
+      await new Promise((r) => setTimeout(r, 1));
+
       expect(await screen.findByText('key1 = valLabel1')).toBeInTheDocument();
       expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
-      expect(await screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
-      expect(await screen.queryAllByText('visible_key = visible_val')).toEqual([]);
+      expect(screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
+      expect(screen.queryAllByText('visible_key = visible_val')).toEqual([]);
     });
 
     it('focusing the input opens the key dropdown', async () => {
@@ -2782,11 +2861,11 @@ function setup(
   overrides?: Partial<AdHocFiltersVariableState>,
   filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
   scopesVariable?: ScopesVariable,
-  useGetApplicableFilters?: boolean
+  useGetFiltersApplicability?: boolean
 ) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
-  const getApplicableFiltersSpy = jest.fn();
+  const getFiltersApplicabilitySpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
@@ -2801,10 +2880,15 @@ function setup(
         getRef() {
           return { uid: 'my-ds-uid' };
         },
-        ...(useGetApplicableFilters && {
-          getApplicableFilters(options: any) {
-            getApplicableFiltersSpy(options);
-            return ['cluster', 'container'];
+        ...(useGetFiltersApplicability && {
+          getFiltersApplicability(options: any) {
+            getFiltersApplicabilitySpy(options);
+            return [
+              { key: 'cluster', applicable: true },
+              { key: 'container', applicable: true },
+              { key: 'pod', applicable: false, reason: 'reason' },
+              { key: 'static', applicable: false, origin: 'dashboard' },
+            ];
           },
         }),
       };
@@ -2885,7 +2969,7 @@ function setup(
     runRequest: runRequestMock.fn,
     getTagKeysSpy,
     getTagValuesSpy,
-    getApplicableFiltersSpy,
+    getFiltersApplicabilitySpy,
     timeRange,
   };
 }

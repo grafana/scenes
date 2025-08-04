@@ -682,6 +682,8 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       scene.setState({ $variables: new SceneVariableSet({ variables: [filtersVar] }) });
       deactivationHandlers.push(filtersVar.activate());
 
+      await new Promise((r) => setTimeout(r, 1));
+
       filtersVar.setState({
         filters: [
           { key: 'A', operator: '=', value: 'B' },

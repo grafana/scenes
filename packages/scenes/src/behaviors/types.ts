@@ -13,7 +13,7 @@ export interface SceneQueryControllerEntry {
   cancel?: () => void;
 }
 
-export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts' | 'plugin';
+export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts' | 'plugin' | string;
 
 export interface SceneInteractionProfileEvent {
   origin: string;
@@ -23,6 +23,8 @@ export interface SceneInteractionProfileEvent {
   usedJSHeapSize: number;
   totalJSHeapSize: number;
   crumbs: string[];
+  startTs: number;
+  endTs: number;
   // add more granular data,i.e. network times? slow frames?
 }
 

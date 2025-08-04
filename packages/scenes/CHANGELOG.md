@@ -1,3 +1,202 @@
+# v6.29.1 (Mon Aug 04 2025)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Removing value from an origin filter will turn it into a matchAll filter [#1201](https://github.com/grafana/scenes/pull/1201) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.29.0 (Fri Aug 01 2025)
+
+#### 🚀 Enhancement
+
+- LazyLoader: Improve the lazy loading mechanism [#1197](https://github.com/grafana/scenes/pull/1197) ([@bfmatei](https://github.com/bfmatei) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v6.28.7 (Fri Aug 01 2025)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Apply transformations returned by the migration handler [#1173](https://github.com/grafana/scenes/pull/1173) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
+# v6.28.6 (Wed Jul 30 2025)
+
+#### 🐛 Bug Fix
+
+- SceneRenderProfiler: add start and end timestamps to profile events [#1199](https://github.com/grafana/scenes/pull/1199) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.28.5 (Wed Jul 30 2025)
+
+#### 🐛 Bug Fix
+
+- Make `SceneRenderProfiler` optional and injectable [#1198](https://github.com/grafana/scenes/pull/1198) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.28.4 (Tue Jul 29 2025)
+
+#### 🐛 Bug Fix
+
+- Add option to replace variable macros [#1196](https://github.com/grafana/scenes/pull/1196) ([@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 1
+
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+
+---
+
+# v6.28.3 (Tue Jul 29 2025)
+
+#### 🐛 Bug Fix
+
+- Enhance `SceneRenderProfiler` with additional interaction tracking [#1195](https://github.com/grafana/scenes/pull/1195) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.28.2 (Mon Jul 28 2025)
+
+#### 🐛 Bug Fix
+
+- Accessibility: Add `role="menuitem"` to `VizPanelMenu` items [#1189](https://github.com/grafana/scenes/pull/1189) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v6.28.1 (Thu Jul 24 2025)
+
+#### 🐛 Bug Fix
+
+- Custom variable: support newline separated options [#1191](https://github.com/grafana/scenes/pull/1191) ([@domasx2](https://github.com/domasx2))
+
+#### Authors: 1
+
+- Domas ([@domasx2](https://github.com/domasx2))
+
+---
+
+# v6.28.0 (Wed Jul 23 2025)
+
+#### 🚀 Enhancement
+
+- AdHocFilters: Show reason for non-applicable filters [#1181](https://github.com/grafana/scenes/pull/1181) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- I18n: Download translations from Crowdin [#1188](https://github.com/grafana/scenes/pull/1188) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@ashharrison90](https://github.com/ashharrison90) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 4
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.27.3 (Wed Jul 23 2025)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersCombobox: Update z-index [#1166](https://github.com/grafana/scenes/pull/1166) ([@ashharrison90](https://github.com/ashharrison90))
+- AdHocFilters: Refactor original values to take origin in key as well [#1185](https://github.com/grafana/scenes/pull/1185) ([@mdvictor](https://github.com/mdvictor))
+- Time zone selection: When selecting Default in time zone picker, interpolate timezone from user profile setting [#1186](https://github.com/grafana/scenes/pull/1186) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 3
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.27.2 (Wed Jul 09 2025)
+
+#### 🐛 Bug Fix
+
+- Add customqueryparam templating format for joining arrays with a custom separator [#1184](https://github.com/grafana/scenes/pull/1184) ([@joshhunt](https://github.com/joshhunt))
+- Add join templating format for joining arrays with a custom separator [#1164](https://github.com/grafana/scenes/pull/1164) ([@joshhunt](https://github.com/joshhunt))
+- TextBoxVariable: Support skipUrlSync [#1178](https://github.com/grafana/scenes/pull/1178) ([@harisrozajac](https://github.com/harisrozajac))
+- chore: unify license change in #327 [#1137](https://github.com/grafana/scenes/pull/1137) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 3
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+
+---
+
+# v6.27.1 (Mon Jul 07 2025)
+
+#### 🐛 Bug Fix
+
+- QueryVariable: Add ability to provide custom static options [#1177](https://github.com/grafana/scenes/pull/1177) ([@domasx2](https://github.com/domasx2))
+- MultiValueVariable: Support field path array index [#1172](https://github.com/grafana/scenes/pull/1172) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Domas ([@domasx2](https://github.com/domasx2))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.27.0 (Wed Jul 02 2025)
+
+#### 🚀 Enhancement
+
+- TableNG: expose configured transparent value instead of false [#1171](https://github.com/grafana/scenes/pull/1171) ([@fastfrwrd](https://github.com/fastfrwrd))
+
+#### Authors: 1
+
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
+# v6.26.1 (Wed Jul 02 2025)
+
+#### 🐛 Bug Fix
+
+- Annotations: Don't run annotation query if it is disabled [#1174](https://github.com/grafana/scenes/pull/1174) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
 # v6.26.0 (Fri Jun 27 2025)
 
 #### 🚀 Enhancement

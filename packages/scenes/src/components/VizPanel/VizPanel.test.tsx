@@ -14,17 +14,22 @@ import {
   PanelData,
   PanelProps,
   toUtc,
+  DataTransformerConfig,
 } from '@grafana/data';
 import * as grafanaData from '@grafana/data';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
-import { VizPanel } from './VizPanel';
+import { VizPanel, VizPanelState } from './VizPanel';
 import { SceneDataNode } from '../../core/SceneDataNode';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { act, render, screen } from '@testing-library/react';
 import { RefreshEvent } from '@grafana/runtime';
 import { VizPanelMenu } from './VizPanelMenu';
+import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
+import { EmptyDataNode } from '../../variables/interpolation/defaults';
+import { mockTransformationsRegistry } from '../../utils/mockTransformationsRegistry';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -196,6 +201,32 @@ function getTestPlugin2(dataSupport?: PanelPluginDataSupport) {
   return pluginToLoad;
 }
 
+function getTestPlugin3(transformations: DataTransformerConfig[] | undefined) {
+  let pluginToLoad = getPanelPlugin(
+    {
+      id: 'custom3-plugin-id',
+    },
+    (props) => {
+      panelProps = props;
+      panelRenderCount++;
+      return <div>My custom3 panel</div>;
+    }
+  );
+
+  pluginToLoad.meta.info.version = '3.0.0';
+  pluginToLoad.meta.skipDataQuery = false;
+
+  pluginToLoad.setPanelChangeHandler((panel) => {
+    if (transformations) {
+      panel.transformations = transformations;
+    }
+
+    return {};
+  });
+
+  return pluginToLoad;
+}
+
 describe('VizPanel', () => {
   beforeAll(() => {
     standardEditorsRegistry.setInit(() => {
@@ -308,8 +339,7 @@ describe('VizPanel', () => {
       expect(panel.state.pluginId).toBe('custom-plugin-id');
       expect(panel.state.pluginVersion).toBe('1.0.0');
       pluginToLoad = getTestPlugin2();
-      panel.changePluginType('custom2-plugin-id', undefined, panel.state.fieldConfig);
-      await Promise.resolve();
+      await panel.changePluginType('custom2-plugin-id', undefined, panel.state.fieldConfig);
 
       expect(panel.state.pluginId).toBe('custom2-plugin-id');
       expect(panel.state.pluginVersion).toBe('2.0.0');
@@ -321,8 +351,7 @@ describe('VizPanel', () => {
       expect(panel.state.options.showThresholds).toBe(true);
 
       pluginToLoad = getTestPlugin2();
-      panel.changePluginType('custom2-plugin-id');
-      await Promise.resolve();
+      await panel.changePluginType('custom2-plugin-id');
 
       expect(Object.keys(panel.state.fieldConfig.defaults.custom!).length).toBe(2);
       expect(panel.state.fieldConfig.defaults.custom).toHaveProperty('customPropInOtherPlugin');
@@ -330,7 +359,7 @@ describe('VizPanel', () => {
       expect(panel.state.options.showThresholds).toBe(false);
     });
 
-    it('Should ovewrite options/fieldConfig when they exist', async () => {
+    it('Should overwrite options/fieldConfig when they exist', async () => {
       const overwriteOptions = {
         showThresholds: true,
       };
@@ -339,8 +368,7 @@ describe('VizPanel', () => {
       overwriteFieldConfig.defaults.unit = 'test';
 
       pluginToLoad = getTestPlugin2();
-      panel.changePluginType('custom2-plugin-id', overwriteOptions, overwriteFieldConfig);
-      await Promise.resolve();
+      await panel.changePluginType('custom2-plugin-id', overwriteOptions, overwriteFieldConfig);
 
       expect(panel.state.options.showThresholds).toBe(true);
       expect(panel.state.fieldConfig.defaults.unit).toBe('test');
@@ -357,11 +385,10 @@ describe('VizPanel', () => {
       overwriteFieldConfig.defaults.unit = 'test';
 
       pluginToLoad = getTestPlugin2();
-      pluginToLoad.onPanelTypeChanged = (panel, prevPluginId, prevOptions, prevFieldConfig) => {
+      pluginToLoad.onPanelTypeChanged = () => {
         return { showThresholds: true, option2: 'hello' };
       };
-      panel.changePluginType('custom2-plugin-id', overwriteOptions, overwriteFieldConfig);
-      await Promise.resolve();
+      await panel.changePluginType('custom2-plugin-id', overwriteOptions, overwriteFieldConfig);
 
       expect(panel.state.options.showThresholds).toBe(true);
       expect(panel.state.options.option2).toBe('hello');
@@ -963,6 +990,111 @@ describe('VizPanel', () => {
         const menuButton = screen.queryByRole('button', { name: /menu/i });
         expect(menuButton).toHaveClass('show-on-hover');
       });
+    });
+  });
+
+  describe('_UNSAFE_customMigrationHandler', () => {
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeAll(() => {
+      mockTransformationsRegistry([
+        {
+          id: 'transformation1',
+          name: 'transformation1',
+          operator: () => (source) => source,
+        },
+        {
+          id: 'transformation2',
+          name: 'transformation2',
+          operator: () => (source) => source,
+        },
+        {
+          id: 'transformation3',
+          name: 'transformation3',
+          operator: () => (source) => source,
+        },
+      ]);
+    });
+
+    const preparePanel = async (
+      $data: VizPanelState['$data'],
+      transformations: DataTransformerConfig[] | undefined
+    ) => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom3-plugin-id',
+        $data,
+        _UNSAFE_customMigrationHandler: (panel, plugin) => {
+          if (plugin.onPanelTypeChanged) {
+            Object.assign(
+              panel.options,
+              plugin.onPanelTypeChanged(panel, 'custom3-plugin-id-old', panel.options, panel.fieldConfig)
+            );
+          }
+        },
+      });
+
+      pluginToLoad = getTestPlugin3(transformations);
+      panel.activate();
+      await Promise.resolve();
+    };
+
+    it('should provide default transformations if none other were added', async () => {
+      const defaultTransformations = [{ id: 'transformation1', options: {} }];
+
+      await preparePanel(
+        new SceneDataTransformer({
+          transformations: defaultTransformations,
+          $data: EmptyDataNode.clone(),
+        }),
+        undefined
+      );
+
+      expect(panel.state.$data).toBeInstanceOf(SceneDataTransformer);
+      expect((panel.state.$data as SceneDataTransformer).state.transformations).toEqual(defaultTransformations);
+    });
+
+    it('should add new transformations', async () => {
+      const defaultTransformations = [{ id: 'transformation1', options: {} }];
+      const newTransformations = [
+        { id: 'transformation1', options: {} },
+        { id: 'transformation2', options: {} },
+      ];
+
+      await preparePanel(
+        new SceneDataTransformer({
+          transformations: defaultTransformations,
+          $data: EmptyDataNode.clone(),
+        }),
+        newTransformations
+      );
+
+      expect(panel.state.$data).toBeInstanceOf(SceneDataTransformer);
+      expect((panel.state.$data as SceneDataTransformer).state.transformations).toEqual(newTransformations);
+    });
+
+    it('should not affect undefined $data', async () => {
+      const newTransformations = [
+        { id: 'transformation1', options: {} },
+        { id: 'transformation2', options: {} },
+      ];
+
+      await preparePanel(undefined, newTransformations);
+
+      expect(panel.state.$data).toBeUndefined();
+    });
+
+    it('should wrap a SceneQueryRunner in SceneDataTransformer', async () => {
+      const sceneQueryRunner = new SceneQueryRunner({ queries: [] });
+      const newTransformations = [
+        { id: 'transformation1', options: {} },
+        { id: 'transformation2', options: {} },
+      ];
+
+      await preparePanel(sceneQueryRunner, newTransformations);
+
+      expect(panel.state.$data).toBeInstanceOf(SceneDataTransformer);
+      expect((panel.state.$data as SceneDataTransformer).state.transformations).toEqual(newTransformations);
+      expect((panel.state.$data as SceneDataTransformer).state.$data).toBe(sceneQueryRunner);
     });
   });
 });

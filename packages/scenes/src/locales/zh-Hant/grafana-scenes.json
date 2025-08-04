@@ -1,0 +1,148 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "使用鍵 {{keyLabel}} 編輯篩選條件",
+        "managed-filter": "{{origin}} 受管理的篩選條件",
+        "remove-filter-with-key": "使用鍵 {{keyLabel}} 移除篩選條件"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "移除篩選條件值 - {{itemLabel}}",
+        "use-custom-value": "使用自訂值：{{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "如果您使用連結找到此處，則此應用程式中可能存在錯誤。",
+        "subTitle": "URL 與任何頁面都不相符",
+        "title": "無結果"
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "收闔場景",
+        "expand-button-label": "展開場景",
+        "remove-button-label": "移除場景"
+      },
+      "scene-debugger": {
+        "object-details": "物件詳情",
+        "scene-graph": "場景圖表",
+        "title-scene-debugger": "場景除錯器"
+      },
+      "scene-grid-row": {
+        "collapse-row": "收闔列",
+        "expand-row": "展開列"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "比較",
+        "button-tooltip": "啟用時間範圍比較"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "窗格調整大小小工具"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "標題"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "探索"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "正在載入外掛程式面板…",
+        "panel-plugin-has-no-panel-component": "面板外掛程式沒有面板元件"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "在單個面板中呈現太多序列可能會影響效能，並使資料更難讀取。",
+        "warning-message": "僅顯示 {{seriesLimit}} 個序列"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "移除"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "取消查詢"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "編輯篩選條件運算子"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "新增篩選條件",
+        "title-add-filter": "新增篩選條件"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "移除篩選條件",
+        "key-select": {
+          "placeholder-select-label": "選擇標籤"
+        },
+        "label-select-label": "選擇標籤",
+        "title-remove-filter": "移除篩選條件",
+        "value-select": {
+          "placeholder-select-value": "選擇值"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "預設值"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "清除",
+        "tooltip": "在此儀表板中預設套用。如果編輯，它會轉移到其他儀表板。",
+        "tooltip-restore-groupby-set-by-this-dashboard": "還原此儀表板設定的分組依據。"
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "逗點分隔的值",
+            "double-quoted-values": "帶雙引號的值",
+            "format-date-in-different-ways": "以不同方式格式化日期",
+            "format-multivalued-variables-using-syntax-example": "使用 glob 語法格式化多值變數，例如 {value1,value2}",
+            "html-escaping-of-values": "值的 HTML 轉義",
+            "json-stringify-value": "JSON 字串化值",
+            "keep-value-as-is": "按原樣保留值",
+            "multiple-values-are-formatted-like-variablevalue": "多個值按「變數=值」的方式格式化",
+            "single-quoted-values": "帶單引號的值",
+            "useful-escaping-values-taking-syntax-characters": "對 URL 轉義值很有用，需考慮 URI 語法字元",
+            "useful-for-url-escaping-values": "對 URL 轉義值很有用",
+            "values-are-separated-by-character": "值以 | 字元分隔"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "按選取器分組",
+        "placeholder-group-by-label": "按標籤分組"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "選擇值"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "正在載入選項…"
+      },
+      "multi-value-apply-button": {
+        "apply": "套用"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "未找到選項"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "擷取標籤時發生錯誤。點選以重試"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "您好"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "文字"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "輸入值"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "選擇值"
+      }
+    }
+  }
+}
