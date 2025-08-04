@@ -1,3 +1,15 @@
+# v6.29.1 (Mon Aug 04 2025)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Removing value from an origin filter will turn it into a matchAll filter [#1201](https://github.com/grafana/scenes/pull/1201) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.29.0 (Fri Aug 01 2025)
 
 #### 🚀 Enhancement
