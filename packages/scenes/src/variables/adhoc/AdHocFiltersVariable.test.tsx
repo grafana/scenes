@@ -2454,6 +2454,55 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  describe('turning origin filter into match-all when no values are present', () => {
+    it('should turn single value origin filter to match-all when value is removed', async () => {
+      setup(
+        {
+          originFilters: [{ key: 'pod', operator: '=', value: 'test', origin: 'dashboard' }],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod = test');
+
+      await userEvent.click(podElement);
+
+      await userEvent.keyboard('{Backspace}');
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
+    });
+
+    it('should turn multi value origin filter to match-all when value is removed', async () => {
+      setup(
+        {
+          originFilters: [
+            { key: 'pod', operator: '=|', value: 'test1', values: ['test1', 'test2'], origin: 'dashboard' },
+          ],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod =| test1, test2');
+
+      await userEvent.click(podElement);
+
+      await userEvent.keyboard('{Backspace}');
+      await userEvent.keyboard('{Backspace}');
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
+    });
+  });
+
   describe('using new combobox layout - values', () => {
     beforeEach(() => {
       setup({
