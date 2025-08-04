@@ -172,7 +172,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (isMultiValueEdit) {
           // commit multi value filter values on escape and click-away
           handleMultiValueFilterCommit(model, filter!, filterMultiValues);
+        } else {
+          if (filter && filter.origin && inputValue === '') {
+            model.updateToMatchAll(filter);
+          }
         }
+
         handleResetWip();
         handleChangeViewMode?.();
       }
@@ -183,6 +188,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       handleChangeViewMode,
       handleMultiValueFilterCommit,
       handleResetWip,
+      inputValue,
       isMultiValueEdit,
       model,
     ]
