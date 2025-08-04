@@ -2,6 +2,7 @@ import { Scope, ScopeFilterOperator, ScopeSpecFilter, scopeFilterOperatorMap } f
 import { AdHocFilterWithLabels } from './AdHocFiltersVariable';
 
 export type EqualityOrMultiOperator = Extract<ScopeFilterOperator, 'equals' | 'not-equals' | 'one-of' | 'not-one-of'>;
+export type RegexOperator = Extract<ScopeFilterOperator, 'regex-match' | 'regex-not-match'>;
 
 export const reverseScopeFilterOperatorMap: Record<ScopeFilterOperator, string> = Object.fromEntries(
   Object.entries(scopeFilterOperatorMap).map(([symbol, operator]) => [operator, symbol])
@@ -9,6 +10,11 @@ export const reverseScopeFilterOperatorMap: Record<ScopeFilterOperator, string> 
 
 export function isEqualityOrMultiOperator(value: string): value is EqualityOrMultiOperator {
   const operators = new Set(['equals', 'not-equals', 'one-of', 'not-one-of']);
+  return operators.has(value);
+}
+
+export function isRegexOperator(value: string): value is RegexOperator {
+  const operators = new Set(['regex-match', 'regex-not-match']);
   return operators.has(value);
 }
 
@@ -45,8 +51,11 @@ function processFilter(
 
   const existingFilter = formattedFilters.get(filter.key);
 
-  if (existingFilter && canValueBeMerged(existingFilter.operator, filter.operator)) {
+  if (existingFilter && isEqualityValue(existingFilter.operator, filter.operator)) {
     mergeFilterValues(existingFilter, filter);
+  } else if (existingFilter && isRegexValue(existingFilter.operator, filter.operator)) {
+    existingFilter.value += `|${filter.value}`;
+    existingFilter.values = [existingFilter.value];
   } else if (!existingFilter) {
     // Add filter to map either only if it is new.
     // Otherwise it is an existing filter that cannot be converted to multi-value
@@ -92,13 +101,27 @@ function mergeFilterValues(adHocFilter: AdHocFilterWithLabels, filter: ScopeSpec
   }
 }
 
-function canValueBeMerged(adHocFilterOperator: string, filterOperator: string) {
+function isRegexValue(adHocFilterOperator: string, filterOperator: string) {
+  const scopeConvertedOperator = scopeFilterOperatorMap[adHocFilterOperator];
+
+  if (!isRegexOperator(scopeConvertedOperator) || !isRegexOperator(filterOperator)) {
+    return false;
+  }
+
+  return hasSameOperators(scopeConvertedOperator, filterOperator);
+}
+
+function isEqualityValue(adHocFilterOperator: string, filterOperator: string) {
   const scopeConvertedOperator = scopeFilterOperatorMap[adHocFilterOperator];
 
   if (!isEqualityOrMultiOperator(scopeConvertedOperator) || !isEqualityOrMultiOperator(filterOperator)) {
     return false;
   }
 
+  return hasSameOperators(scopeConvertedOperator, filterOperator);
+}
+
+function hasSameOperators(scopeConvertedOperator: string, filterOperator: string) {
   if (
     (scopeConvertedOperator.includes('not') && !filterOperator.includes('not')) ||
     (!scopeConvertedOperator.includes('not') && filterOperator.includes('not'))

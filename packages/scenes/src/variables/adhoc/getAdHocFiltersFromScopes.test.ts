@@ -126,7 +126,69 @@ describe('getAdHocFiltersFromScopes', () => {
     ]);
   });
 
-  it('should return formatted filters and keep only the first filter of the same key if operator is not multi-value', () => {
+  it('should format regex filters by merging all values with pipe-OR operator', () => {
+    let scopes = generateScopes([
+      [{ key: 'key1', value: 'value1', operator: 'regex-not-match' }],
+      [{ key: 'key1', value: 'value2', operator: 'regex-not-match' }],
+      [{ key: 'key1', value: 'value3', operator: 'regex-not-match' }],
+    ]);
+
+    expect(getAdHocFiltersFromScopes(scopes)).toEqual([
+      {
+        key: 'key1',
+        value: 'value1|value2|value3',
+        operator: '!~',
+        origin: 'scope',
+        values: ['value1|value2|value3'],
+      },
+    ]);
+  });
+
+  it('should format regex filters by merging values where possible else leaving as-is', () => {
+    let scopes = generateScopes([
+      [{ key: 'key1', value: 'value1', operator: 'regex-not-match' }],
+      [{ key: 'key1', value: 'value2', operator: 'regex-not-match' }],
+      // same key, diff operator
+      [{ key: 'key1', value: 'value3', operator: 'regex-match' }],
+    ]);
+
+    expect(getAdHocFiltersFromScopes(scopes)).toEqual([
+      {
+        key: 'key1',
+        value: 'value1|value2',
+        operator: '!~',
+        origin: 'scope',
+        values: ['value1|value2'],
+      },
+      {
+        key: 'key1',
+        value: 'value3',
+        operator: '=~',
+        origin: 'scope',
+        values: ['value3'],
+      },
+    ]);
+  });
+
+  it('should format regex filters by merging all values with pipe-OR operator', () => {
+    let scopes = generateScopes([
+      [{ key: 'key1', value: 'value1', operator: 'regex-match' }],
+      [{ key: 'key1', value: 'value2', operator: 'regex-match' }],
+      [{ key: 'key1', value: 'value3', operator: 'regex-match' }],
+    ]);
+
+    expect(getAdHocFiltersFromScopes(scopes)).toEqual([
+      {
+        key: 'key1',
+        value: 'value1|value2|value3',
+        operator: '=~',
+        origin: 'scope',
+        values: ['value1|value2|value3'],
+      },
+    ]);
+  });
+
+  it('should return formatted filters on equality and regex filters and keep only the rest unmodified', () => {
     let scopes = generateScopes([
       [
         { key: 'key1', value: 'value1', operator: 'regex-match' },
@@ -142,19 +204,12 @@ describe('getAdHocFiltersFromScopes', () => {
     expect(getAdHocFiltersFromScopes(scopes)).toEqual([
       {
         key: 'key1',
-        value: 'value1',
+        value: 'value1|value3',
         operator: '=~',
         origin: 'scope',
-        values: ['value1'],
+        values: ['value1|value3'],
       },
       { key: 'key2', value: 'value2', operator: '!=|', origin: 'scope', values: ['value2', 'value4'] },
-      {
-        key: 'key1',
-        value: 'value3',
-        operator: '=~',
-        origin: 'scope',
-        values: ['value3'],
-      },
       {
         key: 'key1',
         value: 'value5',
@@ -173,10 +228,10 @@ describe('getAdHocFiltersFromScopes', () => {
     expect(getAdHocFiltersFromScopes(scopes)).toEqual([
       {
         key: 'key1',
-        value: 'value1',
+        value: 'value1|value3',
         operator: '=~',
         origin: 'scope',
-        values: ['value1'],
+        values: ['value1|value3'],
       },
       {
         key: 'key1',
@@ -184,13 +239,6 @@ describe('getAdHocFiltersFromScopes', () => {
         operator: '=',
         origin: 'scope',
         values: ['value5'],
-      },
-      {
-        key: 'key1',
-        value: 'value3',
-        operator: '=~',
-        origin: 'scope',
-        values: ['value3'],
       },
     ]);
   });
