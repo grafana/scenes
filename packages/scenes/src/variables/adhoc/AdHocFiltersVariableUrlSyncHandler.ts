@@ -4,14 +4,10 @@ import {
   AdHocFilterWithLabels,
   FilterOrigin,
   isFilterComplete,
+  isMatchAllFilter,
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
-import {
-  escapeInjectedFilterUrlDelimiters,
-  escapeUrlPipeDelimiters,
-  toUrlCommaDelimitedString,
-  unescapeUrlDelimiters,
-} from '../utils';
+import { escapeOriginFilterUrlDelimiters, toUrlCommaDelimitedString, unescapeUrlDelimiters } from '../utils';
 
 export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _variable: AdHocFiltersVariable) {}
@@ -26,11 +22,11 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
 
   public getUrlState(): SceneObjectUrlValues {
     const filters = this._variable.state.filters;
-    const baseFilters = this._variable.state.baseFilters;
+    const originFilters = this._variable.state.originFilters;
 
     let value = [];
 
-    if (filters.length === 0 && baseFilters?.length === 0) {
+    if (filters.length === 0 && originFilters?.length === 0) {
       return { [this.getKey()]: [''] };
     }
 
@@ -39,23 +35,18 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
         ...filters
           .filter(isFilterComplete)
           .filter((filter) => !filter.hidden)
-          .map((filter) => toArray(filter).map(escapeUrlPipeDelimiters).join('|'))
+          .map((filter) => toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|'))
       );
     }
 
-    if (baseFilters?.length) {
-      // injected filters stored in the following format: normal|adhoc|values#original|values#filterOrigin
+    if (originFilters?.length) {
+      // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable
       value.push(
-        ...baseFilters
+        ...originFilters
           ?.filter(isFilterComplete)
-          .filter((filter) => !filter.hidden && filter.origin && filter.originalValue)
+          .filter((filter) => !filter.hidden && filter.origin && filter.restorable)
           .map((filter) =>
-            toArray(filter)
-              .map(escapeInjectedFilterUrlDelimiters)
-              .join('|')
-              .concat(
-                `#${filter.originalValue?.map(escapeInjectedFilterUrlDelimiters).join('|') ?? ''}#${filter.origin}`
-              )
+            toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}#restorable`)
           )
       );
     }
@@ -72,14 +63,50 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return;
     }
 
-    if (urlValue) {
-      const filters = deserializeUrlToFilters(urlValue);
-      this._variable.setState({
-        filters: filters.filter((f) => !f.origin),
-        baseFilters: filters.filter((f) => f.origin),
-      });
+    const filters = deserializeUrlToFilters(urlValue);
+    const originFilters = updateOriginFilters([...(this._variable.state.originFilters || [])], filters);
+
+    this._variable.setState({
+      filters: filters.filter((f) => !f.origin),
+      originFilters,
+    });
+  }
+}
+
+function updateOriginFilters(prevOriginFilters: AdHocFilterWithLabels[], filters: AdHocFilterWithLabels[]) {
+  const updatedOriginFilters: AdHocFilterWithLabels[] = [...prevOriginFilters];
+
+  for (let i = 0; i < filters.length; i++) {
+    const foundOriginFilterIndex = prevOriginFilters.findIndex((f) => f.key === filters[i].key);
+
+    // if we find a match we update originFilters with what's in the URL.
+    // If there is a normal filter without an origin that matches keys with
+    // some dashboard lvl filter we maintain it as dashboard lvl filter in the
+    // new dashboard
+    if (foundOriginFilterIndex > -1) {
+      if (!filters[i].origin && prevOriginFilters[foundOriginFilterIndex].origin === 'dashboard') {
+        filters[i].origin = 'dashboard';
+        filters[i].restorable = true;
+      }
+
+      if (isMatchAllFilter(filters[i])) {
+        filters[i].matchAllFilter = true;
+      }
+
+      updatedOriginFilters[foundOriginFilterIndex] = filters[i];
+    } else if (filters[i].origin === 'dashboard') {
+      // if it was originating from a dashoard but has no match in the new dashboard
+      // remove it's origin, turn it into a normal filter to be set below
+      delete filters[i].origin;
+      delete filters[i].restorable;
+    } else if (foundOriginFilterIndex === -1 && filters[i].origin === 'scope' && filters[i].restorable) {
+      // scopes are being set urlSync so we maintain all modified scopes in the adhoc
+      // and leave the scopes update to reconciliate on what filters will actually show up
+      updatedOriginFilters.push(filters[i]);
     }
   }
+
+  return updatedOriginFilters;
 }
 
 function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLabels[] {
@@ -111,7 +138,7 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     return null;
   }
 
-  const [filter, originalValues, origin] = urlValue.split('#');
+  const [filter, origin, restorable] = urlValue.split('#');
   const [key, keyLabel, operator, _operatorLabel, ...values] = filter
     .split('|')
     .reduce<string[]>((acc, v) => {
@@ -131,13 +158,13 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
     valueLabels: values.filter((_, index) => index % 2 === 1),
     condition: '',
-    origin: isFilterOrigin(origin) ? origin : undefined,
-    originalValue: originalValues && originalValues.length ? originalValues.split('|') ?? [originalValues] : undefined,
+    ...(isFilterOrigin(origin) && { origin }),
+    ...(!!restorable && { restorable: true }),
   };
 }
 
 function isFilterOrigin(value: string): value is FilterOrigin {
-  return value === FilterOrigin.Scopes || value === FilterOrigin.Dashboards;
+  return value === 'scope' || value === 'dashboard';
 }
 
 function isFilter(filter: AdHocFilterWithLabels | null): filter is AdHocFilterWithLabels {

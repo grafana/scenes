@@ -18,7 +18,7 @@ import {
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
 import { SceneObjectStateChangedEvent } from './events';
-import { cloneSceneObject } from './sceneGraph/utils';
+import { cloneSceneObject } from './sceneGraph/cloneSceneObject';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
 
@@ -357,6 +357,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   /**
    * Loop through state and call callback for each direct child scene object.
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
+   * Return false to exit loop early.
    */
   public forEachChild(callback: (child: SceneObjectBase) => void) {
     forEachChild(this.state, callback);
@@ -421,17 +422,30 @@ export function useSceneObjectState<TState extends SceneObjectState>(
   return model.state;
 }
 
-function forEachChild<T extends object>(state: T, callback: (child: SceneObjectBase) => void) {
+function forEachChild<T extends object>(state: T, callback: (child: SceneObjectBase) => void | false) {
   for (const propValue of Object.values(state)) {
     if (propValue instanceof SceneObjectBase) {
-      callback(propValue);
+      const result = callback(propValue);
+      if (result === false) {
+        break;
+      }
     }
 
     if (Array.isArray(propValue)) {
+      let exitEarly = false;
+
       for (const child of propValue) {
         if (child instanceof SceneObjectBase) {
-          callback(child);
+          const result = callback(child);
+          if (result === false) {
+            exitEarly = true;
+            break;
+          }
         }
+      }
+
+      if (exitEarly) {
+        break;
       }
     }
   }

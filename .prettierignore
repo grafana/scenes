@@ -1,0 +1,7 @@
+# anything in build dirs
+packages/*/dist/**
+
+# Crowdin files
+# Ignore `locales` directory so we also catch enterprise files
+**/locales/**/*.json
+

@@ -2,11 +2,12 @@ import { Observable, of } from 'rxjs';
 
 import { SceneComponentProps } from '../../core/types';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
-import { renderSelectForVariable } from '../components/VariableValueSelect';
+import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 import { sceneGraph } from '../../core/sceneGraph';
+import React from 'react';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
@@ -35,7 +36,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
 
     const options = match.map((text) => {
       text = text.replace(/\\,/g, ',');
-      const textMatch = /^(.+)\s:\s(.+)$/g.exec(text) ?? [];
+      const textMatch = /^\s*(.+)\s:\s(.+)$/g.exec(text) ?? [];
       if (textMatch.length === 3) {
         const [, key, value] = textMatch;
         return { label: key.trim(), value: value.trim() };
@@ -52,6 +53,6 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
-    return renderSelectForVariable(model);
+    return <MultiOrSingleValueSelect model={model} />;
   };
 }

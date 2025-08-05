@@ -6,6 +6,12 @@ import { VariableValue } from '../types';
 export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler {
   public constructor(private _sceneObject: GroupByVariable) {}
 
+  protected _nextChangeShouldAddHistoryStep = false;
+
+  private getRestorableKey(): string {
+    return `restorable-var-${this._sceneObject.state.name}`;
+  }
+
   private getKey(): string {
     return `var-${this._sceneObject.state.name}`;
   }
@@ -15,7 +21,7 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
       return [];
     }
 
-    return [this.getKey()];
+    return [this.getKey(), this.getRestorableKey()];
   }
 
   public getUrlState(): SceneObjectUrlValues {
@@ -23,11 +29,19 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
       return {};
     }
 
-    return { [this.getKey()]: toUrlValues(this._sceneObject.state.value, this._sceneObject.state.text) };
+    return {
+      [this.getKey()]: toUrlValues(this._sceneObject.state.value, this._sceneObject.state.text),
+      [this.getRestorableKey()]: this._sceneObject.state.defaultValue
+        ? this._sceneObject.state.restorable
+          ? 'true'
+          : 'false'
+        : null,
+    };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
     let urlValue = values[this.getKey()];
+    let restorableValue = values[this.getRestorableKey()];
 
     if (urlValue != null) {
       /**
@@ -40,8 +54,27 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
 
       const { values, texts } = fromUrlValues(urlValue);
 
+      if (this._sceneObject.state.defaultValue && (restorableValue === 'false' || restorableValue === undefined)) {
+        return;
+      }
+
+      if (restorableValue === 'false') {
+        this._sceneObject.changeValueTo([], [], false);
+        return;
+      }
+
       this._sceneObject.changeValueTo(values, texts);
     }
+  }
+
+  public performBrowserHistoryAction(callback: () => void) {
+    this._nextChangeShouldAddHistoryStep = true;
+    callback();
+    this._nextChangeShouldAddHistoryStep = false;
+  }
+
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._nextChangeShouldAddHistoryStep;
   }
 }
 

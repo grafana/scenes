@@ -129,6 +129,8 @@ describe('sceneInterpolator', () => {
     });
 
     expect(sceneInterpolator(scene, 'test.${test}.asd')).toBe('test.{hello,world}.asd');
+    // Can use fieldPath index to access specific array value
+    expect(sceneInterpolator(scene, 'test.${test.1}.asd')).toBe('test.world.asd');
   });
 
   it('Can format multi valued values using text formatter', () => {

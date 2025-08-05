@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import React, { useCallback } from 'react';
 
 import { AutoSizeInput } from '@grafana/ui';
@@ -27,7 +28,7 @@ export function VariableValueInput({ model }: SceneComponentProps<TextBoxVariabl
   return (
     <AutoSizeInput
       id={key}
-      placeholder="Enter value"
+      placeholder={t('grafana-scenes.variables.variable-value-input.placeholder-enter-value', 'Enter value')}
       minWidth={15}
       maxWidth={30}
       value={value}

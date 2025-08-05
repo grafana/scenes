@@ -1,4 +1,4 @@
-import { ScopedVars } from '@grafana/data';
+import { Scope, ScopedVars } from '@grafana/data';
 import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/defaults';
 
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
@@ -10,7 +10,8 @@ import { getClosest } from './utils';
 import { VariableInterpolation } from '@grafana/runtime';
 import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
-import { SceneScopesBridge } from '../SceneScopesBridge';
+import { ScopesVariable } from '../../variables/variants/ScopesVariable';
+import { SCOPES_VARIABLE_NAME } from '../../variables/constants';
 
 /**
  * Get the closest node with variables
@@ -117,7 +118,11 @@ function findObjectInternal(
     let maybe = findObjectInternal(child, check);
     if (maybe) {
       found = maybe;
+      // break (exit early) the foreach loop
+      return false;
     }
+
+    return;
   });
 
   if (found) {
@@ -282,8 +287,13 @@ export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike 
 }
 
 /**
- * Will walk up the scene object graph to the closest $scopesBridge scene object
+ * Will return the scopes from the scopes variable if available.
  */
-export function getScopesBridge(sceneObject: SceneObject): SceneScopesBridge | undefined {
-  return (findObject(sceneObject, (s) => s instanceof SceneScopesBridge) as SceneScopesBridge) ?? undefined;
+export function getScopes(sceneObject: SceneObject): Scope[] | undefined {
+  const scopesVariable = lookupVariable(SCOPES_VARIABLE_NAME, sceneObject);
+  if (scopesVariable instanceof ScopesVariable) {
+    return scopesVariable.state.scopes;
+  }
+
+  return undefined;
 }

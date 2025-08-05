@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import {
   AbsoluteTimeRange,
   FieldConfigSource,
@@ -37,6 +38,8 @@ import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
+import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -113,13 +116,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   private _plugin?: PanelPlugin;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
-  private _structureRev: number = 0;
+  private _structureRev = 0;
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
       options: {} as TOptions,
       fieldConfig: { defaults: {}, overrides: [] },
-      title: 'Title',
+      title: t('grafana-scenes.components.viz-panel.title.title', 'Title'),
       pluginId: 'timeseries',
       _renderCounter: 0,
       ...state,
@@ -164,7 +167,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         const queryControler = sceneGraph.getQueryController(this);
         if (queryControler && queryControler.state.enableProfiling) {
           wrapPromiseInStateObservable(panelPromise)
-            .pipe(registerQueryWithController({ type: 'plugin', origin: this }))
+            .pipe(registerQueryWithController({ type: `VizPanel/loadPlugin/${pluginId}`, origin: this }))
             .subscribe(() => {});
         }
 
@@ -235,6 +238,22 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       panel.options = await plugin.onPanelMigration(panel);
     }
 
+    // Some panels mutate the transformations on the panel as part of migrations.
+    // Unfortunately, these mutations are not available until the panel plugin is loaded.
+    // At this time, the data provider is already set, so this is the easiest way to fix it.
+    let $data = this.state.$data;
+    if (panel.transformations && $data) {
+      if ($data instanceof SceneDataTransformer) {
+        $data.setState({ transformations: panel.transformations });
+      } else if ($data instanceof SceneQueryRunner) {
+        $data.clearParent();
+        $data = new SceneDataTransformer({
+          transformations: panel.transformations,
+          $data,
+        });
+      }
+    }
+
     const withDefaults = getPanelOptionsWithDefaults({
       plugin,
       currentOptions: panel.options,
@@ -245,6 +264,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this._plugin = plugin;
 
     this.setState({
+      $data,
       options: withDefaults.options as DeepPartial<TOptions>,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
@@ -555,6 +575,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       true
     );
   };
+
+  public clone(withState?: Partial<VizPanelState>) {
+    // Clear _pluginInstanceState and _pluginLoadError as it's not safe to clone
+    return super.clone({ _pluginInstanceState: undefined, _pluginLoadError: undefined, ...withState });
+  }
 
   private buildPanelContext(): PanelContext {
     const sync = getCursorSyncScope(this);

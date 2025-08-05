@@ -1,0 +1,148 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "Modifier le filtre ayant pour clé {{keyLabel}}",
+        "managed-filter": "Filtre géré {{origin}}",
+        "remove-filter-with-key": "Supprimer le filtre ayant pour clé {{keyLabel}}"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Supprimer la valeur du filtre – {{itemLabel}}",
+        "use-custom-value": "Utiliser une valeur personnalisée : {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "Si vous êtes arrivé ici via un lien, il se peut qu’il y ait un bug dans l’application.",
+        "subTitle": "L’URL ne correspond à aucune page",
+        "title": "Page introuvable"
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Réduire la scène",
+        "expand-button-label": "Développer la scène",
+        "remove-button-label": "Supprimer la scène"
+      },
+      "scene-debugger": {
+        "object-details": "Détails de l’objet",
+        "scene-graph": "Graphique de la scène",
+        "title-scene-debugger": "Débogueur de scène"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Réduire la ligne",
+        "expand-row": "Développer la ligne"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Comparaison",
+        "button-tooltip": "Activer la comparaison d’intervalles"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Widget de redimensionnement du panneau"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Titre"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Explorer"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Chargement du panneau du plugin…",
+        "panel-plugin-has-no-panel-component": "Le plugin de panneau ne contient aucun composant de panneau"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Le rendu d’un trop grand nombre de séries dans un seul panneau peut nuire aux performances et rendre les données plus difficiles à lire.",
+        "warning-message": "Affichage limité à {{seriesLimit}} séries"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Supprimer"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "Annuler la requête"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Modifier l’opérateur du filtre"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Ajouter un filtre",
+        "title-add-filter": "Ajouter un filtre"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Supprimer le filtre",
+        "key-select": {
+          "placeholder-select-label": "Sélectionner une étiquette"
+        },
+        "label-select-label": "Sélectionner une étiquette",
+        "title-remove-filter": "Supprimer le filtre",
+        "value-select": {
+          "placeholder-select-value": "Sélectionner une valeur"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "par défaut"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "effacer",
+        "tooltip": "Appliqué par défaut dans ce tableau de bord. En cas de modification, il s’applique aussi aux autres tableaux de bord.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "Restaurer le groupage défini par ce tableau de bord."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Valeurs séparées par des virgules",
+            "double-quoted-values": "Valeurs entre guillemets doubles",
+            "format-date-in-different-ways": "Formater la date de différentes façons",
+            "format-multivalued-variables-using-syntax-example": "Formater les variables à valeurs multiples avec la syntaxe glob : exemple {value1,value2}",
+            "html-escaping-of-values": "Échappement HTML des valeurs",
+            "json-stringify-value": "Valeur au format JSON (stringify)",
+            "keep-value-as-is": "Conserver la valeur telle quelle",
+            "multiple-values-are-formatted-like-variablevalue": "Plusieurs valeurs sont formatées ainsi : variable=valeur",
+            "single-quoted-values": "Valeurs entre guillemets simples",
+            "useful-escaping-values-taking-syntax-characters": "Utile pour l’échappement des valeurs dans les URL en tenant compte des caractères de syntaxe URI",
+            "useful-for-url-escaping-values": "Utile pour l’échappement des valeurs dans les URL",
+            "values-are-separated-by-character": "Les valeurs sont séparées par le caractère « | »"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Sélecteur de regroupement",
+        "placeholder-group-by-label": "Regrouper par étiquette"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Sélectionner une valeur"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Chargement des options..."
+      },
+      "multi-value-apply-button": {
+        "apply": "Appliquer"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "Aucune option trouvée"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "Une erreur est survenue lors de la récupération des étiquettes. Cliquez pour réessayer"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Bonjour"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Texte"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Saisir une valeur"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Sélectionner une valeur"
+      }
+    }
+  }
+}

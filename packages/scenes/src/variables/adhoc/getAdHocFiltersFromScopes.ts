@@ -1,11 +1,10 @@
 import { Scope, ScopeFilterOperator, ScopeSpecFilter, scopeFilterOperatorMap } from '@grafana/data';
-import { AdHocFilterWithLabels, FilterOrigin } from './AdHocFiltersVariable';
+import { AdHocFilterWithLabels } from './AdHocFiltersVariable';
 
 export type EqualityOrMultiOperator = Extract<ScopeFilterOperator, 'equals' | 'not-equals' | 'one-of' | 'not-one-of'>;
 
 export const reverseScopeFilterOperatorMap: Record<ScopeFilterOperator, string> = Object.fromEntries(
   Object.entries(scopeFilterOperatorMap).map(([symbol, operator]) => [operator, symbol])
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 ) as Record<ScopeFilterOperator, string>;
 
 export function isEqualityOrMultiOperator(value: string): value is EqualityOrMultiOperator {
@@ -40,6 +39,10 @@ function processFilter(
   duplicatedFilters: AdHocFilterWithLabels[],
   filter: ScopeSpecFilter
 ) {
+  if (!filter) {
+    return;
+  }
+
   const existingFilter = formattedFilters.get(filter.key);
 
   if (existingFilter && canValueBeMerged(existingFilter.operator, filter.operator)) {
@@ -53,7 +56,7 @@ function processFilter(
       operator: reverseScopeFilterOperatorMap[filter.operator],
       value: filter.value,
       values: filter.values ?? [filter.value],
-      origin: FilterOrigin.Scopes,
+      origin: 'scope',
     });
   } else {
     duplicatedFilters.push({
@@ -61,7 +64,7 @@ function processFilter(
       operator: reverseScopeFilterOperatorMap[filter.operator],
       value: filter.value,
       values: filter.values ?? [filter.value],
-      origin: FilterOrigin.Scopes,
+      origin: 'scope',
     });
   }
 }
