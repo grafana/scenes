@@ -1,3 +1,17 @@
+# v6.29.3 (Tue Aug 05 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Fix race conditions in non-applicable filters [#1203](https://github.com/grafana/scenes/pull/1203) ([@mdvictor](https://github.com/mdvictor))
+  - AdHocFilters: Scope injected filter values with regex operators also get merged [#1202](https://github.com/grafana/scenes/pull/1202) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.29.2 (Tue Aug 05 2025)
 
 #### 🐛 Bug Fix
