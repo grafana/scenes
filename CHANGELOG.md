@@ -1,3 +1,16 @@
+# v6.29.2 (Tue Aug 05 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRenderProfiler: Handle tab inactivity [#1205](https://github.com/grafana/scenes/pull/1205) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.29.1 (Mon Aug 04 2025)
 
 #### 🐛 Bug Fix
