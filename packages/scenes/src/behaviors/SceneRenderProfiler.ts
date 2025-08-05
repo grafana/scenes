@@ -83,10 +83,7 @@ export class SceneRenderProfiler {
     // This serves as backup to Page Visibility API in case the event wasn't triggered
     if (frameLength > TAB_INACTIVE_THRESHOLD) {
       writeSceneLog('SceneRenderProfiler', 'Tab was inactive, cancelling profile measurement');
-      // Reset and cancel profiling due to tab inactivity
-      this.#recordedTrailingSpans = [];
-      this.#profileInProgress = null;
-      this.#trailAnimationFrameId = null;
+      this.cancelProfile();
       return;
     }
 
@@ -195,6 +192,8 @@ export class SceneRenderProfiler {
         cancelAnimationFrame(this.#trailAnimationFrameId);
         this.#trailAnimationFrameId = null;
       }
+      // Reset recorded spans to ensure complete cleanup
+      this.#recordedTrailingSpans = [];
     }
   }
 
