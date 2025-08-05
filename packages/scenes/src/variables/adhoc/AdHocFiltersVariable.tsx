@@ -25,7 +25,7 @@ import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
-import { isEqual } from 'lodash';
+import { debounce, isEqual } from 'lodash';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
@@ -238,6 +238,8 @@ export class AdHocFiltersVariable
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
+  private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
+
   public constructor(state: Partial<AdHocFiltersVariableState>) {
     super({
       type: 'adhoc',
@@ -266,10 +268,7 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    this._setStateWithFiltersApplicabilityCheck({
-      filters: this.state.filters,
-      originFilters: this.state.originFilters,
-    });
+    this._debouncedVerifyApplicability();
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
@@ -319,6 +318,8 @@ export class AdHocFiltersVariable
     if (this._prevScopes.length) {
       this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
       this._prevScopes = scopes;
+
+      this._debouncedVerifyApplicability();
       return;
     }
 
@@ -335,11 +336,10 @@ export class AdHocFiltersVariable
     ];
 
     // maintain other originFilters in the array, only update scopes ones
-    this._setStateWithFiltersApplicabilityCheck({
-      filters: this.state.filters,
-      originFilters: [...finalFilters, ...remainingFilters],
-    });
+    this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
     this._prevScopes = scopes;
+
+    this._debouncedVerifyApplicability();
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
@@ -453,11 +453,8 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
-        this._setStateWithFiltersApplicabilityCheck({
-          filters: [...filters, { ..._wip, ...update }],
-          originFilters: this.state.originFilters,
-          _wip: undefined,
-        });
+        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
+        this._debouncedVerifyApplicability();
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -491,10 +488,8 @@ export class AdHocFiltersVariable
     const queryController = getQueryController(this);
     queryController?.startProfile(FILTER_REMOVED_INTERACTION);
 
-    this._setStateWithFiltersApplicabilityCheck({
-      filters: this.state.filters.filter((f) => f !== filter),
-      originFilters: this.state.originFilters,
-    });
+    this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
+    this._debouncedVerifyApplicability();
   }
 
   public _removeLastFilter() {
@@ -569,15 +564,16 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async _setStateWithFiltersApplicabilityCheck(update: Partial<AdHocFiltersVariableState>) {
+  public async _verifyApplicability() {
+    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getFiltersApplicability) {
-      this.setState(update);
       return;
     }
 
-    if (!update.filters) {
+    if (!filters) {
       return;
     }
 
@@ -586,7 +582,7 @@ export class AdHocFiltersVariable
 
     // @ts-expect-error (temporary till we update grafana/data)
     const response: FiltersApplicability[] = await ds.getFiltersApplicability({
-      filters: [...update.filters, ...(update.originFilters ?? [])],
+      filters,
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
@@ -597,6 +593,11 @@ export class AdHocFiltersVariable
     response.forEach((filter) => {
       responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
     });
+
+    const update = {
+      filters: [...this.state.filters],
+      originFilters: [...(this.state.originFilters ?? [])],
+    };
 
     update.filters.forEach((f) => {
       const filter = responseMap.get(f.key);
