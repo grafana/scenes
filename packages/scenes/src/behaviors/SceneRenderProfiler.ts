@@ -3,6 +3,7 @@ import { SceneQueryControllerLike } from './types';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
 const SPAN_THRESHOLD = 30; // Frames longer than this will be considered slow
+const TAB_INACTIVE_THRESHOLD = 1000; // Tab inactive threshold in ms
 
 export class SceneRenderProfiler {
   #profileInProgress: {
@@ -18,11 +19,44 @@ export class SceneRenderProfiler {
   #recordedTrailingSpans: number[] = [];
 
   lastFrameTime = 0;
+  #visibilityChangeHandler: (() => void) | null = null;
 
-  public constructor(private queryController?: SceneQueryControllerLike) {}
+  public constructor(private queryController?: SceneQueryControllerLike) {
+    this.setupVisibilityChangeHandler();
+  }
 
   public setQueryController(queryController: SceneQueryControllerLike) {
     this.queryController = queryController;
+  }
+
+  private setupVisibilityChangeHandler() {
+    // Ensure event listener is only added once
+    if (this.#visibilityChangeHandler) {
+      return;
+    }
+
+    // Handle tab switching with Page Visibility API
+    this.#visibilityChangeHandler = () => {
+      if (document.hidden && this.#profileInProgress) {
+        writeSceneLog('SceneRenderProfiler', 'Tab became inactive, cancelling profile');
+        this.cancelProfile();
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.#visibilityChangeHandler);
+    }
+  }
+
+  public cleanup() {
+    // Remove event listener to prevent memory leaks
+    if (this.#visibilityChangeHandler && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.#visibilityChangeHandler);
+      this.#visibilityChangeHandler = null;
+    }
+
+    // Cancel any ongoing profiling
+    this.cancelProfile();
   }
 
   public startProfile(name: string) {
@@ -44,6 +78,15 @@ export class SceneRenderProfiler {
   private measureTrailingFrames = (measurementStartTs: number, lastFrameTime: number, profileStartTs: number) => {
     const currentFrameTime = performance.now();
     const frameLength = currentFrameTime - lastFrameTime;
+
+    // Fallback: Detect if tab was inactive (frame longer than reasonable threshold)
+    // This serves as backup to Page Visibility API in case the event wasn't triggered
+    if (frameLength > TAB_INACTIVE_THRESHOLD) {
+      writeSceneLog('SceneRenderProfiler', 'Tab was inactive, cancelling profile measurement');
+      this.cancelProfile();
+      return;
+    }
+
     this.#recordedTrailingSpans.push(frameLength);
 
     if (currentFrameTime - measurementStartTs! < POST_STORM_WINDOW) {
@@ -76,17 +119,23 @@ export class SceneRenderProfiler {
       this.#trailAnimationFrameId = null;
 
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
-      performance.measure(`DashboardInteraction ${this.#profileInProgress!.origin}`, {
+
+      // Guard against race condition where profile might be cancelled during execution
+      if (!this.#profileInProgress) {
+        return;
+      }
+
+      performance.measure(`DashboardInteraction ${this.#profileInProgress.origin}`, {
         start: profileStartTs,
         end: profileEndTs,
       });
 
       const networkDuration = captureNetwork(profileStartTs, profileEndTs);
 
-      if (this.queryController?.state.onProfileComplete) {
+      if (this.queryController?.state.onProfileComplete && this.#profileInProgress) {
         this.queryController.state.onProfileComplete({
-          origin: this.#profileInProgress!.origin,
-          crumbs: this.#profileInProgress!.crumbs,
+          origin: this.#profileInProgress.origin,
+          crumbs: this.#profileInProgress.crumbs,
           duration: profileDuration + slowFramesTime,
           networkDuration,
           startTs: profileStartTs,
@@ -124,11 +173,27 @@ export class SceneRenderProfiler {
   public isTailRecording() {
     return Boolean(this.#trailAnimationFrameId);
   }
+
   public cancelTailRecording() {
     if (this.#trailAnimationFrameId) {
       cancelAnimationFrame(this.#trailAnimationFrameId);
       this.#trailAnimationFrameId = null;
       writeSceneLog('SceneRenderProfiler', 'Cancelled recording frames, new profile started');
+    }
+  }
+
+  // cancel profile
+  public cancelProfile() {
+    if (this.#profileInProgress) {
+      writeSceneLog('SceneRenderProfiler', 'Cancelling profile', this.#profileInProgress);
+      this.#profileInProgress = null;
+      // Cancel any pending animation frame to prevent accessing null profileInProgress
+      if (this.#trailAnimationFrameId) {
+        cancelAnimationFrame(this.#trailAnimationFrameId);
+        this.#trailAnimationFrameId = null;
+      }
+      // Reset recorded spans to ensure complete cleanup
+      this.#recordedTrailingSpans = [];
     }
   }
 
