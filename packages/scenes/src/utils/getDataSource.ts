@@ -29,7 +29,7 @@ export async function getDataSource(
       wrapPromiseInStateObservable(dsPromise)
         .pipe(
           registerQueryWithController({
-            type: 'plugin',
+            type: `getDataSource/${datasource?.type ?? 'unknown'}`,
             origin: scopedVars.__sceneObject.value.valueOf() as SceneObject,
           })
         )

@@ -71,6 +71,10 @@ export class AnnotationsDataLayer
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     const { query } = this.state;
 
+    if (!query.enable) {
+      return;
+    }
+
     if (this.querySub) {
       this.querySub.unsubscribe();
     }
@@ -85,7 +89,7 @@ export class AnnotationsDataLayer
 
       let stream = executeAnnotationQuery(ds, timeRange, query, this).pipe(
         registerQueryWithController({
-          type: 'annotations',
+          type: 'AnnotationsDataLayer/annotationsLoading',
           origin: this,
           cancel: () => this.cancelQuery(),
         }),

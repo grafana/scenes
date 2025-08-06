@@ -1,3 +1,4 @@
+import { Trans } from '@grafana/i18n';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Button, Checkbox, useStyles2 } from '@grafana/ui';
@@ -92,16 +93,28 @@ const getStyles = (theme: GrafanaTheme2) => ({
 });
 
 export const LoadingOptionsPlaceholder = () => {
-  return <DropdownItem onClick={(e) => e.stopPropagation()}>Loading options...</DropdownItem>;
+  return (
+    <DropdownItem onClick={(e) => e.stopPropagation()}>
+      <Trans i18nKey="grafana-scenes.variables.loading-options-placeholder.loading-options">Loading options...</Trans>
+    </DropdownItem>
+  );
 };
 
 export const NoOptionsPlaceholder = () => {
-  return <DropdownItem onClick={(e) => e.stopPropagation()}>No options found</DropdownItem>;
+  return (
+    <DropdownItem onClick={(e) => e.stopPropagation()}>
+      <Trans i18nKey="grafana-scenes.variables.no-options-placeholder.no-options-found">No options found</Trans>
+    </DropdownItem>
+  );
 };
 
 export const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
   return (
-    <DropdownItem onClick={handleFetchOptions}>An error has occurred fetching labels. Click to retry</DropdownItem>
+    <DropdownItem onClick={handleFetchOptions}>
+      <Trans i18nKey="grafana-scenes.variables.options-error-placeholder.error-occurred-fetching-labels-click-retry">
+        An error has occurred fetching labels. Click to retry
+      </Trans>
+    </DropdownItem>
   );
 };
 
@@ -132,7 +145,7 @@ export const MultiValueApplyButton = ({
       }}
     >
       <Button onClick={onApply} size="sm" tabIndex={-1}>
-        Apply
+        <Trans i18nKey="grafana-scenes.variables.multi-value-apply-button.apply">Apply</Trans>
       </Button>
     </div>
   );

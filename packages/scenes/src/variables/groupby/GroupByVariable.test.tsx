@@ -169,6 +169,116 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.text).toEqual(['A,something', 'b,something', 'C,something']);
     });
 
+    it('should set restorable if value differs from defaultValue', async () => {
+      const { variable } = setupTest(
+        {
+          defaultValue: {
+            value: ['defaultVal1'],
+            text: ['defaultVal1'],
+          },
+        },
+        undefined,
+        '/?var-test=defaultVal1&var-test=normalVal'
+      );
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'normalVal']);
+      expect(locationService.getLocation().search).toBe(
+        '?var-test=defaultVal1&var-test=normalVal&restorable-var-test=true'
+      );
+    });
+
+    it('should use url value and restore to default', async () => {
+      const { variable } = setupTest(
+        {
+          defaultValue: {
+            value: ['defaultVal1'],
+            text: ['defaultVal1'],
+          },
+        },
+        undefined,
+        '/?var-test=normalVal'
+      );
+
+      expect(locationService.getLocation().search).toBe('?var-test=normalVal&restorable-var-test=true');
+
+      act(() => {
+        variable.restoreDefaultValues();
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1']);
+      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+    });
+
+    it('should use default value if nothing arrives from the url', async () => {
+      const { variable } = setupTest({
+        defaultValue: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      await act(async () => {
+        await lastValueFrom(variable.validateAndUpdate());
+        expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+        expect(variable.state.value).toEqual(['defaultVal1']);
+        expect(variable.state.text).toEqual(['defaultVal1']);
+      });
+    });
+
+    it('should overwrite any existing values with the default value if nothing arrives from the url', async () => {
+      const { variable } = setupTest({
+        value: ['existingVal1', 'existingVal2'],
+        defaultValue: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      await act(async () => {
+        await lastValueFrom(variable.validateAndUpdate());
+        expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+        expect(variable.state.value).toEqual(['defaultVal1']);
+        expect(variable.state.text).toEqual(['defaultVal1']);
+      });
+    });
+
+    it('should be able to restore to default values when they exist', () => {
+      const { variable } = setupTest(
+        {
+          defaultValue: {
+            value: ['defaultVal1', 'defaultVal2'],
+            text: ['defaultVal1', 'defaultVal2'],
+          },
+        },
+        undefined,
+        '/?var-test=val1'
+      );
+
+      expect(variable.state.value).toEqual(['val1']);
+      expect(variable.state.text).toEqual(['val1']);
+      expect(variable.state.restorable).toBe(true);
+
+      variable.restoreDefaultValues();
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.text).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValue!.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValue!.text).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.restorable).toBe(false);
+    });
+
+    it('should not set variable as restorable if values are the same as default ones', () => {
+      const { variable } = setupTest({
+        value: ['defaultVal1', 'defaultVal2'],
+        defaultValue: {
+          value: ['defaultVal1', 'defaultVal2'],
+          text: ['defaultVal1', 'defaultVal2'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+    });
+
     it('should work with browser history action on user action', () => {
       const { variable } = setupTest({
         defaultOptions: [
@@ -384,6 +494,26 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
     });
+
+    it('input should show restore icon and be clickable', async () => {
+      const { variable } = setupTest(
+        {
+          defaultValue: {
+            value: ['defaultValue'],
+            text: ['defaultValue'],
+          },
+        },
+        undefined,
+        '/?var-test=val'
+      );
+
+      const restore = screen.getByLabelText('Restore groupby set by this dashboard.');
+
+      await userEvent.click(restore);
+
+      expect(screen.queryByLabelText('Restore groupby set by this dashboard.')).not.toBeInTheDocument();
+      expect(variable.state.value).toEqual(['defaultValue']);
+    });
   });
 });
 
@@ -395,7 +525,8 @@ let runRequestSet = false;
 
 export function setupTest(
   overrides?: Partial<GroupByVariableState>,
-  filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest']
+  filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
+  path?: string
 ) {
   const getTagKeysSpy = jest.fn();
   setDataSourceSrv({
@@ -465,7 +596,7 @@ export function setupTest(
     (scene as EmbeddedScene & FiltersRequestEnricher).enrichFiltersRequest = filtersRequestEnricher;
   }
 
-  locationService.push('/');
+  locationService.push(path || '/');
 
   render(
     <TestContextProvider scene={scene}>

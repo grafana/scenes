@@ -2,9 +2,11 @@ import { createRequire } from 'node:module';
 import resolve from '@rollup/plugin-node-resolve';
 import path from 'path';
 import dts from 'rollup-plugin-dts';
+import json from '@rollup/plugin-json';
 import esbuild from 'rollup-plugin-esbuild';
 import eslint from '@rollup/plugin-eslint';
 import { nodeExternals } from 'rollup-plugin-node-externals';
+import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 const env = process.env.NODE_ENV || 'production';
 const rq = createRequire(import.meta.url);
 
@@ -18,6 +20,8 @@ const plugins = [
     tsconfig: './tsconfig.json',
   }),
   eslint(),
+  json(),
+  dynamicImportVars(),
 ];
 
 export default [

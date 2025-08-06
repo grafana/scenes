@@ -1,6 +1,5 @@
 import { Scope, ScopeSpecFilter } from '@grafana/data';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
-import { FilterOrigin } from './AdHocFiltersVariable';
 
 describe('getAdHocFiltersFromScopes', () => {
   it('should return empty filters when no scopes are provided', () => {
@@ -24,15 +23,15 @@ describe('getAdHocFiltersFromScopes', () => {
     ]);
 
     expect(getAdHocFiltersFromScopes(scopes)).toEqual([
-      { key: 'key1', value: 'value1', operator: '=', origin: FilterOrigin.Scopes, values: ['value1'] },
-      { key: 'key2', value: 'value2', operator: '!=', origin: FilterOrigin.Scopes, values: ['value2'] },
-      { key: 'key3', value: 'value3', operator: '!~', origin: FilterOrigin.Scopes, values: ['value3'] },
+      { key: 'key1', value: 'value1', operator: '=', origin: 'scope', values: ['value1'] },
+      { key: 'key2', value: 'value2', operator: '!=', origin: 'scope', values: ['value2'] },
+      { key: 'key3', value: 'value3', operator: '!~', origin: 'scope', values: ['value3'] },
     ]);
 
     scopes = generateScopes([[{ key: 'key3', value: 'value3', operator: 'regex-match' }]]);
 
     expect(getAdHocFiltersFromScopes(scopes)).toEqual([
-      { key: 'key3', value: 'value3', operator: '=~', origin: FilterOrigin.Scopes, values: ['value3'] },
+      { key: 'key3', value: 'value3', operator: '=~', origin: 'scope', values: ['value3'] },
     ]);
   });
 
@@ -43,9 +42,18 @@ describe('getAdHocFiltersFromScopes', () => {
     ]);
 
     expect(getAdHocFiltersFromScopes(scopes)).toEqual([
-      { key: 'key1', value: 'value1', operator: '=', origin: FilterOrigin.Scopes, values: ['value1'] },
-      { key: 'key2', value: 'value2', operator: '=~', origin: FilterOrigin.Scopes, values: ['value2'] },
+      { key: 'key1', value: 'value1', operator: '=', origin: 'scope', values: ['value1'] },
+      { key: 'key2', value: 'value2', operator: '=~', origin: 'scope', values: ['value2'] },
     ]);
+  });
+
+  it('should not process if filter is undefined', () => {
+    let scopes = generateScopes([
+      // @ts-ignore
+      [undefined],
+    ]);
+
+    expect(getAdHocFiltersFromScopes(scopes)).toEqual([]);
   });
 
   it('should return filters formatted for adHoc from multiple scopes with multiple values', () => {
@@ -61,10 +69,10 @@ describe('getAdHocFiltersFromScopes', () => {
     ]);
 
     expect(getAdHocFiltersFromScopes(scopes)).toEqual([
-      { key: 'key1', value: 'value1', operator: '=', origin: FilterOrigin.Scopes, values: ['value1'] },
-      { key: 'key2', value: 'value2', operator: '!=', origin: FilterOrigin.Scopes, values: ['value2'] },
-      { key: 'key3', value: 'value3', operator: '=~', origin: FilterOrigin.Scopes, values: ['value3'] },
-      { key: 'key4', value: 'value4', operator: '=~', origin: FilterOrigin.Scopes, values: ['value4'] },
+      { key: 'key1', value: 'value1', operator: '=', origin: 'scope', values: ['value1'] },
+      { key: 'key2', value: 'value2', operator: '!=', origin: 'scope', values: ['value2'] },
+      { key: 'key3', value: 'value3', operator: '=~', origin: 'scope', values: ['value3'] },
+      { key: 'key4', value: 'value4', operator: '=~', origin: 'scope', values: ['value4'] },
     ]);
   });
 
@@ -86,10 +94,10 @@ describe('getAdHocFiltersFromScopes', () => {
         key: 'key1',
         value: 'value1',
         operator: '=|',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value1', 'value3', 'value5'],
       },
-      { key: 'key2', value: 'value2', operator: '!=|', origin: FilterOrigin.Scopes, values: ['value2', 'value4'] },
+      { key: 'key2', value: 'value2', operator: '!=|', origin: 'scope', values: ['value2', 'value4'] },
     ]);
   });
 
@@ -105,20 +113,82 @@ describe('getAdHocFiltersFromScopes', () => {
         key: 'key1',
         value: 'value1',
         operator: '=|',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value1', 'value3'],
       },
       {
         key: 'key1',
         value: 'value2',
         operator: '!=',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value2'],
       },
     ]);
   });
 
-  it('should return formatted filters and keep only the first filter of the same key if operator is not multi-value', () => {
+  it('should format regex filters by merging all values with pipe-OR operator', () => {
+    let scopes = generateScopes([
+      [{ key: 'key1', value: 'value1', operator: 'regex-not-match' }],
+      [{ key: 'key1', value: 'value2', operator: 'regex-not-match' }],
+      [{ key: 'key1', value: 'value3', operator: 'regex-not-match' }],
+    ]);
+
+    expect(getAdHocFiltersFromScopes(scopes)).toEqual([
+      {
+        key: 'key1',
+        value: 'value1|value2|value3',
+        operator: '!~',
+        origin: 'scope',
+        values: ['value1|value2|value3'],
+      },
+    ]);
+  });
+
+  it('should format regex filters by merging values where possible else leaving as-is', () => {
+    let scopes = generateScopes([
+      [{ key: 'key1', value: 'value1', operator: 'regex-not-match' }],
+      [{ key: 'key1', value: 'value2', operator: 'regex-not-match' }],
+      // same key, diff operator
+      [{ key: 'key1', value: 'value3', operator: 'regex-match' }],
+    ]);
+
+    expect(getAdHocFiltersFromScopes(scopes)).toEqual([
+      {
+        key: 'key1',
+        value: 'value1|value2',
+        operator: '!~',
+        origin: 'scope',
+        values: ['value1|value2'],
+      },
+      {
+        key: 'key1',
+        value: 'value3',
+        operator: '=~',
+        origin: 'scope',
+        values: ['value3'],
+      },
+    ]);
+  });
+
+  it('should format regex filters by merging all values with pipe-OR operator', () => {
+    let scopes = generateScopes([
+      [{ key: 'key1', value: 'value1', operator: 'regex-match' }],
+      [{ key: 'key1', value: 'value2', operator: 'regex-match' }],
+      [{ key: 'key1', value: 'value3', operator: 'regex-match' }],
+    ]);
+
+    expect(getAdHocFiltersFromScopes(scopes)).toEqual([
+      {
+        key: 'key1',
+        value: 'value1|value2|value3',
+        operator: '=~',
+        origin: 'scope',
+        values: ['value1|value2|value3'],
+      },
+    ]);
+  });
+
+  it('should return formatted filters on equality and regex filters and keep only the rest unmodified', () => {
     let scopes = generateScopes([
       [
         { key: 'key1', value: 'value1', operator: 'regex-match' },
@@ -134,24 +204,17 @@ describe('getAdHocFiltersFromScopes', () => {
     expect(getAdHocFiltersFromScopes(scopes)).toEqual([
       {
         key: 'key1',
-        value: 'value1',
+        value: 'value1|value3',
         operator: '=~',
-        origin: FilterOrigin.Scopes,
-        values: ['value1'],
+        origin: 'scope',
+        values: ['value1|value3'],
       },
-      { key: 'key2', value: 'value2', operator: '!=|', origin: FilterOrigin.Scopes, values: ['value2', 'value4'] },
-      {
-        key: 'key1',
-        value: 'value3',
-        operator: '=~',
-        origin: FilterOrigin.Scopes,
-        values: ['value3'],
-      },
+      { key: 'key2', value: 'value2', operator: '!=|', origin: 'scope', values: ['value2', 'value4'] },
       {
         key: 'key1',
         value: 'value5',
         operator: '=',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value5'],
       },
     ]);
@@ -165,24 +228,17 @@ describe('getAdHocFiltersFromScopes', () => {
     expect(getAdHocFiltersFromScopes(scopes)).toEqual([
       {
         key: 'key1',
-        value: 'value1',
+        value: 'value1|value3',
         operator: '=~',
-        origin: FilterOrigin.Scopes,
-        values: ['value1'],
+        origin: 'scope',
+        values: ['value1|value3'],
       },
       {
         key: 'key1',
         value: 'value5',
         operator: '=',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value5'],
-      },
-      {
-        key: 'key1',
-        value: 'value3',
-        operator: '=~',
-        origin: FilterOrigin.Scopes,
-        values: ['value3'],
       },
     ]);
   });
@@ -199,14 +255,14 @@ describe('getAdHocFiltersFromScopes', () => {
         key: 'key1',
         value: 'value1',
         operator: '=|',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value1', 'value3'],
       },
       {
         key: 'key1',
         value: 'value2',
         operator: '=~',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value2'],
       },
     ]);
@@ -239,28 +295,28 @@ describe('getAdHocFiltersFromScopes', () => {
         key: 'key1',
         value: 'value1',
         operator: '=|',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value1', 'value3', 'value7', 'value9'],
       },
       {
         key: 'key2',
         value: 'value2',
         operator: '=|',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value2', 'value4', 'value6', 'value10'],
       },
       {
         key: 'key1',
         value: 'value5',
         operator: '=~',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value5'],
       },
       {
         key: 'key2',
         value: 'value8',
         operator: '=~',
-        origin: FilterOrigin.Scopes,
+        origin: 'scope',
         values: ['value8'],
       },
     ]);

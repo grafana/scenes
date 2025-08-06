@@ -2,7 +2,6 @@ import { ComponentType } from 'react';
 import { DataRequestEnricher, SceneObject, SceneObjectState, SceneUrlSyncOptions } from '../../core/types';
 import { EmbeddedScene } from '../EmbeddedScene';
 import { IconName, PageLayoutType } from '@grafana/data';
-import { SceneScopesBridge } from '../../core/SceneScopesBridge';
 
 export interface SceneRouteMatch<Params extends { [K in keyof Params]?: string } = {}> {
   params: Params;
@@ -16,7 +15,6 @@ export interface SceneAppState extends SceneObjectState {
   pages: SceneAppPageLike[];
   name?: string;
   urlSyncOptions?: SceneUrlSyncOptions;
-  scopesBridge?: SceneScopesBridge;
 }
 
 export interface SceneAppRoute {
@@ -73,9 +71,6 @@ export interface SceneAppPageState extends SceneObjectState {
   getFallbackPage?: () => SceneAppPageLike;
 
   layout?: PageLayoutType;
-
-  // Whether to use scopes for this page
-  useScopes?: boolean;
 }
 
 export interface SceneAppPageLike extends SceneObject<SceneAppPageState>, DataRequestEnricher {

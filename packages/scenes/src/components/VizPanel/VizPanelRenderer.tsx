@@ -1,3 +1,4 @@
+import { Trans } from '@grafana/i18n';
 import React, { RefCallback, useCallback, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
@@ -67,11 +68,23 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const alertStateStyles = useStyles2(getAlertStateStyles);
 
   if (!plugin) {
-    return <div>Loading plugin panel...</div>;
+    return (
+      <div>
+        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.loading-plugin-panel">
+          Loading plugin panel...
+        </Trans>
+      </div>
+    );
   }
 
   if (!plugin.panel) {
-    return <div>Panel plugin has no panel component</div>;
+    return (
+      <div>
+        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.panel-plugin-has-no-panel-component">
+          Panel plugin has no panel component
+        </Trans>
+      </div>
+    );
   }
 
   const PanelComponent = plugin.panel;
@@ -169,6 +182,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
+          // @ts-expect-error showMenuAlways remove when updating to @grafana/ui@12 fixed in https://github.com/grafana/grafana/pull/103553
           <PanelChrome
             title={titleInterpolated}
             description={description?.trim() ? model.getDescription : undefined}
@@ -192,12 +206,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onDragStart={(e: React.PointerEvent) => {
               dragHooks.onDragStart?.(e, model);
             }}
+            showMenuAlways={showMenuAlways}
             {...(collapsible
               ? {
                   collapsible: Boolean(collapsible),
                   collapsed,
                   onToggleCollapse: model.onToggleCollapse,
-                  showMenuAlways,
                 }
               : { hoverHeader, hoverHeaderOffset })}
           >
@@ -215,7 +229,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           timeZone={timeZone}
                           options={options}
                           fieldConfig={fieldConfig}
-                          transparent={false}
+                          transparent={displayMode === 'transparent'}
                           width={innerWidth}
                           height={innerHeight}
                           renderCounter={_renderCounter}

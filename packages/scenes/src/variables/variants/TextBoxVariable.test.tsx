@@ -36,4 +36,11 @@ describe('TextBoxVariable', () => {
 
     expect(variable.urlSync?.getKeys()).toEqual(['var-newName']);
   });
+
+  it('Can disable url sync', () => {
+    const variable = new TextBoxVariable({ name: 'search', skipUrlSync: true });
+
+    expect(variable.urlSync?.getUrlState()).toEqual({});
+    expect(variable.urlSync?.getKeys()).toEqual([]);
+  });
 });

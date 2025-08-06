@@ -188,7 +188,7 @@ export function escapeUrlHashDelimiters(value: string | undefined): string {
   return /#/g[Symbol.replace](value, '__gfh__');
 }
 
-export function escapeInjectedFilterUrlDelimiters(value: string | undefined): string {
+export function escapeOriginFilterUrlDelimiters(value: string | undefined): string {
   return escapeUrlHashDelimiters(escapeUrlPipeDelimiters(value));
 }
 

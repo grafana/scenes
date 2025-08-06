@@ -1,0 +1,148 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "Filter bewerken met sleutel {{keyLabel}}",
+        "managed-filter": "{{origin}} beheerde filter",
+        "remove-filter-with-key": "Filter verwijderen met sleutel {{keyLabel}}"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Filterwaarde verwijderen - {{itemLabel}}",
+        "use-custom-value": "Aangepaste waarde gebruiken: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "Als je hier bent gekomen via een link, dan kan er een bug in deze applicatie zijn.",
+        "subTitle": "De URL kwam met geen enkele pagina overeen",
+        "title": "Niet gevonden"
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Scène samenvouwen",
+        "expand-button-label": "Scène uitvouwen",
+        "remove-button-label": "Scène verwijderen"
+      },
+      "scene-debugger": {
+        "object-details": "Objectdetails",
+        "scene-graph": "Scènegrafiek",
+        "title-scene-debugger": "Scène-debugger"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Rij samenvouwen",
+        "expand-row": "Rij uitvouwen"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Vergelijking",
+        "button-tooltip": "Tijdsbestekvergelijking inschakelen"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Grootte widget wijzigen"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Titel"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Verkennen"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Plug-inpaneel laden...",
+        "panel-plugin-has-no-panel-component": "Paneelplug-in heeft geen paneelcomponent"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Het renderen van te veel reeksen in één paneel kan de prestaties beïnvloeden en de leesbaarheid van de gegevens verminderen. ",
+        "warning-message": "Alleen {{seriesLimit}}-series weergeven"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Verwijderen"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "Query annuleren"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Filteroperator bewerken"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Filter toevoegen",
+        "title-add-filter": "Filter toevoegen"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Filter verwijderen",
+        "key-select": {
+          "placeholder-select-label": "Selecteer label"
+        },
+        "label-select-label": "Selecteer label",
+        "title-remove-filter": "Filter verwijderen",
+        "value-select": {
+          "placeholder-select-value": "Waarde selecteren"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "standaard"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "wissen",
+        "tooltip": "Standaard toegepast in dit dashboard. Als het wordt bewerkt, wordt het overgenomen naar andere dashboards.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "Herstel groupby ingesteld door dit dashboard."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Kommagescheiden waarden",
+            "double-quoted-values": "Dubbel geciteerde waarden",
+            "format-date-in-different-ways": "Datum op verschillende manieren opmaken",
+            "format-multivalued-variables-using-syntax-example": "Formatteer variabelen met meerdere waarden met behulp van glob-syntaxis, bijvoorbeeld {value1,value2}",
+            "html-escaping-of-values": "HTML-escaping van waarden",
+            "json-stringify-value": "JSON-stringify-waarde",
+            "keep-value-as-is": "Huidige waarde behouden",
+            "multiple-values-are-formatted-like-variablevalue": "Meerdere waarden zijn opgemaakt als variabele=waarde",
+            "single-quoted-values": "Enkel geciteerde waarden",
+            "useful-escaping-values-taking-syntax-characters": "Handig voor URL-escapingwaarden, rekening houdend met URI-syntaxis tekens",
+            "useful-for-url-escaping-values": "Handig voor URL-escaping-waarden",
+            "values-are-separated-by-character": "Waarden worden gescheiden door | teken"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Groeperen op kiezer",
+        "placeholder-group-by-label": "Groeperen op label"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Waarde selecteren"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Opties laden…"
+      },
+      "multi-value-apply-button": {
+        "apply": "Toepassen"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "Geen opties gevonden"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "Er is een fout opgetreden bij het ophalen van labels. Klik om opnieuw te proberen"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Hallo"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Tekst"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Voer waarde in"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Waarde selecteren"
+      }
+    }
+  }
+}

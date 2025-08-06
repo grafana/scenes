@@ -14,12 +14,12 @@ import {
 import { sceneGraph } from '../../../core/sceneGraph';
 import { SceneComponentProps, SceneDataQuery } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
-import { renderSelectForVariable } from '../../components/VariableValueSelect';
+import { MultiOrSingleValueSelect } from '../../components/VariableValueSelect';
 import { VariableValueOption } from '../../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../MultiValueVariable';
 
 import { createQueryVariableRunner } from './createQueryVariableRunner';
-import { metricNamesToVariableValues } from './utils';
+import { metricNamesToVariableValues, sortVariableValues } from './utils';
 import { toMetricFindValues } from './toMetricFindValues';
 import { getDataSource } from '../../../utils/getDataSource';
 import { safeStringifyValue } from '../../utils';
@@ -28,6 +28,7 @@ import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
+import React from 'react';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -36,6 +37,12 @@ export interface QueryVariableState extends MultiValueVariableState {
   regex: string;
   refresh: VariableRefresh;
   sort: VariableSort;
+
+  // works the same as query for custom variable, adding additional static options to ones returned by data source query
+  staticOptions?: VariableValueOption[];
+
+  // how to order static options in relation to options returned by query
+  staticOptionsOrder?: 'before' | 'after' | 'sorted';
   /** @internal Only for use inside core dashboards */
   definition?: string;
 }
@@ -80,7 +87,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
         return runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request).pipe(
           registerQueryWithController({
-            type: 'variable',
+            type: 'QueryVariable/getValueOptions',
             request: request,
             origin: this,
           }),
@@ -98,7 +105,19 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
             if (this.state.regex) {
               regex = sceneGraph.interpolate(this, this.state.regex, undefined, 'regex');
             }
-            return of(metricNamesToVariableValues(regex, this.state.sort, values));
+            let options = metricNamesToVariableValues(regex, this.state.sort, values);
+            if (this.state.staticOptions) {
+              const customOptions = this.state.staticOptions;
+              options = options.filter((option) => !customOptions.find((custom) => custom.value === option.value));
+              if (this.state.staticOptionsOrder === 'after') {
+                options.push(...customOptions);
+              } else if (this.state.staticOptionsOrder === 'sorted') {
+                options = sortVariableValues(options.concat(customOptions), this.state.sort);
+              } else {
+                options.unshift(...customOptions);
+              }
+            }
+            return of(options);
           }),
           catchError((error) => {
             if (error.cancelled) {
@@ -152,7 +171,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
   }, 400);
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
-    return renderSelectForVariable(model);
+    return <MultiOrSingleValueSelect model={model} />;
   };
 }
 

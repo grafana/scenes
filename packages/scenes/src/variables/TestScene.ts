@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { VariableDependencyConfig } from './VariableDependencyConfig';
@@ -34,7 +35,7 @@ export class TestObjectWithVariableDependency extends SceneObjectBase<TestSceneO
     super({
       didSomethingCount: 0,
       variableValueChanged: 0,
-      title: 'Hello',
+      title: t('grafana-scenes.variables.test-object-with-variable-dependency.title.hello', 'Hello'),
       ...state,
     });
   }

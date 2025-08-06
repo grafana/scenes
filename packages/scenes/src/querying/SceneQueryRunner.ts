@@ -43,12 +43,11 @@ import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetA
 import { registerQueryWithController } from './registerQueryWithController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable, isFilterApplicable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
 import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
-import { SceneScopesBridge } from '../core/SceneScopesBridge';
 
 let counter = 100;
 
@@ -112,8 +111,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _dataLayersMerger = new DataLayersMerger();
   private _timeSub?: Unsubscribable;
   private _timeSubRange?: SceneTimeRangeLike;
-  private _scopesSub?: Unsubscribable;
-  private _scopesSubBridge?: SceneScopesBridge;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
@@ -132,6 +129,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     statePaths: ['queries', 'datasource', 'minInterval'],
     onVariableUpdateCompleted: this.onVariableUpdatesCompleted.bind(this),
     onAnyVariableChanged: this.onAnyVariableChanged.bind(this),
+    dependsOnScopes: true,
   });
 
   public constructor(initialState: QueryRunnerState) {
@@ -143,7 +141,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _onActivate() {
     if (this.isQueryModeAuto()) {
       const timeRange = sceneGraph.getTimeRange(this);
-      const scopesBridge = sceneGraph.getScopesBridge(this);
 
       // Add subscriptions to any extra providers so that they rerun queries
       // when their state changes and they should rerun.
@@ -157,8 +154,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
           })
         );
       }
-
-      this.subscribeToScopesChanges(scopesBridge);
 
       this.subscribeToTimeRangeChanges(timeRange);
 
@@ -343,7 +338,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._timeSubRange = undefined;
     this._adhocFiltersVar = undefined;
     this._groupByVar = undefined;
-    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
   public setContainerWidth(width: number) {
@@ -372,28 +366,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return Boolean(this.state._hasFetchedData);
   }
 
-  private subscribeToScopesChanges(scopesBridge: SceneScopesBridge | undefined) {
-    if (!scopesBridge) {
-      // Nothing to do, there's no scopes bridge
-      return;
-    }
-
-    if (this._scopesSubBridge === scopesBridge) {
-      // Nothing to do, already subscribed
-      return;
-    }
-
-    if (this._scopesSub) {
-      this._scopesSub.unsubscribe();
-    }
-
-    this._scopesSubBridge = scopesBridge;
-
-    this._scopesSub = scopesBridge.subscribeToValue(() => {
-      this.runWithTimeRangeAndScopes(sceneGraph.getTimeRange(this), scopesBridge);
-    });
-  }
-
   private subscribeToTimeRangeChanges(timeRange: SceneTimeRangeLike) {
     if (this._timeSubRange === timeRange) {
       // Nothing to do, already subscribed
@@ -406,19 +378,18 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     this._timeSubRange = timeRange;
     this._timeSub = timeRange.subscribeToState(() => {
-      this.runWithTimeRangeAndScopes(timeRange, sceneGraph.getScopesBridge(this));
+      this.runWithTimeRange(timeRange);
     });
   }
 
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
-    const scopesBridge = sceneGraph.getScopesBridge(this);
+
     if (this.isQueryModeAuto()) {
       this.subscribeToTimeRangeChanges(timeRange);
-      this.subscribeToScopesChanges(scopesBridge);
     }
 
-    this.runWithTimeRangeAndScopes(timeRange, scopesBridge);
+    this.runWithTimeRange(timeRange);
   }
 
   private getMaxDataPoints() {
@@ -442,7 +413,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     });
   }
 
-  private async runWithTimeRangeAndScopes(timeRange: SceneTimeRangeLike, scopesBridge: SceneScopesBridge | undefined) {
+  private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // If no maxDataPoints specified we might need to wait for container width to be set from the outside
     if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
       return;
@@ -463,13 +434,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    // Skip executing queries if scopes are in loading state and there are values, meaning further
-    // data will be received after scope filters are loaded
-    if (scopesBridge?.isLoading() && scopesBridge?.getValue().length) {
-      writeSceneLog('SceneQueryRunner', 'Scopes are in loading state, skipping query execution');
-      this.setState({ data: { ...(this.state.data ?? emptyPanelData), state: LoadingState.Loading } });
-      return;
-    }
+    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
 
     const { queries } = this.state;
 
@@ -486,7 +451,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.findAndSubscribeToAdHocFilters(ds.uid);
 
       const runRequest = getRunRequest();
-      const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds, scopesBridge);
+      const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
@@ -505,7 +470,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       stream = stream.pipe(
         registerQueryWithController({
-          type: 'data',
+          type: 'SceneQueryRunner/runQueries',
           request: primary,
           origin: this,
           cancel: () => this.cancelQuery(),
@@ -543,11 +508,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return clone;
   }
 
-  private prepareRequests(
-    timeRange: SceneTimeRangeLike,
-    ds: DataSourceApi,
-    scopesBridge: SceneScopesBridge | undefined
-  ): PreparedRequests {
+  private prepareRequests(timeRange: SceneTimeRangeLike, ds: DataSourceApi): PreparedRequests {
     const { minInterval, queries } = this.state;
 
     let request: DataQueryRequest<DataQueryExtended> = {
@@ -568,22 +529,18 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       },
       cacheTimeout: this.state.cacheTimeout,
       queryCachingTTL: this.state.queryCachingTTL,
-      scopes: scopesBridge?.getValue(),
+      scopes: sceneGraph.getScopes(this),
       // This asks the scene root to provide context properties like app, panel and dashboardUID
       ...getEnrichedDataRequest(this),
     };
 
     if (this._adhocFiltersVar) {
-      request.filters = [];
-
-      if (this._adhocFiltersVar.state.baseFilters?.length) {
-        const injectedBaseFilters = this._adhocFiltersVar.state.baseFilters.filter((filter) => filter.origin);
-        request.filters = request.filters.concat(injectedBaseFilters);
-      }
-
       // only pass filters that have both key and value
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.filters = request.filters.concat(this._adhocFiltersVar.state.filters.filter(isFilterComplete));
+      request.filters = [
+        ...(this._adhocFiltersVar.state.originFilters ?? []),
+        ...this._adhocFiltersVar.state.filters,
+      ].filter((f) => isFilterComplete(f) && isFilterApplicable(f));
     }
 
     if (this._groupByVar) {

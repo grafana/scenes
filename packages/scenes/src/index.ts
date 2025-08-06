@@ -1,6 +1,6 @@
 import { getUrlWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
-import { cloneSceneObjectState } from './core/sceneGraph/utils';
+import { cloneSceneObjectState } from './core/sceneGraph/cloneSceneObject';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
 
@@ -52,6 +52,7 @@ export type {
   SceneQueryControllerEntry,
   SceneInteractionProfileEvent,
 } from './behaviors/types';
+export { SceneRenderProfiler } from './behaviors/SceneRenderProfiler';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
@@ -65,6 +66,7 @@ export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
+export { ScopesVariable } from './variables/variants/ScopesVariable';
 export {
   MultiValueVariable,
   type MultiValueVariableState,
@@ -72,7 +74,7 @@ export {
 } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
-export { AdHocFiltersVariable, FilterOrigin } from './variables/adhoc/AdHocFiltersVariable';
+export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
@@ -132,11 +134,10 @@ export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
 export { ControlsLabel } from './utils/ControlsLabel';
-export { renderSelectForVariable } from './variables/components/VariableValueSelect';
+export { MultiOrSingleValueSelect } from './variables/components/VariableValueSelect';
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
 export { type VizConfig } from './core/PanelBuilders/types';
-export { SceneScopesBridge } from './core/SceneScopesBridge';
 
 export const sceneUtils = {
   getUrlWithAppState,
@@ -164,3 +165,4 @@ export const sceneUtils = {
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
 export { getExploreURL } from './utils/explore';
+export { loadResources } from './utils/loadResources';

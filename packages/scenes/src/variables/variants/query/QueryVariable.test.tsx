@@ -30,6 +30,7 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { config, setRunRequest } from '@grafana/runtime';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
+import { VariableSort } from '@grafana/schema';
 
 const runRequestMock = jest.fn().mockReturnValue(
   of<PanelData>({
@@ -423,6 +424,129 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
       await new Promise((r) => setTimeout(r, 500));
 
       expect(runRequestMock).toBeCalledTimes(1);
+    });
+  });
+
+  describe('When static options are provided', () => {
+    it('Should prepend static options to the query results when no static options order is provided', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        staticOptions: [
+          { label: 'A', value: 'A' },
+          { label: 'B', value: 'B' },
+          { label: 'C', value: 'C' },
+        ],
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'A', value: 'A' },
+        { label: 'B', value: 'B' },
+        { label: 'C', value: 'C' },
+        { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val11', value: 'val11' },
+      ]);
+    });
+
+    it('Should prepend static options to the query results when static order "before" is provided"', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        staticOptions: [
+          { label: 'A', value: 'A' },
+          { label: 'B', value: 'B' },
+          { label: 'C', value: 'C' },
+        ],
+        staticOptionsOrder: 'before',
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'A', value: 'A' },
+        { label: 'B', value: 'B' },
+        { label: 'C', value: 'C' },
+        { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val11', value: 'val11' },
+      ]);
+    });
+
+    it('Should append static options to the query results when static order "after" is provided', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        staticOptions: [
+          { label: 'A', value: 'A' },
+          { label: 'B', value: 'B' },
+          { label: 'C', value: 'C' },
+        ],
+        staticOptionsOrder: 'after',
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
+        { label: 'val11', value: 'val11' },
+        { label: 'A', value: 'A' },
+        { label: 'B', value: 'B' },
+        { label: 'C', value: 'C' },
+      ]);
+    });
+
+    it('Should sort static options and query results when static order "sorted" is provided', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        sort: VariableSort.alphabeticalAsc,
+        staticOptions: [
+          { label: 'A', value: 'A' },
+          { label: 'B', value: 'B' },
+          { label: 'val12', value: 'val12' },
+        ],
+        staticOptionsOrder: 'sorted',
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'A', value: 'A' },
+        { label: 'B', value: 'B' },
+        { label: 'val1', value: 'val1' },
+        { label: 'val11', value: 'val11' },
+        { label: 'val12', value: 'val12' },
+        { label: 'val2', value: 'val2' },
+      ]);
+    });
+
+    it('Should deduplicate options if both query results and static options have the same value, preferring static option', async () => {
+      const variable = new QueryVariable({
+        name: 'test',
+        datasource: { uid: 'fake-std', type: 'fake-std' },
+        query: 'query',
+        staticOptions: [
+          { label: 'A', value: 'A' },
+          { label: 'val3', value: 'val11' },
+        ],
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { label: 'A', value: 'A' },
+        { label: 'val3', value: 'val11' },
+        { label: 'val1', value: 'val1' },
+        { label: 'val2', value: 'val2' },
+      ]);
     });
   });
 });

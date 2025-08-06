@@ -21,23 +21,25 @@ export interface SceneCanvasTextState extends SceneObjectState {
 export class SceneCanvasText extends SceneObjectBase<SceneCanvasTextState> {
   protected _variableDependency = new VariableDependencyConfig(this, { statePaths: ['text'] });
 
-  public static Component = ({ model }: SceneComponentProps<SceneCanvasText>) => {
-    const { text, fontSize = 20, align = 'left', key, spacing } = model.useState();
-    const theme = useTheme2();
+  public static Component = SceneCanvasTextRenderer;
+}
 
-    const style = css({
-      fontSize: fontSize,
-      display: 'flex',
-      flexGrow: 1,
-      alignItems: 'center',
-      padding: spacing ? theme.spacing(spacing, 0) : undefined,
-      justifyContent: align,
-    });
+function SceneCanvasTextRenderer({ model }: SceneComponentProps<SceneCanvasText>) {
+  const { text, fontSize = 20, align = 'left', key, spacing } = model.useState();
+  const theme = useTheme2();
 
-    return (
-      <div className={style} data-testid={key}>
-        {sceneGraph.interpolate(model, text)}
-      </div>
-    );
-  };
+  const style = css({
+    fontSize: fontSize,
+    display: 'flex',
+    flexGrow: 1,
+    alignItems: 'center',
+    padding: spacing ? theme.spacing(spacing, 0) : undefined,
+    justifyContent: align,
+  });
+
+  return (
+    <div className={style} data-testid={key}>
+      {sceneGraph.interpolate(model, text)}
+    </div>
+  );
 }

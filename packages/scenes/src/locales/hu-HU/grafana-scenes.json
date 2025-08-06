@@ -1,0 +1,148 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "{{keyLabel}} kulcsos szűrő szerkesztése",
+        "managed-filter": "{{origin}} által kezelt szűrő",
+        "remove-filter-with-key": "{{keyLabel}} kulcsos szűrő eltávolítása"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Szűrőérték eltávolítása – {{itemLabel}}",
+        "use-custom-value": "Egyéni érték használata: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "Ha egy hivatkozáson keresztül lépett ide, akkor lehet, hogy hiba van ebben az alkalmazásban.",
+        "subTitle": "Az URL-cím nem egyezett egyetlen oldallal sem",
+        "title": "Nem található"
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Jelenet összecsukása",
+        "expand-button-label": "Jelenet kibontása",
+        "remove-button-label": "Jelenet eltávolítása"
+      },
+      "scene-debugger": {
+        "object-details": "Az objektum részletei",
+        "scene-graph": "Jelenetdiagram",
+        "title-scene-debugger": "Jelenet-hibakereső"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Sor összecsukása",
+        "expand-row": "Sor kibontása"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Összehasonlítás",
+        "button-tooltip": "Időkeret-összehasonlítás engedélyezése"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Ablaktábla-átméretezési widget"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Cím"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Explore"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Bővítménypanel betöltése…",
+        "panel-plugin-has-no-panel-component": "A panelbővítménynek nincs panelösszetevője"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Ha túl sok sorozatot jelenít meg egyetlen panelen, az hatással lehet a teljesítményre, és megnehezítheti az adatok olvasását.",
+        "warning-message": "Csak {{seriesLimit}} sorozat megjelenítése"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Eltávolítás"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "A lekérdezés megszakítása"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Szűrőoperátor szerkesztése"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Szűrő hozzáadása",
+        "title-add-filter": "Szűrő hozzáadása"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Szűrő eltávolítása",
+        "key-select": {
+          "placeholder-select-label": "Címke kiválasztása"
+        },
+        "label-select-label": "Címke kiválasztása",
+        "title-remove-filter": "Szűrő eltávolítása",
+        "value-select": {
+          "placeholder-select-value": "Érték kiválasztása"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "alapértelmezés"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "törlés",
+        "tooltip": "Alapértelmezés szerint alkalmazva ezen az irányítópulton. A szerkesztést átviszi más irányítópultokra.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "A jelen irányítópult által beállított csoportosítási szempont visszaállítása."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Vesszővel elválasztott értékek",
+            "double-quoted-values": "Dupla idézőjeles értékek",
+            "format-date-in-different-ways": "Dátum formázása különböző módokon",
+            "format-multivalued-variables-using-syntax-example": "Többértékű változók formázása glob szintaxissal, például: {érték1,érték2}",
+            "html-escaping-of-values": "Értékek módosított HTML-értelmezése",
+            "json-stringify-value": "A JSON stringify értéke",
+            "keep-value-as-is": "Érték megtartása adott állapotban",
+            "multiple-values-are-formatted-like-variablevalue": "Több érték formázása változó=érték formátumban",
+            "single-quoted-values": "Egyszeres idézőjeles értékek",
+            "useful-escaping-values-taking-syntax-characters": "Hasznos az értékek módosított URL-értelmezéséhez, az URI-szintaktikai karakterek figyelembevételével",
+            "useful-for-url-escaping-values": "Hasznos az értékek módosított URL-értelmezéséhez",
+            "values-are-separated-by-character": "Az értékeket | karakter választja el"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Csoportosításiszempont-választó",
+        "placeholder-group-by-label": "Csoportosítási szempont címkéje"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Érték kiválasztása"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Beállítások betöltése…"
+      },
+      "multi-value-apply-button": {
+        "apply": "Alkalmaz"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "Nem található beállítás"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "Hiba történt a címkék lekérése során. Kattintson az újrapróbálkozáshoz"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Üdv"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Szöveg"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Érték megadása"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Érték kiválasztása"
+      }
+    }
+  }
+}

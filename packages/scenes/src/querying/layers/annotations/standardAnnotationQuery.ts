@@ -19,6 +19,7 @@ import { Dashboard, LoadingState } from '@grafana/schema';
 import { SceneObject, SceneTimeRangeLike } from '../../../core/types';
 import { getEnrichedDataRequest } from '../../getEnrichedDataRequest';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
+import { sceneGraph } from '../../../core/sceneGraph';
 
 let counter = 100;
 function getNextRequestId() {
@@ -118,6 +119,7 @@ export function executeAnnotationQuery(
         refId: 'Anno',
       },
     ],
+    scopes: sceneGraph.getScopes(layer),
     ...getEnrichedDataRequest(layer),
   };
 

@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import React from 'react';
 import { Icon, IconButton, Tooltip, useStyles2, useTheme2 } from '@grafana/ui';
 import { selectors } from '@grafana/e2e-selectors';
@@ -75,7 +76,13 @@ export function ControlsLabel(props: ControlsLabelProps) {
         {props.icon && <Icon name={props.icon} className={styles.normalIcon} />}
         {loadingIndicator}
         {props.onRemove && (
-          <IconButton variant="secondary" size="xs" name="times" onClick={props.onRemove} tooltip={'Remove'} />
+          <IconButton
+            variant="secondary"
+            size="xs"
+            name="times"
+            onClick={props.onRemove}
+            tooltip={t('grafana-scenes.utils.controls-label.tooltip-remove', 'Remove')}
+          />
         )}
         {props.suffix}
       </label>

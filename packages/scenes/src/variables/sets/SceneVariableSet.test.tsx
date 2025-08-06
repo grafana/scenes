@@ -16,6 +16,7 @@ import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { LocalValueVariable } from '../variants/LocalValueVariable';
 import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
+import { SceneVariable, SceneVariableState, VariableValue } from '../types';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
@@ -433,6 +434,36 @@ describe('SceneVariableList', () => {
     });
   });
 
+  describe('Notify internal variables of changes ', () => {
+    class VariableWithDependency extends SceneObjectBase<SceneVariableState> implements SceneVariable {
+      public onReferencedVariableValueChangedCalled = 0;
+      protected _variableDependency = new VariableDependencyConfig(this, {
+        variableNames: ['A'],
+        onReferencedVariableValueChanged: (variable) => this.onReferencedVariableValueChangedCalled++,
+      });
+
+      public getValue(): VariableValue | null | undefined {
+        return 'A';
+      }
+    }
+
+    it('Should notify internal variables of changes', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 0 });
+      const B = new VariableWithDependency({ name: 'B', type: 'system' });
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [A, B] }),
+      });
+
+      scene.activate();
+
+      expect(B.onReferencedVariableValueChangedCalled).toBe(1);
+
+      A.changeValueTo('AB');
+
+      expect(B.onReferencedVariableValueChangedCalled).toBe(2);
+    });
+  });
+
   describe('When variables array changes', () => {
     it('Should start update process', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
@@ -522,6 +553,22 @@ describe('SceneVariableList', () => {
   });
 
   describe('isVariableLoadingOrWaitingToUpdate', () => {
+    it('Should return true when variable is in state loading but not in update queue', async () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], delayMs: 0 });
+
+      const set = new SceneVariableSet({ variables: [A] });
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
+
+      // Should start variables with no dependencies
+      expect(A.state.loading).toBe(false);
+
+      A.setState({ loading: true });
+
+      expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(true);
+    });
+
     it('Should return true when loading or waiting to update', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const B = new TestVariable({ name: 'B', query: 'A.$A', value: '', text: '', options: [] });
@@ -671,6 +718,7 @@ describe('SceneVariableList', () => {
       expect(C.state.loading).toBe(false);
       expect(C.state.error).toBe('Error in C');
     });
+
     it('Should complete updating chained variables in case of error in the first variable', () => {
       const A = new TestVariable({
         name: 'A',

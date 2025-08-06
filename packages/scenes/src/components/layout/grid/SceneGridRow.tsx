@@ -13,6 +13,7 @@ import { SceneGridItemLike, SceneGridItemStateLike } from './types';
 import { sceneGraph } from '../../../core/sceneGraph';
 import { selectors } from '@grafana/e2e-selectors';
 import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
+import { t } from '@grafana/i18n';
 
 export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
@@ -91,7 +92,11 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
         <button
           onClick={model.onCollapseToggle}
           className={styles.rowTitleButton}
-          aria-label={isCollapsed ? 'Expand row' : 'Collapse row'}
+          aria-label={
+            isCollapsed
+              ? t('grafana-scenes.components.scene-grid-row.expand-row', 'Expand row')
+              : t('grafana-scenes.components.scene-grid-row.collapse-row', 'Collapse row')
+          }
           data-testid={selectors.components.DashboardRow.title(sceneGraph.interpolate(model, title, undefined, 'text'))}
         >
           {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}

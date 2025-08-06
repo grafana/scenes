@@ -43,16 +43,18 @@ export function getInteropDemo(defaults: SceneAppPageState) {
 }
 
 class CustomSceneObject extends SceneObjectBase<SceneObjectState> {
-  static Component = ({ model }: SceneComponentProps<CustomSceneObject>) => {
-    const [timeRange, _] = useTimeRange();
+  static Component = CustomSceneObjectRenderer;
+}
 
-    return (
-      <Stack direction="column">
-        <div>Time hook: {timeRange.from.toString()}</div>
-        <DemoVizLayout>
-          <PlainGraphWithRandomWalk title="Visualization using React VizPanel with data from useQueryRunner" />
-        </DemoVizLayout>
-      </Stack>
-    );
-  };
+function CustomSceneObjectRenderer({ model }: SceneComponentProps<CustomSceneObject>) {
+  const [timeRange, _] = useTimeRange();
+
+  return (
+    <Stack direction="column">
+      <div>Time hook: {timeRange.from.toString()}</div>
+      <DemoVizLayout>
+        <PlainGraphWithRandomWalk title="Visualization using React VizPanel with data from useQueryRunner" />
+      </DemoVizLayout>
+    </Stack>
+  );
 }
