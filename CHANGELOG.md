@@ -1,3 +1,43 @@
+# v6.29.4 (Wed Aug 06 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Chore: Use a proper version of `@grafana/i18n` now it's released [#1206](https://github.com/grafana/scenes/pull/1206) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v6.29.3 (Tue Aug 05 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Fix race conditions in non-applicable filters [#1203](https://github.com/grafana/scenes/pull/1203) ([@mdvictor](https://github.com/mdvictor))
+  - AdHocFilters: Scope injected filter values with regex operators also get merged [#1202](https://github.com/grafana/scenes/pull/1202) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.29.2 (Tue Aug 05 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRenderProfiler: Handle tab inactivity [#1205](https://github.com/grafana/scenes/pull/1205) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.29.1 (Mon Aug 04 2025)
 
 #### 🐛 Bug Fix
