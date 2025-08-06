@@ -1,4 +1,11 @@
-import { DataTopic, DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
+import {
+  DataFrame,
+  DataTopic,
+  DataTransformerConfig,
+  LoadingState,
+  PanelData,
+  transformDataFrame,
+} from '@grafana/data';
 import { toDataQueryError } from '@grafana/runtime';
 import { catchError, forkJoin, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
@@ -190,13 +197,31 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     this._transformSub = forkJoin(streams)
       .pipe(
         map((values) => {
-          const transformedSeries = values[0];
-          const transformedAnnotations = values[1];
+          const series: DataFrame[] = [];
+          const annotations: DataFrame[] = [];
+
+          // this strategy allows transformations to take in series frames and produce anno frames
+          // we look at each transformation's result and put it in the correct place
+          values[0].forEach((frame) => {
+            if (frame.meta?.dataTopic === DataTopic.Annotations) {
+              annotations.push(frame);
+            } else {
+              series.push(frame);
+            }
+          });
+
+          values[1]?.forEach((frame) => {
+            if (frame.meta?.dataTopic === DataTopic.Annotations) {
+              annotations.push(frame);
+            } else {
+              series.push(frame);
+            }
+          });
 
           return {
             ...data,
-            series: transformedSeries,
-            annotations: transformedAnnotations ?? data.annotations,
+            series: series.length > 0 ? series : data.series,
+            annotations: annotations.length > 0 ? annotations : data.annotations,
           };
         }),
         catchError((err) => {
