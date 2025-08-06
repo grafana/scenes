@@ -1,3 +1,15 @@
+# v6.29.4 (Wed Aug 06 2025)
+
+#### 🐛 Bug Fix
+
+- Chore: Use a proper version of `@grafana/i18n` now it's released [#1206](https://github.com/grafana/scenes/pull/1206) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v6.29.3 (Tue Aug 05 2025)
 
 #### 🐛 Bug Fix
