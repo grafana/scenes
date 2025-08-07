@@ -236,7 +236,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     if (
       plugin.onPanelMigration &&
       (currentVersion !== pluginVersion ||
-        //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/103710)
+        //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/108998)
         plugin.shouldMigrate?.(panel)) &&
       !isAfterPluginChange
     ) {
