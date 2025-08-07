@@ -204,8 +204,16 @@ export const OPERATORS: OperatorDefinition[] = [
     description: 'Less than',
   },
   {
+    value: '<=',
+    description: 'Less than or equal to',
+  },
+  {
     value: '>',
     description: 'Greater than',
+  },
+  {
+    value: '>=',
+    description: 'Greater than or equal to',
   },
 ];
 
