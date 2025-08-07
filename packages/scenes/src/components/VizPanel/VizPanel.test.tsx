@@ -642,6 +642,86 @@ describe('VizPanel', () => {
     });
   });
 
+  describe('Migration with shouldMigrate functionality', () => {
+    let onPanelMigration: jest.Mock;
+    let shouldMigrate: jest.Mock;
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeEach(() => {
+      onPanelMigration = jest.fn().mockReturnValue({ option2: 'migration option' });
+      shouldMigrate = jest.fn();
+    });
+
+    it('should call migration when shouldMigrate returns true even with same plugin version', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        pluginVersion: '1.0.0',
+      });
+
+      pluginToLoad = getTestPlugin1();
+      pluginToLoad.onPanelMigration = onPanelMigration;
+      // @ts-expect-error
+      pluginToLoad.shouldMigrate = shouldMigrate.mockReturnValue(true);
+
+      await panel.activate();
+
+      expect(onPanelMigration).toHaveBeenCalled();
+      expect(shouldMigrate).toHaveBeenCalled();
+      expect(panel.state.options.option2).toBe('migration option');
+    });
+
+    it('should run migration due to version change without calling shouldMigrate', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        pluginVersion: '0.9.0',
+      });
+
+      pluginToLoad = getTestPlugin1();
+      pluginToLoad.onPanelMigration = onPanelMigration;
+      // @ts-expect-error
+      pluginToLoad.shouldMigrate = shouldMigrate.mockReturnValue(false);
+
+      await panel.activate();
+
+      expect(onPanelMigration).toHaveBeenCalled();
+      expect(shouldMigrate).not.toHaveBeenCalled();
+      expect(panel.state.options.option2).toBe('migration option');
+    });
+
+    it('should not call migration when shouldMigrate returns false with same plugin version', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        pluginVersion: '1.0.0',
+      });
+
+      pluginToLoad = getTestPlugin1();
+      pluginToLoad.onPanelMigration = onPanelMigration;
+      // @ts-expect-error
+      pluginToLoad.shouldMigrate = shouldMigrate.mockReturnValue(false);
+
+      await panel.activate();
+
+      expect(shouldMigrate).toHaveBeenCalled();
+      expect(onPanelMigration).not.toHaveBeenCalled();
+      expect(panel.state.options.option2).toBeUndefined();
+    });
+
+    it('should work with existing migration when shouldMigrate is undefined', async () => {
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        pluginVersion: '0.9.0',
+      });
+
+      pluginToLoad = getTestPlugin1();
+      pluginToLoad.onPanelMigration = onPanelMigration;
+
+      await panel.activate();
+
+      expect(onPanelMigration).toHaveBeenCalled();
+      expect(panel.state.options.option2).toBe('migration option');
+    });
+  });
+
   describe('Should provide a panel context', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 
