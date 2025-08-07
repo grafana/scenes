@@ -1080,6 +1080,139 @@ describe('SceneDataTransformer', () => {
       expect(convertedSeries?.meta?.dataTopic).toBe(DataTopic.Annotations);
     });
   });
+
+  describe('Series <-> Annotations conversion (tmem)', () => {
+    const setupTransformerTest = (transformations: any[]) => {
+      const transformationNode = new SceneDataTransformer({ transformations });
+      const consumer = new TestSceneObject({ $data: transformationNode });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      return sceneGraph.getData(consumer).state.data;
+    };
+
+    const createSeriesToAnnotationsTransformer =
+      (name = 'converted') =>
+      () =>
+      (source: any) =>
+        source.pipe(
+          map((data: DataFrame[]) =>
+            data.map((frame: DataFrame) => ({
+              ...frame,
+              meta: { ...frame.meta, dataTopic: DataTopic.Annotations },
+              name,
+            }))
+          )
+        );
+
+    const createAnnotationsToSeriesTransformer = (name = 'converted'): CustomTransformerDefinition => ({
+      operator: () => (source: any) =>
+        source.pipe(
+          map((data: DataFrame[]) =>
+            data.map((frame: DataFrame) => ({
+              ...frame,
+              meta: { ...frame.meta, dataTopic: undefined },
+              name,
+            }))
+          )
+        ),
+      topic: DataTopic.Annotations,
+    });
+
+    it('converts series frames to annotation frames', () => {
+      const data = setupTransformerTest([createSeriesToAnnotationsTransformer()]);
+
+      expect({
+        series: data?.series,
+        annotations: data?.annotations,
+      }).toMatchInlineSnapshot();
+    });
+
+    it('converts annotation frames to series frames', () => {
+      const data = setupTransformerTest([createAnnotationsToSeriesTransformer()]);
+
+      expect({
+        series: data?.series,
+        annotations: data?.annotations,
+      }).toMatchInlineSnapshot();
+    });
+
+    it('handles mixed transformations', () => {
+      const data = setupTransformerTest([
+        createSeriesToAnnotationsTransformer('series_to_annotation'),
+        createAnnotationsToSeriesTransformer('annotation_to_series'),
+      ]);
+
+      expect({
+        series: data?.series,
+        annotations: data?.annotations,
+      }).toMatchInlineSnapshot();
+    });
+
+    it('preserves data types when no conversion occurs', () => {
+      const preserveTransformer = () => (source: any) =>
+        source.pipe(map((data: DataFrame[]) => data.map((frame: DataFrame) => ({ ...frame, name: 'preserved' }))));
+
+      const preserveAnnotationTransformer: CustomTransformerDefinition = {
+        operator: preserveTransformer,
+        topic: DataTopic.Annotations,
+      };
+
+      const data = setupTransformerTest([preserveTransformer, preserveAnnotationTransformer]);
+
+      expect({
+        series: data?.series,
+        annotations: data?.annotations,
+      }).toMatchInlineSnapshot();
+    });
+
+    it('handles complex transformation chains', () => {
+      const multiplyAndConvert = () => (source: any) =>
+        source.pipe(
+          map((data: DataFrame[]) =>
+            data.map((frame: DataFrame) => ({
+              ...frame,
+              meta: { ...frame.meta, dataTopic: DataTopic.Annotations },
+              name: 'multiplied_converted',
+              fields: frame.fields.map((field: any) => ({
+                ...field,
+                values: field.values.map((v: number) => v * 2),
+              })),
+            }))
+          )
+        );
+
+      const addToAnnotations: CustomTransformerDefinition = {
+        operator: () => (source: any) =>
+          source.pipe(
+            map((data: DataFrame[]) =>
+              data.map((frame: DataFrame) => ({
+                ...frame,
+                fields: frame.fields.map((field: any) => ({
+                  ...field,
+                  values: field.values.map((v: number) => v + 10),
+                })),
+              }))
+            )
+          ),
+        topic: DataTopic.Annotations,
+      };
+
+      const data = setupTransformerTest([multiplyAndConvert, addToAnnotations]);
+
+      expect({
+        series: data?.series,
+        annotations: data?.annotations,
+      }).toMatchInlineSnapshot();
+    });
+  });
 });
 
 export interface SceneObjectSearchBoxState extends SceneObjectState {
