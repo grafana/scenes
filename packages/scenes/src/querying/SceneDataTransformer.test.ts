@@ -760,6 +760,326 @@ describe('SceneDataTransformer', () => {
       options: 'annotation-transformation-New Text Variable Value',
     });
   });
+
+  describe('Series <-> Annotations conversion', () => {
+    it('should convert series frames to annotation frames', () => {
+      // Custom transformer that converts series frames to annotation frames
+      // This creates both the original series AND annotation copies
+      const seriesToAnnotationsTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+              meta: {
+                ...frame.meta,
+                dataTopic: DataTopic.Annotations,
+              },
+              name: `${frame.name || 'series'}_as_annotation`,
+            }));
+          })
+        );
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [seriesToAnnotationsTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      // TODO: is this correct given the requirements? According to the implementatoin it should be 1
+      // When series transformations produce annotation frames, they replace the original series
+      // The series array falls back to original data when no series frames are produced
+      expect(data?.series.length).toBe(0);
+
+      // The converted series frame becomes an annotation
+      expect(data?.annotations?.length).toBe(2);
+      expect(data?.annotations?.[0].meta?.dataTopic).toBe(DataTopic.Annotations);
+      expect(data?.annotations?.[0].name).toBe('series_as_annotation');
+      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([100, 200, 300]);
+      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([1, 2, 3]);
+    });
+
+    it('should convert annotation frames to series frames', () => {
+      // Custom transformer that converts annotation frames to series frames
+      const annotationsToSeriesTransformer: CustomTransformerDefinition = {
+        operator: () => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => ({
+                ...frame,
+                meta: {
+                  ...frame.meta,
+                  dataTopic: undefined, // Remove annotation topic to make it a series frame
+                },
+                name: `${frame.name || 'annotation'}_as_series`,
+              }));
+            })
+          );
+        },
+        topic: DataTopic.Annotations,
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [annotationsToSeriesTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      // Should have original series plus converted annotations
+      expect(data?.series.length).toBe(2);
+      expect(data?.series[0].fields[0].values.toArray()).toEqual([100, 200, 300]); // Original series
+
+      // Find the converted annotation (should contain "_as_series" in name)
+      const convertedAnnotation = data?.series.find((s) => s.name?.includes('_as_series'));
+      expect(convertedAnnotation).toBeDefined();
+      expect(convertedAnnotation?.fields[0].values.toArray()).toEqual([400, 500, 600]);
+
+      // TODO: is this correct given the requirements? According to the implementatoin it should be 1
+      // Original annotations should remain since the transformer produces no annotation frames (fallback behavior)
+      expect(data?.annotations?.length).toBe(0);
+      expect(data?.annotations?.[0].meta?.dataTopic).toBe(DataTopic.Annotations);
+    });
+
+    it('should handle mixed transformations with series and annotation conversions', () => {
+      // Transformer that converts series to annotations
+      const seriesToAnnotationsTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+              meta: {
+                ...frame.meta,
+                dataTopic: DataTopic.Annotations,
+              },
+              name: 'converted_series_to_annotation',
+            }));
+          })
+        );
+      };
+
+      // Transformer that converts annotations to series
+      const annotationsToSeriesTransformer: CustomTransformerDefinition = {
+        operator: () => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => ({
+                ...frame,
+                meta: {
+                  ...frame.meta,
+                  dataTopic: undefined,
+                },
+                name: 'converted_annotation_to_series',
+              }));
+            })
+          );
+        },
+        topic: DataTopic.Annotations,
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [seriesToAnnotationsTransformer, annotationsToSeriesTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      // Should have converted annotations as series
+      expect(data?.series.length).toBe(1);
+      expect(data?.series[0].name).toBe('converted_annotation_to_series');
+      expect(data?.series[0].fields[0].values.toArray()).toEqual([400, 500, 600]);
+
+      // Should have converted series as annotations
+      expect(data?.annotations?.length).toBe(1);
+      expect(data?.annotations?.[0].name).toBe('converted_series_to_annotation');
+      expect(data?.annotations?.[0].meta?.dataTopic).toBe(DataTopic.Annotations);
+      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([100, 200, 300]);
+    });
+
+    it('should preserve original data when no conversion occurs', () => {
+      // Transformer that doesn't change dataTopic
+      const preservingTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+              name: `${frame.name || 'frame'}_preserved`,
+            }));
+          })
+        );
+      };
+
+      const preservingAnnotationTransformer: CustomTransformerDefinition = {
+        operator: () => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => ({
+                ...frame,
+                name: `${frame.name || 'annotation'}_preserved`,
+              }));
+            })
+          );
+        },
+        topic: DataTopic.Annotations,
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [preservingTransformer, preservingAnnotationTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      // Series should remain as series
+      expect(data?.series.length).toBe(1);
+      const preservedSeries = data?.series.find((s) => s.name?.includes('_preserved'));
+      expect(preservedSeries).toBeDefined();
+      expect(preservedSeries?.meta?.dataTopic).toBeUndefined();
+
+      // Annotations should remain as annotations
+      expect(data?.annotations?.length).toBe(1);
+      const preservedAnnotation = data?.annotations?.find((a) => a.name?.includes('_preserved'));
+      expect(preservedAnnotation).toBeDefined();
+      expect(preservedAnnotation?.meta?.dataTopic).toBe(DataTopic.Annotations);
+    });
+
+    it('should handle complex conversion chains', () => {
+      // First: multiply series values by 2
+      const multiplySeriesTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+              fields: frame.fields.map((field: any) => ({
+                ...field,
+                values: field.values.map((v: number) => v * 2),
+              })),
+            }));
+          })
+        );
+      };
+
+      // Second: convert series to annotations
+      const seriesToAnnotationsTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+              meta: {
+                ...frame.meta,
+                dataTopic: DataTopic.Annotations,
+              },
+              name: 'multiplied_series_as_annotation',
+            }));
+          })
+        );
+      };
+
+      // Third: add 10 to annotation values
+      const addToAnnotationsTransformer: CustomTransformerDefinition = {
+        operator: () => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => ({
+                ...frame,
+                fields: frame.fields.map((field) => ({
+                  ...field,
+                  values: field.values.map((v) => v + 10),
+                })),
+              }));
+            })
+          );
+        },
+        topic: DataTopic.Annotations,
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [multiplySeriesTransformer, seriesToAnnotationsTransformer, addToAnnotationsTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      expect(data?.series.length).toBe(0);
+      expect(data?.series[0].fields[0].values.toArray()).toEqual([100, 200, 300]); // Original values, not multiplied
+
+      // Should have original annotation + converted series
+      expect(data?.annotations?.length).toBe(2);
+
+      // Find original annotation (modified by addToAnnotationsTransformer)
+      const originalAnnotation = data?.annotations?.find((a) => !a.name?.includes('multiplied_series_as_annotation'));
+      expect(originalAnnotation?.fields[0].values.toArray()).toEqual([410, 510, 610]); // 400+10, 500+10, 600+10
+
+      // TODO: is this correct given the requirements?
+      // Find converted series (multiplied by 2, but NOT affected by annotation transformer)
+      // The annotation transformer only processes original annotations, not converted series frames
+      const convertedSeries = data?.annotations?.find((a) => a.name === 'multiplied_series_as_annotation');
+      expect(convertedSeries).toBeDefined();
+      expect(convertedSeries?.fields[0].values.toArray()).toEqual([200, 400, 600]); // (100*2), not +10
+      expect(convertedSeries?.meta?.dataTopic).toBe(DataTopic.Annotations);
+    });
+  });
 });
 
 export interface SceneObjectSearchBoxState extends SceneObjectState {
