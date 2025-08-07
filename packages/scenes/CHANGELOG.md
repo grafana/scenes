@@ -1,3 +1,15 @@
+# v6.29.5 (Thu Aug 07 2025)
+
+#### 🐛 Bug Fix
+
+- SceneRenderProfiler: Only capture network requests within measurement window [#1209](https://github.com/grafana/scenes/pull/1209) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.29.4 (Wed Aug 06 2025)
 
 #### 🐛 Bug Fix
