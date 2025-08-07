@@ -2787,7 +2787,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         '=~Matches regex',
         '!~Does not match regex',
         '<Less than',
+        '<=Less than or equal to',
         '>Greater than',
+        '>=Greater than or equal to',
       ]);
     });
 
@@ -2809,7 +2811,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         '=~Matches regex',
         '!~Does not match regex',
         '<Less than',
+        '<=Less than or equal to',
         '>Greater than',
+        '>=Greater than or equal to',
       ]);
     });
 
@@ -2825,7 +2829,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
 
-      expect(options).toEqual(['=Equals', '!=Not equal', '<Less than', '>Greater than']);
+      expect(options).toEqual([
+        '=Equals',
+        '!=Not equal',
+        '<Less than',
+        '<=Less than or equal to',
+        '>Greater than',
+        '>=Greater than or equal to',
+      ]);
     });
   });
 });
