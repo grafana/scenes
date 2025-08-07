@@ -215,10 +215,17 @@ export function processRecordedSpans(spans: number[]) {
   return [spans[0]];
 }
 
-function captureNetwork(startTs: number, endTs: number) {
+export function captureNetwork(startTs: number, endTs: number) {
   const entries = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
   performance.clearResourceTimings();
-  const networkEntries = entries.filter((entry) => entry.startTime >= startTs && entry.startTime <= endTs);
+  // Only include network entries that both started AND ended within the time window
+  const networkEntries = entries.filter(
+    (entry) =>
+      entry.startTime >= startTs &&
+      entry.startTime <= endTs &&
+      entry.responseEnd >= startTs &&
+      entry.responseEnd <= endTs
+  );
   for (const entry of networkEntries) {
     performance.measure('Network entry ' + entry.name, {
       start: entry.startTime,
