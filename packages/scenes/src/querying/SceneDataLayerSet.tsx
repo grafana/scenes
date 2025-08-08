@@ -1,4 +1,3 @@
-import React from 'react';
 import { DataFrame } from '@grafana/data';
 import { Observable, ReplaySubject, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../core/SceneDataNode';

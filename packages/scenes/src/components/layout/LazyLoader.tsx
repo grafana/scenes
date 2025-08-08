@@ -1,4 +1,4 @@
-import React, { ForwardRefExoticComponent, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, ForwardRefExoticComponent, useImperativeHandle, useRef, useState } from 'react';
 import { useEffectOnce } from 'react-use';
 
 import { uniqueId } from 'lodash';
@@ -25,7 +25,7 @@ export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
   observer: IntersectionObserver;
 }
 
-export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props>(
+export const LazyLoader: LazyLoaderType = forwardRef<HTMLDivElement, Props>(
   ({ children, onLoad, onChange, className, ...rest }, ref) => {
     const id = useUniqueId();
     const { hideEmpty } = useStyles2(getStyles);

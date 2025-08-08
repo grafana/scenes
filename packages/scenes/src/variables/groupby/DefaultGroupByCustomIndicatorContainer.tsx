@@ -1,5 +1,4 @@
 import { t } from '@grafana/i18n';
-import React from 'react';
 import { Icon, IconButton, Tooltip, getInputStyles, useTheme2 } from '@grafana/ui';
 import { GroupByVariable } from './GroupByVariable';
 import { isArray } from 'lodash';

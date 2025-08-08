@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { LoadingState, PanelData, DataFrame } from '@grafana/data';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';

@@ -1,5 +1,4 @@
 import { screen, render, waitFor, act } from '@testing-library/react';
-import React from 'react';
 
 import { NestedScene } from './NestedScene';
 import { EmbeddedScene } from './EmbeddedScene';
