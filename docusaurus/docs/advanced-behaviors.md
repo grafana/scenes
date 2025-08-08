@@ -111,14 +111,17 @@ Performs a side effect when a variable changes.
 
 #### Usage
 
-Assuming there is a variable named `myVariable` in a scene, you can configure side effect to be performed when it's value changes:
+Assuming there is a `MultiValueVariable` variable named `myVariable` in a scene, you can configure a side effect to be performed when the variable value changes:
 
 ```ts
-import { behaviors } from '@grafana/scenes';
+import { behaviors, MultiValueVariable } from '@grafana/scenes';
 
 const logWhenVariableChanges = new behaviors.ActWhenVariableChanged({
   variableName: 'myVariable',
   onChange: (variable) => {
+    if (!(variable instanceof MultiValueVariable)) {
+      throw new Error('Invalid variable type for ActWhenVariableChanged behavior');
+    }
     console.log(`myVariable value changed: ${variable.state.value}`);
   },
 });
