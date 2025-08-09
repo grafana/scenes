@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}}キーでフィルターを編集 ",
         "managed-filter": "{{origin}}管理フィルター",
+        "non-applicable": "",
         "remove-filter-with-key": "{{keyLabel}}キーでフィルターを削除 "
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "リンクからこのページにアクセスした場合、アプリケーションにバグがある可能性があります。",
         "subTitle": "URLがどのページにも一致しません",
         "title": "見つかりません"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "シーンを折りたたむ",
