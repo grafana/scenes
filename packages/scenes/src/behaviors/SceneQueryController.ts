@@ -28,6 +28,8 @@ export class SceneQueryController
 
     // Clear running state on deactivate
     this.addActivationHandler(() => {
+      // In cases of re-activation, we need to set the query controller again as it might have been set by other scene
+      this.profiler?.setQueryController(this);
       return () => this.#running.clear();
     });
   }
