@@ -1,3 +1,17 @@
+# v6.29.6 (Mon Aug 11 2025)
+
+#### 🐛 Bug Fix
+
+- SceneRenderProfler: Improve profiler accuracy by adding cancellation and skipping inactive tabs [#1211](https://github.com/grafana/scenes/pull/1211) ([@dprokop](https://github.com/dprokop))
+- Chore: Decouple `hideFrom.viz` and `hideFrom.tooltip` [#1175](https://github.com/grafana/scenes/pull/1175) ([@adela-almasan](https://github.com/adela-almasan))
+
+#### Authors: 2
+
+- Adela Almasan ([@adela-almasan](https://github.com/adela-almasan))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.29.5 (Thu Aug 07 2025)
 
 #### 🐛 Bug Fix
