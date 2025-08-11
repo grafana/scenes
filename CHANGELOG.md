@@ -1,3 +1,16 @@
+# v6.29.7 (Mon Aug 11 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryController: Fix profiler query controller registration on scene re-activation [#1212](https://github.com/grafana/scenes/pull/1212) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.29.6 (Mon Aug 11 2025)
 
 #### 🐛 Bug Fix
