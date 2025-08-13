@@ -23,6 +23,7 @@ export function DataSourceVariable({
   initialValue,
   isMulti,
   includeAll,
+  skipUrlSync,
   children,
 }: DataSourceVariableProps): React.ReactNode {
   const scene = useSceneContext();
@@ -40,6 +41,7 @@ export function DataSourceVariable({
       isMulti,
       hide,
       includeAll,
+      skipUrlSync,
     });
   }
 
@@ -59,7 +61,8 @@ export function DataSourceVariable({
       variable.state.regex === regex &&
       variable.state.label === label &&
       variable.state.hide === hide &&
-      variable.state.includeAll === includeAll
+      variable.state.includeAll === includeAll &&
+      variable.state.skipUrlSync === skipUrlSync
     ) {
       return;
     }
@@ -70,10 +73,11 @@ export function DataSourceVariable({
       label,
       hide,
       includeAll,
+      skipUrlSync,
     });
 
     variable.refreshOptions();
-  }, [hide, includeAll, label, pluginId, regex, variable, variableAdded]);
+  }, [skipUrlSync, hide, includeAll, label, pluginId, regex, variable, variableAdded]);
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {
