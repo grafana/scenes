@@ -367,7 +367,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       }
     }
 
-    return { i: parentKey + child.state.key!, x, y, h, w, isResizable, isDraggable };
+    return { i: child.state.key!, x, y, h, w, isResizable, isDraggable };
   }
 
   public buildGridLayout(width: number, height: number): ReactGridLayout.Layout[] {
