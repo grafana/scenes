@@ -91,6 +91,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   collapsible?: boolean;
   collapsed?: boolean;
   /**
+   * Marks object as a repeated object and a key pointer to source object
+   */
+  repeatSourceKey?: string;
+  /**
    * @internal
    * Only for use from core to handle migration from old angular panels
    **/
