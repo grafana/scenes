@@ -358,6 +358,12 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     if (child instanceof SceneGridRow) {
       isDraggable = child.state.isCollapsed ? true : false;
       isResizable = false;
+
+      if (child.state.repeatSourceKey) {
+        // If this is a repeated row, we should not allow dragging
+        isDraggable = false;
+        isResizable = false;
+      }
     }
 
     return { i: child.state.key!, x, y, h, w, isResizable, isDraggable };

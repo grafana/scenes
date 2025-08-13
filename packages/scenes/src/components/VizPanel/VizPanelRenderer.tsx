@@ -293,6 +293,10 @@ function itemDraggingDisabled(item: SceneObject, layout: SceneLayout) {
       return true;
     }
 
+    if ('repeatSourceKey' in ancestor.state && ancestor.state.repeatSourceKey) {
+      return true;
+    }
+
     ancestor = ancestor.parent;
   }
 
