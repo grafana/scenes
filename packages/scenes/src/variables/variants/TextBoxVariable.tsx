@@ -1,4 +1,3 @@
-import React from 'react';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';

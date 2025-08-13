@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment } from 'react';
 import {
   AdHocVariableFilter,
   GetTagResponse,
@@ -792,9 +792,9 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
       {filters
         .filter((filter) => !filter.hidden)
         .map((filter, index) => (
-          <React.Fragment key={index}>
+          <Fragment key={index}>
             <AdHocFilterRenderer filter={filter} model={model} />
-          </React.Fragment>
+          </Fragment>
         ))}
 
       {!readOnly && <AdHocFilterBuilder model={model} key="'builder" addFilterButtonText={addFilterButtonText} />}

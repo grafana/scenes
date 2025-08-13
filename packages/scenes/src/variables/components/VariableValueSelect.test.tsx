@@ -1,5 +1,4 @@
 import { MultiOrSingleValueSelect } from './VariableValueSelect';
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { TestScene } from '../TestScene';

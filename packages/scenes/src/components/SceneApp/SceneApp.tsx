@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import { createContext } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { DataRequestEnricher, SceneComponentProps } from '../../core/types';
