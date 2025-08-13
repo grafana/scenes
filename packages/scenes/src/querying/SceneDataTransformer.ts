@@ -13,6 +13,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
+import { deepIterate } from '../utils/utils';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -233,23 +234,14 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   private _interpolateVariablesInTransformationConfigs(
     data: PanelData
   ): Array<DataTransformerConfig | CustomTransformerDefinition> {
-    const transformations = this.state.transformations;
-
     if (this._variableDependency.getNames().size === 0) {
-      return transformations;
+      return this.state.transformations;
     }
 
-    const onlyObjects = transformations.every((t) => typeof t === 'object');
-
-    // If all transformations are config object we can interpolate them all at once
-    if (onlyObjects) {
-      return JSON.parse(sceneGraph.interpolate(this, JSON.stringify(transformations), data.request?.scopedVars));
-    }
-
-    return transformations.map((t) => {
-      return typeof t === 'object'
-        ? JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t), data.request?.scopedVars))
-        : t;
+    return deepIterate(this.state.transformations, (v) => {
+      if (typeof v === 'string') {
+        return sceneGraph.interpolate(this, v, data.request?.scopedVars);
+      }
     });
   }
 }

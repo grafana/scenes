@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { locationService as locationServiceRuntime, useLocationService } from '@grafana/runtime';
 
@@ -18,4 +19,30 @@ export function useLocationServiceSafe() {
   // of grafana this will always be true or false) so it should be safe to ignore the hook rule here
   // eslint-disable-next-line react-hooks/rules-of-hooks
   return useLocationService ? useLocationService() : locationServiceRuntime;
+}
+
+function deepIterateInternal(obj: any, doSomething: (current: any) => any): any {
+  if (Array.isArray(obj)) {
+    return obj.map((o) => deepIterateInternal(o, doSomething));
+  }
+
+  const res = doSomething(obj);
+  if (res) {
+    return res;
+  }
+
+  if (typeof obj === 'object') {
+    for (const key in obj) {
+      obj[key] = deepIterateInternal(obj[key], doSomething);
+    }
+  }
+
+  return obj;
+}
+
+export function deepIterate<T extends object>(obj: Readonly<T>, doSomething: (current: any) => any): T;
+// eslint-disable-next-line no-redeclare
+export function deepIterate(obj: Readonly<any>, doSomething: (current: any) => any): any {
+  const transformedObject = cloneDeep(obj);
+  return deepIterateInternal(transformedObject, doSomething);
 }
