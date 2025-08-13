@@ -286,18 +286,18 @@ function getDragHooks(panel: VizPanel) {
  * It is not always the direct parent, because the VizPanel can be wrapped in other objects.
  */
 function itemDraggingDisabled(item: SceneObject, layout: SceneLayout) {
-  let ancestor = item.parent;
+  let obj: SceneObject | undefined = item;
 
-  while (ancestor && ancestor !== layout) {
-    if ('isDraggable' in ancestor.state && ancestor.state.isDraggable === false) {
+  while (obj && obj !== layout) {
+    if ('isDraggable' in obj.state && obj.state.isDraggable === false) {
       return true;
     }
 
-    if ('repeatSourceKey' in ancestor.state && ancestor.state.repeatSourceKey) {
+    if ('repeatSourceKey' in obj.state && obj.state.repeatSourceKey) {
       return true;
     }
 
-    ancestor = ancestor.parent;
+    obj = obj.parent;
   }
 
   return false;

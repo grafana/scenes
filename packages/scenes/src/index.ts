@@ -3,6 +3,7 @@ import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntim
 import { cloneSceneObjectState } from './core/sceneGraph/cloneSceneObject';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
+import { isRepeatCloneOrChildOf } from './utils/utils';
 
 import { registerVariableMacro } from './variables/macros';
 import {
@@ -161,6 +162,7 @@ export const sceneUtils = {
   isQueryVariable,
   isTextBoxVariable,
   isGroupByVariable,
+  isRepeatCloneOrChildOf,
 };
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';

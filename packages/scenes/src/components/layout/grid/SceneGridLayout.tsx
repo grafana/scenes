@@ -2,7 +2,7 @@ import { PointerEvent } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
-import { SceneLayout, SceneObjectState } from '../../../core/types';
+import { SceneLayout, SceneObject, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
 import { isSceneGridRow } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
@@ -11,6 +11,7 @@ import { SceneGridRow } from './SceneGridRow';
 import { SceneGridItemLike, SceneGridItemPlacement, SceneGridLayoutDragStartEvent } from './types';
 import { fitPanelsInHeight } from './utils';
 import { VizPanel } from '../../VizPanel/VizPanel';
+import { isRepeatCloneOrChildOf } from '../../../utils/utils';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -359,7 +360,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       isDraggable = child.state.isCollapsed ? true : false;
       isResizable = false;
 
-      if (child.state.repeatSourceKey) {
+      if (isRepeatCloneOrChildOf(child)) {
         // If this is a repeated row, we should not allow dragging
         isDraggable = false;
         isResizable = false;
