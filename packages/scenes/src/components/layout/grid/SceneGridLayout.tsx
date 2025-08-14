@@ -342,7 +342,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       newParent = this;
     }
 
-    if (newParent !== sceneChild.parent) {
+    if (newParent !== sceneChild.parent && !this._loadOldLayout) {
       newChildren = this.moveChildTo(sceneChild, newParent);
     }
 
