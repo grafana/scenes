@@ -261,6 +261,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     const currentParent = child.parent!;
     let rootChildren = this.state.children;
 
+    // Do not allow moving panel into repeated row clone
+    if (isRepeatCloneOrChildOf(target)) {
+      return rootChildren;
+    }
+
     const newChild = child.clone({ key: child.state.key });
 
     // Remove from current parent row
@@ -275,11 +280,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
       // if target is also a row
       if (target instanceof SceneGridRow) {
-        // Do not allow moving panel into repeated row clone
-        if (isRepeatCloneOrChildOf(target)) {
-          return rootChildren;
-        }
-
         const targetRow = target.clone();
         targetRow.setState({ children: [...targetRow.state.children, newChild] });
         rootChildren = rootChildren.map((c) => (c === target ? targetRow : c));
