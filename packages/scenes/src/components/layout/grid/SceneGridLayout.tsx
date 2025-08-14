@@ -307,6 +307,17 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // Need to resort the grid layout based on new position (needed to find the new parent)
     gridLayout = sortGridLayout(gridLayout);
 
+    // Update the parent if the child if it has moved to a row or back to the grid
+    const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
+    let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
+    let newChildren = this.state.children;
+
+    // Dot not allow dragging into repeated row clone
+    if (newParent instanceof SceneGridRow && isRepeatCloneOrChildOf(newParent)) {
+      this._loadOldLayout = true;
+      return;
+    }
+
     // Update children positions if they have changed
     for (let i = 0; i < gridLayout.length; i++) {
       const gridItem = gridLayout[i];
@@ -321,11 +332,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       }
     }
 
-    // Update the parent if the child if it has moved to a row or back to the grid
-    const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
-    let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
-    let newChildren = this.state.children;
-
     // if the child is a row and we are moving it under an uncollapsed row, keep the scene grid layout as parent
     // and set the old layout flag if the state is invalid. We allow setting the children in an invalid state,
     // as the layout will be updated in onLayoutChange and avoid flickering
@@ -335,12 +341,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       }
 
       newParent = this;
-    }
-
-    // Dot not allow dragging into repeated row clone
-    if (newParent instanceof SceneGridRow && isRepeatCloneOrChildOf(newParent)) {
-      this._loadOldLayout = true;
-      return;
     }
 
     if (newParent !== sceneChild.parent) {
