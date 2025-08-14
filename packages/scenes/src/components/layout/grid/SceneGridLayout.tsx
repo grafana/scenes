@@ -147,8 +147,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // We replace with the old layout only if the current state is invalid
     if (this._loadOldLayout) {
       this._loadOldLayout = false;
-      setTimeout(() => this.onLayoutChange(this._oldLayout), 50);
-      return;
+      layout = this._oldLayout;
     }
 
     for (const item of layout) {
@@ -316,6 +315,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // Dot not allow dragging into repeated row clone
     if (newParent instanceof SceneGridRow && isRepeatCloneOrChildOf(newParent)) {
       this._loadOldLayout = true;
+      this._skipOnLayoutChange = true;
       return;
     }
 
