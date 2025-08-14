@@ -21,9 +21,7 @@ export interface SceneGridRowState extends SceneGridItemStateLike {
   isCollapsed?: boolean;
   actions?: SceneObject;
   children: SceneGridItemLike[];
-  /**
-   * Marks object as a repeated object and a key pointer to source object
-   */
+  /** Marks object as a repeated object and a key pointer to source object */
   repeatSourceKey?: string;
 }
 
