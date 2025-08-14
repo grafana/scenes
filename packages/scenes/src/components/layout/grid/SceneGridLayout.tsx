@@ -340,6 +340,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // Dot not allow dragging into repeated row clone
     if (newParent instanceof SceneGridRow && isRepeatCloneOrChildOf(newParent)) {
       this._loadOldLayout = true;
+      return;
     }
 
     if (newParent !== sceneChild.parent) {
@@ -350,7 +351,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     this._skipOnLayoutChange = true;
   };
 
-  private toGridCell(child: SceneGridItemLike, parentKey: string): ReactGridLayout.Layout {
+  private toGridCell(child: SceneGridItemLike): ReactGridLayout.Layout {
     const size = child.state;
 
     let x = size.x ?? 0;
@@ -379,11 +380,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     let cells: ReactGridLayout.Layout[] = [];
 
     for (const child of this.state.children) {
-      cells.push(this.toGridCell(child, ''));
+      cells.push(this.toGridCell(child));
 
       if (child instanceof SceneGridRow && !child.state.isCollapsed) {
         for (const rowChild of child.state.children) {
-          cells.push(this.toGridCell(rowChild, child.state.key!));
+          cells.push(this.toGridCell(rowChild));
         }
       }
     }
