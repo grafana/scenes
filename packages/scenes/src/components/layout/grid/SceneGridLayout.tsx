@@ -146,10 +146,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // We replace with the old layout only if the current state is invalid
     if (this._loadOldLayout) {
-      setTimeout(() => {
-        this.onLayoutChange(this._oldLayout);
-        this._loadOldLayout = false;
-      });
+      this._loadOldLayout = false;
+      setTimeout(() => this.onLayoutChange(this._oldLayout));
       return;
     }
 
