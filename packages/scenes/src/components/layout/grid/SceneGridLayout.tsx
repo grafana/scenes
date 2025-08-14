@@ -233,14 +233,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   private isRowDropValid(
     gridLayout: ReactGridLayout.Layout[],
     updatedItem: ReactGridLayout.Layout,
-    indexOfUpdatedItem: number,
-    newParent: SceneGridRow
+    indexOfUpdatedItem: number
   ): boolean {
-    // Do not allow moving panel into repeated row clone
-    if (isRepeatCloneOrChildOf(newParent)) {
-      return false;
-    }
-
     // if the row is dropped at the end of the dashboard grid layout, we accept this valid state
     if (gridLayout[gridLayout.length - 1].i === updatedItem.i) {
       return true;
@@ -336,11 +330,16 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // and set the old layout flag if the state is invalid. We allow setting the children in an invalid state,
     // as the layout will be updated in onLayoutChange and avoid flickering
     if (sceneChild instanceof SceneGridRow && newParent instanceof SceneGridRow) {
-      if (!this.isRowDropValid(gridLayout, updatedItem, indexOfUpdatedItem, newParent)) {
+      if (!this.isRowDropValid(gridLayout, updatedItem, indexOfUpdatedItem)) {
         this._loadOldLayout = true;
       }
 
       newParent = this;
+    }
+
+    // Dot not allow dragging into repeated row clone
+    if (newParent instanceof SceneGridRow && isRepeatCloneOrChildOf(newParent)) {
+      this._loadOldLayout = true;
     }
 
     if (newParent !== sceneChild.parent) {
