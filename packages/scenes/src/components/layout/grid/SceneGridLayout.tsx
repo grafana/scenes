@@ -146,8 +146,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     // We replace with the old layout only if the current state is invalid
     if (this._loadOldLayout) {
-      layout = [...this._oldLayout];
-      this._loadOldLayout = false;
+      setTimeout(() => {
+        this.onLayoutChange(this._oldLayout);
+        this._loadOldLayout = false;
+      });
+      return;
     }
 
     for (const item of layout) {
@@ -338,6 +341,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     if (sceneChild instanceof SceneGridRow && newParent instanceof SceneGridRow) {
       if (!this.isRowDropValid(gridLayout, updatedItem, indexOfUpdatedItem)) {
         this._loadOldLayout = true;
+        return;
       }
 
       newParent = this;
