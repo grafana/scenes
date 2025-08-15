@@ -41,9 +41,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   const setPanelAttention = useCallback(() => {
     if (model.state.key) {
-      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.getPathId() }));
     }
-  }, [model.state.key, appEvents]);
+  }, [model, appEvents]);
+
   const debouncedMouseMove = useMemo(
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
     [setPanelAttention]

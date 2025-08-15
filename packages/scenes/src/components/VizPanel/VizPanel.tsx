@@ -40,6 +40,7 @@ import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { buildPathIdFor } from '../../utils/pathId';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -204,6 +205,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
 
     return panelId;
+  }
+
+  /**
+   * Unique id string that includes local variable values (for repeated panels)
+   */
+  public getPathId() {
+    return buildPathIdFor(this);
   }
 
   private async _pluginLoaded(
