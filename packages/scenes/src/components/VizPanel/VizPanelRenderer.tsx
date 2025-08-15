@@ -41,9 +41,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   const setPanelAttention = useCallback(() => {
     if (model.state.key) {
-      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.getPathId() }));
     }
-  }, [model.state.key, appEvents]);
+  }, [model, appEvents]);
+
   const debouncedMouseMove = useMemo(
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
     [setPanelAttention]
@@ -286,14 +287,18 @@ function getDragHooks(panel: VizPanel) {
  * It is not always the direct parent, because the VizPanel can be wrapped in other objects.
  */
 function itemDraggingDisabled(item: SceneObject, layout: SceneLayout) {
-  let ancestor = item.parent;
+  let obj: SceneObject | undefined = item;
 
-  while (ancestor && ancestor !== layout) {
-    if ('isDraggable' in ancestor.state && ancestor.state.isDraggable === false) {
+  while (obj && obj !== layout) {
+    if ('isDraggable' in obj.state && obj.state.isDraggable === false) {
       return true;
     }
 
-    ancestor = ancestor.parent;
+    if ('repeatSourceKey' in obj.state && obj.state.repeatSourceKey) {
+      return true;
+    }
+
+    obj = obj.parent;
   }
 
   return false;

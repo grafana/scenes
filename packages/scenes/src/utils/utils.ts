@@ -19,3 +19,17 @@ export function useLocationServiceSafe() {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   return useLocationService ? useLocationService() : locationServiceRuntime;
 }
+
+export function isRepeatCloneOrChildOf(scene: SceneObject): boolean {
+  let obj: SceneObject | undefined = scene;
+
+  do {
+    if ('repeatSourceKey' in obj.state && obj.state.repeatSourceKey) {
+      return true;
+    }
+
+    obj = obj.parent;
+  } while (obj);
+
+  return false;
+}
