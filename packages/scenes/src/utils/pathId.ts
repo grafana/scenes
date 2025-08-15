@@ -1,3 +1,4 @@
+import { VizPanel } from '../components/VizPanel/VizPanel';
 import { SceneObject } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 
@@ -7,10 +8,10 @@ export const PATH_ID_SEPARATOR = '$';
  * Returns a unique path for a given VizPanel based on the panels peristance id and any local variable value contexts.
  * This is used to create a unique URL key identifiers for panels and repeated panels.
  */
-export function buildPathIdFor(sceneObj: SceneObject): string {
-  let pathId = sceneObj.state.key!;
+export function buildPathIdFor(panel: VizPanel): string {
+  let pathId = `panel-${panel.getLegacyPanelId()}`;
   let lastName: string | undefined;
-  let currentObj: SceneObject | undefined = sceneObj;
+  let currentObj: SceneObject | undefined = panel;
 
   while (currentObj) {
     const variables = currentObj.state.$variables;
