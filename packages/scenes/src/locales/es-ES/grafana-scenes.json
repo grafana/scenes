@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Editar filtro con la clave {{keyLabel}}",
         "managed-filter": "Filtro gestionado de {{origin}}",
+        "non-applicable": "",
         "remove-filter-with-key": "Eliminar filtro con la clave {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Si ha llegado hasta aquí mediante un enlace, es posible que haya un error en esta aplicación.",
         "subTitle": "La URL no coincide con ninguna página",
         "title": "No se ha encontrado"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Contraer escena",

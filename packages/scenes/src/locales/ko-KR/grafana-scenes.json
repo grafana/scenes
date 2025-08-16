@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}} 키로 필터 편집",
         "managed-filter": "{{origin}} 관리 필터",
+        "non-applicable": "",
         "remove-filter-with-key": "{{keyLabel}} 키로 필터 제거"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "링크를 사용하여 여기로 이동한 경우 이 애플리케이션에 버그가 있을 수 있습니다.",
         "subTitle": "URL이 어떤 페이지와도 일치하지 않습니다.",
         "title": "찾을 수 없음"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "장면 접기",
