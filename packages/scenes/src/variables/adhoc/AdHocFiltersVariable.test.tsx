@@ -2571,9 +2571,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('does not display hidden filters', async () => {
-      act(() => {
-        const { filtersVar } = setup();
+      const { filtersVar } = setup();
 
+      act(() => {
         filtersVar.setState({
           filters: [
             ...filtersVar.state.filters,
@@ -2583,10 +2583,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         });
       });
 
-      expect(await screen.findByText('key1 = valLabel1')).toBeInTheDocument();
-      expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
+      expect(await screen.findByText('key1 = val1')).toBeInTheDocument();
+      expect(await screen.findByText('key2 = val2')).toBeInTheDocument();
       expect(screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
-      expect(screen.queryAllByText('visible_key = visible_val')).toEqual([]);
+      expect(screen.queryAllByText('visible_key = visible_val')).not.toEqual([]);
     });
 
     it('focusing the input opens the key dropdown', async () => {
