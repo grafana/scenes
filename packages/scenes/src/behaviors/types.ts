@@ -25,6 +25,8 @@ export interface SceneInteractionProfileEvent {
   crumbs: string[];
   startTs: number;
   endTs: number;
+  longFramesCount: number;
+  longFramesTotalTime: number;
   // add more granular data,i.e. network times? slow frames?
 }
 
