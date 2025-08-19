@@ -1,6 +1,7 @@
 import React from 'react';
-import { TimeRangeContextProvider, TimeRangePicker, useTimeRange } from './TimeRangeContext';
+import { TimeRangeContextProvider, useTimeRange } from '../contexts/TimeRangeContext';
 import { Stack } from '@grafana/ui';
+import { TimeRangePicker } from '../components/TimeRangePicker';
 
 export function DemoV3() {
   return (

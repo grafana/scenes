@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ContextValueBase } from './ContextValueBase';
+import { ContextValueBase } from '../contexts/ContextValueBase';
 
 export function useContextState<TState>(model: ContextValueBase<TState>): TState {
   const [_, setState] = useState<TState>(model.state);

@@ -69,6 +69,7 @@
     "@grafana/scenes": "workspace:*",
     "@grafana/scenes-ml": "^0.2.0",
     "@grafana/scenes-react": "workspace:*",
+    "@grafana/scenes-rethink": "workspace:*",
     "@grafana/schema": "^11.6.0",
     "@grafana/ui": "^11.6.0",
     "@types/lodash": "latest",

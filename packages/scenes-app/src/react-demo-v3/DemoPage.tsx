@@ -1,5 +1,5 @@
 import { PluginPage } from '@grafana/runtime';
-import { DemoV3 } from '@grafana/scenes-react';
+import { DemoV3 } from '@grafana/scenes-rethink';
 import React from 'react';
 
 export function ReactDemoV3Page() {

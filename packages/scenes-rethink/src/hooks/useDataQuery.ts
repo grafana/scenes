@@ -3,7 +3,7 @@ import { QueryKey, UseQueryOptions, UseQueryResult, useQueries, useQueryClient }
 import { getDataSourceSrv, getRunRequest } from '@grafana/runtime';
 import { DataQueryRequest, PanelData } from '@grafana/data';
 import { lastValueFrom, map } from 'rxjs';
-import { useTimeRange } from './TimeRangeContext';
+import { useTimeRange } from '../contexts/TimeRangeContext';
 import { useId } from 'react';
 // import { hasCustomVariableSupport } from './Components/variables/query/guards';
 // import { useInterpolatableVariablesResolved } from './hooks/variables/useInterpolatableVariablesResolved';

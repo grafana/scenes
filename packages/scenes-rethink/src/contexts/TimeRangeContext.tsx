@@ -2,8 +2,7 @@ import { TimeRange } from '@grafana/data';
 import React, { createContext, useContext, useState } from 'react';
 import { ContextValueBase } from './ContextValueBase';
 import { evaluateTimeRange } from '@grafana/scenes/src/utils/evaluateTimeRange';
-import { useContextState } from './utils';
-import { TimeRangePicker as TimeRangePickerUI } from '@grafana/ui';
+import { useContextState } from '../utils/utils';
 
 export interface TimeRangeContextState {
   value: TimeRange;
@@ -74,22 +73,4 @@ export function useTimeRange(): TimeRangeContextValue {
   useContextState(contextValue);
 
   return contextValue;
-}
-
-export function TimeRangePicker() {
-  const timeRangeCtx = useTimeRange();
-
-  return (
-    <TimeRangePickerUI
-      isOnCanvas={true}
-      value={timeRangeCtx.state.value}
-      onChange={(range) => timeRangeCtx.changeTimeRange(range)}
-      timeZone={'utc'}
-      onMoveBackward={() => {}}
-      onMoveForward={() => {}}
-      onZoom={() => {}}
-      onChangeTimeZone={() => {}}
-      onChangeFiscalYearStartMonth={() => {}}
-    />
-  );
 }

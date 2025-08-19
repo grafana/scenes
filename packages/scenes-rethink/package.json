@@ -1,5 +1,5 @@
 {
-  "name": "@grafana/scenes-react",
+  "name": "@grafana/scenes-rethink",
   "version": "6.29.7",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@grafana/scenes": "workspace:*",
+    "@tanstack/react-query": "^5.80.10",
     "lru-cache": "^10.2.2",
     "react-use": "^17.4.0"
   },

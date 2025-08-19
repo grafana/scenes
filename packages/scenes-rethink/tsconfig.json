@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "declarationDir": "./compiled",
+    "emitDeclarationOnly": true,
+    "isolatedModules": true,
+    "rootDirs": ["."],
+    "noImplicitReturns": false,
+    "resolveJsonModule": true
+  },
+  "exclude": ["dist/**/*"],
+  "include": ["utils/**/*.ts*", "src/**/*.ts*"]
+}
