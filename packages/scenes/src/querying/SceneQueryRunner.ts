@@ -43,7 +43,7 @@ import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetA
 import { registerQueryWithController } from './registerQueryWithController';
 import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable, isFilterApplicable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
@@ -338,7 +338,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._timeSubRange = undefined;
     this._adhocFiltersVar = undefined;
     this._groupByVar = undefined;
-    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
   }
 
   public setContainerWidth(width: number) {
@@ -435,6 +434,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
+    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
+
     const { queries } = this.state;
 
     // Simple path when no queries exist
@@ -469,7 +470,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       stream = stream.pipe(
         registerQueryWithController({
-          type: 'data',
+          type: 'SceneQueryRunner/runQueries',
           request: primary,
           origin: this,
           cancel: () => this.cancelQuery(),
@@ -539,7 +540,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       request.filters = [
         ...(this._adhocFiltersVar.state.originFilters ?? []),
         ...this._adhocFiltersVar.state.filters,
-      ].filter(isFilterComplete);
+      ].filter((f) => isFilterComplete(f) && isFilterApplicable(f));
     }
 
     if (this._groupByVar) {

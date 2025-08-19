@@ -2098,6 +2098,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.27.6":
+  version: 7.28.2
+  resolution: "@babel/runtime@npm:7.28.2"
+  checksum: 10/a0965fbdd6aaa40709290923bbe05e1c4314021f0cef608eb1d69f04f717c41829e50a53d79c4a0f461512b4be9b3c0190dc19387b219bcdaacdd793b2fe1b8a
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.18.10, @babel/template@npm:^7.25.7, @babel/template@npm:^7.3.3":
   version: 7.25.7
   resolution: "@babel/template@npm:7.25.7"
@@ -3821,21 +3828,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/i18n@npm:canary":
-  version: 12.1.0-248136
-  resolution: "@grafana/i18n@npm:12.1.0-248136"
+"@grafana/i18n@npm:12.1.0":
+  version: 12.1.0
+  resolution: "@grafana/i18n@npm:12.1.0"
   dependencies:
     "@formatjs/intl-durationformat": "npm:^0.7.0"
     "@typescript-eslint/utils": "npm:^8.33.1"
     fast-deep-equal: "npm:^3.1.3"
-    i18next: "npm:^24.0.0"
+    i18next: "npm:^25.0.0"
     i18next-browser-languagedetector: "npm:^8.0.0"
     i18next-pseudo: "npm:^2.2.1"
     micro-memoize: "npm:^4.1.2"
     react-i18next: "npm:^15.0.0"
   peerDependencies:
     react: ">=18"
-  checksum: 10/5f95e01db1117e5cc107eb2e870e449b735ced81511fb6b08f627de792f0e9ed8849c42426538a3cddc3d2c2f39410cffed94206388bf9c1fff3a537c568d759
+  checksum: 10/9f0c2f36527a18e654d9bf66051c0b1fe3c90addb3fc55c8e53ede9d16e477eb04949cd6725cb56663d1cc5f86872f704e34508adc1c9271530ea7c8a0f978f1
   languageName: node
   linkType: hard
 
@@ -3961,7 +3968,7 @@ __metadata:
     "@eslint/js": "npm:^9.28.0"
     "@floating-ui/react": "npm:^0.26.16"
     "@grafana/eslint-config": "npm:^8.1.0"
-    "@grafana/i18n": "npm:canary"
+    "@grafana/i18n": "npm:12.1.0"
     "@grafana/tsconfig": "npm:^1.3.0-rc1"
     "@leeoniya/ufuzzy": "npm:^1.0.16"
     "@rollup/plugin-dynamic-import-vars": "npm:2.1.5"
@@ -16284,6 +16291,20 @@ __metadata:
     typescript:
       optional: true
   checksum: 10/f66ed9e56d9412e59502f5df39163631daf9f1264774732fb21edbd66a528ca7a6b67dc2e2aec95683c6c7956e42c651587a54bd8ee082bd12008880ce6cd326
+  languageName: node
+  linkType: hard
+
+"i18next@npm:^25.0.0":
+  version: 25.3.2
+  resolution: "i18next@npm:25.3.2"
+  dependencies:
+    "@babel/runtime": "npm:^7.27.6"
+  peerDependencies:
+    typescript: ^5
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/fb6b2035cc8f3bcc89f56e164d22cefbefd54e5a569315b20ddcfa6e1b68c48962307181b271fea7e5ee37ddfaa90721a4a7f7814b739f24bf00a3a670b8eb93
   languageName: node
   linkType: hard
 

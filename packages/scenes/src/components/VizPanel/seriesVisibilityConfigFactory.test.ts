@@ -30,7 +30,7 @@ describe('seriesVisibilityConfigFactory', () => {
         properties: [
           {
             id: 'custom.hideFrom',
-            value: { viz: true, legend: false, tooltip: false },
+            value: { viz: true, legend: false, tooltip: true },
           },
         ],
       },
@@ -57,7 +57,7 @@ describe('seriesVisibilityConfigFactory', () => {
           properties: [
             {
               id: 'custom.hideFrom',
-              value: { viz: true, legend: false, tooltip: false },
+              value: { viz: true, legend: false, tooltip: true },
             },
           ],
         },

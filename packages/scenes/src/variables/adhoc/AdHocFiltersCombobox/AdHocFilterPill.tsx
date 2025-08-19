@@ -80,16 +80,21 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     }
   };
 
+  // filters that are in a clean, original state that are applicable and not readonly
+  const cleanFilter = !filter.restorable && !filter.readOnly && !filter.nonApplicable;
+
   if (viewMode) {
     const pillTextContent = `${keyLabel} ${filter.operator} ${valueLabel}`;
-    const pillText = <span className={styles.pillText}>{pillTextContent}</span>;
+    const pillText = (
+      <span className={cx(styles.pillText, filter.nonApplicable && styles.strikethrough)}>{pillTextContent}</span>
+    );
 
     return (
       <div
         className={cx(
           styles.combinedFilterPill,
           readOnly && styles.readOnlyCombinedFilter,
-          isMatchAllFilter(filter) && styles.matchAllPill,
+          (isMatchAllFilter(filter) || filter.nonApplicable) && styles.disabledPill,
           filter.readOnly && styles.filterReadOnly
         )}
         onClick={(e) => {
@@ -148,7 +153,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             }}
             name="times"
             size="md"
-            className={styles.pillIcon}
+            className={cx(styles.pillIcon, filter.nonApplicable && styles.disabledPillIcon)}
             tooltip={t(
               'grafana-scenes.components.adhoc-filter-pill.remove-filter-with-key',
               'Remove filter with key {{keyLabel}}',
@@ -170,7 +175,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           </Tooltip>
         )}
 
-        {filter.origin && !filter.restorable && !filter.readOnly && (
+        {filter.origin && cleanFilter && (
           <Tooltip content={getOriginFilterTooltips(filter.origin).info} placement={'bottom'}>
             <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
           </Tooltip>
@@ -194,6 +199,18 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
             tooltip={getOriginFilterTooltips(filter.origin).restore}
           />
+        )}
+
+        {filter.nonApplicable && (
+          <Tooltip
+            content={
+              filter.nonApplicableReason ??
+              t('grafana-scenes.components.adhoc-filter-pill.non-applicable', 'Filter is not applicable')
+            }
+            placement={'bottom'}
+          >
+            <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
+          </Tooltip>
         )}
       </div>
     );
@@ -272,12 +289,23 @@ const getStyles = (theme: GrafanaTheme2) => ({
     cursor: 'pointer',
     color: theme.colors.text.disabled,
   }),
-  matchAllPill: css({
+  disabledPillIcon: css({
+    marginInline: theme.spacing(0.5),
+    cursor: 'pointer',
+    color: theme.colors.text.disabled,
+    '&:hover': {
+      color: theme.colors.text.disabled,
+    },
+  }),
+  disabledPill: css({
     background: theme.colors.action.selected,
     color: theme.colors.text.disabled,
     border: 0,
     '&:hover': {
       background: theme.colors.action.selected,
     },
+  }),
+  strikethrough: css({
+    textDecoration: 'line-through',
   }),
 });

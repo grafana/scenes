@@ -1,4 +1,13 @@
-import { DataQueryRequest, DataQueryResponse, DataSourceApi, Field, PanelData, toDataFrame } from '@grafana/data';
+import {
+  DataQueryRequest,
+  DataQueryResponse,
+  DataSourceApi,
+  Field,
+  PanelData,
+  Scope,
+  ScopeSpecFilter,
+  toDataFrame,
+} from '@grafana/data';
 import { AnnotationQuery, LoadingState } from '@grafana/schema';
 import { map, Observable, of } from 'rxjs';
 import { SceneFlexLayout } from '../../../components/layout/SceneFlexLayout';
@@ -12,6 +21,7 @@ import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithR
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 import { config, RefreshEvent } from '@grafana/runtime';
 import { ScopesVariable } from '../../../variables/variants/ScopesVariable';
+import { act } from 'react-dom/test-utils';
 
 let mockedEvents: Array<Partial<Field>> = [];
 
@@ -382,20 +392,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
 
   describe('scopes support', () => {
     it('should include scopes in query request when available', async () => {
-      const scopesVariable = new ScopesVariable({
-        scopes: [
-          {
-            metadata: { name: 'test-scope' },
-            spec: {
-              title: 'Test Scope',
-              type: 'test',
-              description: 'Test scope',
-              category: 'test',
-              filters: [],
-            },
-          },
-        ],
-      });
+      const scopesVariable = newScopesVariableFromScopeFilters([]);
 
       const layer = new AnnotationsDataLayer({
         name: 'Test layer',
@@ -403,7 +400,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
       });
 
       const scene = new SceneFlexLayout({
-        $variables: new SceneVariableSet({ variables: [scopesVariable] }),
+        $variables: new SceneVariableSet({ variables: [scopesVariable.scopesVar] }),
         $timeRange: new SceneTimeRange(),
         $data: new SceneDataLayerSet({
           layers: [layer],
@@ -413,14 +410,16 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
 
       scene.activate();
 
+      scopesVariable.update();
+
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock).toHaveBeenCalledTimes(1);
       expect(sentRequest?.scopes).toEqual([
         {
-          metadata: { name: 'test-scope' },
+          metadata: { name: `Scope 1` },
           spec: {
-            title: 'Test Scope',
+            title: `Scope 1`,
             type: 'test',
             description: 'Test scope',
             category: 'test',
@@ -452,4 +451,50 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
       expect(sentRequest?.scopes).toBeUndefined();
     });
   });
+
+  it('should not run query when enable is false', async () => {
+    const layer = new AnnotationsDataLayer({
+      name: 'Test layer',
+      query: { name: 'Test', enable: false, iconColor: 'red', theActualQuery: '$A' },
+    });
+
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange(),
+      $data: new SceneDataLayerSet({
+        layers: [layer],
+      }),
+    });
+
+    scene.activate();
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    expect(runRequestMock).toHaveBeenCalledTimes(0);
+  });
 });
+
+function newScopesVariableFromScopeFilters(filters: ScopeSpecFilter[]) {
+  const scopes: Scope[] = [
+    {
+      metadata: { name: `Scope 1` },
+      spec: {
+        title: `Scope 1`,
+        type: 'test',
+        description: 'Test scope',
+        category: 'test',
+        filters,
+      },
+    },
+  ];
+
+  const scopesVar = new ScopesVariable({});
+
+  return {
+    scopesVar,
+    update: () => {
+      act(() => {
+        scopesVar.updateStateFromContext({ value: scopes, loading: false });
+      });
+    },
+  };
+}

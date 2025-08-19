@@ -36,7 +36,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
 
     const options = match.map((text) => {
       text = text.replace(/\\,/g, ',');
-      const textMatch = /^(.+)\s:\s(.+)$/g.exec(text) ?? [];
+      const textMatch = /^\s*(.+)\s:\s(.+)$/g.exec(text) ?? [];
       if (textMatch.length === 3) {
         const [, key, value] = textMatch;
         return { label: key.trim(), value: value.trim() };

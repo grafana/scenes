@@ -1,3 +1,15 @@
+# v6.27.2 (Wed Jul 09 2025)
+
+#### 🐛 Bug Fix
+
+- chore: unify license change in #327 [#1137](https://github.com/grafana/scenes/pull/1137) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
 # v6.21.0 (Wed Jun 18 2025)
 
 #### 🚀 Enhancement

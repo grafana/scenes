@@ -1,0 +1,148 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "Edit filter dengan kunci {{keyLabel}}",
+        "managed-filter": "Filter {{origin}} yang dikelola",
+        "remove-filter-with-key": "Hapus filter dengan kunci {{keyLabel}}"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Hapus nilai filter - {{itemLabel}}",
+        "use-custom-value": "Gunakan nilai kustom: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "Jika Anda diarahkan ke sini menggunakan tautan, mungkin ada bug dalam aplikasi ini.",
+        "subTitle": "URL tidak cocok dengan halaman mana pun",
+        "title": "Tidak ditemukan"
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Ciutkan tampilan",
+        "expand-button-label": "Perluas tampilan",
+        "remove-button-label": "Hapus tampilan"
+      },
+      "scene-debugger": {
+        "object-details": "Detail objek",
+        "scene-graph": "Grafik tampilan",
+        "title-scene-debugger": "Debugger tampilan"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Ciutkan baris",
+        "expand-row": "Perbesar baris"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Perbandingan",
+        "button-tooltip": "Aktifkan perbandingan kerangka waktu"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Widget pengubah ukuran panel"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Judul"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Jelajahi"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Memuat panel plugin...",
+        "panel-plugin-has-no-panel-component": "Plugin panel tidak memiliki komponen panel"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Menampilkan terlalu banyak seri data dalam satu panel dapat memengaruhi kinerja dan membuat data lebih sulit dibaca.",
+        "warning-message": "Menampilkan {{seriesLimit}} seri data saja"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Hapus"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "Batalkan kueri"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Edit operator filter"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Tambahkan filter",
+        "title-add-filter": "Tambahkan filter"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Hapus filter",
+        "key-select": {
+          "placeholder-select-label": "Pilih label"
+        },
+        "label-select-label": "Pilih label",
+        "title-remove-filter": "Hapus filter",
+        "value-select": {
+          "placeholder-select-value": "Pilih nilai"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "default"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "hapus",
+        "tooltip": "Diterapkan secara default di dasbor ini. Jika diedit, ini akan diteruskan ke dasbor lain.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "Pulihkan 'kelompokkan berdasarkan' yang ditetapkan oleh dasbor ini."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Nilai yang dipisahkan koma",
+            "double-quoted-values": "Nilai dalam tanda kutip ganda",
+            "format-date-in-different-ways": "Format tanggal dengan berbagai cara yang berbeda",
+            "format-multivalued-variables-using-syntax-example": "Format variabel multi-nilai menggunakan sintaks glob, contoh {value1, value2}",
+            "html-escaping-of-values": "Nilai HTML escaping",
+            "json-stringify-value": "Nilai stringify JSON",
+            "keep-value-as-is": "Pertahankan nilai apa adanya",
+            "multiple-values-are-formatted-like-variablevalue": "Beberapa nilai diformat seperti variabel=nilai",
+            "single-quoted-values": "Nilai dalam tanda kutip tunggal",
+            "useful-escaping-values-taking-syntax-characters": "Berguna untuk nilai escaping URL, memperhitungkan karakter sintaks URI",
+            "useful-for-url-escaping-values": "Berguna untuk nilai URL escaping",
+            "values-are-separated-by-character": "Nilai dipisahkan oleh karakter |"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Kelompokkan berdasarkan selektor",
+        "placeholder-group-by-label": "Kelompokkan berdasarkan label"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Pilih nilai"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Memuat opsi..."
+      },
+      "multi-value-apply-button": {
+        "apply": "Terapkan"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "Opsi tidak ditemukan"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "Terjadi kesalahan saat mengambil label. Klik untuk mencoba lagi"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Halo"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Teks"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Masukkan nilai"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Pilih nilai"
+      }
+    }
+  }
+}

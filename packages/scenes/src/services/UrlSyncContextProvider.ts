@@ -15,8 +15,15 @@ export function UrlSyncContextProvider({
   scene,
   updateUrlOnInit,
   createBrowserHistorySteps,
+  namespace,
+  excludeFromNamespace,
 }: UrlSyncContextProviderProps) {
-  const isInitialized = useUrlSync(scene, { updateUrlOnInit, createBrowserHistorySteps });
+  const isInitialized = useUrlSync(scene, {
+    updateUrlOnInit,
+    createBrowserHistorySteps,
+    namespace,
+    excludeFromNamespace,
+  });
 
   if (!isInitialized) {
     return null;

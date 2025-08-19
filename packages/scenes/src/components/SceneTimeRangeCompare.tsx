@@ -17,6 +17,7 @@ import { of } from 'rxjs';
 interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
   compareOptions: Array<{ label: string; value: string }>;
+  hideCheckbox?: boolean;
 }
 
 const PREVIOUS_PERIOD_VALUE = '__previousPeriod';
@@ -28,7 +29,7 @@ export const PREVIOUS_PERIOD_COMPARE_OPTION = {
 };
 
 export const NO_COMPARE_OPTION = {
-  label: 'No comparison',
+  label: 'None',
   value: NO_PERIOD_VALUE,
 };
 
@@ -223,7 +224,7 @@ const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
   const styles = useStyles2(getStyles);
-  const { compareWith, compareOptions } = model.useState();
+  const { compareWith, compareOptions, hideCheckbox } = model.useState();
 
   const [previousCompare, setPreviousCompare] = React.useState(compareWith);
   const previousValue = compareOptions.find(({ value }) => value === previousCompare) ?? PREVIOUS_PERIOD_COMPARE_OPTION;
@@ -240,28 +241,43 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
     }
   };
 
+  // When hideCheckbox is true, always show select and use NO_COMPARE_OPTION when no comparison is active
+  const selectValue = hideCheckbox && !compareWith ? NO_COMPARE_OPTION : value;
+  const showSelect = hideCheckbox || enabled;
+
+  // Create display value with "Comparison" prefix when hideCheckbox is true
+  const displayValue =
+    hideCheckbox && selectValue
+      ? {
+          ...selectValue,
+          label: `Comparison: ${selectValue.label}`,
+        }
+      : selectValue;
+
   return (
     <ButtonGroup>
-      <ToolbarButton
-        variant="canvas"
-        tooltip={t(
-          'grafana-scenes.components.scene-time-range-compare-renderer.button-tooltip',
-          'Enable time frame comparison'
-        )}
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          onClick();
-        }}
-      >
-        <Checkbox label=" " value={enabled} onClick={onClick} />
-        <Trans i18nKey="grafana-scenes.components.scene-time-range-compare-renderer.button-label">Comparison</Trans>
-      </ToolbarButton>
+      {!hideCheckbox && (
+        <ToolbarButton
+          variant="canvas"
+          tooltip={t(
+            'grafana-scenes.components.scene-time-range-compare-renderer.button-tooltip',
+            'Enable time frame comparison'
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onClick();
+          }}
+        >
+          <Checkbox label=" " value={enabled} onClick={onClick} />
+          <Trans i18nKey="grafana-scenes.components.scene-time-range-compare-renderer.button-label">Comparison</Trans>
+        </ToolbarButton>
+      )}
 
-      {enabled ? (
+      {showSelect ? (
         <ButtonSelect
           variant="canvas"
-          value={value}
+          value={displayValue}
           options={compareOptions}
           onChange={(v) => {
             model.onCompareWithChanged(v.value!);

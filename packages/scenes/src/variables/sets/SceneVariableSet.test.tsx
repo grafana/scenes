@@ -718,6 +718,7 @@ describe('SceneVariableList', () => {
       expect(C.state.loading).toBe(false);
       expect(C.state.error).toBe('Error in C');
     });
+
     it('Should complete updating chained variables in case of error in the first variable', () => {
       const A = new TestVariable({
         name: 'A',

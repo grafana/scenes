@@ -14,7 +14,12 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, isMultiValueOperator } from '../AdHocFiltersVariable';
+import {
+  AdHocFilterWithLabels,
+  AdHocFiltersVariable,
+  isFilterComplete,
+  isMultiValueOperator,
+} from '../AdHocFiltersVariable';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
@@ -40,6 +45,8 @@ import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
 import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
+import { getQueryController } from '../../../core/sceneGraph/getQueryController';
+import { FILTER_REMOVED_INTERACTION, FILTER_CHANGED_INTERACTION } from '../../../behaviors/SceneRenderProfiler';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -123,6 +130,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           values.push(item.value!);
         });
 
+        // Only update if values have changed
+        let shouldUpdate = true;
+        if (Array.isArray(filter.values) && filter.values.length === values.length) {
+          shouldUpdate = !filter.values.every((v, i) => v === values[i]);
+        }
+
+        if (shouldUpdate) {
+          const queryController = getQueryController(model);
+          queryController?.startProfile(FILTER_CHANGED_INTERACTION);
+        }
+
         model._updateFilter(filter!, { valueLabels, values, value: values[0] });
         setFilterMultiValues([]);
       }
@@ -154,7 +172,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (isMultiValueEdit) {
           // commit multi value filter values on escape and click-away
           handleMultiValueFilterCommit(model, filter!, filterMultiValues);
+        } else {
+          if (filter && filter.origin && inputValue === '') {
+            model.updateToMatchAll(filter);
+          }
         }
+
         handleResetWip();
         handleChangeViewMode?.();
       }
@@ -165,6 +188,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       handleChangeViewMode,
       handleMultiValueFilterCommit,
       handleResetWip,
+      inputValue,
       isMultiValueEdit,
       model,
     ]
@@ -306,6 +330,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         // focus back on alway wip input when you delete filter with backspace
         focusOnWipInputRef?.();
 
+        if (isFilterComplete(filter!)) {
+          const queryController = getQueryController(model);
+          queryController?.startProfile(FILTER_REMOVED_INTERACTION);
+        }
+
         model._handleComboboxBackspace(filter!);
 
         if (isAlwaysWip) {
@@ -381,16 +410,21 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           handleLocalMultiValueChange(selectedItem);
           setInputValue('');
         } else {
-          model._updateFilter(
-            filter!,
-            generateFilterUpdatePayload({
-              filterInputType,
-              item: selectedItem,
-              filter: filter!,
-              setFilterMultiValues,
-              onAddCustomValue,
-            })
-          );
+          const payload = generateFilterUpdatePayload({
+            filterInputType,
+            item: selectedItem,
+            filter: filter!,
+            setFilterMultiValues,
+            onAddCustomValue,
+          });
+
+          // Only start profile if value has changed
+          if (filterInputType === 'value' && payload.value !== filter?.value) {
+            const queryController = getQueryController(model);
+            queryController?.startProfile(FILTER_CHANGED_INTERACTION);
+          }
+
+          model._updateFilter(filter!, payload);
 
           populateInputValueOnInputTypeSwitch({
             populateInputOnEdit,
@@ -688,6 +722,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                               if (filterInputType !== 'value') {
                                 event.stopPropagation();
                               }
+
                               if (isMultiValueEdit) {
                                 event.preventDefault();
                                 event.stopPropagation();
@@ -695,16 +730,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 setInputValue('');
                                 refs.domReference.current?.focus();
                               } else {
-                                model._updateFilter(
-                                  filter!,
-                                  generateFilterUpdatePayload({
-                                    filterInputType,
-                                    item,
-                                    filter: filter!,
-                                    setFilterMultiValues,
-                                    onAddCustomValue,
-                                  })
-                                );
+                                const payload = generateFilterUpdatePayload({
+                                  filterInputType,
+                                  item,
+                                  filter: filter!,
+                                  setFilterMultiValues,
+                                  onAddCustomValue,
+                                });
+
+                                if (filterInputType === 'value' && payload.value !== filter?.value) {
+                                  const queryController = getQueryController(model);
+                                  queryController?.startProfile(FILTER_CHANGED_INTERACTION);
+                                }
+                                model._updateFilter(filter!, payload);
 
                                 populateInputValueOnInputTypeSwitch({
                                   populateInputOnEdit,
@@ -808,7 +846,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.primary,
     boxShadow: theme.shadows.z2,
     overflowY: 'auto',
-    zIndex: theme.zIndex.dropdown,
+    zIndex: theme.zIndex.portal,
   }),
   inputStyle: css({
     paddingBlock: 0,

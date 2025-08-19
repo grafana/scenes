@@ -1,11 +1,11 @@
-import { toUtc, dateMath } from '@grafana/data';
+import { toUtc, dateMath, InternalTimeZones } from '@grafana/data';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { PanelBuilders } from './PanelBuilders';
 import { SceneTimeRange } from './SceneTimeRange';
 import { RefreshEvent, config } from '@grafana/runtime';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneReactObject } from '../components/SceneReactObject';
-import { defaultTimeZone } from '@grafana/schema';
+import { defaultTimeZone as browserTimeZone } from '@grafana/schema';
 
 jest.mock('@grafana/data', () => ({
   ...jest.requireActual('@grafana/data'),
@@ -16,7 +16,9 @@ function simulateDelay(newDateString: string, scene: EmbeddedScene) {
   scene.activate();
 }
 
-config.bootData = { user: { weekStart: 'monday' } } as any;
+const USER_PROFILE_DEFAULT_TIME_ZONE = 'Australia/Sydney';
+
+config.bootData = { user: { weekStart: 'monday', timezone: USER_PROFILE_DEFAULT_TIME_ZONE } } as any;
 
 describe('SceneTimeRange', () => {
   it('when created should evaluate time range', () => {
@@ -58,7 +60,7 @@ describe('SceneTimeRange', () => {
     expect(timeRange.urlSync?.getUrlState()).toEqual({
       from: 'now-1h',
       to: 'now',
-      timezone: defaultTimeZone,
+      timezone: browserTimeZone,
     });
   });
 
@@ -67,7 +69,7 @@ describe('SceneTimeRange', () => {
     timeRange.urlSync?.updateFromUrl({
       from: '2021-01-01T10:00:00.000Z',
       to: '2021-02-03T01:20:00.000Z',
-      timezone: defaultTimeZone,
+      timezone: USER_PROFILE_DEFAULT_TIME_ZONE,
     });
 
     expect(timeRange.state.from).toEqual('2021-01-01T10:00:00.000Z');
@@ -140,7 +142,7 @@ describe('SceneTimeRange', () => {
     describe('when time zone is not specified', () => {
       it('should return default time zone', () => {
         const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
-        expect(timeRange.getTimeZone()).toBe(defaultTimeZone);
+        expect(timeRange.getTimeZone()).toBe(browserTimeZone);
       });
       it('should return time zone of the closest range with time zone specified ', () => {
         const outerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'America/New_York' });
@@ -156,6 +158,13 @@ describe('SceneTimeRange', () => {
         });
         scene.activate();
         expect(innerTimeRange.getTimeZone()).toEqual(outerTimeRange.getTimeZone());
+      });
+    });
+    describe('when user selects default time zone', () => {
+      it(`should return default time zone set in user profile settings`, () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+        timeRange.onTimeZoneChange(InternalTimeZones.default);
+        expect(timeRange.getTimeZone()).toBe(USER_PROFILE_DEFAULT_TIME_ZONE);
       });
     });
     describe('when time zone is specified', () => {
@@ -188,19 +197,19 @@ describe('SceneTimeRange', () => {
       });
     });
     describe('when time zone is not valid', () => {
-      it(`should default to ${defaultTimeZone}`, () => {
+      it(`should default to ${browserTimeZone}`, () => {
         const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'junk' });
-        expect(timeRange.getTimeZone()).toBe(defaultTimeZone);
+        expect(timeRange.getTimeZone()).toBe(browserTimeZone);
 
         timeRange.onTimeZoneChange('junk');
-        expect(timeRange.getTimeZone()).toBe(defaultTimeZone);
+        expect(timeRange.getTimeZone()).toBe(browserTimeZone);
       });
-      it(`should default to ${defaultTimeZone} on update`, () => {
+      it(`should default to ${browserTimeZone} on update`, () => {
         const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'utc' });
         expect(timeRange.getTimeZone()).toBe('utc');
 
         timeRange.onTimeZoneChange('junk');
-        expect(timeRange.getTimeZone()).toBe(defaultTimeZone);
+        expect(timeRange.getTimeZone()).toBe(browserTimeZone);
       });
     });
   });
@@ -398,6 +407,8 @@ describe('SceneTimeRange', () => {
     it('should display the correct start time in the time start panel and time picker tooltip', () => {
       const timeRange = new SceneTimeRange({ from: '2025-01-01T00:00:00.000Z', to: '2025-12-31T23:59:59.999Z' });
       timeRange.onTimeZoneChange('Africa/Addis_Ababa');
+
+      expect(timeRange.getTimeZone()).toBe('Africa/Addis_Ababa');
 
       // Verify the time start panel reads the correct start time
       expect(timeRange.state.value.from.format('YYYY-MM-DD HH:mm:ss')).toBe('2025-01-01 00:00:00');

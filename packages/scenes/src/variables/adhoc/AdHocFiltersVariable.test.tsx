@@ -1206,9 +1206,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
-    expect(filtersVar['_originalValues'].get('dbKey1')).toEqual({ value: ['dbValue1'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('dbKey2')).toEqual({ value: ['dbValue2'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('scopeKey')).toEqual({ value: ['scopeValue'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({ value: ['dbValue1'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({ value: ['dbValue2'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({ value: ['scopeValue'], operator: '=' });
   });
 
   it('should reset dashboard level filters if they are edited on unmount', () => {
@@ -1341,11 +1341,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     expect(filtersVar.state.originFilters![0].value).toBe('newValue1');
     expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1']);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.value).toEqual([
-      'originValue1',
-      'originValue2',
-    ]);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.operator).toEqual('=|');
+    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1', 'originValue2']);
+    expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=|');
   });
 
   it('updated filter with no changes does not become restorable', async () => {
@@ -1397,8 +1395,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.originFilters![0].restorable).toEqual(true);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.value).toEqual(['originValue1']);
-    expect(filtersVar['_originalValues'].get(filtersVar.state.originFilters![0].key)!.operator).toEqual('=');
+    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1']);
+    expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=');
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
@@ -2225,6 +2224,165 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  describe('non-applicable filters', () => {
+    it('should set non-applicable filters on activation', async () => {
+      //pod and static are non-applicable
+      const { filtersVar, getFiltersApplicabilitySpy } = setup(
+        {
+          filters: [
+            {
+              key: 'cluster',
+              value: '1',
+              operator: '=',
+            },
+            {
+              key: 'container',
+              value: '2',
+              operator: '=',
+            },
+            {
+              key: 'pod',
+              value: '3',
+              operator: '=',
+            },
+          ],
+          originFilters: [
+            {
+              key: 'static',
+              value: '4',
+              operator: '=',
+              origin: 'dashboard',
+            },
+          ],
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      // account for applicability check debounce
+      await new Promise((r) => setTimeout(r, 150));
+
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(filtersVar.state.filters[0].nonApplicable).toBe(false);
+      expect(filtersVar.state.filters[1].nonApplicable).toBe(false);
+      expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
+      expect(filtersVar.state.filters[2].nonApplicableReason).toBe('reason');
+      expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
+    });
+
+    it('should filter out non-applicable filters during getKeys call', async () => {
+      //pod and static are non-applicable
+      const { filtersVar, getTagKeysSpy } = setup(
+        {
+          filters: [
+            {
+              key: 'cluster',
+              value: '1',
+              operator: '=',
+            },
+            {
+              key: 'container',
+              value: '2',
+              operator: '=',
+            },
+            {
+              key: 'pod',
+              value: '3',
+              operator: '=',
+            },
+          ],
+          originFilters: [
+            {
+              key: 'static',
+              value: '4',
+              operator: '=',
+              origin: 'dashboard',
+            },
+          ],
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      // account for applicability check debounce
+      await new Promise((r) => setTimeout(r, 150));
+
+      filtersVar._getKeys(null);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(getTagKeysSpy).toHaveBeenCalled();
+      expect(getTagKeysSpy.mock.calls[0][0].filters).toEqual([
+        {
+          key: 'cluster',
+          value: '1',
+          operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
+        },
+        {
+          key: 'container',
+          value: '2',
+          operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
+        },
+      ]);
+    });
+
+    it('should maintain default filter as non-applicable if we turn filter to match-all and then restore', async () => {
+      //pod and static are non-applicable
+      const { filtersVar, getFiltersApplicabilitySpy } = setup(
+        {
+          filters: [
+            {
+              key: 'cluster',
+              value: '1',
+              operator: '=',
+            },
+            {
+              key: 'container',
+              value: '2',
+              operator: '=',
+            },
+            {
+              key: 'pod',
+              value: '3',
+              operator: '=',
+            },
+          ],
+          originFilters: [
+            {
+              key: 'static',
+              value: '4',
+              operator: '=',
+              origin: 'dashboard',
+            },
+          ],
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      await new Promise((r) => setTimeout(r, 150));
+
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
+      expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
+
+      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+
+      expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(false);
+
+      filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
+
+      expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
+    });
+  });
+
   describe('Component', () => {
     it('should use the model.state.set.Component to ensure the state filterset is activated', () => {
       const variable = new AdHocFiltersVariable({
@@ -2247,6 +2405,87 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(screen.getByText('!=')).toBeInTheDocument();
       expect(screen.getByText('key1')).toBeInTheDocument();
       expect(screen.getByText('val1')).toBeInTheDocument();
+    });
+  });
+
+  describe('non-applicable filters', () => {
+    it('should set non-applicable filters on activation', async () => {
+      setup(
+        {
+          filters: [
+            { key: 'pod', operator: '=', value: 'val1' },
+            { key: 'container', operator: '=', value: 'val3' },
+          ],
+          originFilters: [{ key: 'static', operator: '=', value: 'val2', origin: 'dashboard' }],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod = val1');
+      const staticElement = await screen.findByText('static = val2');
+      const containerElement = await screen.findByText('container = val3');
+
+      await new Promise((r) => setTimeout(r, 150));
+
+      expect(podElement).toBeInTheDocument();
+      expect(staticElement).toBeInTheDocument();
+      expect(containerElement).toBeInTheDocument();
+
+      expect(podElement).toHaveStyle('text-decoration: line-through');
+      expect(staticElement).toHaveStyle('text-decoration: line-through');
+      expect(containerElement).not.toHaveStyle('text-decoration: line-through');
+    });
+  });
+
+  describe('turning origin filter into match-all when no values are present', () => {
+    it('should turn single value origin filter to match-all when value is removed', async () => {
+      setup(
+        {
+          originFilters: [{ key: 'pod', operator: '=', value: 'test', origin: 'dashboard' }],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod = test');
+
+      await userEvent.click(podElement);
+
+      await userEvent.keyboard('{Backspace}');
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
+    });
+
+    it('should turn multi value origin filter to match-all when value is removed', async () => {
+      setup(
+        {
+          originFilters: [
+            { key: 'pod', operator: '=|', value: 'test1', values: ['test1', 'test2'], origin: 'dashboard' },
+          ],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod =| test1, test2');
+
+      await userEvent.click(podElement);
+
+      await userEvent.keyboard('{Backspace}');
+      await userEvent.keyboard('{Backspace}');
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
     });
   });
 
@@ -2335,7 +2574,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       act(() => {
         const { filtersVar } = setup();
 
-        // @todo this test does not work! The setState isn't updating the render.
         filtersVar.setState({
           filters: [
             ...filtersVar.state.filters,
@@ -2347,8 +2585,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       expect(await screen.findByText('key1 = valLabel1')).toBeInTheDocument();
       expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
-      expect(await screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
-      expect(await screen.queryAllByText('visible_key = visible_val')).toEqual([]);
+      expect(screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
+      expect(screen.queryAllByText('visible_key = visible_val')).toEqual([]);
     });
 
     it('focusing the input opens the key dropdown', async () => {
@@ -2549,7 +2787,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         '=~Matches regex',
         '!~Does not match regex',
         '<Less than',
+        '<=Less than or equal to',
         '>Greater than',
+        '>=Greater than or equal to',
       ]);
     });
 
@@ -2571,7 +2811,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         '=~Matches regex',
         '!~Does not match regex',
         '<Less than',
+        '<=Less than or equal to',
         '>Greater than',
+        '>=Greater than or equal to',
       ]);
     });
 
@@ -2587,7 +2829,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
 
-      expect(options).toEqual(['=Equals', '!=Not equal', '<Less than', '>Greater than']);
+      expect(options).toEqual([
+        '=Equals',
+        '!=Not equal',
+        '<Less than',
+        '<=Less than or equal to',
+        '>Greater than',
+        '>=Greater than or equal to',
+      ]);
     });
   });
 });
@@ -2601,10 +2850,12 @@ let runRequestSet = false;
 function setup(
   overrides?: Partial<AdHocFiltersVariableState>,
   filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
-  scopesVariable?: ScopesVariable
+  scopesVariable?: ScopesVariable,
+  useGetFiltersApplicability?: boolean
 ) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
+  const getFiltersApplicabilitySpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
@@ -2619,6 +2870,17 @@ function setup(
         getRef() {
           return { uid: 'my-ds-uid' };
         },
+        ...(useGetFiltersApplicability && {
+          getFiltersApplicability(options: any) {
+            getFiltersApplicabilitySpy(options);
+            return [
+              { key: 'cluster', applicable: true },
+              { key: 'container', applicable: true },
+              { key: 'pod', applicable: false, reason: 'reason' },
+              { key: 'static', applicable: false, origin: 'dashboard' },
+            ];
+          },
+        }),
       };
     },
     getInstanceSettings() {
@@ -2690,7 +2952,16 @@ function setup(
     </TestContextProvider>
   );
 
-  return { scene, filtersVar, unmount, runRequest: runRequestMock.fn, getTagKeysSpy, getTagValuesSpy, timeRange };
+  return {
+    scene,
+    filtersVar,
+    unmount,
+    runRequest: runRequestMock.fn,
+    getTagKeysSpy,
+    getTagValuesSpy,
+    getFiltersApplicabilitySpy,
+    timeRange,
+  };
 }
 
 function newScopesVariableFromScopeFilters(filters: ScopeSpecFilter[]) {

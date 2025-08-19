@@ -64,6 +64,28 @@ describe('CustomVariable', () => {
       ]);
     });
 
+    it('Should generate correctly the options for key:value pairs with newline', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        options: [],
+        value: '',
+        text: '',
+        query: `label-1 : value-1,
+label-2 : value-2,
+label-3 : value-3,`,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual('value-1');
+      expect(variable.state.text).toEqual('label-1');
+      expect(variable.state.options).toEqual([
+        { label: 'label-1', value: 'value-1' },
+        { label: 'label-2', value: 'value-2' },
+        { label: 'label-3', value: 'value-3' },
+      ]);
+    });
+
     it('Should generate correctly the options for key:value pairs with special characters', async () => {
       const variable = new CustomVariable({
         name: 'test',
