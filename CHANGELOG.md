@@ -1,3 +1,31 @@
+# v6.30.0 (Wed Aug 20 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel/SceneGridRow: Add repeatSourceKey to help simplify repeat handling [#1215](https://github.com/grafana/scenes/pull/1215) ([@torkelo](https://github.com/torkelo) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Add shouldMigrate() callback to migration logic [#1092](https://github.com/grafana/scenes/pull/1092) ([@leeoniya](https://github.com/leeoniya) [@adela-almasan](https://github.com/adela-almasan))
+  - ScenesDataTransformer: Allow passthrough set of ScopedVars to interpolate [#1200](https://github.com/grafana/scenes/pull/1200) ([@gelicia](https://github.com/gelicia))
+  - Add new operators to AdHocFiltersVariable [#1210](https://github.com/grafana/scenes/pull/1210) ([@joey-grafana](https://github.com/joey-grafana))
+- `@grafana/scenes-react`
+  - ScenesReact: Add skipUrlSync to variables [#1182](https://github.com/grafana/scenes/pull/1182) ([@krevedkokun](https://github.com/krevedkokun))
+
+#### Authors: 7
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Adela Almasan ([@adela-almasan](https://github.com/adela-almasan))
+- Joey ([@joey-grafana](https://github.com/joey-grafana))
+- Kristina ([@gelicia](https://github.com/gelicia))
+- Leon Sorokin ([@leeoniya](https://github.com/leeoniya))
+- Nikita Domnitskii ([@krevedkokun](https://github.com/krevedkokun))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.29.7 (Mon Aug 11 2025)
 
 #### 🐛 Bug Fix
