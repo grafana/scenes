@@ -14,6 +14,7 @@ import { sceneGraph } from '../../../core/sceneGraph';
 import { selectors } from '@grafana/e2e-selectors';
 import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
 import { t } from '@grafana/i18n';
+import { isRepeatCloneOrChildOf } from '../../../utils/utils';
 
 export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
@@ -21,6 +22,8 @@ export interface SceneGridRowState extends SceneGridItemStateLike {
   isCollapsed?: boolean;
   actions?: SceneObject;
   children: SceneGridItemLike[];
+  /** Marks object as a repeated object and a key pointer to source object */
+  repeatSourceKey?: string;
 }
 
 export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
@@ -81,7 +84,7 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
   const { isCollapsible, isCollapsed, title, actions, children } = model.useState();
   const layout = model.getGridLayout();
   const layoutDragClass = layout.getDragClass();
-  const isDraggable = layout.isDraggable();
+  const isDraggable = layout.isDraggable() && !isRepeatCloneOrChildOf(model);
 
   const count = children ? children.length : 0;
   const panels = count === 1 ? 'panel' : 'panels';
