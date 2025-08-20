@@ -13,7 +13,7 @@ A scene is a collection of objects, called _scene objects_. These objects repres
 
 Scenes allow you to group and nest objects. Things like data, time ranges, or variables can be added to any object in the tree, making them available to that object and all descendant objects. Because of this, scenes allow you to create dashboards that have multiple time ranges, queries that can be shared and transformed, or nested variables.
 
-@grafana/scenes comes with multiple objects&#151;like `SceneQueryRunner`, `SceneFlexLayout`, `VizPanel`, and more&#151;to solve common problems. However, you can also create your own scene objects to extend functionality.
+@grafana/scenes comes with multiple objects - like `SceneQueryRunner`, `SceneFlexLayout`, `VizPanel`, and more - to solve common problems. However, you can also create your own scene objects to extend functionality.
 
 ## Scene object
 
