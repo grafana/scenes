@@ -455,6 +455,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
   it('should not run query when enable is false', async () => {
     const layer = new AnnotationsDataLayer({
       name: 'Test layer',
+      isEnabled: false,
       query: { name: 'Test', enable: false, iconColor: 'red', theActualQuery: '$A' },
     });
 
@@ -470,6 +471,33 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
     await new Promise((r) => setTimeout(r, 1));
 
     expect(runRequestMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('should toggle anno query enabling when anno itself is toggled', () => {
+    const layer = new AnnotationsDataLayer({
+      name: 'Test layer',
+      isEnabled: false,
+      query: { name: 'Test', enable: false, iconColor: 'red', theActualQuery: '$A' },
+    });
+
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange(),
+      $data: new SceneDataLayerSet({
+        layers: [layer],
+      }),
+    });
+
+    scene.activate();
+
+    expect(layer.state.query.enable).toBe(false);
+
+    layer.onEnable();
+
+    expect(layer.state.query.enable).toBe(true);
+
+    layer.onDisable();
+
+    expect(layer.state.query.enable).toBe(false);
   });
 });
 
