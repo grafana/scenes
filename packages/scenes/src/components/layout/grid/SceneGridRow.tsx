@@ -76,7 +76,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   }
 }
 
-export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
+export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>): JSX.Element | null {
   const styles = useStyles2(getSceneGridRowStyles);
   const { isCollapsible, isCollapsed, title, actions, children } = model.useState();
   const layout = model.getGridLayout();
