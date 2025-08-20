@@ -1,3 +1,31 @@
+# v6.29.7 (Mon Aug 11 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryController: Fix profiler query controller registration on scene re-activation [#1212](https://github.com/grafana/scenes/pull/1212) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.29.6 (Mon Aug 11 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRenderProfler: Improve profiler accuracy by adding cancellation and skipping inactive tabs [#1211](https://github.com/grafana/scenes/pull/1211) ([@dprokop](https://github.com/dprokop))
+  - Chore: Decouple `hideFrom.viz` and `hideFrom.tooltip` [#1175](https://github.com/grafana/scenes/pull/1175) ([@adela-almasan](https://github.com/adela-almasan))
+
+#### Authors: 2
+
+- Adela Almasan ([@adela-almasan](https://github.com/adela-almasan))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.29.5 (Thu Aug 07 2025)
 
 #### 🐛 Bug Fix

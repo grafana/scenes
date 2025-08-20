@@ -60,6 +60,12 @@ export class SceneRenderProfiler {
   }
 
   public startProfile(name: string) {
+    // Only start profile if tab is active. This makes sure we don't start a profile when i.e. someone opens a dashboard in a new tab
+    // and doesn't interact with it.
+    if (document.hidden) {
+      writeSceneLog('SceneRenderProfiler', 'Tab is inactive, skipping profile', name);
+      return;
+    }
     if (this.#profileInProgress) {
       this.addCrumb(name);
     } else {
