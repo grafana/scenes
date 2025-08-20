@@ -1,3 +1,15 @@
+# v6.30.1 (Wed Aug 20 2025)
+
+#### 🐛 Bug Fix
+
+- DataLayers: Annotations can be enabled properly [#1219](https://github.com/grafana/scenes/pull/1219) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.30.0 (Wed Aug 20 2025)
 
 #### 🚀 Enhancement
