@@ -13,7 +13,13 @@ import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
 import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
-import { ValidateAndUpdateResult, VariableValue, VariableValueOption, VariableValueSingle } from '../types';
+import {
+  SceneVariableValueChangedEvent,
+  ValidateAndUpdateResult,
+  VariableValue,
+  VariableValueOption,
+  VariableValueSingle,
+} from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
@@ -223,19 +229,21 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const queries = getQueriesForVariables(this);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const { value } = this.state;
+    const value = this.state.value;
 
     // @ts-expect-error (temporary till we update grafana/data)
     const response = await ds.getFiltersApplicability({
-      groupByKeys: isArray(value) ? value : value ? [value] : [],
+      groupByKeys: Array.isArray(value) ? value.map((v) => String(v)) : value ? [String(value)] : [],
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
 
-    if (response) {
+    if (!isEqual(response, this.state.keysApplicability)) {
       this.setState({ keysApplicability: response });
+
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
 
