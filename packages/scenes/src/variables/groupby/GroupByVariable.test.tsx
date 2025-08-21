@@ -554,8 +554,8 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const { variable } = setupTest({ value: ['key1'] });
 
       await act(async () => {
-        const result = await variable._verifyApplicability();
-        expect(result).toEqual([]);
+        await variable._verifyApplicability();
+        expect(variable.state.keysApplicability).toEqual(undefined);
       });
 
       expect(variable.state.keysApplicability).toBeUndefined();
