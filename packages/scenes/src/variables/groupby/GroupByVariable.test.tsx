@@ -574,7 +574,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       });
 
       expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
-      expect(variable.state.keysApplicability).toBeUndefined();
+      expect(variable.state.keysApplicability).toBeNull();
     });
 
     it('should be called during activation handler', async () => {
