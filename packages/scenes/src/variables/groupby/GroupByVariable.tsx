@@ -1,6 +1,14 @@
 import { t } from '@grafana/i18n';
 import React, { useEffect, useMemo, useState } from 'react';
-import { AdHocVariableFilter, DataSourceApi, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  DataSourceApi,
+  // @ts-expect-error (temporary till we update grafana/data)
+  FiltersApplicability,
+  GetTagResponse,
+  MetricFindValue,
+  SelectableValue,
+} from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
 import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
@@ -57,6 +65,10 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * Return replace: false if you want to combine the results with the default lookup
    */
   getTagKeysProvider?: getTagKeysProvider;
+  /**
+   * Holds the applicability for each of the selected keys
+   */
+  keysApplicability?: FiltersApplicability[];
 }
 
 export type getTagKeysProvider = (
@@ -167,6 +179,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   private _activationHandler = () => {
+    this._verifyApplicability();
+
     if (this.state.defaultValue) {
       if (this.checkIfRestorable(this.state.value)) {
         this.setState({ restorable: true });
@@ -179,6 +193,51 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       }
     };
   };
+
+  public getApplicableKeys(): VariableValue {
+    const { value, keysApplicability } = this.state;
+
+    const valueArray = isArray(value) ? value : value ? [value] : [];
+
+    if (!keysApplicability || keysApplicability.length === 0) {
+      return valueArray;
+    }
+
+    const applicableValues = valueArray.filter((val) => {
+      const applicability = keysApplicability.find((item) => item.key === val);
+      return !applicability || applicability.applicable !== false;
+    });
+
+    return applicableValues;
+  }
+
+  public async _verifyApplicability() {
+    const ds = await getDataSource(this.state.datasource, {
+      __sceneObject: wrapInSafeSerializableSceneObject(this),
+    });
+
+    // @ts-expect-error (temporary till we update grafana/data)
+    if (!ds.getFiltersApplicability) {
+      return [];
+    }
+
+    const queries = getQueriesForVariables(this);
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    const { value } = this.state;
+
+    // @ts-expect-error (temporary till we update grafana/data)
+    const response = await ds.getFiltersApplicability({
+      groupByKeys: isArray(value) ? value : value ? [value] : [],
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+
+    if (response) {
+      this.setState({ keysApplicability: response });
+    }
+  }
 
   // This method is related to the defaultValue property. We check if the current value
   // is different from the default value. If it is, the groupBy will show a button
@@ -275,22 +334,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     includeAll,
     allowCustomValue = true,
     defaultValue,
+    keysApplicability,
   } = model.useState();
-
-  const arr = [
-    {
-      key: 'cluster',
-      isApplicable: false,
-    },
-    {
-      key: 'container',
-      isApplicable: false,
-    },
-    {
-      key: 'cpu',
-      isApplicable: true,
-    },
-  ];
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
@@ -375,7 +420,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
             }
           : {}),
         MultiValueContainer: ({ innerProps, children }: React.PropsWithChildren<GroupByContainerProps>) => (
-          <GroupByValueContainer innerProps={innerProps} filtersApplicability={arr}>
+          <GroupByValueContainer innerProps={innerProps} keysApplicability={keysApplicability}>
             {children}
           </GroupByValueContainer>
         ),
@@ -397,6 +442,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([], undefined, true);
+        } else {
+          model._verifyApplicability();
         }
         setUncommittedValue(newValue);
       }}

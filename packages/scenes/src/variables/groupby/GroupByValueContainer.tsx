@@ -1,40 +1,57 @@
-import * as React from 'react';
+import React from 'react';
 
 import { getSelectStyles, useTheme2 } from '@grafana/ui';
+// @ts-expect-error (temporary till we update grafana/data)
+import { FiltersApplicability } from '@grafana/data';
 
 export interface GroupByContainerProps {
   innerProps: JSX.IntrinsicElements['div'];
-  filtersApplicability?: Array<{ key: string; isApplicable: boolean }>;
+  keysApplicability?: FiltersApplicability[];
 }
 
+const isValidReactElementWithData = (child: React.ReactNode): child is React.ReactElement => {
+  return React.isValidElement(child) && Boolean(child.props?.data?.value);
+};
+
+const findKeyApplicability = (
+  keysApplicability: FiltersApplicability[] | undefined,
+  value: string
+): FiltersApplicability | undefined => {
+  return keysApplicability?.find((applicability) => applicability.key === value);
+};
+
+const renderChildWithApplicability = (
+  child: React.ReactElement,
+  applicability: FiltersApplicability | undefined
+): React.ReactNode => {
+  if (!applicability) {
+    return child;
+  }
+
+  if (!applicability.applicable) {
+    return <s key={applicability.key}>{child}</s>;
+  }
+
+  return child;
+};
+
 export const GroupByValueContainer = ({
-  filtersApplicability,
+  keysApplicability,
   children,
 }: React.PropsWithChildren<GroupByContainerProps>) => {
   const theme = useTheme2();
   const styles = getSelectStyles(theme);
-  console.log(children, filtersApplicability);
 
-  return (
-    <div className={styles.multiValueContainer}>
-      {React.Children.map(children, (child) => {
-        // Check if child is a valid React element with props
-        if (!React.isValidElement(child) || !child.props?.data?.value) {
-          return child;
-        }
+  const renderChild = (child: React.ReactNode): React.ReactNode => {
+    if (!isValidReactElementWithData(child)) {
+      return child;
+    }
 
-        const filterApplicability = filtersApplicability?.find((filter) => filter.key === child.props.data.value);
+    const value = child.props.data.value;
+    const applicability = findKeyApplicability(keysApplicability, value);
 
-        if (!filterApplicability) {
-          return child;
-        }
+    return renderChildWithApplicability(child, applicability);
+  };
 
-        if (!filterApplicability.isApplicable) {
-          return <s key={filterApplicability.key}>{child}</s>;
-        }
-
-        return child;
-      })}
-    </div>
-  );
+  return <div className={styles.multiValueContainer}>{React.Children.map(children, renderChild)}</div>;
 };
