@@ -550,12 +550,11 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       ]);
     });
 
-    it('should not call getFiltersApplicability if data source does not support it', async () => {
+    it('should not set keysApplicability if data source does not support it', async () => {
       const { variable } = setupTest({ value: ['key1'] });
 
       await act(async () => {
         await variable._verifyApplicability();
-        expect(variable.state.keysApplicability).toEqual(undefined);
       });
 
       expect(variable.state.keysApplicability).toBeUndefined();
