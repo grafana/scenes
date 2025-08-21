@@ -224,7 +224,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds.getFiltersApplicability) {
-      return [];
+      return;
     }
 
     const queries = getQueriesForVariables(this);
