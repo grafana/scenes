@@ -20,6 +20,8 @@ import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
+import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+import { getQueryController } from '../../core/sceneGraph/getQueryController';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -311,12 +313,13 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     const stateChangeAction = () => this.setStateHelper({ value, text, loading: false });
-
     /**
      * Because variable state changes can cause a whole chain of downstream state changes in other variables (that also cause URL update)
      * Only some variable changes should add new history items to make sure the browser history contains valid URL states to go back to.
      */
     if (isUserAction) {
+      const queryController = getQueryController(this);
+      queryController?.startProfile(VARIABLE_VALUE_CHANGED_INTERACTION);
       this._urlSync.performBrowserHistoryAction?.(stateChangeAction);
     } else {
       stateChangeAction();

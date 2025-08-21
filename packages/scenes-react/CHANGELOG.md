@@ -1,3 +1,15 @@
+# v6.30.0 (Wed Aug 20 2025)
+
+#### 🐛 Bug Fix
+
+- ScenesReact: Add skipUrlSync to variables [#1182](https://github.com/grafana/scenes/pull/1182) ([@krevedkokun](https://github.com/krevedkokun))
+
+#### Authors: 1
+
+- Nikita Domnitskii ([@krevedkokun](https://github.com/krevedkokun))
+
+---
+
 # v6.27.2 (Wed Jul 09 2025)
 
 #### 🐛 Bug Fix

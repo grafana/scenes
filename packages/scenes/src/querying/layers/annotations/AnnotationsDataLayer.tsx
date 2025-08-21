@@ -51,6 +51,13 @@ export class AnnotationsDataLayer
 
     const timeRange = sceneGraph.getTimeRange(this);
 
+    this.setState({
+      query: {
+        ...this.state.query,
+        enable: true,
+      },
+    });
+
     this._timeRangeSub = timeRange.subscribeToState(() => {
       this.runWithTimeRange(timeRange);
     });
@@ -58,6 +65,13 @@ export class AnnotationsDataLayer
 
   public onDisable(): void {
     this.publishEvent(new RefreshEvent(), true);
+
+    this.setState({
+      query: {
+        ...this.state.query,
+        enable: false,
+      },
+    });
 
     this._timeRangeSub?.unsubscribe();
   }
@@ -89,7 +103,7 @@ export class AnnotationsDataLayer
 
       let stream = executeAnnotationQuery(ds, timeRange, query, this).pipe(
         registerQueryWithController({
-          type: 'annotations',
+          type: 'AnnotationsDataLayer/annotationsLoading',
           origin: this,
           cancel: () => this.cancelQuery(),
         }),

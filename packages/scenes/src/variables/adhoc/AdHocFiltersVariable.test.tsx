@@ -2227,7 +2227,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   describe('non-applicable filters', () => {
     it('should set non-applicable filters on activation', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getApplicableFiltersSpy } = setup(
+      const { filtersVar, getFiltersApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2260,12 +2260,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      await new Promise((r) => setTimeout(r, 1));
+      // account for applicability check debounce
+      await new Promise((r) => setTimeout(r, 150));
 
-      expect(getApplicableFiltersSpy).toHaveBeenCalled();
-      expect(filtersVar.state.filters[0].nonApplicable).toBe(undefined);
-      expect(filtersVar.state.filters[1].nonApplicable).toBe(undefined);
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(filtersVar.state.filters[0].nonApplicable).toBe(false);
+      expect(filtersVar.state.filters[1].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
+      expect(filtersVar.state.filters[2].nonApplicableReason).toBe('reason');
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
     });
 
@@ -2304,6 +2306,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
+      // account for applicability check debounce
+      await new Promise((r) => setTimeout(r, 150));
+
       filtersVar._getKeys(null);
 
       await new Promise((r) => setTimeout(r, 1));
@@ -2314,18 +2319,22 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           key: 'cluster',
           value: '1',
           operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
         },
         {
           key: 'container',
           value: '2',
           operator: '=',
+          nonApplicable: false,
+          nonApplicableReason: undefined,
         },
       ]);
     });
 
     it('should maintain default filter as non-applicable if we turn filter to match-all and then restore', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getApplicableFiltersSpy } = setup(
+      const { filtersVar, getFiltersApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2358,9 +2367,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      await new Promise((r) => setTimeout(r, 1));
+      await new Promise((r) => setTimeout(r, 150));
 
-      expect(getApplicableFiltersSpy).toHaveBeenCalled();
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
 
@@ -2405,9 +2414,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         {
           filters: [
             { key: 'pod', operator: '=', value: 'val1' },
-            { key: 'static', operator: '=', value: 'val2' },
             { key: 'container', operator: '=', value: 'val3' },
           ],
+          originFilters: [{ key: 'static', operator: '=', value: 'val2', origin: 'dashboard' }],
           layout: 'combobox',
         },
         undefined,
@@ -2419,6 +2428,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const staticElement = await screen.findByText('static = val2');
       const containerElement = await screen.findByText('container = val3');
 
+      await new Promise((r) => setTimeout(r, 150));
+
       expect(podElement).toBeInTheDocument();
       expect(staticElement).toBeInTheDocument();
       expect(containerElement).toBeInTheDocument();
@@ -2426,6 +2437,55 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(podElement).toHaveStyle('text-decoration: line-through');
       expect(staticElement).toHaveStyle('text-decoration: line-through');
       expect(containerElement).not.toHaveStyle('text-decoration: line-through');
+    });
+  });
+
+  describe('turning origin filter into match-all when no values are present', () => {
+    it('should turn single value origin filter to match-all when value is removed', async () => {
+      setup(
+        {
+          originFilters: [{ key: 'pod', operator: '=', value: 'test', origin: 'dashboard' }],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod = test');
+
+      await userEvent.click(podElement);
+
+      await userEvent.keyboard('{Backspace}');
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
+    });
+
+    it('should turn multi value origin filter to match-all when value is removed', async () => {
+      setup(
+        {
+          originFilters: [
+            { key: 'pod', operator: '=|', value: 'test1', values: ['test1', 'test2'], origin: 'dashboard' },
+          ],
+          layout: 'combobox',
+        },
+        undefined,
+        undefined,
+        true
+      );
+
+      const podElement = await screen.findByText('pod =| test1, test2');
+
+      await userEvent.click(podElement);
+
+      await userEvent.keyboard('{Backspace}');
+      await userEvent.keyboard('{Backspace}');
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
     });
   });
 
@@ -2514,7 +2574,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       act(() => {
         const { filtersVar } = setup();
 
-        // @todo this test does not work! The setState isn't updating the render.
         filtersVar.setState({
           filters: [
             ...filtersVar.state.filters,
@@ -2526,8 +2585,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       expect(await screen.findByText('key1 = valLabel1')).toBeInTheDocument();
       expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
-      expect(await screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
-      expect(await screen.queryAllByText('visible_key = visible_val')).toEqual([]);
+      expect(screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
+      expect(screen.queryAllByText('visible_key = visible_val')).toEqual([]);
     });
 
     it('focusing the input opens the key dropdown', async () => {
@@ -2728,7 +2787,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         '=~Matches regex',
         '!~Does not match regex',
         '<Less than',
+        '<=Less than or equal to',
         '>Greater than',
+        '>=Greater than or equal to',
       ]);
     });
 
@@ -2750,7 +2811,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         '=~Matches regex',
         '!~Does not match regex',
         '<Less than',
+        '<=Less than or equal to',
         '>Greater than',
+        '>=Greater than or equal to',
       ]);
     });
 
@@ -2766,7 +2829,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       const options = screen.getAllByRole('option').map((option) => option.textContent?.trim());
 
-      expect(options).toEqual(['=Equals', '!=Not equal', '<Less than', '>Greater than']);
+      expect(options).toEqual([
+        '=Equals',
+        '!=Not equal',
+        '<Less than',
+        '<=Less than or equal to',
+        '>Greater than',
+        '>=Greater than or equal to',
+      ]);
     });
   });
 });
@@ -2781,11 +2851,11 @@ function setup(
   overrides?: Partial<AdHocFiltersVariableState>,
   filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
   scopesVariable?: ScopesVariable,
-  useGetApplicableFilters?: boolean
+  useGetFiltersApplicability?: boolean
 ) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
-  const getApplicableFiltersSpy = jest.fn();
+  const getFiltersApplicabilitySpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
@@ -2800,10 +2870,15 @@ function setup(
         getRef() {
           return { uid: 'my-ds-uid' };
         },
-        ...(useGetApplicableFilters && {
-          getApplicableFilters(options: any) {
-            getApplicableFiltersSpy(options);
-            return ['cluster', 'container'];
+        ...(useGetFiltersApplicability && {
+          getFiltersApplicability(options: any) {
+            getFiltersApplicabilitySpy(options);
+            return [
+              { key: 'cluster', applicable: true },
+              { key: 'container', applicable: true },
+              { key: 'pod', applicable: false, reason: 'reason' },
+              { key: 'static', applicable: false, origin: 'dashboard' },
+            ];
           },
         }),
       };
@@ -2884,7 +2959,7 @@ function setup(
     runRequest: runRequestMock.fn,
     getTagKeysSpy,
     getTagValuesSpy,
-    getApplicableFiltersSpy,
+    getFiltersApplicabilitySpy,
     timeRange,
   };
 }

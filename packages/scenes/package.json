@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes",
-  "version": "6.27.2",
+  "version": "6.30.1",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "Apache-2.0",
@@ -64,7 +64,7 @@
     "@eslint/compat": "1.3.0",
     "@eslint/js": "^9.28.0",
     "@grafana/eslint-config": "^8.1.0",
-    "@grafana/i18n": "canary",
+    "@grafana/i18n": "12.1.0",
     "@grafana/tsconfig": "^1.3.0-rc1",
     "@rollup/plugin-dynamic-import-vars": "2.1.5",
     "@rollup/plugin-json": "^6.1.0",

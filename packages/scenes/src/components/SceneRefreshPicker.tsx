@@ -8,6 +8,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObject, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
+import { REFRESH_INTERACTION } from '../behaviors/SceneRenderProfiler';
 
 export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'];
 
@@ -85,12 +86,13 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   public onRefresh = () => {
     const queryController = sceneGraph.getQueryController(this);
 
-    queryController?.startProfile('SceneRefreshPicker');
-
     if (queryController?.state.isRunning) {
       queryController.cancelAll();
+      queryController.cancelProfile();
       return;
     }
+
+    queryController?.startProfile(REFRESH_INTERACTION);
 
     const timeRange = sceneGraph.getTimeRange(this);
 
@@ -191,7 +193,12 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     this._intervalTimer = setInterval(() => {
       if (this.isTabVisible()) {
         const queryController = sceneGraph.getQueryController(this);
-        queryController?.startProfile('SceneRefreshPicker');
+
+        if (queryController?.state.isRunning) {
+          queryController.cancelProfile();
+        }
+
+        queryController?.startProfile(REFRESH_INTERACTION);
         timeRange.onRefresh();
       } else {
         this._autoRefreshBlocked = true;

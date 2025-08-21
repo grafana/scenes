@@ -4,6 +4,8 @@ import {
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
+  // @ts-expect-error (temporary till we update grafana/data)
+  FiltersApplicability,
   Scope,
   SelectableValue,
 } from '@grafana/data';
@@ -23,9 +25,11 @@ import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
-import { isEqual } from 'lodash';
+import { debounce, isEqual } from 'lodash';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
+import { getQueryController } from '../../core/sceneGraph/getQueryController';
+import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -46,6 +50,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   restorable?: boolean;
   // sets this filter as non-applicable
   nonApplicable?: boolean;
+  // reason with reason for nonApplicable filters
+  nonApplicableReason?: string;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
@@ -198,8 +204,16 @@ export const OPERATORS: OperatorDefinition[] = [
     description: 'Less than',
   },
   {
+    value: '<=',
+    description: 'Less than or equal to',
+  },
+  {
     value: '>',
     description: 'Greater than',
+  },
+  {
+    value: '>=',
+    description: 'Greater than or equal to',
   },
 ];
 
@@ -207,6 +221,7 @@ interface OriginalValue {
   value: string[];
   operator: string;
   nonApplicable?: boolean;
+  nonApplicableReason?: string;
 }
 
 export class AdHocFiltersVariable
@@ -230,6 +245,8 @@ export class AdHocFiltersVariable
   });
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
+
+  private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
 
   public constructor(state: Partial<AdHocFiltersVariableState>) {
     super({
@@ -259,7 +276,7 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    this._verifyNonApplicableFilters();
+    this._debouncedVerifyApplicability();
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
@@ -309,6 +326,8 @@ export class AdHocFiltersVariable
     if (this._prevScopes.length) {
       this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
       this._prevScopes = scopes;
+
+      this._debouncedVerifyApplicability();
       return;
     }
 
@@ -327,6 +346,8 @@ export class AdHocFiltersVariable
     // maintain other originFilters in the array, only update scopes ones
     this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
     this._prevScopes = scopes;
+
+    this._debouncedVerifyApplicability();
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
@@ -402,7 +423,8 @@ export class AdHocFiltersVariable
       original.valueLabels = originalFilter?.value;
       original.operator = originalFilter?.operator;
       original.nonApplicable = originalFilter?.nonApplicable;
-
+      const queryController = getQueryController(this);
+      queryController?.startProfile(FILTER_RESTORED_INTERACTION);
       this._updateFilter(filter, original);
     }
   }
@@ -440,6 +462,7 @@ export class AdHocFiltersVariable
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
         this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
+        this._debouncedVerifyApplicability();
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -470,8 +493,11 @@ export class AdHocFiltersVariable
       this.setState({ _wip: undefined });
       return;
     }
+    const queryController = getQueryController(this);
+    queryController?.startProfile(FILTER_REMOVED_INTERACTION);
 
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
+    this._debouncedVerifyApplicability();
   }
 
   public _removeLastFilter() {
@@ -546,25 +572,34 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async _verifyNonApplicableFilters() {
+  public async _verifyApplicability() {
     const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds || !ds.getApplicableFilters) {
-      return [];
+    if (!ds || !ds.getFiltersApplicability) {
+      return;
+    }
+
+    if (!filters) {
+      return;
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response: string[] = await ds.getApplicableFilters({
+    const response: FiltersApplicability[] = await ds.getFiltersApplicability({
       filters,
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
+    });
+
+    const responseMap = new Map<string, FiltersApplicability>();
+    response.forEach((filter) => {
+      responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
     });
 
     const update = {
@@ -573,31 +608,32 @@ export class AdHocFiltersVariable
     };
 
     update.filters.forEach((f) => {
-      const isApplicable = response.includes(f.key);
+      const filter = responseMap.get(f.key);
 
-      if (!isApplicable) {
-        f.nonApplicable = true;
+      if (filter) {
+        f.nonApplicable = !filter.applicable;
+        f.nonApplicableReason = filter.reason;
       }
     });
 
     update.originFilters?.forEach((f) => {
-      const isApplicable = response.includes(f.key);
+      const filter = responseMap.get(`${f.key}-${f.origin}`);
 
-      if (!isApplicable) {
+      if (filter) {
         if (!f.matchAllFilter) {
-          f.nonApplicable = true;
+          f.nonApplicable = !filter.applicable;
+          f.nonApplicableReason = filter.reason;
         }
 
         const originalValue = this._originalValues.get(`${f.key}-${f.origin}`);
         if (originalValue) {
-          originalValue.nonApplicable = true;
+          originalValue.nonApplicable = !filter.applicable;
+          originalValue.nonApplicableReason = filter?.reason;
         }
       }
     });
 
     this.setState(update);
-
-    return;
   }
 
   /**

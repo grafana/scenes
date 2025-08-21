@@ -470,7 +470,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       stream = stream.pipe(
         registerQueryWithController({
-          type: 'data',
+          type: 'SceneQueryRunner/runQueries',
           request: primary,
           origin: this,
           cancel: () => this.cancelQuery(),
