@@ -1,3 +1,15 @@
+# v6.30.2 (Sat Aug 23 2025)
+
+#### 🐛 Bug Fix
+
+- Replace HTML entity `&#151;` with proper em dash `—` [#1224](https://github.com/grafana/scenes/pull/1224) ([@Johngeorgesample](https://github.com/Johngeorgesample))
+
+#### Authors: 1
+
+- John-George Sample ([@Johngeorgesample](https://github.com/Johngeorgesample))
+
+---
+
 # v6.30.1 (Wed Aug 20 2025)
 
 #### 🐛 Bug Fix
