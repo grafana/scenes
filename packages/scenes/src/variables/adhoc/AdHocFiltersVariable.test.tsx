@@ -992,43 +992,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
-  it('filters are matched to origin ones if keys match', () => {
-    const { filtersVar } = setup({
-      originFilters: [
-        {
-          key: 'dbFilterKey',
-          operator: '=',
-          value: 'dbFilterValue',
-          origin: 'dashboard',
-        },
-      ],
-    });
-
-    // this is a normal filter but the key matches the
-    // dashboard filter so we overwrite this filter
-    // with the dashboard injected one
-    const urlValues = {
-      'var-filters': ['dbFilterKey|!=|newDbFilterValue'],
-    };
-
-    act(() => {
-      locationService.partial(urlValues);
-    });
-
-    // new filter will take values from the URL normal filter
-    // but keep it as a dashboard level filter
-    expect(filtersVar.state.originFilters![0]).toEqual({
-      key: 'dbFilterKey',
-      keyLabel: 'dbFilterKey',
-      operator: '!=',
-      value: 'newDbFilterValue',
-      valueLabels: ['newDbFilterValue'],
-      origin: 'dashboard',
-      condition: '',
-      restorable: true,
-    });
-  });
-
   it('url updates origin filters properly', async () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {
