@@ -19,6 +19,7 @@
 !.vscode/launch.json
 .vs/
 .eslintcache
+.cursor/
 
 # Build
 compiled

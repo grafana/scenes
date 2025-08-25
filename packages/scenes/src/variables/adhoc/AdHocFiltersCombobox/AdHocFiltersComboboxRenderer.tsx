@@ -38,15 +38,17 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         ) : null
       )}
 
-      {filters.map((filter, index) => (
-        <AdHocFilterPill
-          key={`${index}-${filter.key}`}
-          filter={filter}
-          model={model}
-          readOnly={readOnly || filter.readOnly}
-          focusOnWipInputRef={focusOnWipInputRef.current}
-        />
-      ))}
+      {filters
+        .filter((filter) => !filter.hidden)
+        .map((filter, index) => (
+          <AdHocFilterPill
+            key={`${index}-${filter.key}`}
+            filter={filter}
+            model={model}
+            readOnly={readOnly || filter.readOnly}
+            focusOnWipInputRef={focusOnWipInputRef.current}
+          />
+        ))}
 
       {!readOnly ? <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnWipInputRef} /> : null}
     </div>
