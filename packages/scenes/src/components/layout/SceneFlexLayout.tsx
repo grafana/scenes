@@ -1,6 +1,6 @@
 import { css, CSSObject } from '@emotion/css';
 import { config } from '@grafana/runtime';
-import React, { ComponentType, CSSProperties, useMemo } from 'react';
+import { ComponentType, CSSProperties, useMemo } from 'react';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneLayout, SceneObjectState, SceneObject } from '../../core/types';
