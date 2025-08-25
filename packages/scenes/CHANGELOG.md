@@ -1,3 +1,15 @@
+# v6.30.4 (Mon Aug 25 2025)
+
+#### 🐛 Bug Fix
+
+- SceneRenderProfiler: Handle overlapping profiles by cancelling previous profile [#1225](https://github.com/grafana/scenes/pull/1225) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.30.3 (Mon Aug 25 2025)
 
 #### 🐛 Bug Fix
