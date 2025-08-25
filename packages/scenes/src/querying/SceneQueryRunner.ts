@@ -545,7 +545,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (this._groupByVar) {
       // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.groupByKeys = this._groupByVar.state.value;
+      request.groupByKeys = this._groupByVar.getApplicableKeys();
     }
 
     request.targets = request.targets.map((query) => {
