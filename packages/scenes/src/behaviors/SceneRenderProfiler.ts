@@ -66,13 +66,38 @@ export class SceneRenderProfiler {
       writeSceneLog('SceneRenderProfiler', 'Tab is inactive, skipping profile', name);
       return;
     }
+
     if (this.#profileInProgress) {
-      this.addCrumb(name);
+      if (this.#trailAnimationFrameId) {
+        this.cancelProfile();
+        this._startNewProfile(name, true);
+      } else {
+        this.addCrumb(name);
+      }
     } else {
-      this.#profileInProgress = { origin: name, crumbs: [] };
-      this.#profileStartTs = performance.now();
-      writeSceneLog('SceneRenderProfiler', 'Profile started:', this.#profileInProgress, this.#profileStartTs);
+      this._startNewProfile(name);
     }
+  }
+
+  /**
+   * Starts a new profile for performance measurement.
+   *
+   * @param name - The origin/trigger of the profile (e.g., 'time_range_change', 'variable_value_changed')
+   * @param force - Whether this is a "forced" profile (true) or "clean" profile (false)
+   *               - "forced": Started by canceling an existing profile that was recording trailing frames
+   *                           This happens when a new user interaction occurs before the previous one
+   *                           finished measuring its performance impact
+   *               - "clean": Started when no profile is currently active
+   */
+  private _startNewProfile(name: string, force = false) {
+    this.#profileInProgress = { origin: name, crumbs: [] };
+    this.#profileStartTs = performance.now();
+    writeSceneLog(
+      'SceneRenderProfiler',
+      `Profile started[${force ? 'forced' : 'clean'}]`,
+      this.#profileInProgress,
+      this.#profileStartTs
+    );
   }
 
   private recordProfileTail(measurementStartTime: number, profileStartTs: number) {
