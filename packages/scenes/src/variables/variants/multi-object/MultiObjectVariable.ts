@@ -1,4 +1,4 @@
-import { map, Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../MultiValueVariable';
 import { VariableValue, VariableValueOption } from '../../types';
