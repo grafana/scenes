@@ -13,6 +13,7 @@ export interface SceneGridItemPlacement {
 export interface SceneGridItemStateLike extends SceneGridItemPlacement, SceneObjectState {
   isResizable?: boolean;
   isDraggable?: boolean;
+  repeatedPanels?: VizPanel[];
 }
 
 export interface SceneGridItemLike extends SceneObject<SceneGridItemStateLike> {
