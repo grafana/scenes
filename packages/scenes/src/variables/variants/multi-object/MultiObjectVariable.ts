@@ -20,7 +20,9 @@ interface MultiObjectVariableState extends MultiValueVariableState {
 }
 
 export class MultiObjectVariable extends MultiValueVariable<MultiObjectVariableState> {
-  public constructor(initialState: Partial<MultiObjectVariableState>) {
+  public constructor(
+    initialState: Partial<MultiObjectVariableState> & Required<Pick<MultiObjectVariableState, 'provider'>>
+  ) {
     super({
       // @ts-ignore
       type: 'mutli-object',

@@ -80,6 +80,8 @@ export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
+export { MultiObjectVariable } from './variables/variants/multi-object/MultiObjectVariable';
+export { MultiObjectOptionsProviders } from './variables/variants/multi-object/MultiObjectOptionsProviders';
 
 export { type UrlSyncManagerLike, UrlSyncManager, NewSceneObjectAddedEvent } from './services/UrlSyncManager';
 export { useUrlSync } from './services/useUrlSync';

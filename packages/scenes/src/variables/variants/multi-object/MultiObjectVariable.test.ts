@@ -109,7 +109,7 @@ describe('MultiObjectVariable', () => {
       });
 
       await expect(lastValueFrom(variable.validateAndUpdate())).rejects.toThrow(
-        "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+        "Expected property name or '}' in JSON at position 1"
       );
 
       expect(variable.state.value).toBe('');
