@@ -1,8 +1,11 @@
 import { Observable } from 'rxjs';
 
+import { SceneComponentProps } from '../../../core/types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../MultiValueVariable';
+import { MultiOrSingleValueSelect } from '../../components/VariableValueSelect';
 import { VariableValue, VariableValueOption } from '../../types';
 import { ObjectVariable } from '../ObjectVariable';
+import React from 'react';
 
 export interface MultiObjectOptionsProvider {
   getOptions(): Observable<MultiObjectVariableOption[]>;
@@ -56,4 +59,8 @@ export class MultiObjectVariable extends MultiValueVariable<MultiObjectVariableS
       value: currentOption.obj,
     }).getValue(fieldPath);
   }
+
+  public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
+    return <MultiOrSingleValueSelect model={model} />;
+  };
 }
