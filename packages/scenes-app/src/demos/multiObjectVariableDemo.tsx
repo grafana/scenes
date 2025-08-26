@@ -24,6 +24,7 @@ export function getMultiObjectVariableDemo(defaults: SceneAppPageState) {
             new MultiObjectVariable({
               name: 'envs',
               label: 'Environments',
+              isMulti: true,
               value: '',
               text: '',
               options: [],

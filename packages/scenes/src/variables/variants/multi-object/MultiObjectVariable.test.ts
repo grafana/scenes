@@ -168,5 +168,17 @@ describe('MultiObjectVariable', () => {
       expect(variable.getValue('aws_environment')).toBe('development');
       expect(variable.getValue('azure_environment')).toBe('dev');
     });
+
+    describe('Multiple values', () => {
+      it('it should return the values according to fieldPath', async () => {
+        const variable = buildVariable(['2', '3']);
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.getValue()).toEqual(['2', '3']);
+        expect(variable.getValue('aws_environment')).toEqual(['staging', 'prod']);
+        expect(variable.getValue('azure_environment')).toEqual(['stg', 'prd']);
+      });
+    });
   });
 });

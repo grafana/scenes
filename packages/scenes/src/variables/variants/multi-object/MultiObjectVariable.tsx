@@ -43,20 +43,32 @@ export class MultiObjectVariable extends MultiValueVariable<MultiObjectVariableS
   }
 
   public getValue(fieldPath?: string): VariableValue {
-    const currentValue = this.state.value;
+    const value = this.state.value;
     if (!fieldPath) {
-      return currentValue;
+      return value;
     }
 
-    const currentOption = this.state.options.find((option) => option.value === this.state.value);
-    if (!currentOption) {
-      return currentValue;
+    const values = this.state.isMulti ? (this.state.value as VariableValue[]) : [this.state.value];
+    const currentOptions = this.state.options.filter((o) => values.includes(o.value));
+
+    if (!currentOptions.length) {
+      return value;
+    }
+
+    if (this.state.isMulti) {
+      return currentOptions.map((o) =>
+        new ObjectVariable({
+          type: 'custom',
+          name: '',
+          value: o.obj,
+        }).getValue(fieldPath)
+      ) as VariableValue;
     }
 
     return new ObjectVariable({
       type: 'custom',
       name: '',
-      value: currentOption.obj,
+      value: currentOptions[0].obj,
     }).getValue(fieldPath);
   }
 
