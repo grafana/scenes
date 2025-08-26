@@ -1,39 +1,13 @@
 import React from 'react';
-
 import { getSelectStyles, useTheme2 } from '@grafana/ui';
 // @ts-expect-error (temporary till we update grafana/data)
-import { FiltersApplicability } from '@grafana/data';
+import { FiltersApplicability, GrafanaTheme2 } from '@grafana/data';
+import { css, cx } from '@emotion/css';
 
 export interface GroupByContainerProps {
   innerProps: JSX.IntrinsicElements['div'];
   keysApplicability?: FiltersApplicability[];
 }
-
-const isValidReactElementWithData = (child: React.ReactNode): child is React.ReactElement => {
-  return React.isValidElement(child) && Boolean(child.props?.data?.value);
-};
-
-const findKeyApplicability = (
-  keysApplicability: FiltersApplicability[] | undefined,
-  value: string
-): FiltersApplicability | undefined => {
-  return keysApplicability?.find((applicability) => applicability.key === value);
-};
-
-const renderChildWithApplicability = (
-  child: React.ReactElement,
-  applicability: FiltersApplicability | undefined
-): React.ReactNode => {
-  if (!applicability) {
-    return child;
-  }
-
-  if (!applicability.applicable) {
-    return <s key={applicability.key}>{child}</s>;
-  }
-
-  return child;
-};
 
 export const GroupByValueContainer = ({
   keysApplicability,
@@ -41,17 +15,32 @@ export const GroupByValueContainer = ({
 }: React.PropsWithChildren<GroupByContainerProps>) => {
   const theme = useTheme2();
   const styles = getSelectStyles(theme);
+  const { nonApplicablePill } = getStyles(theme);
 
-  const renderChild = (child: React.ReactNode): React.ReactNode => {
-    if (!isValidReactElementWithData(child)) {
-      return child;
+  // Get the value from the first child (the label div)
+  const firstChild = React.Children.toArray(children)[0];
+  let isApplicable = true;
+
+  if (React.isValidElement(firstChild) && firstChild.props?.data?.value) {
+    const value = firstChild.props.data.value;
+    const applicability = keysApplicability?.find((item) => item.key === value);
+
+    if (applicability && !applicability.applicable) {
+      isApplicable = false;
     }
+  }
 
-    const value = child.props.data.value;
-    const applicability = findKeyApplicability(keysApplicability, value);
-
-    return renderChildWithApplicability(child, applicability);
-  };
-
-  return <div className={styles.multiValueContainer}>{React.Children.map(children, renderChild)}</div>;
+  return <div className={cx(styles.multiValueContainer, !isApplicable && nonApplicablePill)}>{children}</div>;
 };
+
+const getStyles = (theme: GrafanaTheme2) => ({
+  nonApplicablePill: css({
+    background: theme.colors.action.selected,
+    color: theme.colors.text.disabled,
+    border: 0,
+    '&:hover': {
+      background: theme.colors.action.selected,
+    },
+    textDecoration: 'line-through',
+  }),
+});
