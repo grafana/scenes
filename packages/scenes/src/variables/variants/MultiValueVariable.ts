@@ -109,6 +109,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     currentValue: VariableValue,
     currentText: VariableValue
   ): Partial<MultiValueVariableState> {
+    // console.log('*** this', this);
     const stateUpdate: Partial<MultiValueVariableState> = {
       options,
       loading: false,
