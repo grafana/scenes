@@ -1,3 +1,15 @@
+# v6.31.0 (Tue Aug 26 2025)
+
+#### 🚀 Enhancement
+
+- Feat: Add `showInControlsMenu` to `SceneVariableState` [#1208](https://github.com/grafana/scenes/pull/1208) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
 # v6.30.4 (Mon Aug 25 2025)
 
 #### 🐛 Bug Fix
