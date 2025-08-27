@@ -85,7 +85,7 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
   const layoutDragClass = layout.getDragClass();
   const isDraggable = layout.isDraggable();
 
-  const count = children ? children.length : 0;
+  const count = children.reduce((acc, child) => acc + (child.getChildCount?.() ?? 1), 0);
   const panels = count === 1 ? 'panel' : 'panels';
 
   return (
