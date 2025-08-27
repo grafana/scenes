@@ -81,7 +81,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
   public getPanelCount(children: SceneGridItemLike[]) {
     let count = 0;
     for (const child of children) {
-      count = child.getChildCount?.() || 1;
+      count += child.getChildCount?.() || 1;
     }
     return count;
   }
