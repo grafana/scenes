@@ -1,4 +1,4 @@
-import React, { ComponentType } from 'react';
+import { ComponentType } from 'react';
 
 import { SceneComponentProps, SceneObjectState, SceneObject } from '../../../core/types';
 import { SceneFlexItemPlacement } from '../SceneFlexLayout';

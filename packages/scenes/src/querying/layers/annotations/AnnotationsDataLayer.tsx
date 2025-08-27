@@ -1,6 +1,5 @@
 import { arrayToDataFrame, DataTopic, AnnotationQuery, ScopedVars, PanelData } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
-import React from 'react';
 import { map, Unsubscribable } from 'rxjs';
 import { emptyPanelData } from '../../../core/SceneDataNode';
 import { sceneGraph } from '../../../core/sceneGraph';

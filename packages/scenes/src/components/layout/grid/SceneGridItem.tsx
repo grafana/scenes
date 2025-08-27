@@ -1,4 +1,3 @@
-import React from 'react';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneObject, SceneComponentProps } from '../../../core/types';
 import { SceneGridLayout } from './SceneGridLayout';

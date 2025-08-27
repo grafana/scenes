@@ -28,7 +28,6 @@ import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
-import React from 'react';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';

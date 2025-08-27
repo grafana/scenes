@@ -2,7 +2,7 @@ import { t, Trans } from '@grafana/i18n';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { CustomScrollbar, Drawer, ToolbarButton, useStyles2 } from '@grafana/ui';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { SceneObject } from '../../core/types';
 import { DebugDetails } from './DebugDetails';

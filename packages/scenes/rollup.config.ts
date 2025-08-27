@@ -1,3 +1,4 @@
+import { defineConfig } from 'rollup';
 import { createRequire } from 'node:module';
 import resolve from '@rollup/plugin-node-resolve';
 import path from 'path';
@@ -18,13 +19,14 @@ const plugins = [
   esbuild({
     target: 'es2018',
     tsconfig: './tsconfig.json',
+    jsx: 'automatic',
   }),
   eslint(),
   json(),
   dynamicImportVars(),
 ];
 
-export default [
+const config = defineConfig([
   {
     input: 'src/index.ts',
     plugins: env === 'development' ? [...plugins] : plugins,
@@ -47,12 +49,17 @@ export default [
       include: 'src/**/*',
     },
   },
-  {
+]);
+
+if (process.env.NODE_ENV !== 'development') {
+  config.push({
     input: 'src/index.ts',
     plugins: [dts()],
     output: {
       file: './dist/index.d.ts',
       format: 'es',
     },
-  },
-];
+  });
+}
+
+export default config;

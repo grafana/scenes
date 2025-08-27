@@ -1,4 +1,4 @@
-import React, { forwardRef, useLayoutEffect } from 'react';
+import { forwardRef, useLayoutEffect } from 'react';
 import { AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 

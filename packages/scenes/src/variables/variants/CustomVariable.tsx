@@ -7,7 +7,6 @@ import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 import { sceneGraph } from '../../core/sceneGraph';
-import React from 'react';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;

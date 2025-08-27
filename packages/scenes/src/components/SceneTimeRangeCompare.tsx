@@ -2,7 +2,7 @@ import { t, Trans } from '@grafana/i18n';
 import { DataQueryRequest, DateTime, dateTime, FieldType, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
-import React from 'react';
+import { useState } from 'react';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneDataQuery, SceneObjectState, SceneObjectUrlValues } from '../core/types';
@@ -226,7 +226,7 @@ function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeR
   const styles = useStyles2(getStyles);
   const { compareWith, compareOptions, hideCheckbox } = model.useState();
 
-  const [previousCompare, setPreviousCompare] = React.useState(compareWith);
+  const [previousCompare, setPreviousCompare] = useState(compareWith);
   const previousValue = compareOptions.find(({ value }) => value === previousCompare) ?? PREVIOUS_PERIOD_COMPARE_OPTION;
 
   const value = compareOptions.find(({ value }) => value === compareWith);

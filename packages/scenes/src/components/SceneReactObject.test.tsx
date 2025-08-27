@@ -1,6 +1,5 @@
 import { Button } from '@grafana/ui';
 import { screen, render, act } from '@testing-library/react';
-import React from 'react';
 import { SceneReactObject } from './SceneReactObject';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
 

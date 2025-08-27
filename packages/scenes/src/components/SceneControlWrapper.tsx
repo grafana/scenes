@@ -1,7 +1,6 @@
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
-import React from 'react';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { isSceneObject, SceneComponentProps, SceneObject, SceneObjectState } from '../core/types';
 

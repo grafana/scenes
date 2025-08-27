@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { act, render, screen } from '@testing-library/react';
 
 import { SceneVariableSet } from '../sets/SceneVariableSet';
