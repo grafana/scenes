@@ -241,7 +241,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     });
 
     if (!isEqual(response, this.state.keysApplicability)) {
-      this.setState({ keysApplicability: response });
+      this.setState({ keysApplicability: response ?? undefined });
 
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }

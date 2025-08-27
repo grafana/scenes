@@ -1,10 +1,18 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
-import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  DataQueryError,
+  GetTagResponse,
+  GrafanaTheme2,
+  MetricFindValue,
+  SelectableValue,
+} from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
+import { css } from '@emotion/css';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -250,4 +258,20 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
   }
 
   return result;
+}
+
+export function getNonApplicablePillStyles(theme: GrafanaTheme2) {
+  return {
+    disabledPill: css({
+      background: theme.colors.action.selected,
+      color: theme.colors.text.disabled,
+      border: 0,
+      '&:hover': {
+        background: theme.colors.action.selected,
+      },
+    }),
+    strikethrough: css({
+      textDecoration: 'line-through',
+    }),
+  };
 }

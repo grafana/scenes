@@ -2,7 +2,8 @@ import React from 'react';
 import { getSelectStyles, useTheme2 } from '@grafana/ui';
 // @ts-expect-error (temporary till we update grafana/data)
 import { FiltersApplicability, GrafanaTheme2 } from '@grafana/data';
-import { css, cx } from '@emotion/css';
+import { cx } from '@emotion/css';
+import { getNonApplicablePillStyles } from '../utils';
 
 export interface GroupByContainerProps {
   innerProps: JSX.IntrinsicElements['div'];
@@ -15,7 +16,7 @@ export const GroupByValueContainer = ({
 }: React.PropsWithChildren<GroupByContainerProps>) => {
   const theme = useTheme2();
   const styles = getSelectStyles(theme);
-  const { nonApplicablePill } = getStyles(theme);
+  const { disabledPill, strikethrough } = getNonApplicablePillStyles(theme);
 
   // Get the value from the first child (the label div)
   const firstChild = React.Children.toArray(children)[0];
@@ -30,17 +31,7 @@ export const GroupByValueContainer = ({
     }
   }
 
-  return <div className={cx(styles.multiValueContainer, !isApplicable && nonApplicablePill)}>{children}</div>;
+  return (
+    <div className={cx(styles.multiValueContainer, !isApplicable && cx(disabledPill, strikethrough))}>{children}</div>
+  );
 };
-
-const getStyles = (theme: GrafanaTheme2) => ({
-  nonApplicablePill: css({
-    background: theme.colors.action.selected,
-    color: theme.colors.text.disabled,
-    border: 0,
-    '&:hover': {
-      background: theme.colors.action.selected,
-    },
-    textDecoration: 'line-through',
-  }),
-});
