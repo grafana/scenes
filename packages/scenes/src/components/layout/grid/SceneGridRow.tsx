@@ -77,6 +77,14 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
       this.onCollapseToggle();
     }
   }
+
+  public getPanelCount(children: SceneGridItemLike[]) {
+    let count = 0;
+    for (const child of children) {
+      count += child.getChildCount?.() || 1;
+    }
+    return count;
+  }
 }
 
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
@@ -86,7 +94,7 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
   const layoutDragClass = layout.getDragClass();
   const isDraggable = layout.isDraggable() && !isRepeatCloneOrChildOf(model);
 
-  const count = children ? children.length : 0;
+  const count = model.getPanelCount(children);
   const panels = count === 1 ? 'panel' : 'panels';
 
   return (
