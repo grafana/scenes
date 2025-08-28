@@ -1,3 +1,86 @@
+# v6.31.1 (Wed Aug 27 2025)
+
+#### 🐛 Bug Fix
+
+- SceneGridRow: Adjust row panel count to account for repeats [#1227](https://github.com/grafana/scenes/pull/1227) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v6.31.0 (Tue Aug 26 2025)
+
+#### 🚀 Enhancement
+
+- Feat: Add `showInControlsMenu` to `SceneVariableState` [#1208](https://github.com/grafana/scenes/pull/1208) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
+# v6.30.4 (Mon Aug 25 2025)
+
+#### 🐛 Bug Fix
+
+- SceneRenderProfiler: Handle overlapping profiles by cancelling previous profile [#1225](https://github.com/grafana/scenes/pull/1225) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.30.3 (Mon Aug 25 2025)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Fix hidden filters in new combobox layout [#1216](https://github.com/grafana/scenes/pull/1216) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.30.1 (Wed Aug 20 2025)
+
+#### 🐛 Bug Fix
+
+- DataLayers: Annotations can be enabled properly [#1219](https://github.com/grafana/scenes/pull/1219) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.30.0 (Wed Aug 20 2025)
+
+#### 🚀 Enhancement
+
+- VizPanel/SceneGridRow: Add repeatSourceKey to help simplify repeat handling [#1215](https://github.com/grafana/scenes/pull/1215) ([@torkelo](https://github.com/torkelo) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### 🐛 Bug Fix
+
+- VizPanel: Add shouldMigrate() callback to migration logic [#1092](https://github.com/grafana/scenes/pull/1092) ([@leeoniya](https://github.com/leeoniya) [@adela-almasan](https://github.com/adela-almasan))
+- ScenesDataTransformer: Allow passthrough set of ScopedVars to interpolate [#1200](https://github.com/grafana/scenes/pull/1200) ([@gelicia](https://github.com/gelicia))
+- Add new operators to AdHocFiltersVariable [#1210](https://github.com/grafana/scenes/pull/1210) ([@joey-grafana](https://github.com/joey-grafana))
+
+#### Authors: 6
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Adela Almasan ([@adela-almasan](https://github.com/adela-almasan))
+- Joey ([@joey-grafana](https://github.com/joey-grafana))
+- Kristina ([@gelicia](https://github.com/gelicia))
+- Leon Sorokin ([@leeoniya](https://github.com/leeoniya))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.29.7 (Mon Aug 11 2025)
 
 #### 🐛 Bug Fix

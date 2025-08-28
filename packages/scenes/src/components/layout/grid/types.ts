@@ -20,6 +20,11 @@ export interface SceneGridItemLike extends SceneObject<SceneGridItemStateLike> {
    * Provide a custom CSS class name for the underlying DOM element when special styling (i.e. for mobile breakpoint) is required.
    **/
   getClassName?(): string;
+
+  /**
+   * Get the number of grid item children (eg. original panel with all repeats)
+   **/
+  getChildCount?(): number;
 }
 
 export class SceneGridLayoutDragStartEvent extends BusEventWithPayload<{ evt: PointerEvent; panel: VizPanel }> {

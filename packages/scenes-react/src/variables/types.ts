@@ -6,4 +6,5 @@ export interface VariableProps {
   label?: string;
   hide?: VariableHide;
   initialValue?: VariableValue;
+  skipUrlSync?: boolean;
 }
