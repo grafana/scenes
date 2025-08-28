@@ -18,4 +18,3 @@ export { EmbeddedSceneWithContext } from './interoperability/EmbeddedSceneWithCo
 export { VizGridLayout } from './components/VizGridLayout';
 export { SceneContextObject } from './contexts/SceneContextObject';
 export * from './hooks/hooks';
-export { DemoV3 } from './v3/Demo';
