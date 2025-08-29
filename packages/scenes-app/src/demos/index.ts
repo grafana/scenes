@@ -41,6 +41,7 @@ import { getMlDemo } from './ml';
 import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
 import { getScopesDemo } from './scopesDemo';
+import { getMultiObjectVariableDemo } from './multiObjectVariableDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -304,6 +305,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Test scopes',
       getPage: getScopesDemo,
       getSourceCodeModule: () => import('!!raw-loader!../demos/scopesDemo'),
+    },
+    {
+      title: 'Multi-object variable',
+      description: '',
+      getPage: getMultiObjectVariableDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/multiObjectVariableDemo'),
     },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
