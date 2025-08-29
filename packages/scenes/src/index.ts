@@ -96,7 +96,7 @@ export { SceneToolbarButton, SceneToolbarInput } from './components/SceneToolbar
 export { SceneTimePicker } from './components/SceneTimePicker';
 export { SceneRefreshPicker, type SceneRefreshPickerState } from './components/SceneRefreshPicker';
 export { SceneTimeRangeTransformerBase } from './core/SceneTimeRangeTransformerBase';
-export { SceneTimeRangeCompare } from './components/SceneTimeRangeCompare';
+export { SceneTimeRangeCompare, alignCompareSeriesFields } from './components/SceneTimeRangeCompare';
 export { SceneByFrameRepeater } from './components/SceneByFrameRepeater';
 export { SceneByVariableRepeater } from './components/SceneByVariableRepeater';
 export { SceneControlsSpacer } from './components/SceneControlsSpacer';

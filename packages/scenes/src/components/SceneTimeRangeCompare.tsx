@@ -1,5 +1,16 @@
 import { t, Trans } from '@grafana/i18n';
-import { DataQueryRequest, DateTime, dateTime, FieldType, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
+import {
+  DataQueryRequest,
+  DateTime,
+  dateTime,
+  FieldType,
+  GrafanaTheme2,
+  rangeUtil,
+  TimeRange,
+  DataFrame,
+  Field,
+  PanelData,
+} from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
@@ -18,6 +29,7 @@ interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
   compareOptions: Array<{ label: string; value: string }>;
   hideCheckbox?: boolean;
+  alignTimeShifts?: boolean;
 }
 
 const PREVIOUS_PERIOD_VALUE = '__previousPeriod';
@@ -47,7 +59,7 @@ export class SceneTimeRangeCompare
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
 
   public constructor(state: Partial<SceneTimeRangeCompareState>) {
-    super({ compareOptions: DEFAULT_COMPARE_OPTIONS, ...state });
+    super({ compareOptions: DEFAULT_COMPARE_OPTIONS, alignTimeShifts: true, ...state });
     this.addActivationHandler(this._onActivate);
   }
 
@@ -113,7 +125,7 @@ export class SceneTimeRangeCompare
           targets,
           range: compareRange,
         },
-        processor: timeShiftAlignmentProcessor,
+        processor: this.state.alignTimeShifts ? timeShiftAlignmentProcessor : timeComparisonProcessor,
       });
     }
     return extraQueries;
@@ -185,13 +197,10 @@ export class SceneTimeRangeCompare
   }
 }
 
-// Processor function for use with time shifted comparison series.
-// This aligns the secondary series with the primary and adds custom
-// metadata and config to the secondary series' fields so that it is
-// rendered appropriately.
-const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary) => {
+// Helper function to process time comparison metadata
+const processTimeComparisonSeries = (primary: PanelData, secondary: PanelData, alignFields: boolean) => {
   const diff = secondary.timeRange.from.diff(primary.timeRange.from);
-  secondary.series.forEach((series) => {
+  secondary.series.forEach((series: DataFrame) => {
     series.refId = getCompareSeriesRefId(series.refId || '');
     series.meta = {
       ...series.meta,
@@ -201,26 +210,52 @@ const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary
         isTimeShiftQuery: true,
       },
     };
-    series.fields.forEach((field) => {
-      // Align compare series time stamps with reference series
-      if (field.type === FieldType.time) {
-        field.values = field.values.map((v) => {
-          return diff < 0 ? v - diff : v + diff;
-        });
-      }
 
-      field.config = {
-        ...field.config,
-        color: {
-          mode: 'fixed',
-          fixedColor: config.theme.palette.gray60,
-        },
-      };
-      return field;
-    });
+    if (alignFields) {
+      alignCompareSeriesFields(series, diff);
+    }
   });
   return of(secondary);
 };
+
+// Processor function for use with time shifted comparison series.
+// This aligns the secondary series with the primary and adds custom
+// metadata and config to the secondary series' fields so that it is
+// rendered appropriately.
+const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary) => {
+  return processTimeComparisonSeries(primary, secondary, true);
+};
+
+// Processor that sets time comparison metadata without aligning timestamps
+const timeComparisonProcessor: ExtraQueryDataProcessor = (primary, secondary) => {
+  return processTimeComparisonSeries(primary, secondary, false);
+};
+
+export function alignCompareSeriesFields(series: DataFrame, diff: number) {
+  series.fields.forEach((field: Field) => {
+    // Align compare series time stamps with reference series
+    if (field.type === FieldType.time) {
+      field.values = field.values.map((v: number) => {
+        return diff < 0 ? v - diff : v + diff;
+      });
+    }
+
+    field.config = {
+      ...field.config,
+      color: {
+        mode: 'fixed',
+        fixedColor: config.theme.palette.gray60,
+      },
+      custom: {
+        ...(field.config.custom ?? {}),
+        timeCompare: {
+          diffMs: diff,
+          isTimeShiftQuery: true,
+        },
+      },
+    };
+  });
+}
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
   const styles = useStyles2(getStyles);
