@@ -44,7 +44,7 @@ export function sceneInterpolator(
       return match;
     }
 
-    const value = formatValue(sceneObject, variable, variable.getValue(fieldPath), fmt);
+    const value = formatValue(sceneObject, variable, variable.getValue(fieldPath), fmt, fieldPath);
 
     if (interpolations) {
       interpolations.push({ match, variableName, fieldPath, format: fmt, value, found: value !== match });
@@ -85,7 +85,8 @@ function formatValue(
   context: SceneObject,
   variable: FormatVariable,
   value: VariableValue | undefined | null,
-  formatNameOrFn?: InterpolationFormatParameter
+  formatNameOrFn?: InterpolationFormatParameter,
+  fieldPath?: string
 ): string {
   if (value === null || value === undefined) {
     return '';
@@ -133,5 +134,5 @@ function formatValue(
     formatter = formatRegistry.get(VariableFormatID.Glob);
   }
 
-  return formatter.formatter(value, args, variable);
+  return formatter.formatter(value, args, variable, fieldPath);
 }
