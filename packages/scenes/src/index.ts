@@ -11,6 +11,7 @@ import {
   escapeLabelValueInExactSelector,
   escapeLabelValueInRegexSelector,
   escapeURLDelimiters,
+  escapeUrlPipeDelimiters,
   renderPrometheusLabelFilters,
 } from './variables/utils';
 import {
@@ -153,6 +154,7 @@ export const sceneUtils = {
   escapeLabelValueInRegexSelector,
   escapeLabelValueInExactSelector,
   escapeURLDelimiters,
+  escapeUrlPipeDelimiters,
 
   // Variable guards
   isAdHocVariable,
@@ -171,3 +173,4 @@ export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject
 export { getExploreURL } from './utils/explore';
 export { loadResources } from './utils/loadResources';
 export { PATH_ID_SEPARATOR } from './utils/pathId';
+export { escapeUrlPipeDelimiters } from './variables/utils';
