@@ -81,6 +81,7 @@ export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
+export { escapeUrlPipeDelimiters } from './variables/utils';
 
 export { type UrlSyncManagerLike, UrlSyncManager, NewSceneObjectAddedEvent } from './services/UrlSyncManager';
 export { useUrlSync } from './services/useUrlSync';
@@ -154,7 +155,6 @@ export const sceneUtils = {
   escapeLabelValueInRegexSelector,
   escapeLabelValueInExactSelector,
   escapeURLDelimiters,
-  escapeUrlPipeDelimiters,
 
   // Variable guards
   isAdHocVariable,
@@ -173,4 +173,3 @@ export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject
 export { getExploreURL } from './utils/explore';
 export { loadResources } from './utils/loadResources';
 export { PATH_ID_SEPARATOR } from './utils/pathId';
-export { escapeUrlPipeDelimiters } from './variables/utils';
