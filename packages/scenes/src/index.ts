@@ -11,7 +11,6 @@ import {
   escapeLabelValueInExactSelector,
   escapeLabelValueInRegexSelector,
   escapeURLDelimiters,
-  escapeUrlPipeDelimiters,
   renderPrometheusLabelFilters,
 } from './variables/utils';
 import {
