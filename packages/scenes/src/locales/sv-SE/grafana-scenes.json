@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Redigera filter med nyckeln {{keyLabel}}",
         "managed-filter": "Filter som hanteras av {{origin}}",
+        "non-applicable": "",
         "remove-filter-with-key": "Ta bort filter med nyckeln {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Om du kom hit via en länk kan det finnas en bugg i den här applikationen.",
         "subTitle": "Webbadressen matchade ingen sida",
         "title": "Hittades inte"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Dölj scen",
