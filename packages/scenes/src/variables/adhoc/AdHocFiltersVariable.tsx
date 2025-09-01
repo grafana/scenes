@@ -577,7 +577,7 @@ export class AdHocFiltersVariable
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds || !ds.getFiltersApplicability) {
+    if (!ds || !ds.getDrilldownsApplicability) {
       return;
     }
 
@@ -589,7 +589,7 @@ export class AdHocFiltersVariable
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response: FiltersApplicability[] = await ds.getFiltersApplicability({
+    const response: FiltersApplicability[] = await ds.getDrilldownsApplicability({
       filters,
       queries,
       timeRange,
