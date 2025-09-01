@@ -592,22 +592,47 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.keysApplicability).toEqual([{ key: 'key1', applicable: true }]);
     });
 
-    it('should be called when onChange is triggered with non-clear action', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'newKey', applicable: false }]);
+    it('should pass values to verifyApplicabilitySpy on blur', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
+        { key: 'existingKey', applicable: true },
+        { key: 'newTypedKey', applicable: false },
+      ]);
 
-      const { variable } = setupTest({}, undefined, undefined, {
-        // @ts-expect-error (temporary till we update grafana/data)
-        getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
-      });
+      const { variable } = setupTest(
+        {
+          value: ['existingKey'],
+          defaultOptions: [
+            { text: 'existingKey', value: 'existingKey' },
+            { text: 'option2', value: 'option2' },
+          ],
+          allowCustomValue: true,
+        },
+        undefined,
+        undefined,
+        {
+          // @ts-expect-error (temporary till we update grafana/data)
+          getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+        }
+      );
 
       getDrilldownsApplicabilitySpy.mockClear();
 
+      const verifyApplicabilitySpy = jest.spyOn(variable, '_verifyApplicability');
+
+      const groupBySelect = screen.getByTestId('GroupBySelect-testGroupBy');
+      const input = groupBySelect.querySelector('input') as HTMLInputElement;
+      expect(input).toBeInTheDocument();
+
+      await userEvent.click(input);
+      await userEvent.type(input, 'newTypedKey');
+      await userEvent.keyboard('{Enter}');
+      await userEvent.keyboard('{Escape}');
+
       await act(async () => {
-        variable.changeValueTo(['newKey'], ['newKey'], true);
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
+      expect(verifyApplicabilitySpy).toHaveBeenCalled();
     });
 
     it('should save keysApplicability', async () => {
