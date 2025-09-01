@@ -515,6 +515,199 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.value).toEqual(['defaultValue']);
     });
   });
+
+  describe('_verifyApplicability', () => {
+    it('should call getFiltersApplicability and update keysApplicability state', async () => {
+      const getFiltersApplicabilitySpy = jest.fn().mockResolvedValue([
+        { key: 'key1', applicable: true },
+        { key: 'key2', applicable: false },
+      ]);
+
+      const { variable } = setupTest({ value: ['key1', 'key2'] }, undefined, undefined, {
+        // @ts-expect-error (temporary till we update grafana/data)
+        getFiltersApplicability: getFiltersApplicabilitySpy,
+      });
+
+      await act(async () => {
+        await variable._verifyApplicability();
+      });
+
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalledWith({
+        groupByKeys: ['key1', 'key2'],
+        queries: [
+          {
+            expr: 'my_metric{$filters}',
+            refId: 'A',
+          },
+        ],
+        timeRange: expect.any(Object),
+        scopes: undefined,
+      });
+
+      expect(variable.state.keysApplicability).toEqual([
+        { key: 'key1', applicable: true },
+        { key: 'key2', applicable: false },
+      ]);
+    });
+
+    it('should not set keysApplicability if data source does not support it', async () => {
+      const { variable } = setupTest({ value: ['key1'] });
+
+      await act(async () => {
+        await variable._verifyApplicability();
+      });
+
+      expect(variable.state.keysApplicability).toBeUndefined();
+    });
+
+    it('should handle empty response from getFiltersApplicability', async () => {
+      const getFiltersApplicabilitySpy = jest.fn().mockResolvedValue(null);
+
+      const { variable } = setupTest({ value: ['key1'] }, undefined, undefined, {
+        // @ts-expect-error (temporary till we update grafana/data)
+        getFiltersApplicability: getFiltersApplicabilitySpy,
+      });
+
+      await act(async () => {
+        await variable._verifyApplicability();
+      });
+
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(variable.state.keysApplicability).toBeUndefined();
+    });
+
+    it('should be called during activation handler', async () => {
+      const getFiltersApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'key1', applicable: true }]);
+
+      const { variable } = setupTest({ value: ['key1'] }, undefined, undefined, {
+        // @ts-expect-error (temporary till we update grafana/data)
+        getFiltersApplicability: getFiltersApplicabilitySpy,
+      });
+
+      await act(async () => {
+        // Wait for activation handler to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(variable.state.keysApplicability).toEqual([{ key: 'key1', applicable: true }]);
+    });
+
+    it('should be called when onChange is triggered with non-clear action', async () => {
+      const getFiltersApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'newKey', applicable: false }]);
+
+      // @ts-expect-error (temporary till we update grafana/data)
+      const { variable } = setupTest({}, undefined, undefined, { getFiltersApplicability: getFiltersApplicabilitySpy });
+
+      getFiltersApplicabilitySpy.mockClear();
+
+      await act(async () => {
+        variable.changeValueTo(['newKey'], ['newKey'], true);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+    });
+
+    it('should save keysApplicability', async () => {
+      const keysApplicability = [
+        { key: 'key1', applicable: true },
+        { key: 'key2', applicable: false },
+      ];
+
+      const { variable } = setupTest({
+        value: ['key1', 'key2'],
+        keysApplicability,
+      });
+
+      expect(variable.state.keysApplicability).toEqual(keysApplicability);
+    });
+  });
+
+  describe('getApplicableKeys', () => {
+    it('should return all values when keysApplicability is undefined', () => {
+      const { variable } = setupTest({
+        value: ['key1', 'key2', 'key3'],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key1', 'key2', 'key3']);
+    });
+
+    it('should return all values when keysApplicability is empty array', () => {
+      const { variable } = setupTest({
+        value: ['key1', 'key2', 'key3'],
+        keysApplicability: [],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key1', 'key2', 'key3']);
+    });
+
+    it('should filter out non-applicable keys from array value', () => {
+      const { variable } = setupTest({
+        value: ['key1', 'key2', 'key3'],
+        keysApplicability: [
+          { key: 'key1', applicable: true },
+          { key: 'key2', applicable: false },
+          { key: 'key3', applicable: true },
+        ],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key1', 'key3']);
+    });
+
+    it('should return applicable key from single string value as array', () => {
+      const { variable } = setupTest({
+        value: 'key1',
+        keysApplicability: [{ key: 'key1', applicable: true }],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key1']);
+    });
+
+    it('should keep values that are not in keysApplicability (default to applicable)', () => {
+      const { variable } = setupTest({
+        value: ['key1', 'key2', 'key3'],
+        keysApplicability: [
+          { key: 'key1', applicable: false },
+          { key: 'key3', applicable: true },
+        ],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key2', 'key3']); // key2 not in keysApplicability, so kept
+    });
+
+    it('should handle empty value array', () => {
+      const { variable } = setupTest({
+        value: [],
+        keysApplicability: [{ key: 'key1', applicable: false }],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle empty string value', () => {
+      const { variable } = setupTest({
+        value: '',
+        keysApplicability: [{ key: 'key1', applicable: false }],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual([]);
+    });
+  });
 });
 
 const runRequestMock = {
@@ -526,7 +719,8 @@ let runRequestSet = false;
 export function setupTest(
   overrides?: Partial<GroupByVariableState>,
   filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
-  path?: string
+  path?: string,
+  dataSourceOverrides?: Partial<DataSourceApi>
 ) {
   const getTagKeysSpy = jest.fn();
   setDataSourceSrv({
@@ -539,6 +733,7 @@ export function setupTest(
         getRef() {
           return { uid: 'my-ds-uid' };
         },
+        ...dataSourceOverrides,
       };
     },
     getInstanceSettings() {

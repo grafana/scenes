@@ -1,3 +1,31 @@
+# v6.32.0 (Thu Aug 28 2025)
+
+#### 🚀 Enhancement
+
+- GroupBy: Non-applicable keys [#1192](https://github.com/grafana/scenes/pull/1192) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Remove merging of different filter type with same keys [#1222](https://github.com/grafana/scenes/pull/1222) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.31.1 (Wed Aug 27 2025)
+
+#### 🐛 Bug Fix
+
+- SceneGridRow: Adjust row panel count to account for repeats [#1227](https://github.com/grafana/scenes/pull/1227) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v6.31.0 (Tue Aug 26 2025)
 
 #### 🚀 Enhancement
