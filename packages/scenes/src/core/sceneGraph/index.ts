@@ -15,10 +15,12 @@ import {
   getAncestor,
   findDescendents,
   getScopes,
+  getDashboardControls,
 } from './sceneGraph';
 
 export const sceneGraph = {
   getVariables,
+  getDashboardControls,
   getData,
   getTimeRange,
   getLayout,
