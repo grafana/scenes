@@ -2,7 +2,7 @@ import { Scope, ScopedVars } from '@grafana/data';
 import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/defaults';
 
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
-import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types';
+import { VariableCustomFormatterFn, SceneVariables, SceneVariable } from '../../variables/types';
 
 import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
@@ -17,9 +17,25 @@ import { SCOPES_VARIABLE_NAME } from '../../variables/constants';
  * Get the closest node with variables
  */
 export function getVariables(sceneObject: SceneObject): SceneVariables {
-  return getClosest(sceneObject, (s) => s.state.$variables) ?? EmptyVariableSet;
+  const variables = getClosest(sceneObject, (s) => s.state.$variables) ?? EmptyVariableSet;
+
+  return filterVariables(variables, (v) => v.state.showInControlsMenu !== true);
 }
 
+/**
+ * Get the closest node with controls
+ */
+export function getDashboardControls(sceneObject: SceneObject): SceneVariables {
+  const variables = getClosest(sceneObject, (s) => s.state.$variables) ?? EmptyVariableSet;
+
+  return filterVariables(variables, (v) => v.state.showInControlsMenu === true);
+}
+
+function filterVariables(sceneObject: SceneVariables, filter: (v: SceneVariable) => boolean) {
+  sceneObject.setState({ variables: sceneObject.state.variables.filter(filter) });
+
+  return sceneObject;
+}
 /**
  * Will walk up the scene object graph to the closest $data scene object
  */

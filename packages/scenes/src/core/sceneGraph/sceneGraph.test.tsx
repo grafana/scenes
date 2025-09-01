@@ -3,7 +3,7 @@ import React from 'react';
 import { of } from 'rxjs';
 
 import { sceneGraph } from '.';
-import { hasVariableDependencyInLoadingState } from './sceneGraph';
+import { getDashboardControls, getVariables, hasVariableDependencyInLoadingState } from './sceneGraph';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
@@ -406,6 +406,40 @@ describe('sceneGraph', () => {
 
       expect(hasVariableDependencyInLoadingState(loadingVariable)).toBe(false);
       expect(logSpy).toHaveBeenCalledWith('Query variable is referencing itself');
+    });
+  });
+
+  describe('getVariables()', () => {
+    it('only returns the closest variables that are not meant to be rendered under a dashboard controls menu', () => {
+      const variable1 = new TestVariable({ name: 'A', value: '1', showInControlsMenu: false });
+      const variable2 = new TestVariable({ name: 'B', value: '1', showInControlsMenu: true });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable1, variable2] }),
+        children: [],
+      });
+
+      const variables = getVariables(scene);
+
+      expect(variables.state.variables.length).toBe(1);
+      expect(variables.state.variables[0].state.name).toBe('A');
+    });
+  });
+
+  describe('getDashboardControls()', () => {
+    it('only returns the closest variables that are not meant to be rendered under a dashboard controls menu', () => {
+      const variable1 = new TestVariable({ name: 'A', value: '1', showInControlsMenu: false });
+      const variable2 = new TestVariable({ name: 'B', value: '1', showInControlsMenu: true });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable1, variable2] }),
+        children: [],
+      });
+
+      const variables = getDashboardControls(scene);
+
+      expect(variables.state.variables.length).toBe(1);
+      expect(variables.state.variables[0].state.name).toBe('B');
     });
   });
 });
