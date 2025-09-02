@@ -171,4 +171,3 @@ export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject
 export { getExploreURL } from './utils/explore';
 export { loadResources } from './utils/loadResources';
 export { PATH_ID_SEPARATOR } from './utils/pathId';
-export { alignTimeRangeCompareData } from './utils/timeRangeCompareUtils';

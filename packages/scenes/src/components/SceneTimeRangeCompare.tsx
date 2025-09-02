@@ -1,6 +1,5 @@
 import { t, Trans } from '@grafana/i18n';
-import { DataQueryRequest, DateTime, dateTime, FieldType, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
-import { config } from '@grafana/runtime';
+import { DataQueryRequest, DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
 import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
@@ -198,7 +197,7 @@ const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary
       // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
       timeCompare: {
         diffMs,
-        isCompareQuery: true,
+        isTimeShiftQuery: true,
       },
     };
   });
