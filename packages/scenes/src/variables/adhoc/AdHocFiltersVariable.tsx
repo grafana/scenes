@@ -5,7 +5,7 @@ import {
   GrafanaTheme2,
   MetricFindValue,
   // @ts-expect-error (temporary till we update grafana/data)
-  FiltersApplicability,
+  DrilldownsApplicability,
   Scope,
   SelectableValue,
 } from '@grafana/data';
@@ -577,7 +577,7 @@ export class AdHocFiltersVariable
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds || !ds.getFiltersApplicability) {
+    if (!ds || !ds.getDrilldownsApplicability) {
       return;
     }
 
@@ -589,7 +589,7 @@ export class AdHocFiltersVariable
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response: FiltersApplicability[] = await ds.getFiltersApplicability({
+    const response: DrilldownsApplicability[] = await ds.getDrilldownsApplicability({
       filters,
       queries,
       timeRange,
@@ -597,7 +597,7 @@ export class AdHocFiltersVariable
       ...getEnrichedFiltersRequest(this),
     });
 
-    const responseMap = new Map<string, FiltersApplicability>();
+    const responseMap = new Map<string, DrilldownsApplicability>();
     response.forEach((filter) => {
       responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
     });

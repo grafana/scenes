@@ -4,7 +4,7 @@ import {
   AdHocVariableFilter,
   DataSourceApi,
   // @ts-expect-error (temporary till we update grafana/data)
-  FiltersApplicability,
+  DrilldownsApplicability,
   GetTagResponse,
   MetricFindValue,
   SelectableValue,
@@ -74,7 +74,7 @@ export interface GroupByVariableState extends MultiValueVariableState {
   /**
    * Holds the applicability for each of the selected keys
    */
-  keysApplicability?: FiltersApplicability[];
+  keysApplicability?: DrilldownsApplicability[];
 }
 
 export type getTagKeysProvider = (
@@ -223,7 +223,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     });
 
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds.getFiltersApplicability) {
+    if (!ds.getDrilldownsApplicability) {
       return;
     }
 
@@ -232,7 +232,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     const value = this.state.value;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response = await ds.getFiltersApplicability({
+    const response = await ds.getDrilldownsApplicability({
       groupByKeys: Array.isArray(value) ? value.map((v) => String(v)) : value ? [String(value)] : [],
       queries,
       timeRange,
@@ -446,13 +446,14 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         if (restorable !== model.state.restorable) {
           model.setState({ restorable: restorable });
         }
+
+        model._verifyApplicability();
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([], undefined, true);
-        } else {
-          model._verifyApplicability();
         }
+
         setUncommittedValue(newValue);
       }}
       onOpenMenu={async () => {

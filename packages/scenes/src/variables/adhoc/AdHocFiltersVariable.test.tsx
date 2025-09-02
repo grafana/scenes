@@ -2190,7 +2190,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   describe('non-applicable filters', () => {
     it('should set non-applicable filters on activation', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getFiltersApplicabilitySpy } = setup(
+      const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2226,7 +2226,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // account for applicability check debounce
       await new Promise((r) => setTimeout(r, 150));
 
-      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[0].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[1].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
@@ -2297,7 +2297,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     it('should maintain default filter as non-applicable if we turn filter to match-all and then restore', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getFiltersApplicabilitySpy } = setup(
+      const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2332,7 +2332,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await new Promise((r) => setTimeout(r, 150));
 
-      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
 
@@ -2814,11 +2814,11 @@ function setup(
   overrides?: Partial<AdHocFiltersVariableState>,
   filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
   scopesVariable?: ScopesVariable,
-  useGetFiltersApplicability?: boolean
+  useGetDrilldownsApplicability?: boolean
 ) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
-  const getFiltersApplicabilitySpy = jest.fn();
+  const getDrilldownsApplicabilitySpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
@@ -2833,9 +2833,9 @@ function setup(
         getRef() {
           return { uid: 'my-ds-uid' };
         },
-        ...(useGetFiltersApplicability && {
-          getFiltersApplicability(options: any) {
-            getFiltersApplicabilitySpy(options);
+        ...(useGetDrilldownsApplicability && {
+          getDrilldownsApplicability(options: any) {
+            getDrilldownsApplicabilitySpy(options);
             return [
               { key: 'cluster', applicable: true },
               { key: 'container', applicable: true },
@@ -2922,7 +2922,7 @@ function setup(
     runRequest: runRequestMock.fn,
     getTagKeysSpy,
     getTagValuesSpy,
-    getFiltersApplicabilitySpy,
+    getDrilldownsApplicabilitySpy,
     timeRange,
   };
 }
