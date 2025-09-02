@@ -128,7 +128,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     dependsOnScopes: true,
   });
 
-  private _drilldownDependenciesManager?: DrilldownDependenciesManager<QueryRunnerState> =
+  private _drilldownDependenciesManager: DrilldownDependenciesManager<QueryRunnerState> =
     new DrilldownDependenciesManager(this._variableDependency);
 
   public constructor(initialState: QueryRunnerState) {
@@ -266,8 +266,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private onAnyVariableChanged(variable: SceneVariable) {
     // If this variable has already been detected this variable as a dependency onVariableUpdatesCompleted above will handle value changes
     if (
-      this._drilldownDependenciesManager?.adHocFiltersVar === variable ||
-      this._drilldownDependenciesManager?.groupByVar === variable ||
+      this._drilldownDependenciesManager.adHocFiltersVar === variable ||
+      this._drilldownDependenciesManager.groupByVar === variable ||
       !this.isQueryModeAuto()
     ) {
       return;
@@ -340,7 +340,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._timeSub = undefined;
     this._timeSubRange = undefined;
 
-    this._drilldownDependenciesManager?.cleanup();
+    this._drilldownDependenciesManager.cleanup();
   }
 
   public setContainerWidth(width: number) {
@@ -451,7 +451,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      this._drilldownDependenciesManager?.findAndSubscribeToDrilldowns(ds.uid);
+      this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid);
 
       const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
@@ -537,8 +537,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       ...getEnrichedDataRequest(this),
     };
 
-    const filters = this._drilldownDependenciesManager?.getFilters();
-    const groupByKeys = this._drilldownDependenciesManager?.getGroupByKeys();
+    const filters = this._drilldownDependenciesManager.getFilters();
+    const groupByKeys = this._drilldownDependenciesManager.getGroupByKeys();
 
     if (filters) {
       request.filters = filters;

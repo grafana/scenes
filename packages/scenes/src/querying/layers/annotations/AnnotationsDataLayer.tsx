@@ -37,7 +37,7 @@ export class AnnotationsDataLayer
   };
   private _timeRangeSub: Unsubscribable | undefined;
 
-  private _drilldownDependenciesManager?: DrilldownDependenciesManager<AnnotationsDataLayerState> =
+  private _drilldownDependenciesManager: DrilldownDependenciesManager<AnnotationsDataLayerState> =
     new DrilldownDependenciesManager(this._variableDependency);
 
   public constructor(initialState: AnnotationsDataLayerState) {
@@ -93,7 +93,7 @@ export class AnnotationsDataLayer
       return;
     }
 
-    this._drilldownDependenciesManager?.findAndSubscribeToDrilldowns(query.datasource?.uid);
+    this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(query.datasource?.uid);
 
     if (this.querySub) {
       this.querySub.unsubscribe();
@@ -112,8 +112,8 @@ export class AnnotationsDataLayer
         timeRange,
         query,
         this,
-        this._drilldownDependenciesManager?.getFilters(),
-        this._drilldownDependenciesManager?.getGroupByKeys()
+        this._drilldownDependenciesManager.getFilters(),
+        this._drilldownDependenciesManager.getGroupByKeys()
       ).pipe(
         registerQueryWithController({
           type: 'AnnotationsDataLayer/annotationsLoading',
