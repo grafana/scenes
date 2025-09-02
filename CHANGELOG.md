@@ -1,3 +1,21 @@
+# v6.33.0 (Tue Sep 02 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Pass both filters and groupByKeys in annotation requests [#1232](https://github.com/grafana/scenes/pull/1232) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupByVariable: Use new applicability method name and trigger it on groupBy blur [#1233](https://github.com/grafana/scenes/pull/1233) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.32.0 (Thu Aug 28 2025)
 
 #### 🚀 Enhancement
