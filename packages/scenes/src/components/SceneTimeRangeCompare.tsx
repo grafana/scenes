@@ -189,14 +189,14 @@ export class SceneTimeRangeCompare
 // metadata and config to the secondary series' fields so that it is
 // rendered appropriately.
 const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary) => {
-  const diffMs = primary.timeRange.from.valueOf() - secondary.timeRange.from.valueOf();
+  const diff = secondary.timeRange.from.diff(primary.timeRange.from);
   secondary.series.forEach((series) => {
     series.refId = getCompareSeriesRefId(series.refId || '');
     series.meta = {
       ...series.meta,
       // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
       timeCompare: {
-        diffMs,
+        diffMs: diff,
         isTimeShiftQuery: true,
       },
     };
