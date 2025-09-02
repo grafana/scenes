@@ -4,6 +4,7 @@ import { SceneQueryControllerLike } from './types';
 // Mock writeSceneLog to prevent console noise in tests
 jest.mock('../utils/writeSceneLog', () => ({
   writeSceneLog: jest.fn(),
+  writeSceneLogStyled: jest.fn(),
 }));
 
 // Minimal mock query controller - only mocks what SceneRenderProfiler actually uses
@@ -101,6 +102,49 @@ describe('SceneRenderProfiler', () => {
 
     // If we reach here, all edge cases were handled gracefully
     expect(true).toBe(true);
+  });
+});
+
+describe('Long frame detection integration', () => {
+  let profiler: SceneRenderProfiler;
+  let mockQueryController: SceneQueryControllerLike;
+  let mockObserver: any;
+
+  beforeEach(() => {
+    mockQueryController = createMockQueryController();
+
+    // Mock LoAF API
+    mockObserver = {
+      observe: jest.fn(),
+      disconnect: jest.fn(),
+    };
+
+    global.PerformanceObserver = jest.fn().mockImplementation((callback) => {
+      observerCallback = callback;
+      return mockObserver;
+    }) as any;
+
+    Object.defineProperty(global.PerformanceObserver, 'supportedEntryTypes', {
+      value: ['long-animation-frame'],
+      configurable: true,
+    });
+
+    profiler = new SceneRenderProfiler(mockQueryController);
+  });
+
+  afterEach(() => {
+    profiler.cleanup();
+  });
+
+  it('should initialize LoAF observer when starting profile', () => {
+    profiler.startProfile('loaf-init-test');
+
+    // Verify LoAF observer was set up
+    expect(global.PerformanceObserver).toHaveBeenCalled();
+    expect(mockObserver.observe).toHaveBeenCalledWith({
+      type: 'long-animation-frame',
+      buffered: false,
+    });
   });
 });
 

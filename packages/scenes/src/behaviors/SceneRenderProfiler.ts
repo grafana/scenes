@@ -1,26 +1,27 @@
-import { writeSceneLog } from '../utils/writeSceneLog';
-import { SceneQueryControllerLike } from './types';
+import { writeSceneLog, writeSceneLogStyled } from '../utils/writeSceneLog';
+import { SceneQueryControllerLike, LongFrameEvent } from './types';
+import { LongFrameDetector } from './LongFrameDetector';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
-const SPAN_THRESHOLD = 30; // Frames longer than this will be considered slow (manual tracking)
+const DEFAULT_LONG_FRAME_THRESHOLD = 30; // Threshold for tail recording slow frames
 const TAB_INACTIVE_THRESHOLD = 1000; // Tab inactive threshold in ms
 
 /**
  * SceneRenderProfiler tracks dashboard interaction performance including:
  * - Total interaction duration
  * - Network time
- * - Long animation frames using the Long Animation Frame (LoAF) API when available
- * - Falls back to manual frame tracking using requestAnimationFrame when LoAF is not supported
+ * - Long frame detection (50ms threshold) during interaction using LoAF API (default) or manual tracking (fallback)
+ * - Slow frame detection (30ms threshold) for tail recording after interaction
  *
- * LoAF API provides:
- * - More accurate frame timing (browser-level implementation)
- * - Script attribution (which scripts caused the long frame)
- * - Standard 50ms threshold for long frames
+ * Long frame detection during interaction:
+ * - 50ms threshold aligned with LoAF API default
+ * - LoAF API preferred (Chrome 123+) with manual fallback
+ * - Provides script attribution when using LoAF API
  *
- * Manual fallback provides:
- * - Broader browser support
- * - Configurable threshold (30ms)
- * - Similar metrics but without attribution data
+ * Slow frame detection for tail recording:
+ * - 30ms threshold for post-interaction monitoring
+ * - Manual frame timing measurement
+ * - Captures rendering delays after user interaction completes
  */
 
 export class SceneRenderProfiler {
@@ -36,19 +37,16 @@ export class SceneRenderProfiler {
   // Will keep measured lengths trailing frames
   #recordedTrailingSpans: number[] = [];
 
-  // Long Frame API support
-  #supportsLoAF = false;
-  #loafObserver: PerformanceObserver | null = null;
+  // Long frame tracking
+  #longFrameDetector: LongFrameDetector;
   #longFramesCount = 0;
   #longFramesTotalTime = 0;
-  #manualFrameTrackingId: number | null = null;
-  #lastManualFrameTime = 0;
 
   #visibilityChangeHandler: (() => void) | null = null;
 
   public constructor(private queryController?: SceneQueryControllerLike) {
+    this.#longFrameDetector = new LongFrameDetector();
     this.setupVisibilityChangeHandler();
-    this.detectLoAFSupport();
   }
 
   public setQueryController(queryController: SceneQueryControllerLike) {
@@ -81,11 +79,8 @@ export class SceneRenderProfiler {
       this.#visibilityChangeHandler = null;
     }
 
-    // Cleanup LoAF observer
-    if (this.#loafObserver) {
-      this.#loafObserver.disconnect();
-      this.#loafObserver = null;
-    }
+    // Cleanup long frame tracking
+    this.#longFrameDetector.stop();
 
     // Cancel any ongoing profiling
     this.cancelProfile();
@@ -126,13 +121,37 @@ export class SceneRenderProfiler {
     this.#profileStartTs = performance.now();
     this.#longFramesCount = 0;
     this.#longFramesTotalTime = 0;
-    this.startLongFrameTracking();
-    writeSceneLog(
+
+    // Add performance mark for debugging in dev tools
+    if (typeof performance !== 'undefined' && performance.mark) {
+      const markName = `Dashboard Profile Start: ${name}`;
+      performance.mark(markName);
+    }
+
+    // Log profile start in structured format
+    writeSceneLogStyled(
       'SceneRenderProfiler',
       `Profile started[${force ? 'forced' : 'clean'}]`,
-      this.#profileInProgress,
-      this.#profileStartTs
+      'color: #FFCC00; font-weight: bold;'
     );
+    writeSceneLog('', `  ├─ Origin: ${this.#profileInProgress?.origin || 'unknown'}`);
+    writeSceneLog('', `  └─ Timestamp: ${this.#profileStartTs.toFixed(1)}ms`);
+
+    // Start long frame detection with callback
+    this.#longFrameDetector.start((event: LongFrameEvent) => {
+      // Only record long frames during active profiling
+      if (!this.#profileInProgress || !this.#profileStartTs) {
+        return;
+      }
+
+      // Only record frames that occur after profile started
+      if (event.timestamp < this.#profileStartTs) {
+        return;
+      }
+
+      this.#longFramesCount++;
+      this.#longFramesTotalTime += event.duration;
+    });
   }
 
   private recordProfileTail(measurementStartTime: number, profileStartTs: number) {
@@ -165,23 +184,87 @@ export class SceneRenderProfiler {
       const slowFrames = processRecordedSpans(this.#recordedTrailingSpans);
       const slowFramesTime = slowFrames.reduce((acc, val) => acc + val, 0);
 
+      // Log tail recording in structured format
       writeSceneLog(
-        this.constructor.name,
-        'Profile tail recorded, slow frames duration:',
-        slowFramesTime,
-        slowFrames,
-        this.#profileInProgress
+        'SceneRenderProfiler',
+        `Profile tail recorded - Slow frames: ${slowFramesTime.toFixed(1)}ms (${slowFrames.length} frames)`
       );
+      writeSceneLog('', `  ├─ Origin: ${this.#profileInProgress?.origin || 'unknown'}`);
+      writeSceneLog('', `  └─ Crumbs:`, this.#profileInProgress?.crumbs || []);
 
       this.#recordedTrailingSpans = [];
 
       const profileDuration = measurementStartTs - profileStartTs;
 
-      writeSceneLog(
-        this.constructor.name,
-        'Stoped recording, total measured time (network included):',
-        profileDuration + slowFramesTime
+      // Add performance marks for debugging in dev tools
+      if (typeof performance !== 'undefined' && performance.mark) {
+        const profileName = this.#profileInProgress?.origin || 'unknown';
+        const totalTime = profileDuration + slowFramesTime;
+
+        // Mark profile completion
+        performance.mark(`Dashboard Profile End: ${profileName}`);
+
+        // Add measure from start to end if possible
+        const startMarkName = `Dashboard Profile Start: ${profileName}`;
+        try {
+          performance.measure(
+            `Dashboard Profile: ${profileName} (${totalTime.toFixed(1)}ms)`,
+            startMarkName,
+            `Dashboard Profile End: ${profileName}`
+          );
+        } catch {
+          // Start mark might not exist, create a simple end mark
+          performance.mark(`Dashboard Profile Complete: ${profileName} (${totalTime.toFixed(1)}ms)`);
+        }
+
+        // Add measurements for slow frame details if significant
+        if (slowFrames.length > 0) {
+          const slowFramesMarkName = `Slow Frames Summary: ${slowFrames.length} frames (${slowFramesTime.toFixed(
+            1
+          )}ms)`;
+          performance.mark(slowFramesMarkName);
+
+          // Create individual measurements for each slow frame during tail
+          slowFrames.forEach((frameTime, index) => {
+            if (frameTime > 16) {
+              // Only measure frames slower than 16ms (60fps)
+              try {
+                const frameStartTime =
+                  this.#profileStartTs! +
+                  profileDuration +
+                  (index > 0 ? slowFrames.slice(0, index).reduce((sum, t) => sum + t, 0) : 0);
+                const frameId = `slow-frame-${index}`;
+                const frameStartMark = `${frameId}-start`;
+                const frameEndMark = `${frameId}-end`;
+
+                performance.mark(frameStartMark, { startTime: frameStartTime });
+                performance.mark(frameEndMark, { startTime: frameStartTime + frameTime });
+                performance.measure(`Slow Frame ${index + 1}: ${frameTime.toFixed(1)}ms`, frameStartMark, frameEndMark);
+              } catch {
+                // Fallback if startTime not supported
+                performance.mark(`Slow Frame ${index + 1}: ${frameTime.toFixed(1)}ms`);
+              }
+            }
+          });
+        }
+      }
+
+      // Log performance summary in a structured format
+      const completionTimestamp = performance.now();
+      writeSceneLog('SceneRenderProfiler', 'Profile completed');
+      writeSceneLog('', `  ├─ Timestamp: ${completionTimestamp.toFixed(1)}ms`);
+      writeSceneLog('', `  ├─ Total time: ${(profileDuration + slowFramesTime).toFixed(1)}ms`);
+      writeSceneLog('', `  ├─ Slow frames: ${slowFramesTime}ms (${slowFrames.length} frames)`);
+      writeSceneLog('', `  └─ Long frames: ${this.#longFramesTotalTime}ms (${this.#longFramesCount} frames)`);
+
+      // Stop long frame detection now that the profile is complete
+      this.#longFrameDetector.stop();
+      writeSceneLogStyled(
+        'SceneRenderProfiler',
+        `Stopped long frame detection - profile complete at ${completionTimestamp.toFixed(1)}ms`,
+        'color: #00CC00; font-weight: bold;'
       );
+
       this.#trailAnimationFrameId = null;
 
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
@@ -233,8 +316,9 @@ export class SceneRenderProfiler {
   public tryCompletingProfile() {
     writeSceneLog('SceneRenderProfiler', 'Trying to complete profile', this.#profileInProgress);
     if (this.queryController?.runningQueriesCount() === 0 && this.#profileInProgress) {
-      writeSceneLog('SceneRenderProfiler', 'All queries completed, stopping profile');
-      this.stopLongFrameTracking();
+      writeSceneLog('SceneRenderProfiler', 'All queries completed, starting tail measurement');
+      // Note: Long frame detector continues running during tail measurement
+      // It will be stopped when the profile completely finishes
       this.recordProfileTail(performance.now(), this.#profileStartTs!);
     }
   }
@@ -262,7 +346,8 @@ export class SceneRenderProfiler {
         this.#trailAnimationFrameId = null;
       }
       // Stop long frame tracking
-      this.stopLongFrameTracking();
+      this.#longFrameDetector.stop();
+      writeSceneLog('SceneRenderProfiler', 'Stopped long frame detection - profile cancelled');
       // Reset recorded spans to ensure complete cleanup
       this.#recordedTrailingSpans = [];
       this.#longFramesCount = 0;
@@ -276,138 +361,12 @@ export class SceneRenderProfiler {
       this.#profileInProgress.crumbs.push(crumb);
     }
   }
-
-  private detectLoAFSupport() {
-    // Check if PerformanceObserver and long-animation-frame type are supported
-    if (
-      typeof PerformanceObserver !== 'undefined' &&
-      PerformanceObserver.supportedEntryTypes &&
-      PerformanceObserver.supportedEntryTypes.includes('long-animation-frame')
-    ) {
-      this.#supportsLoAF = true;
-      writeSceneLog('SceneRenderProfiler', 'Long Animation Frame API is supported');
-    } else {
-      this.#supportsLoAF = false;
-      writeSceneLog('SceneRenderProfiler', 'Long Animation Frame API is not supported, using fallback');
-    }
-  }
-
-  private startLongFrameTracking() {
-    if (this.#supportsLoAF) {
-      this.startLoAFTracking();
-    } else {
-      this.startManualFrameTracking();
-    }
-  }
-
-  private stopLongFrameTracking() {
-    if (this.#supportsLoAF) {
-      this.stopLoAFTracking();
-    } else {
-      this.stopManualFrameTracking();
-    }
-  }
-
-  private startLoAFTracking() {
-    try {
-      this.#loafObserver = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          // LoAF considers frames >50ms as long
-          if (entry.duration > 50) {
-            this.#longFramesCount++;
-            this.#longFramesTotalTime += entry.duration;
-            writeSceneLog(
-              'SceneRenderProfiler',
-              `Long frame detected (LoAF): ${entry.duration}ms at ${entry.startTime}ms, total count: ${
-                this.#longFramesCount
-              }`
-            );
-
-            // Log script attribution if available
-            if ('scripts' in entry && Array.isArray((entry as any).scripts)) {
-              const scripts = (entry as any).scripts;
-              scripts.forEach((script: any) => {
-                if (script.duration > 10) {
-                  // Only log scripts that took >10ms
-                  writeSceneLog(
-                    'SceneRenderProfiler',
-                    `  Script attribution: ${script.name || 'anonymous'} took ${script.duration}ms`
-                  );
-                }
-              });
-            }
-          }
-        }
-      });
-
-      this.#loafObserver.observe({ type: 'long-animation-frame', buffered: true });
-      writeSceneLog('SceneRenderProfiler', 'Started LoAF tracking');
-    } catch (error) {
-      writeSceneLog('SceneRenderProfiler', 'Failed to start LoAF tracking, falling back to manual:', error);
-      this.#supportsLoAF = false;
-      this.startManualFrameTracking();
-    }
-  }
-
-  private stopLoAFTracking() {
-    if (this.#loafObserver) {
-      this.#loafObserver.disconnect();
-      this.#loafObserver = null;
-      writeSceneLog('SceneRenderProfiler', 'Stopped LoAF tracking');
-    }
-  }
-
-  private startManualFrameTracking() {
-    this.#lastManualFrameTime = performance.now();
-    this.#manualFrameTrackingId = requestAnimationFrame(() => this.measureManualFrames());
-    writeSceneLog('SceneRenderProfiler', 'Started manual frame tracking (fallback)');
-  }
-
-  private stopManualFrameTracking() {
-    if (this.#manualFrameTrackingId) {
-      cancelAnimationFrame(this.#manualFrameTrackingId);
-      this.#manualFrameTrackingId = null;
-      writeSceneLog('SceneRenderProfiler', 'Stopped manual frame tracking');
-    }
-  }
-
-  private measureManualFrames = () => {
-    const currentFrameTime = performance.now();
-    const frameLength = currentFrameTime - this.#lastManualFrameTime;
-
-    // Skip if tab was inactive
-    if (frameLength > TAB_INACTIVE_THRESHOLD) {
-      writeSceneLog('SceneRenderProfiler', 'Tab was inactive during manual frame tracking, skipping frame');
-      this.#lastManualFrameTime = currentFrameTime;
-      if (this.#profileInProgress && this.#manualFrameTrackingId) {
-        this.#manualFrameTrackingId = requestAnimationFrame(this.measureManualFrames);
-      }
-      return;
-    }
-
-    // Track frames >30ms (more sensitive than LoAF's 50ms)
-    if (frameLength > SPAN_THRESHOLD) {
-      this.#longFramesCount++;
-      this.#longFramesTotalTime += frameLength;
-      writeSceneLog(
-        'SceneRenderProfiler',
-        `Long frame detected (manual): ${frameLength}ms, total count: ${this.#longFramesCount}`
-      );
-    }
-
-    this.#lastManualFrameTime = currentFrameTime;
-
-    // Continue tracking if profile is still in progress
-    if (this.#profileInProgress && this.#manualFrameTrackingId) {
-      this.#manualFrameTrackingId = requestAnimationFrame(this.measureManualFrames);
-    }
-  };
 }
 
 export function processRecordedSpans(spans: number[]) {
-  // identify last span in spans that's bigger than SPAN_THRESHOLD
+  // identify last span in spans that's bigger than default threshold
   for (let i = spans.length - 1; i >= 0; i--) {
-    if (spans[i] > SPAN_THRESHOLD) {
+    if (spans[i] > DEFAULT_LONG_FRAME_THRESHOLD) {
       return spans.slice(0, i + 1);
     }
   }
