@@ -25,6 +25,43 @@ export interface SceneInteractionProfileEvent {
   crumbs: string[];
   startTs: number;
   endTs: number;
+  /** Optional array of panel-level performance metrics */
+  panelMetrics?: Array<{
+    /** Legacy panel ID from the dashboard model */
+    panelId: string;
+    /** Scene object key for the panel */
+    panelKey: string;
+    /** Panel plugin type (e.g., 'timeseries', 'table', 'gauge') */
+    pluginId: string;
+    /** Version of the panel plugin */
+    pluginVersion?: string;
+    /** Time taken to load the panel plugin (ms) */
+    pluginLoadTime: number;
+    /** Whether the plugin was loaded from cache rather than fetched/imported */
+    pluginLoadedFromCache: boolean;
+    /** Time spent executing data queries (ms) */
+    queryTime: number;
+    /** Time spent processing data (field config, transformations) (ms) */
+    dataProcessingTime: number;
+    /** Time spent rendering the panel to DOM (ms) */
+    renderTime: number;
+    /** Total time for all panel operations (ms) */
+    totalTime: number;
+    /** Number of long frames (>50ms) during panel operations */
+    longFramesCount: number;
+    /** Total time of all long frames for this panel (ms) */
+    longFramesTotalTime: number;
+    /** Number of times this panel was rendered during the interaction */
+    renderCount: number;
+    /** Number of data points processed by the panel */
+    dataPointsCount?: number;
+    /** Number of series/fields in the panel data */
+    seriesCount?: number;
+    /** Error message if panel failed to load or render */
+    error?: string;
+    /** Memory increase during panel operations (bytes) */
+    memoryIncrease?: number;
+  }>;
   // add more granular data,i.e. network times? slow frames?
 }
 
