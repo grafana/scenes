@@ -109,6 +109,7 @@ describe('Long frame detection integration', () => {
   let profiler: SceneRenderProfiler;
   let mockQueryController: SceneQueryControllerLike;
   let mockObserver: any;
+  let observerCallback: any;
 
   beforeEach(() => {
     mockQueryController = createMockQueryController();
