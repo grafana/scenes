@@ -1,13 +1,13 @@
 import React from 'react';
 import { getSelectStyles, useTheme2 } from '@grafana/ui';
 // @ts-expect-error (temporary till we update grafana/data)
-import { FiltersApplicability, GrafanaTheme2 } from '@grafana/data';
+import { DrilldownsApplicability, GrafanaTheme2 } from '@grafana/data';
 import { cx } from '@emotion/css';
 import { getNonApplicablePillStyles } from '../utils';
 
 export interface GroupByContainerProps {
   innerProps: JSX.IntrinsicElements['div'];
-  keysApplicability?: FiltersApplicability[];
+  keysApplicability?: DrilldownsApplicability[];
 }
 
 export const GroupByValueContainer = ({

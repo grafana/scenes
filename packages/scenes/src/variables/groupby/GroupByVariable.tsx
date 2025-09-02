@@ -4,7 +4,7 @@ import {
   AdHocVariableFilter,
   DataSourceApi,
   // @ts-expect-error (temporary till we update grafana/data)
-  FiltersApplicability,
+  DrilldownsApplicability,
   GetTagResponse,
   MetricFindValue,
   SelectableValue,
@@ -74,7 +74,7 @@ export interface GroupByVariableState extends MultiValueVariableState {
   /**
    * Holds the applicability for each of the selected keys
    */
-  keysApplicability?: FiltersApplicability[];
+  keysApplicability?: DrilldownsApplicability[];
 }
 
 export type getTagKeysProvider = (
