@@ -419,8 +419,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     expect(allActiveGroupByVariables.size).toBe(0);
   });
 
-  // TODO enable once this repo is using @grafana/ui@11.1.0
-  it.skip('shows groups and orders according to first occurrence of a group item', async () => {
+  it('shows groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setupTest({
       getTagKeysProvider: async () => ({
         replace: true,
@@ -517,22 +516,22 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
   });
 
   describe('_verifyApplicability', () => {
-    it('should call getFiltersApplicability and update keysApplicability state', async () => {
-      const getFiltersApplicabilitySpy = jest.fn().mockResolvedValue([
+    it('should call getDrilldownsApplicability and update keysApplicability state', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
         { key: 'key1', applicable: true },
         { key: 'key2', applicable: false },
       ]);
 
       const { variable } = setupTest({ value: ['key1', 'key2'] }, undefined, undefined, {
         // @ts-expect-error (temporary till we update grafana/data)
-        getFiltersApplicability: getFiltersApplicabilitySpy,
+        getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
       });
 
       await act(async () => {
         await variable._verifyApplicability();
       });
 
-      expect(getFiltersApplicabilitySpy).toHaveBeenCalledWith({
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalledWith({
         groupByKeys: ['key1', 'key2'],
         queries: [
           {
@@ -560,28 +559,28 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.keysApplicability).toBeUndefined();
     });
 
-    it('should handle empty response from getFiltersApplicability', async () => {
-      const getFiltersApplicabilitySpy = jest.fn().mockResolvedValue(null);
+    it('should handle empty response from getDrilldownsApplicability', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(null);
 
       const { variable } = setupTest({ value: ['key1'] }, undefined, undefined, {
         // @ts-expect-error (temporary till we update grafana/data)
-        getFiltersApplicability: getFiltersApplicabilitySpy,
+        getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
       });
 
       await act(async () => {
         await variable._verifyApplicability();
       });
 
-      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(variable.state.keysApplicability).toBeUndefined();
     });
 
     it('should be called during activation handler', async () => {
-      const getFiltersApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'key1', applicable: true }]);
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'key1', applicable: true }]);
 
       const { variable } = setupTest({ value: ['key1'] }, undefined, undefined, {
         // @ts-expect-error (temporary till we update grafana/data)
-        getFiltersApplicability: getFiltersApplicabilitySpy,
+        getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
       });
 
       await act(async () => {
@@ -589,24 +588,51 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(variable.state.keysApplicability).toEqual([{ key: 'key1', applicable: true }]);
     });
 
-    it('should be called when onChange is triggered with non-clear action', async () => {
-      const getFiltersApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'newKey', applicable: false }]);
+    it('should pass values to verifyApplicabilitySpy on blur', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
+        { key: 'existingKey', applicable: true },
+        { key: 'newTypedKey', applicable: false },
+      ]);
 
-      // @ts-expect-error (temporary till we update grafana/data)
-      const { variable } = setupTest({}, undefined, undefined, { getFiltersApplicability: getFiltersApplicabilitySpy });
+      const { variable } = setupTest(
+        {
+          value: ['existingKey'],
+          defaultOptions: [
+            { text: 'existingKey', value: 'existingKey' },
+            { text: 'option2', value: 'option2' },
+          ],
+          allowCustomValue: true,
+        },
+        undefined,
+        undefined,
+        {
+          // @ts-expect-error (temporary till we update grafana/data)
+          getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+        }
+      );
 
-      getFiltersApplicabilitySpy.mockClear();
+      getDrilldownsApplicabilitySpy.mockClear();
+
+      const verifyApplicabilitySpy = jest.spyOn(variable, '_verifyApplicability');
+
+      const groupBySelect = screen.getByTestId('GroupBySelect-testGroupBy');
+      const input = groupBySelect.querySelector('input') as HTMLInputElement;
+      expect(input).toBeInTheDocument();
+
+      await userEvent.click(input);
+      await userEvent.type(input, 'newTypedKey');
+      await userEvent.keyboard('{Enter}');
+      await userEvent.keyboard('{Escape}');
 
       await act(async () => {
-        variable.changeValueTo(['newKey'], ['newKey'], true);
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(verifyApplicabilitySpy).toHaveBeenCalled();
     });
 
     it('should save keysApplicability', async () => {
