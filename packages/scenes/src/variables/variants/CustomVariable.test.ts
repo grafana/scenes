@@ -280,4 +280,45 @@ label-3 : value-3,`,
       expect(B.state.options[2].value).toBe('value1');
     });
   });
+
+  describe('multi prop / object support', () => {
+    it('Can have object values (JSON array of objects)', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        isMulti: false,
+        isJson: true,
+        query: `
+[
+  { "label": "Test", "value": "test", "properties": { "id": "test", "display": "Test", "location": "US" } },
+  { "label": "Prod", "value": "prod", "properties": { "id": "prod", "display": "Prod", "location": "EU" } }
+]
+        `,
+        value: 'prod',
+        text: 'Prod',
+        options: [],
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.getValue()).toEqual('prod');
+      expect(variable.getValue('location')).toEqual('EU');
+    });
+
+    it('Can have object values (JSON array of strings)', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        isMulti: false,
+        isJson: true,
+        query: `["test", "prod"]`,
+        value: 'prod',
+        text: 'prod',
+        options: [],
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe('prod');
+      expect(variable.state.text).toBe('prod');
+    });
+  });
 });

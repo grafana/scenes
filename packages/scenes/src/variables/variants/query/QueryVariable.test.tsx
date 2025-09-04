@@ -189,6 +189,51 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
       expect(variable.state.loading).toEqual(true);
     });
 
+    describe('multi prop / object support', () => {
+      it('Can have object values', async () => {
+        setCreateQueryVariableRunnerFactory(
+          () =>
+            new FakeQueryRunner(
+              fakeDsMock,
+              jest.fn().mockReturnValue(
+                of<PanelData>({
+                  state: LoadingState.Done,
+                  series: [
+                    toDataFrame({
+                      fields: [
+                        { name: 'text', type: FieldType.string, values: ['Test', 'Prod'] },
+                        { name: 'value', type: FieldType.string, values: ['test', 'prod'] },
+                        {
+                          name: 'properties',
+                          type: FieldType.other,
+                          values: [
+                            { id: 'test', display: 'Test', location: 'US' },
+                            { id: 'prod', display: 'Prod', location: 'EU' },
+                          ],
+                        },
+                      ],
+                    }),
+                  ],
+                  timeRange: getDefaultTimeRange(),
+                })
+              )
+            )
+        );
+
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          isMultiDimensions: true,
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.getValue('location')).toEqual('US');
+        expect(variable.getValue()).toEqual('test');
+      });
+    });
+
     it('Should pass variable scene object when resolving data source and via request scoped vars', async () => {
       const variable = new QueryVariable({
         name: 'test',

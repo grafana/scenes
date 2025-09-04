@@ -34,6 +34,7 @@ export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
   datasource: DataSourceRef | null;
   query: string | SceneDataQuery;
+  isMultiDimensions: boolean;
   regex: string;
   refresh: VariableRefresh;
   sort: VariableSort;
@@ -62,6 +63,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       datasource: null,
       regex: '',
       query: '',
+      isMultiDimensions: false,
       refresh: VariableRefresh.onDashboardLoad,
       sort: VariableSort.disabled,
       ...initialState,

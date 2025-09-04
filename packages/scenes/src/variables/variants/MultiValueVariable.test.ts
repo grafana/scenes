@@ -758,7 +758,7 @@ describe('MultiValueVariable', () => {
         skipUrlSync: true,
         optionsToReturn: [
           { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
-          { label: 'Prod', value: 'pod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
+          { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
         ],
       });
 

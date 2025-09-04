@@ -24,6 +24,20 @@ describe('toMetricFindValues', () => {
       { name: 'expandable', type: FieldType.boolean, values: [true, false, true] },
     ],
   });
+  const frameWithPropertiesField = toDataFrame({
+    fields: [
+      { name: 'label', type: FieldType.string, values: ['A', 'B', 'C'] },
+      {
+        name: 'properties',
+        type: FieldType.other,
+        values: [
+          { value: 'A', displayvalue: 'Alpha' },
+          { value: 'B', displayvalue: 'Beta' },
+          { value: 'C', displayvalue: 'Gamma' },
+        ],
+      },
+    ],
+  });
 
   // it.each wouldn't work here as we need the done callback
   [
@@ -70,6 +84,14 @@ describe('toMetricFindValues', () => {
         { text: 'A', value: 'A', expandable: true },
         { text: 'B', value: 'B', expandable: false },
         { text: 'C', value: 'C', expandable: true },
+      ],
+    },
+    {
+      series: [frameWithPropertiesField],
+      expected: [
+        { text: 'A', value: 'A', properties: { displayvalue: 'Alpha', value: 'A' } },
+        { text: 'B', value: 'B', properties: { displayvalue: 'Beta', value: 'B' } },
+        { text: 'C', value: 'C', properties: { displayvalue: 'Gamma', value: 'C' } },
       ],
     },
   ].map((scenario) => {
