@@ -224,7 +224,6 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
-          isMultiDimensions: true,
         });
 
         await lastValueFrom(variable.validateAndUpdate());

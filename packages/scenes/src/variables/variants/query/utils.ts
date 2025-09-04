@@ -51,7 +51,7 @@ export function metricNamesToVariableValues(variableRegEx: string, sort: Variabl
       }
     }
 
-    options.push({ label: text, value: value });
+    options.push({ label: text, value: value, properties: item.properties });
   }
 
   options = uniqBy(options, 'value');
