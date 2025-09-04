@@ -5,9 +5,9 @@ import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
-import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
-import { sceneGraph } from '../../core/sceneGraph';
 import React from 'react';
+import { sceneGraph } from '../../core/sceneGraph';
+import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
@@ -48,7 +48,17 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
         if (typeof parsedOptions[0] === 'string') {
           options = parsedOptions.map((value) => ({ label: value.trim(), value: value.trim() }));
         } else if (typeof parsedOptions[0] === 'object' && parsedOptions[0] !== null) {
-          options = parsedOptions;
+          const { valueProp, textProp } = this.state;
+
+          if (!valueProp) {
+            throw new Error('valueProp must be set');
+          }
+
+          options = (parsedOptions as Array<Record<string, any>>).map((o) => ({
+            label: o[valueProp]?.trim(),
+            value: o[textProp as any]?.trim(),
+            properties: o,
+          }));
         } else {
           throw new Error('Query must be a JSON array of strings or objects');
         }

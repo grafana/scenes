@@ -257,7 +257,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   /**
    * Allows clearing the value of the variable to an empty value. Overrides default behavior of a MultiValueVariable
    */
-  public getDefaultMultiState(options: VariableValueOption[]): { value: VariableValueSingle[]; text: string[] } {
+  public getDefaultMultiState(options: VariableValueOption[]) {
     return { value: [], text: [] };
   }
 }

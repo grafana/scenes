@@ -12,7 +12,10 @@ interface MetricFindValueWithProperties extends MetricFindValue {
   properties?: Record<string, any>;
 }
 
-export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValueWithProperties[]> {
+export function toMetricFindValues(
+  valueProp?: string,
+  textProp?: string
+): OperatorFunction<PanelData, MetricFindValueWithProperties[]> {
   return (source) =>
     source.pipe(
       map((panelData) => {
@@ -69,34 +72,48 @@ export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValu
           }
         }
 
-        if (stringIndex === -1) {
-          throw new Error("Couldn't find any field of type string in the results.");
+        if (stringIndex === -1 && propertiesIndex === -1) {
+          throw new Error("Couldn't find any field of type string or other in the results.");
+        }
+
+        if (propertiesIndex !== -1 && !valueProp) {
+          throw new Error('Field of type other require valueProp to be set.');
         }
 
         for (const frame of frames) {
           for (let index = 0; index < frame.length; index++) {
             const expandable = expandableIndex !== -1 ? frame.fields[expandableIndex].values.get(index) : undefined;
-            const string = frame.fields[stringIndex].values.get(index);
+            const string = stringIndex !== -1 ? frame.fields[stringIndex].values.get(index) : '';
             const text = textIndex !== -1 ? frame.fields[textIndex].values.get(index) : '';
             const value = valueIndex !== -1 ? frame.fields[valueIndex].values.get(index) : '';
             const properties = propertiesIndex !== -1 ? frame.fields[propertiesIndex].values.get(index) : undefined;
 
+            if (propertiesIndex !== -1) {
+              metrics.push({
+                text: properties[textProp as any] || text,
+                value: properties[valueProp!] || value,
+                expandable,
+                properties,
+              });
+              continue;
+            }
+
             if (valueIndex === -1 && textIndex === -1) {
-              metrics.push({ text: string, value: string, expandable, properties });
+              metrics.push({ text: string, value: string, expandable });
               continue;
             }
 
             if (valueIndex === -1 && textIndex !== -1) {
-              metrics.push({ text, value: text, expandable, properties });
+              metrics.push({ text, value: text, expandable });
               continue;
             }
 
             if (valueIndex !== -1 && textIndex === -1) {
-              metrics.push({ text: value, value, expandable, properties });
+              metrics.push({ text: value, value, expandable });
               continue;
             }
 
-            metrics.push({ text, value, expandable, properties });
+            metrics.push({ text, value, expandable });
           }
         }
 

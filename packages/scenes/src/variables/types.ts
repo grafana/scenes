@@ -72,11 +72,12 @@ export interface CustomVariableValue {
 }
 
 export interface ValidateAndUpdateResult {}
+export interface VariableValueOptionProperties extends Record<string, any> {}
 export interface VariableValueOption {
   label: string;
   value: VariableValueSingle;
   group?: string;
-  properties?: Record<string, any>;
+  properties?: VariableValueOptionProperties | VariableValueOptionProperties[];
 }
 
 export interface SceneVariableSetState extends SceneObjectState {

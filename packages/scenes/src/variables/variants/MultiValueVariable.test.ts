@@ -749,22 +749,78 @@ describe('MultiValueVariable', () => {
   });
 
   describe('multi prop / object support', () => {
-    it('Can have object values', async () => {
-      const variable = new TestVariable({
-        name: 'test',
-        value: 'A',
-        text: 'A',
-        delayMs: 0,
-        skipUrlSync: true,
-        optionsToReturn: [
-          { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
-          { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
-        ],
+    describe('isMulti = false', () => {
+      it('Can have object values', async () => {
+        const variable = new TestVariable({
+          name: 'test',
+          delayMs: 0,
+          skipUrlSync: true,
+          value: 'prod',
+          text: 'Prod',
+          optionsToReturn: [
+            { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
+            { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
+          ],
+          valueProp: 'id',
+          textProp: 'display',
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.getValue()).toEqual('prod');
+        expect(variable.getValue('location')).toEqual('EU');
+      });
+    });
+
+    describe('isMulti = true', () => {
+      it('Can have object values', async () => {
+        const variable = new TestVariable({
+          name: 'test',
+          delayMs: 0,
+          skipUrlSync: true,
+          value: ['prod', 'stag'],
+          text: 'Prod + Staging',
+          optionsToReturn: [
+            { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
+            { label: 'Stag', value: 'stag', properties: { id: 'stag', display: 'Stag', location: 'SG' } },
+            { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
+          ],
+          valueProp: 'id',
+          textProp: 'display',
+          isMulti: true,
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.getValue()).toEqual(['prod', 'stag']);
+        expect(variable.getValue('location')).toEqual(['EU', 'SG']);
       });
 
-      await lastValueFrom(variable.validateAndUpdate());
+      describe('value=$__all', () => {
+        it('Can have object values', async () => {
+          const variable = new TestVariable({
+            name: 'test',
+            delayMs: 0,
+            skipUrlSync: true,
+            value: ALL_VARIABLE_VALUE,
+            text: ALL_VARIABLE_TEXT,
+            optionsToReturn: [
+              { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
+              { label: 'Stag', value: 'stag', properties: { id: 'stag', display: 'Stag', location: 'SG' } },
+              { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
+            ],
+            valueProp: 'id',
+            textProp: 'display',
+            isMulti: true,
+            includeAll: true,
+          });
 
-      expect(variable.getValue('location')).toEqual('US');
+          await lastValueFrom(variable.validateAndUpdate());
+
+          expect(variable.getValue()).toEqual(['test', 'stag', 'prod']);
+          expect(variable.getValue('location')).toEqual(['US', 'SG', 'EU']);
+        });
+      });
     });
   });
 });

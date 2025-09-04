@@ -201,8 +201,6 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
                   series: [
                     toDataFrame({
                       fields: [
-                        { name: 'text', type: FieldType.string, values: ['Test', 'Prod'] },
-                        { name: 'value', type: FieldType.string, values: ['test', 'prod'] },
                         {
                           name: 'properties',
                           type: FieldType.other,
@@ -224,6 +222,8 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
+          valueProp: 'id',
+          textProp: 'display',
         });
 
         await lastValueFrom(variable.validateAndUpdate());

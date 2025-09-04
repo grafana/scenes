@@ -289,13 +289,14 @@ label-3 : value-3,`,
         isJson: true,
         query: `
 [
-  { "label": "Test", "value": "test", "properties": { "id": "test", "display": "Test", "location": "US" } },
-  { "label": "Prod", "value": "prod", "properties": { "id": "prod", "display": "Prod", "location": "EU" } }
+  { "id": "test", "display": "Test", "location": "US" },
+  { "id": "prod", "display": "Prod", "location": "EU" }
 ]
         `,
+        valueProp: 'id',
+        textProp: 'display',
         value: 'prod',
         text: 'Prod',
-        options: [],
       });
 
       await lastValueFrom(variable.validateAndUpdate());

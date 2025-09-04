@@ -99,7 +99,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
             }
             return of(data);
           }),
-          toMetricFindValues(),
+          toMetricFindValues(this.state.valueProp, this.state.textProp),
           mergeMap((values) => {
             let regex = '';
             if (this.state.regex) {
