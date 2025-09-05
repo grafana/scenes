@@ -74,6 +74,14 @@ describe('ScopesVariable', () => {
     const { valueChangedCount } = renderTestScene({ initialScopes: [] });
     expect(valueChangedCount.value).toEqual(1);
   });
+
+  it('should not emit a change event if the old and new scopes are empty', async () => {
+    const { scopesContext, valueChangedCount } = renderTestScene({ initialScopes: [] });
+
+    act(() => scopesContext.changeScopes([]));
+
+    expect(valueChangedCount.value).toEqual(0);
+  });
 });
 
 interface SetupOptions {

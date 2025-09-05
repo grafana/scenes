@@ -100,7 +100,7 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
     const scopesHaveChanged = !isEqual(oldScopes, newScopes);
 
     // Only update scopes value state when loading is false and the scopes have changed
-    if (!loading && (scopesHaveChanged || newScopes.length === 0)) {
+    if (!loading && scopesHaveChanged) {
       const queryController = getQueryController(this);
       queryController?.startProfile(SCOPES_CHANGED_INTERACTION);
       this.setState({ scopes: state.value, loading });
