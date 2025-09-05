@@ -1001,6 +1001,7 @@ describe('SceneDataTransformer', () => {
 
     it('should handle complex conversion chains', () => {
       // First: multiply series values by 2
+      // series will become [200,400,600][2,4,6]
       const multiplySeriesTransformer = () => (source: any) => {
         return source.pipe(
           map((data: DataFrame[]) => {
@@ -1016,6 +1017,7 @@ describe('SceneDataTransformer', () => {
       };
 
       // Second: convert series to annotations
+      // annos will become [200,400,600][2,4,6],[400,500,600][1,2,3]
       const seriesToAnnotationsTransformer = () => (source: any) => {
         return source.pipe(
           map((data: DataFrame[]) => {
@@ -1025,13 +1027,13 @@ describe('SceneDataTransformer', () => {
                 ...frame.meta,
                 dataTopic: DataTopic.Annotations,
               },
-              name: 'multiplied_series_as_annotation',
             }));
           })
         );
       };
 
       // Third: add 10 to annotation values
+      // annos will become [210,410,610][12,14,16],[410,510,610][11,12,13]
       const addToAnnotationsTransformer: CustomTransformerDefinition = {
         operator: () => (source) => {
           return source.pipe(
@@ -1068,23 +1070,29 @@ describe('SceneDataTransformer', () => {
 
       const data = sceneGraph.getData(consumer).state.data;
 
-      expect(data?.series.length).toBe(0);
-      expect(data?.series[0].fields[0].values).toEqual([100, 200, 300]); // Original values, not multiplied
+      // console.log(JSON.stringify({ series: data?.series, annotations: data?.annotations }))
 
-      // Should have original annotation + converted series
-      expect(data?.annotations?.length).toBe(2);
-
-      // Find original annotation (modified by addToAnnotationsTransformer)
-      const originalAnnotation = data?.annotations?.find((a) => !a.name?.includes('multiplied_series_as_annotation'));
-      expect(originalAnnotation?.fields[0].values).toEqual([410, 510, 610]); // 400+10, 500+10, 600+10
-
-      // TODO: is this correct given the requirements?
-      // Find converted series (multiplied by 2, but NOT affected by annotation transformer)
-      // The annotation transformer only processes original annotations, not converted series frames
-      const convertedSeries = data?.annotations?.find((a) => a.name === 'multiplied_series_as_annotation');
-      expect(convertedSeries).toBeDefined();
-      expect(convertedSeries?.fields[0].values).toEqual([200, 400, 600]); // (100*2), not +10
-      expect(convertedSeries?.meta?.dataTopic).toBe(DataTopic.Annotations);
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [],
+        annotations: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [210, 410, 610], type: 'number' },
+              { name: '1', config: {}, values: [12, 14, 16], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+          {
+            fields: [
+              { name: '0', config: {}, values: [410, 510, 610], type: 'number' },
+              { name: '1', config: {}, values: [11, 12, 13], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+        ],
+      });
     });
   });
 });
