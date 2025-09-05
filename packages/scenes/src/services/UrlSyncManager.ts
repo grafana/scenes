@@ -17,7 +17,6 @@ export interface UrlSyncManagerLike {
   handleNewObject(sceneObj: SceneObject): void;
 }
 
-
 export class UrlSyncManager implements UrlSyncManagerLike {
   private _urlKeyMapper: UniqueUrlKeyMapper;
   private _sceneRoot?: SceneObject;

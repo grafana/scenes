@@ -130,10 +130,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
   public setState(update: Partial<TState>) {
     const prevState = this._state;
-    
+
     // Detect and notify about new SceneObjects that need URL sync BEFORE setting parent
     this._handleNewSceneObjectsForUrlSync(update, prevState);
-    
+
     const newState: TState = {
       ...this._state,
       ...update,
