@@ -199,6 +199,8 @@ const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary
       timeCompare: {
         diffMs: diff,
         isTimeShiftQuery: true,
+        // @ts-ignore Remove when https://github.com/grafana/grafana/pull/109947 is released
+        needsAlignment: true,
       },
     };
     series.fields.forEach((field) => {
