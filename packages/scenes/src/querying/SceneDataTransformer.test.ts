@@ -265,10 +265,10 @@ describe('SceneDataTransformer', () => {
 
     expect(data?.series.length).toBe(1);
     expect(data?.series[0].fields).toHaveLength(2);
-    expect(data?.series[0].fields[0].values.toArray()).toEqual([600, 1200, 1800]);
-    expect(data?.series[0].fields[1].values.toArray()).toEqual([6, 12, 18]);
-    expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([404, 504, 604]);
-    expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([5, 6, 7]);
+    expect(data?.series[0].fields[0].values).toEqual([600, 1200, 1800]);
+    expect(data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    expect(data?.annotations?.[0].fields[0].values).toEqual([404, 504, 604]);
+    expect(data?.annotations?.[0].fields[1].values).toEqual([5, 6, 7]);
 
     sourceDataNode.setState({
       data: {
@@ -294,10 +294,10 @@ describe('SceneDataTransformer', () => {
     // Transforms updated data
     data = sceneGraph.getData(consumer).state.data;
 
-    expect(data?.series[0].fields[0].values.toArray()).toEqual([60, 120, 180]);
-    expect(data?.series[0].fields[1].values.toArray()).toEqual([60, 120, 180]);
-    expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([44, 54, 64]);
-    expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([14, 24, 34]);
+    expect(data?.series[0].fields[0].values).toEqual([60, 120, 180]);
+    expect(data?.series[0].fields[1].values).toEqual([60, 120, 180]);
+    expect(data?.annotations?.[0].fields[0].values).toEqual([44, 54, 64]);
+    expect(data?.annotations?.[0].fields[1].values).toEqual([14, 24, 34]);
   });
 
   describe('when custom transform operator is used', () => {
@@ -325,10 +325,10 @@ describe('SceneDataTransformer', () => {
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([1, 2, 3]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.01, 0.02, 0.03]);
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([40, 50, 60]);
-      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
+      expect(data?.series[0].fields[0].values).toEqual([1, 2, 3]);
+      expect(data?.series[0].fields[1].values).toEqual([0.01, 0.02, 0.03]);
+      expect(data?.annotations?.[0].fields[0].values).toEqual([40, 50, 60]);
+      expect(data?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
 
       sourceDataNode.setState({
         data: {
@@ -355,10 +355,10 @@ describe('SceneDataTransformer', () => {
       data = sceneGraph.getData(consumer).state.data;
       expect(customTransformerSpy).toHaveBeenCalledTimes(4);
 
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.1, 0.2, 0.3]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([10, 20, 30]);
-      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
+      expect(data?.series[0].fields[0].values).toEqual([0.1, 0.2, 0.3]);
+      expect(data?.series[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
+      expect(data?.annotations?.[0].fields[0].values).toEqual([10, 20, 30]);
+      expect(data?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
     });
 
     it('applies leading custom transformer', () => {
@@ -386,8 +386,8 @@ describe('SceneDataTransformer', () => {
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([2, 4, 6]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.02, 0.04, 0.06]);
+      expect(data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+      expect(data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
 
       sourceDataNode.setState({
         data: {
@@ -407,8 +407,8 @@ describe('SceneDataTransformer', () => {
       data = sceneGraph.getData(consumer).state.data;
       expect(customTransformerSpy).toHaveBeenCalledTimes(2);
 
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.2, 0.4, 0.6]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.2, 0.4, 0.6]);
+      expect(data?.series[0].fields[0].values).toEqual([0.2, 0.4, 0.6]);
+      expect(data?.series[0].fields[1].values).toEqual([0.2, 0.4, 0.6]);
     });
 
     it('applies trailing custom transformer', () => {
@@ -436,8 +436,8 @@ describe('SceneDataTransformer', () => {
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([2, 4, 6]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.02, 0.04, 0.06]);
+      expect(data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+      expect(data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
 
       sourceDataNode.setState({
         data: {
@@ -457,8 +457,8 @@ describe('SceneDataTransformer', () => {
       data = sceneGraph.getData(consumer).state.data;
       expect(customTransformerSpy).toHaveBeenCalledTimes(2);
 
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.2, 0.4, 0.6]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.2, 0.4, 0.6]);
+      expect(data?.series[0].fields[0].values).toEqual([0.2, 0.4, 0.6]);
+      expect(data?.series[0].fields[1].values).toEqual([0.2, 0.4, 0.6]);
     });
 
     it('applies mixed transforms', () => {
@@ -493,10 +493,10 @@ describe('SceneDataTransformer', () => {
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.04, 0.08, 0.12]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.0004, 0.0008, 0.0012]);
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([44, 54, 64]);
-      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([4.1, 4.2, 4.3]);
+      expect(data?.series[0].fields[0].values).toEqual([0.04, 0.08, 0.12]);
+      expect(data?.series[0].fields[1].values).toEqual([0.0004, 0.0008, 0.0012]);
+      expect(data?.annotations?.[0].fields[0].values).toEqual([44, 54, 64]);
+      expect(data?.annotations?.[0].fields[1].values).toEqual([4.1, 4.2, 4.3]);
 
       sourceDataNode.setState({
         data: {
@@ -523,10 +523,10 @@ describe('SceneDataTransformer', () => {
       data = sceneGraph.getData(consumer).state.data;
       expect(customTransformerSpy).toHaveBeenCalledTimes(6);
 
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.004, 0.008, 0.012]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.004, 0.008, 0.012]);
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([14, 24, 34]);
-      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([5, 6, 7]);
+      expect(data?.series[0].fields[0].values).toEqual([0.004, 0.008, 0.012]);
+      expect(data?.series[0].fields[1].values).toEqual([0.004, 0.008, 0.012]);
+      expect(data?.annotations?.[0].fields[0].values).toEqual([14, 24, 34]);
+      expect(data?.annotations?.[0].fields[1].values).toEqual([5, 6, 7]);
     });
   });
 
@@ -588,8 +588,8 @@ describe('SceneDataTransformer', () => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
       expect(queryRunner.state.data?.series).toHaveLength(1);
       expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
-      expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([600, 1200, 1800]);
-      expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([6, 12, 18]);
+      expect(queryRunner.state.data?.series[0].fields[0].values).toEqual([600, 1200, 1800]);
+      expect(queryRunner.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
     });
 
     describe('custom transformer object', () => {
@@ -656,7 +656,7 @@ describe('SceneDataTransformer', () => {
 
         await new Promise((r) => setTimeout(r, 1));
 
-        expect(panelData?.series[0].fields[0].values.toArray()).toEqual([1, 2, 3]);
+        expect(panelData?.series[0].fields[0].values).toEqual([1, 2, 3]);
       });
     });
   });
@@ -774,7 +774,6 @@ describe('SceneDataTransformer', () => {
                 ...frame.meta,
                 dataTopic: DataTopic.Annotations,
               },
-              name: `${frame.name || 'series'}_as_annotation`,
             }));
           })
         );
@@ -799,17 +798,19 @@ describe('SceneDataTransformer', () => {
 
       const data = sceneGraph.getData(consumer).state.data;
 
-      // TODO: is this correct given the requirements? According to the implementatoin it should be 1
-      // When series transformations produce annotation frames, they replace the original series
-      // The series array falls back to original data when no series frames are produced
-      expect(data?.series.length).toBe(0);
-
-      // The converted series frame becomes an annotation
-      expect(data?.annotations?.length).toBe(2);
-      expect(data?.annotations?.[0].meta?.dataTopic).toBe(DataTopic.Annotations);
-      expect(data?.annotations?.[0].name).toBe('series_as_annotation');
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([100, 200, 300]);
-      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([1, 2, 3]);
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [],
+        annotations: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [100, 200, 300], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+        ],
+      });
     });
 
     it('should convert annotation frames to series frames', () => {
@@ -824,7 +825,6 @@ describe('SceneDataTransformer', () => {
                   ...frame.meta,
                   dataTopic: undefined, // Remove annotation topic to make it a series frame
                 },
-                name: `${frame.name || 'annotation'}_as_series`,
               }));
             })
           );
@@ -851,19 +851,26 @@ describe('SceneDataTransformer', () => {
 
       const data = sceneGraph.getData(consumer).state.data;
 
-      // Should have original series plus converted annotations
-      expect(data?.series.length).toBe(2);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([100, 200, 300]); // Original series
-
-      // Find the converted annotation (should contain "_as_series" in name)
-      const convertedAnnotation = data?.series.find((s) => s.name?.includes('_as_series'));
-      expect(convertedAnnotation).toBeDefined();
-      expect(convertedAnnotation?.fields[0].values.toArray()).toEqual([400, 500, 600]);
-
-      // TODO: is this correct given the requirements? According to the implementatoin it should be 1
-      // Original annotations should remain since the transformer produces no annotation frames (fallback behavior)
-      expect(data?.annotations?.length).toBe(0);
-      expect(data?.annotations?.[0].meta?.dataTopic).toBe(DataTopic.Annotations);
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [100, 200, 300], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+          },
+          {
+            fields: [
+              { name: '0', config: {}, values: [400, 500, 600], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: {},
+          },
+        ],
+        annotations: [],
+      });
     });
 
     it('should handle mixed transformations with series and annotation conversions', () => {
@@ -924,13 +931,13 @@ describe('SceneDataTransformer', () => {
       // Should have converted annotations as series
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].name).toBe('converted_annotation_to_series');
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([400, 500, 600]);
+      expect(data?.series[0].fields[0].values).toEqual([400, 500, 600]);
 
       // Should have converted series as annotations
       expect(data?.annotations?.length).toBe(1);
       expect(data?.annotations?.[0].name).toBe('converted_series_to_annotation');
       expect(data?.annotations?.[0].meta?.dataTopic).toBe(DataTopic.Annotations);
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([100, 200, 300]);
+      expect(data?.annotations?.[0].fields[0].values).toEqual([100, 200, 300]);
     });
 
     it('should preserve original data when no conversion occurs', () => {
@@ -1062,21 +1069,21 @@ describe('SceneDataTransformer', () => {
       const data = sceneGraph.getData(consumer).state.data;
 
       expect(data?.series.length).toBe(0);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([100, 200, 300]); // Original values, not multiplied
+      expect(data?.series[0].fields[0].values).toEqual([100, 200, 300]); // Original values, not multiplied
 
       // Should have original annotation + converted series
       expect(data?.annotations?.length).toBe(2);
 
       // Find original annotation (modified by addToAnnotationsTransformer)
       const originalAnnotation = data?.annotations?.find((a) => !a.name?.includes('multiplied_series_as_annotation'));
-      expect(originalAnnotation?.fields[0].values.toArray()).toEqual([410, 510, 610]); // 400+10, 500+10, 600+10
+      expect(originalAnnotation?.fields[0].values).toEqual([410, 510, 610]); // 400+10, 500+10, 600+10
 
       // TODO: is this correct given the requirements?
       // Find converted series (multiplied by 2, but NOT affected by annotation transformer)
       // The annotation transformer only processes original annotations, not converted series frames
       const convertedSeries = data?.annotations?.find((a) => a.name === 'multiplied_series_as_annotation');
       expect(convertedSeries).toBeDefined();
-      expect(convertedSeries?.fields[0].values.toArray()).toEqual([200, 400, 600]); // (100*2), not +10
+      expect(convertedSeries?.fields[0].values).toEqual([200, 400, 600]); // (100*2), not +10
       expect(convertedSeries?.meta?.dataTopic).toBe(DataTopic.Annotations);
     });
   });
