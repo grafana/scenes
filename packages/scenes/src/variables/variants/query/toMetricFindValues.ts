@@ -8,7 +8,14 @@ import {
 } from '@grafana/data';
 import { map, OperatorFunction } from 'rxjs';
 
-export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValue[]> {
+interface MetricFindValueWithProperties extends MetricFindValue {
+  properties?: Record<string, any>;
+}
+
+export function toMetricFindValues(
+  valueProp?: string,
+  textProp?: string
+): OperatorFunction<PanelData, MetricFindValueWithProperties[]> {
   return (source) =>
     source.pipe(
       map((panelData) => {
@@ -26,12 +33,13 @@ export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValu
         }
 
         const processedDataFrames = getProcessedDataFrames(frames);
-        const metrics: MetricFindValue[] = [];
+        const metrics: MetricFindValueWithProperties[] = [];
 
         let valueIndex = -1;
         let textIndex = -1;
         let stringIndex = -1;
         let expandableIndex = -1;
+        let propertiesIndex = -1;
 
         for (const frame of processedDataFrames) {
           for (let index = 0; index < frame.fields.length; index++) {
@@ -40,6 +48,10 @@ export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValu
 
             if (field.type === FieldType.string && stringIndex === -1) {
               stringIndex = index;
+            }
+
+            if (field.type === FieldType.other && propertiesIndex === -1) {
+              propertiesIndex = index;
             }
 
             if (fieldName === 'text' && field.type === FieldType.string && textIndex === -1) {
@@ -60,16 +72,31 @@ export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValu
           }
         }
 
-        if (stringIndex === -1) {
-          throw new Error("Couldn't find any field of type string in the results.");
+        if (stringIndex === -1 && propertiesIndex === -1) {
+          throw new Error("Couldn't find any field of type string or other in the results.");
+        }
+
+        if (propertiesIndex !== -1 && !valueProp) {
+          throw new Error('Field of type other require valueProp to be set.');
         }
 
         for (const frame of frames) {
           for (let index = 0; index < frame.length; index++) {
             const expandable = expandableIndex !== -1 ? frame.fields[expandableIndex].values.get(index) : undefined;
-            const string = frame.fields[stringIndex].values.get(index);
+            const string = stringIndex !== -1 ? frame.fields[stringIndex].values.get(index) : '';
             const text = textIndex !== -1 ? frame.fields[textIndex].values.get(index) : '';
             const value = valueIndex !== -1 ? frame.fields[valueIndex].values.get(index) : '';
+            const properties = propertiesIndex !== -1 ? frame.fields[propertiesIndex].values.get(index) : undefined;
+
+            if (propertiesIndex !== -1) {
+              metrics.push({
+                text: properties[textProp as any] || text,
+                value: properties[valueProp!] || value,
+                expandable,
+                properties,
+              });
+              continue;
+            }
 
             if (valueIndex === -1 && textIndex === -1) {
               metrics.push({ text: string, value: string, expandable });

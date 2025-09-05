@@ -24,6 +24,19 @@ describe('toMetricFindValues', () => {
       { name: 'expandable', type: FieldType.boolean, values: [true, false, true] },
     ],
   });
+  const frameWithPropertiesField = toDataFrame({
+    fields: [
+      {
+        name: 'properties',
+        type: FieldType.other,
+        values: [
+          { value: 'A', displayValue: 'Alpha' },
+          { value: 'B', displayValue: 'Beta' },
+          { value: 'C', displayValue: 'Gamma' },
+        ],
+      },
+    ],
+  });
 
   // it.each wouldn't work here as we need the done callback
   [
@@ -72,11 +85,19 @@ describe('toMetricFindValues', () => {
         { text: 'C', value: 'C', expandable: true },
       ],
     },
-  ].map((scenario) => {
+    {
+      series: [frameWithPropertiesField],
+      expected: [
+        { text: 'Alpha', value: 'A', properties: { displayValue: 'Alpha', value: 'A' } },
+        { text: 'Beta', value: 'B', properties: { displayValue: 'Beta', value: 'B' } },
+        { text: 'Gamma', value: 'C', properties: { displayValue: 'Gamma', value: 'C' } },
+      ],
+    },
+  ].forEach((scenario) => {
     it(`when called with series:${JSON.stringify(scenario.series, null, 0)}`, async () => {
       const { series, expected } = scenario;
       const panelData: any = { series };
-      const observable = of(panelData).pipe(toMetricFindValues());
+      const observable = of(panelData).pipe(toMetricFindValues('value', 'displayValue'));
 
       await expect(observable).toEmitValuesWith((received) => {
         const value = received[0];
@@ -85,7 +106,7 @@ describe('toMetricFindValues', () => {
     });
   });
 
-  describe('when called without metric find values and string fields', () => {
+  describe('when called without metric find values and string/other fields', () => {
     it('then the observable throws', async () => {
       const frameWithTimeField = toDataFrame({
         fields: [{ name: 'time', type: FieldType.time, values: [1, 2, 3] }],
@@ -96,7 +117,23 @@ describe('toMetricFindValues', () => {
 
       await expect(observable).toEmitValuesWith((received) => {
         const value = received[0];
-        expect(value).toEqual(new Error("Couldn't find any field of type string in the results."));
+        expect(value).toEqual(new Error("Couldn't find any field of type string or other in the results."));
+      });
+    });
+  });
+
+  describe('when called with other fields and no valueProp is passed', () => {
+    it('then the observable throws', async () => {
+      const frameWithOtherField = toDataFrame({
+        fields: [{ name: 'properties', type: FieldType.other, values: [{ n: 1 }, { n: 2 }, { n: 3 }] }],
+      });
+
+      const panelData: any = { series: [frameWithOtherField] };
+      const observable = of(panelData).pipe(toMetricFindValues());
+
+      await expect(observable).toEmitValuesWith((received) => {
+        const value = received[0];
+        expect(value).toEqual(new Error('Field of type other require valueProp to be set.'));
       });
     });
   });

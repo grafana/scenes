@@ -15,6 +15,7 @@ import {
   VariableValueSingle,
   CustomVariableValue,
   VariableCustomFormatterFn,
+  VariableValueOptionProperties,
 } from '../types';
 import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
@@ -26,7 +27,7 @@ import { getQueryController } from '../../core/sceneGraph/getQueryController';
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
   text: VariableValue; // old current.value
-  valueProperties?: Record<string, VariableValueSingle>;
+  valueProperties?: VariableValueOption['properties'];
   options: VariableValueOption[];
   allowCustomValue?: boolean;
   isMulti?: boolean;
@@ -41,6 +42,11 @@ export interface MultiValueVariableState extends SceneVariableState {
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
   isReadOnly?: boolean;
+  /**
+   * For value objects, these options control which properties of the value object are used to get value and text
+   */
+  valueProp?: string;
+  textProp?: string;
 }
 
 export interface VariableGetOptionsArgs {
@@ -141,10 +147,12 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       } else {
         stateUpdate.value = options[0].value;
         stateUpdate.text = options[0].label;
+        stateUpdate.valueProperties = options[0].properties;
         // If multi switch to arrays
         if (this.state.isMulti) {
           stateUpdate.value = [stateUpdate.value];
           stateUpdate.text = [stateUpdate.text];
+          stateUpdate.valueProperties = [stateUpdate.valueProperties];
         }
       }
       return stateUpdate;
@@ -171,13 +179,23 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         }
       }
 
+      stateUpdate.valueProperties = (stateUpdate.value as VariableValueSingle[]).map(
+        (v) => options.find((o) => o.value === v)?.properties
+      );
+
       return stateUpdate;
     }
 
     // Single value variable validation
 
     // Try find by value then text
-    let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options);
+    let matchingOption = findOptionMatchingCurrent(
+      currentValue,
+      currentText,
+      options,
+      this.state.valueProp,
+      this.state.textProp
+    );
     if (matchingOption) {
       // When updating the initial state from URL the text property is set the same as value
       // Here we can correct the text value state
@@ -217,31 +235,38 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   }
 
   public getValue(fieldPath?: string): VariableValue {
-    let value = this.state.value;
+    const { allValue, value, options, valueProperties, valueProp } = this.state;
 
     if (this.hasAllValue()) {
-      if (this.state.allValue) {
-        return new CustomAllValue(this.state.allValue, this);
+      if (allValue) {
+        return new CustomAllValue(allValue, this);
       }
-
-      value = this.state.options.map((x) => x.value);
+      if (valueProp) {
+        return options.map((o) => this.getValueFromValueProperties(o.properties, fieldPath || valueProp));
+      }
+      return options.map((o) => o.value);
     }
 
-    if (fieldPath != null) {
-      if (Array.isArray(value)) {
-        const index = parseInt(fieldPath, 10);
-        if (!isNaN(index) && index >= 0 && index < value.length) {
-          return value[index];
-        }
+    if (valueProperties) {
+      if (Array.isArray(valueProperties)) {
+        return valueProperties.map((p) => this.getValueFromValueProperties(p, fieldPath || valueProp!));
       }
+      return this.getValueFromValueProperties(valueProperties, fieldPath || valueProp!);
+    }
 
-      if (this.state.valueProperties) {
-        const accessor = this.getFieldAccessor(fieldPath);
-        return accessor(this.state.valueProperties);
+    if (fieldPath != null && Array.isArray(value)) {
+      const index = parseInt(fieldPath, 10);
+      if (!isNaN(index) && index >= 0 && index < value.length) {
+        return value[index];
       }
     }
 
     return value;
+  }
+
+  private getValueFromValueProperties(properties: MultiValueVariableState['valueProperties'], fieldPath: string) {
+    const accesor = this.getFieldAccessor(fieldPath);
+    return accesor(properties);
   }
 
   private getFieldAccessor(fieldPath: string) {
@@ -274,7 +299,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
     } else if (options.length > 0) {
-      return { value: [options[0].value], text: [options[0].label] };
+      return { value: [options[0].value], text: [options[0].label], properties: [options[0].properties] };
     } else {
       return { value: [], text: [] };
     }
@@ -410,11 +435,23 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 function findOptionMatchingCurrent(
   currentValue: VariableValue,
   currentText: VariableValue,
-  options: VariableValueOption[]
+  options: VariableValueOption[],
+  valueProp = 'value',
+  textProp = 'label'
 ) {
   let textMatch: VariableValueOption | undefined;
 
   for (const item of options) {
+    if (item.properties) {
+      if (
+        (item.properties as VariableValueOptionProperties)[valueProp] === currentValue ||
+        (item.properties as VariableValueOptionProperties)[textProp] === currentText
+      ) {
+        return item;
+      }
+      continue;
+    }
+
     if (item.value === currentValue) {
       return item;
     }
