@@ -1,3 +1,219 @@
+# v6.34.0 (Wed Sep 03 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimeRangeCompare: Export time shift as util [#1221](https://github.com/grafana/scenes/pull/1221) ([@drew08t](https://github.com/drew08t))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add SceneRenderProfiler integration tests [#1234](https://github.com/grafana/scenes/pull/1234) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Drew Slobodnjak ([@drew08t](https://github.com/drew08t))
+
+---
+
+# v6.33.0 (Tue Sep 02 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Pass both filters and groupByKeys in annotation requests [#1232](https://github.com/grafana/scenes/pull/1232) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupByVariable: Use new applicability method name and trigger it on groupBy blur [#1233](https://github.com/grafana/scenes/pull/1233) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.32.0 (Thu Aug 28 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - GroupBy: Non-applicable keys [#1192](https://github.com/grafana/scenes/pull/1192) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Remove merging of different filter type with same keys [#1222](https://github.com/grafana/scenes/pull/1222) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.31.1 (Wed Aug 27 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridRow: Adjust row panel count to account for repeats [#1227](https://github.com/grafana/scenes/pull/1227) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v6.31.0 (Tue Aug 26 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Feat: Add `showInControlsMenu` to `SceneVariableState` [#1208](https://github.com/grafana/scenes/pull/1208) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
+# v6.30.4 (Mon Aug 25 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRenderProfiler: Handle overlapping profiles by cancelling previous profile [#1225](https://github.com/grafana/scenes/pull/1225) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.30.3 (Mon Aug 25 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Fix hidden filters in new combobox layout [#1216](https://github.com/grafana/scenes/pull/1216) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.30.2 (Sat Aug 23 2025)
+
+#### 🐛 Bug Fix
+
+- Replace HTML entity `&#151;` with proper em dash `—` [#1224](https://github.com/grafana/scenes/pull/1224) ([@Johngeorgesample](https://github.com/Johngeorgesample))
+
+#### Authors: 1
+
+- John-George Sample ([@Johngeorgesample](https://github.com/Johngeorgesample))
+
+---
+
+# v6.30.1 (Wed Aug 20 2025)
+
+#### 🐛 Bug Fix
+
+- Eslint: Fixes issue linting scenes-app [#1218](https://github.com/grafana/scenes/pull/1218) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - DataLayers: Annotations can be enabled properly [#1219](https://github.com/grafana/scenes/pull/1219) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.30.0 (Wed Aug 20 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel/SceneGridRow: Add repeatSourceKey to help simplify repeat handling [#1215](https://github.com/grafana/scenes/pull/1215) ([@torkelo](https://github.com/torkelo) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Add shouldMigrate() callback to migration logic [#1092](https://github.com/grafana/scenes/pull/1092) ([@leeoniya](https://github.com/leeoniya) [@adela-almasan](https://github.com/adela-almasan))
+  - ScenesDataTransformer: Allow passthrough set of ScopedVars to interpolate [#1200](https://github.com/grafana/scenes/pull/1200) ([@gelicia](https://github.com/gelicia))
+  - Add new operators to AdHocFiltersVariable [#1210](https://github.com/grafana/scenes/pull/1210) ([@joey-grafana](https://github.com/joey-grafana))
+- `@grafana/scenes-react`
+  - ScenesReact: Add skipUrlSync to variables [#1182](https://github.com/grafana/scenes/pull/1182) ([@krevedkokun](https://github.com/krevedkokun))
+
+#### Authors: 7
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Adela Almasan ([@adela-almasan](https://github.com/adela-almasan))
+- Joey ([@joey-grafana](https://github.com/joey-grafana))
+- Kristina ([@gelicia](https://github.com/gelicia))
+- Leon Sorokin ([@leeoniya](https://github.com/leeoniya))
+- Nikita Domnitskii ([@krevedkokun](https://github.com/krevedkokun))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.29.7 (Mon Aug 11 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryController: Fix profiler query controller registration on scene re-activation [#1212](https://github.com/grafana/scenes/pull/1212) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.29.6 (Mon Aug 11 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRenderProfler: Improve profiler accuracy by adding cancellation and skipping inactive tabs [#1211](https://github.com/grafana/scenes/pull/1211) ([@dprokop](https://github.com/dprokop))
+  - Chore: Decouple `hideFrom.viz` and `hideFrom.tooltip` [#1175](https://github.com/grafana/scenes/pull/1175) ([@adela-almasan](https://github.com/adela-almasan))
+
+#### Authors: 2
+
+- Adela Almasan ([@adela-almasan](https://github.com/adela-almasan))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.29.5 (Thu Aug 07 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRenderProfiler: Only capture network requests within measurement window [#1209](https://github.com/grafana/scenes/pull/1209) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.29.4 (Wed Aug 06 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Chore: Use a proper version of `@grafana/i18n` now it's released [#1206](https://github.com/grafana/scenes/pull/1206) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v6.29.3 (Tue Aug 05 2025)
 
 #### 🐛 Bug Fix

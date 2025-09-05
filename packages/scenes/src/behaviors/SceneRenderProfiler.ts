@@ -18,7 +18,6 @@ export class SceneRenderProfiler {
   // Will keep measured lengths trailing frames
   #recordedTrailingSpans: number[] = [];
 
-  lastFrameTime = 0;
   #visibilityChangeHandler: (() => void) | null = null;
 
   public constructor(private queryController?: SceneQueryControllerLike) {
@@ -60,13 +59,44 @@ export class SceneRenderProfiler {
   }
 
   public startProfile(name: string) {
-    if (this.#profileInProgress) {
-      this.addCrumb(name);
-    } else {
-      this.#profileInProgress = { origin: name, crumbs: [] };
-      this.#profileStartTs = performance.now();
-      writeSceneLog('SceneRenderProfiler', 'Profile started:', this.#profileInProgress, this.#profileStartTs);
+    // Only start profile if tab is active. This makes sure we don't start a profile when i.e. someone opens a dashboard in a new tab
+    // and doesn't interact with it.
+    if (document.hidden) {
+      writeSceneLog('SceneRenderProfiler', 'Tab is inactive, skipping profile', name);
+      return;
     }
+
+    if (this.#profileInProgress) {
+      if (this.#trailAnimationFrameId) {
+        this.cancelProfile();
+        this._startNewProfile(name, true);
+      } else {
+        this.addCrumb(name);
+      }
+    } else {
+      this._startNewProfile(name);
+    }
+  }
+
+  /**
+   * Starts a new profile for performance measurement.
+   *
+   * @param name - The origin/trigger of the profile (e.g., 'time_range_change', 'variable_value_changed')
+   * @param force - Whether this is a "forced" profile (true) or "clean" profile (false)
+   *               - "forced": Started by canceling an existing profile that was recording trailing frames
+   *                           This happens when a new user interaction occurs before the previous one
+   *                           finished measuring its performance impact
+   *               - "clean": Started when no profile is currently active
+   */
+  private _startNewProfile(name: string, force = false) {
+    this.#profileInProgress = { origin: name, crumbs: [] };
+    this.#profileStartTs = performance.now();
+    writeSceneLog(
+      'SceneRenderProfiler',
+      `Profile started[${force ? 'forced' : 'clean'}]`,
+      this.#profileInProgress,
+      this.#profileStartTs
+    );
   }
 
   private recordProfileTail(measurementStartTime: number, profileStartTs: number) {
@@ -215,10 +245,17 @@ export function processRecordedSpans(spans: number[]) {
   return [spans[0]];
 }
 
-function captureNetwork(startTs: number, endTs: number) {
+export function captureNetwork(startTs: number, endTs: number) {
   const entries = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
   performance.clearResourceTimings();
-  const networkEntries = entries.filter((entry) => entry.startTime >= startTs && entry.startTime <= endTs);
+  // Only include network entries that both started AND ended within the time window
+  const networkEntries = entries.filter(
+    (entry) =>
+      entry.startTime >= startTs &&
+      entry.startTime <= endTs &&
+      entry.responseEnd >= startTs &&
+      entry.responseEnd <= endTs
+  );
   for (const entry of networkEntries) {
     performance.measure('Network entry ' + entry.name, {
       start: entry.startTime,

@@ -22,6 +22,10 @@ import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableScen
 import { config, RefreshEvent } from '@grafana/runtime';
 import { ScopesVariable } from '../../../variables/variants/ScopesVariable';
 import { act } from 'react-dom/test-utils';
+import { AdHocFiltersVariable } from '../../../variables/adhoc/AdHocFiltersVariable';
+import { GroupByVariable } from '../../../variables/groupby/GroupByVariable';
+import { allActiveGroupByVariables } from '../../../variables/groupby/findActiveGroupByVariablesByUid';
+import { allActiveFilterSets } from '../../../variables/adhoc/patchGetAdhocFilters';
 
 let mockedEvents: Array<Partial<Field>> = [];
 
@@ -41,6 +45,9 @@ const getDataSourceMock = jest.fn().mockReturnValue({
 });
 
 const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
+  // Store the request for testing
+  sentRequest = request;
+
   const result: PanelData = {
     state: LoadingState.Loading,
     series: [],
@@ -69,10 +76,10 @@ jest.mock('@grafana/runtime', () => ({
   getDataSourceSrv: () => {
     return { get: getDataSourceMock };
   },
-  getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => {
-    sentRequest = request;
-    return runRequestMock(ds, request);
-  },
+  getRunRequest: () => runRequestMock,
+  getTemplateSrv: () => ({
+    getAdhocFilters: jest.fn().mockReturnValue([]),
+  }),
 
   config: {
     buildInfo: {
@@ -92,6 +99,11 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
   beforeEach(() => {
     config.buildInfo.version = v;
     runRequestMock.mockClear();
+    sentRequest = undefined;
+
+    // Clear the global variable sets to avoid cross-test contamination
+    allActiveGroupByVariables.clear();
+    allActiveFilterSets.clear();
   });
 
   describe('deduplication', () => {
@@ -455,6 +467,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
   it('should not run query when enable is false', async () => {
     const layer = new AnnotationsDataLayer({
       name: 'Test layer',
+      isEnabled: false,
       query: { name: 'Test', enable: false, iconColor: 'red', theActualQuery: '$A' },
     });
 
@@ -470,6 +483,173 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
     await new Promise((r) => setTimeout(r, 1));
 
     expect(runRequestMock).toHaveBeenCalledTimes(0);
+  });
+
+  it('should toggle anno query enabling when anno itself is toggled', () => {
+    const layer = new AnnotationsDataLayer({
+      name: 'Test layer',
+      isEnabled: false,
+      query: { name: 'Test', enable: false, iconColor: 'red', theActualQuery: '$A' },
+    });
+
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange(),
+      $data: new SceneDataLayerSet({
+        layers: [layer],
+      }),
+    });
+
+    scene.activate();
+
+    expect(layer.state.query.enable).toBe(false);
+
+    layer.onEnable();
+
+    expect(layer.state.query.enable).toBe(true);
+
+    layer.onDisable();
+
+    expect(layer.state.query.enable).toBe(false);
+  });
+
+  describe('drilldown dependencies support', () => {
+    it('should find and subscribe to ad-hoc filters and group-by variables', async () => {
+      const adHocVar = new AdHocFiltersVariable({
+        name: 'adhoc',
+        datasource: { type: 'prometheus', uid: 'test-uid' },
+        filters: [{ key: 'label1', operator: '=', value: 'value1' }],
+      });
+
+      const groupByVar = new GroupByVariable({
+        name: 'groupby',
+        datasource: { type: 'prometheus', uid: 'test-uid' },
+        value: ['key1'],
+        options: [
+          { label: 'key1', value: 'key1' },
+          { label: 'key2', value: 'key2' },
+        ],
+      });
+
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        query: {
+          name: 'Test',
+          enable: true,
+          iconColor: 'red',
+          datasource: { type: 'prometheus', uid: 'test-uid' },
+        },
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [adHocVar, groupByVar] }),
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({
+          layers: [layer],
+        }),
+      });
+
+      // Activate the variables first to ensure they are registered before the layer runs
+      adHocVar.activate();
+      groupByVar.activate();
+      scene.activate();
+
+      // Wait longer for the layer query to run after variables are active
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock).toHaveBeenCalledTimes(1);
+
+      const { filters, groupByKeys } = sentRequest!;
+      expect(filters).toBeDefined();
+      expect(groupByKeys).toBeDefined();
+      expect(filters).toEqual([{ key: 'label1', operator: '=', value: 'value1' }]);
+      expect(groupByKeys).toEqual(['key1']);
+    });
+
+    it('should handle missing drilldown variables gracefully', async () => {
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        query: {
+          name: 'Test',
+          enable: true,
+          iconColor: 'red',
+          datasource: { type: 'prometheus', uid: 'test-uid' },
+        },
+      });
+
+      const scene = new SceneFlexLayout({
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({
+          layers: [layer],
+        }),
+        children: [],
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock).toHaveBeenCalledTimes(1);
+
+      const { filters, groupByKeys } = sentRequest!;
+      expect(filters).toBeUndefined();
+      expect(groupByKeys).toBeUndefined();
+    });
+
+    it('should update dependencies when datasource uid changes', async () => {
+      const adHocVar = new AdHocFiltersVariable({
+        name: 'adhoc',
+        datasource: { type: 'prometheus', uid: 'test-uid' },
+        filters: [{ key: 'label1', operator: '=', value: 'value1' }],
+      });
+
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        query: {
+          name: 'Test',
+          enable: true,
+          iconColor: 'red',
+          datasource: { type: 'prometheus', uid: 'test-uid' },
+        },
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [adHocVar] }),
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({
+          layers: [layer],
+        }),
+      });
+
+      // Activate the variables first to ensure they are registered before the layer runs
+      adHocVar.activate();
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock).toHaveBeenCalledTimes(1);
+
+      // First request should include filters from matching datasource
+      expect(sentRequest!.filters).toEqual([{ key: 'label1', operator: '=', value: 'value1' }]);
+
+      // Change datasource uid
+      layer.setState({
+        query: {
+          ...layer.state.query,
+          datasource: { type: 'prometheus', uid: 'different-uid' },
+        },
+      });
+
+      // Trigger layer re-run after datasource change
+      layer.runLayer();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock).toHaveBeenCalledTimes(2);
+
+      // Should not include filters from the original datasource
+      const { filters } = sentRequest!;
+      expect(filters).toBeUndefined();
+    });
   });
 });
 

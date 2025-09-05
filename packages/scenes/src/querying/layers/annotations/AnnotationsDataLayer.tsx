@@ -20,6 +20,7 @@ import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnota
 import { dedupAnnotations, postProcessQueryResult } from './utils';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 import { RefreshEvent } from '@grafana/runtime';
+import { DrilldownDependenciesManager } from '../../../variables/DrilldownDependenciesManager';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
@@ -36,6 +37,9 @@ export class AnnotationsDataLayer
   };
   private _timeRangeSub: Unsubscribable | undefined;
 
+  private _drilldownDependenciesManager: DrilldownDependenciesManager<AnnotationsDataLayerState> =
+    new DrilldownDependenciesManager(this._variableDependency);
+
   public constructor(initialState: AnnotationsDataLayerState) {
     super(
       {
@@ -51,6 +55,13 @@ export class AnnotationsDataLayer
 
     const timeRange = sceneGraph.getTimeRange(this);
 
+    this.setState({
+      query: {
+        ...this.state.query,
+        enable: true,
+      },
+    });
+
     this._timeRangeSub = timeRange.subscribeToState(() => {
       this.runWithTimeRange(timeRange);
     });
@@ -58,6 +69,13 @@ export class AnnotationsDataLayer
 
   public onDisable(): void {
     this.publishEvent(new RefreshEvent(), true);
+
+    this.setState({
+      query: {
+        ...this.state.query,
+        enable: false,
+      },
+    });
 
     this._timeRangeSub?.unsubscribe();
   }
@@ -75,6 +93,8 @@ export class AnnotationsDataLayer
       return;
     }
 
+    this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(query.datasource?.uid);
+
     if (this.querySub) {
       this.querySub.unsubscribe();
     }
@@ -87,7 +107,14 @@ export class AnnotationsDataLayer
     try {
       const ds = await this.resolveDataSource(query);
 
-      let stream = executeAnnotationQuery(ds, timeRange, query, this).pipe(
+      let stream = executeAnnotationQuery(
+        ds,
+        timeRange,
+        query,
+        this,
+        this._drilldownDependenciesManager.getFilters(),
+        this._drilldownDependenciesManager.getGroupByKeys()
+      ).pipe(
         registerQueryWithController({
           type: 'AnnotationsDataLayer/annotationsLoading',
           origin: this,

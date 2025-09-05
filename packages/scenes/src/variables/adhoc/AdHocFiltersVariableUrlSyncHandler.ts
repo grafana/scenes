@@ -80,15 +80,7 @@ function updateOriginFilters(prevOriginFilters: AdHocFilterWithLabels[], filters
     const foundOriginFilterIndex = prevOriginFilters.findIndex((f) => f.key === filters[i].key);
 
     // if we find a match we update originFilters with what's in the URL.
-    // If there is a normal filter without an origin that matches keys with
-    // some dashboard lvl filter we maintain it as dashboard lvl filter in the
-    // new dashboard
-    if (foundOriginFilterIndex > -1) {
-      if (!filters[i].origin && prevOriginFilters[foundOriginFilterIndex].origin === 'dashboard') {
-        filters[i].origin = 'dashboard';
-        filters[i].restorable = true;
-      }
-
+    if (foundOriginFilterIndex > -1 && filters[i].origin === prevOriginFilters[foundOriginFilterIndex].origin) {
       if (isMatchAllFilter(filters[i])) {
         filters[i].matchAllFilter = true;
       }

@@ -5,6 +5,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
 import { t } from '@grafana/i18n';
+import { getNonApplicablePillStyles } from '../../utils';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -297,15 +298,5 @@ const getStyles = (theme: GrafanaTheme2) => ({
       color: theme.colors.text.disabled,
     },
   }),
-  disabledPill: css({
-    background: theme.colors.action.selected,
-    color: theme.colors.text.disabled,
-    border: 0,
-    '&:hover': {
-      background: theme.colors.action.selected,
-    },
-  }),
-  strikethrough: css({
-    textDecoration: 'line-through',
-  }),
+  ...getNonApplicablePillStyles(theme),
 });

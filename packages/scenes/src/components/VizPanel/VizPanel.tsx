@@ -40,6 +40,7 @@ import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { buildPathIdFor } from '../../utils/pathId';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -90,6 +91,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   collapsible?: boolean;
   collapsed?: boolean;
+  /** Marks object as a repeated object and a key pointer to source object */
+  repeatSourceKey?: string;
   /**
    * @internal
    * Only for use from core to handle migration from old angular panels
@@ -204,6 +207,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return panelId;
   }
 
+  /**
+   * Unique id string that includes local variable values (for repeated panels)
+   */
+  public getPathId() {
+    return buildPathIdFor(this);
+  }
+
   private async _pluginLoaded(
     plugin: PanelPlugin,
     overwriteOptions?: DeepPartial<{}>,
@@ -233,7 +243,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    if (plugin.onPanelMigration && currentVersion !== pluginVersion && !isAfterPluginChange) {
+    //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/108998)
+    const needsMigration = currentVersion !== pluginVersion || plugin.shouldMigrate?.(panel);
+
+    if (plugin.onPanelMigration && needsMigration && !isAfterPluginChange) {
       // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
       panel.options = await plugin.onPanelMigration(panel);
     }
