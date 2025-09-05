@@ -44,3 +44,16 @@ export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateCon
   cancelProfile(): void;
   runningQueriesCount(): number;
 }
+
+export interface InteractionProfileResult {
+  interaction: string;
+  interactionDuration: number;
+  networkDuration: number;
+  startTs: number;
+  endTs: number;
+}
+
+export interface InteractionProfilerState extends SceneObjectState {
+  onProfileComplete?: (result: InteractionProfileResult) => void;
+  enableProfiling?: boolean;
+}
