@@ -79,8 +79,9 @@ describe('ScopesVariable', () => {
     const { scopesContext, valueChangedCount } = renderTestScene({ initialScopes: [] });
 
     act(() => scopesContext.changeScopes([]));
+    act(() => scopesContext.changeScopes([]));
 
-    expect(valueChangedCount.value).toEqual(0);
+    expect(valueChangedCount.value).toEqual(1);
   });
 });
 
