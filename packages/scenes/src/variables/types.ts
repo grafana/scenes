@@ -77,6 +77,7 @@ export interface VariableValueOption {
   label: string;
   value: VariableValueSingle;
   group?: string;
+  properties?: VariableValueOptionProperties;
 }
 
 export interface SceneVariableSetState extends SceneObjectState {
