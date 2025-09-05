@@ -23,6 +23,15 @@ interface UserActionEventPayload {
   origin: SceneObject;
   interaction: UserActionEventType;
 }
+
 export class UserActionEvent extends BusEventWithPayload<UserActionEventPayload> {
   public static readonly type = 'scene-object-user-action';
+}
+
+/**
+ * Notify the url sync manager of a new object that has been added to the scene
+ * that needs to init state from URL.
+ */
+export class NewSceneObjectAddedEvent extends BusEventWithPayload<SceneObject> {
+  public static readonly type = 'new-scene-object-added';
 }

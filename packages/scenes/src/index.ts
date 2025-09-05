@@ -81,7 +81,8 @@ export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariab
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 
-export { type UrlSyncManagerLike, UrlSyncManager, NewSceneObjectAddedEvent } from './services/UrlSyncManager';
+export { type UrlSyncManagerLike, UrlSyncManager } from './services/UrlSyncManager';
+export { NewSceneObjectAddedEvent } from './core/events';
 export { useUrlSync } from './services/useUrlSync';
 export { UrlSyncContextProvider } from './services/UrlSyncContextProvider';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';

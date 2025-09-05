@@ -6,6 +6,7 @@ import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLa
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneObjectState, SceneObjectUrlValues } from '../core/types';
+import { NewSceneObjectAddedEvent } from '../core/events';
 
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
 import { UrlSyncManager } from './UrlSyncManager';
@@ -600,5 +601,114 @@ describe.each([
         expect(scene.state.name).toEqual('scene-root');
       });
     });
+  });
+});
+
+// Test classes for URL sync functionality
+interface TestSceneWithUrlSyncState extends SceneObjectState {
+  tab?: string;
+  nested?: any;
+  children?: any[];
+}
+
+class TestSceneWithUrlSync extends SceneObjectBase<TestSceneWithUrlSyncState> {
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['tab'] });
+
+  public updateFromUrlCalled = false;
+  public lastUrlValues: SceneObjectUrlValues = {};
+
+  public constructor(state: TestSceneWithUrlSyncState) {
+    super(state);
+  }
+
+  public getUrlState(): SceneObjectUrlValues {
+    return { tab: this.state.tab };
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues): void {
+    this.updateFromUrlCalled = true;
+    this.lastUrlValues = values;
+
+    if (typeof values.tab === 'string') {
+      this.setState({ tab: values.tab });
+    }
+  }
+}
+
+describe('UrlSyncManager - Dynamic object addition', () => {
+  let urlManager: UrlSyncManager;
+  let scene: SceneFlexLayout;
+  let deactivate = () => {};
+
+  beforeEach(() => {
+    deactivate = () => {};
+  });
+
+  afterEach(() => {
+    deactivate();
+    if (urlManager && scene) {
+      urlManager.cleanUp(scene);
+    }
+    locationService.push('/');
+  });
+
+  it('should publish NewSceneObjectAddedEvent when setState adds object with urlSync', () => {
+    // Create scene
+    const parentWithUrlSync = new TestSceneWithUrlSync({ children: [] });
+    scene = new SceneFlexLayout({
+      children: [new SceneFlexItem({ body: parentWithUrlSync })],
+    });
+
+    urlManager = new UrlSyncManager();
+    urlManager.initSync(scene);
+    deactivate = scene.activate();
+
+    // Track events
+    const events: any[] = [];
+    scene.subscribeToEvent(NewSceneObjectAddedEvent, (event) => {
+      events.push(event);
+    });
+
+    // Create a new object with URL sync
+    const childWithUrlSync = new TestSceneWithUrlSync({ tab: 'queries' });
+
+    // Add it via setState
+    parentWithUrlSync.setState({
+      children: [childWithUrlSync],
+    });
+
+    // Verify event was published
+    expect(events).toHaveLength(1);
+    expect(events[0].payload).toBe(childWithUrlSync);
+    expect(events[0].type).toBe('new-scene-object-added');
+  });
+
+  it('should NOT publish NewSceneObjectAddedEvent for objects without urlSync', () => {
+    // Create scene
+    const parentWithUrlSync = new TestSceneWithUrlSync({ children: [] });
+    scene = new SceneFlexLayout({
+      children: [new SceneFlexItem({ body: parentWithUrlSync })],
+    });
+
+    urlManager = new UrlSyncManager();
+    urlManager.initSync(scene);
+    deactivate = scene.activate();
+
+    // Track events
+    const events: any[] = [];
+    scene.subscribeToEvent(NewSceneObjectAddedEvent, (event) => {
+      events.push(event);
+    });
+
+    // Create a regular object without URL sync
+    const childWithoutUrlSync = new SceneFlexLayout({ children: [] });
+
+    // Add it via setState
+    parentWithUrlSync.setState({
+      children: [childWithoutUrlSync],
+    });
+
+    // Should not publish any events
+    expect(events).toHaveLength(0);
   });
 });

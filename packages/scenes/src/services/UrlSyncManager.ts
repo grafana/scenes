@@ -2,13 +2,12 @@ import { Location } from 'history';
 
 import { LocationService, locationService as locationServiceRuntime } from '@grafana/runtime';
 
-import { SceneObjectStateChangedEvent } from '../core/events';
+import { SceneObjectStateChangedEvent, NewSceneObjectAddedEvent } from '../core/events';
 import { SceneObject, SceneObjectUrlValues, SceneUrlSyncOptions } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { Subscription } from 'rxjs';
 import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
 import { getUrlState, isUrlValueEqual, syncStateFromUrl } from './utils';
-import { BusEventWithPayload } from '@grafana/data';
 import { useMemo } from 'react';
 
 export interface UrlSyncManagerLike {
@@ -18,13 +17,6 @@ export interface UrlSyncManagerLike {
   handleNewObject(sceneObj: SceneObject): void;
 }
 
-/**
- * Notify the url sync manager of a new object that has been added to the scene
- * that needs to init state from URL.
- */
-export class NewSceneObjectAddedEvent extends BusEventWithPayload<SceneObject> {
-  public static readonly type = 'new-scene-object-added';
-}
 
 export class UrlSyncManager implements UrlSyncManagerLike {
   private _urlKeyMapper: UniqueUrlKeyMapper;

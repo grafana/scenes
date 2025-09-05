@@ -21,7 +21,7 @@ import {
 } from '@grafana/scenes';
 import { getQueryRunnerWithRandomWalkQuery } from './utils';
 import { Button, Stack } from '@grafana/ui';
-import { NewSceneObjectAddedEvent } from '@grafana/scenes/src/services/UrlSyncManager';
+import { NewSceneObjectAddedEvent } from '@grafana/scenes/src/core/events';
 
 export function getUrlSyncTest(defaults: SceneAppPageState) {
   return new SceneAppPage({

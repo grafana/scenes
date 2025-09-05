@@ -17,7 +17,7 @@ import {
 } from './types';
 
 import { SceneComponentWrapper } from './SceneComponentWrapper';
-import { SceneObjectStateChangedEvent } from './events';
+import { SceneObjectStateChangedEvent, NewSceneObjectAddedEvent } from './events';
 import { cloneSceneObject } from './sceneGraph/cloneSceneObject';
 import { SceneVariableDependencyConfigLike } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
@@ -130,6 +130,10 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
 
   public setState(update: Partial<TState>) {
     const prevState = this._state;
+    
+    // Detect and notify about new SceneObjects that need URL sync BEFORE setting parent
+    this._handleNewSceneObjectsForUrlSync(update, prevState);
+    
     const newState: TState = {
       ...this._state,
       ...update,
@@ -151,6 +155,25 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
       }),
       true
     );
+  }
+
+  /**
+   * Detect new SceneObjects that have URL sync and notify the UrlSyncManager
+   */
+  private _handleNewSceneObjectsForUrlSync(update: Partial<TState>, prevState: TState) {
+    // Get current children before the update
+    const prevChildren = new Set<SceneObjectBase>();
+    forEachChild(prevState, (child) => {
+      prevChildren.add(child);
+    });
+
+    // Check for new children in the update
+    forEachChild(update, (child) => {
+      if (child.urlSync && !prevChildren.has(child)) {
+        // Only publish event for objects that have URL sync and are truly new
+        this.publishEvent(new NewSceneObjectAddedEvent(child), true);
+      }
+    });
   }
 
   /**
