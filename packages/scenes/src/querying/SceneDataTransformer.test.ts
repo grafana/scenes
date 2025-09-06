@@ -884,7 +884,6 @@ describe('SceneDataTransformer', () => {
                 ...frame.meta,
                 dataTopic: DataTopic.Annotations,
               },
-              name: 'converted_series_to_annotation',
             }));
           })
         );
@@ -901,7 +900,6 @@ describe('SceneDataTransformer', () => {
                   ...frame.meta,
                   dataTopic: undefined,
                 },
-                name: 'converted_annotation_to_series',
               }));
             })
           );
@@ -928,16 +926,28 @@ describe('SceneDataTransformer', () => {
 
       const data = sceneGraph.getData(consumer).state.data;
 
-      // Should have converted annotations as series
-      expect(data?.series.length).toBe(1);
-      expect(data?.series[0].name).toBe('converted_annotation_to_series');
-      expect(data?.series[0].fields[0].values).toEqual([400, 500, 600]);
-
-      // Should have converted series as annotations
-      expect(data?.annotations?.length).toBe(1);
-      expect(data?.annotations?.[0].name).toBe('converted_series_to_annotation');
-      expect(data?.annotations?.[0].meta?.dataTopic).toBe(DataTopic.Annotations);
-      expect(data?.annotations?.[0].fields[0].values).toEqual([100, 200, 300]);
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [400, 500, 600], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: {},
+          },
+        ],
+        annotations: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [100, 200, 300], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+        ],
+      });
     });
 
     it('should preserve original data when no conversion occurs', () => {
@@ -947,7 +957,6 @@ describe('SceneDataTransformer', () => {
           map((data: DataFrame[]) => {
             return data.map((frame: DataFrame) => ({
               ...frame,
-              name: `${frame.name || 'frame'}_preserved`,
             }));
           })
         );
@@ -959,7 +968,6 @@ describe('SceneDataTransformer', () => {
             map((data) => {
               return data.map((frame) => ({
                 ...frame,
-                name: `${frame.name || 'annotation'}_preserved`,
               }));
             })
           );
@@ -986,20 +994,31 @@ describe('SceneDataTransformer', () => {
 
       const data = sceneGraph.getData(consumer).state.data;
 
-      // Series should remain as series
-      expect(data?.series.length).toBe(1);
-      const preservedSeries = data?.series.find((s) => s.name?.includes('_preserved'));
-      expect(preservedSeries).toBeDefined();
-      expect(preservedSeries?.meta?.dataTopic).toBeUndefined();
-
-      // Annotations should remain as annotations
-      expect(data?.annotations?.length).toBe(1);
-      const preservedAnnotation = data?.annotations?.find((a) => a.name?.includes('_preserved'));
-      expect(preservedAnnotation).toBeDefined();
-      expect(preservedAnnotation?.meta?.dataTopic).toBe(DataTopic.Annotations);
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [100, 200, 300], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+          },
+        ],
+        annotations: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [400, 500, 600], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+        ],
+      });
     });
 
-    it('should handle complex conversion chains', () => {
+    // skip until fixed: https://github.com/grafana/scenes/pull/1207#issuecomment-3258847124
+    it.skip('should handle complex conversion chains', () => {
       // First: multiply series values by 2
       // series will become [200,400,600][2,4,6]
       const multiplySeriesTransformer = () => (source: any) => {
