@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Edit filter dengan kunci {{keyLabel}}",
         "managed-filter": "Filter {{origin}} yang dikelola",
+        "non-applicable": "",
         "remove-filter-with-key": "Hapus filter dengan kunci {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Jika Anda diarahkan ke sini menggunakan tautan, mungkin ada bug dalam aplikasi ini.",
         "subTitle": "URL tidak cocok dengan halaman mana pun",
         "title": "Tidak ditemukan"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Ciutkan tampilan",
