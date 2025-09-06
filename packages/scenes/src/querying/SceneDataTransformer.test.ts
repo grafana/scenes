@@ -1089,8 +1089,6 @@ describe('SceneDataTransformer', () => {
 
       const data = sceneGraph.getData(consumer).state.data;
 
-      // console.log(JSON.stringify({ series: data?.series, annotations: data?.annotations }))
-
       expect({ series: data?.series, annotations: data?.annotations }).toEqual({
         series: [],
         annotations: [
