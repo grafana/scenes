@@ -7,6 +7,27 @@ jest.mock('../utils/writeSceneLog', () => ({
   writeSceneLog: jest.fn(),
 }));
 
+// Mock plugin loading to prevent runtime errors
+jest.mock('../components/VizPanel/registerRuntimePanelPlugin', () => ({
+  loadPanelPluginSync: jest.fn().mockReturnValue({
+    meta: {
+      id: 'timeseries',
+      info: { version: '1.0.0' },
+    },
+    fieldConfigDefaults: {
+      defaults: {},
+      overrides: [],
+    },
+    fieldConfigRegistry: {
+      getIfExists: jest.fn().mockReturnValue(undefined),
+    },
+    dataSupport: {
+      annotations: false,
+      alertStates: false,
+    },
+  }),
+}));
+
 describe('VizPanelRenderProfiler', () => {
   let panel: VizPanel;
   let profiler: VizPanelRenderProfiler;
@@ -27,7 +48,6 @@ describe('VizPanelRenderProfiler', () => {
       endPhase: jest.fn(),
       setPluginCacheStatus: jest.fn(),
       setDataMetrics: jest.fn(),
-      updateLongFrameMetrics: jest.fn(),
       getPanelMetrics: jest.fn(),
     };
 
@@ -54,12 +74,12 @@ describe('VizPanelRenderProfiler', () => {
 
   describe('Activation', () => {
     it('should activate and extract panel information', () => {
-      const layout = new SceneFlexLayout({
-        children: [panel],
+      // Attach profiler directly to the panel
+      panel.setState({
         $behaviors: [profiler],
       });
 
-      layout.activate();
+      panel.activate();
 
       expect(panel.getLegacyPanelId).toHaveBeenCalled();
       expect(panel.getPlugin).toHaveBeenCalled();
@@ -78,12 +98,11 @@ describe('VizPanelRenderProfiler', () => {
 
   describe('Plugin Loading', () => {
     beforeEach(() => {
-      // Create a parent container to avoid circular references
-      const layout = new SceneFlexLayout({
-        children: [panel],
+      // Attach profiler directly to the panel
+      panel.setState({
         $behaviors: [profiler],
       });
-      layout.activate();
+      panel.activate();
     });
 
     it('should track plugin load start', () => {
@@ -111,11 +130,10 @@ describe('VizPanelRenderProfiler', () => {
 
   describe('Query Tracking', () => {
     beforeEach(() => {
-      const layout = new SceneFlexLayout({
-        children: [panel],
+      panel.setState({
         $behaviors: [profiler],
       });
-      layout.activate();
+      panel.activate();
     });
 
     it('should track query start and end', () => {
@@ -132,11 +150,10 @@ describe('VizPanelRenderProfiler', () => {
 
   describe('Field Config Processing', () => {
     beforeEach(() => {
-      const layout = new SceneFlexLayout({
-        children: [panel],
+      panel.setState({
         $behaviors: [profiler],
       });
-      layout.activate();
+      panel.activate();
     });
 
     it('should track field config processing', () => {
@@ -161,11 +178,10 @@ describe('VizPanelRenderProfiler', () => {
 
   describe('Render Tracking', () => {
     beforeEach(() => {
-      const layout = new SceneFlexLayout({
-        children: [panel],
+      panel.setState({
         $behaviors: [profiler],
       });
-      layout.activate();
+      panel.activate();
 
       // Start tracking first
       profiler.onPluginLoadStart('timeseries');
@@ -190,105 +206,12 @@ describe('VizPanelRenderProfiler', () => {
     });
   });
 
-  describe('Long Frame Detection', () => {
-    let mockObserver: any;
-    let observeSpy: jest.Mock;
-    let disconnectSpy: jest.Mock;
-
-    beforeEach(() => {
-      observeSpy = jest.fn();
-      disconnectSpy = jest.fn();
-
-      mockObserver = jest.fn((callback) => ({
-        observe: observeSpy,
-        disconnect: disconnectSpy,
-      }));
-
-      // Mock PerformanceObserver
-      (global as any).PerformanceObserver = mockObserver;
-      (global as any).PerformanceObserver.supportedEntryTypes = ['long-animation-frame'];
-    });
-
-    afterEach(() => {
-      delete (global as any).PerformanceObserver;
-    });
-
-    it('should setup long frame detection when supported', () => {
-      const profilerWithLongFrames = new VizPanelRenderProfiler({
-        enableLongFrameDetection: true,
-        collector: mockCollector,
-      });
-
-      const layout = new SceneFlexLayout({
-        children: [panel],
-        $behaviors: [profilerWithLongFrames],
-      });
-      layout.activate();
-
-      expect(mockObserver).toHaveBeenCalled();
-      expect(observeSpy).toHaveBeenCalledWith({
-        entryTypes: ['long-animation-frame'],
-      });
-    });
-
-    it('should track long frames', () => {
-      const profilerWithLongFrames = new VizPanelRenderProfiler({
-        enableLongFrameDetection: true,
-        collector: mockCollector,
-      });
-
-      const layout = new SceneFlexLayout({
-        children: [panel],
-        $behaviors: [profilerWithLongFrames],
-      });
-      layout.activate();
-
-      // Start tracking
-      profilerWithLongFrames.onPluginLoadStart('timeseries');
-
-      // Get the callback passed to PerformanceObserver
-      const observerCallback = mockObserver.mock.calls[0][0];
-
-      // Simulate long frame entries
-      const mockEntries = [
-        { duration: 60, entryType: 'long-animation-frame' },
-        { duration: 100, entryType: 'long-animation-frame' },
-        { duration: 30, entryType: 'long-animation-frame' }, // Should be ignored (< 50ms)
-      ];
-
-      observerCallback({
-        getEntries: () => mockEntries,
-      });
-
-      expect(mockCollector.updateLongFrameMetrics).toHaveBeenCalledTimes(2);
-      expect(mockCollector.updateLongFrameMetrics).toHaveBeenCalledWith('test-panel-1', 1, 60);
-      expect(mockCollector.updateLongFrameMetrics).toHaveBeenCalledWith('test-panel-1', 1, 100);
-    });
-
-    it('should cleanup observer on deactivation', () => {
-      const profilerWithLongFrames = new VizPanelRenderProfiler({
-        enableLongFrameDetection: true,
-        collector: mockCollector,
-      });
-
-      const layout = new SceneFlexLayout({
-        children: [panel],
-        $behaviors: [profilerWithLongFrames],
-      });
-      const deactivate = layout.activate();
-      deactivate();
-
-      expect(disconnectSpy).toHaveBeenCalled();
-    });
-  });
-
   describe('Panel State Changes', () => {
     beforeEach(() => {
-      const layout = new SceneFlexLayout({
-        children: [panel],
+      panel.setState({
         $behaviors: [profiler],
       });
-      layout.activate();
+      panel.activate();
     });
 
     it('should track plugin changes', () => {
@@ -306,11 +229,10 @@ describe('VizPanelRenderProfiler', () => {
 
   describe('Get Panel Metrics', () => {
     beforeEach(() => {
-      const layout = new SceneFlexLayout({
-        children: [panel],
+      panel.setState({
         $behaviors: [profiler],
       });
-      layout.activate();
+      panel.activate();
     });
 
     it('should return panel metrics', () => {

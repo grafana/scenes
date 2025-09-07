@@ -2,6 +2,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObjectState } from '../core/types';
 import { VizPanel } from '../components/VizPanel/VizPanel';
 import { writeSceneLog } from '../utils/writeSceneLog';
+import { sceneGraph } from '../core/sceneGraph';
 
 // Enum for panel lifecycle phases
 export enum PanelLifecyclePhase {
@@ -18,13 +19,10 @@ export interface PanelPerformanceCollectorLike {
   endPhase(panelKey: string, phase: string): void;
   setPluginCacheStatus(panelKey: string, fromCache: boolean): void;
   setDataMetrics(panelKey: string, dataPointsCount?: number, seriesCount?: number): void;
-  updateLongFrameMetrics(panelKey: string, count: number, duration: number): void;
   getPanelMetrics(panelKey: string): any;
 }
 
 export interface VizPanelRenderProfilerState extends SceneObjectState {
-  /** Whether long frame detection is enabled */
-  enableLongFrameDetection?: boolean;
   /** Panel performance collector instance (required for profiling to work) */
   collector?: PanelPerformanceCollectorLike;
 }
@@ -44,12 +42,10 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   private _applyFieldConfigStartTime?: number;
   private _queryStartTime?: number;
   private _renderStartTime?: number;
-  private _longFrameObserver?: PerformanceObserver;
   private _collector?: PanelPerformanceCollectorLike;
 
   public constructor(state: Partial<VizPanelRenderProfilerState> = {}) {
     super({
-      enableLongFrameDetection: true,
       ...state,
     });
 
@@ -59,11 +55,18 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   }
 
   private _onActivate() {
-    // Find VizPanel instances in the parent's children
-    const panels = this._findPanels();
+    // This behavior is attached directly to a VizPanel
+    let panel: VizPanel | undefined;
 
-    if (panels.length === 0) {
-      writeSceneLog('VizPanelRenderProfiler', 'No VizPanel found');
+    try {
+      panel = sceneGraph.getAncestor(this, VizPanel);
+    } catch (error) {
+      writeSceneLog('VizPanelRenderProfiler', 'Failed to find VizPanel ancestor', error);
+      return;
+    }
+
+    if (!panel) {
+      writeSceneLog('VizPanelRenderProfiler', 'Not attached to a VizPanel');
       return;
     }
 
@@ -75,12 +78,13 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       return;
     }
 
-    // For now, just track the first panel found
-    // In the future, we could track multiple panels
-    const panel = panels[0];
+    // Extract panel information - only track panels with proper keys
+    if (!panel.state.key) {
+      writeSceneLog('VizPanelRenderProfiler', 'Panel has no key, skipping tracking');
+      return;
+    }
 
-    // Extract panel information
-    this._panelKey = panel.state.key || `panel-${Date.now()}`;
+    this._panelKey = panel.state.key;
     this._panelId = String(panel.getLegacyPanelId());
     this._pluginId = panel.state.pluginId;
     const plugin = panel.getPlugin();
@@ -96,41 +100,9 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       })
     );
 
-    // Setup long frame detection if enabled
-    if (this.state.enableLongFrameDetection) {
-      this._setupLongFrameDetection();
-    }
-
-    writeSceneLog('VizPanelRenderProfiler', 'Activated for panel', this._panelKey);
-
     return () => {
       this._cleanup();
     };
-  }
-
-  private _findPanels(): VizPanel[] {
-    if (!this.parent) {
-      return [];
-    }
-
-    // If parent is a VizPanel, track that panel
-    if (this.parent instanceof VizPanel) {
-      return [this.parent];
-    }
-
-    // Otherwise, look for VizPanels in parent's children
-    const panels: VizPanel[] = [];
-    const parentState = (this.parent as any).state;
-
-    if (parentState?.children) {
-      for (const child of parentState.children) {
-        if (child instanceof VizPanel) {
-          panels.push(child);
-        }
-      }
-    }
-
-    return panels;
   }
 
   private _handlePanelStateChange(panel: VizPanel, newState: any, prevState: any) {
@@ -149,6 +121,35 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * Called when plugin loading starts
    */
   public onPluginLoadStart(pluginId: string) {
+    // TIMING FIX: Plugin loading happens during VizPanel._onActivate(), which occurs BEFORE
+    // the VizPanelRenderProfiler._onActivate() method runs. This means when onPluginLoadStart
+    // is called, the profiler hasn't been fully initialized yet (no panelKey or collector).
+    // We need to initialize these properties early to capture plugin loading metrics.
+    if (!this._panelKey || !this._collector) {
+      let panel: VizPanel | undefined;
+
+      try {
+        panel = sceneGraph.getAncestor(this, VizPanel);
+      } catch (error) {
+        // If we can't find the panel, we can't initialize - skip tracking
+        return;
+      }
+
+      // Initialize panel identification if not set yet
+      // Only track panels that have a proper key - don't generate keys
+      if (panel && !this._panelKey && panel.state.key) {
+        this._panelKey = panel.state.key;
+        this._panelId = String(panel.getLegacyPanelId());
+        this._pluginId = pluginId;
+      }
+
+      // Initialize collector from behavior state if not set yet
+      if (!this._collector) {
+        this._collector = this.state.collector;
+      }
+    }
+
+    // Early return if we still don't have the required dependencies
     if (!this._collector || !this._panelKey) {
       return;
     }
@@ -160,7 +161,12 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     this._loadPluginStartTime = performance.now();
     this._collector.startPhase(this._panelKey, PanelLifecyclePhase.PluginLoad);
 
-    writeSceneLog('VizPanelRenderProfiler', 'Plugin load started', pluginId);
+    // STRUCTURED LOGGING: Use structured data format similar to SceneRenderProfiler
+    // for consistent logging patterns and easier parsing/analysis
+    writeSceneLog(this._getPanelInfo(), 'Plugin load started', {
+      pluginId: pluginId,
+      panelKey: this._panelKey,
+    });
   }
 
   /**
@@ -175,7 +181,13 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     this._collector.setPluginCacheStatus(this._panelKey, fromCache);
 
     const duration = performance.now() - this._loadPluginStartTime;
-    writeSceneLog('VizPanelRenderProfiler', 'Plugin load completed', duration, 'ms', fromCache ? '(from cache)' : '');
+    // STRUCTURED LOGGING: Include timing and cache status for performance analysis
+    writeSceneLog(this._getPanelInfo(), 'Plugin load completed', {
+      duration: `${duration}ms`,
+      fromCache: fromCache,
+      pluginId: this._pluginId,
+      panelKey: this._panelKey,
+    });
   }
 
   /**
@@ -193,7 +205,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     this._queryStartTime = performance.now();
     this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataQuery);
 
-    writeSceneLog('VizPanelRenderProfiler', 'Query started');
+    writeSceneLog(this._getPanelInfo(), 'Query started');
   }
 
   /**
@@ -207,7 +219,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     this._collector.endPhase(this._panelKey, PanelLifecyclePhase.DataQuery);
 
     const duration = performance.now() - this._queryStartTime;
-    writeSceneLog('VizPanelRenderProfiler', 'Query completed', duration, 'ms');
+    writeSceneLog(this._getPanelInfo(), 'Query completed:', duration, 'ms');
   }
 
   /**
@@ -221,7 +233,28 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     this._applyFieldConfigStartTime = performance.now();
     this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataProcessing);
 
-    writeSceneLog('VizPanelRenderProfiler', 'Field config processing started');
+    // PANEL STATE DETECTION: Use sceneGraph.getData() to get current panel data state
+    // This provides context about what state the panel is in when field config processing starts
+    // (Loading, Done, Error, etc.) which is crucial for debugging panel loading issues
+    let panelState = 'unknown';
+
+    try {
+      const panel = sceneGraph.getAncestor(this, VizPanel);
+      if (panel) {
+        const data = sceneGraph.getData(panel);
+        panelState = data.state?.data?.state || 'no-data';
+      }
+    } catch (error) {
+      // If we can't access the panel, keep panelState as 'unknown'
+    }
+
+    // STRUCTURED LOGGING: Include panel state and phase information for debugging
+    writeSceneLog(this._getPanelInfo(), 'Field config processing started', {
+      phase: 'applyFieldConfig',
+      panelState: panelState,
+      panelKey: this._panelKey,
+      pluginId: this._pluginId,
+    });
   }
 
   /**
@@ -239,7 +272,34 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     }
 
     const duration = performance.now() - this._applyFieldConfigStartTime;
-    writeSceneLog('VizPanelRenderProfiler', 'Field config processing completed', duration, 'ms');
+    writeSceneLog(this._getPanelInfo(), 'Field config processing completed (data processing phase):', duration, 'ms');
+  }
+
+  /**
+   * Get panel information for logging with consistent format
+   *
+   * LOGGING FORMAT: Creates a consistent log prefix in the format:
+   * "VizPanelRenderProfiler[PanelTitle]" where panel titles are truncated
+   * to 30 characters to keep logs readable and prevent console overflow
+   */
+  private _getPanelInfo(): string {
+    let panel: VizPanel | undefined;
+
+    try {
+      panel = sceneGraph.getAncestor(this, VizPanel);
+    } catch (error) {
+      // If we can't find the panel, use fallback info
+    }
+
+    let panelTitle = panel?.state.title || this._panelKey || 'No-key panel';
+
+    // TITLE TRUNCATION: Limit panel titles to 30 characters with ellipsis
+    // to maintain log readability while still providing panel identification
+    if (panelTitle.length > 30) {
+      panelTitle = panelTitle.substring(0, 27) + '...';
+    }
+
+    return `VizPanelRenderProfiler[${panelTitle}]`;
   }
 
   /**
@@ -264,7 +324,12 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         this._collector.endPhase(this._panelKey, PanelLifecyclePhase.Render);
 
         const duration = performance.now() - this._renderStartTime;
-        writeSceneLog('VizPanelRenderProfiler', 'Panel render completed', duration, 'ms');
+        writeSceneLog(
+          'VizPanelRenderProfiler',
+          `Panel render completed for panel ${this._getPanelInfo()}:`,
+          duration,
+          'ms'
+        );
         this._renderStartTime = undefined;
       }
     });
@@ -278,7 +343,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     const plugin = panel.getPlugin();
     this._pluginVersion = plugin?.meta?.info?.version;
 
-    writeSceneLog('VizPanelRenderProfiler', 'Plugin changed to', newPluginId);
+    writeSceneLog(this._getPanelInfo(), `Plugin changed to ${newPluginId}`);
   }
 
   /**
@@ -292,57 +357,15 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     this._collector.startPanelTracking(this._panelKey, this._panelId || '0', this._pluginId, this._pluginVersion);
     this._isTracking = true;
 
-    writeSceneLog('VizPanelRenderProfiler', 'Started tracking panel', this._panelKey);
-  }
-
-  /**
-   * Setup long frame detection
-   */
-  private _setupLongFrameDetection() {
-    if (!('PerformanceObserver' in window) || !('supportedEntryTypes' in PerformanceObserver)) {
-      writeSceneLog('VizPanelRenderProfiler', 'Long frame detection not supported');
-      return;
-    }
-
-    try {
-      const supportedTypes = (PerformanceObserver as any).supportedEntryTypes;
-      if (!supportedTypes.includes('long-animation-frame')) {
-        writeSceneLog('VizPanelRenderProfiler', 'Long animation frames not supported');
-        return;
-      }
-
-      this._longFrameObserver = new PerformanceObserver((list) => {
-        if (!this._collector || !this._panelKey) {
-          return;
-        }
-
-        const entries = list.getEntries();
-        for (const entry of entries) {
-          if (entry.duration > 50) {
-            // Consider frames > 50ms as long
-            this._collector.updateLongFrameMetrics(this._panelKey, 1, entry.duration);
-          }
-        }
-      });
-
-      this._longFrameObserver.observe({ entryTypes: ['long-animation-frame'] as any });
-      writeSceneLog('VizPanelRenderProfiler', 'Long frame detection enabled');
-    } catch (err) {
-      writeSceneLog('VizPanelRenderProfiler', 'Failed to setup long frame detection', err);
-    }
+    writeSceneLog(this._getPanelInfo(), 'Started tracking panel');
   }
 
   /**
    * Cleanup when behavior is deactivated
    */
   private _cleanup() {
-    if (this._longFrameObserver) {
-      this._longFrameObserver.disconnect();
-      this._longFrameObserver = undefined;
-    }
-
     this._isTracking = false;
-    writeSceneLog('VizPanelRenderProfiler', 'Cleaned up for panel', this._panelKey);
+    writeSceneLog(this._getPanelInfo(), 'Cleaned up');
   }
 
   /**
