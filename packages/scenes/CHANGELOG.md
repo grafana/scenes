@@ -1,3 +1,20 @@
+# v6.34.0 (Wed Sep 03 2025)
+
+#### 🚀 Enhancement
+
+- SceneTimeRangeCompare: Export time shift as util [#1221](https://github.com/grafana/scenes/pull/1221) ([@drew08t](https://github.com/drew08t))
+
+#### 🐛 Bug Fix
+
+- Add SceneRenderProfiler integration tests [#1234](https://github.com/grafana/scenes/pull/1234) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Drew Slobodnjak ([@drew08t](https://github.com/drew08t))
+
+---
+
 # v6.33.0 (Tue Sep 02 2025)
 
 #### 🚀 Enhancement
