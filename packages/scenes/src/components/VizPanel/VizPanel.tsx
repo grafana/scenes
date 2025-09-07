@@ -37,6 +37,7 @@ import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
+import { VizPanelRenderProfiler } from '../../behaviors/VizPanelRenderProfiler';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
@@ -140,6 +141,23 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     });
   }
 
+  /**
+   * Get the VizPanelRenderProfiler behavior if attached
+   */
+  private _getProfiler(): VizPanelRenderProfiler | undefined {
+    if (!this.state.$behaviors) {
+      return undefined;
+    }
+
+    for (const behavior of this.state.$behaviors) {
+      if (behavior instanceof VizPanelRenderProfiler) {
+        return behavior;
+      }
+    }
+
+    return undefined;
+  }
+
   private _onActivate() {
     if (!this._plugin) {
       this._loadPlugin(this.state.pluginId);
@@ -157,14 +175,25 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     overwriteFieldConfig?: FieldConfigSource,
     isAfterPluginChange?: boolean
   ) {
+    const profiler = this._getProfiler();
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
+      // Plugin was loaded from cache
+      if (profiler) {
+        profiler.onPluginLoadStart(pluginId);
+        profiler.onPluginLoadEnd(plugin, true);
+      }
       this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
+        // Start profiling plugin load
+        if (profiler) {
+          profiler.onPluginLoadStart(pluginId);
+        }
+
         const panelPromise = importPanelPlugin(pluginId);
 
         const queryControler = sceneGraph.getQueryController(this);
@@ -175,6 +204,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         }
 
         const result = await panelPromise;
+
+        // End profiling plugin load (not from cache)
+        if (profiler) {
+          profiler.onPluginLoadEnd(result, false);
+        }
+
         this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
@@ -469,6 +504,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       return this._dataWithFieldConfig;
     }
 
+    const profiler = this._getProfiler();
+
+    // Start profiling data processing
+    if (profiler) {
+      profiler.onApplyFieldConfigStart();
+    }
+
     const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
 
     const fieldConfigRegistry = plugin.fieldConfigRegistry;
@@ -515,6 +557,22 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
 
     this._prevData = rawData;
+
+    // End profiling data processing
+    if (profiler) {
+      // Calculate data metrics
+      let dataPointsCount = 0;
+      let seriesCount = newFrames.length;
+
+      for (const frame of newFrames) {
+        if (frame.length) {
+          dataPointsCount += frame.length * frame.fields.length;
+        }
+      }
+
+      profiler.onApplyFieldConfigEnd(dataPointsCount, seriesCount);
+    }
+
     return this._dataWithFieldConfig;
   }
 
