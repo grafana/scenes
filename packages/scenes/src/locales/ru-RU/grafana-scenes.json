@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Редактировать фильтр с ключом {{keyLabel}}",
         "managed-filter": "фильтр, управляемый {{origin}}",
+        "non-applicable": "",
         "remove-filter-with-key": "Удалить фильтр с ключом {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Если вы попали сюда по ссылке, возможна ошибка в приложении.",
         "subTitle": "URL-адрес не соответствует ни одной странице",
         "title": "Не найдена"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Свернуть сцену",
