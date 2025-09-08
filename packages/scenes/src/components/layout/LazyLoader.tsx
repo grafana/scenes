@@ -66,7 +66,7 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     // been loaded, we can remove the non-breaking space and show the children.
     // If the children render empty, the whole loader will be hidden by css.
     return (
-      <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
+      <div data-testid="lazy-loader-container" id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
         {!loaded || !isInView ? t('grafana-scenes.components.lazy-loader.placeholder', '\u00A0') : children}
       </div>
     );
