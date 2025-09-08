@@ -97,7 +97,6 @@ export function getPanelMenuTest(defaults: SceneAppPageState): SceneAppPage {
 
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Different ways to use panel menu',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

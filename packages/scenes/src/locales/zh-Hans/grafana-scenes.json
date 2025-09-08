@@ -1,0 +1,152 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "使用键 {{keyLabel}} 编辑筛选器",
+        "managed-filter": "{{origin}} 托管筛选器",
+        "non-applicable": "",
+        "remove-filter-with-key": "使用键 {{keyLabel}} 移除筛选器"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "移除筛选器值 - {{itemLabel}}",
+        "use-custom-value": "使用自定义值：{{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "如果您使用链接找到了此处的路径，则此应用程序中可能存在错误。",
+        "subTitle": "URL 与任何页面都不匹配",
+        "title": "未找到"
+      },
+      "lazy-loader": {
+        "placeholder": ""
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "折叠场景",
+        "expand-button-label": "展开场景",
+        "remove-button-label": "移除场景"
+      },
+      "scene-debugger": {
+        "object-details": "对象详情",
+        "scene-graph": "场景图",
+        "title-scene-debugger": "场景调试器"
+      },
+      "scene-grid-row": {
+        "collapse-row": "折叠行",
+        "expand-row": "展开行"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "比较",
+        "button-tooltip": "启用时间范围比较"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "窗格大小调整小部件"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "标题"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "探索"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "正在加载插件面板…",
+        "panel-plugin-has-no-panel-component": "面板插件没有面板组件"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "在单个面板中呈现太多系列可能会影响性能，并使数据难以阅读。",
+        "warning-message": "仅显示 {{seriesLimit}} 系列"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "移除"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "取消查询"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "编辑筛选器运算符"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "添加筛选条件",
+        "title-add-filter": "添加筛选条件"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "移除筛选条件",
+        "key-select": {
+          "placeholder-select-label": "选择标签"
+        },
+        "label-select-label": "选择标签",
+        "title-remove-filter": "移除筛选条件",
+        "value-select": {
+          "placeholder-select-value": "选择值"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "默认"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "清除",
+        "tooltip": "在此数据面板中默认应用。如果编辑，它将转移到其他数据面板。",
+        "tooltip-restore-groupby-set-by-this-dashboard": "还原此数据面板设置的分组。"
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "逗号分隔值",
+            "double-quoted-values": "双引号值",
+            "format-date-in-different-ways": "以不同方式格式化日期",
+            "format-multivalued-variables-using-syntax-example": "使用 glob 语法格式化多值变量，例如 {value1,value2}",
+            "html-escaping-of-values": "值的 HTML 转义",
+            "json-stringify-value": "JSON 字符串化值",
+            "keep-value-as-is": "保持值不变",
+            "multiple-values-are-formatted-like-variablevalue": "多个值的格式为 variable=value",
+            "single-quoted-values": "单引号值",
+            "useful-escaping-values-taking-syntax-characters": "用于 URL 转义值，采用 URI 语法字符",
+            "useful-for-url-escaping-values": "适用于 URL 转义值",
+            "values-are-separated-by-character": "值由 | 字符分隔"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "按选择器分组",
+        "placeholder-group-by-label": "按标签分组"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "选择值"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "正在加载选项…"
+      },
+      "multi-value-apply-button": {
+        "apply": "应用"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "未找到选项"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "获取标签时发生错误。单击重试"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "您好"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "文本"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "输入数值"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "选择值"
+      }
+    }
+  }
+}

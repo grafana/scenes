@@ -14,6 +14,7 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
+import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
@@ -167,6 +168,148 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.value).toEqual(['a', 'b,something', 'c,something']);
       expect(variable.state.text).toEqual(['A,something', 'b,something', 'C,something']);
     });
+
+    it('should set restorable if value differs from defaultValue', async () => {
+      const { variable } = setupTest(
+        {
+          defaultValue: {
+            value: ['defaultVal1'],
+            text: ['defaultVal1'],
+          },
+        },
+        undefined,
+        '/?var-test=defaultVal1&var-test=normalVal'
+      );
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'normalVal']);
+      expect(locationService.getLocation().search).toBe(
+        '?var-test=defaultVal1&var-test=normalVal&restorable-var-test=true'
+      );
+    });
+
+    it('should use url value and restore to default', async () => {
+      const { variable } = setupTest(
+        {
+          defaultValue: {
+            value: ['defaultVal1'],
+            text: ['defaultVal1'],
+          },
+        },
+        undefined,
+        '/?var-test=normalVal'
+      );
+
+      expect(locationService.getLocation().search).toBe('?var-test=normalVal&restorable-var-test=true');
+
+      act(() => {
+        variable.restoreDefaultValues();
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1']);
+      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+    });
+
+    it('should use default value if nothing arrives from the url', async () => {
+      const { variable } = setupTest({
+        defaultValue: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      await act(async () => {
+        await lastValueFrom(variable.validateAndUpdate());
+        expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+        expect(variable.state.value).toEqual(['defaultVal1']);
+        expect(variable.state.text).toEqual(['defaultVal1']);
+      });
+    });
+
+    it('should overwrite any existing values with the default value if nothing arrives from the url', async () => {
+      const { variable } = setupTest({
+        value: ['existingVal1', 'existingVal2'],
+        defaultValue: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      await act(async () => {
+        await lastValueFrom(variable.validateAndUpdate());
+        expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+        expect(variable.state.value).toEqual(['defaultVal1']);
+        expect(variable.state.text).toEqual(['defaultVal1']);
+      });
+    });
+
+    it('should be able to restore to default values when they exist', () => {
+      const { variable } = setupTest(
+        {
+          defaultValue: {
+            value: ['defaultVal1', 'defaultVal2'],
+            text: ['defaultVal1', 'defaultVal2'],
+          },
+        },
+        undefined,
+        '/?var-test=val1'
+      );
+
+      expect(variable.state.value).toEqual(['val1']);
+      expect(variable.state.text).toEqual(['val1']);
+      expect(variable.state.restorable).toBe(true);
+
+      variable.restoreDefaultValues();
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.text).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValue!.value).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.defaultValue!.text).toEqual(['defaultVal1', 'defaultVal2']);
+      expect(variable.state.restorable).toBe(false);
+    });
+
+    it('should not set variable as restorable if values are the same as default ones', () => {
+      const { variable } = setupTest({
+        value: ['defaultVal1', 'defaultVal2'],
+        defaultValue: {
+          value: ['defaultVal1', 'defaultVal2'],
+          text: ['defaultVal1', 'defaultVal2'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+    });
+
+    it('should work with browser history action on user action', () => {
+      const { variable } = setupTest({
+        defaultOptions: [
+          { text: 'a', value: 'a' },
+          { text: 'b', value: 'b' },
+        ],
+      });
+
+      expect(variable.state.value).toEqual('');
+      expect(variable.state.text).toEqual('');
+
+      act(() => {
+        variable.changeValueTo(['a'], undefined, true);
+      });
+
+      expect(locationService.getLocation().search).toBe('?var-test=a');
+
+      act(() => {
+        locationService.push('/?var-test=a&var-test=b');
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b']);
+      expect(variable.state.text).toEqual(['a', 'b']);
+
+      act(() => {
+        locationService.push('/?var-test=a&var-test=b&var-test=c');
+      });
+
+      expect(variable.state.value).toEqual(['a', 'b', 'c']);
+      expect(variable.state.text).toEqual(['a', 'b', 'c']);
+    });
   });
 
   it('Can override and replace getTagKeys', async () => {
@@ -259,8 +402,24 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
   });
 
-  // TODO enable once this repo is using @grafana/ui@11.1.0
-  it.skip('shows groups and orders according to first occurence of a group item', async () => {
+  it('does NOT call addActivationHandler when applyMode is manual', async () => {
+    allActiveGroupByVariables.clear();
+
+    const { variable } = setupTest({
+      applyMode: 'manual',
+    });
+
+    const addActivationHandlerSpy = jest.spyOn(variable, 'addActivationHandler');
+
+    await act(async () => {
+      await lastValueFrom(variable.validateAndUpdate());
+    });
+
+    expect(addActivationHandlerSpy).not.toHaveBeenCalled();
+    expect(allActiveGroupByVariables.size).toBe(0);
+  });
+
+  it('shows groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setupTest({
       getTagKeysProvider: async () => ({
         replace: true,
@@ -334,6 +493,246 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
     });
+
+    it('input should show restore icon and be clickable', async () => {
+      const { variable } = setupTest(
+        {
+          defaultValue: {
+            value: ['defaultValue'],
+            text: ['defaultValue'],
+          },
+        },
+        undefined,
+        '/?var-test=val'
+      );
+
+      const restore = screen.getByLabelText('Restore groupby set by this dashboard.');
+
+      await userEvent.click(restore);
+
+      expect(screen.queryByLabelText('Restore groupby set by this dashboard.')).not.toBeInTheDocument();
+      expect(variable.state.value).toEqual(['defaultValue']);
+    });
+  });
+
+  describe('_verifyApplicability', () => {
+    it('should call getDrilldownsApplicability and update keysApplicability state', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
+        { key: 'key1', applicable: true },
+        { key: 'key2', applicable: false },
+      ]);
+
+      const { variable } = setupTest({ value: ['key1', 'key2'] }, undefined, undefined, {
+        // @ts-expect-error (temporary till we update grafana/data)
+        getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+      });
+
+      await act(async () => {
+        await variable._verifyApplicability();
+      });
+
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalledWith({
+        groupByKeys: ['key1', 'key2'],
+        queries: [
+          {
+            expr: 'my_metric{$filters}',
+            refId: 'A',
+          },
+        ],
+        timeRange: expect.any(Object),
+        scopes: undefined,
+      });
+
+      expect(variable.state.keysApplicability).toEqual([
+        { key: 'key1', applicable: true },
+        { key: 'key2', applicable: false },
+      ]);
+    });
+
+    it('should not set keysApplicability if data source does not support it', async () => {
+      const { variable } = setupTest({ value: ['key1'] });
+
+      await act(async () => {
+        await variable._verifyApplicability();
+      });
+
+      expect(variable.state.keysApplicability).toBeUndefined();
+    });
+
+    it('should handle empty response from getDrilldownsApplicability', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(null);
+
+      const { variable } = setupTest({ value: ['key1'] }, undefined, undefined, {
+        // @ts-expect-error (temporary till we update grafana/data)
+        getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+      });
+
+      await act(async () => {
+        await variable._verifyApplicability();
+      });
+
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
+      expect(variable.state.keysApplicability).toBeUndefined();
+    });
+
+    it('should be called during activation handler', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'key1', applicable: true }]);
+
+      const { variable } = setupTest({ value: ['key1'] }, undefined, undefined, {
+        // @ts-expect-error (temporary till we update grafana/data)
+        getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+      });
+
+      await act(async () => {
+        // Wait for activation handler to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
+      expect(variable.state.keysApplicability).toEqual([{ key: 'key1', applicable: true }]);
+    });
+
+    it('should pass values to verifyApplicabilitySpy on blur', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
+        { key: 'existingKey', applicable: true },
+        { key: 'newTypedKey', applicable: false },
+      ]);
+
+      const { variable } = setupTest(
+        {
+          value: ['existingKey'],
+          defaultOptions: [
+            { text: 'existingKey', value: 'existingKey' },
+            { text: 'option2', value: 'option2' },
+          ],
+          allowCustomValue: true,
+        },
+        undefined,
+        undefined,
+        {
+          // @ts-expect-error (temporary till we update grafana/data)
+          getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+        }
+      );
+
+      getDrilldownsApplicabilitySpy.mockClear();
+
+      const verifyApplicabilitySpy = jest.spyOn(variable, '_verifyApplicability');
+
+      const groupBySelect = screen.getByTestId('GroupBySelect-testGroupBy');
+      const input = groupBySelect.querySelector('input') as HTMLInputElement;
+      expect(input).toBeInTheDocument();
+
+      await userEvent.click(input);
+      await userEvent.type(input, 'newTypedKey');
+      await userEvent.keyboard('{Enter}');
+      await userEvent.keyboard('{Escape}');
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(verifyApplicabilitySpy).toHaveBeenCalled();
+    });
+
+    it('should save keysApplicability', async () => {
+      const keysApplicability = [
+        { key: 'key1', applicable: true },
+        { key: 'key2', applicable: false },
+      ];
+
+      const { variable } = setupTest({
+        value: ['key1', 'key2'],
+        keysApplicability,
+      });
+
+      expect(variable.state.keysApplicability).toEqual(keysApplicability);
+    });
+  });
+
+  describe('getApplicableKeys', () => {
+    it('should return all values when keysApplicability is undefined', () => {
+      const { variable } = setupTest({
+        value: ['key1', 'key2', 'key3'],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key1', 'key2', 'key3']);
+    });
+
+    it('should return all values when keysApplicability is empty array', () => {
+      const { variable } = setupTest({
+        value: ['key1', 'key2', 'key3'],
+        keysApplicability: [],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key1', 'key2', 'key3']);
+    });
+
+    it('should filter out non-applicable keys from array value', () => {
+      const { variable } = setupTest({
+        value: ['key1', 'key2', 'key3'],
+        keysApplicability: [
+          { key: 'key1', applicable: true },
+          { key: 'key2', applicable: false },
+          { key: 'key3', applicable: true },
+        ],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key1', 'key3']);
+    });
+
+    it('should return applicable key from single string value as array', () => {
+      const { variable } = setupTest({
+        value: 'key1',
+        keysApplicability: [{ key: 'key1', applicable: true }],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key1']);
+    });
+
+    it('should keep values that are not in keysApplicability (default to applicable)', () => {
+      const { variable } = setupTest({
+        value: ['key1', 'key2', 'key3'],
+        keysApplicability: [
+          { key: 'key1', applicable: false },
+          { key: 'key3', applicable: true },
+        ],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual(['key2', 'key3']); // key2 not in keysApplicability, so kept
+    });
+
+    it('should handle empty value array', () => {
+      const { variable } = setupTest({
+        value: [],
+        keysApplicability: [{ key: 'key1', applicable: false }],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle empty string value', () => {
+      const { variable } = setupTest({
+        value: '',
+        keysApplicability: [{ key: 'key1', applicable: false }],
+      });
+
+      const result = variable.getApplicableKeys();
+
+      expect(result).toEqual([]);
+    });
   });
 });
 
@@ -345,7 +744,9 @@ let runRequestSet = false;
 
 export function setupTest(
   overrides?: Partial<GroupByVariableState>,
-  filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest']
+  filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
+  path?: string,
+  dataSourceOverrides?: Partial<DataSourceApi>
 ) {
   const getTagKeysSpy = jest.fn();
   setDataSourceSrv({
@@ -358,6 +759,7 @@ export function setupTest(
         getRef() {
           return { uid: 'my-ds-uid' };
         },
+        ...dataSourceOverrides,
       };
     },
     getInstanceSettings() {
@@ -415,7 +817,7 @@ export function setupTest(
     (scene as EmbeddedScene & FiltersRequestEnricher).enrichFiltersRequest = filtersRequestEnricher;
   }
 
-  locationService.push('/');
+  locationService.push(path || '/');
 
   render(
     <TestContextProvider scene={scene}>

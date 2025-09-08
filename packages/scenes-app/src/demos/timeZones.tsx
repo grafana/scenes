@@ -49,7 +49,6 @@ export function getTimeZoneTest(defaults: SceneAppPageState) {
 
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Time zones support test',
     getScene: () => {
       return new EmbeddedScene({
         $timeRange: globalTimeRange,

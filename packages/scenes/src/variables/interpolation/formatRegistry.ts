@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { isArray, map, replace } from 'lodash';
 
 import { dateTime, Registry, RegistryItem, textUtil, escapeRegex, urlUtil } from '@grafana/data';
@@ -56,7 +57,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.Raw,
       name: 'raw',
-      description: 'Keep value as is',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.keep-value-as-is',
+        'Keep value as is'
+      ),
       formatter: (value) => String(value),
     },
     {
@@ -90,7 +94,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.Pipe,
       name: 'Pipe',
-      description: 'Values are separated by | character',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.values-are-separated-by-character',
+        'Values are separated by | character'
+      ),
       formatter: (value) => {
         if (typeof value === 'string') {
           return value;
@@ -106,7 +113,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.Distributed,
       name: 'Distributed',
-      description: 'Multiple values are formatted like variable=value',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.multiple-values-are-formatted-like-variablevalue',
+        'Multiple values are formatted like variable=value'
+      ),
       formatter: (value, args, variable) => {
         if (typeof value === 'string') {
           return value;
@@ -130,7 +140,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.CSV,
       name: 'Csv',
-      description: 'Comma-separated values',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.commaseparated-values',
+        'Comma-separated values'
+      ),
       formatter: (value) => {
         if (typeof value === 'string') {
           return value;
@@ -146,7 +159,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.HTML,
       name: 'HTML',
-      description: 'HTML escaping of values',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.html-escaping-of-values',
+        'HTML escaping of values'
+      ),
       formatter: (value) => {
         if (typeof value === 'string') {
           return textUtil.escapeHtml(value);
@@ -162,7 +178,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.JSON,
       name: 'JSON',
-      description: 'JSON stringify value',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.json-stringify-value',
+        'JSON stringify value'
+      ),
       formatter: (value) => {
         if (typeof value === 'string') {
           return value;
@@ -173,7 +192,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.PercentEncode,
       name: 'Percent encode',
-      description: 'Useful for URL escaping values',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.useful-for-url-escaping-values',
+        'Useful for URL escaping values'
+      ),
       formatter: (value) => {
         // like glob, but url escaped
         if (isArray(value)) {
@@ -186,7 +208,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.SingleQuote,
       name: 'Single quote',
-      description: 'Single quoted values',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.single-quoted-values',
+        'Single quoted values'
+      ),
       formatter: (value) => {
         // escape single quotes with backslash
         const regExp = new RegExp(`'`, 'g');
@@ -202,7 +227,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.DoubleQuote,
       name: 'Double quote',
-      description: 'Double quoted values',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.double-quoted-values',
+        'Double quoted values'
+      ),
       formatter: (value) => {
         // escape double quotes with backslash
         const regExp = new RegExp('"', 'g');
@@ -221,9 +249,24 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       formatter: sqlStringFormatter,
     },
     {
+      id: 'join', // join not yet available in depended @grafana/schema version
+      name: 'Join',
+      description: 'Join values with a comma',
+      formatter: (value, args) => {
+        if (isArray(value)) {
+          const separator = args[0] ?? ',';
+          return value.join(separator);
+        }
+        return String(value);
+      },
+    },
+    {
       id: VariableFormatID.Date,
       name: 'Date',
-      description: 'Format date in different ways',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.format-date-in-different-ways',
+        'Format date in different ways'
+      ),
       formatter: (value, args) => {
         let nrValue = NaN;
 
@@ -256,7 +299,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: VariableFormatID.Glob,
       name: 'Glob',
-      description: 'Format multi-valued variables using glob syntax, example {value1,value2}',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.format-multivalued-variables-using-syntax-example',
+        'Format multi-valued variables using glob syntax, example {value1,value2}'
+      ),
       formatter: (value) => {
         if (isArray(value) && value.length > 1) {
           return '{' + value.join(',') + '}';
@@ -295,9 +341,28 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
+      id: 'customqueryparam',
+      name: 'Custom query parameter',
+      description:
+        'Format variables as URL parameters with custom name and value prefix. Example in multi-variable scenario A + B + C => p-foo=x-A&p-foo=x-B&p-foo=x-C.',
+      formatter: (value, args, variable) => {
+        const name = encodeURIComponentStrict(args[0] || variable.state.name);
+        const valuePrefix = encodeURIComponentStrict(args[1] || '');
+
+        if (Array.isArray(value)) {
+          return value.map((v) => customFormatQueryParameter(name, v, valuePrefix)).join('&');
+        }
+
+        return customFormatQueryParameter(name, value, valuePrefix);
+      },
+    },
+    {
       id: VariableFormatID.UriEncode,
       name: 'Percent encode as URI',
-      description: 'Useful for URL escaping values, taking into URI syntax characters',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.useful-escaping-values-taking-syntax-characters',
+        'Useful for URL escaping values, taking into URI syntax characters'
+      ),
       formatter: (value: VariableValue) => {
         if (isArray(value)) {
           return encodeURIStrict('{' + value.join(',') + '}');
@@ -341,6 +406,10 @@ const replaceSpecialCharactersToASCII = (value: string): string =>
 
 function formatQueryParameter(name: string, value: VariableValueSingle): string {
   return `var-${name}=${encodeURIComponentStrict(value)}`;
+}
+
+function customFormatQueryParameter(name: string, value: VariableValueSingle, valuePrefix = ''): string {
+  return `${name}=${valuePrefix}${encodeURIComponentStrict(value)}`;
 }
 
 export function isAllValue(value: VariableValueSingle) {

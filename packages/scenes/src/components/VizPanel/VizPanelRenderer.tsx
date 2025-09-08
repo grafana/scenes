@@ -1,3 +1,4 @@
+import { Trans } from '@grafana/i18n';
 import React, { RefCallback, useCallback, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
@@ -40,9 +41,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   const setPanelAttention = useCallback(() => {
     if (model.state.key) {
-      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
+      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.getPathId() }));
     }
-  }, [model.state.key, appEvents]);
+  }, [model, appEvents]);
+
   const debouncedMouseMove = useMemo(
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
     [setPanelAttention]
@@ -51,6 +53,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const plugin = model.getPlugin();
 
   const { dragClass, dragClassCancel } = getDragClasses(model);
+  const dragHooks = getDragHooks(model);
   const dataObject = sceneGraph.getData(model);
 
   const rawData = dataObject.useState();
@@ -66,11 +69,23 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const alertStateStyles = useStyles2(getAlertStateStyles);
 
   if (!plugin) {
-    return <div>Loading plugin panel...</div>;
+    return (
+      <div>
+        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.loading-plugin-panel">
+          Loading plugin panel...
+        </Trans>
+      </div>
+    );
   }
 
   if (!plugin.panel) {
-    return <div>Panel plugin has no panel component</div>;
+    return (
+      <div>
+        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.panel-plugin-has-no-panel-component">
+          Panel plugin has no panel component
+        </Trans>
+      </div>
+    );
   }
 
   const PanelComponent = plugin.panel;
@@ -168,6 +183,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
+          // @ts-expect-error showMenuAlways remove when updating to @grafana/ui@12 fixed in https://github.com/grafana/grafana/pull/103553
           <PanelChrome
             title={titleInterpolated}
             description={description?.trim() ? model.getDescription : undefined}
@@ -176,12 +192,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             statusMessageOnClick={model.onStatusMessageClick}
             width={width}
             height={height}
-            //@ts-expect-error Remove when 11.4 is released
             selectionId={model.state.key}
             displayMode={displayMode}
-            showMenuAlways={showMenuAlways}
-            hoverHeader={hoverHeader}
-            hoverHeaderOffset={hoverHeaderOffset}
             titleItems={titleItemsElement}
             dragClass={dragClass}
             actions={actionsElement}
@@ -189,13 +201,20 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             padding={plugin.noPadding ? 'none' : 'md'}
             menu={panelMenu}
             onCancelQuery={model.onCancelQuery}
-            // @ts-ignore
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
-            collapsible={collapsible}
-            collapsed={collapsed}
-            onToggleCollapse={model.onToggleCollapse}
+            onDragStart={(e: React.PointerEvent) => {
+              dragHooks.onDragStart?.(e, model);
+            }}
+            showMenuAlways={showMenuAlways}
+            {...(collapsible
+              ? {
+                  collapsible: Boolean(collapsible),
+                  collapsed,
+                  onToggleCollapse: model.onToggleCollapse,
+                }
+              : { hoverHeader, hoverHeaderOffset })}
           >
             {(innerWidth, innerHeight) => (
               <>
@@ -211,7 +230,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           timeZone={timeZone}
                           options={options}
                           fieldConfig={fieldConfig}
-                          transparent={false}
+                          transparent={displayMode === 'transparent'}
                           width={innerWidth}
                           height={innerHeight}
                           renderCounter={_renderCounter}
@@ -258,19 +277,28 @@ function getDragClasses(panel: VizPanel) {
   return { dragClass: parentLayout.getDragClass?.(), dragClassCancel: parentLayout?.getDragClassCancel?.() };
 }
 
+function getDragHooks(panel: VizPanel) {
+  const parentLayout = sceneGraph.getLayout(panel);
+  return parentLayout?.getDragHooks?.() ?? {};
+}
+
 /**
  * Walks up the parent chain until it hits the layout object, trying to find the closest SceneGridItemLike ancestor.
  * It is not always the direct parent, because the VizPanel can be wrapped in other objects.
  */
 function itemDraggingDisabled(item: SceneObject, layout: SceneLayout) {
-  let ancestor = item.parent;
+  let obj: SceneObject | undefined = item;
 
-  while (ancestor && ancestor !== layout) {
-    if ('isDraggable' in ancestor.state && ancestor.state.isDraggable === false) {
+  while (obj && obj !== layout) {
+    if ('isDraggable' in obj.state && obj.state.isDraggable === false) {
       return true;
     }
 
-    ancestor = ancestor.parent;
+    if ('repeatSourceKey' in obj.state && obj.state.repeatSourceKey) {
+      return true;
+    }
+
+    obj = obj.parent;
   }
 
   return false;

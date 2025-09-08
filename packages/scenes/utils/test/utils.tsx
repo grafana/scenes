@@ -1,11 +1,6 @@
-import React from 'react';
 import { matcherHint, printExpected, printReceived } from 'jest-matcher-utils';
 import { asapScheduler, Subscription, timer, isObservable } from 'rxjs';
-import { History } from 'history';
-import { render } from '@testing-library/react';
-import { SceneApp } from '../../src/components/SceneApp/SceneApp';
-import { Router } from 'react-router-dom';
-import { SceneObject, SceneObjectState } from '../../src';
+import { SceneObject, SceneObjectState } from '../../src/core/types';
 
 export const OBSERVABLE_TEST_TIMEOUT_IN_MS = 1000;
 
@@ -66,15 +61,6 @@ export function expectObservable(received: unknown): jest.CustomMatcherResult | 
   }
 
   return null;
-}
-
-export function renderAppInsideRouterWithStartingUrl(history: History, app: SceneApp, startingUrl: string) {
-  history.push(startingUrl);
-  render(
-    <Router history={history}>
-      <app.Component model={app} />
-    </Router>
-  );
 }
 
 export function subscribeToStateUpdates<T extends SceneObjectState>(obj: SceneObject<T>): T[] {

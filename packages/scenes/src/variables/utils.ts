@@ -1,11 +1,18 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
-import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  DataQueryError,
+  GetTagResponse,
+  GrafanaTheme2,
+  MetricFindValue,
+  SelectableValue,
+} from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
-import uFuzzy from '@leeoniya/ufuzzy';
+import { css } from '@emotion/css';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -106,8 +113,12 @@ export function getQueriesForVariables(
     (o) => o instanceof SceneQueryRunner
   ) as SceneQueryRunner[];
 
+  const interpolatedDsUuid = sceneGraph.interpolate(sourceObject, sourceObject.state.datasource?.uid);
+
   const applicableRunners = filterOutInactiveRunnerDuplicates(runners).filter((r) => {
-    return r.state.datasource?.uid === sourceObject.state.datasource?.uid;
+    const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, r.state.datasource?.uid);
+
+    return interpolatedQueryDsUuid === interpolatedDsUuid;
   });
 
   if (applicableRunners.length === 0) {
@@ -116,7 +127,16 @@ export function getQueriesForVariables(
 
   const result: SceneDataQuery[] = [];
   applicableRunners.forEach((r) => {
-    result.push(...r.state.queries);
+    result.push(
+      ...r.state.queries.filter((q) => {
+        if (!q.datasource || !q.datasource.uid) {
+          return true;
+        }
+
+        const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, q.datasource.uid);
+        return interpolatedQueryDsUuid === interpolatedDsUuid;
+      })
+    );
   });
 
   return result;
@@ -167,6 +187,23 @@ export function escapeUrlCommaDelimiters(value: string | undefined): string {
   return /,/g[Symbol.replace](value, '__gfc__');
 }
 
+export function escapeUrlHashDelimiters(value: string | undefined): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  // Replace the hash due to using it as a value/label separator
+  return /#/g[Symbol.replace](value, '__gfh__');
+}
+
+export function escapeOriginFilterUrlDelimiters(value: string | undefined): string {
+  return escapeUrlHashDelimiters(escapeUrlPipeDelimiters(value));
+}
+
+export function escapeURLDelimiters(value: string | undefined): string {
+  return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(value));
+}
+
 export function unescapeUrlDelimiters(value: string | undefined): string {
   if (value === null || value === undefined) {
     return '';
@@ -174,6 +211,7 @@ export function unescapeUrlDelimiters(value: string | undefined): string {
 
   value = /__gfp__/g[Symbol.replace](value, '|');
   value = /__gfc__/g[Symbol.replace](value, ',');
+  value = /__gfh__/g[Symbol.replace](value, '#');
 
   return value;
 }
@@ -222,33 +260,18 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
   return result;
 }
 
-export function getFuzzySearcher(haystack: string[], limit = 10_000) {
-  const ufuzzy = new uFuzzy();
-
-  const FIRST = Array.from({ length: Math.min(limit, haystack.length) }, (_, i) => i);
-
-  // returns matched indices by quality
-  return (search: string): number[] => {
-    if (search === '') {
-      return FIRST;
-    }
-
-    const [idxs, info, order] = ufuzzy.search(haystack, search);
-
-    if (idxs) {
-      if (info && order) {
-        const outIdxs = Array(Math.min(order.length, limit));
-
-        for (let i = 0; i < outIdxs.length; i++) {
-          outIdxs[i] = info.idx[order[i]];
-        }
-
-        return outIdxs;
-      }
-
-      return idxs.slice(0, limit);
-    }
-
-    return [];
+export function getNonApplicablePillStyles(theme: GrafanaTheme2) {
+  return {
+    disabledPill: css({
+      background: theme.colors.action.selected,
+      color: theme.colors.text.disabled,
+      border: 0,
+      '&:hover': {
+        background: theme.colors.action.selected,
+      },
+    }),
+    strikethrough: css({
+      textDecoration: 'line-through',
+    }),
   };
 }

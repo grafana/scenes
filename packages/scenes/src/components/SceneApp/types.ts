@@ -42,7 +42,9 @@ export interface SceneAppPageState extends SceneObjectState {
   // Use to provide page absolute URL, i.e. /app/overview
   url: string;
   // Use to provide parametrized page URL, i.e. /app/overview/:clusterId
-  routePath?: string;
+  // Needs to be a wildcard route if the page has tabs or drilldowns (e.g. /app/overview/*)
+  // Needs to be relative to the parent if the page is a tab or drilldown
+  routePath: string;
   /** Array of scene object to be rendered at the top right of the page, inline with the page title */
   controls?: SceneObject[];
   // Whether or not page should be visible in the breadcrumbs path

@@ -39,15 +39,14 @@ import { isExtraQueryProvider, ExtraQueryDataProcessor, ExtraQueryProvider } fro
 import { passthroughProcessor, extraQueryProcessingOperator } from './extraQueryProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
-import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetAdhocFilters';
 import { registerQueryWithController } from './registerQueryWithController';
-import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { AdHocFiltersVariable, isFilterComplete } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
 import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
+import { DrilldownDependenciesManager } from '../variables/DrilldownDependenciesManager';
 
 let counter = 100;
 
@@ -118,18 +117,19 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
 
-  private _adhocFiltersVar?: AdHocFiltersVariable;
-  private _groupByVar?: GroupByVariable;
-
   public getResultsStream() {
     return this._results;
   }
 
   protected _variableDependency: VariableDependencyConfig<QueryRunnerState> = new VariableDependencyConfig(this, {
-    statePaths: ['queries', 'datasource'],
+    statePaths: ['queries', 'datasource', 'minInterval'],
     onVariableUpdateCompleted: this.onVariableUpdatesCompleted.bind(this),
     onAnyVariableChanged: this.onAnyVariableChanged.bind(this),
+    dependsOnScopes: true,
   });
+
+  private _drilldownDependenciesManager: DrilldownDependenciesManager<QueryRunnerState> =
+    new DrilldownDependenciesManager(this._variableDependency);
 
   public constructor(initialState: QueryRunnerState) {
     super(initialState);
@@ -265,7 +265,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    */
   private onAnyVariableChanged(variable: SceneVariable) {
     // If this variable has already been detected this variable as a dependency onVariableUpdatesCompleted above will handle value changes
-    if (this._adhocFiltersVar === variable || this._groupByVar === variable || !this.isQueryModeAuto()) {
+    if (
+      this._drilldownDependenciesManager.adHocFiltersVar === variable ||
+      this._drilldownDependenciesManager.groupByVar === variable ||
+      !this.isQueryModeAuto()
+    ) {
       return;
     }
 
@@ -335,9 +339,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._timeSub?.unsubscribe();
     this._timeSub = undefined;
     this._timeSubRange = undefined;
-    this._adhocFiltersVar = undefined;
-    this._groupByVar = undefined;
-    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
+
+    this._drilldownDependenciesManager.cleanup();
   }
 
   public setContainerWidth(width: number) {
@@ -384,6 +387,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public runQueries() {
     const timeRange = sceneGraph.getTimeRange(this);
+
     if (this.isQueryModeAuto()) {
       this.subscribeToTimeRangeChanges(timeRange);
     }
@@ -433,6 +437,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
+    this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
+
     const { queries } = this.state;
 
     // Simple path when no queries exist
@@ -445,7 +451,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      this.findAndSubscribeToAdHocFilters(datasource?.uid);
+      this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid);
 
       const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
@@ -467,7 +473,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       stream = stream.pipe(
         registerQueryWithController({
-          type: 'data',
+          type: 'SceneQueryRunner/runQueries',
           request: primary,
           origin: this,
           cancel: () => this.cancelQuery(),
@@ -526,19 +532,20 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       },
       cacheTimeout: this.state.cacheTimeout,
       queryCachingTTL: this.state.queryCachingTTL,
+      scopes: sceneGraph.getScopes(this),
       // This asks the scene root to provide context properties like app, panel and dashboardUID
       ...getEnrichedDataRequest(this),
     };
 
-    if (this._adhocFiltersVar) {
-      // only pass filters that have both key and value
-      // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.filters = this._adhocFiltersVar.state.filters.filter(isFilterComplete);
+    const filters = this._drilldownDependenciesManager.getFilters();
+    const groupByKeys = this._drilldownDependenciesManager.getGroupByKeys();
+
+    if (filters) {
+      request.filters = filters;
     }
 
-    if (this._groupByVar) {
-      // @ts-ignore (Temporary ignore until we update @grafana/data)
-      request.groupByKeys = this._groupByVar.state.value;
+    if (groupByKeys) {
+      request.groupByKeys = groupByKeys;
     }
 
     request.targets = request.targets.map((query) => {
@@ -649,38 +656,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return null;
     });
     return Array.from(found.values());
-  }
-
-  /**
-   * Walk up scene graph and find the closest filterset with matching data source
-   */
-  private findAndSubscribeToAdHocFilters(uid: string | undefined) {
-    const filtersVar = findActiveAdHocFilterVariableByUid(uid);
-
-    if (this._adhocFiltersVar !== filtersVar) {
-      this._adhocFiltersVar = filtersVar;
-      this._updateExplicitVariableDependencies();
-    }
-
-    const groupByVar = findActiveGroupByVariablesByUid(uid);
-    if (this._groupByVar !== groupByVar) {
-      this._groupByVar = groupByVar;
-      this._updateExplicitVariableDependencies();
-    }
-  }
-
-  private _updateExplicitVariableDependencies() {
-    const explicitDependencies: string[] = [];
-
-    if (this._adhocFiltersVar) {
-      explicitDependencies.push(this._adhocFiltersVar.state.name);
-    }
-
-    if (this._groupByVar) {
-      explicitDependencies.push(this._groupByVar.state.name);
-    }
-
-    this._variableDependency.setVariableNames(explicitDependencies);
   }
 
   private isQueryModeAuto(): boolean {

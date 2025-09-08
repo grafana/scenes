@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ model }: Props) {
-  const { filters, readOnly } = model.useState();
+  const { originFilters, filters, readOnly } = model.useState();
   const styles = useStyles2(getStyles);
 
   // ref that focuses on the always wip filter input
@@ -27,15 +27,28 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     >
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
-      {filters.map((filter, index) => (
-        <AdHocFilterPill
-          key={`${index}-${filter.key}`}
-          filter={filter}
-          model={model}
-          readOnly={readOnly}
-          focusOnWipInputRef={focusOnWipInputRef.current}
-        />
-      ))}
+      {originFilters?.map((filter, index) =>
+        filter.origin ? (
+          <AdHocFilterPill
+            key={`${index}-${filter.key}`}
+            filter={filter}
+            model={model}
+            focusOnWipInputRef={focusOnWipInputRef.current}
+          />
+        ) : null
+      )}
+
+      {filters
+        .filter((filter) => !filter.hidden)
+        .map((filter, index) => (
+          <AdHocFilterPill
+            key={`${index}-${filter.key}`}
+            filter={filter}
+            model={model}
+            readOnly={readOnly || filter.readOnly}
+            focusOnWipInputRef={focusOnWipInputRef.current}
+          />
+        ))}
 
       {!readOnly ? <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnWipInputRef} /> : null}
     </div>

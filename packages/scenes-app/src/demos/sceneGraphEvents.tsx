@@ -14,7 +14,6 @@ import { Button, Stack, useTheme2 } from '@grafana/ui';
 export function getSceneGraphEventsDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Illustrating how events traverse the scene graph',
     getScene: () => {
       const childrenKeys = Array.from('ABC');
 

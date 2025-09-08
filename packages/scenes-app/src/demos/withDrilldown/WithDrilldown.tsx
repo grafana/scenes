@@ -49,16 +49,16 @@ const getScene = () =>
 export function getDrilldownsAppPageScene(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'This scene showcases a basic drilldown functionality. Interact with room to see room details scene.',
     getScene,
     drilldowns: [
       {
-        routePath: `${defaults.url}/room/:roomName`,
+        routePath: `room/:roomName/*`,
         getPage(routeMatch, parent) {
           const roomName = routeMatch.params.roomName;
 
           return new SceneAppPage({
             url: `${defaults.url}/room/${roomName}/temperature`,
+            routePath: `room/:roomName/*`,
             title: `${roomName}`,
             subTitle: 'This scene is a particular room drilldown. It implements two tabs to organise the data.',
             getParentPage: () => parent,
@@ -66,6 +66,7 @@ export function getDrilldownsAppPageScene(defaults: SceneAppPageState) {
               new SceneAppPage({
                 title: 'Temperature',
                 titleIcon: 'dashboard',
+                routePath: 'temperature',
                 tabSuffix: () => <Counter value={1} />,
                 url: `${defaults.url}/room/${roomName}/temperature`,
                 getScene: () => getRoomDrilldownScene(roomName),
@@ -73,6 +74,7 @@ export function getDrilldownsAppPageScene(defaults: SceneAppPageState) {
               new SceneAppPage({
                 title: 'Humidity',
                 titleIcon: 'chart-line',
+                routePath: 'humidity',
                 url: `${defaults.url}/room/${roomName}/humidity`,
                 getScene: () => getHumidityOverviewScene(roomName),
               }),

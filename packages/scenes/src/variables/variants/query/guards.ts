@@ -110,3 +110,16 @@ export const hasCustomVariableSupport = <
     Boolean(variableSupport.editor)
   );
 };
+
+export const hasDataSourceVariableSupport = <
+  TQuery extends DataQuery = DataQuery,
+  TOptions extends DataSourceJsonData = DataSourceJsonData
+>(
+  datasource: DataSourceApi<TQuery, TOptions>
+): datasource is DataSourceWithCustomVariableSupport<TQuery, TOptions> => {
+  if (!datasource.variables) {
+    return false;
+  }
+
+  return datasource.variables.getType() === VariableSupportType.Datasource;
+};

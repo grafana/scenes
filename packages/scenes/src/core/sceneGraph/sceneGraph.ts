@@ -1,4 +1,4 @@
-import { ScopedVars } from '@grafana/data';
+import { Scope, ScopedVars } from '@grafana/data';
 import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/defaults';
 
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
@@ -7,10 +7,11 @@ import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types
 import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
-import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 import { VariableInterpolation } from '@grafana/runtime';
 import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
+import { ScopesVariable } from '../../variables/variants/ScopesVariable';
+import { SCOPES_VARIABLE_NAME } from '../../variables/constants';
 
 /**
  * Get the closest node with variables
@@ -117,7 +118,11 @@ function findObjectInternal(
     let maybe = findObjectInternal(child, check);
     if (maybe) {
       found = maybe;
+      // break (exit early) the foreach loop
+      return false;
     }
+
+    return;
   });
 
   if (found) {
@@ -265,26 +270,6 @@ export function findDescendents<T extends SceneObject>(scene: SceneObject, desce
 }
 
 /**
- * Returns the closest query controller undefined if none found
- */
-export function getQueryController(sceneObject: SceneObject): SceneQueryControllerLike | undefined {
-  let parent: SceneObject | undefined = sceneObject;
-
-  while (parent) {
-    if (parent.state.$behaviors) {
-      for (const behavior of parent.state.$behaviors) {
-        if (isQueryController(behavior)) {
-          return behavior;
-        }
-      }
-    }
-    parent = parent.parent;
-  }
-
-  return undefined;
-}
-
-/**
  * Returns the closest SceneObject that has a state property with the
  * name urlSyncManager that is of type UrlSyncManager
  */
@@ -296,6 +281,18 @@ export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike 
       return parent.state.urlSyncManager as UrlSyncManagerLike;
     }
     parent = parent.parent;
+  }
+
+  return undefined;
+}
+
+/**
+ * Will return the scopes from the scopes variable if available.
+ */
+export function getScopes(sceneObject: SceneObject): Scope[] | undefined {
+  const scopesVariable = lookupVariable(SCOPES_VARIABLE_NAME, sceneObject);
+  if (scopesVariable instanceof ScopesVariable) {
+    return scopesVariable.state.scopes;
   }
 
   return undefined;

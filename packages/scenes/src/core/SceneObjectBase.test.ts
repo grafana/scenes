@@ -8,7 +8,7 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 import { act, renderHook } from '@testing-library/react';
 import { SceneObjectRef } from './SceneObjectRef';
 
-interface TestSceneState extends SceneObjectState {
+export interface TestSceneState extends SceneObjectState {
   name?: string;
   nested?: SceneObject<TestSceneState>;
   children?: TestScene[];
@@ -16,7 +16,7 @@ interface TestSceneState extends SceneObjectState {
   ref?: SceneObjectRef<TestScene>;
 }
 
-class TestScene extends SceneObjectBase<TestSceneState> {
+export class TestScene extends SceneObjectBase<TestSceneState> {
   public static created = 0;
 
   public constructor(state: TestSceneState) {
@@ -26,80 +26,6 @@ class TestScene extends SceneObjectBase<TestSceneState> {
 }
 
 describe('SceneObject', () => {
-  describe('Cloning', () => {
-    it('Can clone', () => {
-      const scene = new TestScene({
-        nested: new TestScene({
-          name: 'nested',
-        }),
-        actions: [
-          new TestScene({
-            name: 'action child',
-          }),
-        ],
-        children: [
-          new TestScene({
-            name: 'layout child',
-          }),
-        ],
-      });
-
-      scene.state.nested?.activate();
-
-      const clone = scene.clone();
-      expect(clone).not.toBe(scene);
-      expect(clone.state.nested).not.toBe(scene.state.nested);
-      expect(clone.state.nested?.isActive).toBe(false);
-      expect(clone.state.children![0]).not.toBe(scene.state.children![0]);
-      expect(clone.state.actions![0]).not.toBe(scene.state.actions![0]);
-    });
-
-    it('Can clone with ref', () => {
-      const refValue = new TestScene({ name: 'ref' });
-      const scene = new TestScene({
-        name: 'clone',
-        ref: refValue.getRef(),
-      });
-
-      const clone = scene.clone();
-      expect(clone.state.name).toBe('clone');
-      expect(clone.state.ref?.resolve()).toBe(refValue);
-    });
-
-    it('Should ignore cloning properties specified in overrides', () => {
-      const scene = new TestScene({ name: 'clone', nested: new TestScene({ name: 'nested' }) });
-
-      TestScene.created = 0;
-
-      scene.clone();
-
-      expect(TestScene.created).toBe(2);
-
-      scene.clone({ nested: undefined });
-
-      expect(TestScene.created).toBe(3);
-    });
-
-    it('Can clone with state change', () => {
-      const scene = new TestScene({
-        nested: new TestScene({
-          name: 'nested',
-        }),
-      });
-
-      const clone = scene.clone({ name: 'new name' });
-      expect(clone.state.name).toBe('new name');
-    });
-
-    it('Can clone with state and that state should not be cloned', () => {
-      const nested = new TestScene({ name: 'nested' });
-      const scene = new TestScene({ name: 'test', nested });
-
-      const clone = scene.clone({ nested });
-      expect(clone.state.nested).toBe(nested);
-    });
-  });
-
   it('SceneObject should have parent when added to container', () => {
     const scene = new TestScene({
       nested: new TestScene({
@@ -129,6 +55,17 @@ describe('SceneObject', () => {
 
     expect(scene).toBe(ref.resolve());
     expect(ref).toBe(scene.getRef());
+  });
+
+  it('Can json stringify', () => {
+    const scene = new TestScene({
+      key: 'root',
+      nested: new TestScene({ key: 'nested' }),
+    });
+
+    expect(JSON.stringify(scene)).toBe(
+      '{"type":"TestScene","isActive":false,"state":{"key":"root","nested":{"type":"TestScene","isActive":false,"state":{"key":"nested"}}}}'
+    );
   });
 
   it('Cannot modify state', () => {

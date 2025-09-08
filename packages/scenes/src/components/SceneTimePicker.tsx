@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocalStorage } from 'react-use';
 import { uniqBy } from 'lodash';
 
-import { TimeRange, isDateTime, rangeUtil, toUtc } from '@grafana/data';
+import { TimeOption, TimeRange, isDateTime, rangeUtil, toUtc } from '@grafana/data';
 import { TimeRangePicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -12,6 +12,8 @@ import { SceneComponentProps, SceneObjectState } from '../core/types';
 export interface SceneTimePickerState extends SceneObjectState {
   hidePicker?: boolean;
   isOnCanvas?: boolean;
+  quickRanges?: TimeOption[];
+  defaultQuickRanges?: TimeOption[]; // Overrides default time ranges from server config, so not serialised back to JSON
 }
 
 export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
@@ -56,7 +58,7 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
-  const { hidePicker, isOnCanvas } = model.useState();
+  const { hidePicker, isOnCanvas, quickRanges, defaultQuickRanges } = model.useState();
   const timeRange = sceneGraph.getTimeRange(model);
   const timeZone = timeRange.getTimeZone();
   const timeRangeState = timeRange.useState();
@@ -69,6 +71,8 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
   if (hidePicker) {
     return null;
   }
+
+  const rangesToUse = quickRanges || defaultQuickRanges;
 
   return (
     <TimeRangePicker
@@ -88,9 +92,9 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
-      // @ts-ignore TODO remove after grafana/ui update to 11.2.0
       weekStart={timeRangeState.weekStart}
       history={timeRangeHistory}
+      quickRanges={rangesToUse}
     />
   );
 }

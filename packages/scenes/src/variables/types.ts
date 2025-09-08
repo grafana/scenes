@@ -14,6 +14,7 @@ export interface SceneVariableState extends SceneObjectState {
   loading?: boolean;
   error?: any | null;
   description?: string | null;
+  showInControlsMenu?: boolean;
 }
 
 export interface SceneVariable<TState extends SceneVariableState = SceneVariableState> extends SceneObject<TState> {
@@ -43,6 +44,11 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
    * Allows cancelling variable execution.
    */
   onCancel?(): void;
+
+  /**
+   * Edge case for variables that are hidden but wants to be render to access react contexts (ScopesVariable)
+   */
+  UNSAFE_renderAsHidden?: boolean;
 
   /**
    * @experimental

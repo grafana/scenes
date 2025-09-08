@@ -16,6 +16,7 @@ export function global() {
   return new SceneAppPage({
     title: 'Global sync scope',
     url: demoUrl('cursor-sync'),
+    routePath: 'cursor-sync/*',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
@@ -75,6 +76,7 @@ export function scoped() {
   return new SceneAppPage({
     title: 'Cursor sync test',
     url: demoUrl('cursor-sync/scoped'),
+    routePath: 'scoped',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
@@ -192,7 +194,6 @@ export function scoped() {
 export function getCursorSyncTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A simple demo of scoped cursor sync',
     url: demoUrl('cursor-sync'),
     tabs: [global(), scoped()],
   });

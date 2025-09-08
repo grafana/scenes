@@ -24,8 +24,6 @@ const autoRowOptions = ['150px', '250px', 'auto'];
 export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle:
-      'A CSS Grid Layout demo, isLazy is enabled to showcase lazy rendering of panels. Every 3rd panel is hidden to test the layout working properly.',
     getScene: () => {
       const layout = new SceneCSSGridLayout({
         children: getLayoutChildren(10),
@@ -75,17 +73,21 @@ export function getCssGridLayoutDemo(defaults: SceneAppPageState) {
 }
 
 function getLayoutChildren(count: number) {
-  return Array.from(
-    Array(count),
-    (v, index) =>
-      new SceneCSSGridItem({
-        body: PanelBuilders.stat()
-          .setTitle(`Panel ${index + 1}`)
-          .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
-          .build(),
-        isHidden: index % 3 === 0,
-      })
-  );
+  return Array.from(Array(count), (v, index) => {
+    const item = new SceneCSSGridItem({
+      body: PanelBuilders.stat()
+        .setTitle(`Panel ${index + 1}`)
+        .setData(getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 400 }))
+        .build(),
+    });
+    // hide after timeout
+    if (index % 4 === 0) {
+      setTimeout(() => {
+        item.setState({ isHidden: true });
+      }, 3000);
+    }
+    return item;
+  });
 }
 
 export interface TemplateSelectorState extends SceneObjectState {

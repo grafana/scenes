@@ -4,6 +4,7 @@ module.exports = {
   moduleNameMapper: {
     '@grafana/scenes': '<rootDir>/../scenes/src',
     '\\.css$': '<rootDir>/utils/test/__mocks__/style.ts',
+    'react-inlinesvg': '<rootDir>/../scenes/utils/test/__mocks__/react-inlinesvg.tsx',
   },
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['./utils/setupTests.ts'],

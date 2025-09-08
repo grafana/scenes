@@ -1,3 +1,4 @@
+import { PointerEvent } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
@@ -7,8 +8,10 @@ import { isSceneGridRow } from './SceneGridItem';
 import { SceneGridLayoutRenderer } from './SceneGridLayoutRenderer';
 
 import { SceneGridRow } from './SceneGridRow';
-import { SceneGridItemLike, SceneGridItemPlacement } from './types';
+import { SceneGridItemLike, SceneGridItemPlacement, SceneGridLayoutDragStartEvent } from './types';
 import { fitPanelsInHeight } from './utils';
+import { VizPanel } from '../../VizPanel/VizPanel';
+import { isRepeatCloneOrChildOf } from '../../../utils/utils';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -54,6 +57,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
   public getDragClassCancel() {
     return `grid-drag-cancel`;
+  }
+
+  public getDragHooks() {
+    return {
+      onDragStart: (evt: PointerEvent, panel: VizPanel) => {
+        this.publishEvent(new SceneGridLayoutDragStartEvent({ evt, panel }), true);
+      },
+    };
   }
 
   public toggleRow(row: SceneGridRow) {
@@ -296,6 +307,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // Need to resort the grid layout based on new position (needed to find the new parent)
     gridLayout = sortGridLayout(gridLayout);
 
+    // Update the parent if the child if it has moved to a row or back to the grid
+    const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
+    let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
+    let newChildren = this.state.children;
+
     // Update children positions if they have changed
     for (let i = 0; i < gridLayout.length; i++) {
       const gridItem = gridLayout[i];
@@ -310,10 +326,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       }
     }
 
-    // Update the parent if the child if it has moved to a row or back to the grid
-    const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
-    let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
-    let newChildren = this.state.children;
+    // Dot not allow dragging into repeated row clone
+    if (newParent instanceof SceneGridRow && isRepeatCloneOrChildOf(newParent)) {
+      this._loadOldLayout = true;
+    }
 
     // if the child is a row and we are moving it under an uncollapsed row, keep the scene grid layout as parent
     // and set the old layout flag if the state is invalid. We allow setting the children in an invalid state,
@@ -326,7 +342,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       newParent = this;
     }
 
-    if (newParent !== sceneChild.parent) {
+    if (newParent !== sceneChild.parent && !this._loadOldLayout) {
       newChildren = this.moveChildTo(sceneChild, newParent);
     }
 
@@ -347,6 +363,12 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     if (child instanceof SceneGridRow) {
       isDraggable = child.state.isCollapsed ? true : false;
+      isResizable = false;
+    }
+
+    // If this is a repeated row, we should not allow dragging
+    if (isRepeatCloneOrChildOf(child)) {
+      isDraggable = false;
       isResizable = false;
     }
 

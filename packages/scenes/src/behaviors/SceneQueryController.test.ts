@@ -2,8 +2,9 @@ import { LoadingState } from '@grafana/schema';
 import { Observable } from 'rxjs';
 import { SceneObject } from '../core/types';
 import { TestScene } from '../variables/TestScene';
-import { QueryResultWithState, SceneQueryController } from './SceneQueryController';
+import { SceneQueryController } from './SceneQueryController';
 import { registerQueryWithController } from '../querying/registerQueryWithController';
+import { QueryResultWithState } from './types';
 
 describe('SceneQueryController', () => {
   let controller: SceneQueryController;

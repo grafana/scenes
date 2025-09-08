@@ -19,6 +19,8 @@ import { Dashboard, LoadingState } from '@grafana/schema';
 import { SceneObject, SceneTimeRangeLike } from '../../../core/types';
 import { getEnrichedDataRequest } from '../../getEnrichedDataRequest';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
+import { sceneGraph } from '../../../core/sceneGraph';
+import { AdHocFilterWithLabels } from '../../../variables/adhoc/AdHocFiltersVariable';
 
 let counter = 100;
 function getNextRequestId() {
@@ -39,7 +41,9 @@ export function executeAnnotationQuery(
   datasource: DataSourceApi,
   timeRange: SceneTimeRangeLike,
   query: AnnotationQuery,
-  layer: SceneObject
+  layer: SceneObject,
+  filters?: AdHocFilterWithLabels[],
+  groupByKeys?: string[]
 ): Observable<AnnotationQueryResults> {
   // Check if we should use the old annotationQuery method
   if (datasource.annotationQuery && shouldUseLegacyRunner(datasource)) {
@@ -118,6 +122,9 @@ export function executeAnnotationQuery(
         refId: 'Anno',
       },
     ],
+    scopes: sceneGraph.getScopes(layer),
+    filters,
+    groupByKeys,
     ...getEnrichedDataRequest(layer),
   };
 

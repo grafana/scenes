@@ -23,6 +23,9 @@ import { mockTransformationsRegistry } from '../utils/mockTransformationsRegistr
 import { SceneQueryRunner } from './SceneQueryRunner';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { subscribeToStateUpdates } from '../../utils/test/utils';
+import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
+import { TextBoxVariable } from '../variables/variants/TextBoxVariable';
+import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
 
@@ -129,6 +132,8 @@ jest.mock('@grafana/runtime', () => ({
 
 describe('SceneDataTransformer', () => {
   let customTransformerSpy = jest.fn();
+  let transformerSpy = jest.fn();
+  let annotationTransformerSpy = jest.fn();
 
   let sourceDataNode: SceneDataNode;
   let customTransformOperator: CustomTransformOperator;
@@ -143,7 +148,7 @@ describe('SceneDataTransformer', () => {
         id: 'transformer1',
         name: 'Custom Transformer',
         operator: (options) => (source) => {
-          // transformerSpy1(options);
+          transformerSpy(options);
           return source.pipe(
             map((data) => {
               return data.map((frame) => {
@@ -187,6 +192,7 @@ describe('SceneDataTransformer', () => {
         id: 'annotationTransformer',
         name: 'Custom annotationTransformer',
         operator: (options) => (source) => {
+          annotationTransformerSpy(options);
           return source.pipe(
             map((data) => {
               return data.map((frame) => ({
@@ -232,6 +238,8 @@ describe('SceneDataTransformer', () => {
 
   afterEach(() => {
     customTransformerSpy.mockClear();
+    transformerSpy.mockClear();
+    annotationTransformerSpy.mockClear();
   });
 
   it('applies transformations to closest data node', () => {
@@ -673,11 +681,11 @@ describe('SceneDataTransformer', () => {
       deactivate();
 
       transformer.activate();
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
 
       const clone = transformer.clone();
       clone.activate();
-
-      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
     });
 
     it('When series and annotations are the same but loading state is not', async () => {
@@ -702,6 +710,54 @@ describe('SceneDataTransformer', () => {
 
       expect(customTransformerSpy).toHaveBeenCalledTimes(1);
       expect(transformer.state.data?.state).toBe(LoadingState.Loading);
+    });
+  });
+
+  it('interpolates transformation options before applying', () => {
+    const transformationNode = new SceneDataTransformer({
+      transformations: [
+        {
+          ...transformer1config,
+          options: {
+            options: '$myVariable',
+          },
+        },
+        {
+          ...annotationTransformerConfig,
+          options: {
+            options: 'annotation-transformation-$myVariable',
+          },
+        },
+      ],
+    });
+
+    const consumer = new TestSceneObject({
+      $data: transformationNode,
+    });
+
+    const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
+    const scene = new SceneFlexLayout({
+      $data: sourceDataNode,
+      $variables: new SceneVariableSet({ variables: [textVar] }),
+      children: [new SceneFlexItem({ body: consumer })],
+    });
+
+    activateFullSceneTree(scene);
+
+    expect(transformerSpy).toHaveBeenCalledTimes(1);
+    expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+    expect(annotationTransformerSpy).toHaveBeenCalledTimes(1);
+    expect(annotationTransformerSpy).toHaveBeenLastCalledWith({
+      options: 'annotation-transformation-Text Variable Value',
+    });
+
+    textVar.setValue('New Text Variable Value');
+
+    expect(transformerSpy).toHaveBeenCalledTimes(2);
+    expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+    expect(annotationTransformerSpy).toHaveBeenCalledTimes(2);
+    expect(annotationTransformerSpy).toHaveBeenLastCalledWith({
+      options: 'annotation-transformation-New Text Variable Value',
     });
   });
 });

@@ -43,6 +43,10 @@ export function VariableValueSelectWrapper({ variable, layout, showAlways, hideL
   const state = useSceneObjectState<SceneVariableState>(variable, { shouldActivateOrKeepAlive: true });
 
   if (state.hide === VariableHide.hideVariable && !showAlways) {
+    if (variable.UNSAFE_renderAsHidden) {
+      return <variable.Component model={variable} />;
+    }
+
     return null;
   }
 
@@ -86,5 +90,13 @@ function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
   );
 }
 
-const containerStyle = css({ display: 'flex' });
+const containerStyle = css({
+  display: 'flex',
+  // No border for second element (inputs) as label and input border is shared
+  '> :nth-child(2)': css({
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+  }),
+});
+
 const verticalContainer = css({ display: 'flex', flexDirection: 'column' });

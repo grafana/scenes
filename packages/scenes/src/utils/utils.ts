@@ -1,8 +1,5 @@
 import { SceneObject, SceneObjectState } from '../core/types';
-import { locationService as locationServiceRuntime } from '@grafana/runtime';
-// @ts-ignore
-// eslint-disable-next-line no-duplicate-imports
-import { useLocationService } from '@grafana/runtime';
+import { locationService as locationServiceRuntime, useLocationService } from '@grafana/runtime';
 
 /**
  *  This function works around the problem of Contravariance of the SceneObject.setState function
@@ -21,4 +18,18 @@ export function useLocationServiceSafe() {
   // of grafana this will always be true or false) so it should be safe to ignore the hook rule here
   // eslint-disable-next-line react-hooks/rules-of-hooks
   return useLocationService ? useLocationService() : locationServiceRuntime;
+}
+
+export function isRepeatCloneOrChildOf(scene: SceneObject): boolean {
+  let obj: SceneObject | undefined = scene;
+
+  do {
+    if ('repeatSourceKey' in obj.state && obj.state.repeatSourceKey) {
+      return true;
+    }
+
+    obj = obj.parent;
+  } while (obj);
+
+  return false;
 }

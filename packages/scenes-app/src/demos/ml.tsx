@@ -110,7 +110,6 @@ export function getQueryRunnerWithCSVWaveQuery(
 export function getMlDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Time series demos',
     getScene: () => {
       return new EmbeddedScene({
         $data: getQueryRunnerWithCSVWaveQuery({}, { maxDataPointsFromWidth: false }),

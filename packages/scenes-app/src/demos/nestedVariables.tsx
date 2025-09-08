@@ -18,7 +18,6 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getNestedScenesAndVariablesDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Shows variables that depend on other variables defined on a higher level',
     $variables: new SceneVariableSet({
       variables: [
         new TestVariable({
@@ -44,6 +43,7 @@ export function getNestedScenesAndVariablesDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Overview',
         url: `${defaults.url}/overview`,
+        routePath: 'overview',
         getScene: () => {
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),

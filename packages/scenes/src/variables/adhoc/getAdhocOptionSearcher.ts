@@ -1,9 +1,8 @@
 import { SelectableValue } from '@grafana/data';
-import { getFuzzySearcher } from '../utils';
+import { fuzzyFind } from '../filter';
 
 export function getAdhocOptionSearcher(options: SelectableValue[]) {
   const haystack = options.map((o) => o.label ?? String(o.value));
-  const fuzzySearch = getFuzzySearcher(haystack);
 
-  return (search: string) => fuzzySearch(search).map((i) => options[i]);
+  return (search: string) => fuzzyFind<SelectableValue>(options, haystack, search);
 }

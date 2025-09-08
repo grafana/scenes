@@ -3,9 +3,12 @@ const esModules = ['ol', 'd3', 'd3-color', 'd3-interpolate', 'delaunator', 'inte
 module.exports = {
   moduleNameMapper: {
     '\\.css$': '<rootDir>/utils/test/__mocks__/style.ts',
+    '\\.svg$': '<rootDir>/utils/test/__mocks__/style.ts',
+    'react-inlinesvg': '<rootDir>/utils/test/__mocks__/react-inlinesvg.tsx',
   },
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['./utils/setupTests.ts'],
+  setupFiles: ['./utils/setupTests.ts'],
+  setupFilesAfterEnv: ['jest-canvas-mock', './utils/setupTestsAfterEnv.ts'],
   testMatch: ['<rootDir>/src/**/*.{spec,test,jest}.{js,jsx,ts,tsx}'],
   transform: {
     '^.+\\.(t|j)sx?$': [

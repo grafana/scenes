@@ -4,6 +4,7 @@ import { useEffectOnce } from 'react-use';
 import { uniqueId } from 'lodash';
 import { css } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
+import { t } from '@grafana/i18n';
 
 export function useUniqueId(): string {
   const idRefLazy = useRef<string | undefined>(undefined);
@@ -12,7 +13,7 @@ export function useUniqueId(): string {
 }
 
 export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange' | 'children'> {
-  children: React.ReactNode | (({ isInView }: { isInView: boolean }) => React.ReactNode);
+  children: React.ReactNode;
   key: string;
   onLoad?: () => void;
   onChange?: (isInView: boolean) => void;
@@ -60,15 +61,13 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
       };
     });
 
-    // If the element was loaded, we add the `hideEmpty` class to potentially
-    // hide the LazyLoader if it does not have any children. This is the case
-    // when children have the `isHidden` property set.
-    // We always include the `className` class, as this is coming from the
-    // caller of the `LazyLoader` component.
-    const classes = `${loaded ? hideEmpty : ''} ${className}`;
+    // since we will hide empty lazyloaded divs, we need to include a
+    // non-breaking space while the loader has not been loaded. after it has
+    // been loaded, we can remove the non-breaking space and show the children.
+    // If the children render empty, the whole loader will be hidden by css.
     return (
-      <div data-testid="lazy-loader-container" id={id} ref={innerRef} className={classes} {...rest}>
-        {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
+      <div data-testid="lazy-loader-container" id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
+        {!loaded || !isInView ? t('grafana-scenes.components.lazy-loader.placeholder', '\u00A0') : children}
       </div>
     );
   }

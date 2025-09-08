@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import React, {
   forwardRef,
   useCallback,
@@ -13,7 +14,12 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, isMultiValueOperator } from '../AdHocFiltersVariable';
+import {
+  AdHocFilterWithLabels,
+  AdHocFiltersVariable,
+  isFilterComplete,
+  isMultiValueOperator,
+} from '../AdHocFiltersVariable';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
@@ -25,7 +31,6 @@ import {
 import {
   ERROR_STATE_DROPDOWN_WIDTH,
   flattenOptionGroups,
-  fuzzySearchOptions,
   generateFilterUpdatePayload,
   generatePlaceholder,
   populateInputValueOnInputTypeSwitch,
@@ -39,6 +44,9 @@ import {
 import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
 import { MultiValuePill } from './MultiValuePill';
+import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
+import { getQueryController } from '../../../core/sceneGraph/getQueryController';
+import { FILTER_REMOVED_INTERACTION, FILTER_CHANGED_INTERACTION } from '../../../behaviors/SceneRenderProfiler';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -81,7 +89,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const disabledIndicesRef = useRef<number[]>([]);
   const filterInputTypeRef = useRef<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
 
-  const optionsSearcher = useMemo(() => fuzzySearchOptions(options), [options]);
+  const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
 
   const isLastFilter = useMemo(() => {
     if (isAlwaysWip) {
@@ -110,6 +118,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       filterMultiValues: Array<SelectableValue<string>>,
       preventFocus?: boolean
     ) => {
+      if (!filterMultiValues.length && filter.origin) {
+        model.updateToMatchAll(filter);
+      }
+
       if (filterMultiValues.length) {
         const valueLabels: string[] = [];
         const values: string[] = [];
@@ -117,9 +129,22 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           valueLabels.push(item.label ?? item.value!);
           values.push(item.value!);
         });
+
+        // Only update if values have changed
+        let shouldUpdate = true;
+        if (Array.isArray(filter.values) && filter.values.length === values.length) {
+          shouldUpdate = !filter.values.every((v, i) => v === values[i]);
+        }
+
+        if (shouldUpdate) {
+          const queryController = getQueryController(model);
+          queryController?.startProfile(FILTER_CHANGED_INTERACTION);
+        }
+
         model._updateFilter(filter!, { valueLabels, values, value: values[0] });
         setFilterMultiValues([]);
       }
+
       if (!preventFocus) {
         setTimeout(() => refs.domReference.current?.focus());
       }
@@ -147,7 +172,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (isMultiValueEdit) {
           // commit multi value filter values on escape and click-away
           handleMultiValueFilterCommit(model, filter!, filterMultiValues);
+        } else {
+          if (filter && filter.origin && inputValue === '') {
+            model.updateToMatchAll(filter);
+          }
         }
+
         handleResetWip();
         handleChangeViewMode?.();
       }
@@ -158,6 +188,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       handleChangeViewMode,
       handleMultiValueFilterCommit,
       handleResetWip,
+      inputValue,
       isMultiValueEdit,
       model,
     ]
@@ -208,7 +239,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // operation order on fetched options:
   //    fuzzy search -> extract into groups -> flatten group labels and options
   const filteredDropDownItems = flattenOptionGroups(
-    handleOptionGroups(optionsSearcher(preventFiltering ? '' : inputValue, filterInputType))
+    handleOptionGroups(optionsSearcher(preventFiltering ? '' : inputValue))
   );
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
@@ -219,6 +250,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       isCustom: true,
     });
   }
+
+  // Get the optional onAddCustomValue method from the AdHocFiltersVariable if defined
+  const onAddCustomValue = model.state.onAddCustomValue;
 
   // calculate width and populate listRef and disabledIndicesRef for arrow key navigation
   const maxOptionWidth = setupDropdownAccessibility(filteredDropDownItems, listRef, disabledIndicesRef);
@@ -285,12 +319,21 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               return;
             }
           }
+          if (filter?.origin) {
+            return;
+          }
+
           setInputType('operator');
           return;
         }
 
         // focus back on alway wip input when you delete filter with backspace
         focusOnWipInputRef?.();
+
+        if (isFilterComplete(filter!)) {
+          const queryController = getQueryController(model);
+          queryController?.startProfile(FILTER_REMOVED_INTERACTION);
+        }
 
         model._handleComboboxBackspace(filter!);
 
@@ -367,15 +410,21 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           handleLocalMultiValueChange(selectedItem);
           setInputValue('');
         } else {
-          model._updateFilter(
-            filter!,
-            generateFilterUpdatePayload({
-              filterInputType,
-              item: selectedItem,
-              filter: filter!,
-              setFilterMultiValues,
-            })
-          );
+          const payload = generateFilterUpdatePayload({
+            filterInputType,
+            item: selectedItem,
+            filter: filter!,
+            setFilterMultiValues,
+            onAddCustomValue,
+          });
+
+          // Only start profile if value has changed
+          if (filterInputType === 'value' && payload.value !== filter?.value) {
+            const queryController = getQueryController(model);
+            queryController?.startProfile(FILTER_CHANGED_INTERACTION);
+          }
+
+          model._updateFilter(filter!, payload);
 
           populateInputValueOnInputTypeSwitch({
             populateInputOnEdit,
@@ -412,6 +461,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       refs.domReference,
       isLastFilter,
       focusOnWipInputRef,
+      onAddCustomValue,
     ]
   );
 
@@ -463,7 +513,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       // populate input when selecting pill for edit
       //   this avoids populating input during delete with backspace
       if (!hasMultiValueOperator && populateInputOnEdit) {
-        setInputValue(filter?.value || '');
+        setInputValue(filter?.valueLabels?.[0] ?? (filter?.value || ''));
         setTimeout(() => {
           refs.domReference.current?.select();
         });
@@ -513,22 +563,39 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           {filter?.key && filter?.operator && filterInputType !== 'operator' ? (
             <div
               id={operatorIdentifier}
-              className={cx(styles.basePill, styles.operatorPill, operatorIdentifier)}
-              role="button"
-              aria-label="Edit filter operator"
-              tabIndex={0}
+              className={cx(
+                styles.basePill,
+                !filter.origin && styles.operatorPill,
+                filter.origin && styles.keyPill,
+                operatorIdentifier
+              )}
+              aria-label={t(
+                'grafana-scenes.variables.ad-hoc-combobox.aria-label-edit-filter-operator',
+                'Edit filter operator'
+              )}
+              tabIndex={filter.origin ? -1 : 0}
               onClick={(event) => {
+                if (filter.origin) {
+                  handleChangeViewMode?.();
+                  return;
+                }
+
                 event.stopPropagation();
                 setInputValue('');
                 switchInputType('operator', setInputType, undefined, refs.domReference.current);
               }}
               onKeyDown={(event) => {
+                if (filter.origin) {
+                  return;
+                }
+
                 handleShiftTabInput(event, hasMultiValueOperator);
                 if (event.key === 'Enter') {
                   setInputValue('');
                   switchInputType('operator', setInputType, undefined, refs.domReference.current);
                 }
               }}
+              {...(!filter.origin && { role: 'button' })}
             >
               {filter.operator}
             </div>
@@ -640,6 +707,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                         filteredDropDownItems[virtualItem.index + 1];
                       const shouldAddBottomBorder = nextItem && !nextItem.group && !nextItem.options && item.group;
 
+                      const itemLabel = item.label ?? item.value;
+
                       return (
                         // key is included in getItemProps()
                         // eslint-disable-next-line react/jsx-key
@@ -653,6 +722,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                               if (filterInputType !== 'value') {
                                 event.stopPropagation();
                               }
+
                               if (isMultiValueEdit) {
                                 event.preventDefault();
                                 event.stopPropagation();
@@ -660,15 +730,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 setInputValue('');
                                 refs.domReference.current?.focus();
                               } else {
-                                model._updateFilter(
-                                  filter!,
-                                  generateFilterUpdatePayload({
-                                    filterInputType,
-                                    item,
-                                    filter: filter!,
-                                    setFilterMultiValues,
-                                  })
-                                );
+                                const payload = generateFilterUpdatePayload({
+                                  filterInputType,
+                                  item,
+                                  filter: filter!,
+                                  setFilterMultiValues,
+                                  onAddCustomValue,
+                                });
+
+                                if (filterInputType === 'value' && payload.value !== filter?.value) {
+                                  const queryController = getQueryController(model);
+                                  queryController?.startProfile(FILTER_CHANGED_INTERACTION);
+                                }
+                                model._updateFilter(filter!, payload);
 
                                 populateInputValueOnInputTypeSwitch({
                                   populateInputOnEdit,
@@ -702,7 +776,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                           checked={filterMultiValues.some((val) => val.value === item.value)}
                         >
                           <span>
-                            {item.isCustom ? 'Use custom value: ' : ''} {item.label ?? item.value}
+                            {item.isCustom
+                              ? t(
+                                  'grafana-scenes.components.adhoc-filters-combobox.use-custom-value',
+                                  'Use custom value: {{itemLabel}}',
+                                  { itemLabel }
+                                )
+                              : itemLabel}
                           </span>
                           {item.description ? <div className={styles.descriptionText}>{item.description}</div> : null}
                         </DropdownItem>
@@ -766,7 +846,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.primary,
     boxShadow: theme.shadows.z2,
     overflowY: 'auto',
-    zIndex: theme.zIndex.dropdown,
+    zIndex: theme.zIndex.portal,
   }),
   inputStyle: css({
     paddingBlock: 0,

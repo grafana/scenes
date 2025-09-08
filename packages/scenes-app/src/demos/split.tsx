@@ -22,6 +22,7 @@ const basicDemo = () =>
   new SceneAppPage({
     title: 'Split layout test',
     url: demoUrl('split-layout'),
+    routePath: 'split-layout/*',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
@@ -193,13 +194,13 @@ const dynamicSplitDemo = () =>
   new SceneAppPage({
     title: 'Dynamic split layout test',
     url: demoUrl('split-layout/dynamic'),
+    routePath: 'dynamic',
     getScene: getDynamicSplitScene,
   });
 
 export function getSplitTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A demo of split layout options',
     url: demoUrl('split-layout'),
     tabs: [basicDemo(), dynamicSplitDemo()],
   });

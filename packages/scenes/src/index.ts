@@ -1,11 +1,18 @@
 import { getUrlWithAppState } from './components/SceneApp/utils';
 import { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
-import { cloneSceneObjectState } from './core/sceneGraph/utils';
+import { cloneSceneObjectState } from './core/sceneGraph/cloneSceneObject';
 import { registerRuntimeDataSource } from './querying/RuntimeDataSource';
 import { getUrlState, syncStateFromSearchParams } from './services/utils';
+import { buildPathIdFor } from './utils/pathId';
+import { isRepeatCloneOrChildOf } from './utils/utils';
 
 import { registerVariableMacro } from './variables/macros';
-import { renderPrometheusLabelFilters } from './variables/utils';
+import {
+  escapeLabelValueInExactSelector,
+  escapeLabelValueInRegexSelector,
+  escapeURLDelimiters,
+  renderPrometheusLabelFilters,
+} from './variables/utils';
 import {
   isAdHocVariable,
   isQueryVariable,
@@ -45,7 +52,9 @@ export type {
   SceneQueryControllerLike,
   SceneQueryControllerEntryType,
   SceneQueryControllerEntry,
-} from './behaviors/SceneQueryController';
+  SceneInteractionProfileEvent,
+} from './behaviors/types';
+export { SceneRenderProfiler } from './behaviors/SceneRenderProfiler';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
@@ -59,6 +68,7 @@ export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';
 export { TextBoxVariable } from './variables/variants/TextBoxVariable';
+export { ScopesVariable } from './variables/variants/ScopesVariable';
 export {
   MultiValueVariable,
   type MultiValueVariableState,
@@ -67,8 +77,10 @@ export {
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
+export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
+export { escapeUrlPipeDelimiters } from './variables/utils';
 
 export { type UrlSyncManagerLike, UrlSyncManager, NewSceneObjectAddedEvent } from './services/UrlSyncManager';
 export { useUrlSync } from './services/useUrlSync';
@@ -97,10 +109,12 @@ export {
 } from './components/layout/SceneFlexLayout';
 export { SceneCSSGridLayout, SceneCSSGridItem } from './components/layout/CSSGrid/SceneCSSGridLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
+export { SceneGridLayoutDragStartEvent } from './components/layout/grid/types';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';
 export { SplitLayout } from './components/layout/split/SplitLayout';
+export { LazyLoader } from './components/layout/LazyLoader';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,
@@ -123,7 +137,7 @@ export { VizPanelBuilder } from './core/PanelBuilders/VizPanelBuilder';
 export { SceneDebugger } from './components/SceneDebugger/SceneDebugger';
 export { VariableValueSelectWrapper } from './variables/components/VariableValueSelectors';
 export { ControlsLabel } from './utils/ControlsLabel';
-export { renderSelectForVariable } from './variables/components/VariableValueSelect';
+export { MultiOrSingleValueSelect } from './variables/components/VariableValueSelect';
 export { VizConfigBuilder } from './core/PanelBuilders/VizConfigBuilder';
 export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
 export { type VizConfig } from './core/PanelBuilders/types';
@@ -137,6 +151,9 @@ export const sceneUtils = {
   syncStateFromSearchParams,
   getUrlState,
   renderPrometheusLabelFilters,
+  escapeLabelValueInRegexSelector,
+  escapeLabelValueInExactSelector,
+  escapeURLDelimiters,
 
   // Variable guards
   isAdHocVariable,
@@ -147,7 +164,11 @@ export const sceneUtils = {
   isQueryVariable,
   isTextBoxVariable,
   isGroupByVariable,
+  isRepeatCloneOrChildOf,
+  buildPathIdFor,
 };
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
 export { getExploreURL } from './utils/explore';
+export { loadResources } from './utils/loadResources';
+export { PATH_ID_SEPARATOR } from './utils/pathId';

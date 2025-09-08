@@ -18,7 +18,6 @@ import { PlainGraphWithRandomWalk } from '../react-demo/PlainGraphWithRandomWalk
 export function getInteropDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Testing using the hooks and plain react components from normal scene',
     getScene: () => {
       return new EmbeddedSceneWithContext({
         ...getEmbeddedSceneDefaults(),
@@ -44,16 +43,18 @@ export function getInteropDemo(defaults: SceneAppPageState) {
 }
 
 class CustomSceneObject extends SceneObjectBase<SceneObjectState> {
-  static Component = ({ model }: SceneComponentProps<CustomSceneObject>) => {
-    const [timeRange, _] = useTimeRange();
+  static Component = CustomSceneObjectRenderer;
+}
 
-    return (
-      <Stack direction="column">
-        <div>Time hook: {timeRange.from.toString()}</div>
-        <DemoVizLayout>
-          <PlainGraphWithRandomWalk title="Visualization using React VizPanel with data from useQueryRunner" />
-        </DemoVizLayout>
-      </Stack>
-    );
-  };
+function CustomSceneObjectRenderer({ model }: SceneComponentProps<CustomSceneObject>) {
+  const [timeRange, _] = useTimeRange();
+
+  return (
+    <Stack direction="column">
+      <div>Time hook: {timeRange.from.toString()}</div>
+      <DemoVizLayout>
+        <PlainGraphWithRandomWalk title="Visualization using React VizPanel with data from useQueryRunner" />
+      </DemoVizLayout>
+    </Stack>
+  );
 }

@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import React, { useMemo, useState } from 'react';
 
 import { AdHocFiltersVariable, AdHocFilterWithLabels, isMultiValueOperator } from './AdHocFiltersVariable';
@@ -47,6 +48,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
   const valueValue = keyLabelToOption(filter.value, filter.valueLabels?.[0]);
 
   const optionSearcher = useMemo(() => getAdhocOptionSearcher(values), [values]);
+  const onAddCustomValue = model.state.onAddCustomValue;
 
   const onValueInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
@@ -122,15 +124,22 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       width="auto"
       value={valueValue}
       filterOption={filterNoOp}
-      placeholder={'Select value'}
+      placeholder={t(
+        'grafana-scenes.variables.ad-hoc-filter-renderer.value-select.placeholder-select-value',
+        'Select value'
+      )}
       options={filteredValueOptions}
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
       onChange={(v) => {
-        model._updateFilter(filter, {
-          value: v.value,
-          valueLabels: v.label ? [v.label] : [v.value],
-        });
+        if (onAddCustomValue && v.__isNew__) {
+          model._updateFilter(filter, onAddCustomValue(v, filter));
+        } else {
+          model._updateFilter(filter, {
+            value: v.value,
+            valueLabels: v.label ? [v.label] : [v.value],
+          });
+        }
 
         if (valueHasCustomValue !== v.__isNew__) {
           setValueHasCustomValue(v.__isNew__);
@@ -170,7 +179,10 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       width="auto"
       allowCustomValue={model.state.allowCustomValue ?? true}
       value={keyValue}
-      placeholder={'Select label'}
+      placeholder={t(
+        'grafana-scenes.variables.ad-hoc-filter-renderer.key-select.placeholder-select-label',
+        'Select label'
+      )}
       options={handleOptionGroups(keys)}
       onChange={(v) => {
         model._updateFilter(filter, {
@@ -242,7 +254,11 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       );
     } else {
       return (
-        <Field label={'Select label'} data-testid={`AdHocFilter-${filter.key}`} className={styles.field}>
+        <Field
+          label={t('grafana-scenes.variables.ad-hoc-filter-renderer.label-select-label', 'Select label')}
+          data-testid={`AdHocFilter-${filter.key}`}
+          className={styles.field}
+        >
           {keySelect}
         </Field>
       );
@@ -256,8 +272,8 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       {valueSelect}
       <Button
         variant="secondary"
-        aria-label="Remove filter"
-        title="Remove filter"
+        aria-label={t('grafana-scenes.variables.ad-hoc-filter-renderer.aria-label-remove-filter', 'Remove filter')}
+        title={t('grafana-scenes.variables.ad-hoc-filter-renderer.title-remove-filter', 'Remove filter')}
         className={styles.removeButton}
         icon="times"
         data-testid={`AdHocFilter-remove-${filter.key ?? ''}`}

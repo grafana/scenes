@@ -15,9 +15,6 @@ import {
 import { VariableValueRecorder } from '../VariableValueRecorder';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
-  /** Variables that have changed in since the activation or since the first manual value change */
-  private _variablesThatHaveChanged = new Set<SceneVariable>();
-
   /** Variables that are scheduled to be validated and updated */
   private _variablesToUpdate = new Set<SceneVariable>();
 
@@ -184,7 +181,8 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   private _updateNextBatch() {
     for (const variable of this._variablesToUpdate) {
       if (!variable.validateAndUpdate) {
-        throw new Error('Variable added to variablesToUpdate but does not have validateAndUpdate');
+        console.error('Variable added to variablesToUpdate but does not have validateAndUpdate');
+        continue;
       }
 
       // Ignore it if it's already started
@@ -258,7 +256,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   private _handleVariableValueChanged(variableThatChanged: SceneVariable) {
-    this._variablesThatHaveChanged.add(variableThatChanged);
     this._addDependentVariablesToUpdateQueue(variableThatChanged);
 
     // Ignore this change if it is currently updating
@@ -294,7 +291,12 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
             otherVariable.onCancel();
           }
 
-          this._variablesToUpdate.add(otherVariable);
+          if (otherVariable.validateAndUpdate) {
+            this._variablesToUpdate.add(otherVariable);
+          }
+
+          // Because _traverseSceneAndNotify skips itself (and this sets variables) we call this here to notify the variable of the change
+          otherVariable.variableDependency.variableUpdateCompleted(variableThatChanged, true);
         }
       }
     }
@@ -308,8 +310,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return;
     }
 
-    this._traverseSceneAndNotify(this.parent, variable, this._variablesThatHaveChanged.has(variable));
-    this._variablesThatHaveChanged.delete(variable);
+    this._traverseSceneAndNotify(this.parent, variable, true);
   }
 
   /**
@@ -329,7 +330,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
     if (sceneObject.state.$variables && sceneObject.state.$variables !== this) {
       const localVar = sceneObject.state.$variables.getByName(variable.state.name);
-      if (localVar) {
+      // If local variable is viewed as loading when ancestor is loading we propagate a change
+      if (localVar?.isAncestorLoading) {
+        variable = localVar;
+      } else if (localVar) {
         return;
       }
     }
@@ -348,6 +352,10 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * For example if C depends on variable B which depends on variable A and A is loading this returns true for variable C and B.
    */
   public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable) {
+    if (variable.state.loading) {
+      return true;
+    }
+
     if (variable.isAncestorLoading && variable.isAncestorLoading()) {
       return true;
     }

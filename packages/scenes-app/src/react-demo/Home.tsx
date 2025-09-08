@@ -1,7 +1,7 @@
 import { SceneContextProvider, CustomVariable } from '@grafana/scenes-react';
 import { Stack, TextLink } from '@grafana/ui';
 import React from 'react';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 import { PageWrapper } from './PageWrapper';
 import { DynamicQueriesPage } from './DynamicQueriesPage';
@@ -21,20 +21,20 @@ export function ReactDemoPage() {
   return (
     <SceneContextProvider timeRange={{ from: 'now-1h', to: 'now' }} withQueryController>
       <CustomVariable name="env" query="dev, test, prod" initialValue="dev">
-        <Switch>
-          <Route path={`${urlBase}`} component={HomePage} exact />
-          <Route path={`${urlBase}/repeat-by-variable`} component={RepeatByVariablePage} />
-          <Route path={`${urlBase}/repeat-by-series`} component={RepeatBySeriesPage} />
-          <Route path={`${urlBase}/dynamic-queries`} component={DynamicQueriesPage} />
-          <Route path={`${urlBase}/dynamic-viz`} component={DynamicVisualiationPage} />
-          <Route path={`${urlBase}/dynamic-vars`} component={DynamicVariablesPage} />
-          <Route path={`${urlBase}/nested-context`} component={NestedContextsPage} />
-          <Route path={`${urlBase}/interpolation-hook`} component={InterpolationHookPage} />
-          <Route path={`${urlBase}/query-var-hook`} component={UseQueryVariableHookPage} />
-          <Route path={`${urlBase}/drilldown`} component={DrilldownDemoPage} />
-          <Route path={`${urlBase}/annotations`} component={AnnotationDemoPage} />
-          <Route path={`${urlBase}/transformations`} component={TransformationsDemoPage} />
-        </Switch>
+        <Routes>
+          <Route path="" Component={HomePage} />
+          <Route path={`/repeat-by-variable`} Component={RepeatByVariablePage} />
+          <Route path={`/repeat-by-series`} Component={RepeatBySeriesPage} />
+          <Route path={`/dynamic-queries`} Component={DynamicQueriesPage} />
+          <Route path={`/dynamic-viz`} Component={DynamicVisualiationPage} />
+          <Route path={`/dynamic-vars`} Component={DynamicVariablesPage} />
+          <Route path={`/nested-context`} Component={NestedContextsPage} />
+          <Route path={`/interpolation-hook`} Component={InterpolationHookPage} />
+          <Route path={`/query-var-hook`} Component={UseQueryVariableHookPage} />
+          <Route path={`/drilldown/*`} Component={DrilldownDemoPage} />
+          <Route path={`/annotations`} Component={AnnotationDemoPage} />
+          <Route path={`/transformations`} Component={TransformationsDemoPage} />
+        </Routes>
       </CustomVariable>
     </SceneContextProvider>
   );

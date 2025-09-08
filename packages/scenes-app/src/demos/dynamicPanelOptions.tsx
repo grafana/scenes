@@ -20,7 +20,6 @@ import { GraphDrawStyle, LegendDisplayMode, StackingMode, TooltipDisplayMode, Vi
 export function getDynamicVizOptionsTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A panel with actions that change visualization settings',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

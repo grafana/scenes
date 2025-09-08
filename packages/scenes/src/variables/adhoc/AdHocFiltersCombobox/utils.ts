@@ -1,7 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import { AdHocInputType } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, isMultiValueOperator } from '../AdHocFiltersVariable';
-import { getFuzzySearcher } from '../../utils';
+import { AdHocFilterWithLabels, isMultiValueOperator, OnAddCustomValueFn } from '../AdHocFiltersVariable';
 
 const VIRTUAL_LIST_WIDTH_ESTIMATE_MULTIPLIER = 8;
 const VIRTUAL_LIST_DESCRIPTION_WIDTH_ESTIMATE_MULTIPLIER = 6;
@@ -11,19 +10,6 @@ export const VIRTUAL_LIST_ITEM_HEIGHT = 38;
 export const VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION = 60;
 export const ERROR_STATE_DROPDOWN_WIDTH = 366;
 
-export function fuzzySearchOptions(options: Array<SelectableValue<string>>) {
-  const haystack = options.map((o) => o.label ?? o.value!);
-  const fuzzySearch = getFuzzySearcher(haystack);
-
-  return (search: string, filterInputType: AdHocInputType) => {
-    if (filterInputType === 'operator' && search !== '') {
-      // uFuzzy can only match non-alphanum chars if quoted
-      search = `"${search}"`;
-    }
-
-    return fuzzySearch(search).map((i) => options[i]);
-  };
-}
 export const flattenOptionGroups = (options: Array<SelectableValue<string>>) =>
   options.flatMap<SelectableValue<string>>((option) => (option.options ? [option, ...option.options] : [option]));
 
@@ -109,19 +95,25 @@ export const generateFilterUpdatePayload = ({
   item,
   filter,
   setFilterMultiValues,
+  onAddCustomValue,
 }: {
   filterInputType: AdHocInputType;
   item: SelectableValue<string>;
   filter: AdHocFilterWithLabels;
   setFilterMultiValues: (value: React.SetStateAction<Array<SelectableValue<string>>>) => void;
+  onAddCustomValue?: OnAddCustomValueFn;
 }): Partial<AdHocFilterWithLabels> => {
   if (filterInputType === 'key') {
     return {
       key: item.value,
       keyLabel: item.label ? item.label : item.value,
+      meta: item?.meta,
     };
   }
   if (filterInputType === 'value') {
+    if (item.isCustom && onAddCustomValue) {
+      return onAddCustomValue(item, filter);
+    }
     return {
       value: item.value,
       valueLabels: [item.label ? item.label : item.value!],
@@ -206,7 +198,7 @@ export const populateInputValueOnInputTypeSwitch = ({
   filter: AdHocFilterWithLabels | undefined;
 }) => {
   if (populateInputOnEdit && !isMultiValueOperator(item.value || '') && nextInputTypeMap[filterInputType] === 'value') {
-    setInputValue(filter?.value || '');
+    setInputValue(filter?.valueLabels?.[0] ?? filter?.value ?? '');
   } else {
     setInputValue('');
   }

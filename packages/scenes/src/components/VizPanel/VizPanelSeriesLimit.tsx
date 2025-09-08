@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { css } from '@emotion/css';
 import { GrafanaTheme2, PanelData } from '@grafana/data';
 import { Button, Icon, Tooltip, useStyles2 } from '@grafana/ui';
@@ -24,11 +25,24 @@ export function VizPanelSeriesLimit({ data, showAll, seriesLimit, onShowAllSerie
     <div className={styles.timeSeriesDisclaimer}>
       {!showAll && (
         <span className={styles.warningMessage}>
-          <Icon title={`Showing only ${seriesLimit} series`} name="exclamation-triangle" aria-hidden="true" />
+          <Icon
+            title={t(
+              'grafana-scenes.components.viz-panel-series-limit.warning-message',
+              `Showing only {{seriesLimit}} series`,
+              {
+                seriesLimit,
+              }
+            )}
+            name="exclamation-triangle"
+            aria-hidden="true"
+          />
         </span>
       )}
       <Tooltip
-        content={'Rendering too many series in a single panel may impact performance and make data harder to read.'}
+        content={t(
+          'grafana-scenes.components.viz-panel-series-limit.content-rendering-series-single-panel-impact-performance',
+          'Rendering too many series in a single panel may impact performance and make data harder to read.'
+        )}
       >
         <Button variant="secondary" size="sm" onClick={onShowAllSeries}>
           {buttonText}

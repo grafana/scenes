@@ -5,6 +5,7 @@ import { PageWrapper } from './PageWrapper';
 import { DemoVizLayout } from './utils';
 import { VariableValueOption } from '@grafana/scenes';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function UseQueryVariableHookPage() {
   const [regex, setRegex] = React.useState<string | undefined>(undefined);
@@ -22,7 +23,12 @@ export function UseQueryVariableHookPage() {
   return (
     <PageWrapper
       title="useQueryVariable hook"
-      subTitle="Testing a hook that provides an alternative way of creating a query variable"
+      subTitle={
+        <DemoSubTitle
+          text={'Testing a hook that provides an alternative way of creating a query variable'}
+          getSourceCodeModule={() => import('!!raw-loader!./UseQueryVariableHookPage')}
+        />
+      }
     >
       <Stack direction="column">
         <Stack direction="column" gap={2}>

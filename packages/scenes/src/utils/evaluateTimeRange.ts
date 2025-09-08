@@ -1,15 +1,21 @@
-import { dateMath, DateTime, DateTimeInput, TimeRange } from '@grafana/data';
+import { dateMath, DateTime, DateTimeInput, setWeekStart, TimeRange } from '@grafana/data';
 import { TimeZone } from '@grafana/schema';
+import { WeekStart } from '@grafana/ui';
 
 export function evaluateTimeRange(
   from: string | DateTime,
   to: string | DateTime,
   timeZone: TimeZone,
-  fiscalYearStartMonth?: number,
-  delay?: string
+  fiscalYearStartMonth: number | undefined,
+  delay: string | undefined,
+  weekStart: WeekStart | undefined
 ): TimeRange {
   const hasDelay = delay && to === 'now';
   const now = Date.now();
+
+  if (weekStart) {
+    setWeekStartIfDifferent(weekStart);
+  }
 
   /** This tries to use dateMath.toDateTime if available, otherwise falls back to dateMath.parse.
    * Using dateMath.parse can potentially result in to and from being calculated using two different timestamps.
@@ -50,4 +56,13 @@ export function evaluateTimeRange(
       to: to,
     },
   };
+}
+
+let prevWeekStart: WeekStart | undefined;
+
+function setWeekStartIfDifferent(weekStart: WeekStart) {
+  if (weekStart !== prevWeekStart) {
+    prevWeekStart = weekStart;
+    setWeekStart(weekStart);
+  }
 }

@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { isArray } from 'lodash';
 import React, { RefCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -11,13 +12,14 @@ import {
   useTheme2,
 } from '@grafana/ui';
 
-import { SceneComponentProps } from '../../core/types';
-import { MultiValueVariable } from '../variants/MultiValueVariable';
+import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
+import { sceneGraph } from '../../core/sceneGraph';
+import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
 
 const filterNoOp = () => true;
 
@@ -46,12 +48,12 @@ export function toSelectableValue<T>(value: T, label?: string): SelectableValue<
   };
 }
 
-export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVariable>) {
-  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = model.useState();
+export function VariableValueSelect({ model, state }: { model: MultiValueVariable; state: MultiValueVariableState }) {
+  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = state;
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
   const selectValue = toSelectableValue(value, String(text));
-
+  const queryController = sceneGraph.getQueryController(model);
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
@@ -82,7 +84,7 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
     <Select<VariableValue>
       id={key}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
-      placeholder="Select value"
+      placeholder={t('grafana-scenes.variables.variable-value-select.placeholder-select-value', 'Select value')}
       width="auto"
       disabled={isReadOnly}
       value={selectValue}
@@ -97,7 +99,8 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
       options={filteredOptions}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(newValue) => {
-        model.changeValueTo(newValue.value!, newValue.label!);
+        model.changeValueTo(newValue.value!, newValue.label!, true);
+        queryController?.startProfile(VARIABLE_VALUE_CHANGED_INTERACTION);
 
         if (hasCustomValue !== newValue.__isNew__) {
           setHasCustomValue(newValue.__isNew__);
@@ -107,7 +110,13 @@ export function VariableValueSelect({ model }: SceneComponentProps<MultiValueVar
   );
 }
 
-export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiValueVariable>) {
+export function VariableValueSelectMulti({
+  model,
+  state,
+}: {
+  model: MultiValueVariable;
+  state: MultiValueVariableState;
+}) {
   const {
     value,
     options,
@@ -117,7 +126,7 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
     includeAll,
     isReadOnly,
     allowCustomValue = true,
-  } = model.useState();
+  } = state;
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
@@ -176,13 +185,13 @@ export function VariableValueSelectMulti({ model }: SceneComponentProps<MultiVal
       hideSelectedOptions={false}
       onInputChange={onInputChange}
       onBlur={() => {
-        model.changeValueTo(uncommittedValue);
+        model.changeValueTo(uncommittedValue, undefined, true);
       }}
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
-          model.changeValueTo([]);
+          model.changeValueTo([], undefined, true);
         }
         setUncommittedValue(newValue.map((x) => x.value!));
       }}
@@ -252,10 +261,12 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
-export function renderSelectForVariable(model: MultiValueVariable) {
-  if (model.state.isMulti) {
-    return <VariableValueSelectMulti model={model} />;
+export function MultiOrSingleValueSelect({ model }: { model: MultiValueVariable }) {
+  const state = model.useState();
+
+  if (state.isMulti) {
+    return <VariableValueSelectMulti model={model} state={state} />;
   } else {
-    return <VariableValueSelect model={model} />;
+    return <VariableValueSelect model={model} state={state} />;
   }
 }

@@ -1,5 +1,6 @@
 import { cx, css } from '@emotion/css';
 import { SelectableValue, GrafanaTheme2 } from '@grafana/data';
+import { t } from '@grafana/i18n';
 import { useStyles2, Button, Icon } from '@grafana/ui';
 import React, { useCallback } from 'react';
 
@@ -69,7 +70,13 @@ export const MultiValuePill = ({
         size="sm"
         variant="secondary"
         className={styles.removeButton}
-        tooltip={`Remove filter value - ${item.label ?? item.value}`}
+        tooltip={t(
+          'grafana-scenes.components.adhoc-filters-combobox.remove-filter-value',
+          'Remove filter value - {{itemLabel}}',
+          {
+            itemLabel: item.label ?? item.value,
+          }
+        )}
       >
         <Icon name="times" size="md" id={`${item.value}-${index}-close-icon`} />
       </Button>

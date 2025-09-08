@@ -1,7 +1,4 @@
-import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
-
-import { matchers } from './test';
 
 Object.assign(global, { TextDecoder, TextEncoder });
 
@@ -29,4 +26,17 @@ global.IntersectionObserver = jest.fn(() => ({
   thresholds: [],
 }));
 
-expect.extend(matchers);
+// Mock Performance API methods that don't exist in Jest/jsdom environment
+if (!global.performance) {
+  global.performance = {} as Performance;
+}
+
+// Add the missing Performance Resource Timing API methods
+Object.assign(global.performance, {
+  getEntriesByType: jest.fn(() => []),
+  clearResourceTimings: jest.fn(),
+  measure: jest.fn(),
+  // Keep existing methods like now() that might already exist
+  now: global.performance.now || jest.fn(() => Date.now()),
+  mark: global.performance.mark || jest.fn(),
+});

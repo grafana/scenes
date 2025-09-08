@@ -12,7 +12,6 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getGridWithRowLayoutTest(defaults: SceneAppPageState): SceneAppPage {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'SceneGridLayout demo with collapsible rows',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

@@ -47,7 +47,7 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toBe(ALL_VARIABLE_VALUE);
     });
 
-    it('Should pick first option whebn current value is All value but all value is not enabled', async () => {
+    it('Should pick first option when current value is All value but all value is not enabled', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
@@ -397,6 +397,22 @@ describe('MultiValueVariable', () => {
 
       expect(stateUpdates).toHaveLength(0);
     });
+
+    it('changes when performing browser history action on user action', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        isMulti: true,
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+
+      variable.changeValueTo(['1'], undefined, true);
+      expect(variable.state.value).toEqual(['1']);
+    });
   });
 
   describe('getValue and getValueText', () => {
@@ -462,6 +478,18 @@ describe('MultiValueVariable', () => {
       expect(value.formatter(VariableFormatID.Regex)).toBe('.*');
       // Should not ignore url encoding
       expect(value.formatter(VariableFormatID.PercentEncode)).toBe('.%2A');
+    });
+
+    it('GetValue should support index fieldPath', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        value: ['1', '2'],
+        isMulti: true,
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+
+      expect(variable.getValue('1')).toBe('2');
     });
   });
 

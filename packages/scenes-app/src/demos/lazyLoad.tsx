@@ -11,7 +11,6 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getLazyLoadDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Showcasing lazy rendering and query execution of panels that are outside viewport',
     getScene: () => {
       const panelIds = Array.from(Array(20).keys());
       const height = 6;

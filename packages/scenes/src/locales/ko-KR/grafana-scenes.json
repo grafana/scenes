@@ -1,0 +1,152 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "{{keyLabel}} 키로 필터 편집",
+        "managed-filter": "{{origin}} 관리 필터",
+        "non-applicable": "",
+        "remove-filter-with-key": "{{keyLabel}} 키로 필터 제거"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "필터 값 제거 - {{itemLabel}}",
+        "use-custom-value": "사용자 지정 값 사용: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "링크를 사용하여 여기로 이동한 경우 이 애플리케이션에 버그가 있을 수 있습니다.",
+        "subTitle": "URL이 어떤 페이지와도 일치하지 않습니다.",
+        "title": "찾을 수 없음"
+      },
+      "lazy-loader": {
+        "placeholder": ""
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "장면 접기",
+        "expand-button-label": "장면 펼치기",
+        "remove-button-label": "장면 제거"
+      },
+      "scene-debugger": {
+        "object-details": "객체 상세 정보",
+        "scene-graph": "장면 그래프",
+        "title-scene-debugger": "장면 디버거"
+      },
+      "scene-grid-row": {
+        "collapse-row": "행 접기",
+        "expand-row": "행 펼치기"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "비교",
+        "button-tooltip": "시간 범위 비교 활성화"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "창 크기 조정 위젯"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "제목"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "탐색"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "플러그인 패널 로딩 중...",
+        "panel-plugin-has-no-panel-component": "패널 플러그인에 패널 구성 요소가 없습니다."
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "하나의 패널에 너무 많은 시리즈를 렌더링하면 성능에 영향을 주고 데이터가 읽기 어려워질 수 있습니다. ",
+        "warning-message": "{{seriesLimit}}개 시계열만 표시 중"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "제거"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "쿼리 취소"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "필터 연산자 편집"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "필터 추가",
+        "title-add-filter": "필터 추가"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "필터 제거",
+        "key-select": {
+          "placeholder-select-label": "레이블 선택"
+        },
+        "label-select-label": "레이블 선택",
+        "title-remove-filter": "필터 제거",
+        "value-select": {
+          "placeholder-select-value": "값 선택"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "기본값"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "지우기",
+        "tooltip": "이 대시보드에서 기본적으로 적용됩니다. 편집하면 다른 대시보드로 이전됩니다.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "이 대시보드에서 설정한 '그룹별'을 복원합니다."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "쉼표로 구분된 값",
+            "double-quoted-values": "큰 따옴표로 묶인 값",
+            "format-date-in-different-ways": "다양한 방식으로 날짜 형식 지정",
+            "format-multivalued-variables-using-syntax-example": "glob 구문을 사용하여 다중 값 변수 형식 지정, 예: {value1,value2}",
+            "html-escaping-of-values": "값의 HTML 이스케이프",
+            "json-stringify-value": "JSON 문자열화 값",
+            "keep-value-as-is": "값을 그대로 유지",
+            "multiple-values-are-formatted-like-variablevalue": "여러 값은 variable=value와 같은 형식으로 지정됩니다.",
+            "single-quoted-values": "작은 따옴표로 묶인 값",
+            "useful-escaping-values-taking-syntax-characters": "URI 구문 문자를 고려한 URL 이스케이프 값에 유용",
+            "useful-for-url-escaping-values": "URL 이스케이프 값에 유용",
+            "values-are-separated-by-character": "값은 | 문자로 구분됩니다"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "선택기를 기준으로 그룹화",
+        "placeholder-group-by-label": "레이블을 기준으로 그룹화"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "값 선택"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "옵션 로딩 중..."
+      },
+      "multi-value-apply-button": {
+        "apply": "적용"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "찾은 옵션 없음"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "라벨을 가져오는 동안 오류가 발생했습니다. 클릭하여 다시 시도"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "안녕하세요"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "텍스트"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "값 입력"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "값 선택"
+      }
+    }
+  }
+}

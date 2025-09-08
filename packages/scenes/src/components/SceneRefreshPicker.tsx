@@ -8,6 +8,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObject, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
+import { REFRESH_INTERACTION } from '../behaviors/SceneRenderProfiler';
 
 export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'];
 
@@ -37,7 +38,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['refresh'] });
   private _intervalTimer: ReturnType<typeof setInterval> | undefined;
   private _autoTimeRangeListener: Unsubscribable | undefined;
-  private _autoRefreshBlocked: boolean = false;
+  private _autoRefreshBlocked = false;
 
   public constructor(state: Partial<SceneRefreshPickerState>) {
     const filterDissalowedIntervals = (i: string) => {
@@ -84,10 +85,14 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 
   public onRefresh = () => {
     const queryController = sceneGraph.getQueryController(this);
+
     if (queryController?.state.isRunning) {
       queryController.cancelAll();
+      queryController.cancelProfile();
       return;
     }
+
+    queryController?.startProfile(REFRESH_INTERACTION);
 
     const timeRange = sceneGraph.getTimeRange(this);
 
@@ -187,6 +192,13 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 
     this._intervalTimer = setInterval(() => {
       if (this.isTabVisible()) {
+        const queryController = sceneGraph.getQueryController(this);
+
+        if (queryController?.state.isRunning) {
+          queryController.cancelProfile();
+        }
+
+        queryController?.startProfile(REFRESH_INTERACTION);
         timeRange.onRefresh();
       } else {
         this._autoRefreshBlocked = true;
@@ -223,7 +235,9 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       tooltip={tooltip}
       width={width}
       text={text}
-      onRefresh={model.onRefresh}
+      onRefresh={() => {
+        model.onRefresh();
+      }}
       primary={primary}
       onIntervalChanged={model.onIntervalChanged}
       isLoading={isRunning}

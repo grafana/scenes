@@ -5,6 +5,7 @@ import { PageWrapper } from './PageWrapper';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 import { DemoVizLayout } from './utils';
 import { VariableHide, VariableRefresh, VariableSort } from '@grafana/schema';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function DynamicVariablesPage() {
   const [regexDsVar, setRegexDsVar] = React.useState<string | undefined>(undefined);
@@ -14,7 +15,15 @@ export function DynamicVariablesPage() {
   const [sort, setSort] = React.useState<VariableSort>(VariableSort.alphabeticalAsc);
 
   return (
-    <PageWrapper title="Dynamic variables" subTitle="Variables added via react rendering">
+    <PageWrapper
+      title="Dynamic variables"
+      subTitle={
+        <DemoSubTitle
+          text={'Variables added via react rendering'}
+          getSourceCodeModule={() => import('!!raw-loader!./DynamicVariablesPage')}
+        />
+      }
+    >
       <CustomVariable name="job" query="A, B, C" initialValue="A">
         <Stack direction="column">
           <Stack>

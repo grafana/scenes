@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import {
   AbsoluteTimeRange,
   FieldConfigSource,
@@ -36,6 +37,10 @@ import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
+import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
+import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { buildPathIdFor } from '../../utils/pathId';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -86,6 +91,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   collapsible?: boolean;
   collapsed?: boolean;
+  /** Marks object as a repeated object and a key pointer to source object */
+  repeatSourceKey?: string;
   /**
    * @internal
    * Only for use from core to handle migration from old angular panels
@@ -112,13 +119,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   private _plugin?: PanelPlugin;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
-  private _structureRev: number = 0;
+  private _structureRev = 0;
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
       options: {} as TOptions,
       fieldConfig: { defaults: {}, overrides: [] },
-      title: 'Title',
+      title: t('grafana-scenes.components.viz-panel.title.title', 'Title'),
       pluginId: 'timeseries',
       _renderCounter: 0,
       ...state,
@@ -158,7 +165,16 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        const result = await importPanelPlugin(pluginId);
+        const panelPromise = importPanelPlugin(pluginId);
+
+        const queryControler = sceneGraph.getQueryController(this);
+        if (queryControler && queryControler.state.enableProfiling) {
+          wrapPromiseInStateObservable(panelPromise)
+            .pipe(registerQueryWithController({ type: `VizPanel/loadPlugin/${pluginId}`, origin: this }))
+            .subscribe(() => {});
+        }
+
+        const result = await panelPromise;
         this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
@@ -171,12 +187,31 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   public getLegacyPanelId() {
-    const panelId = parseInt(this.state.key!.replace('panel-', ''), 10);
+    /**
+     * The `/` part is here because a panel key can be in a clone chain
+     * A clone chain looks like `panel-1-clone-0/grid-item-5/panel-14` where the last part is the panel key
+     */
+    const parts = this.state.key?.split('/') ?? [];
+
+    if (parts.length === 0) {
+      return 0;
+    }
+
+    const part = parts[parts.length - 1];
+    const panelId = parseInt(part!.replace('panel-', ''), 10);
+
     if (isNaN(panelId)) {
       return 0;
     }
 
     return panelId;
+  }
+
+  /**
+   * Unique id string that includes local variable values (for repeated panels)
+   */
+  public getPathId() {
+    return buildPathIdFor(this);
   }
 
   private async _pluginLoaded(
@@ -208,9 +243,28 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    if (plugin.onPanelMigration && currentVersion !== pluginVersion && !isAfterPluginChange) {
+    //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/108998)
+    const needsMigration = currentVersion !== pluginVersion || plugin.shouldMigrate?.(panel);
+
+    if (plugin.onPanelMigration && needsMigration && !isAfterPluginChange) {
       // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
       panel.options = await plugin.onPanelMigration(panel);
+    }
+
+    // Some panels mutate the transformations on the panel as part of migrations.
+    // Unfortunately, these mutations are not available until the panel plugin is loaded.
+    // At this time, the data provider is already set, so this is the easiest way to fix it.
+    let $data = this.state.$data;
+    if (panel.transformations && $data) {
+      if ($data instanceof SceneDataTransformer) {
+        $data.setState({ transformations: panel.transformations });
+      } else if ($data instanceof SceneQueryRunner) {
+        $data.clearParent();
+        $data = new SceneDataTransformer({
+          transformations: panel.transformations,
+          $data,
+        });
+      }
     }
 
     const withDefaults = getPanelOptionsWithDefaults({
@@ -223,6 +277,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this._plugin = plugin;
 
     this.setState({
+      $data,
       options: withDefaults.options as DeepPartial<TOptions>,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
@@ -265,13 +320,15 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public getTimeRange = (data?: PanelData) => {
     const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
     const sceneTimeRange = sceneGraph.getTimeRange(this);
+
     if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
       return evaluateTimeRange(
         sceneTimeRange.state.from,
         sceneTimeRange.state.to,
         sceneTimeRange.getTimeZone(),
         sceneTimeRange.state.fiscalYearStartMonth,
-        sceneTimeRange.state.UNSAFE_nowDelay
+        sceneTimeRange.state.UNSAFE_nowDelay,
+        sceneTimeRange.state.weekStart
       );
     }
 
@@ -531,6 +588,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       true
     );
   };
+
+  public clone(withState?: Partial<VizPanelState>) {
+    // Clear _pluginInstanceState and _pluginLoadError as it's not safe to clone
+    return super.clone({ _pluginInstanceState: undefined, _pluginLoadError: undefined, ...withState });
+  }
 
   private buildPanelContext(): PanelContext {
     const sync = getCursorSyncScope(this);

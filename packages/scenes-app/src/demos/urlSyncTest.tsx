@@ -26,7 +26,6 @@ import { NewSceneObjectAddedEvent } from '@grafana/scenes/src/services/UrlSyncMa
 export function getUrlSyncTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A simple demo stress testing url sync',
     $timeRange: new SceneTimeRange(),
     controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
     $data: getQueryRunnerWithRandomWalkQuery({}, { maxDataPoints: 50 }),
@@ -34,6 +33,7 @@ export function getUrlSyncTest(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'First',
         url: `${defaults.url}/first`,
+        routePath: 'first',
         getScene: () => {
           return new EmbeddedScene({
             controls: [new VariableValueSelectors({})],
@@ -57,6 +57,7 @@ export function getUrlSyncTest(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Second',
         url: `${defaults.url}/manual`,
+        routePath: 'manual',
         getScene: () => {
           return new EmbeddedScene({
             controls: [new VariableValueSelectors({})],

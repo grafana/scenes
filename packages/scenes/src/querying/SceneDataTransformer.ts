@@ -1,4 +1,11 @@
-import { DataTopic, DataTransformerConfig, LoadingState, PanelData, transformDataFrame } from '@grafana/data';
+import {
+  DataTopic,
+  DataTransformerConfig,
+  LoadingState,
+  PanelData,
+  ScopedVars,
+  transformDataFrame,
+} from '@grafana/data';
 import { toDataQueryError } from '@grafana/runtime';
 import { catchError, forkJoin, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
@@ -149,7 +156,9 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       return;
     }
 
-    const seriesTransformations = this.state.transformations
+    let interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
+
+    const seriesTransformations = interpolatedTransformations
       .filter((transformation) => {
         if ('options' in transformation || 'topic' in transformation) {
           return transformation.topic == null || transformation.topic === DataTopic.Series;
@@ -159,7 +168,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       })
       .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
 
-    const annotationsTransformations = this.state.transformations
+    const annotationsTransformations = interpolatedTransformations
       .filter((transformation) => {
         if ('options' in transformation || 'topic' in transformation) {
           return transformation.topic === DataTopic.Annotations;
@@ -174,8 +183,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     }
 
     const ctx = {
-      interpolate: (value: string) => {
-        return sceneGraph.interpolate(this, value, data.request?.scopedVars);
+      interpolate: (value: string, scopedVars?: ScopedVars) => {
+        return sceneGraph.interpolate(this, value, { ...data.request?.scopedVars, ...scopedVars });
       },
     };
 
@@ -219,5 +228,28 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         this._results.next({ origin: this, data: transformedData });
         this._prevDataFromSource = data;
       });
+  }
+
+  private _interpolateVariablesInTransformationConfigs(
+    data: PanelData
+  ): Array<DataTransformerConfig | CustomTransformerDefinition> {
+    const transformations = this.state.transformations;
+
+    if (this._variableDependency.getNames().size === 0) {
+      return transformations;
+    }
+
+    const onlyObjects = transformations.every((t) => typeof t === 'object');
+
+    // If all transformations are config object we can interpolate them all at once
+    if (onlyObjects) {
+      return JSON.parse(sceneGraph.interpolate(this, JSON.stringify(transformations), data.request?.scopedVars));
+    }
+
+    return transformations.map((t) => {
+      return typeof t === 'object'
+        ? JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t), data.request?.scopedVars))
+        : t;
+    });
   }
 }
