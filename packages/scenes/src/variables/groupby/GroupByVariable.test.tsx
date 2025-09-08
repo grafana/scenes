@@ -206,7 +206,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       });
 
       expect(variable.state.value).toEqual(['defaultVal1']);
-      expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+      expect(locationService.getLocation().search).toBe('?var-test=&restorable-var-test=false');
     });
 
     it('should use default value if nothing arrives from the url', async () => {
@@ -219,7 +219,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       await act(async () => {
         await lastValueFrom(variable.validateAndUpdate());
-        expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+        expect(locationService.getLocation().search).toBe('?var-test=&restorable-var-test=false');
         expect(variable.state.value).toEqual(['defaultVal1']);
         expect(variable.state.text).toEqual(['defaultVal1']);
       });
@@ -236,7 +236,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       await act(async () => {
         await lastValueFrom(variable.validateAndUpdate());
-        expect(locationService.getLocation().search).toBe('?var-test=defaultVal1&restorable-var-test=false');
+        expect(locationService.getLocation().search).toBe('?var-test=&restorable-var-test=false');
         expect(variable.state.value).toEqual(['defaultVal1']);
         expect(variable.state.text).toEqual(['defaultVal1']);
       });
