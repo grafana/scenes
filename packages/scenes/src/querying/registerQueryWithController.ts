@@ -3,10 +3,21 @@ import { LoadingState } from '@grafana/schema';
 import { sceneGraph } from '../core/sceneGraph';
 import { QueryResultWithState, SceneQueryControllerEntry } from '../behaviors/types';
 
+// Forward declaration to avoid circular imports
+export interface QueryProfilerLike {
+  _onQueryStarted(entry: SceneQueryControllerEntry, queryId: string): void;
+  _onQueryCompleted(entry: SceneQueryControllerEntry, queryId: string): void;
+  _onQueryError(entry: SceneQueryControllerEntry, queryId: string, error: any): void;
+}
+
 /**
  * Will look for a scene object with a behavior that is a SceneQueryController and register the query with it.
+ * Optionally accepts a panel profiler for direct query tracking callbacks.
  */
-export function registerQueryWithController<T extends QueryResultWithState>(entry: SceneQueryControllerEntry) {
+export function registerQueryWithController<T extends QueryResultWithState>(
+  entry: SceneQueryControllerEntry,
+  panelProfiler?: QueryProfilerLike
+) {
   return (queryStream: Observable<T>) => {
     const queryControler = sceneGraph.getQueryController(entry.origin);
     if (!queryControler) {
@@ -18,6 +29,12 @@ export function registerQueryWithController<T extends QueryResultWithState>(entr
         entry.cancel = () => observer.complete();
       }
 
+      // Use existing request ID if available, otherwise generate one
+      const queryId = entry.request?.requestId || `${entry.type}-${Date.now()}-${Math.random()}`;
+
+      // Notify panel profiler if provided
+      panelProfiler?._onQueryStarted(entry, queryId);
+
       queryControler.queryStarted(entry);
       let markedAsCompleted = false;
 
@@ -26,11 +43,19 @@ export function registerQueryWithController<T extends QueryResultWithState>(entr
           if (!markedAsCompleted && v.state !== LoadingState.Loading) {
             markedAsCompleted = true;
             queryControler.queryCompleted(entry);
+            panelProfiler?._onQueryCompleted(entry, queryId);
           }
 
           observer.next(v);
         },
-        error: (e) => observer.error(e),
+        error: (e) => {
+          if (!markedAsCompleted) {
+            markedAsCompleted = true;
+            queryControler.queryCompleted(entry);
+            panelProfiler?._onQueryError(entry, queryId, e);
+          }
+          observer.error(e);
+        },
         complete: () => {
           observer.complete();
         },
@@ -41,6 +66,7 @@ export function registerQueryWithController<T extends QueryResultWithState>(entr
 
         if (!markedAsCompleted) {
           queryControler.queryCompleted(entry);
+          panelProfiler?._onQueryCompleted(entry, queryId);
         }
       };
     });

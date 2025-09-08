@@ -1,6 +1,8 @@
 import { VizPanel } from '../components/VizPanel/VizPanel';
 import { VizPanelRenderProfiler, PanelLifecyclePhase, PanelPerformanceCollectorLike } from './VizPanelRenderProfiler';
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
+import { SceneQueryRunner } from '../querying/SceneQueryRunner';
+import { SceneDataTransformer } from '../querying/SceneDataTransformer';
 
 // Mock writeSceneLog
 jest.mock('../utils/writeSceneLog', () => ({
@@ -176,36 +178,6 @@ describe('VizPanelRenderProfiler', () => {
     });
   });
 
-  describe('Render Tracking', () => {
-    beforeEach(() => {
-      panel.setState({
-        $behaviors: [profiler],
-      });
-      panel.activate();
-
-      // Start tracking first
-      profiler.onPluginLoadStart('timeseries');
-    });
-
-    it('should track render on _renderCounter change', (done) => {
-      const rafSpy = jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
-        setTimeout(() => {
-          cb(0);
-
-          expect(mockCollector.startPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.Render);
-          expect(mockCollector.endPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.Render);
-
-          rafSpy.mockRestore();
-          done();
-        }, 0);
-        return 0;
-      });
-
-      // Trigger render by changing _renderCounter
-      panel.setState({ _renderCounter: 1 });
-    });
-  });
-
   describe('Panel State Changes', () => {
     beforeEach(() => {
       panel.setState({
@@ -260,6 +232,131 @@ describe('VizPanelRenderProfiler', () => {
       const metrics = profilerNotActivated.getPanelMetrics();
 
       expect(metrics).toBeUndefined();
+    });
+  });
+
+  describe('S3.0 Lifecycle Integration', () => {
+    let mockQueryRunner: SceneQueryRunner;
+
+    beforeEach(() => {
+      mockQueryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', expr: 'test_metric' }],
+      });
+
+      panel.setState({
+        $behaviors: [profiler],
+        $data: mockQueryRunner,
+      });
+      panel.activate();
+    });
+
+    it('should track query execution via registerQueryWithController', () => {
+      // Test the new query tracking approach
+      const mockEntry = {
+        type: 'SceneQueryRunner/runQueries',
+        origin: panel,
+        request: { requestId: 'test-query-123' },
+      };
+
+      profiler._onQueryStarted(mockEntry, 'test-query-123');
+      expect(mockCollector.startPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+
+      performanceNowSpy.mockReturnValue(1100); // 100ms later
+      profiler._onQueryCompleted(mockEntry, 'test-query-123');
+      expect(mockCollector.endPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+    });
+
+    it('should track multiple concurrent queries', () => {
+      // Test concurrent query tracking
+      const mockEntry1 = {
+        type: 'SceneQueryRunner/runQueries',
+        origin: panel,
+        request: { requestId: 'query-1' },
+      };
+      const mockEntry2 = {
+        type: 'SceneQueryRunner/runQueries',
+        origin: panel,
+        request: { requestId: 'query-2' },
+      };
+
+      // Reset mock call count for this test
+      jest.clearAllMocks();
+
+      // Start first query
+      profiler._onQueryStarted(mockEntry1, 'query-1');
+      expect(mockCollector.startPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+
+      // Start second query (should not call startPhase again)
+      profiler._onQueryStarted(mockEntry2, 'query-2');
+      expect(mockCollector.startPhase).toHaveBeenCalledTimes(1);
+
+      // Complete first query (should not call endPhase yet)
+      performanceNowSpy.mockReturnValue(1050);
+      profiler._onQueryCompleted(mockEntry1, 'query-1');
+      expect(mockCollector.endPhase).not.toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+
+      // Complete second query (should call endPhase)
+      performanceNowSpy.mockReturnValue(1100);
+      profiler._onQueryCompleted(mockEntry2, 'query-2');
+      expect(mockCollector.endPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+    });
+
+    it('should get query count from SceneQueryRunner', () => {
+      // Test the _getQueryCount method
+      const queryRunner = new SceneQueryRunner({
+        queries: [
+          { refId: 'A', expr: 'metric1' },
+          { refId: 'B', expr: 'metric2' },
+          { refId: 'C', expr: 'metric3' },
+        ],
+      });
+
+      panel.setState({
+        $data: queryRunner,
+      });
+
+      // Call the private method via field config processing which uses it
+      profiler.onApplyFieldConfigStart();
+      performanceNowSpy.mockReturnValue(1050);
+      profiler.onApplyFieldConfigEnd(1000, 5);
+
+      // The query count should be included in the log (we can't directly test _getQueryCount as it's private)
+      // But we can verify the method works by checking that no errors are thrown
+      expect(mockCollector.setDataMetrics).toHaveBeenCalledWith('test-panel-1', 1000, 5);
+    });
+
+    it('should get query count from SceneDataTransformer wrapping SceneQueryRunner', () => {
+      // Test query count with SceneDataTransformer
+      const queryRunner = new SceneQueryRunner({
+        queries: [
+          { refId: 'A', expr: 'metric1' },
+          { refId: 'B', expr: 'metric2' },
+        ],
+      });
+
+      const dataTransformer = new SceneDataTransformer({
+        $data: queryRunner,
+        transformations: [],
+      });
+
+      panel.setState({
+        $data: dataTransformer,
+      });
+
+      // Call field config processing which uses _getQueryCount
+      profiler.onApplyFieldConfigStart();
+      performanceNowSpy.mockReturnValue(1050);
+      profiler.onApplyFieldConfigEnd(500, 2);
+
+      // Should work without errors even with wrapped query runner
+      expect(mockCollector.setDataMetrics).toHaveBeenCalledWith('test-panel-1', 500, 2);
+    });
+
+    it('should handle cleanup gracefully', () => {
+      const deactivate = panel.activate();
+
+      // Deactivate should not throw errors
+      expect(() => deactivate()).not.toThrow();
     });
   });
 });

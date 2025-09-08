@@ -2,6 +2,7 @@ import { t } from '@grafana/i18n';
 import {
   AbsoluteTimeRange,
   FieldConfigSource,
+  FieldType,
   PanelModel,
   PanelPlugin,
   toUtc,
@@ -144,7 +145,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   /**
    * Get the VizPanelRenderProfiler behavior if attached
    */
-  private _getProfiler(): VizPanelRenderProfiler | undefined {
+  public getProfiler(): VizPanelRenderProfiler | undefined {
     if (!this.state.$behaviors) {
       return undefined;
     }
@@ -175,7 +176,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     overwriteFieldConfig?: FieldConfigSource,
     isAfterPluginChange?: boolean
   ) {
-    const profiler = this._getProfiler();
+    const profiler = this.getProfiler();
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
@@ -494,6 +495,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public applyFieldConfig(rawData?: PanelData): PanelData {
     const plugin = this._plugin;
 
+    const profiler = this.getProfiler();
+
     if (!plugin || plugin.meta.skipDataQuery || !rawData) {
       // TODO setup time range subscription instead
       return emptyPanelData;
@@ -503,8 +506,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     if (this._prevData === rawData && this._dataWithFieldConfig) {
       return this._dataWithFieldConfig;
     }
-
-    const profiler = this._getProfiler();
 
     // Start profiling data processing
     if (profiler) {
@@ -561,12 +562,23 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     // End profiling data processing
     if (profiler) {
       // Calculate data metrics
+      // TODO: Verify data metrics calculation logic for complex data frame scenarios
+      // - Test with mixed field types (time, string, boolean, number)
+      // - Verify series counting with multiple frames containing different field structures
+      // - Validate data points counting with frames of varying lengths
+      // - Compare against other Grafana panel implementations (barchart, timeseries)
+      // - Note: Grafana doesn't have built-in utilities for this, so we need our own tests
       let dataPointsCount = 0;
-      let seriesCount = newFrames.length;
+      let seriesCount = 0;
 
       for (const frame of newFrames) {
-        if (frame.length) {
-          dataPointsCount += frame.length * frame.fields.length;
+        if (frame.length && frame.fields.length) {
+          // Count series: only numeric fields represent actual data series
+          const numericFields = frame.fields.filter((field) => field.type === FieldType.number).length;
+          seriesCount += numericFields;
+
+          // Count data points: sum of all field lengths (each field has frame.length points)
+          dataPointsCount += frame.fields.reduce((sum, field) => sum + field.values.length, 0);
         }
       }
 

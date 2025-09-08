@@ -28,6 +28,8 @@ export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
 export * as behaviors from './behaviors';
+export type { PanelPerformanceCollectorLike } from './behaviors/VizPanelRenderProfiler';
+export { PanelLifecyclePhase } from './behaviors/VizPanelRenderProfiler';
 export * as dataLayers from './querying/layers';
 
 export { SceneObjectBase, useSceneObjectState } from './core/SceneObjectBase';

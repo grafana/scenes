@@ -1,5 +1,14 @@
 import { Trans } from '@grafana/i18n';
-import React, { RefCallback, useCallback, useMemo } from 'react';
+import React, {
+  RefCallback,
+  useCallback,
+  useMemo,
+  useLayoutEffect,
+  useEffect,
+  useRef,
+  Profiler,
+  ProfilerOnRenderCallback,
+} from 'react';
 import { useMeasure } from 'react-use';
 
 // @ts-ignore
@@ -49,6 +58,56 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
     [setPanelAttention]
   );
+
+  // S3.0 RENDER TRACKING: React Profiler API for development, manual timing for production
+  const profiler = useMemo(() => model.getProfiler(), [model]);
+
+  const onRenderCallback: ProfilerOnRenderCallback = useCallback(
+    (id, phase, actualDuration, baseDuration, startTime, commitTime) => {
+      if (profiler) {
+        // React Profiler measurement
+        profiler.onReactRender({
+          phase,
+          actualDuration,
+          baseDuration,
+          startTime,
+          commitTime,
+          panelId: id,
+        });
+
+        // Compare with our simple measurement
+        profiler.compareRenderMeasurements({
+          reactProfiler: {
+            phase,
+            actualDuration,
+            baseDuration,
+            startTime,
+            commitTime,
+          },
+        });
+      }
+    },
+    [profiler]
+  );
+
+  // COMPARISON MODE: Run both measurements side by side
+  // Capture render start time immediately when component function runs
+  const currentRenderStart = performance.now();
+
+  useLayoutEffect(() => {
+    if (profiler) {
+      profiler.onSimpleRenderStart(currentRenderStart);
+    }
+  });
+
+  // Use useEffect (after DOM updates) to better match React Profiler's commit phase timing
+  useEffect(() => {
+    if (profiler) {
+      // Measure from component start to after DOM updates AND effects (closer to React Profiler scope)
+      const duration = performance.now() - currentRenderStart;
+      profiler.onSimpleRenderEnd(duration, 'component-to-effects');
+    }
+  });
 
   const plugin = model.getPlugin();
 
@@ -179,7 +238,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const context = model.getPanelContext();
   const panelId = model.getLegacyPanelId();
 
-  return (
+  // COMPARISON MODE: Run both React Profiler and Simple Render measurement
+  // Enable React Profiler via localStorage: localStorage.setItem('scenes.debug.reactProfiler', 'true')
+  const shouldUseReactProfiler = !!localStorage.getItem('scenes.debug.reactProfiler');
+
+  const panelContent = (
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
@@ -250,6 +313,14 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         )}
       </div>
     </div>
+  );
+
+  return shouldUseReactProfiler ? (
+    <Profiler id={`panel-${model.state.key || 'unknown'}`} onRender={onRenderCallback}>
+      {panelContent}
+    </Profiler>
+  ) : (
+    panelContent
   );
 }
 
