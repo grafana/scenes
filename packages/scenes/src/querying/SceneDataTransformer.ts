@@ -13,6 +13,8 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
+import { PanelLifecyclePhase } from '../behaviors/VizPanelRenderProfiler';
+import { findPanelProfiler } from '../utils/findPanelProfiler';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -98,7 +100,58 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public reprocessTransformations() {
+    // S3.1: Performance tracking for manual reprocessing
+    const profiler = findPanelProfiler(this);
+    if (profiler) {
+      profiler.logManualReprocessing();
+    }
+
     this.transform(this.getSourceData().state.data, true);
+  }
+
+  /**
+   * S3.1: Calculate transformation complexity metrics
+   */
+  private _calculateTransformationMetrics(
+    data: PanelData,
+    transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
+  ): {
+    transformationCount: number;
+    dataFrameCount: number;
+    totalDataPoints: number;
+    seriesTransformationCount: number;
+    annotationTransformationCount: number;
+  } {
+    const transformationCount = transformations.length;
+    const dataFrameCount = data.series.length + (data.annotations?.length || 0);
+
+    // Calculate total data points across all series
+    const totalDataPoints = data.series.reduce((total, frame) => {
+      return total + frame.fields.reduce((frameTotal, field) => frameTotal + field.values.length, 0);
+    }, 0);
+
+    // Count transformations by topic (series vs annotations)
+    const seriesTransformationCount = transformations.filter((transformation) => {
+      if ('options' in transformation || 'topic' in transformation) {
+        return transformation.topic == null || transformation.topic === DataTopic.Series;
+      }
+      return true; // Custom transformations default to series
+    }).length;
+
+    const annotationTransformationCount = transformations.filter((transformation) => {
+      if ('options' in transformation || 'topic' in transformation) {
+        return transformation.topic === DataTopic.Annotations;
+      }
+      return false;
+    }).length;
+
+    return {
+      transformationCount,
+      dataFrameCount,
+      totalDataPoints,
+      seriesTransformationCount,
+      annotationTransformationCount,
+    };
   }
 
   public cancelQuery() {
@@ -141,6 +194,11 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   private transform(data: PanelData | undefined, force = false) {
+    // S3.1: Performance tracking entry point
+    const profiler = findPanelProfiler(this);
+    const transformStartTime = performance.now();
+    let transformationId: string | undefined;
+
     if (this.state.transformations.length === 0 || !data) {
       this._prevDataFromSource = data;
       this.setState({ data });
@@ -154,6 +212,17 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     // Skip transform step if we have already transformed this data
     if (!force && this.haveAlreadyTransformedData(data)) {
       return;
+    }
+
+    // S3.1: Start transformation tracking
+    if (profiler) {
+      transformationId = `transform-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Calculate transformation complexity metrics
+      const metrics = this._calculateTransformationMetrics(data, this.state.transformations);
+
+      // Start the DataProcessing phase with centralized logging
+      profiler.startDataTransformation(transformationId, metrics);
     }
 
     let interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
@@ -207,6 +276,16 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
           };
         }),
         catchError((err) => {
+          // S3.1: Performance tracking for transformation errors
+          const duration = performance.now() - transformStartTime;
+
+          if (profiler && transformationId) {
+            // End the DataProcessing phase with centralized logging
+            profiler.endDataTransformation(transformationId, duration, false, {
+              error: err.message || err,
+            });
+          }
+
           console.error('Error transforming data: ', err);
           const sourceErr = this.getSourceData().state.data?.errors || [];
 
@@ -224,6 +303,17 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         })
       )
       .subscribe((transformedData) => {
+        // S3.1: Performance tracking for successful transformations
+        const duration = performance.now() - transformStartTime;
+
+        if (profiler && transformationId) {
+          // End the DataProcessing phase with centralized logging
+          profiler.endDataTransformation(transformationId, duration, true, {
+            outputSeriesCount: transformedData.series.length,
+            outputAnnotationsCount: transformedData.annotations?.length || 0,
+          });
+        }
+
         this.setState({ data: transformedData });
         this._results.next({ origin: this, data: transformedData });
         this._prevDataFromSource = data;

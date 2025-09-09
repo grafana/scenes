@@ -41,8 +41,7 @@ import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { registerQueryWithController, QueryProfilerLike } from './registerQueryWithController';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { VizPanel } from '../components/VizPanel/VizPanel';
-import { VizPanelRenderProfiler } from '../behaviors/VizPanelRenderProfiler';
+import { findPanelProfiler } from '../utils/findPanelProfiler';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
@@ -474,18 +473,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
 
       // S3.0 LIFECYCLE INTEGRATION: Find VizPanel profiler for query tracking
-      let panelProfiler: QueryProfilerLike | undefined = undefined;
-      try {
-        // Use sceneGraph to find the VizPanel ancestor
-        const panel = sceneGraph.getAncestor(this, VizPanel);
-        if (panel) {
-          // Find VizPanelRenderProfiler behavior in the panel
-          const behaviors = panel.state.$behaviors || [];
-          panelProfiler = behaviors.find((b): b is VizPanelRenderProfiler => b instanceof VizPanelRenderProfiler);
-        }
-      } catch (error) {
-        // If we can't find the panel or profiler, continue without tracking
-      }
+      const panelProfiler: QueryProfilerLike | undefined = findPanelProfiler(this);
 
       stream = stream.pipe(
         registerQueryWithController(

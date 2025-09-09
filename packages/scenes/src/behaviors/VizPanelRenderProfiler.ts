@@ -6,6 +6,7 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneQueryControllerEntry } from './types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
+import { QueryProfilerLike } from '../querying/registerQueryWithController';
 
 // React Profiler phase type
 type ReactProfilerPhase = 'mount' | 'update' | 'nested-update';
@@ -46,7 +47,7 @@ export interface VizPanelRenderProfilerState extends SceneObjectState {
  *
  * To disable: localStorage.removeItem('scenes.debug.renderComparison')
  */
-export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfilerState> {
+export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfilerState> implements QueryProfilerLike {
   private _panelKey?: string;
   private _panelId?: string;
   private _pluginId?: string;
@@ -803,6 +804,99 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
     this._isTracking = false;
     writeSceneLog(this._getPanelInfo(), 'Cleaned up');
+  }
+
+  /**
+   * S3.1: Public method for SceneDataTransformer to start transformation tracking
+   */
+  public startDataTransformation(
+    transformationId: string,
+    metrics: {
+      transformationCount: number;
+      dataFrameCount: number;
+      totalDataPoints: number;
+      seriesTransformationCount: number;
+      annotationTransformationCount: number;
+    }
+  ): void {
+    if (!this._panelKey || !this._collector) {
+      return;
+    }
+
+    // Add performance mark for DevTools
+    try {
+      performance.mark(`transformation-start-${transformationId}`);
+    } catch (e) {
+      // Performance marks might not be available in all environments
+    }
+
+    this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataProcessing);
+
+    // Centralized logging in VizPanelRenderProfiler
+    writeSceneLog(this._getPanelInfo(), 'Data transformation started', {
+      transformationId,
+      transformationCount: metrics.transformationCount,
+      dataFrameCount: metrics.dataFrameCount,
+      totalDataPoints: metrics.totalDataPoints,
+      seriesTransformationCount: metrics.seriesTransformationCount,
+      annotationTransformationCount: metrics.annotationTransformationCount,
+    });
+  }
+
+  /**
+   * S3.1: Public method for SceneDataTransformer to end transformation tracking
+   */
+  public endDataTransformation(
+    transformationId: string,
+    duration: number,
+    success: boolean,
+    result?: {
+      outputSeriesCount?: number;
+      outputAnnotationsCount?: number;
+      error?: string;
+    }
+  ): void {
+    if (!this._panelKey || !this._collector) {
+      return;
+    }
+
+    // Add performance mark for DevTools
+    const markSuffix = success ? 'end' : 'error';
+    try {
+      performance.mark(`transformation-${markSuffix}-${transformationId}`);
+      performance.measure(
+        `transformation-duration-${transformationId}`,
+        `transformation-start-${transformationId}`,
+        `transformation-${markSuffix}-${transformationId}`
+      );
+    } catch (e) {
+      // Performance marks might not be available in all environments
+    }
+
+    this._collector.endPhase(this._panelKey, PanelLifecyclePhase.DataProcessing);
+
+    // Centralized logging in VizPanelRenderProfiler
+    if (success) {
+      writeSceneLog(this._getPanelInfo(), 'Data transformation completed', {
+        transformationId,
+        duration: `${duration.toFixed(2)}ms`,
+        outputSeriesCount: result?.outputSeriesCount,
+        outputAnnotationsCount: result?.outputAnnotationsCount,
+      });
+    } else {
+      writeSceneLog(this._getPanelInfo(), 'Data transformation failed', {
+        transformationId,
+        duration: `${duration.toFixed(2)}ms`,
+        error: result?.error,
+      });
+    }
+  }
+
+  /**
+   * S3.1: Public method for SceneDataTransformer to log manual reprocessing
+   */
+  public logManualReprocessing(): void {
+    writeSceneLog(this._getPanelInfo(), 'Manual data transformation reprocessing triggered');
   }
 
   /**

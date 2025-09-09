@@ -760,6 +760,17 @@ describe('SceneDataTransformer', () => {
       options: 'annotation-transformation-New Text Variable Value',
     });
   });
+
+  // TODO: Add comprehensive tests for data transformation performance tracking
+  // This will be implemented during Phase 7: Testing and Validation
+  // Tests should cover:
+  // - Single transformation timing
+  // - Multiple transformation timing
+  // - Complex transformations with multiple series
+  // - Manual reprocessing operations
+  // - Error handling in transformations
+  // - Missing profiler graceful handling
+  // - Accurate timing measurements
 });
 
 export interface SceneObjectSearchBoxState extends SceneObjectState {
