@@ -67,6 +67,21 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     };
   }
 
+  public adjustYPositions(after: number, amount: number) {
+    for (const child of this.state.children) {
+      if (child.state.y! > after) {
+        child.setState({ y: child.state.y! + amount });
+      }
+      if (child instanceof SceneGridRow) {
+        for (const rowChild of child.state.children) {
+          if (rowChild.state.y! > after) {
+            rowChild.setState({ y: rowChild.state.y! + amount });
+          }
+        }
+      }
+    }
+  }
+
   public toggleRow(row: SceneGridRow) {
     const isCollapsed = row.state.isCollapsed;
 
