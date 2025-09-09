@@ -669,7 +669,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     return (this.state.runQueriesMode ?? 'auto') === 'auto';
   }
 
-  private _isInView: boolean = true;
+  private _isInView = true;
   private _queryNotExecutedWhenOutOfView = false;
 
   public isInViewChanged(isInView: boolean): void {
