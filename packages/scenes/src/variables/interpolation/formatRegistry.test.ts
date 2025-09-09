@@ -28,7 +28,7 @@ describe('formatRegistry', () => {
 
     expect(formatValue(VariableFormatID.Text, 'v', 'display text')).toBe('display text');
     expect(formatValue(VariableFormatID.Text, ['test', 'test2'])).toBe('test + test2');
-    
+
     expect(formatValue(VariableFormatID.TextUpper, 'test')).toBe('TEST');
     expect(formatValue(VariableFormatID.TextUpper, ['test', 'test2'])).toBe('TEST + TEST2');
 
