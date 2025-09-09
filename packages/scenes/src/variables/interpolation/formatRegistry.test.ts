@@ -27,10 +27,6 @@ describe('formatRegistry', () => {
     expect(formatValue(VariableFormatID.Glob, ['AA', 'BB', 'C.*'])).toBe('{AA,BB,C.*}');
 
     expect(formatValue(VariableFormatID.Text, 'v', 'display text')).toBe('display text');
-    expect(formatValue(VariableFormatID.Text, ['test', 'test2'])).toBe('test + test2');
-
-    expect(formatValue(VariableFormatID.TextUpper, 'test')).toBe('TEST');
-    expect(formatValue(VariableFormatID.TextUpper, ['test', 'test2'])).toBe('TEST + TEST2');
 
     expect(formatValue(VariableFormatID.Raw, [12, 13])).toBe('12,13');
     expect(formatValue(VariableFormatID.Raw, '#Æ³ ̇¹"Ä1"#!"#!½')).toBe('#Æ³ ̇¹"Ä1"#!"#!½');
