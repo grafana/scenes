@@ -67,7 +67,11 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     // If the children render empty, the whole loader will be hidden by css.
     return (
       <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
-        {!loaded || !isInView ? t('grafana-scenes.components.lazy-loader.placeholder', '\u00A0') : <LazyLoaderInViewContext.Provider value={isInView}>children</LazyLoaderInViewContext.Provider>}
+        {!loaded || !isInView ? (
+          t('grafana-scenes.components.lazy-loader.placeholder', '\u00A0')
+        ) : (
+          <LazyLoaderInViewContext.Provider value={isInView}>{children}</LazyLoaderInViewContext.Provider>
+        )}
       </div>
     );
   }
