@@ -304,18 +304,26 @@ export class SceneRenderProfiler {
     }
 
     try {
-      // Find all VizPanel instances in the scene graph starting from the query controller
-      const vizPanels = sceneGraph.findAllObjects(this.queryController, (obj) => obj instanceof VizPanel);
+      // Find all VizPanel instances in the scene graph
+      // We need to find the scene root to search from, as the query controller may be a behavior
+      let searchRoot = this.queryController;
+      
+      // If the query controller has a parent, traverse up to find the scene root
+      while (searchRoot.parent) {
+        searchRoot = searchRoot.parent;
+      }
+
+      const vizPanels = sceneGraph.findAllObjects(searchRoot, (obj) => obj instanceof VizPanel);
 
       writeSceneLog(
         'SceneRenderProfiler',
-        `Collecting metrics from ${vizPanels.length} VizPanel instances`,
+        `Collecting metrics from ${vizPanels.length} VizPanel instances (searching from ${searchRoot.constructor.name})`,
         vizPanels.map((p) => (p as VizPanel).state.key)
       );
 
       for (const vizPanel of vizPanels) {
         const panel = vizPanel as VizPanel;
-        
+
         // Find the VizPanelRenderProfiler behavior attached to this panel
         const profilerBehavior = panel.state.$behaviors?.find(
           (behavior) => behavior instanceof VizPanelRenderProfiler
