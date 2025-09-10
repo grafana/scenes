@@ -848,3 +848,85 @@ describe('captureNetwork', () => {
     }).not.toThrow();
   });
 });
+
+describe('S5.0: Panel Metrics Collection', () => {
+  it('should include panel metrics in analytics event when profile completes', () => {
+    const mockOnProfileComplete = jest.fn();
+    const mockQueryController = {
+      state: { onProfileComplete: mockOnProfileComplete },
+      runningQueriesCount: () => 0,
+    };
+
+    const profiler = new SceneRenderProfiler(mockQueryController as any);
+
+    // Mock the collectPanelMetrics method to return test data
+    const mockPanelMetrics = [
+      {
+        panelId: 'test-panel-1',
+        panelKey: 'panel-key-1',
+        pluginId: 'timeseries',
+        pluginVersion: '1.0.0',
+        pluginLoadTime: 100,
+        pluginLoadedFromCache: false,
+        queryTime: 500,
+        dataProcessingTime: 200,
+        renderTime: 150,
+        totalTime: 850,
+        longFramesCount: 2,
+        longFramesTotalTime: 80,
+        renderCount: 3,
+        dataPointsCount: 1000,
+        seriesCount: 5,
+      },
+    ];
+
+    (profiler as any).collectPanelMetrics = jest.fn().mockReturnValue(mockPanelMetrics);
+
+    // Start and complete a profile
+    profiler.startProfile('test-interaction');
+    profiler.tryCompletingProfile();
+
+    // Wait for the profile to complete
+    setTimeout(() => {
+      // Verify that onProfileComplete was called with panel metrics
+      expect(mockOnProfileComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          panelMetrics: mockPanelMetrics,
+          origin: 'test-interaction',
+        })
+      );
+    }, 0);
+  });
+
+  it('should handle no query controller gracefully', () => {
+    const profiler = new SceneRenderProfiler(); // No query controller
+
+    // Access the private method using bracket notation for testing
+    const panelMetrics = (profiler as any).collectPanelMetrics();
+
+    expect(panelMetrics).toHaveLength(0);
+  });
+
+  it('should handle errors during panel metrics collection', () => {
+    const mockQueryController = {
+      state: { onProfileComplete: jest.fn() },
+    };
+
+    const profiler = new SceneRenderProfiler(mockQueryController as any);
+
+    // Mock sceneGraph.findAllObjects to throw an error
+    const sceneGraphModule = jest.requireMock('../core/sceneGraph');
+    const originalFindAllObjects = sceneGraphModule.sceneGraph.findAllObjects;
+    sceneGraphModule.sceneGraph.findAllObjects = jest.fn(() => {
+      throw new Error('Test error');
+    });
+
+    // Access the private method using bracket notation for testing
+    const panelMetrics = (profiler as any).collectPanelMetrics();
+
+    expect(panelMetrics).toHaveLength(0);
+
+    // Restore the original function
+    sceneGraphModule.sceneGraph.findAllObjects = originalFindAllObjects;
+  });
+});

@@ -181,6 +181,9 @@ export class SceneRenderProfiler {
 
       const networkDuration = captureNetwork(profileStartTs, profileEndTs);
 
+      // S5.0: Collect panel metrics from all VizPanelRenderProfiler instances
+      const panelMetrics = this.collectPanelMetrics();
+
       if (this.queryController?.state.onProfileComplete && this.#profileInProgress) {
         this.queryController.state.onProfileComplete({
           origin: this.#profileInProgress.origin,
@@ -195,6 +198,8 @@ export class SceneRenderProfiler {
           usedJSHeapSize: performance.memory ? performance.memory.usedJSHeapSize : 0,
           // @ts-ignore
           totalJSHeapSize: performance.memory ? performance.memory.totalJSHeapSize : 0,
+          // S5.0: Include collected panel metrics in analytics event
+          panelMetrics,
         });
 
         this.#profileInProgress = null;
@@ -248,6 +253,99 @@ export class SceneRenderProfiler {
       // Reset recorded spans to ensure complete cleanup
       this.#recordedTrailingSpans = [];
     }
+  }
+
+  /**
+   * S5.0: Collect panel metrics from all VizPanelRenderProfiler instances in the scene graph
+   * This enables correlation of panel-level performance with dashboard-level analytics
+   */
+  private collectPanelMetrics(): Array<{
+    panelId: string;
+    panelKey: string;
+    pluginId: string;
+    pluginVersion?: string;
+    pluginLoadTime: number;
+    pluginLoadedFromCache: boolean;
+    queryTime: number;
+    dataProcessingTime: number;
+    renderTime: number;
+    totalTime: number;
+    longFramesCount: number;
+    longFramesTotalTime: number;
+    renderCount: number;
+    dataPointsCount?: number;
+    seriesCount?: number;
+    error?: string;
+    memoryIncrease?: number;
+  }> {
+    const panelMetrics: Array<{
+      panelId: string;
+      panelKey: string;
+      pluginId: string;
+      pluginVersion?: string;
+      pluginLoadTime: number;
+      pluginLoadedFromCache: boolean;
+      queryTime: number;
+      dataProcessingTime: number;
+      renderTime: number;
+      totalTime: number;
+      longFramesCount: number;
+      longFramesTotalTime: number;
+      renderCount: number;
+      dataPointsCount?: number;
+      seriesCount?: number;
+      error?: string;
+      memoryIncrease?: number;
+    }> = [];
+
+    if (!this.queryController) {
+      writeSceneLog('SceneRenderProfiler', 'No query controller available for panel metrics collection');
+      return panelMetrics;
+    }
+
+    try {
+      // Find all VizPanel instances in the scene graph starting from the query controller
+      const vizPanels = sceneGraph.findAllObjects(this.queryController, (obj) => obj instanceof VizPanel);
+
+      writeSceneLog(
+        'SceneRenderProfiler',
+        `Collecting metrics from ${vizPanels.length} VizPanel instances`,
+        vizPanels.map((p) => (p as VizPanel).state.key)
+      );
+
+      for (const vizPanel of vizPanels) {
+        const panel = vizPanel as VizPanel;
+        
+        // Find the VizPanelRenderProfiler behavior attached to this panel
+        const profilerBehavior = panel.state.$behaviors?.find(
+          (behavior) => behavior instanceof VizPanelRenderProfiler
+        ) as VizPanelRenderProfiler | undefined;
+
+        if (profilerBehavior) {
+          const metrics = profilerBehavior.getPanelMetrics();
+          if (metrics) {
+            panelMetrics.push(metrics);
+            writeSceneLog(
+              'SceneRenderProfiler',
+              `Collected metrics for panel ${metrics.panelId || 'unknown'}`,
+              metrics
+            );
+          }
+        } else {
+          writeSceneLog(
+            'SceneRenderProfiler',
+            `No VizPanelRenderProfiler found for panel ${panel.state.key}`,
+            panel.state
+          );
+        }
+      }
+
+      writeSceneLog('SceneRenderProfiler', `Total panel metrics collected: ${panelMetrics.length}`);
+    } catch (error) {
+      writeSceneLog('SceneRenderProfiler', 'Error collecting panel metrics:', error);
+    }
+
+    return panelMetrics;
   }
 
   public addCrumb(crumb: string) {
