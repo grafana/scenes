@@ -20,7 +20,7 @@ export type LongFrameCallback = (event: LongFrameEvent) => void;
  * The detector automatically uses LoAF when available for better attribution and performance,
  * falling back to manual tracking for broader browser support.
  *
- * @see https://developer.mozilla.org/en-US/docs/Web/API/Long_Animation_Frame_API
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Long_animation_frame_timing
  */
 export class LongFrameDetector {
   #isTracking = false;
