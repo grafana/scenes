@@ -224,7 +224,18 @@ describe('VizPanelRenderProfiler', () => {
       const metrics = profiler.getPanelMetrics();
 
       expect(mockCollector.getPanelMetrics).toHaveBeenCalledWith('test-panel-1');
-      expect(metrics).toEqual(mockMetrics);
+      // S4.0: Metrics now include correlation context
+      expect(metrics).toEqual({
+        ...mockMetrics,
+        correlationContext: {
+          interactionId: undefined, // No active interaction in test
+          interactionType: undefined,
+          interactionSource: undefined,
+          interactionStartTime: undefined,
+          panelId: '42',
+          panelKey: 'test-panel-1',
+        },
+      });
     });
 
     it('should return undefined if not tracking', () => {

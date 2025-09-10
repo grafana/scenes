@@ -1,5 +1,9 @@
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { SceneQueryControllerLike } from './types';
+import { interactionBridge } from '@grafana/runtime';
+import { sceneGraph } from '../core/sceneGraph';
+import { VizPanel } from '../components/VizPanel/VizPanel';
+import { VizPanelRenderProfiler } from './VizPanelRenderProfiler';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
 const SPAN_THRESHOLD = 30; // Frames longer than this will be considered slow
@@ -91,6 +95,18 @@ export class SceneRenderProfiler {
   private _startNewProfile(name: string, force = false) {
     this.#profileInProgress = { origin: name, crumbs: [] };
     this.#profileStartTs = performance.now();
+
+    // S4.0: Notify InteractionBridge of new dashboard interaction
+    interactionBridge.setCurrentInteraction(
+      name,
+      'scene-render-profiler',
+      {
+        profileType: force ? 'forced' : 'clean',
+        startTs: this.#profileStartTs,
+      },
+      this.#profileStartTs
+    );
+
     writeSceneLog(
       'SceneRenderProfiler',
       `Profile started[${force ? 'forced' : 'clean'}]`,
@@ -147,6 +163,9 @@ export class SceneRenderProfiler {
         profileDuration + slowFramesTime
       );
       this.#trailAnimationFrameId = null;
+
+      // S4.0: Notify InteractionBridge that dashboard interaction completed
+      interactionBridge.clearCurrentInteraction();
 
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
 
@@ -216,6 +235,10 @@ export class SceneRenderProfiler {
   public cancelProfile() {
     if (this.#profileInProgress) {
       writeSceneLog('SceneRenderProfiler', 'Cancelling profile', this.#profileInProgress);
+
+      // S4.0: Any cancellation of an active profile is an interruption
+      interactionBridge.interruptCurrentInteraction();
+
       this.#profileInProgress = null;
       // Cancel any pending animation frame to prevent accessing null profileInProgress
       if (this.#trailAnimationFrameId) {
