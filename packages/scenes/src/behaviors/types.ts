@@ -36,7 +36,7 @@ export interface SceneInteractionProfileEvent {
     /** High-resolution timestamp when interaction started */
     interactionStartTime: number;
   };
-  /** Optional array of panel-level performance metrics */
+  /** Optional array of panel-level performance metrics (S5.0: Hybrid structure) */
   panelMetrics?: Array<{
     /** Legacy panel ID from the dashboard model */
     panelId: string;
@@ -46,32 +46,66 @@ export interface SceneInteractionProfileEvent {
     pluginId: string;
     /** Version of the panel plugin */
     pluginVersion?: string;
-    /** Time taken to load the panel plugin (ms) */
-    pluginLoadTime: number;
-    /** Whether the plugin was loaded from cache rather than fetched/imported */
-    pluginLoadedFromCache: boolean;
-    /** Time spent executing data queries (ms) */
-    queryTime: number;
-    /** Time spent processing data (field config, transformations) (ms) */
-    dataProcessingTime: number;
-    /** Time spent rendering the panel to DOM (ms) */
-    renderTime: number;
-    /** Total time for all panel operations (ms) */
-    totalTime: number;
-    /** Number of long frames (>50ms) during panel operations */
-    longFramesCount: number;
-    /** Total time of all long frames for this panel (ms) */
-    longFramesTotalTime: number;
-    /** Number of times this panel was rendered during the interaction */
-    renderCount: number;
-    /** Number of data points processed by the panel */
+
+    /** Plugin loading metrics */
+    pluginLoadTime?: number;
+    pluginLoadedFromCache?: boolean;
+
+    /** Query metrics - totals */
+    totalQueryTime?: number;
+    queryCount?: number;
+
+    /** Field config metrics - totals (separate from transformations) */
+    totalFieldConfigTime?: number;
+    fieldConfigCount?: number;
+
+    /** Transformation metrics - totals (separate from field config) */
+    totalTransformationTime?: number;
+    transformationCount?: number;
+
+    /** Render metrics - totals */
+    totalRenderTime?: number;
+    renderCount?: number;
+
+    /** Data context (latest values) */
     dataPointsCount?: number;
-    /** Number of series/fields in the panel data */
     seriesCount?: number;
-    /** Error message if panel failed to load or render */
+
+    /** Error handling */
     error?: string;
-    /** Memory increase during panel operations (bytes) */
     memoryIncrease?: number;
+    longFramesCount?: number;
+    longFramesTotalTime?: number;
+
+    /** S5.0: Detailed operation arrays for analysis */
+    queryOperations?: Array<{
+      duration: number;
+      timestamp: number;
+      queryType: string;
+      queryId: string;
+    }>;
+
+    fieldConfigOperations?: Array<{
+      duration: number;
+      timestamp: number;
+      dataPointsCount?: number;
+      seriesCount?: number;
+    }>;
+
+    transformationOperations?: Array<{
+      duration: number;
+      timestamp: number;
+      transformationId: string; // Transformation types: "organize+calculate" or "customTransformation"
+      outputSeriesCount?: number;
+      outputAnnotationsCount?: number;
+    }>;
+
+    renderOperations?: Array<{
+      duration: number;
+      timestamp: number;
+      type: string;
+    }>;
+
     /** Panel-level interaction correlation context (S4.0) */
     correlationContext?: {
       /** Unique identifier for this interaction across dashboard and panels */

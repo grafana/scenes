@@ -8,9 +8,98 @@ import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
 import { QueryProfilerLike } from '../querying/registerQueryWithController';
 import { interactionBridge, CorrelationContext } from '@grafana/runtime';
+import { getEnhancedPanelPerformanceCollector } from '../services/PanelPerformanceCollector';
 
 // React Profiler phase type
 type ReactProfilerPhase = 'mount' | 'update' | 'nested-update';
+
+// S5.0: Hybrid panel metrics types - totals for dashboard + details for analysis
+export interface BasePanelMetrics {
+  panelId?: string;
+  panelKey?: string;
+  pluginId?: string;
+  pluginVersion?: string;
+  correlationContext?: CorrelationContext | null;
+}
+
+// Individual operation details
+export interface FieldConfigOperation {
+  duration: number;
+  timestamp: number;
+  dataPointsCount?: number;
+  seriesCount?: number;
+}
+
+export interface TransformationOperation {
+  duration: number;
+  timestamp: number;
+  transformationId: string; // Transformation types: "organize+calculate" or "customTransformation"
+  outputSeriesCount?: number;
+  outputAnnotationsCount?: number;
+}
+
+export interface RenderOperation {
+  duration: number;
+  timestamp: number;
+  type: string;
+}
+
+export interface QueryOperation {
+  duration: number;
+  timestamp: number;
+  queryType: string;
+  queryId: string;
+}
+
+// Hybrid metrics with totals + details
+export interface PluginLoadMetrics extends BasePanelMetrics {
+  pluginLoadTime: number;
+  pluginLoadedFromCache: boolean;
+}
+
+export interface QueryMetrics extends BasePanelMetrics {
+  // Summary totals
+  totalQueryTime?: number;
+  queryCount?: number;
+  // Detailed operations
+  queryOperations?: QueryOperation[];
+}
+
+export interface FieldConfigMetrics extends BasePanelMetrics {
+  // Summary totals
+  totalFieldConfigTime?: number;
+  fieldConfigCount?: number;
+  // Detailed operations
+  fieldConfigOperations?: FieldConfigOperation[];
+  // Latest data context
+  dataPointsCount?: number;
+  seriesCount?: number;
+}
+
+export interface TransformationMetrics extends BasePanelMetrics {
+  // Summary totals
+  totalTransformationTime?: number;
+  transformationCount?: number;
+  // Detailed operations
+  transformationOperations?: TransformationOperation[];
+}
+
+export interface RenderMetrics extends BasePanelMetrics {
+  // Summary totals
+  totalRenderTime?: number;
+  renderCount?: number;
+  // Detailed operations
+  renderOperations?: RenderOperation[];
+}
+
+// Union type for all possible incremental metrics
+export type IncrementalPanelMetrics =
+  | BasePanelMetrics
+  | PluginLoadMetrics
+  | QueryMetrics
+  | FieldConfigMetrics
+  | TransformationMetrics
+  | RenderMetrics;
 
 // Enum for panel lifecycle phases (matches Grafana's PanelPerformanceCollector)
 export enum PanelLifecyclePhase {
@@ -20,27 +109,16 @@ export enum PanelLifecyclePhase {
   Render = 'render',
 }
 
-// Interface that matches Grafana's PanelPerformanceCollector
-export interface PanelPerformanceCollectorLike {
-  startPanelTracking(panelKey: string, panelId: string, pluginId: string, pluginVersion?: string): void;
-  startPhase(panelKey: string, phase: string): void;
-  endPhase(panelKey: string, phase: string): void;
-  setPluginCacheStatus(panelKey: string, fromCache: boolean): void;
-  setDataMetrics(panelKey: string, dataPointsCount: number, seriesCount: number): void;
-  updateLongFrameMetrics(panelKey: string, longFramesCount: number, longFramesTotalTime: number): void;
-  recordError(panelKey: string, error: string): void;
-  getPanelMetrics(panelKey: string): any;
-}
+// Legacy PanelPerformanceCollectorLike interface removed - now uses unified collector
 
 export interface VizPanelRenderProfilerState extends SceneObjectState {
-  /** Panel performance collector instance (required for profiling to work) */
-  collector?: PanelPerformanceCollectorLike;
+  // State interface simplified - now uses unified collector internally
 }
 
 /**
  * Behavior that tracks performance metrics for individual VizPanel instances.
- * Requires a PanelPerformanceCollectorLike instance to be provided via state.collector.
- * The collector instance should be managed by the host application (e.g., Grafana).
+ * Uses the unified Enhanced Panel Performance Collector internally.
+ * No external dependencies required - everything is handled automatically.
  *
  * Debug flags (controlled via localStorage):
  * - Render performance comparison: localStorage.setItem('scenes.debug.renderComparison', 'true')
@@ -48,7 +126,15 @@ export interface VizPanelRenderProfilerState extends SceneObjectState {
  *
  * To disable: localStorage.removeItem('scenes.debug.renderComparison')
  */
+// Interface for type-safe behavior identification
+export interface VizPanelRenderProfilerLike {
+  readonly isVizPanelRenderProfiler: true;
+  getPanelMetrics(): any;
+}
+
 export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfilerState> implements QueryProfilerLike {
+  // Instance identifier for behavior type detection (minification-safe)
+  public readonly isVizPanelRenderProfiler = true as const;
   private _panelKey?: string;
   private _panelId?: string;
   private _pluginId?: string;
@@ -58,7 +144,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   private _applyFieldConfigStartTime?: number;
   private _queryStartTime?: number;
   private _renderStartTime?: number;
-  private _collector?: PanelPerformanceCollectorLike;
   private _activeQueries = new Map<string, { entry: SceneQueryControllerEntry; startTime: number }>();
 
   // S4.0: Store correlation context for metrics
@@ -72,6 +157,13 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     this.addActivationHandler(() => {
       return this._onActivate();
     });
+  }
+
+  /**
+   * Get the unified collector instance
+   */
+  private get _collector() {
+    return getEnhancedPanelPerformanceCollector();
   }
 
   private _onActivate() {
@@ -90,13 +182,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       return;
     }
 
-    // Use provided collector from state
-    this._collector = this.state.collector;
-
-    if (!this._collector) {
-      writeSceneLog('VizPanelRenderProfiler', 'No collector provided, profiling disabled');
-      return;
-    }
+    // Unified collector is now available via getter method - no setup needed
 
     // Extract panel information - only track panels with proper keys
     if (!panel.state.key) {
@@ -143,7 +229,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * This is the direct callback approach - no window events needed
    */
   public _onQueryStarted(entry: SceneQueryControllerEntry, queryId: string) {
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -152,7 +238,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
     // Start the DataQuery phase if this is the first query
     if (this._activeQueries.size === 1) {
-      this._updateCorrelationContext(); // S4.0: Store correlation for metrics
+      this.updateCorrelationContext(); // S4.0: Store correlation for metrics
       this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataQuery);
       this._queryStartTime = startTime;
 
@@ -162,7 +248,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     }
 
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Query started',
       {
         queryType: entry.type,
@@ -179,7 +265,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * S3.0 LIFECYCLE INTEGRATION: Called by registerPanelQueryWithController when a query completes
    */
   public _onQueryCompleted(entry: SceneQueryControllerEntry, queryId: string) {
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -205,7 +291,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     }
 
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Query completed',
       {
         queryType: entry.type,
@@ -218,13 +304,29 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       },
       correlationContext
     );
+
+    // S5.0: Register query completion metrics (hybrid approach)
+    if (this._activeQueries.size === 0) {
+      const queryMetrics: QueryMetrics = {
+        queryOperations: [
+          {
+            duration,
+            timestamp: performance.now(),
+            queryType: entry.type,
+            queryId,
+          },
+        ],
+        correlationContext: this._currentCorrelationContext,
+      };
+      this.registerWithUnifiedCollector(queryMetrics);
+    }
   }
 
   /**
    * S3.0 LIFECYCLE INTEGRATION: Called by registerPanelQueryWithController when a query errors
    */
   public _onQueryError(entry: SceneQueryControllerEntry, queryId: string, error: any) {
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -242,7 +344,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     }
 
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Query error',
       {
         queryType: entry.type,
@@ -264,7 +366,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     // the VizPanelRenderProfiler._onActivate() method runs. This means when onPluginLoadStart
     // is called, the profiler hasn't been fully initialized yet (no panelKey or collector).
     // We need to initialize these properties early to capture plugin loading metrics.
-    if (!this._panelKey || !this._collector) {
+    if (!this._panelKey) {
       let panel: VizPanel | undefined;
 
       try {
@@ -282,14 +384,11 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         this._pluginId = pluginId;
       }
 
-      // Initialize collector from behavior state if not set yet
-      if (!this._collector) {
-        this._collector = this.state.collector;
-      }
+      // Unified collector is always available - no initialization needed
     }
 
     // Early return if we still don't have the required dependencies
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -307,7 +406,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     // STRUCTURED LOGGING: Use structured data format similar to SceneRenderProfiler
     // for consistent logging patterns and easier parsing/analysis
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Plugin load started',
       {
         pluginId: pluginId,
@@ -322,7 +421,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * Called when plugin loading completes
    */
   public onPluginLoadEnd(plugin: any, fromCache = false) {
-    if (!this._collector || !this._panelKey || !this._loadPluginStartTime) {
+    if (!this._panelKey || !this._loadPluginStartTime) {
       return;
     }
 
@@ -331,27 +430,22 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
     const duration = performance.now() - this._loadPluginStartTime;
 
-    // Performance marks and measure for DevTools
-    const endMark = `panel-plugin-load-end-${this._panelKey}`;
-    const startMark = `panel-plugin-load-start-${this._panelKey}`;
-    const measureName = `Panel Plugin Load - ${this._panelKey}`;
-
-    performance.mark(endMark);
-    performance.measure(measureName, startMark, endMark);
-
-    // STRUCTURED LOGGING: Include timing and cache status for performance analysis
-    const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
-      'Plugin load completed',
+    // S5.0: Complete plugin load phase using helper method
+    this.completePhase(
+      'plugin-load',
+      this._loadPluginStartTime!,
       {
-        duration: `${duration}ms`,
         fromCache: fromCache,
         pluginId: this._pluginId,
-        panelKey: this._panelKey,
-        performanceMark: endMark,
-        performanceMeasure: measureName,
       },
-      correlationContext
+      {
+        panelId: this._panelId,
+        panelKey: this._panelKey,
+        pluginId: this._pluginId,
+        pluginVersion: this._pluginVersion,
+        pluginLoadTime: duration,
+        pluginLoadedFromCache: fromCache,
+      } as PluginLoadMetrics
     );
   }
 
@@ -359,7 +453,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * Called when query execution starts
    */
   public onQueryStart() {
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -377,7 +471,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * Called when query execution completes
    */
   public onQueryEnd() {
-    if (!this._collector || !this._panelKey || !this._queryStartTime) {
+    if (!this._panelKey || !this._queryStartTime) {
       return;
     }
 
@@ -390,13 +484,13 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   /**
    * Called when field config processing starts
    */
-  public onApplyFieldConfigStart() {
-    if (!this._collector || !this._panelKey) {
+  public onFieldConfigStart() {
+    if (!this._panelKey) {
       return;
     }
 
     this._applyFieldConfigStartTime = performance.now();
-    this._updateCorrelationContext(); // S4.0: Store correlation for metrics
+    this.updateCorrelationContext(); // S4.0: Store correlation for metrics
     this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataProcessing);
 
     // Performance mark for DevTools
@@ -420,7 +514,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
     // STRUCTURED LOGGING: Include panel state and phase information for debugging
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Field config processing started',
       {
         phase: 'applyFieldConfig',
@@ -436,8 +530,8 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   /**
    * Called when field config processing completes
    */
-  public onApplyFieldConfigEnd(dataPointsCount?: number, seriesCount?: number) {
-    if (!this._collector || !this._panelKey || !this._applyFieldConfigStartTime) {
+  public onFieldConfigEnd(dataPointsCount?: number, seriesCount?: number) {
+    if (!this._panelKey || !this._applyFieldConfigStartTime) {
       return;
     }
 
@@ -449,7 +543,26 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
     const duration = performance.now() - this._applyFieldConfigStartTime;
 
-    // Performance marks and measure for DevTools
+    // Get query count from the panel's SceneQueryRunner
+    const queryCount = this._getQueryCount();
+
+    // S5.0: Register field config completion (hybrid approach)
+    const fieldConfigMetrics: FieldConfigMetrics = {
+      fieldConfigOperations: [
+        {
+          duration,
+          timestamp: performance.now(),
+          dataPointsCount,
+          seriesCount,
+        },
+      ],
+      dataPointsCount, // Keep latest data context
+      seriesCount,
+      correlationContext: this._currentCorrelationContext,
+    };
+    this.registerWithUnifiedCollector(fieldConfigMetrics);
+
+    // Performance marks and logging
     const endMark = `panel-field-config-end-${this._panelKey}`;
     const startMark = `panel-field-config-start-${this._panelKey}`;
     const measureName = `Panel Field Config - ${this._panelKey}`;
@@ -457,11 +570,8 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     performance.mark(endMark);
     performance.measure(measureName, startMark, endMark);
 
-    // Get query count from the panel's SceneQueryRunner
-    const queryCount = this._getQueryCount();
-
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Field config processing completed',
       {
         duration: `${duration}ms`,
@@ -543,7 +653,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * This is called from VizPanel.applyFieldConfig() which is invoked on every React render
    */
   public onRenderStart() {
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -560,11 +670,11 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     }
 
     this._renderStartTime = performance.now();
-    this._updateCorrelationContext(); // S4.0: Store correlation for metrics
+    this.updateCorrelationContext(); // S4.0: Store correlation for metrics
     this._collector.startPhase(this._panelKey, PanelLifecyclePhase.Render);
 
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Render started',
       {
         panelKey: this._panelKey,
@@ -601,7 +711,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     commitTime: number;
     panelId: string;
   }) {
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -615,7 +725,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       timestamp: renderInfo.startTime, // Use React's render start time, not current time
     };
 
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'React render completed',
       {
         phase: renderInfo.phase,
@@ -628,19 +738,27 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       },
       this._currentCorrelationContext
     );
+
+    // S5.0: Register render completion metrics (incremental)
+    const renderMetrics: RenderMetrics = {
+      totalRenderTime: renderInfo.actualDuration, // Use actual React render duration
+      renderCount: (this._collector.getPanelMetrics(this._panelKey)?.renderCount || 0) + 1,
+      correlationContext: this._currentCorrelationContext,
+    };
+    this.registerWithUnifiedCollector(renderMetrics);
   }
 
   /**
    * S3.0 RENDER TRACKING: Simple render timing (component start to DOM update)
    */
   public onSimpleRenderStart(startTime: number) {
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return;
     }
 
     // Store start time and begin render phase
     this._renderStartTime = startTime;
-    this._updateCorrelationContext(); // S4.0: Store correlation for metrics
+    this.updateCorrelationContext(); // S4.0: Store correlation for metrics
     this._collector.startPhase(this._panelKey, PanelLifecyclePhase.Render);
 
     // Simple performance mark
@@ -648,7 +766,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     performance.mark(startMark);
 
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Simple render started',
       {
         panelKey: this._panelKey,
@@ -664,7 +782,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * S3.0 RENDER TRACKING: Simple render timing completion
    */
   public onSimpleRenderEnd(duration: number, type: string) {
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -695,7 +813,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     }
 
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Simple render completed',
       {
         type,
@@ -707,6 +825,19 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       },
       correlationContext
     );
+
+    // S5.0: Register simple render completion (hybrid approach)
+    const simpleRenderMetrics: RenderMetrics = {
+      renderOperations: [
+        {
+          duration,
+          timestamp: performance.now(),
+          type,
+        },
+      ],
+      correlationContext: this._currentCorrelationContext,
+    };
+    this.registerWithUnifiedCollector(simpleRenderMetrics);
 
     this._renderStartTime = undefined;
   }
@@ -816,7 +947,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * S3.0 RENDER TRACKING: Called when panel render cycle ends (legacy method)
    */
   public onRenderEnd(type: 'cached' | 'processed' | 'react-lifecycle') {
-    if (!this._collector || !this._panelKey || !this._renderStartTime) {
+    if (!this._panelKey || !this._renderStartTime) {
       return;
     }
 
@@ -824,7 +955,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
     const duration = performance.now() - this._renderStartTime;
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Render completed',
       {
         type,
@@ -852,16 +983,16 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * Start tracking this panel
    */
   private _startTracking() {
-    if (!this._collector || !this._panelKey || !this._pluginId || this._isTracking) {
+    if (!this._panelKey || !this._pluginId || this._isTracking) {
       return;
     }
 
-    this._updateCorrelationContext(); // S4.0: Store correlation for metrics
+    this.updateCorrelationContext(); // S4.0: Store correlation for metrics
     this._collector.startPanelTracking(this._panelKey, this._panelId || '0', this._pluginId, this._pluginVersion);
     this._isTracking = true;
 
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Started tracking panel',
       {
         panelKey: this._panelKey,
@@ -887,7 +1018,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   /**
    * S3.1: Public method for SceneDataTransformer to start transformation tracking
    */
-  public startDataTransformation(
+  public onDataTransformStart(
     transformationId: string,
     metrics: {
       transformationCount: number;
@@ -897,7 +1028,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       annotationTransformationCount: number;
     }
   ): void {
-    if (!this._panelKey || !this._collector) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -908,12 +1039,12 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       // Performance marks might not be available in all environments
     }
 
-    this._updateCorrelationContext(); // S4.0: Store correlation for metrics
+    this.updateCorrelationContext(); // S4.0: Store correlation for metrics
     this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataProcessing);
 
     // Centralized logging in VizPanelRenderProfiler
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation(
+    this.logWithCorrelation(
       'Data transformation started',
       {
         transformationId,
@@ -930,7 +1061,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   /**
    * S3.1: Public method for SceneDataTransformer to end transformation tracking
    */
-  public endDataTransformation(
+  public onDataTransformEnd(
     transformationId: string,
     duration: number,
     success: boolean,
@@ -940,7 +1071,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       error?: string;
     }
   ): void {
-    if (!this._panelKey || !this._collector) {
+    if (!this._panelKey) {
       return;
     }
 
@@ -962,7 +1093,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     // Centralized logging in VizPanelRenderProfiler
     const correlationContext = interactionBridge.getCorrelationContext();
     if (success) {
-      this._logWithCorrelation(
+      this.logWithCorrelation(
         'Data transformation completed',
         {
           transformationId,
@@ -972,8 +1103,23 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         },
         correlationContext
       );
+
+      // S5.0: Register successful transformation completion (hybrid approach)
+      const transformMetrics: TransformationMetrics = {
+        transformationOperations: [
+          {
+            duration,
+            timestamp: performance.now(),
+            transformationId,
+            outputSeriesCount: result?.outputSeriesCount,
+            outputAnnotationsCount: result?.outputAnnotationsCount,
+          },
+        ],
+        correlationContext: this._currentCorrelationContext,
+      };
+      this.registerWithUnifiedCollector(transformMetrics);
     } else {
-      this._logWithCorrelation(
+      this.logWithCorrelation(
         'Data transformation failed',
         {
           transformationId,
@@ -982,6 +1128,21 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         },
         correlationContext
       );
+
+      // S5.0: Register failed transformation (hybrid approach)
+      const transformMetrics: TransformationMetrics = {
+        transformationOperations: [
+          {
+            duration,
+            timestamp: performance.now(),
+            transformationId,
+            outputSeriesCount: 0,
+            outputAnnotationsCount: 0,
+          },
+        ],
+        correlationContext: this._currentCorrelationContext,
+      };
+      this.registerWithUnifiedCollector(transformMetrics);
     }
   }
 
@@ -991,20 +1152,103 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    */
   public logManualReprocessing(): void {
     const correlationContext = interactionBridge.getCorrelationContext();
-    this._logWithCorrelation('Manual data transformation reprocessing triggered', {}, correlationContext);
+    this.logWithCorrelation('Manual data transformation reprocessing triggered', {}, correlationContext);
   }
 
   /**
    * S4.0: Update stored correlation context for metrics
    */
-  private _updateCorrelationContext(): void {
+  private updateCorrelationContext(): void {
     this._currentCorrelationContext = interactionBridge.getCorrelationContext();
+  }
+
+  /**
+   * S5.0: Helper method to complete a performance phase with measurement, logging, and registration
+   */
+  private completePhase(
+    phase: string,
+    startTime: number,
+    logData: Record<string, any>,
+    incrementalMetrics: IncrementalPanelMetrics
+  ): void {
+    const duration = performance.now() - startTime;
+
+    // Performance marks and measures
+    const endMark = `panel-${phase}-end-${this._panelKey}`;
+    const startMark = `panel-${phase}-start-${this._panelKey}`;
+    const measureName = `Panel ${phase} - ${this._panelKey}`;
+
+    performance.mark(endMark);
+    performance.measure(measureName, startMark, endMark);
+
+    // Correlation and logging
+    const correlationContext = interactionBridge.getCorrelationContext();
+    this.logWithCorrelation(
+      `${phase} completed`,
+      {
+        duration: `${duration}ms`,
+        ...logData,
+        panelKey: this._panelKey,
+        performanceMark: endMark,
+        performanceMeasure: measureName,
+      },
+      correlationContext
+    );
+
+    // S5.0: Register incremental metrics
+    this.registerWithUnifiedCollector({
+      ...incrementalMetrics,
+      correlationContext: this._currentCorrelationContext,
+    });
+  }
+
+  /**
+   * Unified: Register metrics with the unified Enhanced Panel Performance Collector
+   */
+  private registerWithUnifiedCollector(incrementalMetrics?: IncrementalPanelMetrics): void {
+    if (!this._panelKey) {
+      return;
+    }
+
+    try {
+      const collector = getEnhancedPanelPerformanceCollector();
+
+      // Ensure panel is tracked
+      if (!collector.isPanelTracked(this._panelKey)) {
+        collector.startPanelTracking(this._panelKey, this._panelId || '', this._pluginId || '', this._pluginVersion);
+      }
+
+      // Set correlation context
+      collector.setCorrelationContext(this._panelKey, this._currentCorrelationContext);
+
+      // Register specific operation based on incrementalMetrics type
+      if (incrementalMetrics) {
+        if ('queryOperations' in incrementalMetrics && incrementalMetrics.queryOperations) {
+          incrementalMetrics.queryOperations.forEach((op) => collector.registerQueryOperation(this._panelKey!, op));
+        }
+        if ('fieldConfigOperations' in incrementalMetrics && incrementalMetrics.fieldConfigOperations) {
+          incrementalMetrics.fieldConfigOperations.forEach((op) =>
+            collector.registerFieldConfigOperation(this._panelKey!, op)
+          );
+        }
+        if ('transformationOperations' in incrementalMetrics && incrementalMetrics.transformationOperations) {
+          incrementalMetrics.transformationOperations.forEach((op) =>
+            collector.registerTransformationOperation(this._panelKey!, op)
+          );
+        }
+        if ('renderOperations' in incrementalMetrics && incrementalMetrics.renderOperations) {
+          incrementalMetrics.renderOperations.forEach((op) => collector.registerRenderOperation(this._panelKey!, op));
+        }
+      }
+    } catch (error) {
+      writeSceneLog('VizPanelRenderProfiler', 'Failed to register with unified collector:', error);
+    }
   }
 
   /**
    * S4.0: Enhanced logging method with interaction correlation
    */
-  private _logWithCorrelation(
+  private logWithCorrelation(
     message: string,
     data: Record<string, any>,
     correlationContext: CorrelationContext | null
@@ -1032,7 +1276,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
    * S4.0: Enhanced with correlation context
    */
   public getPanelMetrics() {
-    if (!this._collector || !this._panelKey) {
+    if (!this._panelKey) {
       return undefined;
     }
 

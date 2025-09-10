@@ -216,13 +216,25 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     // S3.1: Start transformation tracking
     if (profiler) {
-      transformationId = `transform-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      // Create meaningful transformation identifier from actual transformations
+      const transformationTypes = this.state.transformations
+        .map((t) => {
+          if ('id' in t) {
+            // Standard DataTransformerConfig
+            return t.id;
+          } else {
+            // CustomTransformerDefinition
+            return 'customTransformation';
+          }
+        })
+        .join('+');
+      transformationId = transformationTypes || 'no-transforms';
 
       // Calculate transformation complexity metrics
       const metrics = this._calculateTransformationMetrics(data, this.state.transformations);
 
       // Start the DataProcessing phase with centralized logging
-      profiler.startDataTransformation(transformationId, metrics);
+      profiler.onDataTransformStart(transformationId, metrics);
     }
 
     let interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
@@ -281,7 +293,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
           if (profiler && transformationId) {
             // End the DataProcessing phase with centralized logging
-            profiler.endDataTransformation(transformationId, duration, false, {
+            profiler.onDataTransformEnd(transformationId, duration, false, {
               error: err.message || err,
             });
           }
@@ -308,7 +320,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
         if (profiler && transformationId) {
           // End the DataProcessing phase with centralized logging
-          profiler.endDataTransformation(transformationId, duration, true, {
+          profiler.onDataTransformEnd(transformationId, duration, true, {
             outputSeriesCount: transformedData.series.length,
             outputAnnotationsCount: transformedData.annotations?.length || 0,
           });

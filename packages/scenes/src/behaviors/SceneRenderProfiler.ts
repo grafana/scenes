@@ -1,9 +1,9 @@
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { SceneQueryControllerLike } from './types';
 import { interactionBridge } from '@grafana/runtime';
-import { sceneGraph } from '../core/sceneGraph';
-import { VizPanel } from '../components/VizPanel/VizPanel';
-import { VizPanelRenderProfiler } from './VizPanelRenderProfiler';
+import { getEnhancedPanelPerformanceCollector } from '../services/PanelPerformanceCollector';
+
+// Legacy import removed - unified collector handles all metrics
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
 const SPAN_THRESHOLD = 30; // Frames longer than this will be considered slow
@@ -18,6 +18,8 @@ export class SceneRenderProfiler {
 
   #profileStartTs: number | null = null;
   #trailAnimationFrameId: number | null = null;
+
+  // Legacy S5.0: Registry replaced by unified collector
 
   // Will keep measured lengths trailing frames
   #recordedTrailingSpans: number[] = [];
@@ -93,6 +95,9 @@ export class SceneRenderProfiler {
    *               - "clean": Started when no profile is currently active
    */
   private _startNewProfile(name: string, force = false) {
+    // S5.0: Clear panel metrics registry for new profile
+    this.clearPanelMetricsRegistry();
+
     this.#profileInProgress = { origin: name, crumbs: [] };
     this.#profileStartTs = performance.now();
 
@@ -269,8 +274,22 @@ export class SceneRenderProfiler {
   }
 
   /**
-   * S5.0: Collect panel metrics from all VizPanelRenderProfiler instances in the scene graph
-   * This enables correlation of panel-level performance with dashboard-level analytics
+   * S5.0: Register panel metrics (hybrid approach - totals + details)
+   * Panels call this method to update their metrics as operations complete
+   * Accumulates totals and maintains detailed operation history
+   */
+  public registerPanelMetrics(panelKey: string, partialMetrics: any): void {
+    // Legacy method - now handled by unified collector
+    writeSceneLog(
+      'SceneRenderProfiler',
+      `Legacy registerPanelMetrics called for panel ${panelKey} - now handled by unified collector`
+    );
+  }
+
+  // Legacy mergeHybridMetrics method removed - now handled by unified collector
+
+  /**
+   * S5.0: Get all registered panel metrics
    */
   private collectPanelMetrics(): Array<{
     panelId: string;
@@ -291,82 +310,18 @@ export class SceneRenderProfiler {
     error?: string;
     memoryIncrease?: number;
   }> {
-    const panelMetrics: Array<{
-      panelId: string;
-      panelKey: string;
-      pluginId: string;
-      pluginVersion?: string;
-      pluginLoadTime: number;
-      pluginLoadedFromCache: boolean;
-      queryTime: number;
-      dataProcessingTime: number;
-      renderTime: number;
-      totalTime: number;
-      longFramesCount: number;
-      longFramesTotalTime: number;
-      renderCount: number;
-      dataPointsCount?: number;
-      seriesCount?: number;
-      error?: string;
-      memoryIncrease?: number;
-    }> = [];
-
-    if (!this.queryController) {
-      writeSceneLog('SceneRenderProfiler', 'No query controller available for panel metrics collection');
-      return panelMetrics;
-    }
-
-    try {
-      // Find all VizPanel instances in the scene graph
-      // We need to find the scene root to search from, as the query controller may be a behavior
-      let searchRoot = this.queryController;
-
-      // If the query controller has a parent, traverse up to find the scene root
-      while (searchRoot.parent) {
-        searchRoot = searchRoot.parent;
-      }
-
-      const vizPanels = sceneGraph.findAllObjects(searchRoot, (obj) => obj instanceof VizPanel);
-
-      writeSceneLog(
-        'SceneRenderProfiler',
-        `Collecting metrics from ${vizPanels.length} VizPanel instances (searching from ${searchRoot.constructor.name})`,
-        vizPanels.map((p) => (p as VizPanel).state.key)
-      );
-
-      for (const vizPanel of vizPanels) {
-        const panel = vizPanel as VizPanel;
-
-        // Find the VizPanelRenderProfiler behavior attached to this panel
-        const profilerBehavior = panel.state.$behaviors?.find(
-          (behavior) => behavior instanceof VizPanelRenderProfiler
-        ) as VizPanelRenderProfiler | undefined;
-
-        if (profilerBehavior) {
-          const metrics = profilerBehavior.getPanelMetrics();
-          if (metrics) {
-            panelMetrics.push(metrics);
-            writeSceneLog(
-              'SceneRenderProfiler',
-              `Collected metrics for panel ${metrics.panelId || 'unknown'}`,
-              metrics
-            );
-          }
-        } else {
-          writeSceneLog(
-            'SceneRenderProfiler',
-            `No VizPanelRenderProfiler found for panel ${panel.state.key}`,
-            panel.state
-          );
-        }
-      }
-
-      writeSceneLog('SceneRenderProfiler', `Total panel metrics collected: ${panelMetrics.length}`);
-    } catch (error) {
-      writeSceneLog('SceneRenderProfiler', 'Error collecting panel metrics:', error);
-    }
-
+    const collector = getEnhancedPanelPerformanceCollector();
+    const panelMetrics = collector.getAllHybridPanelMetrics();
+    writeSceneLog('SceneRenderProfiler', `Collected ${panelMetrics.length} panel metrics from unified collector`);
     return panelMetrics;
+  }
+
+  /**
+   * S5.0: Clear panel metrics (called when profile starts)
+   */
+  private clearPanelMetricsRegistry(): void {
+    const collector = getEnhancedPanelPerformanceCollector();
+    collector.clearAllPanels();
   }
 
   public addCrumb(crumb: string) {

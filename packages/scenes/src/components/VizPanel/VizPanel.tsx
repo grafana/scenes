@@ -509,7 +509,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     // Start profiling data processing
     if (profiler) {
-      profiler.onApplyFieldConfigStart();
+      profiler.onFieldConfigStart();
     }
 
     const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
@@ -582,7 +582,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         }
       }
 
-      profiler.onApplyFieldConfigEnd(dataPointsCount, seriesCount);
+      profiler.onFieldConfigEnd(dataPointsCount, seriesCount);
     }
 
     return this._dataWithFieldConfig;
