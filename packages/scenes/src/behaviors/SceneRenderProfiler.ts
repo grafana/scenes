@@ -164,6 +164,17 @@ export class SceneRenderProfiler {
       );
       this.#trailAnimationFrameId = null;
 
+      // S4.0: Get dashboard-level interaction context from InteractionBridge BEFORE clearing
+      const currentInteraction = interactionBridge.getCurrentState();
+      const interactionContext = currentInteraction
+        ? {
+            interactionId: currentInteraction.interactionId || '',
+            interactionType: currentInteraction.interactionType || '',
+            interactionSource: currentInteraction.source || '',
+            interactionStartTime: currentInteraction.startTime || 0,
+          }
+        : undefined;
+
       // S4.0: Notify InteractionBridge that dashboard interaction completed
       interactionBridge.clearCurrentInteraction();
 
@@ -198,6 +209,8 @@ export class SceneRenderProfiler {
           usedJSHeapSize: performance.memory ? performance.memory.usedJSHeapSize : 0,
           // @ts-ignore
           totalJSHeapSize: performance.memory ? performance.memory.totalJSHeapSize : 0,
+          // S4.0: Include dashboard-level interaction correlation context
+          interactionContext,
           // S5.0: Include collected panel metrics in analytics event
           panelMetrics,
         });
@@ -307,7 +320,7 @@ export class SceneRenderProfiler {
       // Find all VizPanel instances in the scene graph
       // We need to find the scene root to search from, as the query controller may be a behavior
       let searchRoot = this.queryController;
-      
+
       // If the query controller has a parent, traverse up to find the scene root
       while (searchRoot.parent) {
         searchRoot = searchRoot.parent;

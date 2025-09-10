@@ -25,6 +25,17 @@ export interface SceneInteractionProfileEvent {
   crumbs: string[];
   startTs: number;
   endTs: number;
+  /** Dashboard-level interaction correlation context (S4.0) */
+  interactionContext?: {
+    /** Unique identifier for this interaction across dashboard and panels */
+    interactionId: string;
+    /** Type of interaction (e.g., 'dashboard_view', 'refresh', 'time_range_change') */
+    interactionType: string;
+    /** Source of the interaction (e.g., 'scene-render-profiler') */
+    interactionSource: string;
+    /** High-resolution timestamp when interaction started */
+    interactionStartTime: number;
+  };
   /** Optional array of panel-level performance metrics */
   panelMetrics?: Array<{
     /** Legacy panel ID from the dashboard model */
@@ -61,6 +72,21 @@ export interface SceneInteractionProfileEvent {
     error?: string;
     /** Memory increase during panel operations (bytes) */
     memoryIncrease?: number;
+    /** Panel-level interaction correlation context (S4.0) */
+    correlationContext?: {
+      /** Unique identifier for this interaction across dashboard and panels */
+      interactionId: string;
+      /** Type of interaction (e.g., 'dashboard_view', 'refresh', 'time_range_change') */
+      interactionType: string;
+      /** Source of the interaction (e.g., 'scene-render-profiler') */
+      interactionSource: string;
+      /** High-resolution timestamp when interaction started */
+      interactionStartTime: number;
+      /** Panel ID for this specific panel */
+      panelId: string;
+      /** Panel scene object key */
+      panelKey: string;
+    };
   }>;
   // add more granular data,i.e. network times? slow frames?
 }
