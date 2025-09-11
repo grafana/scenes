@@ -1,3 +1,16 @@
+# v6.35.1 (Thu Sep 11 2025)
+
+#### 🐛 Bug Fix
+
+- Transformations: Support series <-> annotations conversions [#1207](https://github.com/grafana/scenes/pull/1207) ([@leeoniya](https://github.com/leeoniya) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Leon Sorokin ([@leeoniya](https://github.com/leeoniya))
+
+---
+
 # v6.35.0 (Wed Sep 10 2025)
 
 #### 🚀 Enhancement
