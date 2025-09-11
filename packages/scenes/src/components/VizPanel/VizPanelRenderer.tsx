@@ -64,7 +64,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const timeZone = sceneTimeRange.getTimeZone();
   const timeRange = model.getTimeRange(dataWithFieldConfig);
 
-  // Switch to manual query execution if the panel it outside viewport
+  // Switch to manual query execution if the panel is outside viewport
   const isInView = useLazyLoaderIsInView();
   useEffect(() => {
     if (dataObject.isInViewChanged) {
