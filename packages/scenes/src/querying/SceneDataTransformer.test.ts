@@ -265,10 +265,10 @@ describe('SceneDataTransformer', () => {
 
     expect(data?.series.length).toBe(1);
     expect(data?.series[0].fields).toHaveLength(2);
-    expect(data?.series[0].fields[0].values.toArray()).toEqual([600, 1200, 1800]);
-    expect(data?.series[0].fields[1].values.toArray()).toEqual([6, 12, 18]);
-    expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([404, 504, 604]);
-    expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([5, 6, 7]);
+    expect(data?.series[0].fields[0].values).toEqual([600, 1200, 1800]);
+    expect(data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    expect(data?.annotations?.[0].fields[0].values).toEqual([404, 504, 604]);
+    expect(data?.annotations?.[0].fields[1].values).toEqual([5, 6, 7]);
 
     sourceDataNode.setState({
       data: {
@@ -294,10 +294,10 @@ describe('SceneDataTransformer', () => {
     // Transforms updated data
     data = sceneGraph.getData(consumer).state.data;
 
-    expect(data?.series[0].fields[0].values.toArray()).toEqual([60, 120, 180]);
-    expect(data?.series[0].fields[1].values.toArray()).toEqual([60, 120, 180]);
-    expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([44, 54, 64]);
-    expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([14, 24, 34]);
+    expect(data?.series[0].fields[0].values).toEqual([60, 120, 180]);
+    expect(data?.series[0].fields[1].values).toEqual([60, 120, 180]);
+    expect(data?.annotations?.[0].fields[0].values).toEqual([44, 54, 64]);
+    expect(data?.annotations?.[0].fields[1].values).toEqual([14, 24, 34]);
   });
 
   describe('when custom transform operator is used', () => {
@@ -325,10 +325,10 @@ describe('SceneDataTransformer', () => {
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([1, 2, 3]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.01, 0.02, 0.03]);
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([40, 50, 60]);
-      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
+      expect(data?.series[0].fields[0].values).toEqual([1, 2, 3]);
+      expect(data?.series[0].fields[1].values).toEqual([0.01, 0.02, 0.03]);
+      expect(data?.annotations?.[0].fields[0].values).toEqual([40, 50, 60]);
+      expect(data?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
 
       sourceDataNode.setState({
         data: {
@@ -355,10 +355,10 @@ describe('SceneDataTransformer', () => {
       data = sceneGraph.getData(consumer).state.data;
       expect(customTransformerSpy).toHaveBeenCalledTimes(4);
 
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.1, 0.2, 0.3]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([10, 20, 30]);
-      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([0.1, 0.2, 0.3]);
+      expect(data?.series[0].fields[0].values).toEqual([0.1, 0.2, 0.3]);
+      expect(data?.series[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
+      expect(data?.annotations?.[0].fields[0].values).toEqual([10, 20, 30]);
+      expect(data?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
     });
 
     it('applies leading custom transformer', () => {
@@ -386,8 +386,8 @@ describe('SceneDataTransformer', () => {
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([2, 4, 6]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.02, 0.04, 0.06]);
+      expect(data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+      expect(data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
 
       sourceDataNode.setState({
         data: {
@@ -407,8 +407,8 @@ describe('SceneDataTransformer', () => {
       data = sceneGraph.getData(consumer).state.data;
       expect(customTransformerSpy).toHaveBeenCalledTimes(2);
 
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.2, 0.4, 0.6]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.2, 0.4, 0.6]);
+      expect(data?.series[0].fields[0].values).toEqual([0.2, 0.4, 0.6]);
+      expect(data?.series[0].fields[1].values).toEqual([0.2, 0.4, 0.6]);
     });
 
     it('applies trailing custom transformer', () => {
@@ -436,8 +436,8 @@ describe('SceneDataTransformer', () => {
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([2, 4, 6]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.02, 0.04, 0.06]);
+      expect(data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+      expect(data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
 
       sourceDataNode.setState({
         data: {
@@ -457,8 +457,8 @@ describe('SceneDataTransformer', () => {
       data = sceneGraph.getData(consumer).state.data;
       expect(customTransformerSpy).toHaveBeenCalledTimes(2);
 
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.2, 0.4, 0.6]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.2, 0.4, 0.6]);
+      expect(data?.series[0].fields[0].values).toEqual([0.2, 0.4, 0.6]);
+      expect(data?.series[0].fields[1].values).toEqual([0.2, 0.4, 0.6]);
     });
 
     it('applies mixed transforms', () => {
@@ -493,10 +493,10 @@ describe('SceneDataTransformer', () => {
 
       expect(data?.series.length).toBe(1);
       expect(data?.series[0].fields).toHaveLength(2);
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.04, 0.08, 0.12]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.0004, 0.0008, 0.0012]);
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([44, 54, 64]);
-      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([4.1, 4.2, 4.3]);
+      expect(data?.series[0].fields[0].values).toEqual([0.04, 0.08, 0.12]);
+      expect(data?.series[0].fields[1].values).toEqual([0.0004, 0.0008, 0.0012]);
+      expect(data?.annotations?.[0].fields[0].values).toEqual([44, 54, 64]);
+      expect(data?.annotations?.[0].fields[1].values).toEqual([4.1, 4.2, 4.3]);
 
       sourceDataNode.setState({
         data: {
@@ -523,10 +523,10 @@ describe('SceneDataTransformer', () => {
       data = sceneGraph.getData(consumer).state.data;
       expect(customTransformerSpy).toHaveBeenCalledTimes(6);
 
-      expect(data?.series[0].fields[0].values.toArray()).toEqual([0.004, 0.008, 0.012]);
-      expect(data?.series[0].fields[1].values.toArray()).toEqual([0.004, 0.008, 0.012]);
-      expect(data?.annotations?.[0].fields[0].values.toArray()).toEqual([14, 24, 34]);
-      expect(data?.annotations?.[0].fields[1].values.toArray()).toEqual([5, 6, 7]);
+      expect(data?.series[0].fields[0].values).toEqual([0.004, 0.008, 0.012]);
+      expect(data?.series[0].fields[1].values).toEqual([0.004, 0.008, 0.012]);
+      expect(data?.annotations?.[0].fields[0].values).toEqual([14, 24, 34]);
+      expect(data?.annotations?.[0].fields[1].values).toEqual([5, 6, 7]);
     });
   });
 
@@ -588,8 +588,8 @@ describe('SceneDataTransformer', () => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
       expect(queryRunner.state.data?.series).toHaveLength(1);
       expect(queryRunner.state.data?.series[0].fields).toHaveLength(2);
-      expect(queryRunner.state.data?.series[0].fields[0].values.toArray()).toEqual([600, 1200, 1800]);
-      expect(queryRunner.state.data?.series[0].fields[1].values.toArray()).toEqual([6, 12, 18]);
+      expect(queryRunner.state.data?.series[0].fields[0].values).toEqual([600, 1200, 1800]);
+      expect(queryRunner.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
     });
 
     describe('custom transformer object', () => {
@@ -656,7 +656,7 @@ describe('SceneDataTransformer', () => {
 
         await new Promise((r) => setTimeout(r, 1));
 
-        expect(panelData?.series[0].fields[0].values.toArray()).toEqual([1, 2, 3]);
+        expect(panelData?.series[0].fields[0].values).toEqual([1, 2, 3]);
       });
     });
   });
@@ -758,6 +758,358 @@ describe('SceneDataTransformer', () => {
     expect(annotationTransformerSpy).toHaveBeenCalledTimes(2);
     expect(annotationTransformerSpy).toHaveBeenLastCalledWith({
       options: 'annotation-transformation-New Text Variable Value',
+    });
+  });
+
+  describe('Series <-> Annotations conversion', () => {
+    it('should convert series frames to annotation frames', () => {
+      // Custom transformer that converts series frames to annotation frames
+      // This creates both the original series AND annotation copies
+      const seriesToAnnotationsTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+              meta: {
+                ...frame.meta,
+                dataTopic: DataTopic.Annotations,
+              },
+            }));
+          })
+        );
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [seriesToAnnotationsTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [],
+        annotations: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [100, 200, 300], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+        ],
+      });
+    });
+
+    it('should convert annotation frames to series frames', () => {
+      // Custom transformer that converts annotation frames to series frames
+      const annotationsToSeriesTransformer: CustomTransformerDefinition = {
+        operator: () => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => ({
+                ...frame,
+                meta: {
+                  ...frame.meta,
+                  dataTopic: undefined, // Remove annotation topic to make it a series frame
+                },
+              }));
+            })
+          );
+        },
+        topic: DataTopic.Annotations,
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [annotationsToSeriesTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [100, 200, 300], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+          },
+          {
+            fields: [
+              { name: '0', config: {}, values: [400, 500, 600], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: {},
+          },
+        ],
+        annotations: [],
+      });
+    });
+
+    it('should handle mixed transformations with series and annotation conversions', () => {
+      // Transformer that converts series to annotations
+      const seriesToAnnotationsTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+              meta: {
+                ...frame.meta,
+                dataTopic: DataTopic.Annotations,
+              },
+            }));
+          })
+        );
+      };
+
+      // Transformer that converts annotations to series
+      const annotationsToSeriesTransformer: CustomTransformerDefinition = {
+        operator: () => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => ({
+                ...frame,
+                meta: {
+                  ...frame.meta,
+                  dataTopic: undefined,
+                },
+              }));
+            })
+          );
+        },
+        topic: DataTopic.Annotations,
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [seriesToAnnotationsTransformer, annotationsToSeriesTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [400, 500, 600], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: {},
+          },
+        ],
+        annotations: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [100, 200, 300], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+        ],
+      });
+    });
+
+    it('should preserve original data when no conversion occurs', () => {
+      // Transformer that doesn't change dataTopic
+      const preservingTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+            }));
+          })
+        );
+      };
+
+      const preservingAnnotationTransformer: CustomTransformerDefinition = {
+        operator: () => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => ({
+                ...frame,
+              }));
+            })
+          );
+        },
+        topic: DataTopic.Annotations,
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [preservingTransformer, preservingAnnotationTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [100, 200, 300], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+          },
+        ],
+        annotations: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [400, 500, 600], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+        ],
+      });
+    });
+
+    // skip until fixed: https://github.com/grafana/scenes/pull/1207#issuecomment-3258847124
+    it.skip('should handle complex conversion chains', () => {
+      // First: multiply series values by 2
+      // series will become [200,400,600][2,4,6]
+      const multiplySeriesTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+              fields: frame.fields.map((field: any) => ({
+                ...field,
+                values: field.values.map((v: number) => v * 2),
+              })),
+            }));
+          })
+        );
+      };
+
+      // Second: convert series to annotations
+      // annos will become [200,400,600][2,4,6],[400,500,600][1,2,3]
+      const seriesToAnnotationsTransformer = () => (source: any) => {
+        return source.pipe(
+          map((data: DataFrame[]) => {
+            return data.map((frame: DataFrame) => ({
+              ...frame,
+              meta: {
+                ...frame.meta,
+                dataTopic: DataTopic.Annotations,
+              },
+            }));
+          })
+        );
+      };
+
+      // Third: add 10 to annotation values
+      // annos will become [210,410,610][12,14,16],[410,510,610][11,12,13]
+      const addToAnnotationsTransformer: CustomTransformerDefinition = {
+        operator: () => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => ({
+                ...frame,
+                fields: frame.fields.map((field) => ({
+                  ...field,
+                  values: field.values.map((v) => v + 10),
+                })),
+              }));
+            })
+          );
+        },
+        topic: DataTopic.Annotations,
+      };
+
+      const transformationNode = new SceneDataTransformer({
+        transformations: [multiplySeriesTransformer, seriesToAnnotationsTransformer, addToAnnotationsTransformer],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const data = sceneGraph.getData(consumer).state.data;
+
+      expect({ series: data?.series, annotations: data?.annotations }).toEqual({
+        series: [],
+        annotations: [
+          {
+            fields: [
+              { name: '0', config: {}, values: [210, 410, 610], type: 'number' },
+              { name: '1', config: {}, values: [12, 14, 16], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+          {
+            fields: [
+              { name: '0', config: {}, values: [410, 510, 610], type: 'number' },
+              { name: '1', config: {}, values: [11, 12, 13], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+        ],
+      });
     });
   });
 });
