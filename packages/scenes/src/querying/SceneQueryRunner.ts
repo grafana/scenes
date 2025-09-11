@@ -673,6 +673,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _queryNotExecutedWhenOutOfView = false;
 
   public isInViewChanged(isInView: boolean): void {
+    writeSceneLog('SceneQueryRunner', `isInViewChanged: ${isInView}`, this.state.key);
     this._isInView = isInView;
 
     if (isInView && this._queryNotExecutedWhenOutOfView) {
