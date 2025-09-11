@@ -30,7 +30,10 @@ export class GroupByVariableUrlSyncHandler implements SceneObjectUrlSyncHandler 
     }
 
     return {
-      [this.getKey()]: toUrlValues(this._sceneObject.state.value, this._sceneObject.state.text),
+      [this.getKey()]:
+        this._sceneObject.state.defaultValue && !this._sceneObject.state.restorable
+          ? ['']
+          : toUrlValues(this._sceneObject.state.value, this._sceneObject.state.text),
       [this.getRestorableKey()]: this._sceneObject.state.defaultValue
         ? this._sceneObject.state.restorable
           ? 'true'
