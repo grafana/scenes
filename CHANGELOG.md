@@ -1,3 +1,36 @@
+# v6.35.0 (Wed Sep 10 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneGridLayout: Use css class for wrapper [#1084](https://github.com/grafana/scenes/pull/1084) ([@torkelo](https://github.com/torkelo))
+  - export escapeUrlPipeDelimiters for esc-18160 and fix in metrics drilldown. [#1230](https://github.com/grafana/scenes/pull/1230) ([@bohandley](https://github.com/bohandley))
+- `@grafana/scenes-react`
+  - useQueryRunner: Add minInterval option [#1183](https://github.com/grafana/scenes/pull/1183) ([@krevedkokun](https://github.com/krevedkokun))
+
+#### 🐛 Bug Fix
+
+- Update scene-app.md [#1223](https://github.com/grafana/scenes/pull/1223) ([@DanielHayashi-tech](https://github.com/DanielHayashi-tech))
+- `@grafana/scenes`
+  - SceneGridLayout: Adjust item y position for all children after a breakpoint [#1243](https://github.com/grafana/scenes/pull/1243) ([@oscarkilhed](https://github.com/oscarkilhed))
+  - Revert #1058 [#1245](https://github.com/grafana/scenes/pull/1245) ([@oscarkilhed](https://github.com/oscarkilhed))
+  - Fix pettier issue [#1244](https://github.com/grafana/scenes/pull/1244) ([@oscarkilhed](https://github.com/oscarkilhed))
+  - Patch 2 [#1058](https://github.com/grafana/scenes/pull/1058) ([@hoobtron](https://github.com/hoobtron))
+  - I18n: Download translations from Crowdin [#1193](https://github.com/grafana/scenes/pull/1193) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 8
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- [@hoobtron](https://github.com/hoobtron)
+- Brendan O'Handley ([@bohandley](https://github.com/bohandley))
+- Danny Hayashi ([@DanielHayashi-tech](https://github.com/DanielHayashi-tech))
+- Nikita Domnitskii ([@krevedkokun](https://github.com/krevedkokun))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.34.0 (Wed Sep 03 2025)
 
 #### 🚀 Enhancement
