@@ -116,6 +116,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
+  private _isInView = true;
+  private _queryNotExecutedWhenOutOfView = false;
 
   public getResultsStream() {
     return this._results;
@@ -422,6 +424,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
+    if (this.isQueryModeAuto() && !this._isInView) {
+      this._queryNotExecutedWhenOutOfView = true;
+      return;
+    }
+
+    this._queryNotExecutedWhenOutOfView = false;
+
     // If data layers subscription doesn't exist, create one
     if (!this._dataLayersSub) {
       this._handleDataLayers();
@@ -660,6 +669,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   private isQueryModeAuto(): boolean {
     return (this.state.runQueriesMode ?? 'auto') === 'auto';
+  }
+
+  public isInViewChanged(isInView: boolean): void {
+    writeSceneLog('SceneQueryRunner', `isInViewChanged: ${isInView}`, this.state.key);
+    this._isInView = isInView;
+
+    if (isInView && this._queryNotExecutedWhenOutOfView) {
+      this.runQueries();
+    }
   }
 }
 
