@@ -1,9 +1,28 @@
-import { writeSceneLog } from '../utils/writeSceneLog';
-import { SceneQueryControllerLike } from './types';
+import { writeSceneLog, writeSceneLogStyled } from '../utils/writeSceneLog';
+import { SceneQueryControllerLike, LongFrameEvent } from './types';
+import { LongFrameDetector } from './LongFrameDetector';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
-const SPAN_THRESHOLD = 30; // Frames longer than this will be considered slow
+const DEFAULT_LONG_FRAME_THRESHOLD = 30; // Threshold for tail recording slow frames
 const TAB_INACTIVE_THRESHOLD = 1000; // Tab inactive threshold in ms
+
+/**
+ * SceneRenderProfiler tracks dashboard interaction performance including:
+ * - Total interaction duration
+ * - Network time
+ * - Long frame detection (50ms threshold) during interaction using LoAF API (default) or manual tracking (fallback)
+ * - Slow frame detection (30ms threshold) for tail recording after interaction
+ *
+ * Long frame detection during interaction:
+ * - 50ms threshold aligned with LoAF API default
+ * - LoAF API preferred (Chrome 123+) with manual fallback
+ * - Provides script attribution when using LoAF API
+ *
+ * Slow frame detection for tail recording:
+ * - 30ms threshold for post-interaction monitoring
+ * - Manual frame timing measurement
+ * - Captures rendering delays after user interaction completes
+ */
 
 export class SceneRenderProfiler {
   #profileInProgress: {
@@ -18,9 +37,15 @@ export class SceneRenderProfiler {
   // Will keep measured lengths trailing frames
   #recordedTrailingSpans: number[] = [];
 
+  // Long frame tracking
+  #longFrameDetector: LongFrameDetector;
+  #longFramesCount = 0;
+  #longFramesTotalTime = 0;
+
   #visibilityChangeHandler: (() => void) | null = null;
 
   public constructor(private queryController?: SceneQueryControllerLike) {
+    this.#longFrameDetector = new LongFrameDetector();
     this.setupVisibilityChangeHandler();
   }
 
@@ -53,6 +78,9 @@ export class SceneRenderProfiler {
       document.removeEventListener('visibilitychange', this.#visibilityChangeHandler);
       this.#visibilityChangeHandler = null;
     }
+
+    // Cleanup long frame tracking
+    this.#longFrameDetector.stop();
 
     // Cancel any ongoing profiling
     this.cancelProfile();
@@ -91,12 +119,39 @@ export class SceneRenderProfiler {
   private _startNewProfile(name: string, force = false) {
     this.#profileInProgress = { origin: name, crumbs: [] };
     this.#profileStartTs = performance.now();
-    writeSceneLog(
+    this.#longFramesCount = 0;
+    this.#longFramesTotalTime = 0;
+
+    // Add performance mark for debugging in dev tools
+    if (typeof performance !== 'undefined' && performance.mark) {
+      const markName = `Dashboard Profile Start: ${name}`;
+      performance.mark(markName);
+    }
+
+    // Log profile start in structured format
+    writeSceneLogStyled(
       'SceneRenderProfiler',
       `Profile started[${force ? 'forced' : 'clean'}]`,
-      this.#profileInProgress,
-      this.#profileStartTs
+      'color: #FFCC00; font-weight: bold;'
     );
+    writeSceneLog('', `  ├─ Origin: ${this.#profileInProgress?.origin || 'unknown'}`);
+    writeSceneLog('', `  └─ Timestamp: ${this.#profileStartTs.toFixed(1)}ms`);
+
+    // Start long frame detection with callback
+    this.#longFrameDetector.start((event: LongFrameEvent) => {
+      // Only record long frames during active profiling
+      if (!this.#profileInProgress || !this.#profileStartTs) {
+        return;
+      }
+
+      // Only record frames that occur after profile started
+      if (event.timestamp < this.#profileStartTs) {
+        return;
+      }
+
+      this.#longFramesCount++;
+      this.#longFramesTotalTime += event.duration;
+    });
   }
 
   private recordProfileTail(measurementStartTime: number, profileStartTs: number) {
@@ -129,23 +184,87 @@ export class SceneRenderProfiler {
       const slowFrames = processRecordedSpans(this.#recordedTrailingSpans);
       const slowFramesTime = slowFrames.reduce((acc, val) => acc + val, 0);
 
+      // Log tail recording in structured format
       writeSceneLog(
-        this.constructor.name,
-        'Profile tail recorded, slow frames duration:',
-        slowFramesTime,
-        slowFrames,
-        this.#profileInProgress
+        'SceneRenderProfiler',
+        `Profile tail recorded - Slow frames: ${slowFramesTime.toFixed(1)}ms (${slowFrames.length} frames)`
       );
+      writeSceneLog('', `  ├─ Origin: ${this.#profileInProgress?.origin || 'unknown'}`);
+      writeSceneLog('', `  └─ Crumbs:`, this.#profileInProgress?.crumbs || []);
 
       this.#recordedTrailingSpans = [];
 
       const profileDuration = measurementStartTs - profileStartTs;
 
-      writeSceneLog(
-        this.constructor.name,
-        'Stoped recording, total measured time (network included):',
-        profileDuration + slowFramesTime
+      // Add performance marks for debugging in dev tools
+      if (typeof performance !== 'undefined' && performance.mark) {
+        const profileName = this.#profileInProgress?.origin || 'unknown';
+        const totalTime = profileDuration + slowFramesTime;
+
+        // Mark profile completion
+        performance.mark(`Dashboard Profile End: ${profileName}`);
+
+        // Add measure from start to end if possible
+        const startMarkName = `Dashboard Profile Start: ${profileName}`;
+        try {
+          performance.measure(
+            `Dashboard Profile: ${profileName} (${totalTime.toFixed(1)}ms)`,
+            startMarkName,
+            `Dashboard Profile End: ${profileName}`
+          );
+        } catch {
+          // Start mark might not exist, create a simple end mark
+          performance.mark(`Dashboard Profile Complete: ${profileName} (${totalTime.toFixed(1)}ms)`);
+        }
+
+        // Add measurements for slow frame details if significant
+        if (slowFrames.length > 0) {
+          const slowFramesMarkName = `Slow Frames Summary: ${slowFrames.length} frames (${slowFramesTime.toFixed(
+            1
+          )}ms)`;
+          performance.mark(slowFramesMarkName);
+
+          // Create individual measurements for each slow frame during tail
+          slowFrames.forEach((frameTime, index) => {
+            if (frameTime > 16) {
+              // Only measure frames slower than 16ms (60fps)
+              try {
+                const frameStartTime =
+                  this.#profileStartTs! +
+                  profileDuration +
+                  (index > 0 ? slowFrames.slice(0, index).reduce((sum, t) => sum + t, 0) : 0);
+                const frameId = `slow-frame-${index}`;
+                const frameStartMark = `${frameId}-start`;
+                const frameEndMark = `${frameId}-end`;
+
+                performance.mark(frameStartMark, { startTime: frameStartTime });
+                performance.mark(frameEndMark, { startTime: frameStartTime + frameTime });
+                performance.measure(`Slow Frame ${index + 1}: ${frameTime.toFixed(1)}ms`, frameStartMark, frameEndMark);
+              } catch {
+                // Fallback if startTime not supported
+                performance.mark(`Slow Frame ${index + 1}: ${frameTime.toFixed(1)}ms`);
+              }
+            }
+          });
+        }
+      }
+
+      // Log performance summary in a structured format
+      const completionTimestamp = performance.now();
+      writeSceneLog('SceneRenderProfiler', 'Profile completed');
+      writeSceneLog('', `  ├─ Timestamp: ${completionTimestamp.toFixed(1)}ms`);
+      writeSceneLog('', `  ├─ Total time: ${(profileDuration + slowFramesTime).toFixed(1)}ms`);
+      writeSceneLog('', `  ├─ Slow frames: ${slowFramesTime}ms (${slowFrames.length} frames)`);
+      writeSceneLog('', `  └─ Long frames: ${this.#longFramesTotalTime}ms (${this.#longFramesCount} frames)`);
+
+      // Stop long frame detection now that the profile is complete
+      this.#longFrameDetector.stop();
+      writeSceneLogStyled(
+        'SceneRenderProfiler',
+        `Stopped long frame detection - profile complete at ${completionTimestamp.toFixed(1)}ms`,
+        'color: #00CC00; font-weight: bold;'
       );
+
       this.#trailAnimationFrameId = null;
 
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
@@ -170,6 +289,8 @@ export class SceneRenderProfiler {
           networkDuration,
           startTs: profileStartTs,
           endTs: profileEndTs,
+          longFramesCount: this.#longFramesCount,
+          longFramesTotalTime: this.#longFramesTotalTime,
           // @ts-ignore
           jsHeapSizeLimit: performance.memory ? performance.memory.jsHeapSizeLimit : 0,
           // @ts-ignore
@@ -195,7 +316,9 @@ export class SceneRenderProfiler {
   public tryCompletingProfile() {
     writeSceneLog('SceneRenderProfiler', 'Trying to complete profile', this.#profileInProgress);
     if (this.queryController?.runningQueriesCount() === 0 && this.#profileInProgress) {
-      writeSceneLog('SceneRenderProfiler', 'All queries completed, stopping profile');
+      writeSceneLog('SceneRenderProfiler', 'All queries completed, starting tail measurement');
+      // Note: Long frame detector continues running during tail measurement
+      // It will be stopped when the profile completely finishes
       this.recordProfileTail(performance.now(), this.#profileStartTs!);
     }
   }
@@ -222,8 +345,13 @@ export class SceneRenderProfiler {
         cancelAnimationFrame(this.#trailAnimationFrameId);
         this.#trailAnimationFrameId = null;
       }
+      // Stop long frame tracking
+      this.#longFrameDetector.stop();
+      writeSceneLog('SceneRenderProfiler', 'Stopped long frame detection - profile cancelled');
       // Reset recorded spans to ensure complete cleanup
       this.#recordedTrailingSpans = [];
+      this.#longFramesCount = 0;
+      this.#longFramesTotalTime = 0;
     }
   }
 
@@ -236,9 +364,9 @@ export class SceneRenderProfiler {
 }
 
 export function processRecordedSpans(spans: number[]) {
-  // identify last span in spans that's bigger than SPAN_THRESHOLD
+  // identify last span in spans that's bigger than default threshold
   for (let i = spans.length - 1; i >= 0; i--) {
-    if (spans[i] > SPAN_THRESHOLD) {
+    if (spans[i] > DEFAULT_LONG_FRAME_THRESHOLD) {
       return spans.slice(0, i + 1);
     }
   }
