@@ -3,6 +3,7 @@ import { lastValueFrom } from 'rxjs';
 import { CustomVariable } from './CustomVariable';
 import { TestScene } from '../TestScene';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { CustomOptionsProviderType } from './CustomOptionsProviders';
 
 describe('CustomVariable', () => {
   describe('When empty query is provided', () => {
@@ -286,7 +287,7 @@ label-3 : value-3,`,
       const variable = new CustomVariable({
         name: 'test',
         isMulti: false,
-        isJson: true,
+        optionsProvider: CustomOptionsProviderType.JSON,
         query: `
 [
   { "id": "test", "display": "Test", "location": "US" },
@@ -309,7 +310,7 @@ label-3 : value-3,`,
       const variable = new CustomVariable({
         name: 'test',
         isMulti: false,
-        isJson: true,
+        optionsProvider: CustomOptionsProviderType.JSON,
         query: `["test", "prod"]`,
         value: 'prod',
         text: 'prod',

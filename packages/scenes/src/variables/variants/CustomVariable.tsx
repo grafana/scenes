@@ -7,12 +7,12 @@ import { VariableValueOption } from '../types';
 
 import React from 'react';
 import { sceneGraph } from '../../core/sceneGraph';
+import { CustomOptionsProviderBuilder, CustomOptionsProviderType } from './CustomOptionsProviders';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
-import { CustomOptionsProviders } from './CustomOptionsProviders';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
-  isJson: boolean;
+  optionsProvider: CustomOptionsProviderType;
 }
 
 export class CustomVariable extends MultiValueVariable<CustomVariableState> {
@@ -28,7 +28,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
       text: '',
       options: [],
       name: '',
-      isJson: false,
+      optionsProvider: CustomOptionsProviderType.CSV,
       ...initialState,
     });
   }
@@ -38,14 +38,14 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
 
     let optionsProvider;
 
-    if (!this.state.isJson) {
-      optionsProvider = CustomOptionsProviders.fromCsv({ csv: interpolated });
-    } else {
-      optionsProvider = CustomOptionsProviders.fromJson({
+    if (this.state.optionsProvider === 'JSON') {
+      optionsProvider = CustomOptionsProviderBuilder.fromJson({
         json: interpolated,
         valueProp: this.state.valueProp,
         textProp: this.state.textProp,
       });
+    } else {
+      optionsProvider = CustomOptionsProviderBuilder.fromCsv({ csv: interpolated });
     }
 
     return new Observable((subscriber) => {

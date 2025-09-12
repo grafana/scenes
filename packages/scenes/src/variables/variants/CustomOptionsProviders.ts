@@ -1,12 +1,18 @@
 import { Observable } from 'rxjs';
 import { VariableValueOption } from '../types';
 
-export const CustomOptionsProviders = {
+export enum CustomOptionsProviderType {
+  'CSV' = 'CSV',
+  'JSON' = 'JSON',
+}
+
+// helpers
+export const CustomOptionsProviderBuilder = {
   fromCsv: (params: CsvProviderParams) => new CsvOptionsProvider(params),
   fromJson: (params: JsonProviderParams) => new JsonOptionsProvider(params),
 };
 
-interface CustomOptionsProvider {
+export interface CustomOptionsProvider {
   getOptions(): Observable<VariableValueOption[]>;
 }
 
