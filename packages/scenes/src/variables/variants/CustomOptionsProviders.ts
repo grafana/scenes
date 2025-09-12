@@ -1,28 +1,44 @@
 import { Observable } from 'rxjs';
+import { sceneGraph } from '../../core/sceneGraph';
 import { VariableValueOption } from '../types';
 import { CustomVariable } from './CustomVariable';
-import { sceneGraph } from '../../core/sceneGraph';
 
-export enum CustomOptionsProviderType {
-  'CSV' = 'CSV',
-  'JSON' = 'JSON',
-}
+type BuilderFunction = (variable: CustomVariable) => CustomOptionsProvider;
+
+const optionsProvidersLookup = new Map<string, BuilderFunction>([
+  [
+    'csv',
+    (variable: CustomVariable) =>
+      new CsvOptionsProvider({
+        csv: sceneGraph.interpolate(variable, variable.state.query),
+      }),
+  ],
+  [
+    'json',
+    (variable: CustomVariable) =>
+      new JsonOptionsProvider({
+        json: sceneGraph.interpolate(variable, variable.state.query),
+        valueProp: variable.state.valueProp,
+        textProp: variable.state.textProp,
+      }),
+  ],
+]);
 
 export function buildOptionsProvider(variable: CustomVariable) {
-  const { optionsProvider, query, valueProp, textProp } = variable.state;
+  const { optionsProviderType } = variable.state;
 
-  switch (optionsProvider) {
-    case CustomOptionsProviderType.JSON:
-      return new JsonOptionsProvider({
-        json: sceneGraph.interpolate(variable, query),
-        valueProp,
-        textProp,
-      });
-
-    case CustomOptionsProviderType.CSV:
-    default:
-      return new CsvOptionsProvider({ csv: sceneGraph.interpolate(variable, query) });
+  if (optionsProvidersLookup.has(optionsProviderType)) {
+    return optionsProvidersLookup.get(optionsProviderType)!(variable);
   }
+
+  throw new Error(`Unknown options provider "${optionsProviderType}"`);
+}
+
+export function registerOptionsProvider(type: string, builderFn: BuilderFunction) {
+  if (optionsProvidersLookup.has(type)) {
+    throw new Error(`Options provider "${type}" already registered`);
+  }
+  optionsProvidersLookup.set(type, builderFn);
 }
 
 export interface CustomOptionsProvider {

@@ -6,12 +6,12 @@ import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
 import React from 'react';
-import { buildOptionsProvider, CustomOptionsProviderType } from './CustomOptionsProviders';
+import { buildOptionsProvider } from './CustomOptionsProviders';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
-  optionsProvider: CustomOptionsProviderType;
+  optionsProviderType: string;
 }
 
 export class CustomVariable extends MultiValueVariable<CustomVariableState> {
@@ -27,7 +27,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
       text: '',
       options: [],
       name: '',
-      optionsProvider: CustomOptionsProviderType.CSV,
+      optionsProviderType: 'csv',
       ...initialState,
     });
   }
