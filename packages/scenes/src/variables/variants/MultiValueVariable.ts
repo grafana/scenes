@@ -179,9 +179,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         }
       }
 
-      stateUpdate.valueProperties = (stateUpdate.value as VariableValueSingle[]).map(
-        (v) => options.find((o) => o.value === v)?.properties
-      );
+      const valueProperties = (stateUpdate.value as VariableValueSingle[])
+        ?.map((v) => options.find((o) => o.value === v)?.properties)
+        .filter(Boolean);
+      stateUpdate.valueProperties = valueProperties.length ? valueProperties : undefined;
 
       return stateUpdate;
     }
