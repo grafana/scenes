@@ -26,11 +26,9 @@ const optionsProvidersLookup = new Map<string, BuilderFunction>([
 
 export function buildOptionsProvider(variable: CustomVariable) {
   const { optionsProviderType } = variable.state;
-
   if (optionsProvidersLookup.has(optionsProviderType)) {
     return optionsProvidersLookup.get(optionsProviderType)!(variable);
   }
-
   throw new Error(`Unknown options provider "${optionsProviderType}"`);
 }
 
@@ -44,6 +42,8 @@ export function registerOptionsProvider(type: string, builderFn: BuilderFunction
 export interface CustomOptionsProvider {
   getOptions(): Observable<VariableValueOption[]>;
 }
+
+/* CSV */
 
 interface CsvProviderParams {
   csv: string;
@@ -77,6 +77,8 @@ export class CsvOptionsProvider implements CustomOptionsProvider {
   }
 }
 
+/* JSON */
+
 interface JsonProviderParams {
   json: string;
   valueProp?: string;
@@ -93,30 +95,32 @@ export class JsonOptionsProvider implements CustomOptionsProvider {
       throw new Error('Query must be a JSON array');
     }
 
-    let options = [];
-
     if (typeof parsedOptions[0] === 'string') {
-      options = parsedOptions.map((value) => ({ label: value.trim(), value: value.trim() }));
-    } else if (typeof parsedOptions[0] === 'object' && parsedOptions[0] !== null) {
-      const { valueProp, textProp } = this.params;
+      return parsedOptions.map((value) => ({ label: value.trim(), value: value.trim() }));
+    }
 
-      if (!valueProp) {
-        throw new Error('valueProp must be set');
-      }
-
-      for (const o of parsedOptions as Array<Record<string, any>>) {
-        if (o[valueProp] == null) {
-          continue;
-        }
-
-        options.push({
-          value: o[valueProp].trim(),
-          label: o[textProp as any]?.trim(),
-          properties: o,
-        });
-      }
-    } else {
+    if (typeof parsedOptions[0] !== 'object' || parsedOptions[0] === null) {
       throw new Error('Query must be a JSON array of strings or objects');
+    }
+
+    const { valueProp, textProp } = this.params;
+
+    if (!valueProp) {
+      throw new Error('valueProp must be set');
+    }
+
+    const options = [];
+
+    for (const o of parsedOptions as Array<Record<string, any>>) {
+      if (o[valueProp] == null) {
+        continue;
+      }
+
+      options.push({
+        value: o[valueProp].trim(),
+        label: o[textProp as any]?.trim(),
+        properties: o,
+      });
     }
 
     return options;
