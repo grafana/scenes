@@ -11,9 +11,6 @@ interface CustomOptionsProvider {
 }
 
 interface CsvProviderParams {
-  /**
-   * String containing JSON with an array of objects
-   */
   csv: string;
 }
 
@@ -46,17 +43,8 @@ export class CsvOptionsProvider implements CustomOptionsProvider {
 }
 
 interface JsonProviderParams {
-  /**
-   * String containing JSON with an array of objects
-   */
   json: string;
-  /**
-   *
-   */
   valueProp?: string;
-  /**
-   *
-   */
   textProp?: string;
 }
 
