@@ -1,16 +1,29 @@
 import { Observable } from 'rxjs';
 import { VariableValueOption } from '../types';
+import { CustomVariable } from './CustomVariable';
+import { sceneGraph } from '../../core/sceneGraph';
 
 export enum CustomOptionsProviderType {
   'CSV' = 'CSV',
   'JSON' = 'JSON',
 }
 
-// helpers
-export const CustomOptionsProviderBuilder = {
-  fromCsv: (params: CsvProviderParams) => new CsvOptionsProvider(params),
-  fromJson: (params: JsonProviderParams) => new JsonOptionsProvider(params),
-};
+export function buildOptionsProvider(variable: CustomVariable) {
+  const { optionsProvider, query, valueProp, textProp } = variable.state;
+
+  switch (optionsProvider) {
+    case CustomOptionsProviderType.JSON:
+      return new JsonOptionsProvider({
+        json: sceneGraph.interpolate(variable, query),
+        valueProp,
+        textProp,
+      });
+
+    case CustomOptionsProviderType.CSV:
+    default:
+      return new CsvOptionsProvider({ csv: sceneGraph.interpolate(variable, query) });
+  }
+}
 
 export interface CustomOptionsProvider {
   getOptions(): Observable<VariableValueOption[]>;
