@@ -1,9 +1,9 @@
 /**
- * Centralized performance tracking system for Scenes
- * Provides a clean observer pattern interface for external systems (like Grafana) to monitor performance
+ * Centralized performance tracking system using observer pattern.
+ * External systems (like Grafana) implement ScenePerformanceObserver to receive performance events.
  */
 
-// Helper function to generate unique operation IDs
+/** Generate unique operation IDs for correlating start/complete events */
 let operationCounter = 0;
 export function generateOperationId(prefix = 'op'): string {
   return `${prefix}-${Date.now()}-${++operationCounter}`;
@@ -114,7 +114,6 @@ export class ScenePerformanceTracker {
     return this.observers.length;
   }
 
-  // Dashboard performance notifications
   private notifyObservers<T>(methodName: keyof ScenePerformanceObserver, data: T, errorContext: string): void {
     this.observers.forEach((observer) => {
       try {
@@ -126,7 +125,6 @@ export class ScenePerformanceTracker {
     });
   }
 
-  // Dashboard performance notifications
   public notifyDashboardInteractionStart(data: DashboardPerformanceData): void {
     this.notifyObservers('onDashboardInteractionStart', data, 'dashboard interaction start');
   }
@@ -139,7 +137,6 @@ export class ScenePerformanceTracker {
     this.notifyObservers('onDashboardInteractionComplete', data, 'dashboard interaction complete');
   }
 
-  // Panel performance notifications
   public notifyPanelLifecycleStart(data: PanelPerformanceData): void {
     this.notifyObservers('onPanelLifecycleStart', data, 'panel lifecycle start');
   }
@@ -156,7 +153,6 @@ export class ScenePerformanceTracker {
     this.notifyObservers('onPanelLifecycleComplete', data, 'panel lifecycle complete');
   }
 
-  // Query performance notifications
   public notifyQueryStart(data: QueryPerformanceData): void {
     this.notifyObservers('onQueryStart', data, 'query start');
   }

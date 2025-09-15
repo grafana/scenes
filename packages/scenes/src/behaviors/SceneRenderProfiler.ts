@@ -2,16 +2,13 @@ import { writeSceneLog } from '../utils/writeSceneLog';
 import { SceneQueryControllerLike } from './types';
 import { getScenePerformanceTracker, generateOperationId, DashboardPerformanceData } from './ScenePerformanceTracker';
 
-// Legacy import removed - unified collector handles all metrics
-
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
 const SPAN_THRESHOLD = 30; // Frames longer than this will be considered slow
 const TAB_INACTIVE_THRESHOLD = 1000; // Tab inactive threshold in ms
 
 export class SceneRenderProfiler {
   #profileInProgress: {
-    // Profile origin, i.e. scene refresh picker
-    origin: string;
+    origin: string; // Profile trigger (e.g., 'time_range_change')
     crumbs: string[];
   } | null = null;
 
@@ -26,9 +23,7 @@ export class SceneRenderProfiler {
   // Operation ID for correlating dashboard interaction events
   #currentOperationId?: string;
 
-  // Legacy S5.0: Registry replaced by unified collector
-
-  // Will keep measured lengths trailing frames
+  // Trailing frame measurements
   #recordedTrailingSpans: number[] = [];
 
   #visibilityChangeHandler: (() => void) | null = null;
@@ -37,7 +32,7 @@ export class SceneRenderProfiler {
     this.setupVisibilityChangeHandler();
   }
 
-  // Method to set dashboard metadata from Grafana
+  /** Set dashboard metadata from Grafana */
   public setDashboardMetadata(uid: string, title: string, panelCount: number) {
     this.dashboardUID = uid;
     this.dashboardTitle = title;
@@ -49,12 +44,11 @@ export class SceneRenderProfiler {
   }
 
   private setupVisibilityChangeHandler() {
-    // Ensure event listener is only added once
     if (this.#visibilityChangeHandler) {
       return;
     }
 
-    // Handle tab switching with Page Visibility API
+    // Cancel profiling when tab becomes inactive
     this.#visibilityChangeHandler = () => {
       if (document.hidden && this.#profileInProgress) {
         writeSceneLog('SceneRenderProfiler', 'Tab became inactive, cancelling profile');
@@ -68,19 +62,15 @@ export class SceneRenderProfiler {
   }
 
   public cleanup() {
-    // Remove event listener to prevent memory leaks
     if (this.#visibilityChangeHandler && typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.#visibilityChangeHandler);
       this.#visibilityChangeHandler = null;
     }
-
-    // Cancel any ongoing profiling
     this.cancelProfile();
   }
 
   public startProfile(name: string) {
-    // Only start profile if tab is active. This makes sure we don't start a profile when i.e. someone opens a dashboard in a new tab
-    // and doesn't interact with it.
+    // Skip profiling if tab is inactive
     if (document.hidden) {
       writeSceneLog('SceneRenderProfiler', 'Tab is inactive, skipping profile', name);
       return;
@@ -99,27 +89,19 @@ export class SceneRenderProfiler {
   }
 
   /**
-   * Starts a new profile for performance measurement.
-   *
-   * @param name - The origin/trigger of the profile (e.g., 'time_range_change', 'variable_value_changed')
-   * @param force - Whether this is a "forced" profile (true) or "clean" profile (false)
-   *               - "forced": Started by canceling an existing profile that was recording trailing frames
-   *                           This happens when a new user interaction occurs before the previous one
-   *                           finished measuring its performance impact
-   *               - "clean": Started when no profile is currently active
+   * Start new performance profile
+   * @param name - Profile trigger (e.g., 'time_range_change')
+   * @param force - True if canceling existing profile, false if starting clean
    */
   private _startNewProfile(name: string, force = false) {
-    // S5.0: Clear panel metrics registry for new profile
     this.clearPanelMetricsRegistry();
 
     this.#profileInProgress = { origin: name, crumbs: [] };
     this.#profileStartTs = performance.now();
 
-    // Profile type tracking for logging purposes
     const profileType = force ? 'forced' : 'clean';
     writeSceneLog('SceneRenderProfiler', `Profile started [${profileType}]`, name);
 
-    // Generate operation ID and notify performance observers of dashboard interaction start
     this.#currentOperationId = generateOperationId('dashboard');
     getScenePerformanceTracker().notifyDashboardInteractionStart({
       operationId: this.#currentOperationId,
@@ -129,13 +111,6 @@ export class SceneRenderProfiler {
       panelCount: this.getPanelCount(),
       timestamp: this.#profileStartTs,
     });
-
-    // writeSceneLog(
-    //   'SceneRenderProfiler',
-    //   `Profile started[${force ? 'forced' : 'clean'}]`,
-    //   this.#profileInProgress,
-    //   this.#profileStartTs
-    // );
   }
 
   private recordProfileTail(measurementStartTime: number, profileStartTs: number) {
@@ -148,8 +123,7 @@ export class SceneRenderProfiler {
     const currentFrameTime = performance.now();
     const frameLength = currentFrameTime - lastFrameTime;
 
-    // Fallback: Detect if tab was inactive (frame longer than reasonable threshold)
-    // This serves as backup to Page Visibility API in case the event wasn't triggered
+    // Detect tab inactivity as backup to Page Visibility API
     if (frameLength > TAB_INACTIVE_THRESHOLD) {
       writeSceneLog('SceneRenderProfiler', 'Tab was inactive, cancelling profile measurement');
       this.cancelProfile();

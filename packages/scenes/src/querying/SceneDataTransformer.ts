@@ -13,7 +13,6 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
-// PanelLifecyclePhase import removed - not used in observer pattern implementation
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 
 export interface SceneDataTransformerState extends SceneDataState {
@@ -100,8 +99,6 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public reprocessTransformations() {
-    // Manual reprocessing tracking removed - observer pattern handles performance tracking
-
     this.transform(this.getSourceData().state.data, true);
   }
 

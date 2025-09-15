@@ -1,5 +1,5 @@
 import { VizPanel } from '../components/VizPanel/VizPanel';
-import { VizPanelRenderProfiler, PanelLifecyclePhase } from './VizPanelRenderProfiler';
+import { VizPanelRenderProfiler } from './VizPanelRenderProfiler';
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
