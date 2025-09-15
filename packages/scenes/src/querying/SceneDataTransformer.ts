@@ -123,6 +123,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     this.state.$data?.isInViewChanged?.(isInView);
   }
 
+  public getIsInView(): boolean {
+    return this.state.$data?.getIsInView?.() ?? true;
+  }
+
   private haveAlreadyTransformedData(data: PanelData) {
     if (!this._prevDataFromSource) {
       return false;

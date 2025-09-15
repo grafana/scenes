@@ -679,6 +679,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this.runQueries();
     }
   }
+
+  public getIsInView(): boolean {
+    return this._isInView;
+  }
 }
 
 export function findFirstDatasource(targets: DataQuery[]): DataSourceRef | undefined {

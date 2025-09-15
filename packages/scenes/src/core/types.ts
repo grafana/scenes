@@ -248,6 +248,11 @@ export interface SceneDataProvider<T extends SceneObjectState = SceneDataState> 
    * Can be used to disable query execution for scene elements that are out of view
    */
   isInViewChanged?(isInView: boolean): void;
+
+  /**
+   * Returns the current state of the isInView flag. Useful for various edge cases like Dashboard datasource
+   */
+  getIsInView?(): boolean;
 }
 
 export interface SceneDataLayerProviderState extends SceneDataState {
