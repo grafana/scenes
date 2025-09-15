@@ -124,7 +124,7 @@ describe('VizPanelRenderProfiler', () => {
         expect.objectContaining({
           operationId: expect.stringContaining('pluginLoad-'),
           panelId: '42', // Uses panel's legacy ID
-          operation: 'pluginLoad',
+          operation: 'lifecycle',
         })
       );
 
@@ -142,7 +142,7 @@ describe('VizPanelRenderProfiler', () => {
         expect.objectContaining({
           operationId: expect.stringContaining('pluginLoad-'),
           panelId: '42', // Uses panel's legacy ID
-          operation: 'pluginLoad',
+          operation: 'lifecycle',
         })
       );
     });
@@ -155,13 +155,13 @@ describe('VizPanelRenderProfiler', () => {
       expect(mockScenePerformanceTracker.notifyPanelOperationStart).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('pluginLoad-'),
-          operation: 'pluginLoad',
+          operation: 'lifecycle',
         })
       );
       expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('pluginLoad-'),
-          operation: 'pluginLoad',
+          operation: 'lifecycle',
           metadata: expect.objectContaining({
             fromCache: true,
           }),

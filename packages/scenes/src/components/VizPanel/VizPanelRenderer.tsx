@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useLayoutEffect,
   useEffect,
-  useRef,
   Profiler,
   ProfilerOnRenderCallback,
 } from 'react';
@@ -75,7 +74,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           panelId: id,
         });
 
-        // Compare with our simple measurement
+        // Compare with our simple measurement using render comparison utility
         profiler.compareRenderMeasurements({
           reactProfiler: {
             phase,
@@ -94,7 +93,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // Capture render start time immediately when component function runs
   const currentRenderStart = performance.now();
 
-  // Store the end callback from onSimpleRenderStart using useRef to avoid re-renders
   const endRenderCallbackRef = React.useRef<((endTimestamp: number, duration: number, type: string) => void) | null>(
     null
   );

@@ -28,7 +28,7 @@ export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
 export * as behaviors from './behaviors';
-export { PanelLifecyclePhase } from './behaviors/VizPanelRenderProfiler';
+// PanelLifecyclePhase export removed - not used in observer pattern implementation
 export {
   type ScenePerformanceObserver,
   type DashboardPerformanceData,
@@ -61,7 +61,7 @@ export type {
   SceneQueryControllerLike,
   SceneQueryControllerEntryType,
   SceneQueryControllerEntry,
-  SceneInteractionProfileEvent,
+  // SceneInteractionProfileEvent export removed - replaced by observer pattern
 } from './behaviors/types';
 export { SceneRenderProfiler } from './behaviors/SceneRenderProfiler';
 

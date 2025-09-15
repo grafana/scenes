@@ -1,6 +1,5 @@
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { SceneQueryControllerLike } from './types';
-import { interactionBridge } from '@grafana/runtime';
 import { getScenePerformanceTracker, generateOperationId, DashboardPerformanceData } from './ScenePerformanceTracker';
 
 // Legacy import removed - unified collector handles all metrics
@@ -116,16 +115,9 @@ export class SceneRenderProfiler {
     this.#profileInProgress = { origin: name, crumbs: [] };
     this.#profileStartTs = performance.now();
 
-    // S4.0: Notify InteractionBridge of new dashboard interaction
-    interactionBridge.setCurrentInteraction(
-      name,
-      'scene-render-profiler',
-      {
-        profileType: force ? 'forced' : 'clean',
-        startTs: this.#profileStartTs,
-      },
-      this.#profileStartTs
-    );
+    // Profile type tracking for logging purposes
+    const profileType = force ? 'forced' : 'clean';
+    writeSceneLog('SceneRenderProfiler', `Profile started [${profileType}]`, name);
 
     // Generate operation ID and notify performance observers of dashboard interaction start
     this.#currentOperationId = generateOperationId('dashboard');
@@ -199,19 +191,7 @@ export class SceneRenderProfiler {
       );
       this.#trailAnimationFrameId = null;
 
-      // S4.0: Get dashboard-level interaction context from InteractionBridge BEFORE clearing
-      const currentInteraction = interactionBridge.getCurrentState();
-      const interactionContext = currentInteraction
-        ? {
-            interactionId: currentInteraction.interactionId || '',
-            interactionType: currentInteraction.interactionType || '',
-            interactionSource: currentInteraction.source || '',
-            interactionStartTime: currentInteraction.startTime || 0,
-          }
-        : undefined;
-
-      // S4.0: Notify InteractionBridge that dashboard interaction completed
-      interactionBridge.clearCurrentInteraction();
+      // Profile completion - interaction context now handled by observer pattern
 
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
 
@@ -223,8 +203,7 @@ export class SceneRenderProfiler {
       // Performance measures now handled by Grafana ScenePerformanceService
 
       const networkDuration = captureNetwork(profileStartTs, profileEndTs);
-      // S5.0: Collect panel metrics from all VizPanelRenderProfiler instances
-      const panelMetrics = this.collectPanelMetrics();
+      // Panel metrics collection now handled by observer pattern in analytics aggregator
 
       // Legacy onProfileComplete callback removed - analytics now handled by observer pattern
       if (this.#profileInProgress) {
@@ -282,8 +261,7 @@ export class SceneRenderProfiler {
     if (this.#profileInProgress) {
       writeSceneLog('SceneRenderProfiler', 'Cancelling profile', this.#profileInProgress);
 
-      // S4.0: Any cancellation of an active profile is an interruption
-      interactionBridge.interruptCurrentInteraction();
+      // Profile cancelled - cleanup handled by observer pattern
 
       this.#profileInProgress = null;
       // Cancel any pending animation frame to prevent accessing null profileInProgress
@@ -311,33 +289,7 @@ export class SceneRenderProfiler {
 
   // Legacy mergeHybridMetrics method removed - now handled by unified collector
 
-  /**
-   * S5.0: Get all registered panel metrics
-   */
-  private collectPanelMetrics(): Array<{
-    panelId: string;
-    panelKey: string;
-    pluginId: string;
-    pluginVersion?: string;
-    pluginLoadTime: number;
-    pluginLoadedFromCache: boolean;
-    queryTime: number;
-    dataProcessingTime: number;
-    renderTime: number;
-    totalTime: number;
-    longFramesCount: number;
-    longFramesTotalTime: number;
-    renderCount: number;
-    dataPointsCount?: number;
-    seriesCount?: number;
-    error?: string;
-    memoryIncrease?: number;
-  }> {
-    // Panel metrics are now handled by the analytics aggregator in Grafana
-    // The observer pattern provides real-time data collection
-    writeSceneLog('SceneRenderProfiler', 'Panel metrics collection moved to observer-based analytics aggregator');
-    return [];
-  }
+  // Panel metrics collection removed - now handled by observer pattern in analytics aggregator
 
   /**
    * Clear panel metrics - now handled by analytics aggregator

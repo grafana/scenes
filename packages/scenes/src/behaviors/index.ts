@@ -2,7 +2,7 @@ export { ActWhenVariableChanged } from './ActWhenVariableChanged';
 export { CursorSync } from './CursorSync';
 export { SceneQueryController } from './SceneQueryController';
 export { LiveNowTimer } from './LiveNowTimer';
-export { VizPanelRenderProfiler, PanelLifecyclePhase } from './VizPanelRenderProfiler';
+export { VizPanelRenderProfiler } from './VizPanelRenderProfiler';
 
 // Performance tracking observer pattern
 export {
