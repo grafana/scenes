@@ -1,3 +1,15 @@
+# v6.35.2 (Mon Sep 15 2025)
+
+#### 🐛 Bug Fix
+
+- SceneRenderProfiler: Implement long frame detection with LoAF API and manual fallback [#1235](https://github.com/grafana/scenes/pull/1235) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.35.1 (Thu Sep 11 2025)
 
 #### 🐛 Bug Fix
