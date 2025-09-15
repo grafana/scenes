@@ -1,3 +1,17 @@
+# v6.35.3 (Mon Sep 15 2025)
+
+#### 🐛 Bug Fix
+
+- LazyLoading: Do not issue queries for panels outside view port [#1148](https://github.com/grafana/scenes/pull/1148) ([@torkelo](https://github.com/torkelo) [@bfmatei](https://github.com/bfmatei) [@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 3
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.35.2 (Mon Sep 15 2025)
 
 #### 🐛 Bug Fix
