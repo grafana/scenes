@@ -117,6 +117,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _layerAnnotations?: DataFrame[];
   private _resultAnnotations?: DataFrame[];
   private _isInView = true;
+  private _bypassIsInView = false;
   private _queryNotExecutedWhenOutOfView = false;
 
   public getResultsStream() {
@@ -424,7 +425,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
-    if (this.isQueryModeAuto() && !this._isInView) {
+    if (this.isQueryModeAuto() && !this._isInView && !this._bypassIsInView) {
       this._queryNotExecutedWhenOutOfView = true;
       return;
     }
@@ -680,8 +681,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
   }
 
-  public getIsInView(): boolean {
-    return this._isInView;
+  public bypassIsInViewChanged(bypassIsInView: boolean): void {
+    writeSceneLog('SceneQueryRunner', `bypassIsInViewChanged: ${bypassIsInView}`, this.state.key);
+    this._bypassIsInView = bypassIsInView;
+
+    if (bypassIsInView && this._queryNotExecutedWhenOutOfView) {
+      this.runQueries();
+    }
   }
 }
 

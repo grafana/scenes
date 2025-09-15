@@ -250,9 +250,10 @@ export interface SceneDataProvider<T extends SceneObjectState = SceneDataState> 
   isInViewChanged?(isInView: boolean): void;
 
   /**
-   * Returns the current state of the isInView flag. Useful for various edge cases like Dashboard datasource
+   * Allow activating or deactivating the isInView behavior
+   * This is useful for external consumers of a data provider (i.e., the Dashboard datasource)
    */
-  getIsInView?(): boolean;
+  bypassIsInViewChanged?(bypassIsInView: boolean): void;
 }
 
 export interface SceneDataLayerProviderState extends SceneDataState {
