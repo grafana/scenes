@@ -1,9 +1,42 @@
 import { calculateNetworkTime, processRecordedSpans, captureNetwork, SceneRenderProfiler } from './SceneRenderProfiler';
 import { SceneQueryControllerLike } from './types';
+import { ScenePerformanceObserver, DashboardPerformanceData } from './ScenePerformanceTracker';
 
 // Mock writeSceneLog to prevent console noise in tests
 jest.mock('../utils/writeSceneLog', () => ({
   writeSceneLog: jest.fn(),
+}));
+
+// Mock ScenePerformanceTracker
+const mockObserver: jest.Mocked<ScenePerformanceObserver> = {
+  onDashboardInteractionStart: jest.fn(),
+  onDashboardInteractionMilestone: jest.fn(),
+  onDashboardInteractionComplete: jest.fn(),
+  onPanelLifecycleStart: jest.fn(),
+  onPanelOperationStart: jest.fn(),
+  onPanelOperationComplete: jest.fn(),
+  onPanelLifecycleComplete: jest.fn(),
+  onQueryStart: jest.fn(),
+  onQueryComplete: jest.fn(),
+};
+
+const mockTracker = {
+  addObserver: jest.fn(() => jest.fn()), // Returns unsubscribe function
+  removeObserver: jest.fn(),
+  notifyDashboardInteractionStart: jest.fn(),
+  notifyDashboardInteractionMilestone: jest.fn(),
+  notifyDashboardInteractionComplete: jest.fn(),
+  notifyPanelLifecycleStart: jest.fn(),
+  notifyPanelOperationStart: jest.fn(),
+  notifyPanelOperationComplete: jest.fn(),
+  notifyPanelLifecycleComplete: jest.fn(),
+  notifyQueryStart: jest.fn(),
+  notifyQueryComplete: jest.fn(),
+  getObserverCount: jest.fn(() => 0),
+};
+
+jest.mock('./ScenePerformanceTracker', () => ({
+  getScenePerformanceTracker: () => mockTracker,
 }));
 
 // Minimal mock query controller - only mocks what SceneRenderProfiler actually uses
@@ -11,7 +44,6 @@ const createMockQueryController = (runningQueries = 0): SceneQueryControllerLike
   return {
     state: {
       isRunning: false,
-      onProfileComplete: jest.fn(),
     },
     runningQueriesCount: jest.fn(() => runningQueries),
   } as unknown as SceneQueryControllerLike;
@@ -32,6 +64,12 @@ describe('SceneRenderProfiler', () => {
   });
 
   beforeEach(() => {
+    // Clear all mocks
+    jest.clearAllMocks();
+    mockTracker.notifyDashboardInteractionComplete.mockClear();
+    mockTracker.notifyDashboardInteractionStart.mockClear();
+    mockTracker.notifyDashboardInteractionMilestone.mockClear();
+
     // Setup mocks for each test
     global.document = {
       hidden: false,
@@ -284,16 +322,16 @@ describe('SceneRenderProfiler integration tests', () => {
 
   // Helper functions to reduce repetition
   const setupProfileTest = (testName: string) => {
-    const onProfileComplete = jest.fn();
-    mockQueryController.state.onProfileComplete = onProfileComplete;
+    // Clear previous calls
+    mockTracker.notifyDashboardInteractionComplete.mockClear();
     profiler.startProfile(testName);
     profiler.tryCompletingProfile();
     expect(profiler.isTailRecording()).toBe(true);
-    return onProfileComplete;
+    return mockTracker.notifyDashboardInteractionComplete;
   };
 
   const expectProfileCompletion = (
-    onProfileComplete: jest.Mock,
+    notifyMock: jest.Mock,
     expected: {
       origin: string;
       duration: number;
@@ -303,11 +341,11 @@ describe('SceneRenderProfiler integration tests', () => {
     }
   ) => {
     expect(profiler.isTailRecording()).toBe(false);
-    expect(onProfileComplete).toHaveBeenCalledWith(
+    expect(notifyMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        startTs: 1000,
-        endTs: 1000 + expected.duration,
-        ...expected,
+        interactionType: expected.origin,
+        duration: expected.duration,
+        timestamp: 1000 + expected.duration, // endTs equivalent
       })
     );
   };
@@ -318,9 +356,9 @@ describe('SceneRenderProfiler integration tests', () => {
     });
 
     it('should complete full profile lifecycle with tail recording', async () => {
-      const onProfileComplete = setupProfileTest('dashboard-load');
+      const notifyMock = setupProfileTest('dashboard-load');
       simulateAnimationFrames(2000);
-      expectProfileCompletion(onProfileComplete, { origin: 'dashboard-load', duration: 16 });
+      expectProfileCompletion(notifyMock, { origin: 'dashboard-load', duration: 16 });
     });
 
     it('should initiate tail recording and animation frames correctly', () => {
@@ -330,7 +368,7 @@ describe('SceneRenderProfiler integration tests', () => {
     });
 
     it('should cancel current profile when new profile starts during tail recording', () => {
-      const onProfileComplete = setupProfileTest('first-profile');
+      const notifyMock = setupProfileTest('first-profile');
 
       // Starting a new profile during tail recording should cancel the first profile
       profiler.startProfile('second-profile');
@@ -340,7 +378,7 @@ describe('SceneRenderProfiler integration tests', () => {
       expect(profiler.isTailRecording()).toBe(true); // Second profile now tail recording
 
       // The first profile should not complete because it was cancelled
-      expect(onProfileComplete).not.toHaveBeenCalled();
+      expect(notifyMock).not.toHaveBeenCalled();
     });
 
     it('should handle tab inactive detection during tail recording', () => {
@@ -374,13 +412,13 @@ describe('SceneRenderProfiler integration tests', () => {
       ['slow frame at end', [15, 20, 25, 45], 105, 'all frames when last is slow: 15+20+25+45'],
     ])('should record %s correctly', (scenario, frameDurations, expectedDuration, description) => {
       const testName = scenario.replace(' ', '-') + '-test';
-      const onProfileComplete = setupProfileTest(testName);
+      const notifyMock = setupProfileTest(testName);
       simulateVariableFrames(frameDurations);
-      expectProfileCompletion(onProfileComplete, { origin: testName, duration: expectedDuration });
+      expectProfileCompletion(notifyMock, { origin: testName, duration: expectedDuration });
     });
 
     it('should verify slow frame time affects performance.measure end timestamp', () => {
-      const onProfileComplete = setupProfileTest('performance-measure-test');
+      const notifyMock = setupProfileTest('performance-measure-test');
       const frameDurations = [20, 50, 30, 40, 25]; // Expected duration: 140ms
       simulateVariableFrames(frameDurations);
 
@@ -388,7 +426,7 @@ describe('SceneRenderProfiler integration tests', () => {
         'DashboardInteraction performance-measure-test',
         expect.objectContaining({ start: 1000, end: 1140 })
       );
-      expectProfileCompletion(onProfileComplete, { origin: 'performance-measure-test', duration: 140 });
+      expectProfileCompletion(notifyMock, { origin: 'performance-measure-test', duration: 140 });
     });
   });
 
@@ -441,14 +479,13 @@ describe('SceneRenderProfiler integration tests', () => {
 
   describe('Complex cancellation scenarios', () => {
     const expectNoCancelCallback = () => {
-      const onProfileComplete = jest.fn();
-      mockQueryController.state.onProfileComplete = onProfileComplete;
+      mockTracker.notifyDashboardInteractionComplete.mockClear();
       simulateAnimationFrames(2000);
-      expect(onProfileComplete).not.toHaveBeenCalled();
+      expect(mockTracker.notifyDashboardInteractionComplete).not.toHaveBeenCalled();
     };
 
     it('should handle cancellation during different phases', () => {
-      mockQueryController.state.onProfileComplete = jest.fn();
+      mockTracker.notifyDashboardInteractionComplete.mockClear();
 
       // Before tail recording
       profiler.startProfile('cancel-before-tail');
@@ -850,10 +887,10 @@ describe('captureNetwork', () => {
 });
 
 describe('S5.0: Panel Metrics Collection', () => {
-  it('should include panel metrics in analytics event when profile completes', () => {
-    const mockOnProfileComplete = jest.fn();
+  it('should notify observer when profile completes', () => {
+    mockTracker.notifyDashboardInteractionComplete.mockClear();
     const mockQueryController = {
-      state: { onProfileComplete: mockOnProfileComplete },
+      state: {},
       runningQueriesCount: () => 0,
     };
 
@@ -888,11 +925,10 @@ describe('S5.0: Panel Metrics Collection', () => {
 
     // Wait for the profile to complete
     setTimeout(() => {
-      // Verify that onProfileComplete was called with panel metrics
-      expect(mockOnProfileComplete).toHaveBeenCalledWith(
+      // Verify that observer was notified when profile completes
+      expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          panelMetrics: mockPanelMetrics,
-          origin: 'test-interaction',
+          interactionType: 'test-interaction',
         })
       );
     }, 0);
@@ -909,7 +945,7 @@ describe('S5.0: Panel Metrics Collection', () => {
 
   it('should handle errors during panel metrics collection', () => {
     const mockQueryController = {
-      state: { onProfileComplete: jest.fn() },
+      state: {},
     };
 
     const profiler = new SceneRenderProfiler(mockQueryController as any);

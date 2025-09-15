@@ -29,6 +29,14 @@ export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
 export * as behaviors from './behaviors';
 export { PanelLifecyclePhase } from './behaviors/VizPanelRenderProfiler';
+export {
+  type ScenePerformanceObserver,
+  type DashboardPerformanceData,
+  type PanelPerformanceData,
+  type QueryPerformanceData,
+  getScenePerformanceTracker,
+  generateOperationId,
+} from './behaviors/ScenePerformanceTracker';
 export * as dataLayers from './querying/layers';
 
 export { SceneObjectBase, useSceneObjectState } from './core/SceneObjectBase';

@@ -3,11 +3,26 @@ import { VizPanelRenderProfiler, PanelLifecyclePhase } from './VizPanelRenderPro
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
-import { EnhancedPanelPerformanceCollector } from '../services/PanelPerformanceCollector';
+// PanelPerformanceCollector removed - now using observer pattern
 
 // Mock writeSceneLog
 jest.mock('../utils/writeSceneLog', () => ({
   writeSceneLog: jest.fn(),
+}));
+
+// Mock ScenePerformanceTracker for observer pattern
+const mockScenePerformanceTracker = {
+  notifyQueryStart: jest.fn(),
+  notifyQueryComplete: jest.fn(),
+  notifyPanelOperationStart: jest.fn(),
+  notifyPanelOperationComplete: jest.fn(),
+  notifyPanelLifecycleStart: jest.fn(),
+  notifyPanelLifecycleComplete: jest.fn(),
+};
+
+jest.mock('./ScenePerformanceTracker', () => ({
+  getScenePerformanceTracker: () => mockScenePerformanceTracker,
+  generateOperationId: jest.fn().mockImplementation((type) => `${type}-${Date.now()}`),
 }));
 
 // Mock plugin loading to prevent runtime errors
@@ -35,16 +50,7 @@ describe('VizPanelRenderProfiler', () => {
   let panel: VizPanel;
   let profiler: VizPanelRenderProfiler;
   let performanceNowSpy: jest.SpyInstance;
-  let collectorSpy: {
-    startPanelTracking: jest.SpyInstance;
-    startPhase: jest.SpyInstance;
-    endPhase: jest.SpyInstance;
-    setPluginCacheStatus: jest.SpyInstance;
-    setDataMetrics: jest.SpyInstance;
-    getPanelMetrics: jest.SpyInstance;
-    recordError: jest.SpyInstance;
-    updateLongFrameMetrics: jest.SpyInstance;
-  };
+  // Collector spies removed - using observer pattern now
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,17 +59,7 @@ describe('VizPanelRenderProfiler', () => {
     performanceNowSpy = jest.spyOn(performance, 'now');
     performanceNowSpy.mockReturnValue(1000);
 
-    // Create spies for the unified collector methods
-    collectorSpy = {
-      startPanelTracking: jest.spyOn(EnhancedPanelPerformanceCollector.prototype, 'startPanelTracking'),
-      startPhase: jest.spyOn(EnhancedPanelPerformanceCollector.prototype, 'startPhase'),
-      endPhase: jest.spyOn(EnhancedPanelPerformanceCollector.prototype, 'endPhase'),
-      setPluginCacheStatus: jest.spyOn(EnhancedPanelPerformanceCollector.prototype, 'setPluginCacheStatus'),
-      setDataMetrics: jest.spyOn(EnhancedPanelPerformanceCollector.prototype, 'setDataMetrics'),
-      getPanelMetrics: jest.spyOn(EnhancedPanelPerformanceCollector.prototype, 'getPanelMetrics'),
-      recordError: jest.spyOn(EnhancedPanelPerformanceCollector.prototype, 'recordError'),
-      updateLongFrameMetrics: jest.spyOn(EnhancedPanelPerformanceCollector.prototype, 'updateLongFrameMetrics'),
-    };
+    // Collector spies removed - now using observer pattern for performance tracking
 
     // Create test panel
     panel = new VizPanel({
@@ -97,7 +93,7 @@ describe('VizPanelRenderProfiler', () => {
 
       expect(panel.getLegacyPanelId).toHaveBeenCalled();
       expect(panel.getPlugin).toHaveBeenCalled();
-      expect(collectorSpy.startPanelTracking).toHaveBeenCalledWith('test-panel-1', '42', 'timeseries', '1.0.0');
+      // Observer pattern now handles panel tracking - no direct collector calls
     });
 
     it('should handle missing panel gracefully', () => {
@@ -121,25 +117,56 @@ describe('VizPanelRenderProfiler', () => {
     });
 
     it('should track plugin load start', () => {
-      profiler.onPluginLoadStart('timeseries');
+      const endPluginLoadCallback = profiler.onPluginLoadStart('timeseries');
 
-      expect(collectorSpy.startPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.PluginLoad);
+      // Verify observer notification was called for operation start
+      expect(mockScenePerformanceTracker.notifyPanelOperationStart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('pluginLoad-'),
+          panelId: '42', // Uses panel's legacy ID
+          operation: 'pluginLoad',
+        })
+      );
+
+      // Should return a callback function
+      expect(endPluginLoadCallback).toBeInstanceOf(Function);
     });
 
     it('should track plugin load end', () => {
-      profiler.onPluginLoadStart('timeseries');
+      const endPluginLoadCallback = profiler.onPluginLoadStart('timeseries');
       performanceNowSpy.mockReturnValue(1100); // 100ms later
-      profiler.onPluginLoadEnd({ meta: { id: 'timeseries' } }, false);
+      endPluginLoadCallback!({ meta: { id: 'timeseries' } }, false);
 
-      expect(collectorSpy.endPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.PluginLoad);
-      expect(collectorSpy.setPluginCacheStatus).toHaveBeenCalledWith('test-panel-1', false);
+      // Verify observer notification was called for operation completion
+      expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('pluginLoad-'),
+          panelId: '42', // Uses panel's legacy ID
+          operation: 'pluginLoad',
+        })
+      );
     });
 
     it('should track plugin loaded from cache', () => {
-      profiler.onPluginLoadStart('timeseries');
-      profiler.onPluginLoadEnd({ meta: { id: 'timeseries' } }, true);
+      const endPluginLoadCallback = profiler.onPluginLoadStart('timeseries');
+      endPluginLoadCallback!({ meta: { id: 'timeseries' } }, true);
 
-      expect(collectorSpy.setPluginCacheStatus).toHaveBeenCalledWith('test-panel-1', true);
+      // Verify observer notifications were called for both start and completion
+      expect(mockScenePerformanceTracker.notifyPanelOperationStart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('pluginLoad-'),
+          operation: 'pluginLoad',
+        })
+      );
+      expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('pluginLoad-'),
+          operation: 'pluginLoad',
+          metadata: expect.objectContaining({
+            fromCache: true,
+          }),
+        })
+      );
     });
   });
 
@@ -151,15 +178,39 @@ describe('VizPanelRenderProfiler', () => {
       panel.activate();
     });
 
-    it('should track query start and end', () => {
-      profiler.onQueryStart();
+    it('should track query start and completion via modern API', () => {
+      const mockEntry = {
+        type: 'test-query',
+        origin: panel,
+        request: { requestId: 'test-request-1' },
+      } as any;
+      const queryId = 'test-query-1';
 
-      expect(collectorSpy.startPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+      const endQueryCallback = profiler.onQueryStarted(performance.now(), mockEntry, queryId);
+
+      // Verify observer notification was called for query start
+      expect(mockScenePerformanceTracker.notifyQueryStart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('query-'),
+          panelId: '42', // Uses panel's legacy ID
+          queryId: 'test-query-1',
+        })
+      );
+
+      // Should return a callback function
+      expect(endQueryCallback).toBeInstanceOf(Function);
 
       performanceNowSpy.mockReturnValue(1500); // 500ms later
-      profiler.onQueryEnd();
+      endQueryCallback!(performance.now()); // Success case - no error
 
-      expect(collectorSpy.endPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+      // Verify observer notification was called for query completion
+      expect(mockScenePerformanceTracker.notifyQueryComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('query-'),
+          panelId: '42', // Uses panel's legacy ID
+          queryId: 'test-query-1',
+        })
+      );
     });
   });
 
@@ -172,22 +223,36 @@ describe('VizPanelRenderProfiler', () => {
     });
 
     it('should track field config processing', () => {
-      profiler.onFieldConfigStart();
+      const endFieldConfigCallback = profiler.onFieldConfigStart(performance.now());
 
-      expect(collectorSpy.startPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataProcessing);
+      // Verify observer notification was called for operation start
+      expect(mockScenePerformanceTracker.notifyPanelOperationStart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('fieldConfig-'),
+          panelId: '42', // Uses panel's legacy ID
+          operation: 'fieldConfig',
+        })
+      );
 
       performanceNowSpy.mockReturnValue(1050); // 50ms later
-      profiler.onFieldConfigEnd(1000, 5);
+      endFieldConfigCallback!(1000, 5);
 
-      expect(collectorSpy.endPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataProcessing);
-      expect(collectorSpy.setDataMetrics).toHaveBeenCalledWith('test-panel-1', 1000, 5);
+      // Verify observer notification was called for operation completion
+      expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('fieldConfig-'),
+          panelId: '42', // Uses panel's legacy ID
+          operation: 'fieldConfig',
+        })
+      );
     });
 
     it('should handle missing data metrics', () => {
-      profiler.onFieldConfigStart();
-      profiler.onFieldConfigEnd();
+      const endFieldConfigCallback = profiler.onFieldConfigStart(performance.now());
+      endFieldConfigCallback?.(performance.now());
 
-      expect(collectorSpy.setDataMetrics).not.toHaveBeenCalled();
+      // Observer pattern now handles all data metrics - methods should complete without errors
+      expect(profiler).toBeDefined();
     });
   });
 
@@ -221,19 +286,6 @@ describe('VizPanelRenderProfiler', () => {
     });
 
     it('should return panel metrics', () => {
-      const mockMetrics = {
-        panelId: '42',
-        panelKey: 'test-panel-1',
-        pluginId: 'timeseries',
-        pluginLoadTime: 100,
-        queryTime: 500,
-        dataProcessingTime: 50,
-        renderTime: 30,
-        totalTime: 680,
-      };
-
-      collectorSpy.getPanelMetrics.mockReturnValue(mockMetrics);
-
       // First activate the profiler to start tracking
       panel.setState({
         $behaviors: [profiler],
@@ -242,26 +294,16 @@ describe('VizPanelRenderProfiler', () => {
 
       const metrics = profiler.getPanelMetrics();
 
-      expect(collectorSpy.getPanelMetrics).toHaveBeenCalledWith('test-panel-1');
-      // S4.0: Metrics now include correlation context
-      expect(metrics).toEqual({
-        ...mockMetrics,
-        correlationContext: {
-          interactionId: undefined, // No active interaction in test
-          interactionType: undefined,
-          interactionSource: undefined,
-          interactionStartTime: undefined,
-          panelId: '42',
-          panelKey: 'test-panel-1',
-        },
-      });
+      // Observer pattern now handles metrics collection - getPanelMetrics returns null
+      expect(metrics).toBeNull();
     });
 
-    it('should return undefined if not tracking', () => {
+    it('should return null if not tracking', () => {
       const profilerNotActivated = new VizPanelRenderProfiler();
       const metrics = profilerNotActivated.getPanelMetrics();
 
-      expect(metrics).toBeUndefined();
+      // Observer pattern now handles metrics collection - always returns null
+      expect(metrics).toBeNull();
     });
   });
 
@@ -298,12 +340,28 @@ describe('VizPanelRenderProfiler', () => {
         },
       } as any;
 
-      profiler._onQueryStarted(mockEntry, 'test-query-123');
-      expect(collectorSpy.startPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+      const endQueryCallback = profiler.onQueryStarted(performance.now(), mockEntry, 'test-query-123');
+
+      // Verify observer notification was called for query start
+      expect(mockScenePerformanceTracker.notifyQueryStart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('query-'),
+          panelId: '42', // Uses panel's legacy ID
+          queryId: 'test-query-123',
+        })
+      );
 
       performanceNowSpy.mockReturnValue(1100); // 100ms later
-      profiler._onQueryCompleted(mockEntry, 'test-query-123');
-      expect(collectorSpy.endPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+      endQueryCallback!(performance.now()); // Success case - no error
+
+      // Verify observer notification was called for query completion
+      expect(mockScenePerformanceTracker.notifyQueryComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('query-'),
+          panelId: '42', // Uses panel's legacy ID
+          queryId: 'test-query-123',
+        })
+      );
     });
 
     it('should track multiple concurrent queries', () => {
@@ -343,22 +401,34 @@ describe('VizPanelRenderProfiler', () => {
       jest.clearAllMocks();
 
       // Start first query
-      profiler._onQueryStarted(mockEntry1, 'query-1');
-      expect(collectorSpy.startPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+      const endQuery1Callback = profiler.onQueryStarted(performance.now(), mockEntry1, 'query-1');
+      expect(mockScenePerformanceTracker.notifyQueryStart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('query-'),
+          panelId: '42', // Uses panel's legacy ID
+          queryId: 'query-1',
+        })
+      );
 
-      // Start second query (should not call startPhase again)
-      profiler._onQueryStarted(mockEntry2, 'query-2');
-      expect(collectorSpy.startPhase).toHaveBeenCalledTimes(1);
+      // Start second query (should also notify observer)
+      const endQuery2Callback = profiler.onQueryStarted(performance.now(), mockEntry2, 'query-2');
+      expect(mockScenePerformanceTracker.notifyQueryStart).toHaveBeenCalledTimes(2);
 
-      // Complete first query (should not call endPhase yet)
+      // Complete first query
       performanceNowSpy.mockReturnValue(1050);
-      profiler._onQueryCompleted(mockEntry1, 'query-1');
-      expect(collectorSpy.endPhase).not.toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+      endQuery1Callback!(performance.now()); // Success case - no error
+      expect(mockScenePerformanceTracker.notifyQueryComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('query-'),
+          panelId: '42', // Uses panel's legacy ID
+          queryId: 'query-1',
+        })
+      );
 
-      // Complete second query (should call endPhase)
+      // Complete second query
       performanceNowSpy.mockReturnValue(1100);
-      profiler._onQueryCompleted(mockEntry2, 'query-2');
-      expect(collectorSpy.endPhase).toHaveBeenCalledWith('test-panel-1', PanelLifecyclePhase.DataQuery);
+      endQuery2Callback!(performance.now()); // Success case - no error
+      expect(mockScenePerformanceTracker.notifyQueryComplete).toHaveBeenCalledTimes(2);
     });
 
     it('should get query count from SceneQueryRunner', () => {
@@ -376,13 +446,18 @@ describe('VizPanelRenderProfiler', () => {
       });
 
       // Call the private method via field config processing which uses it
-      profiler.onFieldConfigStart();
+      const endFieldConfigCallback = profiler.onFieldConfigStart(performance.now());
       performanceNowSpy.mockReturnValue(1050);
-      profiler.onFieldConfigEnd(1000, 5);
+      endFieldConfigCallback!(1000, 5);
 
-      // The query count should be included in the log (we can't directly test _getQueryCount as it's private)
-      // But we can verify the method works by checking that no errors are thrown
-      expect(collectorSpy.setDataMetrics).toHaveBeenCalledWith('test-panel-1', 1000, 5);
+      // The query count should be included in observer notifications - verify they were called
+      expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('fieldConfig-'),
+          panelId: '42', // Uses panel's legacy ID
+          operation: 'fieldConfig',
+        })
+      );
     });
 
     it('should get query count from SceneDataTransformer wrapping SceneQueryRunner', () => {
@@ -404,12 +479,54 @@ describe('VizPanelRenderProfiler', () => {
       });
 
       // Call field config processing which uses _getQueryCount
-      profiler.onFieldConfigStart();
+      const endFieldConfigCallback = profiler.onFieldConfigStart(performance.now());
       performanceNowSpy.mockReturnValue(1050);
-      profiler.onFieldConfigEnd(500, 2);
+      endFieldConfigCallback!(500, 2);
 
-      // Should work without errors even with wrapped query runner
-      expect(collectorSpy.setDataMetrics).toHaveBeenCalledWith('test-panel-1', 500, 2);
+      // Should work without errors even with wrapped query runner - verify observer notifications
+      expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          operationId: expect.stringContaining('fieldConfig-'),
+          panelId: '42', // Uses panel's legacy ID
+          operation: 'fieldConfig',
+        })
+      );
+    });
+
+    it('should use callback pattern for simple render tracking', () => {
+      const deactivate = panel.activate();
+
+      const startTime = 1000;
+      performanceNowSpy.mockReturnValue(startTime);
+
+      // Call onSimpleRenderStart and get the callback
+      const endRenderCallback = profiler.onSimpleRenderStart(startTime);
+
+      // Should return a callback function
+      expect(endRenderCallback).toBeInstanceOf(Function);
+
+      // Mock end time
+      const endTime = 1050;
+      const duration = 50;
+      performanceNowSpy.mockReturnValue(endTime);
+
+      // Call the callback to complete the render
+      endRenderCallback!(endTime, duration, 'component-to-effects');
+
+      // Should work without errors - the callback handles all the internal logic
+      expect(performanceNowSpy).toHaveBeenCalled();
+
+      deactivate();
+    });
+
+    it('should return undefined callback when panel key is missing', () => {
+      // Create profiler without activating panel (no panelKey)
+      const profilerNotActivated = new VizPanelRenderProfiler();
+
+      const callback = profilerNotActivated.onSimpleRenderStart(1000);
+
+      // Should return undefined when panel not properly initialized
+      expect(callback).toBeUndefined();
     });
 
     it('should handle cleanup gracefully', () => {

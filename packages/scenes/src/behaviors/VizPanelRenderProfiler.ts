@@ -8,98 +8,10 @@ import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
 import { QueryProfilerLike } from '../querying/registerQueryWithController';
 import { interactionBridge, CorrelationContext } from '@grafana/runtime';
-import { getEnhancedPanelPerformanceCollector } from '../services/PanelPerformanceCollector';
+import { getScenePerformanceTracker, generateOperationId } from './ScenePerformanceTracker';
 
 // React Profiler phase type
 type ReactProfilerPhase = 'mount' | 'update' | 'nested-update';
-
-// S5.0: Hybrid panel metrics types - totals for dashboard + details for analysis
-export interface BasePanelMetrics {
-  panelId?: string;
-  panelKey?: string;
-  pluginId?: string;
-  pluginVersion?: string;
-  correlationContext?: CorrelationContext | null;
-}
-
-// Individual operation details
-export interface FieldConfigOperation {
-  duration: number;
-  timestamp: number;
-  dataPointsCount?: number;
-  seriesCount?: number;
-}
-
-export interface TransformationOperation {
-  duration: number;
-  timestamp: number;
-  transformationId: string; // Transformation types: "organize+calculate" or "customTransformation"
-  outputSeriesCount?: number;
-  outputAnnotationsCount?: number;
-}
-
-export interface RenderOperation {
-  duration: number;
-  timestamp: number;
-  type: string;
-}
-
-export interface QueryOperation {
-  duration: number;
-  timestamp: number;
-  queryType: string;
-  queryId: string;
-}
-
-// Hybrid metrics with totals + details
-export interface PluginLoadMetrics extends BasePanelMetrics {
-  pluginLoadTime: number;
-  pluginLoadedFromCache: boolean;
-}
-
-export interface QueryMetrics extends BasePanelMetrics {
-  // Summary totals
-  totalQueryTime?: number;
-  queryCount?: number;
-  // Detailed operations
-  queryOperations?: QueryOperation[];
-}
-
-export interface FieldConfigMetrics extends BasePanelMetrics {
-  // Summary totals
-  totalFieldConfigTime?: number;
-  fieldConfigCount?: number;
-  // Detailed operations
-  fieldConfigOperations?: FieldConfigOperation[];
-  // Latest data context
-  dataPointsCount?: number;
-  seriesCount?: number;
-}
-
-export interface TransformationMetrics extends BasePanelMetrics {
-  // Summary totals
-  totalTransformationTime?: number;
-  transformationCount?: number;
-  // Detailed operations
-  transformationOperations?: TransformationOperation[];
-}
-
-export interface RenderMetrics extends BasePanelMetrics {
-  // Summary totals
-  totalRenderTime?: number;
-  renderCount?: number;
-  // Detailed operations
-  renderOperations?: RenderOperation[];
-}
-
-// Union type for all possible incremental metrics
-export type IncrementalPanelMetrics =
-  | BasePanelMetrics
-  | PluginLoadMetrics
-  | QueryMetrics
-  | FieldConfigMetrics
-  | TransformationMetrics
-  | RenderMetrics;
 
 // Enum for panel lifecycle phases (matches Grafana's PanelPerformanceCollector)
 export enum PanelLifecyclePhase {
@@ -142,9 +54,11 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   private _isTracking = false;
   private _loadPluginStartTime?: number;
   private _applyFieldConfigStartTime?: number;
-  private _queryStartTime?: number;
   private _renderStartTime?: number;
   private _activeQueries = new Map<string, { entry: SceneQueryControllerEntry; startTime: number }>();
+
+  // Store operation IDs for correlating performance events
+  private _operationIds = new Map<string, string>();
 
   // S4.0: Store correlation context for metrics
   private _currentCorrelationContext: CorrelationContext | null = null;
@@ -157,13 +71,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     this.addActivationHandler(() => {
       return this._onActivate();
     });
-  }
-
-  /**
-   * Get the unified collector instance
-   */
-  private get _collector() {
-    return getEnhancedPanelPerformanceCollector();
   }
 
   private _onActivate() {
@@ -196,8 +103,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     const plugin = panel.getPlugin();
     this._pluginVersion = plugin?.meta?.info?.version;
 
-    // Start tracking this panel in the collector
-    this._collector.startPanelTracking(this._panelKey, this._panelId, this._pluginId, this._pluginVersion);
+    // Panel tracking is now handled by observer pattern - no direct collector calls needed
 
     // Subscribe to panel state changes to track lifecycle events
     this._subs.add(
@@ -225,27 +131,93 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   }
 
   /**
-   * S3.0 LIFECYCLE INTEGRATION: Called by registerPanelQueryWithController when a query starts
-   * This is the direct callback approach - no window events needed
+   * Callback-based method for query tracking
+   * Returns an end callback that handles both success and error cases with guaranteed operation ID correlation
    */
-  public _onQueryStarted(entry: SceneQueryControllerEntry, queryId: string) {
+  public onQueryStarted(
+    timestamp: number,
+    entry: SceneQueryControllerEntry,
+    queryId: string
+  ): ((endTimestamp: number, error?: any) => void) | null {
     if (!this._panelKey) {
-      return;
+      return null;
     }
 
-    const startTime = performance.now();
-    this._activeQueries.set(queryId, { entry, startTime });
+    this._activeQueries.set(queryId, { entry, startTime: timestamp });
 
     // Start the DataQuery phase if this is the first query
     if (this._activeQueries.size === 1) {
       this.updateCorrelationContext(); // S4.0: Store correlation for metrics
-      this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataQuery);
-      this._queryStartTime = startTime;
 
-      // Performance mark for DevTools (only for the first query to avoid clutter)
-      const startMark = `panel-query-start-${this._panelKey}`;
-      performance.mark(startMark);
+      // Performance marks now handled by Grafana ScenePerformanceService
     }
+
+    // Generate operation ID for this specific query operation
+    const operationId = generateOperationId('query');
+
+    // Notify performance observers
+    getScenePerformanceTracker().notifyQueryStart({
+      operationId,
+      panelId: this._panelId!,
+      queryId: queryId,
+      queryType: entry.type,
+      timestamp,
+    });
+
+    // Return end callback with captured operationId and query context
+    const callback = (endTimestamp: number, error?: any) => {
+      if (!this._panelKey) {
+        return;
+      }
+
+      const queryInfo = this._activeQueries.get(queryId);
+      if (!queryInfo) {
+        return;
+      }
+
+      const duration = endTimestamp - queryInfo.startTime;
+      this._activeQueries.delete(queryId);
+
+      // Notify performance observers using captured operation ID
+      getScenePerformanceTracker().notifyQueryComplete({
+        operationId, // ← Same operationId from closure!
+        panelId: this._panelId!,
+        queryId: queryId,
+        queryType: entry.type,
+        duration: duration,
+        timestamp: endTimestamp,
+        error: error ? error?.message || String(error) || 'Unknown error' : undefined,
+      });
+
+      const correlationContext = interactionBridge.getCorrelationContext();
+      if (error) {
+        this.logWithCorrelation(
+          'Query error',
+          {
+            queryType: entry.type,
+            queryId,
+            duration,
+            error: error?.message || String(error) || 'Unknown error',
+            panelKey: this._panelKey,
+            remainingQueriesCount: this._activeQueries.size,
+          },
+          correlationContext
+        );
+      } else {
+        this.logWithCorrelation(
+          'Query completed',
+          {
+            queryType: entry.type,
+            queryId,
+            duration,
+            panelKey: this._panelKey,
+            isLastQuery: this._activeQueries.size === 0,
+            remainingQueriesCount: this._activeQueries.size,
+          },
+          correlationContext
+        );
+      }
+    };
 
     const correlationContext = interactionBridge.getCorrelationContext();
     this.logWithCorrelation(
@@ -255,113 +227,20 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         queryId,
         panelKey: this._panelKey,
         activeQueriesCount: this._activeQueries.size,
-        performanceMark: this._activeQueries.size === 1 ? `panel-query-start-${this._panelKey}` : undefined,
-      },
-      correlationContext
-    );
-  }
-
-  /**
-   * S3.0 LIFECYCLE INTEGRATION: Called by registerPanelQueryWithController when a query completes
-   */
-  public _onQueryCompleted(entry: SceneQueryControllerEntry, queryId: string) {
-    if (!this._panelKey) {
-      return;
-    }
-
-    const queryInfo = this._activeQueries.get(queryId);
-    if (!queryInfo) {
-      return;
-    }
-
-    const duration = performance.now() - queryInfo.startTime;
-    this._activeQueries.delete(queryId);
-
-    // End the DataQuery phase if this was the last query
-    if (this._activeQueries.size === 0) {
-      this._collector.endPhase(this._panelKey, PanelLifecyclePhase.DataQuery);
-
-      // Performance marks and measure for DevTools (only when all queries complete)
-      const endMark = `panel-query-end-${this._panelKey}`;
-      const startMark = `panel-query-start-${this._panelKey}`;
-      const measureName = `Panel Query - ${this._panelKey}`;
-
-      performance.mark(endMark);
-      performance.measure(measureName, startMark, endMark);
-    }
-
-    const correlationContext = interactionBridge.getCorrelationContext();
-    this.logWithCorrelation(
-      'Query completed',
-      {
-        queryType: entry.type,
-        queryId,
-        duration,
-        panelKey: this._panelKey,
-        performanceMark: this._activeQueries.size === 0 ? `panel-query-end-${this._panelKey}` : undefined,
-        performanceMeasure: this._activeQueries.size === 0 ? `Panel Query - ${this._panelKey}` : undefined,
-        remainingQueriesCount: this._activeQueries.size,
+        isFirstQuery: this._activeQueries.size === 1,
       },
       correlationContext
     );
 
-    // S5.0: Register query completion metrics (hybrid approach)
-    if (this._activeQueries.size === 0) {
-      const queryMetrics: QueryMetrics = {
-        queryOperations: [
-          {
-            duration,
-            timestamp: performance.now(),
-            queryType: entry.type,
-            queryId,
-          },
-        ],
-        correlationContext: this._currentCorrelationContext,
-      };
-      this.registerWithUnifiedCollector(queryMetrics);
-    }
+    // Return the callback function
+    return callback;
   }
 
   /**
-   * S3.0 LIFECYCLE INTEGRATION: Called by registerPanelQueryWithController when a query errors
+   * Callback-based method for plugin loading
+   * Returns an end callback that ensures proper operation ID correlation
    */
-  public _onQueryError(entry: SceneQueryControllerEntry, queryId: string, error: any) {
-    if (!this._panelKey) {
-      return;
-    }
-
-    const queryInfo = this._activeQueries.get(queryId);
-    if (!queryInfo) {
-      return;
-    }
-
-    const duration = performance.now() - queryInfo.startTime;
-    this._activeQueries.delete(queryId);
-
-    // End the DataQuery phase if this was the last query
-    if (this._activeQueries.size === 0) {
-      this._collector.endPhase(this._panelKey, PanelLifecyclePhase.DataQuery);
-    }
-
-    const correlationContext = interactionBridge.getCorrelationContext();
-    this.logWithCorrelation(
-      'Query error',
-      {
-        queryType: entry.type,
-        queryId,
-        duration,
-        error: error?.message || String(error) || 'Unknown error',
-        panelKey: this._panelKey,
-        remainingQueriesCount: this._activeQueries.size,
-      },
-      correlationContext
-    );
-  }
-
-  /**
-   * Called when plugin loading starts
-   */
-  public onPluginLoadStart(pluginId: string) {
+  public onPluginLoadStart(pluginId: string): ((plugin: any, fromCache?: boolean) => void) | null {
     // TIMING FIX: Plugin loading happens during VizPanel._onActivate(), which occurs BEFORE
     // the VizPanelRenderProfiler._onActivate() method runs. This means when onPluginLoadStart
     // is called, the profiler hasn't been fully initialized yet (no panelKey or collector).
@@ -373,7 +252,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         panel = sceneGraph.getAncestor(this, VizPanel);
       } catch (error) {
         // If we can't find the panel, we can't initialize - skip tracking
-        return;
+        return null;
       }
 
       // Initialize panel identification if not set yet
@@ -389,7 +268,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
     // Early return if we still don't have the required dependencies
     if (!this._panelKey) {
-      return;
+      return null;
     }
 
     if (!this._isTracking) {
@@ -397,11 +276,57 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     }
 
     this._loadPluginStartTime = performance.now();
-    this._collector.startPhase(this._panelKey, PanelLifecyclePhase.PluginLoad);
+    this.updateCorrelationContext(); // S4.0: Store correlation for metrics
 
-    // Performance mark for DevTools
-    const startMark = `panel-plugin-load-start-${this._panelKey}`;
-    performance.mark(startMark);
+    // Generate operation ID for this specific plugin load operation
+    const operationId = generateOperationId('pluginLoad');
+
+    // Notify performance observers
+    getScenePerformanceTracker().notifyPanelOperationStart({
+      operationId,
+      panelId: this._panelId!,
+      panelKey: this._panelKey,
+      pluginId: this._pluginId!,
+      operation: 'pluginLoad',
+      timestamp: this._loadPluginStartTime,
+      metadata: { pluginId },
+    });
+
+    // Return end callback with captured operationId and panel context
+    const callback = (plugin: any, fromCache = false) => {
+      if (!this._panelKey || !this._loadPluginStartTime) {
+        return;
+      }
+
+      const duration = performance.now() - this._loadPluginStartTime;
+
+      // Notify performance observers using captured operation ID
+      getScenePerformanceTracker().notifyPanelOperationComplete({
+        operationId, // ← Same operationId from closure!
+        panelId: this._panelId!,
+        panelKey: this._panelKey,
+        pluginId: this._pluginId!,
+        operation: 'pluginLoad',
+        timestamp: performance.now(),
+        duration,
+        metadata: { fromCache, pluginId: this._pluginId },
+      });
+
+      const correlationContext = interactionBridge.getCorrelationContext();
+      this.logWithCorrelation(
+        'Plugin load completed',
+        {
+          fromCache: fromCache,
+          pluginId: this._pluginId,
+          duration,
+          panelKey: this._panelKey,
+        },
+        correlationContext
+      );
+
+      // Reset the start time
+      this._loadPluginStartTime = undefined;
+    };
 
     // STRUCTURED LOGGING: Use structured data format similar to SceneRenderProfiler
     // for consistent logging patterns and easier parsing/analysis
@@ -411,91 +336,82 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       {
         pluginId: pluginId,
         panelKey: this._panelKey,
-        performanceMark: startMark,
+        // Performance marks now handled by Grafana ScenePerformanceService
       },
       correlationContext
     );
+
+    // Return the callback function
+    return callback;
   }
 
   /**
-   * Called when plugin loading completes
+   * Callback-based method for field config processing
+   * Returns an end callback that ensures proper operation ID correlation
    */
-  public onPluginLoadEnd(plugin: any, fromCache = false) {
-    if (!this._panelKey || !this._loadPluginStartTime) {
-      return;
-    }
-
-    this._collector.endPhase(this._panelKey, PanelLifecyclePhase.PluginLoad);
-    this._collector.setPluginCacheStatus(this._panelKey, fromCache);
-
-    const duration = performance.now() - this._loadPluginStartTime;
-
-    // S5.0: Complete plugin load phase using helper method
-    this.completePhase(
-      'plugin-load',
-      this._loadPluginStartTime!,
-      {
-        fromCache: fromCache,
-        pluginId: this._pluginId,
-      },
-      {
-        panelId: this._panelId,
-        panelKey: this._panelKey,
-        pluginId: this._pluginId,
-        pluginVersion: this._pluginVersion,
-        pluginLoadTime: duration,
-        pluginLoadedFromCache: fromCache,
-      } as PluginLoadMetrics
-    );
-  }
-
-  /**
-   * Called when query execution starts
-   */
-  public onQueryStart() {
+  public onFieldConfigStart(
+    timestamp: number
+  ): ((endTimestamp: number, dataPointsCount?: number, seriesCount?: number) => void) | null {
     if (!this._panelKey) {
-      return;
+      return null;
     }
 
-    if (!this._isTracking) {
-      this._startTracking();
-    }
-
-    this._queryStartTime = performance.now();
-    this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataQuery);
-
-    writeSceneLog(this._getPanelInfo(), 'Query started');
-  }
-
-  /**
-   * Called when query execution completes
-   */
-  public onQueryEnd() {
-    if (!this._panelKey || !this._queryStartTime) {
-      return;
-    }
-
-    this._collector.endPhase(this._panelKey, PanelLifecyclePhase.DataQuery);
-
-    const duration = performance.now() - this._queryStartTime;
-    writeSceneLog(this._getPanelInfo(), 'Query completed:', duration, 'ms');
-  }
-
-  /**
-   * Called when field config processing starts
-   */
-  public onFieldConfigStart() {
-    if (!this._panelKey) {
-      return;
-    }
-
-    this._applyFieldConfigStartTime = performance.now();
+    this._applyFieldConfigStartTime = timestamp;
     this.updateCorrelationContext(); // S4.0: Store correlation for metrics
-    this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataProcessing);
 
-    // Performance mark for DevTools
-    const startMark = `panel-field-config-start-${this._panelKey}`;
-    performance.mark(startMark);
+    // Generate operation ID for this specific field config operation
+    const operationId = generateOperationId('fieldConfig');
+
+    // Notify performance observers
+    getScenePerformanceTracker().notifyPanelOperationStart({
+      operationId,
+      panelId: this._panelId!,
+      panelKey: this._panelKey,
+      pluginId: this._pluginId!,
+      operation: 'fieldConfig',
+      timestamp: this._applyFieldConfigStartTime,
+    });
+
+    // Return end callback with captured operationId and panel context
+    const callback = (endTimestamp: number, dataPointsCount?: number, seriesCount?: number) => {
+      if (!this._panelKey || !this._applyFieldConfigStartTime) {
+        return;
+      }
+
+      const duration = endTimestamp - this._applyFieldConfigStartTime;
+
+      // Notify performance observers using captured operation ID
+      getScenePerformanceTracker().notifyPanelOperationComplete({
+        operationId, // ← Same operationId from closure!
+        panelId: this._panelId!,
+        panelKey: this._panelKey,
+        pluginId: this._pluginId!,
+        operation: 'fieldConfig',
+        timestamp: endTimestamp,
+        duration,
+        metadata: { dataPointsCount, seriesCount },
+      });
+
+      // Get query count from the panel's SceneQueryRunner
+      const queryCount = this._getQueryCount();
+
+      const correlationContext = interactionBridge.getCorrelationContext();
+      this.logWithCorrelation(
+        'Field config processing completed',
+        {
+          duration: `${duration}ms`,
+          dataPointsCount,
+          seriesCount,
+          queryCount,
+        },
+        correlationContext
+      );
+
+      // Reset the start time
+      this._applyFieldConfigStartTime = undefined;
+    };
+
+    // Performance marks now handled by Grafana ScenePerformanceService
 
     // PANEL STATE DETECTION: Use sceneGraph.getData() to get current panel data state
     // This provides context about what state the panel is in when field config processing starts
@@ -521,70 +437,13 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         panelState: panelState,
         panelKey: this._panelKey,
         pluginId: this._pluginId,
-        performanceMark: startMark,
+        // Performance marks now handled by Grafana ScenePerformanceService
       },
       correlationContext
     );
-  }
 
-  /**
-   * Called when field config processing completes
-   */
-  public onFieldConfigEnd(dataPointsCount?: number, seriesCount?: number) {
-    if (!this._panelKey || !this._applyFieldConfigStartTime) {
-      return;
-    }
-
-    this._collector.endPhase(this._panelKey, PanelLifecyclePhase.DataProcessing);
-
-    if (dataPointsCount !== undefined && seriesCount !== undefined) {
-      this._collector.setDataMetrics(this._panelKey, dataPointsCount, seriesCount);
-    }
-
-    const duration = performance.now() - this._applyFieldConfigStartTime;
-
-    // Get query count from the panel's SceneQueryRunner
-    const queryCount = this._getQueryCount();
-
-    // S5.0: Register field config completion (hybrid approach)
-    const fieldConfigMetrics: FieldConfigMetrics = {
-      fieldConfigOperations: [
-        {
-          duration,
-          timestamp: performance.now(),
-          dataPointsCount,
-          seriesCount,
-        },
-      ],
-      dataPointsCount, // Keep latest data context
-      seriesCount,
-      correlationContext: this._currentCorrelationContext,
-    };
-    this.registerWithUnifiedCollector(fieldConfigMetrics);
-
-    // Performance marks and logging
-    const endMark = `panel-field-config-end-${this._panelKey}`;
-    const startMark = `panel-field-config-start-${this._panelKey}`;
-    const measureName = `Panel Field Config - ${this._panelKey}`;
-
-    performance.mark(endMark);
-    performance.measure(measureName, startMark, endMark);
-
-    const correlationContext = interactionBridge.getCorrelationContext();
-    this.logWithCorrelation(
-      'Field config processing completed',
-      {
-        duration: `${duration}ms`,
-        dataPointsCount,
-        seriesCount,
-        queryCount,
-        panelKey: this._panelKey,
-        pluginId: this._pluginId,
-        performanceMark: endMark,
-        performanceMeasure: measureName,
-      },
-      correlationContext
-    );
+    // Return the callback function
+    return callback;
   }
 
   /**
@@ -648,42 +507,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     return `VizPanelRenderProfiler [${panelTitle}]`;
   }
 
-  /**
-   * S3.0 RENDER TRACKING: Called when panel render cycle starts
-   * This is called from VizPanel.applyFieldConfig() which is invoked on every React render
-   */
-  public onRenderStart() {
-    if (!this._panelKey) {
-      return;
-    }
-
-    // End any previous render phase
-    if (this._renderStartTime) {
-      this._collector.endPhase(this._panelKey, PanelLifecyclePhase.Render);
-
-      const prevDuration = performance.now() - this._renderStartTime;
-      writeSceneLog(this._getPanelInfo(), 'Render completed (overlapping)', {
-        duration: prevDuration,
-        panelKey: this._panelKey,
-        pluginId: this._pluginId,
-      });
-    }
-
-    this._renderStartTime = performance.now();
-    this.updateCorrelationContext(); // S4.0: Store correlation for metrics
-    this._collector.startPhase(this._panelKey, PanelLifecyclePhase.Render);
-
-    const correlationContext = interactionBridge.getCorrelationContext();
-    this.logWithCorrelation(
-      'Render started',
-      {
-        panelKey: this._panelKey,
-        pluginId: this._pluginId,
-      },
-      correlationContext
-    );
-  }
-
   // Store measurements for comparison
   private _lastReactRender?: {
     phase: string;
@@ -739,31 +562,25 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       this._currentCorrelationContext
     );
 
-    // S5.0: Register render completion metrics (incremental)
-    const renderMetrics: RenderMetrics = {
-      totalRenderTime: renderInfo.actualDuration, // Use actual React render duration
-      renderCount: (this._collector.getPanelMetrics(this._panelKey)?.renderCount || 0) + 1,
-      correlationContext: this._currentCorrelationContext,
-    };
-    this.registerWithUnifiedCollector(renderMetrics);
+    // S5.0: Render metrics now handled by observer pattern
   }
 
   /**
    * S3.0 RENDER TRACKING: Simple render timing (component start to DOM update)
+   * Returns a callback to end the render operation with guaranteed operation ID correlation
    */
-  public onSimpleRenderStart(startTime: number) {
+  public onSimpleRenderStart(
+    timestamp: number
+  ): ((endTimestamp: number, duration: number, type: string) => void) | undefined {
     if (!this._panelKey) {
-      return;
+      return undefined;
     }
 
     // Store start time and begin render phase
-    this._renderStartTime = startTime;
+    this._renderStartTime = timestamp;
     this.updateCorrelationContext(); // S4.0: Store correlation for metrics
-    this._collector.startPhase(this._panelKey, PanelLifecyclePhase.Render);
 
-    // Simple performance mark
-    const startMark = `panel-simple-render-start-${this._panelKey}`;
-    performance.mark(startMark);
+    // Performance marks now handled by Grafana ScenePerformanceService
 
     const correlationContext = interactionBridge.getCorrelationContext();
     this.logWithCorrelation(
@@ -771,75 +588,71 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       {
         panelKey: this._panelKey,
         pluginId: this._pluginId,
-        startTime,
-        performanceMark: startMark,
+        timestamp,
+        // Performance marks now handled by Grafana ScenePerformanceService
       },
       correlationContext
     );
-  }
 
-  /**
-   * S3.0 RENDER TRACKING: Simple render timing completion
-   */
-  public onSimpleRenderEnd(duration: number, type: string) {
-    if (!this._panelKey) {
-      return;
-    }
+    // S5.0: Generate operation ID for lifecycle correlation (captured in closure)
+    const operationId = generateOperationId('render');
 
-    this._collector.endPhase(this._panelKey, PanelLifecyclePhase.Render);
+    // Notify observers of panel lifecycle start
+    getScenePerformanceTracker().notifyPanelLifecycleStart({
+      operationId,
+      panelId: this._panelId || 'unknown',
+      panelKey: this._panelKey,
+      pluginId: this._pluginId || 'unknown',
+      pluginVersion: this._pluginVersion,
+      operation: 'render',
+      timestamp,
+    });
 
-    // Store for comparison - use the render start time for correlation
-    this._lastSimpleRender = {
-      duration,
-      type,
-      timestamp: this._renderStartTime || performance.now(), // Use render start time, not completion time
-    };
-
-    // Simple performance mark and measure
-    const endMark = `panel-simple-render-end-${this._panelKey}`;
-    const startMark = `panel-simple-render-start-${this._panelKey}`;
-    const measureName = `Panel Simple Render - ${this._panelKey}`;
-
-    performance.mark(endMark);
-
-    // Create measure if start mark exists
-    try {
-      const marks = performance.getEntriesByName(startMark, 'mark');
-      if (marks.length > 0) {
-        performance.measure(measureName, startMark, endMark);
+    // Return end callback with captured operationId and panel context
+    return (endTimestamp: number, duration: number, type: string) => {
+      if (!this._panelKey) {
+        return;
       }
-    } catch (error) {
-      // Ignore performance API errors
-    }
 
-    const correlationContext = interactionBridge.getCorrelationContext();
-    this.logWithCorrelation(
-      'Simple render completed',
-      {
-        type,
+      // Store for comparison - use the render start time for correlation
+      this._lastSimpleRender = {
         duration,
-        panelKey: this._panelKey,
-        pluginId: this._pluginId,
-        performanceMark: endMark,
-        performanceMeasure: measureName,
-      },
-      correlationContext
-    );
+        type,
+        timestamp: this._renderStartTime || performance.now(), // Use render start time, not completion time
+      };
 
-    // S5.0: Register simple render completion (hybrid approach)
-    const simpleRenderMetrics: RenderMetrics = {
-      renderOperations: [
+      // Performance marks now handled by Grafana ScenePerformanceService
+
+      const correlationContext = interactionBridge.getCorrelationContext();
+      this.logWithCorrelation(
+        'Simple render completed',
         {
+          panelKey: this._panelKey,
+          panelId: this._panelId,
+          pluginId: this._pluginId,
           duration,
-          timestamp: performance.now(),
           type,
+          correlationId: correlationContext?.interactionId,
+          panelCount: this._getQueryCount(),
         },
-      ],
-      correlationContext: this._currentCorrelationContext,
-    };
-    this.registerWithUnifiedCollector(simpleRenderMetrics);
+        correlationContext
+      );
 
-    this._renderStartTime = undefined;
+      // S5.0: Notify observers of panel render completion using captured operation ID
+      getScenePerformanceTracker().notifyPanelLifecycleComplete({
+        operationId,
+        panelId: this._panelId || 'unknown',
+        panelKey: this._panelKey,
+        pluginId: this._pluginId || 'unknown',
+        pluginVersion: this._pluginVersion,
+        operation: 'render',
+        duration,
+        timestamp: endTimestamp,
+        metadata: { renderType: type },
+      });
+
+      this._renderStartTime = undefined;
+    };
   }
 
   /**
@@ -944,31 +757,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   }
 
   /**
-   * S3.0 RENDER TRACKING: Called when panel render cycle ends (legacy method)
-   */
-  public onRenderEnd(type: 'cached' | 'processed' | 'react-lifecycle') {
-    if (!this._panelKey || !this._renderStartTime) {
-      return;
-    }
-
-    this._collector.endPhase(this._panelKey, PanelLifecyclePhase.Render);
-
-    const duration = performance.now() - this._renderStartTime;
-    const correlationContext = interactionBridge.getCorrelationContext();
-    this.logWithCorrelation(
-      'Render completed',
-      {
-        type,
-        duration,
-        panelKey: this._panelKey,
-        pluginId: this._pluginId,
-      },
-      correlationContext
-    );
-    this._renderStartTime = undefined;
-  }
-
-  /**
    * Handle plugin changes
    */
   private _onPluginChange(panel: VizPanel, newPluginId: string) {
@@ -988,7 +776,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     }
 
     this.updateCorrelationContext(); // S4.0: Store correlation for metrics
-    this._collector.startPanelTracking(this._panelKey, this._panelId || '0', this._pluginId, this._pluginVersion);
     this._isTracking = true;
 
     const correlationContext = interactionBridge.getCorrelationContext();
@@ -1016,9 +803,11 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   }
 
   /**
-   * S3.1: Public method for SceneDataTransformer to start transformation tracking
+   * S3.1: Callback-based method for SceneDataTransformer to start transformation tracking
+   * Returns an end callback that ensures proper operation ID correlation
    */
   public onDataTransformStart(
+    timestamp: number,
     transformationId: string,
     metrics: {
       transformationCount: number;
@@ -1027,20 +816,100 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       seriesTransformationCount: number;
       annotationTransformationCount: number;
     }
-  ): void {
+  ):
+    | ((
+        endTimestamp: number,
+        duration: number,
+        success: boolean,
+        result?: {
+          outputSeriesCount?: number;
+          outputAnnotationsCount?: number;
+          error?: string;
+        }
+      ) => void)
+    | null {
     if (!this._panelKey) {
-      return;
+      return null;
     }
 
-    // Add performance mark for DevTools
-    try {
-      performance.mark(`transformation-start-${transformationId}`);
-    } catch (e) {
-      // Performance marks might not be available in all environments
-    }
+    // Generate operation ID for this specific transform operation
+    const operationId = generateOperationId('transform');
+
+    // Performance marks now handled by Grafana ScenePerformanceService
+    getScenePerformanceTracker().notifyPanelOperationStart({
+      operationId,
+      panelId: this._panelId!,
+      panelKey: this._panelKey,
+      pluginId: this._pluginId!,
+      operation: 'transform',
+      timestamp,
+      metadata: {
+        transformationId,
+        transformationCount: metrics.transformationCount,
+        dataFrameCount: metrics.dataFrameCount,
+        totalDataPoints: metrics.totalDataPoints,
+      },
+    });
 
     this.updateCorrelationContext(); // S4.0: Store correlation for metrics
-    this._collector.startPhase(this._panelKey, PanelLifecyclePhase.DataProcessing);
+
+    // Return end callback with captured operationId and panel context
+    const callback = (
+      endTimestamp: number,
+      duration: number,
+      success: boolean,
+      result?: {
+        outputSeriesCount?: number;
+        outputAnnotationsCount?: number;
+        error?: string;
+      }
+    ) => {
+      if (!this._panelKey) {
+        return;
+      }
+
+      // Notify performance observers using captured operation ID
+      getScenePerformanceTracker().notifyPanelOperationComplete({
+        operationId, // ← Same operationId from closure!
+        panelId: this._panelId!,
+        panelKey: this._panelKey,
+        pluginId: this._pluginId!,
+        operation: 'transform',
+        timestamp: endTimestamp,
+        duration,
+        metadata: {
+          transformationId,
+          success,
+          error: result?.error || !success,
+          outputSeriesCount: result?.outputSeriesCount,
+          outputAnnotationsCount: result?.outputAnnotationsCount,
+        },
+      });
+
+      const correlationContext = interactionBridge.getCorrelationContext();
+      if (success) {
+        this.logWithCorrelation(
+          'Data transformation completed',
+          {
+            transformationId,
+            duration,
+            outputSeriesCount: result?.outputSeriesCount,
+            outputAnnotationsCount: result?.outputAnnotationsCount,
+          },
+          correlationContext
+        );
+      } else {
+        this.logWithCorrelation(
+          'Data transformation failed',
+          {
+            transformationId,
+            duration,
+            error: result?.error,
+          },
+          correlationContext
+        );
+      }
+    };
 
     // Centralized logging in VizPanelRenderProfiler
     const correlationContext = interactionBridge.getCorrelationContext();
@@ -1056,94 +925,9 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       },
       correlationContext
     );
-  }
 
-  /**
-   * S3.1: Public method for SceneDataTransformer to end transformation tracking
-   */
-  public onDataTransformEnd(
-    transformationId: string,
-    duration: number,
-    success: boolean,
-    result?: {
-      outputSeriesCount?: number;
-      outputAnnotationsCount?: number;
-      error?: string;
-    }
-  ): void {
-    if (!this._panelKey) {
-      return;
-    }
-
-    // Add performance mark for DevTools
-    const markSuffix = success ? 'end' : 'error';
-    try {
-      performance.mark(`transformation-${markSuffix}-${transformationId}`);
-      performance.measure(
-        `transformation-duration-${transformationId}`,
-        `transformation-start-${transformationId}`,
-        `transformation-${markSuffix}-${transformationId}`
-      );
-    } catch (e) {
-      // Performance marks might not be available in all environments
-    }
-
-    this._collector.endPhase(this._panelKey, PanelLifecyclePhase.DataProcessing);
-
-    // Centralized logging in VizPanelRenderProfiler
-    const correlationContext = interactionBridge.getCorrelationContext();
-    if (success) {
-      this.logWithCorrelation(
-        'Data transformation completed',
-        {
-          transformationId,
-          duration: `${duration.toFixed(2)}ms`,
-          outputSeriesCount: result?.outputSeriesCount,
-          outputAnnotationsCount: result?.outputAnnotationsCount,
-        },
-        correlationContext
-      );
-
-      // S5.0: Register successful transformation completion (hybrid approach)
-      const transformMetrics: TransformationMetrics = {
-        transformationOperations: [
-          {
-            duration,
-            timestamp: performance.now(),
-            transformationId,
-            outputSeriesCount: result?.outputSeriesCount,
-            outputAnnotationsCount: result?.outputAnnotationsCount,
-          },
-        ],
-        correlationContext: this._currentCorrelationContext,
-      };
-      this.registerWithUnifiedCollector(transformMetrics);
-    } else {
-      this.logWithCorrelation(
-        'Data transformation failed',
-        {
-          transformationId,
-          duration: `${duration.toFixed(2)}ms`,
-          error: result?.error,
-        },
-        correlationContext
-      );
-
-      // S5.0: Register failed transformation (hybrid approach)
-      const transformMetrics: TransformationMetrics = {
-        transformationOperations: [
-          {
-            duration,
-            timestamp: performance.now(),
-            transformationId,
-            outputSeriesCount: 0,
-            outputAnnotationsCount: 0,
-          },
-        ],
-        correlationContext: this._currentCorrelationContext,
-      };
-      this.registerWithUnifiedCollector(transformMetrics);
-    }
+    // Return the callback function
+    return callback;
   }
 
   /**
@@ -1163,87 +947,8 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   }
 
   /**
-   * S5.0: Helper method to complete a performance phase with measurement, logging, and registration
+   * Method removed - metrics are now handled by observer pattern instead of direct collector calls
    */
-  private completePhase(
-    phase: string,
-    startTime: number,
-    logData: Record<string, any>,
-    incrementalMetrics: IncrementalPanelMetrics
-  ): void {
-    const duration = performance.now() - startTime;
-
-    // Performance marks and measures
-    const endMark = `panel-${phase}-end-${this._panelKey}`;
-    const startMark = `panel-${phase}-start-${this._panelKey}`;
-    const measureName = `Panel ${phase} - ${this._panelKey}`;
-
-    performance.mark(endMark);
-    performance.measure(measureName, startMark, endMark);
-
-    // Correlation and logging
-    const correlationContext = interactionBridge.getCorrelationContext();
-    this.logWithCorrelation(
-      `${phase} completed`,
-      {
-        duration: `${duration}ms`,
-        ...logData,
-        panelKey: this._panelKey,
-        performanceMark: endMark,
-        performanceMeasure: measureName,
-      },
-      correlationContext
-    );
-
-    // S5.0: Register incremental metrics
-    this.registerWithUnifiedCollector({
-      ...incrementalMetrics,
-      correlationContext: this._currentCorrelationContext,
-    });
-  }
-
-  /**
-   * Unified: Register metrics with the unified Enhanced Panel Performance Collector
-   */
-  private registerWithUnifiedCollector(incrementalMetrics?: IncrementalPanelMetrics): void {
-    if (!this._panelKey) {
-      return;
-    }
-
-    try {
-      const collector = getEnhancedPanelPerformanceCollector();
-
-      // Ensure panel is tracked
-      if (!collector.isPanelTracked(this._panelKey)) {
-        collector.startPanelTracking(this._panelKey, this._panelId || '', this._pluginId || '', this._pluginVersion);
-      }
-
-      // Set correlation context
-      collector.setCorrelationContext(this._panelKey, this._currentCorrelationContext);
-
-      // Register specific operation based on incrementalMetrics type
-      if (incrementalMetrics) {
-        if ('queryOperations' in incrementalMetrics && incrementalMetrics.queryOperations) {
-          incrementalMetrics.queryOperations.forEach((op) => collector.registerQueryOperation(this._panelKey!, op));
-        }
-        if ('fieldConfigOperations' in incrementalMetrics && incrementalMetrics.fieldConfigOperations) {
-          incrementalMetrics.fieldConfigOperations.forEach((op) =>
-            collector.registerFieldConfigOperation(this._panelKey!, op)
-          );
-        }
-        if ('transformationOperations' in incrementalMetrics && incrementalMetrics.transformationOperations) {
-          incrementalMetrics.transformationOperations.forEach((op) =>
-            collector.registerTransformationOperation(this._panelKey!, op)
-          );
-        }
-        if ('renderOperations' in incrementalMetrics && incrementalMetrics.renderOperations) {
-          incrementalMetrics.renderOperations.forEach((op) => collector.registerRenderOperation(this._panelKey!, op));
-        }
-      }
-    } catch (error) {
-      writeSceneLog('VizPanelRenderProfiler', 'Failed to register with unified collector:', error);
-    }
-  }
 
   /**
    * S4.0: Enhanced logging method with interaction correlation
@@ -1253,16 +958,19 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     data: Record<string, any>,
     correlationContext: CorrelationContext | null
   ): void {
+    // Logging is currently disabled for performance - remove return to enable
+    return;
+
     const panelInfo = this._getPanelInfo();
 
     if (correlationContext) {
       writeSceneLog(
         panelInfo,
-        `[CORRELATION] Panel metric linked to dashboard interaction: ${correlationContext.interactionType}`,
+        `[CORRELATION] Panel metric linked to dashboard interaction: ${correlationContext?.interactionType}`,
         {
           panelId: this._panelId,
-          interactionId: correlationContext.interactionId,
-          interactionSource: correlationContext.source,
+          interactionId: correlationContext?.interactionId,
+          interactionSource: correlationContext?.source,
           ...data,
         }
       );
@@ -1273,31 +981,10 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
   /**
    * Get the collected metrics for this panel
-   * S4.0: Enhanced with correlation context
+   * S4.0: Panel metrics are now handled by observer pattern - this method returns null
    */
   public getPanelMetrics() {
-    if (!this._panelKey) {
-      return undefined;
-    }
-
-    const baseMetrics = this._collector.getPanelMetrics(this._panelKey);
-
-    // S4.0: Enhance metrics with correlation context if available
-    if (this._currentCorrelationContext && baseMetrics) {
-      return {
-        ...baseMetrics,
-        correlationContext: {
-          interactionId: this._currentCorrelationContext.interactionId,
-          interactionType: this._currentCorrelationContext.interactionType,
-          interactionSource: this._currentCorrelationContext.source,
-          interactionStartTime: this._currentCorrelationContext.startTime,
-          // Keep the original panel metrics
-          panelId: this._panelId,
-          panelKey: this._panelKey,
-        },
-      };
-    }
-
-    return baseMetrics;
+    // Panel metrics are now handled by observer pattern - no direct collector access needed
+    return null;
   }
 }

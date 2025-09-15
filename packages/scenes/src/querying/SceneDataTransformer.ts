@@ -194,10 +194,23 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   private transform(data: PanelData | undefined, force = false) {
+    const timestamp = performance.now();
     // S3.1: Performance tracking entry point
     const profiler = findPanelProfiler(this);
     const transformStartTime = performance.now();
     let transformationId: string | undefined;
+    let endTransformCallback:
+      | ((
+          endTimestamp: number,
+          duration: number,
+          success: boolean,
+          result?: {
+            outputSeriesCount?: number;
+            outputAnnotationsCount?: number;
+            error?: string;
+          }
+        ) => void)
+      | null = null;
 
     if (this.state.transformations.length === 0 || !data) {
       this._prevDataFromSource = data;
@@ -233,8 +246,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       // Calculate transformation complexity metrics
       const metrics = this._calculateTransformationMetrics(data, this.state.transformations);
 
-      // Start the DataProcessing phase with centralized logging
-      profiler.onDataTransformStart(transformationId, metrics);
+      // Start the DataProcessing phase with centralized logging - get end callback
+      endTransformCallback = profiler.onDataTransformStart(timestamp, transformationId, metrics);
     }
 
     let interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
@@ -288,12 +301,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
           };
         }),
         catchError((err) => {
+          const timestamp = performance.now();
           // S3.1: Performance tracking for transformation errors
-          const duration = performance.now() - transformStartTime;
+          const duration = timestamp - transformStartTime;
 
-          if (profiler && transformationId) {
-            // End the DataProcessing phase with centralized logging
-            profiler.onDataTransformEnd(transformationId, duration, false, {
+          if (endTransformCallback) {
+            // End the DataProcessing phase with centralized logging using callback
+            endTransformCallback(timestamp, duration, false, {
               error: err.message || err,
             });
           }
@@ -315,17 +329,15 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         })
       )
       .subscribe((transformedData) => {
-        // S3.1: Performance tracking for successful transformations
-        const duration = performance.now() - transformStartTime;
-
-        if (profiler && transformationId) {
-          // End the DataProcessing phase with centralized logging
-          profiler.onDataTransformEnd(transformationId, duration, true, {
+        const timestamp = performance.now();
+        const duration = timestamp - transformStartTime;
+        if (endTransformCallback) {
+          // End the DataProcessing phase with centralized logging using callback
+          endTransformCallback(timestamp, duration, true, {
             outputSeriesCount: transformedData.series.length,
             outputAnnotationsCount: transformedData.annotations?.length || 0,
           });
         }
-
         this.setState({ data: transformedData });
         this._results.next({ origin: this, data: transformedData });
         this._prevDataFromSource = data;

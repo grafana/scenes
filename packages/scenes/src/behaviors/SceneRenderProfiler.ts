@@ -1,7 +1,7 @@
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { SceneQueryControllerLike } from './types';
 import { interactionBridge } from '@grafana/runtime';
-import { getEnhancedPanelPerformanceCollector } from '../services/PanelPerformanceCollector';
+import { getScenePerformanceTracker, generateOperationId, DashboardPerformanceData } from './ScenePerformanceTracker';
 
 // Legacy import removed - unified collector handles all metrics
 
@@ -19,6 +19,14 @@ export class SceneRenderProfiler {
   #profileStartTs: number | null = null;
   #trailAnimationFrameId: number | null = null;
 
+  // Dashboard metadata for observer notifications
+  private dashboardUID?: string;
+  private dashboardTitle?: string;
+  private panelCount?: number;
+
+  // Operation ID for correlating dashboard interaction events
+  #currentOperationId?: string;
+
   // Legacy S5.0: Registry replaced by unified collector
 
   // Will keep measured lengths trailing frames
@@ -28,6 +36,13 @@ export class SceneRenderProfiler {
 
   public constructor(private queryController?: SceneQueryControllerLike) {
     this.setupVisibilityChangeHandler();
+  }
+
+  // Method to set dashboard metadata from Grafana
+  public setDashboardMetadata(uid: string, title: string, panelCount: number) {
+    this.dashboardUID = uid;
+    this.dashboardTitle = title;
+    this.panelCount = panelCount;
   }
 
   public setQueryController(queryController: SceneQueryControllerLike) {
@@ -112,12 +127,23 @@ export class SceneRenderProfiler {
       this.#profileStartTs
     );
 
-    writeSceneLog(
-      'SceneRenderProfiler',
-      `Profile started[${force ? 'forced' : 'clean'}]`,
-      this.#profileInProgress,
-      this.#profileStartTs
-    );
+    // Generate operation ID and notify performance observers of dashboard interaction start
+    this.#currentOperationId = generateOperationId('dashboard');
+    getScenePerformanceTracker().notifyDashboardInteractionStart({
+      operationId: this.#currentOperationId,
+      interactionType: name,
+      dashboardUID: this.getDashboardUID(),
+      dashboardTitle: this.getDashboardTitle(),
+      panelCount: this.getPanelCount(),
+      timestamp: this.#profileStartTs,
+    });
+
+    // writeSceneLog(
+    //   'SceneRenderProfiler',
+    //   `Profile started[${force ? 'forced' : 'clean'}]`,
+    //   this.#profileInProgress,
+    //   this.#profileStartTs
+    // );
   }
 
   private recordProfileTail(measurementStartTime: number, profileStartTs: number) {
@@ -164,7 +190,11 @@ export class SceneRenderProfiler {
 
       writeSceneLog(
         this.constructor.name,
-        'Stoped recording, total measured time (network included):',
+        'Profile duration (core interaction):',
+        profileDuration,
+        'ms, trailing frames duration:',
+        slowFramesTime,
+        'ms, total measured time:',
         profileDuration + slowFramesTime
       );
       this.#trailAnimationFrameId = null;
@@ -190,35 +220,28 @@ export class SceneRenderProfiler {
         return;
       }
 
-      performance.measure(`DashboardInteraction ${this.#profileInProgress.origin}`, {
-        start: profileStartTs,
-        end: profileEndTs,
-      });
+      // Performance measures now handled by Grafana ScenePerformanceService
 
       const networkDuration = captureNetwork(profileStartTs, profileEndTs);
-
       // S5.0: Collect panel metrics from all VizPanelRenderProfiler instances
       const panelMetrics = this.collectPanelMetrics();
 
-      if (this.queryController?.state.onProfileComplete && this.#profileInProgress) {
-        this.queryController.state.onProfileComplete({
-          origin: this.#profileInProgress.origin,
-          crumbs: this.#profileInProgress.crumbs,
+      // Legacy onProfileComplete callback removed - analytics now handled by observer pattern
+      if (this.#profileInProgress) {
+        // Notify performance observers of dashboard interaction completion
+        const dashboardData: DashboardPerformanceData = {
+          operationId: this.#currentOperationId || generateOperationId('dashboard-fallback'),
+          interactionType: this.#profileInProgress.origin,
+          dashboardUID: this.getDashboardUID(),
+          dashboardTitle: this.getDashboardTitle(),
+          panelCount: this.getPanelCount(),
+          timestamp: profileEndTs,
           duration: profileDuration + slowFramesTime,
-          networkDuration,
-          startTs: profileStartTs,
-          endTs: profileEndTs,
-          // @ts-ignore
-          jsHeapSizeLimit: performance.memory ? performance.memory.jsHeapSizeLimit : 0,
-          // @ts-ignore
-          usedJSHeapSize: performance.memory ? performance.memory.usedJSHeapSize : 0,
-          // @ts-ignore
-          totalJSHeapSize: performance.memory ? performance.memory.totalJSHeapSize : 0,
-          // S4.0: Include dashboard-level interaction correlation context
-          interactionContext,
-          // S5.0: Include collected panel metrics in analytics event
-          panelMetrics,
-        });
+          networkDuration: networkDuration,
+        };
+
+        const tracker = getScenePerformanceTracker();
+        tracker.notifyDashboardInteractionComplete(dashboardData);
 
         this.#profileInProgress = null;
         this.#trailAnimationFrameId = null;
@@ -310,25 +333,48 @@ export class SceneRenderProfiler {
     error?: string;
     memoryIncrease?: number;
   }> {
-    const collector = getEnhancedPanelPerformanceCollector();
-    const panelMetrics = collector.getAllHybridPanelMetrics();
-    writeSceneLog('SceneRenderProfiler', `Collected ${panelMetrics.length} panel metrics from unified collector`);
-    return panelMetrics;
+    // Panel metrics are now handled by the analytics aggregator in Grafana
+    // The observer pattern provides real-time data collection
+    writeSceneLog('SceneRenderProfiler', 'Panel metrics collection moved to observer-based analytics aggregator');
+    return [];
   }
 
   /**
-   * S5.0: Clear panel metrics (called when profile starts)
+   * Clear panel metrics - now handled by analytics aggregator
    */
   private clearPanelMetricsRegistry(): void {
-    const collector = getEnhancedPanelPerformanceCollector();
-    collector.clearAllPanels();
+    // Clearing is now handled by the analytics aggregator via observer events
+    // No direct collector interaction needed
   }
 
   public addCrumb(crumb: string) {
     if (this.#profileInProgress) {
-      writeSceneLog('SceneRenderProfiler', 'Adding crumb:', crumb);
+      // writeSceneLog('SceneRenderProfiler', 'Adding crumb:', crumb);
+      // Notify performance observers of milestone
+      getScenePerformanceTracker().notifyDashboardInteractionMilestone({
+        operationId: generateOperationId('dashboard-milestone'),
+        interactionType: this.#profileInProgress.origin,
+        dashboardUID: this.getDashboardUID(),
+        dashboardTitle: this.getDashboardTitle(),
+        panelCount: this.getPanelCount(),
+        timestamp: performance.now(),
+        milestone: crumb,
+      });
       this.#profileInProgress.crumbs.push(crumb);
     }
+  }
+
+  // Helper methods for observer notifications
+  private getDashboardUID(): string {
+    return this.dashboardUID ?? 'unknown';
+  }
+
+  private getDashboardTitle(): string {
+    return this.dashboardTitle ?? 'Unknown Dashboard';
+  }
+
+  private getPanelCount(): number {
+    return this.panelCount ?? 0;
   }
 }
 

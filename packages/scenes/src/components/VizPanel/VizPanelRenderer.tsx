@@ -94,18 +94,26 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // Capture render start time immediately when component function runs
   const currentRenderStart = performance.now();
 
+  // Store the end callback from onSimpleRenderStart using useRef to avoid re-renders
+  const endRenderCallbackRef = React.useRef<((endTimestamp: number, duration: number, type: string) => void) | null>(
+    null
+  );
+
   useLayoutEffect(() => {
     if (profiler) {
-      profiler.onSimpleRenderStart(currentRenderStart);
+      const callback = profiler.onSimpleRenderStart(currentRenderStart);
+      endRenderCallbackRef.current = callback || null;
     }
   });
 
   // Use useEffect (after DOM updates) to better match React Profiler's commit phase timing
   useEffect(() => {
-    if (profiler) {
+    if (endRenderCallbackRef.current) {
+      const timestamp = performance.now();
       // Measure from component start to after DOM updates AND effects (closer to React Profiler scope)
-      const duration = performance.now() - currentRenderStart;
-      profiler.onSimpleRenderEnd(duration, 'component-to-effects');
+      const duration = timestamp - currentRenderStart;
+      endRenderCallbackRef.current(timestamp, duration, 'component-to-effects');
+      endRenderCallbackRef.current = null; // Clear callback after use
     }
   });
 

@@ -181,19 +181,15 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     if (plugin) {
       // Plugin was loaded from cache
-      if (profiler) {
-        profiler.onPluginLoadStart(pluginId);
-        profiler.onPluginLoadEnd(plugin, true);
-      }
+      const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
+      endPluginLoadCallback?.(plugin, true);
       this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        // Start profiling plugin load
-        if (profiler) {
-          profiler.onPluginLoadStart(pluginId);
-        }
+        // Start profiling plugin load - get end callback
+        const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
 
         const panelPromise = importPanelPlugin(pluginId);
 
@@ -207,9 +203,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         const result = await panelPromise;
 
         // End profiling plugin load (not from cache)
-        if (profiler) {
-          profiler.onPluginLoadEnd(result, false);
-        }
+        endPluginLoadCallback?.(result, false);
 
         this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
@@ -493,6 +487,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
    * Called from the react render path to apply the field config to the data provided by the data provider
    */
   public applyFieldConfig(rawData?: PanelData): PanelData {
+    const timestamp = performance.now();
     const plugin = this._plugin;
 
     const profiler = this.getProfiler();
@@ -507,10 +502,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       return this._dataWithFieldConfig;
     }
 
-    // Start profiling data processing
-    if (profiler) {
-      profiler.onFieldConfigStart();
-    }
+    // Start profiling data processing - get end callback
+    const endFieldConfigCallback = profiler?.onFieldConfigStart(timestamp);
 
     const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
 
@@ -582,7 +575,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         }
       }
 
-      profiler.onFieldConfigEnd(dataPointsCount, seriesCount);
+      endFieldConfigCallback?.(performance.now(), dataPointsCount, seriesCount);
     }
 
     return this._dataWithFieldConfig;

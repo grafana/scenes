@@ -5,9 +5,11 @@ import { QueryResultWithState, SceneQueryControllerEntry } from '../behaviors/ty
 
 // Forward declaration to avoid circular imports
 export interface QueryProfilerLike {
-  _onQueryStarted(entry: SceneQueryControllerEntry, queryId: string): void;
-  _onQueryCompleted(entry: SceneQueryControllerEntry, queryId: string): void;
-  _onQueryError(entry: SceneQueryControllerEntry, queryId: string, error: any): void;
+  onQueryStarted(
+    timestamp: number,
+    entry: SceneQueryControllerEntry,
+    queryId: string
+  ): ((endTimestamp: number, error?: any) => void) | null;
 }
 
 /**
@@ -16,7 +18,7 @@ export interface QueryProfilerLike {
  */
 export function registerQueryWithController<T extends QueryResultWithState>(
   entry: SceneQueryControllerEntry,
-  panelProfiler?: QueryProfilerLike
+  profiler?: QueryProfilerLike
 ) {
   return (queryStream: Observable<T>) => {
     const queryControler = sceneGraph.getQueryController(entry.origin);
@@ -32,8 +34,8 @@ export function registerQueryWithController<T extends QueryResultWithState>(
       // Use existing request ID if available, otherwise generate one
       const queryId = entry.request?.requestId || `${entry.type}-${Date.now()}-${Math.random()}`;
 
-      // Notify panel profiler if provided
-      panelProfiler?._onQueryStarted(entry, queryId);
+      // Notify panel profiler if provided - get end callback
+      const endQueryCallback = profiler?.onQueryStarted(performance.now(), entry, queryId);
 
       queryControler.queryStarted(entry);
       let markedAsCompleted = false;
@@ -43,7 +45,7 @@ export function registerQueryWithController<T extends QueryResultWithState>(
           if (!markedAsCompleted && v.state !== LoadingState.Loading) {
             markedAsCompleted = true;
             queryControler.queryCompleted(entry);
-            panelProfiler?._onQueryCompleted(entry, queryId);
+            endQueryCallback?.(performance.now()); // Success case - no error
           }
 
           observer.next(v);
@@ -52,7 +54,7 @@ export function registerQueryWithController<T extends QueryResultWithState>(
           if (!markedAsCompleted) {
             markedAsCompleted = true;
             queryControler.queryCompleted(entry);
-            panelProfiler?._onQueryError(entry, queryId, e);
+            endQueryCallback?.(performance.now(), e); // Error case - pass error
           }
           observer.error(e);
         },
@@ -66,7 +68,7 @@ export function registerQueryWithController<T extends QueryResultWithState>(
 
         if (!markedAsCompleted) {
           queryControler.queryCompleted(entry);
-          panelProfiler?._onQueryCompleted(entry, queryId);
+          endQueryCallback?.(performance.now()); // Cleanup case - no error
         }
       };
     });
