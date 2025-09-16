@@ -1,6 +1,8 @@
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { SceneQueryControllerLike } from './types';
 import { getScenePerformanceTracker, generateOperationId, DashboardPerformanceData } from './ScenePerformanceTracker';
+import { PanelProfilingManager, PanelProfilingConfig } from './PanelProfilingManager';
+import { SceneObject } from '../core/types';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
 const SPAN_THRESHOLD = 30; // Frames longer than this will be considered slow
@@ -28,8 +30,16 @@ export class SceneRenderProfiler {
 
   #visibilityChangeHandler: (() => void) | null = null;
 
-  public constructor(private queryController?: SceneQueryControllerLike) {
+  // Panel profiling composition
+  private _panelProfilingManager?: PanelProfilingManager;
+
+  public constructor(private queryController?: SceneQueryControllerLike, panelProfilingConfig?: PanelProfilingConfig) {
     this.setupVisibilityChangeHandler();
+
+    // Compose with panel profiling manager if provided
+    if (panelProfilingConfig) {
+      this._panelProfilingManager = new PanelProfilingManager(panelProfilingConfig);
+    }
   }
 
   /** Set dashboard metadata from Grafana */
@@ -41,6 +51,11 @@ export class SceneRenderProfiler {
 
   public setQueryController(queryController: SceneQueryControllerLike) {
     this.queryController = queryController;
+  }
+
+  /** Attach panel profiling to a scene object (composition) */
+  public attachPanelProfiling(sceneObject: SceneObject) {
+    this._panelProfilingManager?.attachToScene(sceneObject);
   }
 
   private setupVisibilityChangeHandler() {
@@ -67,6 +82,9 @@ export class SceneRenderProfiler {
       this.#visibilityChangeHandler = null;
     }
     this.cancelProfile();
+
+    // Cleanup composed panel profiling manager
+    this._panelProfilingManager?.cleanup();
   }
 
   public startProfile(name: string) {
