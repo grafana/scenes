@@ -47,7 +47,6 @@ import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
 import { getQueryController } from '../../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_CHANGED_INTERACTION } from '../../../behaviors/SceneRenderProfiler';
-import { getInteractionProfiler } from '../../../core/sceneGraph/getInteractionProfiler';
 import { USER_INTERACTIONS } from '../../../behaviors/SceneInteractionProfiler';
 
 interface AdHocComboboxProps {
@@ -261,14 +260,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleFetchOptions = useCallback(
     async (inputType: AdHocInputType) => {
-      const profiler = getInteractionProfiler(model);
+      const profiler = getQueryController(model);
 
       // Start profiling the user interaction
       const interactionName =
         inputType === 'key' ? USER_INTERACTIONS.ADHOC_KEYS_DROPDOWN : USER_INTERACTIONS.ADHOC_VALUES_DROPDOWN;
 
       if (inputType !== 'operator') {
-        profiler?.startProfile(interactionName);
+        profiler?.startInteractionProfile(interactionName);
       }
 
       setOptionsError(false);
@@ -289,7 +288,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         // if input type changed before fetch completed then abort updating options
         //   this can cause race condition and return incorrect options when input type changed
         if (filterInputTypeRef.current !== inputType) {
-          profiler?.stopProfile();
+          profiler?.stopInteractionProfile();
           return;
         }
         setOptions(options);
@@ -304,7 +303,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       setOptionsLoading(false);
 
-      profiler?.stopProfile();
+      profiler?.stopInteractionProfile();
     },
     [filter, model]
   );

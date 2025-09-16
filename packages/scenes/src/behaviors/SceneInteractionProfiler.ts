@@ -1,24 +1,25 @@
-import { SceneObjectBase } from '../core/SceneObjectBase';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { captureNetwork } from './SceneRenderProfiler';
-import { InteractionProfileResult, InteractionProfilerState } from './types';
+import { SceneInteractionProfileEvent, SceneQueryControllerLike } from './types';
 
-export function isInteractionProfiler(obj: any): obj is SceneInteractionProfiler {
-  return obj && typeof obj === 'object' && 'isInteractionProfiler' in obj;
-}
+export class SceneInteractionProfiler {
+  private queryController: SceneQueryControllerLike | null = null;
 
-export class SceneInteractionProfiler extends SceneObjectBase<InteractionProfilerState> {
   public isInteractionProfiler: true = true;
   #profileInProgress: {
     interaction: string;
     startTs: number;
   } | null = null;
 
-  public startProfile(interaction: string) {
-    if (!this.state.enableProfiling) {
-      return;
-    }
+  public constructor() {
+    this.#profileInProgress = null;
+  }
 
+  public setQueryController(queryController: SceneQueryControllerLike) {
+    this.queryController = queryController;
+  }
+
+  public startProfile(interaction: string) {
     // Cancel any existing profile
     if (this.#profileInProgress) {
       this.cancelProfile();
@@ -43,9 +44,9 @@ export class SceneInteractionProfiler extends SceneObjectBase<InteractionProfile
     // Capture network requests that occurred during the interaction
     const networkDuration = captureNetwork(this.#profileInProgress.startTs, endTs);
 
-    const result: InteractionProfileResult = {
-      interaction: this.#profileInProgress.interaction,
-      interactionDuration,
+    const result: SceneInteractionProfileEvent = {
+      origin: this.#profileInProgress.interaction,
+      duration: interactionDuration,
       networkDuration,
       startTs: this.#profileInProgress.startTs,
       endTs,
@@ -53,8 +54,8 @@ export class SceneInteractionProfiler extends SceneObjectBase<InteractionProfile
 
     writeSceneLog('SceneInteractionProfiler', 'Completed profile:', result);
 
-    if (this.state.onProfileComplete) {
-      this.state.onProfileComplete(result);
+    if (this.queryController?.state.onProfileComplete && this.#profileInProgress) {
+      this.queryController?.state.onProfileComplete(result);
     }
 
     // Create performance marks for browser dev tools

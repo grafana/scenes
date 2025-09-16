@@ -1,21 +1,32 @@
 import { SceneInteractionProfiler, USER_INTERACTIONS } from './SceneInteractionProfiler';
-import { InteractionProfileResult } from './types';
+import { SceneInteractionProfileEvent, SceneQueryControllerLike } from './types';
 
 // Mock the captureNetwork function from SceneRenderProfiler
 jest.mock('./SceneRenderProfiler', () => ({
   captureNetwork: jest.fn().mockReturnValue(50), // Mock 50ms network time
 }));
 
+// Create mock query controller that properly implements SceneQueryControllerLike
+const createMockQueryController = (onProfileComplete?: jest.Mock): SceneQueryControllerLike => {
+  return {
+    state: {
+      isRunning: false,
+      onProfileComplete: onProfileComplete || jest.fn(),
+    },
+    runningQueriesCount: jest.fn(() => 0),
+  } as unknown as SceneQueryControllerLike;
+};
+
 describe('SceneInteractionProfiler', () => {
   let profiler: SceneInteractionProfiler;
-  let mockOnProfileComplete: jest.Mock<void, [InteractionProfileResult]>;
+  let mockOnProfileComplete: jest.Mock<void, [SceneInteractionProfileEvent]>;
+  let mockQueryController: SceneQueryControllerLike;
 
   beforeEach(() => {
     mockOnProfileComplete = jest.fn();
-    profiler = new SceneInteractionProfiler({
-      enableProfiling: true,
-      onProfileComplete: mockOnProfileComplete,
-    });
+    mockQueryController = createMockQueryController(mockOnProfileComplete);
+    profiler = new SceneInteractionProfiler();
+    profiler.setQueryController(mockQueryController);
 
     // Mock performance.now to return predictable values
     jest
@@ -44,13 +55,13 @@ describe('SceneInteractionProfiler', () => {
       expect(profiler.isProfileActive()).toBe(false);
     });
 
-    it('should not start profile when profiling is disabled', () => {
-      const disabledProfiler = new SceneInteractionProfiler({ enableProfiling: false });
+    it('should handle profiler without query controller', () => {
+      const standaloneProfiler = new SceneInteractionProfiler();
 
-      disabledProfiler.startProfile(USER_INTERACTIONS.ADHOC_KEYS_DROPDOWN);
+      standaloneProfiler.startProfile(USER_INTERACTIONS.ADHOC_KEYS_DROPDOWN);
 
-      expect(disabledProfiler.isProfileActive()).toBe(false);
-      expect(disabledProfiler.getCurrentInteraction()).toBe(null);
+      expect(standaloneProfiler.isProfileActive()).toBe(true);
+      expect(standaloneProfiler.getCurrentInteraction()).toBe(USER_INTERACTIONS.ADHOC_KEYS_DROPDOWN);
     });
 
     it('should cancel existing profile when starting a new one', () => {
@@ -68,8 +79,8 @@ describe('SceneInteractionProfiler', () => {
       profiler.stopProfile();
 
       expect(mockOnProfileComplete).toHaveBeenCalledWith({
-        interaction: USER_INTERACTIONS.ADHOC_KEYS_DROPDOWN,
-        interactionDuration: 200, // 1200 - 1000
+        origin: USER_INTERACTIONS.ADHOC_KEYS_DROPDOWN,
+        duration: 200, // 1200 - 1000
         networkDuration: 50, // From mocked captureNetwork
         startTs: 1000,
         endTs: 1200,
@@ -107,10 +118,10 @@ describe('SceneInteractionProfiler', () => {
       ];
 
       const mockCallback = jest.fn();
-      const testProfiler = new SceneInteractionProfiler({
-        enableProfiling: true,
-        onProfileComplete: mockCallback,
-      });
+      const mockQueryController = createMockQueryController(mockCallback);
+
+      const testProfiler = new SceneInteractionProfiler();
+      testProfiler.setQueryController(mockQueryController);
 
       interactions.forEach((interaction) => {
         testProfiler.startProfile(interaction);
@@ -120,7 +131,7 @@ describe('SceneInteractionProfiler', () => {
       expect(mockCallback).toHaveBeenCalledTimes(3);
       const results = mockCallback.mock.calls.map((call) => call[0]);
       interactions.forEach((interaction) => {
-        expect(results.some((result) => result.interaction === interaction)).toBe(true);
+        expect(results.some((result) => result.origin === interaction)).toBe(true);
       });
     });
   });

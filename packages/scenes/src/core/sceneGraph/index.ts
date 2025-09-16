@@ -1,5 +1,4 @@
 import { lookupVariable } from '../../variables/lookupVariable';
-import { getInteractionProfiler } from './getInteractionProfiler';
 import { getQueryController } from './getQueryController';
 import { getTimeRange } from './getTimeRange';
 import {
@@ -33,7 +32,6 @@ export const sceneGraph = {
   findAllObjects,
   getAncestor,
   getQueryController,
-  getInteractionProfiler,
   findDescendents,
   getScopes,
 };

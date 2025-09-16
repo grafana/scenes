@@ -19,10 +19,10 @@ export interface SceneInteractionProfileEvent {
   origin: string;
   duration: number;
   networkDuration: number;
-  jsHeapSizeLimit: number;
-  usedJSHeapSize: number;
-  totalJSHeapSize: number;
-  crumbs: string[];
+  jsHeapSizeLimit?: number;
+  usedJSHeapSize?: number;
+  totalJSHeapSize?: number;
+  crumbs?: string[];
   startTs: number;
   endTs: number;
   // add more granular data,i.e. network times? slow frames?
@@ -42,18 +42,7 @@ export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateCon
   queryCompleted(entry: SceneQueryControllerEntry): void;
   startProfile(name: string): void;
   cancelProfile(): void;
+  startInteractionProfile(name: string): void;
+  stopInteractionProfile(): void;
   runningQueriesCount(): number;
-}
-
-export interface InteractionProfileResult {
-  interaction: string;
-  interactionDuration: number;
-  networkDuration: number;
-  startTs: number;
-  endTs: number;
-}
-
-export interface InteractionProfilerState extends SceneObjectState {
-  onProfileComplete?: (result: InteractionProfileResult) => void;
-  enableProfiling?: boolean;
 }

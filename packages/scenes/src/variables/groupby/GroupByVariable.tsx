@@ -33,8 +33,8 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIndicatorContainer';
 import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
-import { getInteractionProfiler } from '../../core/sceneGraph/getInteractionProfiler';
 import { USER_INTERACTIONS } from '../../behaviors/SceneInteractionProfiler';
+import { getQueryController } from '../../core/sceneGraph/getQueryController';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -459,15 +459,15 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         setUncommittedValue(newValue);
       }}
       onOpenMenu={async () => {
-        const profiler = getInteractionProfiler(model);
-        profiler?.startProfile(USER_INTERACTIONS.GROUPBY_DROPDOWN);
+        const profiler = getQueryController(model);
+        profiler?.startInteractionProfile(USER_INTERACTIONS.GROUPBY_DROPDOWN);
 
         setIsFetchingOptions(true);
         await lastValueFrom(model.validateAndUpdate());
         setIsFetchingOptions(false);
         setIsOptionsOpen(true);
 
-        profiler?.stopProfile();
+        profiler?.stopInteractionProfile();
       }}
       onCloseMenu={() => {
         setIsOptionsOpen(false);
@@ -516,15 +516,15 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         }
       }}
       onOpenMenu={async () => {
-        const profiler = getInteractionProfiler(model);
-        profiler?.startProfile(USER_INTERACTIONS.GROUPBY_DROPDOWN);
+        const profiler = getQueryController(model);
+        profiler?.startInteractionProfile(USER_INTERACTIONS.GROUPBY_DROPDOWN);
 
         setIsFetchingOptions(true);
         await lastValueFrom(model.validateAndUpdate());
         setIsFetchingOptions(false);
         setIsOptionsOpen(true);
 
-        profiler?.stopProfile();
+        profiler?.stopInteractionProfile();
       }}
       onCloseMenu={() => {
         setIsOptionsOpen(false);
