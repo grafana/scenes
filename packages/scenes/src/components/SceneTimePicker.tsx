@@ -2,7 +2,14 @@ import React from 'react';
 import { useLocalStorage } from 'react-use';
 import { uniqBy } from 'lodash';
 
-import { TimeOption, TimeRange, isDateTime, rangeUtil, toUtc } from '@grafana/data';
+import {
+  TimeOption,
+  TimeRange,
+  intervalToAbbreviatedDurationString,
+  isDateTime,
+  rangeUtil,
+  toUtc,
+} from '@grafana/data';
 import { TimeRangePicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -73,6 +80,10 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
   }
 
   const rangesToUse = quickRanges || defaultQuickRanges;
+  const moveDuration = intervalToAbbreviatedDurationString({
+    start: timeRangeState.value.from.toDate(),
+    end: timeRangeState.value.to.toDate(),
+  });
 
   return (
     <TimeRangePicker
@@ -89,6 +100,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       fiscalYearStartMonth={timeRangeState.fiscalYearStartMonth}
       onMoveBackward={model.onMoveBackward}
       onMoveForward={model.onMoveForward}
+      moveDuration={moveDuration}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
