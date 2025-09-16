@@ -100,6 +100,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       fiscalYearStartMonth={timeRangeState.fiscalYearStartMonth}
       onMoveBackward={model.onMoveBackward}
       onMoveForward={model.onMoveForward}
+      // @ts-expect-error (temporary till we update grafana/ui)
       moveDuration={moveDuration}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
