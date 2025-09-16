@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla düzenle",
         "managed-filter": "{{origin}} yönetimli filtre",
+        "non-applicable": "",
         "remove-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla kaldır"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Buraya bir bağlantı aracılığıyla ulaştıysanız uygulamada bir hata olabilir.",
         "subTitle": "URL hiçbir sayfayla eşleşmedi.",
         "title": "Bulunamadı"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Sahneyi daralt",

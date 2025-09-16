@@ -1,4 +1,5 @@
 import {
+  DataFrame,
   DataTopic,
   DataTransformerConfig,
   LoadingState,
@@ -119,6 +120,14 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     return clone;
   }
 
+  public isInViewChanged(isInView: boolean) {
+    this.state.$data?.isInViewChanged?.(isInView);
+  }
+
+  public bypassIsInViewChanged(bypassIsInView: boolean) {
+    this.state.$data?.bypassIsInViewChanged?.(bypassIsInView);
+  }
+
   private haveAlreadyTransformedData(data: PanelData) {
     if (!this._prevDataFromSource) {
       return false;
@@ -194,17 +203,25 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       streams.push(transformDataFrame(annotationsTransformations, data.annotations ?? []));
     }
 
+    let series: DataFrame[] = [];
+    let annotations: DataFrame[] = [];
+
     this._transformSub = forkJoin(streams)
       .pipe(
-        map((values) => {
-          const transformedSeries = values[0];
-          const transformedAnnotations = values[1];
+        map((results) => {
+          // this strategy allows transformations to take in series frames and produce anno frames
+          // we look at each transformation's result and put it in the correct place
+          results.forEach((frames) => {
+            for (const frame of frames) {
+              if (frame.meta?.dataTopic === DataTopic.Annotations) {
+                annotations.push(frame);
+              } else {
+                series.push(frame);
+              }
+            }
+          });
 
-          return {
-            ...data,
-            series: transformedSeries,
-            annotations: transformedAnnotations ?? data.annotations,
-          };
+          return { ...data, series, annotations };
         }),
         catchError((err) => {
           console.error('Error transforming data: ', err);

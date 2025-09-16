@@ -1,3 +1,68 @@
+# v6.35.3 (Mon Sep 15 2025)
+
+#### 🐛 Bug Fix
+
+- LazyLoading: Do not issue queries for panels outside view port [#1148](https://github.com/grafana/scenes/pull/1148) ([@torkelo](https://github.com/torkelo) [@bfmatei](https://github.com/bfmatei) [@oscarkilhed](https://github.com/oscarkilhed))
+
+#### Authors: 3
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.35.2 (Mon Sep 15 2025)
+
+#### 🐛 Bug Fix
+
+- SceneRenderProfiler: Implement long frame detection with LoAF API and manual fallback [#1235](https://github.com/grafana/scenes/pull/1235) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.35.1 (Thu Sep 11 2025)
+
+#### 🐛 Bug Fix
+
+- Transformations: Support series <-> annotations conversions [#1207](https://github.com/grafana/scenes/pull/1207) ([@leeoniya](https://github.com/leeoniya) [@dprokop](https://github.com/dprokop))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Leon Sorokin ([@leeoniya](https://github.com/leeoniya))
+
+---
+
+# v6.35.0 (Wed Sep 10 2025)
+
+#### 🚀 Enhancement
+
+- SceneGridLayout: Use css class for wrapper [#1084](https://github.com/grafana/scenes/pull/1084) ([@torkelo](https://github.com/torkelo))
+- export escapeUrlPipeDelimiters for esc-18160 and fix in metrics drilldown. [#1230](https://github.com/grafana/scenes/pull/1230) ([@bohandley](https://github.com/bohandley))
+
+#### 🐛 Bug Fix
+
+- SceneGridLayout: Adjust item y position for all children after a breakpoint [#1243](https://github.com/grafana/scenes/pull/1243) ([@oscarkilhed](https://github.com/oscarkilhed))
+- Revert #1058 [#1245](https://github.com/grafana/scenes/pull/1245) ([@oscarkilhed](https://github.com/oscarkilhed))
+- Fix pettier issue [#1244](https://github.com/grafana/scenes/pull/1244) ([@oscarkilhed](https://github.com/oscarkilhed))
+- Patch 2 [#1058](https://github.com/grafana/scenes/pull/1058) ([@hoobtron](https://github.com/hoobtron))
+- I18n: Download translations from Crowdin [#1193](https://github.com/grafana/scenes/pull/1193) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 6
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- [@hoobtron](https://github.com/hoobtron)
+- Brendan O'Handley ([@bohandley](https://github.com/bohandley))
+- Oscar Kilhed ([@oscarkilhed](https://github.com/oscarkilhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.34.0 (Wed Sep 03 2025)
 
 #### 🚀 Enhancement
