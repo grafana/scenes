@@ -51,7 +51,7 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
       state: { value: range },
     } = timeRange;
 
-    timeRange.onTimeRangeChange(getShiftedTimeRange(TimeRangeDirection.Backward, range, Date.now()));
+    timeRange.onTimeRangeChange(getShiftedTimeRange(TimeRangeDirection.Backward, range));
   };
 
   public onMoveForward = () => {
@@ -80,10 +80,18 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
   }
 
   const rangesToUse = quickRanges || defaultQuickRanges;
-  const moveDuration = intervalToAbbreviatedDurationString({
-    start: timeRangeState.value.from.toDate(),
-    end: timeRangeState.value.to.toDate(),
+
+  // Calculate half of the time range duration for forward/backward movement
+  const halfSpanMs = (timeRangeState.value.to.valueOf() - timeRangeState.value.from.valueOf()) / 2;
+
+  const moveBackwardDuration = intervalToAbbreviatedDurationString({
+    start: new Date(timeRangeState.value.from.valueOf()),
+    end: new Date(timeRangeState.value.from.valueOf() + halfSpanMs),
   });
+
+  // Only show forward duration if moving forward wouldn't exceed current time
+  const canMoveForward = timeRangeState.value.to.valueOf() + halfSpanMs <= Date.now();
+  const moveForwardDuration = canMoveForward ? moveBackwardDuration : undefined;
 
   return (
     <TimeRangePicker
@@ -101,7 +109,9 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       onMoveBackward={model.onMoveBackward}
       onMoveForward={model.onMoveForward}
       // @ts-expect-error (temporary till we update grafana/ui)
-      moveDuration={moveDuration}
+      moveForwardDuration={moveForwardDuration}
+      // @ts-expect-error (temporary till we update grafana/ui)
+      moveBackwardDuration={moveBackwardDuration}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
@@ -129,7 +139,7 @@ export enum TimeRangeDirection {
   Forward,
 }
 
-export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRange, upperLimit: number): TimeRange {
+export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRange, upperLimit?: number): TimeRange {
   const oldTo = timeRange.to.valueOf();
   const oldFrom = timeRange.from.valueOf();
   const halfSpan = (oldTo - oldFrom) / 2;
@@ -143,7 +153,7 @@ export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRang
     fromRaw = oldFrom + halfSpan;
     toRaw = oldTo + halfSpan;
 
-    if (toRaw > upperLimit && oldTo < upperLimit) {
+    if (upperLimit !== undefined && toRaw > upperLimit && oldTo < upperLimit) {
       toRaw = upperLimit;
       fromRaw = oldFrom;
     }
