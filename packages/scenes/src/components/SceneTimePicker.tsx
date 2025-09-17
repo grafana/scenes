@@ -117,7 +117,6 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
             })
           : undefined
       }
-      // @ts-expect-error (temporary till we update grafana/ui)
       moveBackwardTooltip={t(
         'grafana-scenes.components.time-picker.move-backward-tooltip',
         'Move {{moveBackwardDuration}} backward',
