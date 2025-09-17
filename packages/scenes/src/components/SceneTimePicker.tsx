@@ -15,6 +15,7 @@ import { TimeRangePicker } from '@grafana/ui';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObjectState } from '../core/types';
+import { t } from '@grafana/i18n';
 
 export interface SceneTimePickerState extends SceneObjectState {
   hidePicker?: boolean;
@@ -109,9 +110,19 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       onMoveBackward={model.onMoveBackward}
       onMoveForward={model.onMoveForward}
       // @ts-expect-error (temporary till we update grafana/ui)
-      moveForwardDuration={moveForwardDuration}
+      moveForwardTooltip={
+        moveForwardDuration
+          ? t('grafana-scenes.components.time-picker.move-forward-tooltip', 'Move {{moveForwardDuration}} forward', {
+              moveForwardDuration,
+            })
+          : undefined
+      }
       // @ts-expect-error (temporary till we update grafana/ui)
-      moveBackwardDuration={moveBackwardDuration}
+      moveBackwardTooltip={t(
+        'grafana-scenes.components.time-picker.move-backward-tooltip',
+        'Move {{moveBackwardDuration}} backward',
+        { moveBackwardDuration }
+      )}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
