@@ -1,3 +1,20 @@
+# v6.36.0 (Thu Sep 18 2025)
+
+#### 🚀 Enhancement
+
+- Variables: Remove the `showInControlsMenu?` prop [#1249](https://github.com/grafana/scenes/pull/1249) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### 🐛 Bug Fix
+
+- GroupByVariable: Do not show default value in url [#1242](https://github.com/grafana/scenes/pull/1242) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.35.3 (Mon Sep 15 2025)
 
 #### 🐛 Bug Fix
