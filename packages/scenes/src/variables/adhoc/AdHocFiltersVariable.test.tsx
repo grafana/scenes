@@ -258,8 +258,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(options[5]).toHaveTextContent('Foo');
   });
 
-  it('can set custom value position - last', async () => {
+  it('Exact match operators show custom value last', async () => {
     const { filtersVar, runRequest } = setup({
+      filters: [
+        { key: 'key1', operator: '=', value: 'val1' },
+        { key: 'key2', operator: '=', value: 'val2' },
+      ],
       getTagKeysProvider: async () => ({
         replace: true,
         values: [
@@ -321,9 +325,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.filters[0].value).toBe('a');
   });
 
-  it('can set custom value position - first', async () => {
+  it('Regex operators show custom value first', async () => {
     const { filtersVar, runRequest } = setup({
-      allowCustomValue: 'first',
+      filters: [
+        { key: 'key1', operator: '=~', value: 'val1' },
+        { key: 'key2', operator: '=~', value: 'val2' },
+      ],
       getTagKeysProvider: async () => ({
         replace: true,
         values: [
@@ -360,11 +367,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const wrapper = screen.getByTestId('AdHocFilter-key1');
     const selects = getAllByRole(wrapper, 'combobox');
 
+
+
     // Select the first value starting with "a"
     await userEvent.type(selects[2], 'a{enter}');
 
     // should run new query when filter changed
     expect(runRequest.mock.calls.length).toBe(2);
+    console.log('filtersVar', filtersVar.state.filters)
     expect(filtersVar.state.filters[0].value).toBe('a');
 
     await userEvent.click(selects[2]);
