@@ -367,14 +367,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const wrapper = screen.getByTestId('AdHocFilter-key1');
     const selects = getAllByRole(wrapper, 'combobox');
 
-
-
     // Select the first value starting with "a"
     await userEvent.type(selects[2], 'a{enter}');
 
     // should run new query when filter changed
     expect(runRequest.mock.calls.length).toBe(2);
-    console.log('filtersVar', filtersVar.state.filters)
+    console.log('filtersVar', filtersVar.state.filters);
     expect(filtersVar.state.filters[0].value).toBe('a');
 
     await userEvent.click(selects[2]);

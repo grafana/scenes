@@ -112,7 +112,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     },
   };
 
-  const operatorDefinition = OPERATORS.find(op => filter.operator === op.value)
+  const operatorDefinition = OPERATORS.find((op) => filter.operator === op.value);
 
   const valueSelect = (
     <Select
