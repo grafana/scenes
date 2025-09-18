@@ -1,0 +1,152 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla düzenle",
+        "managed-filter": "{{origin}} yönetimli filtre",
+        "non-applicable": "",
+        "remove-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla kaldır"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Filtre değerini kaldır - {{itemLabel}}",
+        "use-custom-value": "Özel değer kullan: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "Buraya bir bağlantı aracılığıyla ulaştıysanız uygulamada bir hata olabilir.",
+        "subTitle": "URL hiçbir sayfayla eşleşmedi.",
+        "title": "Bulunamadı"
+      },
+      "lazy-loader": {
+        "placeholder": ""
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Sahneyi daralt",
+        "expand-button-label": "Sahneyi genişlet",
+        "remove-button-label": "Sahneyi kaldır"
+      },
+      "scene-debugger": {
+        "object-details": "Nesne ayrıntıları",
+        "scene-graph": "Sahne grafiği",
+        "title-scene-debugger": "Sahne hata ayıklayıcı"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Satırı daralt",
+        "expand-row": "Satırı genişlet"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Karşılaştırma",
+        "button-tooltip": "Zaman dilimi karşılaştırmasını etkinleştir"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Bölme yeniden boyutlandırma widget'ı"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Başlık"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Keşfet"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Eklenti paneli yükleniyor...",
+        "panel-plugin-has-no-panel-component": "Panel eklentisinde panel bileşeni yok"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Tek bir panelde çok fazla seri işlenmesi, performansı etkileyebilir ve verilerin okunmasını zorlaştırabilir.",
+        "warning-message": "Sadece {{seriesLimit}} serileri gösteriliyor"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Kaldır"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "Sorguyu iptal et"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Filtre işlecini düzenle"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Filtre ekle",
+        "title-add-filter": "Filtre ekle"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Filtreyi kaldır",
+        "key-select": {
+          "placeholder-select-label": "Etiket seçin"
+        },
+        "label-select-label": "Etiket seçin",
+        "title-remove-filter": "Filtreyi kaldır",
+        "value-select": {
+          "placeholder-select-value": "Değer seçin"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "varsayılan"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "temizle",
+        "tooltip": "Bu panoda varsayılan olarak uygulanır. Düzenlenirse diğer panolara taşınır.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "Bu pano tarafından ayarlanmış groupby kümesini geri yükleyin."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Virgülle ayrılmış değerler",
+            "double-quoted-values": "Çift tırnak içindeki değerler",
+            "format-date-in-different-ways": "Tarihi farklı şekillerde biçimlendirin",
+            "format-multivalued-variables-using-syntax-example": "Çok değerli değişkenleri glob söz dizimi kullanarak biçimlendirin (örneğin {value1,value2}).",
+            "html-escaping-of-values": "Değerlerin HTML kaçış karakteriyle yazılması gerekir",
+            "json-stringify-value": "JSON stringify değeri",
+            "keep-value-as-is": "Değeri olduğu gibi tut",
+            "multiple-values-are-formatted-like-variablevalue": "Birden fazla değer, değişken=değer biçiminde biçimlendirilir",
+            "single-quoted-values": "Tek tırnak içindeki değerler",
+            "useful-escaping-values-taking-syntax-characters": "URL'ye uygun hâle getirmek için değerlerin kaçış karakteriyle yazılmasında kullanılır; URI söz dizimindeki karakterleri dikkate alır",
+            "useful-for-url-escaping-values": "URL'ye uygun hâle getirmek için değerlerin kaçış karakteriyle yazılmasında kullanılır",
+            "values-are-separated-by-character": "Değerler \"|\" karakteriyle ayrılır"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Seçiciye göre grupla",
+        "placeholder-group-by-label": "Etikete göre grupla"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Değer seçin"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Seçenekler yükleniyor..."
+      },
+      "multi-value-apply-button": {
+        "apply": "Uygula"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "Seçenek bulunamadı"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "Etiketler alınırken bir hata oluştu. Yeniden denemek için tıklayın"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Merhaba"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Metin"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Değer girin"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Değer seçin"
+      }
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { useEffectOnce } from 'react-use';
 import { uniqueId } from 'lodash';
 import { css } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
+import { t } from '@grafana/i18n';
 
 export function useUniqueId(): string {
   const idRefLazy = useRef<string | undefined>(undefined);
@@ -12,7 +13,7 @@ export function useUniqueId(): string {
 }
 
 export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange' | 'children'> {
-  children: React.ReactNode | (({ isInView }: { isInView: boolean }) => React.ReactNode);
+  children: React.ReactNode;
   key: string;
   onLoad?: () => void;
   onChange?: (isInView: boolean) => void;
@@ -66,8 +67,11 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     // If the children render empty, the whole loader will be hidden by css.
     return (
       <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
-        {!loaded && '\u00A0'}
-        {loaded && (typeof children === 'function' ? children({ isInView }) : children)}
+        {!loaded ? (
+          t('grafana-scenes.components.lazy-loader.placeholder', '\u00A0')
+        ) : (
+          <LazyLoaderInViewContext.Provider value={isInView}>{children}</LazyLoaderInViewContext.Provider>
+        )}
       </div>
     );
   }
@@ -96,3 +100,9 @@ LazyLoader.observer = new IntersectionObserver(
   },
   { rootMargin: '100px' }
 );
+
+export const LazyLoaderInViewContext = React.createContext<boolean>(true);
+
+export function useLazyLoaderIsInView(): boolean {
+  return React.useContext(LazyLoaderInViewContext);
+}

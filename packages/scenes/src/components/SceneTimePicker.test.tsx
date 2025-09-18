@@ -27,6 +27,8 @@ function setupScene(
   });
   const timePicker = new SceneTimePicker({
     hidePicker: timePickerProps.hidePicker,
+    quickRanges: timePickerProps.quickRanges,
+    defaultQuickRanges: timePickerProps.defaultQuickRanges,
   });
 
   const scene = new EmbeddedScene({
@@ -112,6 +114,57 @@ describe('SceneTimePicker', () => {
     await userEvent.click(applyButton);
 
     expect(screen.getByText('2024-09-04 00:00:00 to 2024-09-14 23:59:59')).toBeInTheDocument();
+  });
+
+  it('renders default quick ranges from server config', async () => {
+    const { scene } = setupScene(
+      {
+        from: 'now-12h',
+        to: 'now',
+      },
+      {
+        defaultQuickRanges: [
+          {
+            display: 'Last 12 minutes',
+            from: 'now-12m',
+            to: 'now',
+          },
+        ],
+      }
+    );
+
+    render(<scene.Component model={scene} />);
+    await userEvent.click(screen.getByTestId(Components.TimePicker.openButton));
+    expect(screen.getByText('Last 12 minutes')).toBeInTheDocument();
+  });
+
+  it('prefers quick ranges from the dashboard json over server quick ranges', async () => {
+    const { scene } = setupScene(
+      {
+        from: 'now-12h',
+        to: 'now',
+      },
+      {
+        quickRanges: [
+          {
+            display: 'Last 13 minutes',
+            from: 'now-13m',
+            to: 'now',
+          },
+        ],
+        defaultQuickRanges: [
+          {
+            display: 'Last 12 minutes',
+            from: 'now-12m',
+            to: 'now',
+          },
+        ],
+      }
+    );
+
+    render(<scene.Component model={scene} />);
+    await userEvent.click(screen.getByTestId(Components.TimePicker.openButton));
+    expect(screen.getByText('Last 13 minutes')).toBeInTheDocument();
   });
 
   it('correctly calculates absolute time range', () => {

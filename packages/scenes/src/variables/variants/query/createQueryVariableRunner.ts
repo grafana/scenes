@@ -137,7 +137,7 @@ class DatasourceQueryRunner implements QueryRunner {
       return getEmptyMetricFindValueObservable();
     }
 
-    return this._runRequest(this.datasource, request, this.datasource.query);
+    return this._runRequest(this.datasource, request);
   }
 }
 

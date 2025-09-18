@@ -13,6 +13,8 @@ import { SceneGridItemLike, SceneGridItemStateLike } from './types';
 import { sceneGraph } from '../../../core/sceneGraph';
 import { selectors } from '@grafana/e2e-selectors';
 import { VariableDependencyConfig } from '../../../variables/VariableDependencyConfig';
+import { t } from '@grafana/i18n';
+import { isRepeatCloneOrChildOf } from '../../../utils/utils';
 
 export interface SceneGridRowState extends SceneGridItemStateLike {
   title: string;
@@ -20,6 +22,8 @@ export interface SceneGridRowState extends SceneGridItemStateLike {
   isCollapsed?: boolean;
   actions?: SceneObject;
   children: SceneGridItemLike[];
+  /** Marks object as a repeated object and a key pointer to source object */
+  repeatSourceKey?: string;
 }
 
 export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
@@ -73,6 +77,14 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
       this.onCollapseToggle();
     }
   }
+
+  public getPanelCount(children: SceneGridItemLike[]) {
+    let count = 0;
+    for (const child of children) {
+      count += child.getChildCount?.() || 1;
+    }
+    return count;
+  }
 }
 
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
@@ -80,9 +92,9 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
   const { isCollapsible, isCollapsed, title, actions, children } = model.useState();
   const layout = model.getGridLayout();
   const layoutDragClass = layout.getDragClass();
-  const isDraggable = layout.isDraggable();
+  const isDraggable = layout.isDraggable() && !isRepeatCloneOrChildOf(model);
 
-  const count = children ? children.length : 0;
+  const count = model.getPanelCount(children);
   const panels = count === 1 ? 'panel' : 'panels';
 
   return (
@@ -91,7 +103,11 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
         <button
           onClick={model.onCollapseToggle}
           className={styles.rowTitleButton}
-          aria-label={isCollapsed ? 'Expand row' : 'Collapse row'}
+          aria-label={
+            isCollapsed
+              ? t('grafana-scenes.components.scene-grid-row.expand-row', 'Expand row')
+              : t('grafana-scenes.components.scene-grid-row.collapse-row', 'Collapse row')
+          }
           data-testid={selectors.components.DashboardRow.title(sceneGraph.interpolate(model, title, undefined, 'text'))}
         >
           {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}

@@ -1,5 +1,5 @@
-import { getTimeZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
-import { TimeZone } from '@grafana/schema';
+import { getTimeZone, getZone, rangeUtil, setWeekStart, TimeRange, toUtc } from '@grafana/data';
+import { defaultTimeZone, TimeZone } from '@grafana/schema';
 
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
 
@@ -11,6 +11,9 @@ import { evaluateTimeRange } from '../utils/evaluateTimeRange';
 import { config, locationService, RefreshEvent } from '@grafana/runtime';
 import { isValid } from '../utils/date';
 import { getQueryController } from './sceneGraph/getQueryController';
+import { writeSceneLog } from '../utils/writeSceneLog';
+import { isEmpty } from 'lodash';
+import { TIME_RANGE_CHANGE_INTERACTION } from '../behaviors/SceneRenderProfiler';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
@@ -18,7 +21,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
   public constructor(state: Partial<SceneTimeRangeState> = {}) {
     const from = state.from && isValid(state.from) ? state.from : 'now-6h';
     const to = state.to && isValid(state.to) ? state.to : 'now';
-    const timeZone = state.timeZone;
+    const timeZone = getValidTimeZone(state.timeZone);
     const value = evaluateTimeRange(
       from,
       to,
@@ -117,18 +120,18 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   private calculatePercentOfInterval(percent: number): number {
     const intervalMs = this.state.value.to.diff(this.state.value.from, 'milliseconds');
-    return Math.ceil(intervalMs / percent);
+    return Math.ceil((intervalMs / 100) * percent);
   }
 
   public getTimeZone(): TimeZone {
     // Return local time zone if provided
-    if (this.state.timeZone) {
+    if (this.state.timeZone && getValidTimeZone(this.state.timeZone)) {
       return this.state.timeZone;
     }
 
     // Resolve higher level time zone source
     const timeZoneSource = this.getTimeZoneSource();
-    if (timeZoneSource !== this) {
+    if (timeZoneSource !== this && getValidTimeZone(timeZoneSource.state.timeZone)) {
       return timeZoneSource.state.timeZone!;
     }
 
@@ -163,7 +166,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     // Only update if time range actually changed
     if (update.from !== this.state.from || update.to !== this.state.to) {
       const queryController = getQueryController(this);
-      queryController?.startProfile('SceneTimeRange');
+      queryController?.startProfile(TIME_RANGE_CHANGE_INTERACTION);
       this._urlSync.performBrowserHistoryAction(() => {
         this.setState(update);
       });
@@ -172,7 +175,16 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public onTimeZoneChange = (timeZone: TimeZone) => {
     this._urlSync.performBrowserHistoryAction(() => {
-      this.setState({ timeZone });
+      const validTimeZone = getValidTimeZone(timeZone) ?? defaultTimeZone;
+      const updatedValue = evaluateTimeRange(
+        this.state.from,
+        this.state.to,
+        validTimeZone,
+        this.state.fiscalYearStartMonth,
+        this.state.UNSAFE_nowDelay,
+        this.state.weekStart
+      );
+      this.setState({ timeZone: validTimeZone, value: updatedValue });
     });
   };
 
@@ -264,4 +276,30 @@ function getTimeWindow(time: string, timeWindow: string) {
     from: toUtc(valueTime - timeWindowMs / 2).toISOString(),
     to: toUtc(valueTime + timeWindowMs / 2).toISOString(),
   };
+}
+
+/**
+ * Validates and returns a valid time zone string or undefined.
+ * @param {string} [timeZone] - The time zone to validate. Can be a valid IANA time zone string, the string "browser", or undefined.
+ * @returns {string | undefined} - Returns the input time zone if it is valid, or undefined if the input is invalid or not provided.
+ */
+function getValidTimeZone(timeZone?: string): string | undefined {
+  if (timeZone === undefined) {
+    return undefined;
+  }
+
+  if (isEmpty(timeZone)) {
+    return config.bootData.user.timezone;
+  }
+
+  if (timeZone === defaultTimeZone) {
+    return timeZone;
+  }
+
+  if (getZone(timeZone)) {
+    return timeZone;
+  }
+
+  writeSceneLog('SceneTimeRange', `Invalid timeZone "${timeZone}" provided.`);
+  return;
 }

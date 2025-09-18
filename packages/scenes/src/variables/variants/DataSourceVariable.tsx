@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { Observable, of } from 'rxjs';
 
 import { stringToJsRegex, DataSourceInstanceSettings } from '@grafana/data';
@@ -6,10 +7,11 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
-import { renderSelectForVariable } from '../components/VariableValueSelect';
+import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
+import React from 'react';
 
 export interface DataSourceVariableState extends MultiValueVariableState {
   /**
@@ -67,7 +69,10 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
       }
 
       if (this.state.defaultOptionEnabled && isDefault(source, regex)) {
-        options.push({ label: 'default', value: 'default' });
+        options.push({
+          label: t('grafana-scenes.variables.data-source-variable.label.default', 'default'),
+          value: 'default',
+        });
       }
     }
 
@@ -81,7 +86,7 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
-    return renderSelectForVariable(model);
+    return <MultiOrSingleValueSelect model={model} />;
   };
 }
 

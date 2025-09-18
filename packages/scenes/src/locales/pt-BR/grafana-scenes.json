@@ -1,0 +1,152 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "Editar filtro com chave {{keyLabel}}",
+        "managed-filter": "Filtro gerenciado de {{origin}}",
+        "non-applicable": "",
+        "remove-filter-with-key": "Remover filtro com chave {{keyLabel}}"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Remover valor do filtro: {{itemLabel}}",
+        "use-custom-value": "Usar valor personalizado: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "Se você chegou aqui usando um link, pode haver um bug neste aplicativo.",
+        "subTitle": "O URL não corresponde a nenhuma página",
+        "title": "Não encontrado"
+      },
+      "lazy-loader": {
+        "placeholder": ""
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Recolher cena",
+        "expand-button-label": "Expandir cena",
+        "remove-button-label": "Remover cena"
+      },
+      "scene-debugger": {
+        "object-details": "Detalhes do objeto",
+        "scene-graph": "Gráfico de cena",
+        "title-scene-debugger": "Depurador de cena"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Recolher linha",
+        "expand-row": "Expandir linha"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Comparação",
+        "button-tooltip": "Ativar comparação de intervalo de tempo"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Widget de redimensionamento do painel"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Título"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Explorar"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Carregando painel do plug-in…",
+        "panel-plugin-has-no-panel-component": "O plug-in do painel não possui componente de painel"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Renderizar muitas séries em um único painel pode afetar o desempenho e dificultar a leitura dos dados.",
+        "warning-message": "Mostrando apenas {{seriesLimit}} série(s)"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Remover"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "Cancelar consulta"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Editar operador de filtro"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Adicionar filtro",
+        "title-add-filter": "Adicionar filtro"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Remover filtro",
+        "key-select": {
+          "placeholder-select-label": "Selecionar rótulo"
+        },
+        "label-select-label": "Selecionar rótulo",
+        "title-remove-filter": "Remover filtro",
+        "value-select": {
+          "placeholder-select-value": "Selecionar valor"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "padrão"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "limpar",
+        "tooltip": "Aplicado por padrão neste painel. Se editado, ele é transferido para outros painéis.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "Restaura a função groupby definida por este painel."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Valores separados por vírgula",
+            "double-quoted-values": "Valores entre aspas duplas",
+            "format-date-in-different-ways": "Formatar data de diferentes maneiras",
+            "format-multivalued-variables-using-syntax-example": "Formatar variáveis de múltiplos valores usando a sintaxe glob. Por exemplo: {value1,value2}",
+            "html-escaping-of-values": "Escape HTML de valores",
+            "json-stringify-value": "Valor convertido em string JSON",
+            "keep-value-as-is": "Manter o valor como está",
+            "multiple-values-are-formatted-like-variablevalue": "Vários valores são formatados como variável=valor",
+            "single-quoted-values": "Valores entre aspas simples",
+            "useful-escaping-values-taking-syntax-characters": "Útil para valores de escape de URL, levando em consideração caracteres de sintaxe URI",
+            "useful-for-url-escaping-values": "Útil para valores de escape de URL",
+            "values-are-separated-by-character": "Os valores são separados pelo caractere \"|\""
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Agrupar por seletor",
+        "placeholder-group-by-label": "Agrupar por rótulo"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Selecionar valor"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Carregando opções…"
+      },
+      "multi-value-apply-button": {
+        "apply": "Aplicar"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "Nenhuma opção encontrada"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "Ocorreu um erro ao buscar rótulos. Clique para tentar novamente"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Olá"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Texto"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Digite um valor"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Selecionar valor"
+      }
+    }
+  }
+}

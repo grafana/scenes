@@ -267,6 +267,7 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 exports[`VizPanelBuilder options and field config standard panels defaults provides statushistory defaults 1`] = `
 {
   "colWidth": 0.9,
+  "perPage": 20,
   "rowHeight": 0.9,
   "showValue": "auto",
 }

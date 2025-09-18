@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2 } from '@grafana/ui';
@@ -325,7 +326,7 @@ export function Splitter({
             aria-valuemax={100}
             aria-valuenow={50}
             aria-controls={`start-panel-${id}`}
-            aria-label="Pane resize widget"
+            aria-label={t('grafana-scenes.components.splitter.aria-label-pane-resize-widget', 'Pane resize widget')}
             tabIndex={0}
           ></div>
 

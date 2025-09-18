@@ -1,0 +1,152 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "Edit filter with key {{keyLabel}}",
+        "managed-filter": "{{origin}} managed filter",
+        "non-applicable": "Filter is not applicable",
+        "remove-filter-with-key": "Remove filter with key {{keyLabel}}"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Remove filter value - {{itemLabel}}",
+        "use-custom-value": "Use custom value: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "If you found your way here using a link then there might be a bug in this application.",
+        "subTitle": "The url did not match any page",
+        "title": "Not found"
+      },
+      "lazy-loader": {
+        "placeholder": "\u00a0"
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Collapse scene",
+        "expand-button-label": "Expand scene",
+        "remove-button-label": "Remove scene"
+      },
+      "scene-debugger": {
+        "object-details": "Object details",
+        "scene-graph": "Scene graph",
+        "title-scene-debugger": "Scene debugger"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Collapse row",
+        "expand-row": "Expand row"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Comparison",
+        "button-tooltip": "Enable time frame comparison"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Pane resize widget"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Title"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Explore"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Loading plugin panel...",
+        "panel-plugin-has-no-panel-component": "Panel plugin has no panel component"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Rendering too many series in a single panel may impact performance and make data harder to read.",
+        "warning-message": "Showing only {{seriesLimit}} series"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Remove"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "Cancel query"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Edit filter operator"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Add filter",
+        "title-add-filter": "Add filter"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Remove filter",
+        "key-select": {
+          "placeholder-select-label": "Select label"
+        },
+        "label-select-label": "Select label",
+        "title-remove-filter": "Remove filter",
+        "value-select": {
+          "placeholder-select-value": "Select value"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "default"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "clear",
+        "tooltip": "Applied by default in this dashboard. If edited, it carries over to other dashboards.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "Restore groupby set by this dashboard."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Comma-separated values",
+            "double-quoted-values": "Double quoted values",
+            "format-date-in-different-ways": "Format date in different ways",
+            "format-multivalued-variables-using-syntax-example": "Format multi-valued variables using glob syntax, example {value1,value2}",
+            "html-escaping-of-values": "HTML escaping of values",
+            "json-stringify-value": "JSON stringify value",
+            "keep-value-as-is": "Keep value as is",
+            "multiple-values-are-formatted-like-variablevalue": "Multiple values are formatted like variable=value",
+            "single-quoted-values": "Single quoted values",
+            "useful-escaping-values-taking-syntax-characters": "Useful for URL escaping values, taking into URI syntax characters",
+            "useful-for-url-escaping-values": "Useful for URL escaping values",
+            "values-are-separated-by-character": "Values are separated by | character"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Group by selector",
+        "placeholder-group-by-label": "Group by label"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Select value"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Loading options..."
+      },
+      "multi-value-apply-button": {
+        "apply": "Apply"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "No options found"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "An error has occurred fetching labels. Click to retry"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Hello"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Text"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Enter value"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Select value"
+      }
+    }
+  }
+}

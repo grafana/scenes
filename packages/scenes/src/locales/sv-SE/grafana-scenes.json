@@ -1,0 +1,152 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "Redigera filter med nyckeln {{keyLabel}}",
+        "managed-filter": "Filter som hanteras av {{origin}}",
+        "non-applicable": "",
+        "remove-filter-with-key": "Ta bort filter med nyckeln {{keyLabel}}"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Ta bort filtervärde – {{itemLabel}}",
+        "use-custom-value": "Använd anpassat värde: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "Om du kom hit via en länk kan det finnas en bugg i den här applikationen.",
+        "subTitle": "Webbadressen matchade ingen sida",
+        "title": "Hittades inte"
+      },
+      "lazy-loader": {
+        "placeholder": ""
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Dölj scen",
+        "expand-button-label": "Visa scen",
+        "remove-button-label": "Ta bort scen"
+      },
+      "scene-debugger": {
+        "object-details": "Information om objekt",
+        "scene-graph": "Scengraf",
+        "title-scene-debugger": "Scenfelsökare"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Dölj rad",
+        "expand-row": "Expandera rad"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Jämförelse",
+        "button-tooltip": "Aktivera jämförelse av tidsram"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Widget för storleksändring av ruta"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Titel"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Utforska"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Läser in tilläggspanel …",
+        "panel-plugin-has-no-panel-component": "Paneltillägg har ingen panelkomponent"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Att återge för många serier i en enda panel kan påverka prestandan och göra data svårare att läsa. ",
+        "warning-message": "Visar endast {{seriesLimit}} serier"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Ta bort"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "Avbryt fråga"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Redigera filteroperator"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Lägg till filter",
+        "title-add-filter": "Lägg till filter"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Ta bort filter",
+        "key-select": {
+          "placeholder-select-label": "Välj etikett"
+        },
+        "label-select-label": "Välj etikett",
+        "title-remove-filter": "Ta bort filter",
+        "value-select": {
+          "placeholder-select-value": "Välj värde"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "standard"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "radera",
+        "tooltip": "Tillämpas som standard i denna instrumentpanel. Om den redigeras överförs det till andra instrumentpaneler.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "Återställ gruppering som inställts av denna panel."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Kommaavgränsade värden",
+            "double-quoted-values": "Dubbelciterade värden",
+            "format-date-in-different-ways": "Formatera datum på olika sätt",
+            "format-multivalued-variables-using-syntax-example": "Formatera flervärdesvariabler med globsyntax, till exempel {value1,value2}",
+            "html-escaping-of-values": "HTML-undantagstecken för värden",
+            "json-stringify-value": "JSON stringify-värde",
+            "keep-value-as-is": "Behåll värdet som det är",
+            "multiple-values-are-formatted-like-variablevalue": "Flera värden formateras som variabel=värde",
+            "single-quoted-values": "Enkla citerade värden",
+            "useful-escaping-values-taking-syntax-characters": "Användbart för URL-undantagna värden, med hänsyn till URI-syntaxtecken",
+            "useful-for-url-escaping-values": "Användbart för URL-undantagning av värden",
+            "values-are-separated-by-character": "Värdena är åtskilda med tecknet |"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Gruppera efter väljare",
+        "placeholder-group-by-label": "Gruppera efter etikett"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Välj värde"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Laddar alternativ …"
+      },
+      "multi-value-apply-button": {
+        "apply": "Tillämpa"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "Inga alternativ hittades"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "Ett fel uppstod vid hämtning av etiketter. Klicka för att försöka igen"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Hej"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Text"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Ange ett värde"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Välj värde"
+      }
+    }
+  }
+}

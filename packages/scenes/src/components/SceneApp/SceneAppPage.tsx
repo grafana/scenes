@@ -1,3 +1,4 @@
+import { t, Trans } from '@grafana/i18n';
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
@@ -15,10 +16,6 @@ export class SceneAppPage extends SceneObjectBase<SceneAppPageState> implements 
   public static Component = SceneAppPageRenderer;
   private _sceneCache = new Map<string, EmbeddedScene>();
   private _drilldownCache = new Map<string, SceneAppPageLike>();
-
-  public constructor(state: SceneAppPageState) {
-    super(state);
-  }
 
   public initializeScene(scene: EmbeddedScene) {
     this.setState({ initializedScene: scene });
@@ -136,8 +133,8 @@ function getFallbackRoute(page: SceneAppPage) {
 function getDefaultFallbackPage() {
   return new SceneAppPage({
     url: '',
-    title: 'Not found',
-    subTitle: 'The url did not match any page',
+    title: t('grafana-scenes.components.fallback-page.title', 'Not found'),
+    subTitle: t('grafana-scenes.components.fallback-page.subTitle', 'The url did not match any page'),
     routePath: '*',
     getScene: () => {
       return new EmbeddedScene({
@@ -149,7 +146,9 @@ function getDefaultFallbackPage() {
                 component: () => {
                   return (
                     <div data-testid="default-fallback-content">
-                      If you found your way here using a link then there might be a bug in this application.
+                      <Trans i18nKey="grafana-scenes.components.fallback-page.content">
+                        If you found your way here using a link then there might be a bug in this application.
+                      </Trans>
                     </div>
                   );
                 },

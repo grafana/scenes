@@ -45,6 +45,11 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
   onCancel?(): void;
 
   /**
+   * Edge case for variables that are hidden but wants to be render to access react contexts (ScopesVariable)
+   */
+  UNSAFE_renderAsHidden?: boolean;
+
+  /**
    * @experimental
    * Indicates that a variable loads values lazily when user interacts with the variable dropdown.
    */

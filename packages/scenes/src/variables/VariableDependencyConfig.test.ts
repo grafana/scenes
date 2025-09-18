@@ -194,7 +194,7 @@ describe('VariableDependencyConfig', () => {
 
       timeRange.onTimeZoneChange('UTC');
 
-      expect(scene.state.variableValueChanged).toBe(2);
+      expect(scene.state.variableValueChanged).toBe(3);
     });
   });
 });

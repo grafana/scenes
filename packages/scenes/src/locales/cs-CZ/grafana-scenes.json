@@ -1,0 +1,152 @@
+{
+  "grafana-scenes": {
+    "components": {
+      "adhoc-filter-pill": {
+        "edit-filter-with-key": "Upravit filtr pomocí klíče {{keyLabel}}",
+        "managed-filter": "Spravovaný filtr: {{origin}}",
+        "non-applicable": "",
+        "remove-filter-with-key": "Odebrat filtr pomocí klíče {{keyLabel}}"
+      },
+      "adhoc-filters-combobox": {
+        "remove-filter-value": "Odebrat hodnotu filtru – {{itemLabel}}",
+        "use-custom-value": "Použít vlastní hodnotu: {{itemLabel}}"
+      },
+      "fallback-page": {
+        "content": "Pokud jste se sem dostali pomocí odkazu, může se jednat o chybu v této aplikaci.",
+        "subTitle": "Adresa URL neodpovídá žádné stránce",
+        "title": "Nenalezeno"
+      },
+      "lazy-loader": {
+        "placeholder": ""
+      },
+      "nested-scene-renderer": {
+        "collapse-button-label": "Sbalit scénu",
+        "expand-button-label": "Rozbalit scénu",
+        "remove-button-label": "Odebrat scénu"
+      },
+      "scene-debugger": {
+        "object-details": "Podrobnosti objektu",
+        "scene-graph": "Graf scény",
+        "title-scene-debugger": "Ladicí program scény"
+      },
+      "scene-grid-row": {
+        "collapse-row": "Sbalit řádek",
+        "expand-row": "Rozbalit řádek"
+      },
+      "scene-time-range-compare-renderer": {
+        "button-label": "Srovnání",
+        "button-tooltip": "Povolit porovnání časového rámce"
+      },
+      "splitter": {
+        "aria-label-pane-resize-widget": "Widget pro změnu velikosti panelu"
+      },
+      "viz-panel": {
+        "title": {
+          "title": "Název"
+        }
+      },
+      "viz-panel-explore-button": {
+        "explore": "Prozkoumat"
+      },
+      "viz-panel-renderer": {
+        "loading-plugin-panel": "Načítání panelu pluginu…",
+        "panel-plugin-has-no-panel-component": "Plugin panelu nemá žádnou komponentu panelu"
+      },
+      "viz-panel-series-limit": {
+        "content-rendering-series-single-panel-impact-performance": "Renderování příliš mnoha řad v rámci jednoho panelu může ovlivnit výkon a zhoršit čitelnost dat.",
+        "warning-message": "Zobrazují se pouze {{seriesLimit}} série/sérií"
+      }
+    },
+    "utils": {
+      "controls-label": {
+        "tooltip-remove": "Odebrat"
+      },
+      "loading-indicator": {
+        "content-cancel-query": "Zrušit dotaz"
+      }
+    },
+    "variables": {
+      "ad-hoc-combobox": {
+        "aria-label-edit-filter-operator": "Upravit operátor filtru"
+      },
+      "ad-hoc-filter-builder": {
+        "aria-label-add-filter": "Přidat filtr",
+        "title-add-filter": "Přidat filtr"
+      },
+      "ad-hoc-filter-renderer": {
+        "aria-label-remove-filter": "Odebrat filtr",
+        "key-select": {
+          "placeholder-select-label": "Vybrat štítek"
+        },
+        "label-select-label": "Vybrat štítek",
+        "title-remove-filter": "Odebrat filtr",
+        "value-select": {
+          "placeholder-select-value": "Vybrat hodnotu"
+        }
+      },
+      "data-source-variable": {
+        "label": {
+          "default": "výchozí"
+        }
+      },
+      "default-group-by-custom-indicator-container": {
+        "aria-label-clear": "vymazat",
+        "tooltip": "Použito ve výchozím nastavení na této nástěnce. Pokud je upraveno, přenese se na jiné nástěnky.",
+        "tooltip-restore-groupby-set-by-this-dashboard": "Obnovit skupinu nastavenou touto nástěnkou."
+      },
+      "format-registry": {
+        "formats": {
+          "description": {
+            "commaseparated-values": "Hodnoty oddělené čárkou",
+            "double-quoted-values": "Hodnoty v dvojitých uvozovkách",
+            "format-date-in-different-ways": "Formátovat datum různými způsoby",
+            "format-multivalued-variables-using-syntax-example": "Formátovat vícehodnotové proměnné pomocí globální syntaxe, například {value1,value2}",
+            "html-escaping-of-values": "HTML escapování hodnot",
+            "json-stringify-value": "Hodnota JSON stringify",
+            "keep-value-as-is": "Ponechat hodnotu tak, jak je",
+            "multiple-values-are-formatted-like-variablevalue": "Více hodnot je formátováno jako proměnná=hodnota",
+            "single-quoted-values": "Hodnoty v jednoduchých uvozovkách",
+            "useful-escaping-values-taking-syntax-characters": "Užitečné pro hodnoty HTML escapování, přičemž se bere v úvahu syntaxe URL",
+            "useful-for-url-escaping-values": "Užitečné pro hodnoty adresy URL escapování",
+            "values-are-separated-by-character": "Hodnoty jsou odděleny znakem |"
+          }
+        }
+      },
+      "group-by-variable-renderer": {
+        "aria-label-group-by-selector": "Seřadit podle voliče",
+        "placeholder-group-by-label": "Seřadit podle štítku"
+      },
+      "interval-variable": {
+        "placeholder-select-value": "Vybrat hodnotu"
+      },
+      "loading-options-placeholder": {
+        "loading-options": "Načítání možností…"
+      },
+      "multi-value-apply-button": {
+        "apply": "Použít"
+      },
+      "no-options-placeholder": {
+        "no-options-found": "Nebyly nalezeny žádné možnosti"
+      },
+      "options-error-placeholder": {
+        "error-occurred-fetching-labels-click-retry": "Při načítání štítků došlo k chybě. Klikněte pro opakování"
+      },
+      "test-object-with-variable-dependency": {
+        "title": {
+          "hello": "Dobrý den"
+        }
+      },
+      "test-variable": {
+        "text": {
+          "text": "Text"
+        }
+      },
+      "variable-value-input": {
+        "placeholder-enter-value": "Zadat hodnotu"
+      },
+      "variable-value-select": {
+        "placeholder-select-value": "Vybrat hodnotu"
+      }
+    }
+  }
+}

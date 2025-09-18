@@ -14,6 +14,7 @@ import {
   interpolate,
   getAncestor,
   findDescendents,
+  getScopes,
 } from './sceneGraph';
 
 export const sceneGraph = {
@@ -32,4 +33,5 @@ export const sceneGraph = {
   getAncestor,
   getQueryController,
   findDescendents,
+  getScopes,
 };

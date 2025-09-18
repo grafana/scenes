@@ -120,8 +120,9 @@ export interface SceneObject<TState extends SceneObjectState = SceneObjectState>
   /**
    * Loop through state and call callback for each direct child scene object.
    * Checks 1 level deep properties and arrays. So a scene object hidden in a nested plain object will not be detected.
+   * Return false to exit loop early.
    */
-  forEachChild(callback: (child: SceneObject) => void): void;
+  forEachChild(callback: (child: SceneObject) => void): void | false;
 
   /**
    * Useful for edge cases when you want to move a scene object to another parent.
@@ -243,6 +244,16 @@ export interface SceneDataProvider<T extends SceneObjectState = SceneDataState> 
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
   getResultsStream(): Observable<SceneDataProviderResult>;
+  /**
+   * Can be used to disable query execution for scene elements that are out of view
+   */
+  isInViewChanged?(isInView: boolean): void;
+
+  /**
+   * Allow activating or deactivating the isInView behavior
+   * This is useful for external consumers of a data provider (i.e., the Dashboard datasource)
+   */
+  bypassIsInViewChanged?(bypassIsInView: boolean): void;
 }
 
 export interface SceneDataLayerProviderState extends SceneDataState {
@@ -302,4 +313,14 @@ export interface SceneUrlSyncOptions {
    * url changes should add a new browser history entry.
    */
   createBrowserHistorySteps?: boolean;
+  /**
+   * This will automatically prefix url search parameters when syncing.
+   * Can be used to prevent collisions when multiple Scene apps are embedded in the page.
+   */
+  namespace?: string;
+  /**
+   * When `namespace` is provided, this prevents some url search parameters to be automatically prefixed.
+   * Defaults to the timerange parameters (["from", "to", "timezone"])
+   */
+  excludeFromNamespace?: string[];
 }

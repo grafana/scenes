@@ -1,3 +1,4 @@
+import { t, Trans } from '@grafana/i18n';
 import { css } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { CustomScrollbar, Drawer, ToolbarButton, useStyles2 } from '@grafana/ui';
@@ -27,10 +28,16 @@ export function SceneDebugger({ scene }: Props) {
     <>
       <ToolbarButton variant="canvas" icon="bug" onClick={() => setIsOpen(true)} />
       {isOpen && (
-        <Drawer title="Scene debugger" onClose={() => setIsOpen(false)} size="lg">
+        <Drawer
+          title={t('grafana-scenes.components.scene-debugger.title-scene-debugger', 'Scene debugger')}
+          onClose={() => setIsOpen(false)}
+          size="lg"
+        >
           <div className={styles.panes}>
             <div className={styles.pane1}>
-              <div className={styles.paneHeading}>Scene graph</div>
+              <div className={styles.paneHeading}>
+                <Trans i18nKey="grafana-scenes.components.scene-debugger.scene-graph">Scene graph</Trans>
+              </div>
               <CustomScrollbar autoHeightMin={'100%'}>
                 <div className={styles.treeWrapper}>
                   <DebugTreeNode node={scene} selectedObject={selectedObject} onSelect={setSelectedObject} />
@@ -38,7 +45,9 @@ export function SceneDebugger({ scene }: Props) {
               </CustomScrollbar>
             </div>
             <div className={styles.pane2}>
-              <div className={styles.paneHeading}>Object details</div>
+              <div className={styles.paneHeading}>
+                <Trans i18nKey="grafana-scenes.components.scene-debugger.object-details">Object details</Trans>
+              </div>
               {selectedObject && <DebugDetails node={selectedObject} />}
             </div>
           </div>

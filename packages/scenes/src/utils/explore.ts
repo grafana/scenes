@@ -19,7 +19,6 @@ export async function getExploreURL(
   }
 
   const { from, to } = timeRange;
-
   const filters = data.request?.filters;
 
   const scopedVars: ScopedVars = {
@@ -40,7 +39,13 @@ export async function getExploreURL(
 
   const queries: DataQuery[] = interpolatedQueries ?? [];
 
-  const datasource = queries.find((query) => !!query.datasource?.uid)?.datasource?.uid;
+  // Check if we have mixed datasources (more than one unique datasource)
+  const hasMixedDatasources = new Set(queries.map((q) => q.datasource?.uid)).size > 1;
+
+  // For mixed datasources, mark the datasource as "-- Mixed --"
+  let datasource = hasMixedDatasources
+    ? '-- Mixed --'
+    : queries.find((query) => !!query.datasource?.uid)?.datasource?.uid;
 
   if (queries?.length && datasource && from && to) {
     const left = encodeURIComponent(

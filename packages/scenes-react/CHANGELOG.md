@@ -1,3 +1,67 @@
+# v6.35.0 (Wed Sep 10 2025)
+
+#### 🚀 Enhancement
+
+- useQueryRunner: Add minInterval option [#1183](https://github.com/grafana/scenes/pull/1183) ([@krevedkokun](https://github.com/krevedkokun))
+
+#### Authors: 1
+
+- Nikita Domnitskii ([@krevedkokun](https://github.com/krevedkokun))
+
+---
+
+# v6.30.0 (Wed Aug 20 2025)
+
+#### 🐛 Bug Fix
+
+- ScenesReact: Add skipUrlSync to variables [#1182](https://github.com/grafana/scenes/pull/1182) ([@krevedkokun](https://github.com/krevedkokun))
+
+#### Authors: 1
+
+- Nikita Domnitskii ([@krevedkokun](https://github.com/krevedkokun))
+
+---
+
+# v6.27.2 (Wed Jul 09 2025)
+
+#### 🐛 Bug Fix
+
+- chore: unify license change in #327 [#1137](https://github.com/grafana/scenes/pull/1137) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v6.21.0 (Wed Jun 18 2025)
+
+#### 🚀 Enhancement
+
+- Internationalisation: Add markup for translations [#1151](https://github.com/grafana/scenes/pull/1151) ([@joshhunt](https://github.com/joshhunt))
+
+#### 🐛 Bug Fix
+
+- Update eslint to v9 [#1150](https://github.com/grafana/scenes/pull/1150) ([@joshhunt](https://github.com/joshhunt))
+
+#### Authors: 1
+
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+
+---
+
+# v6.6.1 (Tue Apr 01 2025)
+
+#### 🐛 Bug Fix
+
+- Bump rollup and related deps [#1077](https://github.com/grafana/scenes/pull/1077) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v6.0.0 (Fri Feb 07 2025)
 
 #### 💥 Breaking Change

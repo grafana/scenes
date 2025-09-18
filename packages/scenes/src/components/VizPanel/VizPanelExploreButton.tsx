@@ -1,3 +1,4 @@
+import { Trans } from '@grafana/i18n';
 import React from 'react';
 
 import { LinkButton } from '@grafana/ui';
@@ -42,10 +43,13 @@ function VizPanelExploreButtonComponent({ model }: SceneComponentProps<VizPanelE
 
   const { from, to } = sceneGraph.getTimeRange(model).useState();
 
-  const { value: exploreLink } = useAsync(
-    async () => (data ? getExploreURL(data, model, { from, to }, options.transform) : ''),
-    [data, model, from, to]
-  );
+  const { value: exploreLink } = useAsync(async () => {
+    if (!data) {
+      return '';
+    }
+
+    return getExploreURL(data, model, { from, to }, options.transform);
+  }, [data, model, from, to]);
 
   const returnToPrevious = useReturnToPrevious();
 
@@ -64,7 +68,7 @@ function VizPanelExploreButtonComponent({ model }: SceneComponentProps<VizPanelE
           options.onClick?.();
         }}
       >
-        Explore
+        <Trans i18nKey="grafana-scenes.components.viz-panel-explore-button.explore">Explore</Trans>
       </LinkButton>
     );
   }
