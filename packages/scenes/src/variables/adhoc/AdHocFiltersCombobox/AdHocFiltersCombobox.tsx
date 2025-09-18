@@ -46,8 +46,13 @@ import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteracti
 import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
 import { getQueryController } from '../../../core/sceneGraph/getQueryController';
-import { FILTER_REMOVED_INTERACTION, FILTER_CHANGED_INTERACTION } from '../../../behaviors/SceneRenderProfiler';
-import { USER_INTERACTIONS } from '../../../behaviors/SceneInteractionProfiler';
+import {
+  FILTER_REMOVED_INTERACTION,
+  FILTER_CHANGED_INTERACTION,
+  ADHOC_KEYS_DROPDOWN_INTERACTION,
+  ADHOC_VALUES_DROPDOWN_INTERACTION,
+} from '../../../behaviors/SceneRenderProfiler';
+import { getInteractionTracker } from '../../../core/sceneGraph/getInteractionTracker';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -260,14 +265,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleFetchOptions = useCallback(
     async (inputType: AdHocInputType) => {
-      const profiler = getQueryController(model);
+      const profiler = getInteractionTracker(model);
 
       // Start profiling the user interaction
-      const interactionName =
-        inputType === 'key' ? USER_INTERACTIONS.ADHOC_KEYS_DROPDOWN : USER_INTERACTIONS.ADHOC_VALUES_DROPDOWN;
+      const interactionName = inputType === 'key' ? ADHOC_KEYS_DROPDOWN_INTERACTION : ADHOC_VALUES_DROPDOWN_INTERACTION;
 
       if (inputType !== 'operator') {
-        profiler?.startInteractionProfile(interactionName);
+        profiler?.startInteraction(interactionName);
       }
 
       setOptionsError(false);
@@ -288,7 +292,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         // if input type changed before fetch completed then abort updating options
         //   this can cause race condition and return incorrect options when input type changed
         if (filterInputTypeRef.current !== inputType) {
-          profiler?.stopInteractionProfile();
+          profiler?.stopInteraction();
           return;
         }
         setOptions(options);
@@ -303,7 +307,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       setOptionsLoading(false);
 
-      profiler?.stopInteractionProfile();
+      profiler?.stopInteraction();
     },
     [filter, model]
   );

@@ -55,7 +55,6 @@ export type {
   SceneInteractionProfileEvent,
 } from './behaviors/types';
 export { SceneRenderProfiler } from './behaviors/SceneRenderProfiler';
-export { SceneInteractionProfiler } from './behaviors/SceneInteractionProfiler';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';

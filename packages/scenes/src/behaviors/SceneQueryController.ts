@@ -1,7 +1,6 @@
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneStatelessBehavior } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
-import { SceneInteractionProfiler } from './SceneInteractionProfiler';
 import { SceneRenderProfiler } from './SceneRenderProfiler';
 import { SceneQueryControllerEntry, SceneQueryControllerLike, SceneQueryStateControllerState } from './types';
 
@@ -19,28 +18,18 @@ export class SceneQueryController
 
   #tryCompleteProfileFrameId: number | null = null;
 
-  public constructor(
-    state: Partial<SceneQueryStateControllerState> = {},
-    private renderProfiler?: SceneRenderProfiler,
-    private interactionProfiler?: SceneInteractionProfiler
-  ) {
+  public constructor(state: Partial<SceneQueryStateControllerState> = {}, private profiler?: SceneRenderProfiler) {
     super({ ...state, isRunning: false });
 
-    if (renderProfiler) {
-      this.renderProfiler = renderProfiler;
-      renderProfiler.setQueryController(this);
-    }
-
-    if (interactionProfiler) {
-      this.interactionProfiler = interactionProfiler;
-      interactionProfiler.setQueryController(this);
+    if (profiler) {
+      this.profiler = profiler;
+      profiler.setQueryController(this);
     }
 
     // Clear running state on deactivate
     this.addActivationHandler(() => {
       // In cases of re-activation, we need to set the query controller again as it might have been set by other scene
-      this.renderProfiler?.setQueryController(this);
-      this.interactionProfiler?.setQueryController(this);
+      this.profiler?.setQueryController(this);
       return () => this.#running.clear();
     });
   }
@@ -49,26 +38,15 @@ export class SceneQueryController
     return this.#running.size;
   };
 
-  public startInteractionProfile(name: string) {
-    if (!this.state.enableProfiling) {
-      return;
-    }
-    this.interactionProfiler?.startProfile(name);
-  }
-
-  public stopInteractionProfile() {
-    this.interactionProfiler?.stopProfile();
-  }
-
   public startProfile(name: string) {
     if (!this.state.enableProfiling) {
       return;
     }
-    this.renderProfiler?.startProfile(name);
+    this.profiler?.startProfile(name);
   }
 
   public cancelProfile() {
-    this.renderProfiler?.cancelProfile();
+    this.profiler?.cancelProfile();
   }
 
   public queryStarted(entry: SceneQueryControllerEntry) {
@@ -103,11 +81,11 @@ export class SceneQueryController
     if (dir === 1 && this.state.enableProfiling) {
       if (entry) {
         // Collect profile crumbs, variables, annotations, queries and plugins
-        this.renderProfiler?.addCrumb(`${entry.type}`);
+        this.profiler?.addCrumb(`${entry.type}`);
       }
-      if (this.renderProfiler?.isTailRecording()) {
+      if (this.profiler?.isTailRecording()) {
         writeSceneLog('SceneQueryController', 'New query started, cancelling tail recording');
-        this.renderProfiler?.cancelTailRecording();
+        this.profiler?.cancelTailRecording();
       }
     }
 
@@ -119,7 +97,7 @@ export class SceneQueryController
       }
 
       this.#tryCompleteProfileFrameId = requestAnimationFrame(() => {
-        this.renderProfiler?.tryCompletingProfile();
+        this.profiler?.tryCompletingProfile();
       });
     }
   }
