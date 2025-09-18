@@ -246,19 +246,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // adding custom option this way so that virtualiser is aware of it and can scroll to
   if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
     const operatorDefinition = OPERATORS.find((op) => filter?.operator === op.value);
+    const customOptionValue = {
+      value: inputValue.trim(),
+      label: inputValue.trim(),
+      isCustom: true,
+    }
+
     // If operator is regex, add custom value option first
     if (operatorDefinition?.isRegex) {
-      filteredDropDownItems.unshift({
-        value: inputValue.trim(),
-        label: inputValue.trim(),
-        isCustom: true,
-      });
+      filteredDropDownItems.unshift(customOptionValue);
     } else {
-      filteredDropDownItems.push({
-        value: inputValue.trim(),
-        label: inputValue.trim(),
-        isCustom: true,
-      });
+      filteredDropDownItems.push(customOptionValue);
     }
   }
 
