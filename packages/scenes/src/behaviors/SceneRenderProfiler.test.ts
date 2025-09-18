@@ -7,7 +7,7 @@ import {
   ADHOC_VALUES_DROPDOWN_INTERACTION,
   GROUPBY_DIMENSIONS_INTERACTION,
 } from './SceneRenderProfiler';
-import { SceneQueryControllerLike, SceneInteractionProfileEvent, SceneComponentInteractionEvent } from './types';
+import { SceneQueryControllerLike, SceneComponentInteractionEvent } from './types';
 
 // Mock writeSceneLog to prevent console noise in tests
 jest.mock('../utils/writeSceneLog', () => ({
