@@ -250,7 +250,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       value: inputValue.trim(),
       label: inputValue.trim(),
       isCustom: true,
-    }
+    };
 
     // If operator is regex, add custom value option first
     if (operatorDefinition?.isRegex) {
