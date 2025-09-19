@@ -19,26 +19,38 @@ type BuilderFunction = (variable: MultiValueVariable) => CustomOptionsProvider;
 const OPTIONS_PROVIDERS_LOOKUP = new Map<string, BuilderFunction>([
   [
     'csv',
-    (variable: MultiValueVariable) =>
-      new CsvOptionsProvider({
-        csv: sceneGraph.interpolate(variable, (variable as unknown as CustomVariable).state.query),
-      }),
+    (variable: MultiValueVariable) => {
+      if (!(variable instanceof CustomVariable)) {
+        throw new TypeError('Variable is not a CustomVariable');
+      }
+      return new CsvOptionsProvider({
+        csv: sceneGraph.interpolate(variable, variable.state.query),
+      });
+    },
   ],
   [
     'json',
-    (variable: MultiValueVariable) =>
-      new JsonOptionsProvider({
-        json: sceneGraph.interpolate(variable, (variable as unknown as CustomVariable).state.query),
-        valueProp: (variable as unknown as CustomVariable).state.optionsProvider.valueProp,
-        textProp: (variable as unknown as CustomVariable).state.optionsProvider.textProp,
-      }),
+    (variable: MultiValueVariable) => {
+      if (!(variable instanceof CustomVariable)) {
+        throw new TypeError('Variable is not a CustomVariable');
+      }
+      return new JsonOptionsProvider({
+        json: sceneGraph.interpolate(variable, variable.state.query),
+        valueProp: variable.state.optionsProvider.valueProp,
+        textProp: variable.state.optionsProvider.textProp,
+      });
+    },
   ],
   [
     'query',
-    (variable: MultiValueVariable) =>
-      new QueryOptionsProvider({
-        variable: variable as unknown as QueryVariable, // TEMP, in the future, can we pass only minimal info?
-      }),
+    (variable: MultiValueVariable) => {
+      if (!(variable instanceof QueryVariable)) {
+        throw new TypeError('Variable is not a QueryVariable');
+      }
+      return new QueryOptionsProvider({
+        variable: variable, // TEMP, in the future, can we pass only minimal info?
+      });
+    },
   ],
 ]);
 
@@ -192,10 +204,7 @@ export class QueryOptionsProvider implements CustomOptionsProvider {
           }),
           toMetricFindValues(optionsProvider),
           mergeMap((values) => {
-            let interpolatedRegex = '';
-            if (regex) {
-              interpolatedRegex = sceneGraph.interpolate(variable, regex, undefined, 'regex');
-            }
+            const interpolatedRegex = regex ? sceneGraph.interpolate(variable, regex, undefined, 'regex') : '';
             let options = metricNamesToVariableValues(interpolatedRegex, sort, values);
             if (staticOptions) {
               const customOptions = staticOptions;

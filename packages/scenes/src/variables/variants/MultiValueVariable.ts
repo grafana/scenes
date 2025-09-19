@@ -180,7 +180,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     // Single value variable validation
 
     // Try find by value then text
-    let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options, this.state.optionsProvider);
+    let matchingOption = this.findOptionMatchingCurrent(currentValue, currentText, options);
     if (matchingOption) {
       // When updating the initial state from URL the text property is set the same as value
       // Here we can correct the text value state
@@ -194,6 +194,44 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     return stateUpdate;
+  }
+
+  /**
+   * Looks for matching option, first by value but as a fallback by text (label).
+   */
+  private findOptionMatchingCurrent(
+    currentValue: VariableValue,
+    currentText: VariableValue,
+    options: VariableValueOption[]
+  ) {
+    let textMatch: VariableValueOption | undefined;
+    const { optionsProvider } = this.state;
+
+    for (const o of options) {
+      if (o.properties && optionsProvider?.valueProp) {
+        if (this.getValueFromValueProperties(o.properties, optionsProvider.valueProp) === currentValue) {
+          return o;
+        }
+        if (
+          this.getValueFromValueProperties(o.properties, optionsProvider.textProp || optionsProvider.valueProp) ===
+          currentText
+        ) {
+          textMatch = o;
+        }
+        continue;
+      }
+
+      if (o.value === currentValue) {
+        return o;
+      }
+
+      // No early return here as want to continue to look a value match
+      if (o.label === currentText) {
+        textMatch = o;
+      }
+    }
+
+    return textMatch;
   }
 
   /**
@@ -416,42 +454,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * Can be used by subclasses to do custom handling of option search based on search input
    */
   public onSearchChange?(searchFilter: string): void;
-}
-
-/**
- * Looks for matching option, first by value but as a fallback by text (label).
- */
-function findOptionMatchingCurrent(
-  currentValue: VariableValue,
-  currentText: VariableValue,
-  options: VariableValueOption[],
-  optionsProvider?: OptionsProviderSettings
-) {
-  let textMatch: VariableValueOption | undefined;
-
-  for (const o of options) {
-    if (o.properties && optionsProvider?.valueProp) {
-      if (
-        (o.properties as VariableValueOptionProperties)[optionsProvider.valueProp] === currentValue ||
-        (o.properties as VariableValueOptionProperties)[optionsProvider.textProp || optionsProvider.valueProp] ===
-          currentText
-      ) {
-        return o;
-      }
-      continue;
-    }
-
-    if (o.value === currentValue) {
-      return o;
-    }
-
-    // No early return here as want to continue to look a value match
-    if (o.label === currentText) {
-      textMatch = o;
-    }
-  }
-
-  return textMatch;
 }
 
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
