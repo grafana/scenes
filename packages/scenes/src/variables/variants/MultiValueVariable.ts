@@ -21,12 +21,13 @@ import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
 import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
+import { OptionsProviderSettings } from './CustomOptionsProviders';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
   text: VariableValue; // old current.value
-  valueProperties?: Record<string, VariableValueSingle>;
   options: VariableValueOption[];
   allowCustomValue?: boolean;
   isMulti?: boolean;
@@ -41,6 +42,7 @@ export interface MultiValueVariableState extends SceneVariableState {
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
   isReadOnly?: boolean;
+  optionsProvider?: OptionsProviderSettings;
 }
 
 export interface VariableGetOptionsArgs {
@@ -177,22 +179,58 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     // Single value variable validation
 
     // Try find by value then text
-    let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options);
+    let matchingOption = this.findOptionMatchingCurrent(currentValue, currentText, options);
     if (matchingOption) {
       // When updating the initial state from URL the text property is set the same as value
       // Here we can correct the text value state
       stateUpdate.text = matchingOption.label;
       stateUpdate.value = matchingOption.value;
-      stateUpdate.valueProperties = matchingOption.properties;
     } else {
       // Current value is found in options
       const defaultState = this.getDefaultSingleState(options);
       stateUpdate.value = defaultState.value;
       stateUpdate.text = defaultState.label;
-      stateUpdate.valueProperties = defaultState.properties;
     }
 
     return stateUpdate;
+  }
+
+  /**
+   * Looks for matching option, first by value but as a fallback by text (label).
+   */
+  private findOptionMatchingCurrent(
+    currentValue: VariableValue,
+    currentText: VariableValue,
+    options: VariableValueOption[]
+  ) {
+    let textMatch: VariableValueOption | undefined;
+    const { optionsProvider } = this.state;
+
+    for (const o of options) {
+      if (o.properties && optionsProvider?.valueProp) {
+        if (this.getValueFromValueProperties(o.properties, optionsProvider.valueProp) === currentValue) {
+          return o;
+        }
+        if (
+          this.getValueFromValueProperties(o.properties, optionsProvider.textProp || optionsProvider.valueProp) ===
+          currentText
+        ) {
+          textMatch = o;
+        }
+        continue;
+      }
+
+      if (o.value === currentValue) {
+        return o;
+      }
+
+      // No early return here as want to continue to look a value match
+      if (o.label === currentText) {
+        textMatch = o;
+      }
+    }
+
+    return textMatch;
   }
 
   /**
@@ -217,31 +255,44 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   }
 
   public getValue(fieldPath?: string): VariableValue {
-    let value = this.state.value;
+    const { allValue, value, options, optionsProvider } = this.state;
 
     if (this.hasAllValue()) {
-      if (this.state.allValue) {
-        return new CustomAllValue(this.state.allValue, this);
+      if (allValue) {
+        return new CustomAllValue(allValue, this);
       }
-
-      value = this.state.options.map((x) => x.value);
+      if (optionsProvider?.valueProp) {
+        return options.map((o) =>
+          this.getValueFromValueProperties(o.properties, fieldPath || optionsProvider.valueProp!)
+        );
+      }
+      return options.map((o) => o.value);
     }
 
-    if (fieldPath != null) {
+    if (optionsProvider?.valueProp) {
       if (Array.isArray(value)) {
-        const index = parseInt(fieldPath, 10);
-        if (!isNaN(index) && index >= 0 && index < value.length) {
-          return value[index];
-        }
+        return value.map((v) => {
+          const o = options.find((o) => o.value === v);
+          return o ? this.getValueFromValueProperties(o.properties, fieldPath || optionsProvider.valueProp!) : v;
+        });
       }
+      const o = options.find((o) => o.value === value);
+      return o ? this.getValueFromValueProperties(o.properties, fieldPath || optionsProvider.valueProp) : value;
+    }
 
-      if (this.state.valueProperties) {
-        const accessor = this.getFieldAccessor(fieldPath);
-        return accessor(this.state.valueProperties);
+    if (fieldPath != null && Array.isArray(value)) {
+      const index = parseInt(fieldPath, 10);
+      if (!isNaN(index) && index >= 0 && index < value.length) {
+        return value[index];
       }
     }
 
     return value;
+  }
+
+  private getValueFromValueProperties(properties: VariableValueOption['properties'], fieldPath: string) {
+    const accesor = this.getFieldAccessor(fieldPath);
+    return accesor(properties);
   }
 
   private getFieldAccessor(fieldPath: string) {
@@ -274,7 +325,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
     } else if (options.length > 0) {
-      return { value: [options[0].value], text: [options[0].label] };
+      return { value: [options[0].value], text: [options[0].label], properties: [options[0].properties] };
     } else {
       return { value: [], text: [] };
     }
@@ -402,30 +453,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * Can be used by subclasses to do custom handling of option search based on search input
    */
   public onSearchChange?(searchFilter: string): void;
-}
-
-/**
- * Looks for matching option, first by value but as a fallback by text (label).
- */
-function findOptionMatchingCurrent(
-  currentValue: VariableValue,
-  currentText: VariableValue,
-  options: VariableValueOption[]
-) {
-  let textMatch: VariableValueOption | undefined;
-
-  for (const item of options) {
-    if (item.value === currentValue) {
-      return item;
-    }
-
-    // No early return here as want to continue to look a value match
-    if (item.label === currentText) {
-      textMatch = item;
-    }
-  }
-
-  return textMatch;
 }
 
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>

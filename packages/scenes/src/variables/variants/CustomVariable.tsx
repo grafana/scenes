@@ -1,16 +1,17 @@
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { SceneComponentProps } from '../../core/types';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
-import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
-import { sceneGraph } from '../../core/sceneGraph';
 import React from 'react';
+import { buildOptionsProvider, OptionsProviderSettings } from './CustomOptionsProviders';
+import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
+  optionsProvider: OptionsProviderSettings;
 }
 
 export class CustomVariable extends MultiValueVariable<CustomVariableState> {
@@ -26,30 +27,30 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
       text: '',
       options: [],
       name: '',
+      optionsProvider: { type: 'csv' },
       ...initialState,
     });
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
-    const interpolated = sceneGraph.interpolate(this, this.state.query);
-    const match = interpolated.match(/(?:\\,|[^,])+/g) ?? [];
-
-    const options = match.map((text) => {
-      text = text.replace(/\\,/g, ',');
-      const textMatch = /^\s*(.+)\s:\s(.+)$/g.exec(text) ?? [];
-      if (textMatch.length === 3) {
-        const [, key, value] = textMatch;
-        return { label: key.trim(), value: value.trim() };
-      } else {
-        return { label: text.trim(), value: text.trim() };
-      }
+    return new Observable((subscriber) => {
+      buildOptionsProvider(this as unknown as MultiValueVariable)
+        .getOptions()
+        .subscribe({
+          next: (options) => {
+            if (!options.length) {
+              this.skipNextValidation = true;
+            }
+            subscriber.next(options);
+          },
+          error: (error) => {
+            subscriber.error(error);
+          },
+          complete: () => {
+            subscriber.complete();
+          },
+        });
     });
-
-    if (!options.length) {
-      this.skipNextValidation = true;
-    }
-
-    return of(options);
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {

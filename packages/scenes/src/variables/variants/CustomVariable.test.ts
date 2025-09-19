@@ -1,8 +1,8 @@
 import { lastValueFrom } from 'rxjs';
 
-import { CustomVariable } from './CustomVariable';
 import { TestScene } from '../TestScene';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { CustomVariable } from './CustomVariable';
 
 describe('CustomVariable', () => {
   describe('When empty query is provided', () => {
@@ -278,6 +278,46 @@ label-3 : value-3,`,
 
       expect(A.state.value).toBe('value1');
       expect(B.state.options[2].value).toBe('value1');
+    });
+  });
+
+  describe('JSON options provider', () => {
+    it('Can provide object values (JSON is an array of objects)', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        isMulti: false,
+        optionsProvider: { type: 'json', valueProp: 'id', textProp: 'display' },
+        query: `
+[
+  { "id": "test", "display": "Test", "location": "US" },
+  { "id": "prod", "display": "Prod", "location": "EU" }
+]
+        `,
+        value: 'prod',
+        text: 'Prod',
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.getValue()).toEqual('prod');
+      expect(variable.getValue('location')).toEqual('EU');
+    });
+
+    it('Can provide non-object values (JSON is an array of strings)', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        isMulti: false,
+        optionsProvider: { type: 'json' },
+        query: `["test", "prod"]`,
+        value: 'prod',
+        text: 'prod',
+        options: [],
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe('prod');
+      expect(variable.state.text).toBe('prod');
     });
   });
 });
