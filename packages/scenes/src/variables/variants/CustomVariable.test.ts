@@ -281,20 +281,18 @@ label-3 : value-3,`,
     });
   });
 
-  describe('multi prop / object support', () => {
-    it('Can have object values (JSON array of objects)', async () => {
+  describe('JSON options provider', () => {
+    it('Can provide object values (JSON is an array of objects)', async () => {
       const variable = new CustomVariable({
         name: 'test',
         isMulti: false,
-        optionsProviderType: 'json',
+        optionsProvider: { type: 'json', valueProp: 'id', textProp: 'display' },
         query: `
 [
   { "id": "test", "display": "Test", "location": "US" },
   { "id": "prod", "display": "Prod", "location": "EU" }
 ]
         `,
-        valueProp: 'id',
-        textProp: 'display',
         value: 'prod',
         text: 'Prod',
       });
@@ -305,11 +303,11 @@ label-3 : value-3,`,
       expect(variable.getValue('location')).toEqual('EU');
     });
 
-    it('Can have object values (JSON array of strings)', async () => {
+    it('Can provide non-object values (JSON is an array of strings)', async () => {
       const variable = new CustomVariable({
         name: 'test',
         isMulti: false,
-        optionsProviderType: 'json',
+        optionsProvider: { type: 'json' },
         query: `["test", "prod"]`,
         value: 'prod',
         text: 'prod',

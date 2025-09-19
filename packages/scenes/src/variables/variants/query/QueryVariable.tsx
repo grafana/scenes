@@ -1,34 +1,19 @@
-import { Observable, of, filter, take, mergeMap, catchError, throwError, from, lastValueFrom } from 'rxjs';
-import { v4 as uuidv4 } from 'uuid';
+import { lastValueFrom, Observable, of } from 'rxjs';
 
-import {
-  CoreApp,
-  DataQueryRequest,
-  LoadingState,
-  PanelData,
-  ScopedVars,
-  VariableRefresh,
-  VariableSort,
-} from '@grafana/data';
+import { VariableRefresh, VariableSort } from '@grafana/data';
 
-import { sceneGraph } from '../../../core/sceneGraph';
 import { SceneComponentProps, SceneDataQuery } from '../../../core/types';
 import { VariableDependencyConfig } from '../../VariableDependencyConfig';
 import { MultiOrSingleValueSelect } from '../../components/VariableValueSelect';
 import { VariableValueOption } from '../../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../MultiValueVariable';
 
-import { createQueryVariableRunner } from './createQueryVariableRunner';
-import { metricNamesToVariableValues, sortVariableValues } from './utils';
-import { toMetricFindValues } from './toMetricFindValues';
-import { getDataSource } from '../../../utils/getDataSource';
-import { safeStringifyValue } from '../../utils';
 import { DataQuery, DataSourceRef } from '@grafana/schema';
-import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { debounce } from 'lodash';
-import { registerQueryWithController } from '../../../querying/registerQueryWithController';
-import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 import React from 'react';
+import { SEARCH_FILTER_VARIABLE } from '../../constants';
+import { safeStringifyValue } from '../../utils';
+import { buildOptionsProvider, OptionsProviderSettings } from '../CustomOptionsProviders';
 
 export interface QueryVariableState extends MultiValueVariableState {
   type: 'query';
@@ -45,6 +30,7 @@ export interface QueryVariableState extends MultiValueVariableState {
   staticOptionsOrder?: 'before' | 'after' | 'sorted';
   /** @internal Only for use inside core dashboards */
   definition?: string;
+  optionsProvider: OptionsProviderSettings;
 }
 
 export class QueryVariable extends MultiValueVariable<QueryVariableState> {
@@ -65,6 +51,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       refresh: VariableRefresh.onDashboardLoad,
       sort: VariableSort.disabled,
       ...initialState,
+      optionsProvider: { ...initialState.optionsProvider, type: 'query' },
     });
   }
 
@@ -75,86 +62,27 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
     this.setState({ loading: true, error: null });
 
-    return from(
-      getDataSource(this.state.datasource, {
-        __sceneObject: wrapInSafeSerializableSceneObject(this),
-      })
-    ).pipe(
-      mergeMap((ds) => {
-        const runner = createQueryVariableRunner(ds);
-        const target = runner.getTarget(this);
-        const request = this.getRequest(target, args.searchFilter);
-
-        return runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request).pipe(
-          registerQueryWithController({
-            type: 'QueryVariable/getValueOptions',
-            request: request,
-            origin: this,
-          }),
-          filter((data) => data.state === LoadingState.Done || data.state === LoadingState.Error), // we only care about done or error for now
-          take(1), // take the first result, using first caused a bug where it in some situations throw an uncaught error because of no results had been received yet
-          mergeMap((data: PanelData) => {
-            if (data.state === LoadingState.Error) {
-              return throwError(() => data.error);
+    return new Observable((subscriber) => {
+      buildOptionsProvider(this as unknown as MultiValueVariable)
+        .getOptions(args)
+        .subscribe({
+          next: (options) => {
+            if (!options.length) {
+              this.skipNextValidation = true;
             }
-            return of(data);
-          }),
-          toMetricFindValues(this.state.valueProp, this.state.textProp),
-          mergeMap((values) => {
-            let regex = '';
-            if (this.state.regex) {
-              regex = sceneGraph.interpolate(this, this.state.regex, undefined, 'regex');
-            }
-            let options = metricNamesToVariableValues(regex, this.state.sort, values);
-            if (this.state.staticOptions) {
-              const customOptions = this.state.staticOptions;
-              options = options.filter((option) => !customOptions.find((custom) => custom.value === option.value));
-              if (this.state.staticOptionsOrder === 'after') {
-                options.push(...customOptions);
-              } else if (this.state.staticOptionsOrder === 'sorted') {
-                options = sortVariableValues(options.concat(customOptions), this.state.sort);
-              } else {
-                options.unshift(...customOptions);
-              }
-            }
-            return of(options);
-          }),
-          catchError((error) => {
-            if (error.cancelled) {
-              return of([]);
-            }
-            return throwError(() => error);
-          })
-        );
-      })
-    );
-  }
-
-  private getRequest(target: DataQuery | string, searchFilter?: string) {
-    const scopedVars: ScopedVars = {
-      __sceneObject: wrapInSafeSerializableSceneObject(this),
-    };
-
-    if (searchFilter) {
-      scopedVars.__searchFilter = { value: searchFilter, text: searchFilter };
-    }
-
-    const range = sceneGraph.getTimeRange(this).state.value;
-
-    const request: DataQueryRequest = {
-      app: CoreApp.Dashboard,
-      requestId: uuidv4(),
-      timezone: '',
-      range,
-      interval: '',
-      intervalMs: 0,
-      // @ts-ignore
-      targets: [target],
-      scopedVars,
-      startTime: Date.now(),
-    };
-
-    return request;
+            this.setState({ loading: false });
+            subscriber.next(options);
+          },
+          error: (error) => {
+            this.setState({ loading: false, error });
+            subscriber.error(error);
+          },
+          complete: () => {
+            this.setState({ loading: false });
+            subscriber.complete();
+          },
+        });
+    });
   }
 
   onSearchChange = (searchFilter: string) => {

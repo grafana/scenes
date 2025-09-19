@@ -24,9 +24,7 @@ export function getVariableWithObjectValuesDemo(defaults: SceneAppPageState) {
               name: 'envs',
               label: 'Environments',
               isMulti: true,
-              value: '',
-              text: '',
-              optionsProviderType: 'json',
+              optionsProvider: { type: 'json', valueProp: 'id', textProp: 'name' },
               query: `
 [
   { "id": 1, "name": "Development", "aws_environment": "development", "azure_environment": "dev" },
@@ -34,8 +32,6 @@ export function getVariableWithObjectValuesDemo(defaults: SceneAppPageState) {
   { "id": 3, "name": "Production", "aws_environment": "prod", "azure_environment": "prd" }
 ]
 `,
-              valueProp: 'id',
-              textProp: 'name',
             }),
           ],
         }),

@@ -22,7 +22,9 @@ import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
 import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
+import { OptionsProviderSettings } from './CustomOptionsProviders';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -41,11 +43,7 @@ export interface MultiValueVariableState extends SceneVariableState {
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
   isReadOnly?: boolean;
-  /**
-   * For value objects, these options control which properties of the value object are used to get value and text
-   */
-  valueProp?: string;
-  textProp?: string;
+  optionsProvider?: OptionsProviderSettings;
 }
 
 export interface VariableGetOptionsArgs {
@@ -182,13 +180,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     // Single value variable validation
 
     // Try find by value then text
-    let matchingOption = findOptionMatchingCurrent(
-      currentValue,
-      currentText,
-      options,
-      this.state.valueProp,
-      this.state.textProp
-    );
+    let matchingOption = findOptionMatchingCurrent(currentValue, currentText, options, this.state.optionsProvider);
     if (matchingOption) {
       // When updating the initial state from URL the text property is set the same as value
       // Here we can correct the text value state
@@ -226,28 +218,29 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   }
 
   public getValue(fieldPath?: string): VariableValue {
-    const { allValue, value, options, valueProp } = this.state;
+    const { allValue, value, options, optionsProvider } = this.state;
 
     if (this.hasAllValue()) {
       if (allValue) {
         return new CustomAllValue(allValue, this);
       }
-      if (valueProp) {
-        return options.map((o) => this.getValueFromValueProperties(o.properties, fieldPath || valueProp));
+      if (optionsProvider?.valueProp) {
+        return options.map((o) =>
+          this.getValueFromValueProperties(o.properties, fieldPath || optionsProvider.valueProp!)
+        );
       }
       return options.map((o) => o.value);
     }
 
-    if (valueProp) {
+    if (optionsProvider?.valueProp) {
       if (Array.isArray(value)) {
-        return value.map((v) =>
-          this.getValueFromValueProperties(options.find((o) => o.value === v)?.properties, fieldPath || valueProp)
-        );
+        return value.map((v) => {
+          const o = options.find((o) => o.value === v);
+          return o ? this.getValueFromValueProperties(o.properties, fieldPath || optionsProvider.valueProp!) : v;
+        });
       }
-      return this.getValueFromValueProperties(
-        options.find((o) => o.value === value)?.properties,
-        fieldPath || valueProp
-      );
+      const o = options.find((o) => o.value === value);
+      return o ? this.getValueFromValueProperties(o.properties, fieldPath || optionsProvider.valueProp) : value;
     }
 
     if (fieldPath != null && Array.isArray(value)) {
@@ -432,29 +425,29 @@ function findOptionMatchingCurrent(
   currentValue: VariableValue,
   currentText: VariableValue,
   options: VariableValueOption[],
-  valueProp = 'value',
-  textProp = 'label'
+  optionsProvider?: OptionsProviderSettings
 ) {
   let textMatch: VariableValueOption | undefined;
 
-  for (const item of options) {
-    if (item.properties) {
+  for (const o of options) {
+    if (o.properties && optionsProvider?.valueProp) {
       if (
-        (item.properties as VariableValueOptionProperties)[valueProp] === currentValue ||
-        (item.properties as VariableValueOptionProperties)[textProp] === currentText
+        (o.properties as VariableValueOptionProperties)[optionsProvider.valueProp] === currentValue ||
+        (o.properties as VariableValueOptionProperties)[optionsProvider.textProp || optionsProvider.valueProp] ===
+          currentText
       ) {
-        return item;
+        return o;
       }
       continue;
     }
 
-    if (item.value === currentValue) {
-      return item;
+    if (o.value === currentValue) {
+      return o;
     }
 
     // No early return here as want to continue to look a value match
-    if (item.label === currentText) {
-      textMatch = item;
+    if (o.label === currentText) {
+      textMatch = o;
     }
   }
 

@@ -27,13 +27,14 @@ describe('toMetricFindValues', () => {
   const frameWithPropertiesField = toDataFrame({
     fields: [
       {
-        name: 'properties',
-        type: FieldType.other,
-        values: [
-          { value: 'A', displayValue: 'Alpha' },
-          { value: 'B', displayValue: 'Beta' },
-          { value: 'C', displayValue: 'Gamma' },
-        ],
+        name: 'displayValue',
+        type: FieldType.string,
+        values: ['ALPHA', 'BETA', 'GAMMA'],
+      },
+      {
+        name: 'altValue',
+        type: FieldType.string,
+        values: ['ALP', 'BET', 'GAM'],
       },
     ],
   });
@@ -85,24 +86,35 @@ describe('toMetricFindValues', () => {
         { text: 'C', value: 'C', expandable: true },
       ],
     },
-    {
-      series: [frameWithPropertiesField],
-      expected: [
-        { text: 'Alpha', value: 'A', properties: { displayValue: 'Alpha', value: 'A' } },
-        { text: 'Beta', value: 'B', properties: { displayValue: 'Beta', value: 'B' } },
-        { text: 'Gamma', value: 'C', properties: { displayValue: 'Gamma', value: 'C' } },
-      ],
-    },
   ].forEach((scenario) => {
     it(`when called with series:${JSON.stringify(scenario.series, null, 0)}`, async () => {
       const { series, expected } = scenario;
       const panelData: any = { series };
-      const observable = of(panelData).pipe(toMetricFindValues('value', 'displayValue'));
+      const observable = of(panelData).pipe(
+        toMetricFindValues({ type: 'query', valueProp: 'value', textProp: 'displayValue' })
+      );
 
       await expect(observable).toEmitValuesWith((received) => {
         const value = received[0];
         expect(value).toEqual(expected);
       });
+    });
+  });
+
+  it(`when called with series: frameWithPropertiesField, frameWithTextField, frameWithValueField`, async () => {
+    const series = [frameWithPropertiesField, frameWithTextField, frameWithValueField];
+    const panelData: any = { series };
+    const observable = of(panelData).pipe(
+      toMetricFindValues({ type: 'query', valueProp: 'value', textProp: 'displayValue' })
+    );
+
+    await expect(observable).toEmitValuesWith((received) => {
+      const value = received[0];
+      expect(value).toEqual([
+        { text: 'Alpha', value: 'A', properties: { displayValue: 'Alpha', altValue: 'ALP' } },
+        { text: 'Beta', value: 'B', properties: { displayValue: 'Beta', altValue: 'BET' } },
+        { text: 'Gamma', value: 'C', properties: { displayValue: 'Gamma', altValue: 'GAM' } },
+      ]);
     });
   });
 

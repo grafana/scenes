@@ -189,8 +189,8 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
       expect(variable.state.loading).toEqual(true);
     });
 
-    describe('multi prop / object support', () => {
-      it('Can have object values', async () => {
+    describe('When extra properties are received', () => {
+      it('Should provide value objects', async () => {
         setCreateQueryVariableRunnerFactory(
           () =>
             new FakeQueryRunner(
@@ -222,8 +222,11 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
-          valueProp: 'id',
-          textProp: 'display',
+          optionsProvider: {
+            type: 'query',
+            valueProp: 'id',
+            textProp: 'display',
+          },
         });
 
         await lastValueFrom(variable.validateAndUpdate());

@@ -7,14 +7,14 @@ import {
   getProcessedDataFrames,
 } from '@grafana/data';
 import { map, OperatorFunction } from 'rxjs';
+import { OptionsProviderSettings } from '../CustomOptionsProviders';
 
 interface MetricFindValueWithProperties extends MetricFindValue {
   properties?: Record<string, any>;
 }
 
 export function toMetricFindValues(
-  valueProp?: string,
-  textProp?: string
+  optionsProvider?: OptionsProviderSettings
 ): OperatorFunction<PanelData, MetricFindValueWithProperties[]> {
   return (source) =>
     source.pipe(
@@ -76,7 +76,7 @@ export function toMetricFindValues(
           throw new Error("Couldn't find any field of type string or other in the results.");
         }
 
-        if (propertiesIndex !== -1 && !valueProp) {
+        if (propertiesIndex !== -1 && !optionsProvider) {
           throw new Error('Field of type other require valueProp to be set.');
         }
 
@@ -90,8 +90,8 @@ export function toMetricFindValues(
 
             if (propertiesIndex !== -1) {
               metrics.push({
-                text: properties[textProp as any] || text,
-                value: properties[valueProp!] || value,
+                text: properties[optionsProvider!.textProp as any] || text,
+                value: properties[optionsProvider!.valueProp!] || value,
                 expandable,
                 properties,
               });
