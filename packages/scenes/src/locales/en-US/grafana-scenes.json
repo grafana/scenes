@@ -40,6 +40,10 @@
       "splitter": {
         "aria-label-pane-resize-widget": "Pane resize widget"
       },
+      "time-picker": {
+        "move-backward-tooltip": "Move {{moveBackwardDuration}} backward",
+        "move-forward-tooltip": "Move {{moveForwardDuration}} forward"
+      },
       "viz-panel": {
         "title": {
           "title": "Title"
