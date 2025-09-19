@@ -15,7 +15,6 @@ import {
   VariableValueSingle,
   CustomVariableValue,
   VariableCustomFormatterFn,
-  VariableValueOptionProperties,
 } from '../types';
 import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
