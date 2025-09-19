@@ -202,7 +202,7 @@ export class QueryOptionsProvider implements CustomOptionsProvider {
             }
             return of(data);
           }),
-          toMetricFindValues(optionsProvider),
+          toMetricFindValues(optionsProvider.valueProp, optionsProvider.textProp),
           mergeMap((values) => {
             const interpolatedRegex = regex ? sceneGraph.interpolate(variable, regex, undefined, 'regex') : '';
             let options = metricNamesToVariableValues(interpolatedRegex, sort, values);
