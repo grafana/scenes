@@ -19,6 +19,7 @@ import {
   AdHocFiltersVariable,
   isFilterComplete,
   isMultiValueOperator,
+  OPERATORS,
 } from '../AdHocFiltersVariable';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -250,11 +251,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
   if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
-    filteredDropDownItems.push({
+    const operatorDefinition = OPERATORS.find((op) => filter?.operator === op.value);
+    const customOptionValue: SelectableValue<string> = {
       value: inputValue.trim(),
       label: inputValue.trim(),
       isCustom: true,
-    });
+    };
+
+    // If operator is regex, add custom value option first
+    if (operatorDefinition?.isRegex) {
+      filteredDropDownItems.unshift(customOptionValue);
+    } else {
+      filteredDropDownItems.push(customOptionValue);
+    }
   }
 
   // Get the optional onAddCustomValue method from the AdHocFiltersVariable if defined
