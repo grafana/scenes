@@ -1,3 +1,16 @@
+# v6.37.0 (Fri Sep 19 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimePicker: Pass move duration tooltip [#1248](https://github.com/grafana/scenes/pull/1248) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.36.0 (Thu Sep 18 2025)
 
 #### 🚀 Enhancement
