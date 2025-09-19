@@ -16,7 +16,7 @@ import { MultiValueVariable, VariableGetOptionsArgs } from './MultiValueVariable
 
 type BuilderFunction = (variable: MultiValueVariable) => CustomOptionsProvider;
 
-const OPTIONS_PROVIDERS_LOOKUP = new Map<string, BuilderFunction>([
+const OPTIONS_PROVIDERS_REGISTRY = new Map<string, BuilderFunction>([
   [
     'csv',
     (variable: MultiValueVariable) => {
@@ -59,17 +59,17 @@ export function buildOptionsProvider(variable: MultiValueVariable) {
   if (!optionsProvider) {
     throw new Error('Variable is missing optionsProvider');
   }
-  if (OPTIONS_PROVIDERS_LOOKUP.has(optionsProvider.type)) {
-    return OPTIONS_PROVIDERS_LOOKUP.get(optionsProvider.type)!(variable);
+  if (OPTIONS_PROVIDERS_REGISTRY.has(optionsProvider.type)) {
+    return OPTIONS_PROVIDERS_REGISTRY.get(optionsProvider.type)!(variable);
   }
   throw new Error(`Unknown options provider "${optionsProvider.type}"`);
 }
 
 export function registerOptionsProvider(type: string, builderFn: BuilderFunction) {
-  if (OPTIONS_PROVIDERS_LOOKUP.has(type)) {
+  if (OPTIONS_PROVIDERS_REGISTRY.has(type)) {
     throw new Error(`Options provider "${type}" already registered`);
   }
-  OPTIONS_PROVIDERS_LOOKUP.set(type, builderFn);
+  OPTIONS_PROVIDERS_REGISTRY.set(type, builderFn);
 }
 
 export type OptionsProviderSettings = {
