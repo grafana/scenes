@@ -1,3 +1,15 @@
+# v6.38.0 (Fri Sep 19 2025)
+
+#### 🚀 Enhancement
+
+- SceneInteractionProfiler: Measure atomic selectbox interactions on adhocs and groupBy [#1240](https://github.com/grafana/scenes/pull/1240) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.37.0 (Fri Sep 19 2025)
 
 #### 🚀 Enhancement
