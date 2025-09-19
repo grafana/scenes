@@ -33,6 +33,19 @@ export interface SceneInteractionProfileEvent {
   // add more granular data,i.e. network times? slow frames?
 }
 
+export interface SceneComponentInteractionEvent {
+  origin: string;
+  duration: number;
+  networkDuration: number;
+  startTs: number;
+  endTs: number;
+}
+
+export interface SceneInteractionTrackerState extends SceneObjectState {
+  enableInteractionTracking?: boolean;
+  onInteractionComplete?(event: SceneComponentInteractionEvent): void;
+}
+
 export interface SceneQueryStateControllerState extends SceneObjectState {
   isRunning: boolean;
   enableProfiling?: boolean;
