@@ -15,12 +15,17 @@ const optionsProvidersLookup = new Map<string, BuilderFunction>([
   ],
   [
     'json',
-    (variable: CustomVariable) =>
-      new JsonOptionsProvider({
+    (variable: CustomVariable) => {
+      if (!variable.state.valueProp) {
+        throw new Error('Missing valueProp');
+      }
+
+      return new JsonOptionsProvider({
         json: sceneGraph.interpolate(variable, variable.state.query),
         valueProp: variable.state.valueProp,
         textProp: variable.state.textProp,
-      }),
+      });
+    },
   ],
 ]);
 
@@ -81,7 +86,7 @@ export class CsvOptionsProvider implements CustomOptionsProvider {
 
 interface JsonProviderParams {
   json: string;
-  valueProp?: string;
+  valueProp: string;
   textProp?: string;
 }
 
@@ -105,25 +110,11 @@ export class JsonOptionsProvider implements CustomOptionsProvider {
 
     const { valueProp, textProp } = this.params;
 
-    if (!valueProp) {
-      throw new Error('valueProp must be set');
-    }
-
-    const options = [];
-
-    for (const o of parsedOptions as Array<Record<string, any>>) {
-      if (o[valueProp] == null) {
-        continue;
-      }
-
-      options.push({
-        value: o[valueProp].trim(),
-        label: o[textProp as any]?.trim(),
-        properties: o,
-      });
-    }
-
-    return options;
+    return parsedOptions.map((o) => ({
+      value: String(o[valueProp]).trim(),
+      label: String(o[textProp as any] || o[valueProp])?.trim(),
+      properties: o,
+    }));
   }
 
   public getOptions(): Observable<VariableValueOption[]> {

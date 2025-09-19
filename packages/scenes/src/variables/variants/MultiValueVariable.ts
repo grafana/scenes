@@ -27,7 +27,6 @@ import { getQueryController } from '../../core/sceneGraph/getQueryController';
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
   text: VariableValue; // old current.value
-  valueProperties?: VariableValueOption['properties'];
   options: VariableValueOption[];
   allowCustomValue?: boolean;
   isMulti?: boolean;
@@ -147,12 +146,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       } else {
         stateUpdate.value = options[0].value;
         stateUpdate.text = options[0].label;
-        stateUpdate.valueProperties = options[0].properties;
         // If multi switch to arrays
         if (this.state.isMulti) {
           stateUpdate.value = [stateUpdate.value];
           stateUpdate.text = [stateUpdate.text];
-          stateUpdate.valueProperties = [stateUpdate.valueProperties];
         }
       }
       return stateUpdate;
@@ -179,11 +176,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         }
       }
 
-      const valueProperties = (stateUpdate.value as VariableValueSingle[])
-        ?.map((v) => options.find((o) => o.value === v)?.properties)
-        .filter(Boolean);
-      stateUpdate.valueProperties = valueProperties.length ? valueProperties : undefined;
-
       return stateUpdate;
     }
 
@@ -202,13 +194,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       // Here we can correct the text value state
       stateUpdate.text = matchingOption.label;
       stateUpdate.value = matchingOption.value;
-      stateUpdate.valueProperties = matchingOption.properties;
     } else {
       // Current value is found in options
       const defaultState = this.getDefaultSingleState(options);
       stateUpdate.value = defaultState.value;
       stateUpdate.text = defaultState.label;
-      stateUpdate.valueProperties = defaultState.properties;
     }
 
     return stateUpdate;
@@ -236,7 +226,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   }
 
   public getValue(fieldPath?: string): VariableValue {
-    const { allValue, value, options, valueProperties, valueProp } = this.state;
+    const { allValue, value, options, valueProp } = this.state;
 
     if (this.hasAllValue()) {
       if (allValue) {
@@ -248,11 +238,16 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       return options.map((o) => o.value);
     }
 
-    if (valueProperties) {
-      if (Array.isArray(valueProperties)) {
-        return valueProperties.map((p) => this.getValueFromValueProperties(p, fieldPath || valueProp!));
+    if (valueProp) {
+      if (Array.isArray(value)) {
+        return value.map((v) =>
+          this.getValueFromValueProperties(options.find((o) => o.value === v)?.properties, fieldPath || valueProp)
+        );
       }
-      return this.getValueFromValueProperties(valueProperties, fieldPath || valueProp!);
+      return this.getValueFromValueProperties(
+        options.find((o) => o.value === value)?.properties,
+        fieldPath || valueProp
+      );
     }
 
     if (fieldPath != null && Array.isArray(value)) {
@@ -265,7 +260,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     return value;
   }
 
-  private getValueFromValueProperties(properties: MultiValueVariableState['valueProperties'], fieldPath: string) {
+  private getValueFromValueProperties(properties: VariableValueOption['properties'], fieldPath: string) {
     const accesor = this.getFieldAccessor(fieldPath);
     return accesor(properties);
   }
