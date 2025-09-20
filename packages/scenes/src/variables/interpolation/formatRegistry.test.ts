@@ -6,7 +6,7 @@ import { formatRegistry } from './formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 
 function formatValue<T extends VariableValue>(
-  formatId: VariableFormatID | 'backtick' | 'join' | 'customqueryparam', // Erweitert für die Tests
+  formatId: VariableFormatID | 'backtick' | 'join' | 'customqueryparam',
   value: T,
   text?: string,
   args: string[] = []
