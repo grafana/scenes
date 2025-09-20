@@ -249,6 +249,20 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       formatter: sqlStringFormatter,
     },
     {
+      id: 'backtick',
+      name: 'Backtick',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.backticked-values',
+        'Formats values with backticks, ideal for column names in SQL.'
+      ),
+      formatter: (value) => {
+        if (isArray(value)) {
+          return value.map(v => `\`${v}\``).join(',');
+        }
+        return `\`${value}\``;
+      },
+    },
+    {
       id: 'join', // join not yet available in depended @grafana/schema version
       name: 'Join',
       description: 'Join values with a comma',
