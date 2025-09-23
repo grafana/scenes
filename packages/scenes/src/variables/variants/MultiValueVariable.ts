@@ -21,12 +21,13 @@ import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
 import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
+import { OptionsProviderSettings } from './CustomOptionsProviders';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
   text: VariableValue; // old current.value
-  valueProperties?: Record<string, VariableValueSingle>;
   options: VariableValueOption[];
   allowCustomValue?: boolean;
   isMulti?: boolean;
@@ -41,6 +42,7 @@ export interface MultiValueVariableState extends SceneVariableState {
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
   isReadOnly?: boolean;
+  optionsProvider?: OptionsProviderSettings;
 }
 
 export interface VariableGetOptionsArgs {
@@ -183,13 +185,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       // Here we can correct the text value state
       stateUpdate.text = matchingOption.label;
       stateUpdate.value = matchingOption.value;
-      stateUpdate.valueProperties = matchingOption.properties;
     } else {
       // Current value is found in options
       const defaultState = this.getDefaultSingleState(options);
       stateUpdate.value = defaultState.value;
       stateUpdate.text = defaultState.label;
-      stateUpdate.valueProperties = defaultState.properties;
     }
 
     return stateUpdate;
@@ -223,8 +223,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       if (this.state.allValue) {
         return new CustomAllValue(this.state.allValue, this);
       }
-
-      value = this.state.options.map((x) => x.value);
+      value = this.state.options.map((o) => o.value);
     }
 
     if (fieldPath != null) {
@@ -233,11 +232,18 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         if (!isNaN(index) && index >= 0 && index < value.length) {
           return value[index];
         }
+
+        const accesor = this.getFieldAccessor(fieldPath);
+        return value.map((v) => {
+          const o = this.state.options.find((o) => o.value === v);
+          return o ? accesor(o.properties) : v;
+        });
       }
 
-      if (this.state.valueProperties) {
-        const accessor = this.getFieldAccessor(fieldPath);
-        return accessor(this.state.valueProperties);
+      const accesor = this.getFieldAccessor(fieldPath);
+      const o = this.state.options.find((o) => o.value === value);
+      if (o) {
+        return accesor(o.properties);
       }
     }
 
@@ -274,7 +280,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
     } else if (options.length > 0) {
-      return { value: [options[0].value], text: [options[0].label] };
+      return { value: [options[0].value], text: [options[0].label], properties: [options[0].properties] };
     } else {
       return { value: [], text: [] };
     }
@@ -414,14 +420,14 @@ function findOptionMatchingCurrent(
 ) {
   let textMatch: VariableValueOption | undefined;
 
-  for (const item of options) {
-    if (item.value === currentValue) {
-      return item;
+  for (const o of options) {
+    if (o.value === currentValue) {
+      return o;
     }
 
     // No early return here as want to continue to look a value match
-    if (item.label === currentText) {
-      textMatch = item;
+    if (o.label === currentText) {
+      textMatch = o;
     }
   }
 
