@@ -224,7 +224,13 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         return new CustomAllValue(this.state.allValue, this);
       }
 
-      value = this.state.options.map((x) => x.value);
+      if (fieldPath != null) {
+        // TODO handle scenario when fieldPath is an array index
+        const accessor = this.getFieldAccessor(fieldPath);
+        return this.state.options.map((option) => accessor(option.properties));
+      } else {
+        value = this.state.options.map((x) => x.value);
+      }
     }
 
     if (fieldPath != null) {
