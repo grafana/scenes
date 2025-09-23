@@ -233,24 +233,21 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
           return value[index];
         }
 
+        const accesor = this.getFieldAccessor(fieldPath);
         return value.map((v) => {
           const o = this.state.options.find((o) => o.value === v);
-          return o ? this.getValueFromValueProperties(o.properties, fieldPath) : v;
+          return o ? accesor(o.properties) : v;
         });
       }
 
+      const accesor = this.getFieldAccessor(fieldPath);
       const o = this.state.options.find((o) => o.value === value);
       if (o) {
-        return this.getValueFromValueProperties(o.properties, fieldPath);
+        return accesor(o.properties);
       }
     }
 
     return value;
-  }
-
-  private getValueFromValueProperties(properties: VariableValueOption['properties'], fieldPath: string) {
-    const accesor = this.getFieldAccessor(fieldPath);
-    return accesor(properties);
   }
 
   private getFieldAccessor(fieldPath: string) {
