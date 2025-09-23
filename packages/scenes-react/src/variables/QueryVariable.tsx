@@ -29,6 +29,7 @@ export function QueryVariable({
   isMulti,
   includeAll,
   skipUrlSync,
+  allValue,
   children,
 }: QueryVariableProps): React.ReactNode {
   const scene = useSceneContext();
@@ -50,6 +51,7 @@ export function QueryVariable({
       hide,
       includeAll,
       skipUrlSync,
+      allValue,
     });
   }
 
@@ -73,7 +75,8 @@ export function QueryVariable({
       variable.state.includeAll === includeAll &&
       variable.state.refresh === refresh &&
       variable.state.sort === sort &&
-      variable.state.skipUrlSync === skipUrlSync
+      variable.state.skipUrlSync === skipUrlSync &&
+      variable.state.allValue === allValue
     ) {
       return;
     }
@@ -88,10 +91,11 @@ export function QueryVariable({
       hide,
       includeAll,
       skipUrlSync,
+      allValue,
     });
 
     variable.refreshOptions();
-  }, [skipUrlSync, datasource, hide, includeAll, label, query, refresh, regex, sort, variable, variableAdded]);
+  }, [skipUrlSync, allValue, datasource, hide, includeAll, label, query, refresh, regex, sort, variable, variableAdded]);
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {
