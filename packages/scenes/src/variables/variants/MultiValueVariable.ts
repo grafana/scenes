@@ -217,35 +217,31 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   }
 
   public getValue(fieldPath?: string): VariableValue {
-    const { allValue, value, options, optionsProvider } = this.state;
+    let value = this.state.value;
 
     if (this.hasAllValue()) {
-      if (allValue) {
-        return new CustomAllValue(allValue, this);
+      if (this.state.allValue) {
+        return new CustomAllValue(this.state.allValue, this);
       }
-      if (optionsProvider?.valueProp) {
-        return options.map((o) =>
-          this.getValueFromValueProperties(o.properties, fieldPath || optionsProvider.valueProp!)
-        );
-      }
-      return options.map((o) => o.value);
+      value = this.state.options.map((o) => o.value);
     }
 
-    if (optionsProvider?.valueProp) {
+    if (fieldPath != null) {
       if (Array.isArray(value)) {
+        const index = parseInt(fieldPath, 10);
+        if (!isNaN(index) && index >= 0 && index < value.length) {
+          return value[index];
+        }
+
         return value.map((v) => {
-          const o = options.find((o) => o.value === v);
-          return o ? this.getValueFromValueProperties(o.properties, fieldPath || optionsProvider.valueProp!) : v;
+          const o = this.state.options.find((o) => o.value === v);
+          return o ? this.getValueFromValueProperties(o.properties, fieldPath) : v;
         });
       }
-      const o = options.find((o) => o.value === value);
-      return o ? this.getValueFromValueProperties(o.properties, fieldPath || optionsProvider.valueProp) : value;
-    }
 
-    if (fieldPath != null && Array.isArray(value)) {
-      const index = parseInt(fieldPath, 10);
-      if (!isNaN(index) && index >= 0 && index < value.length) {
-        return value[index];
+      const o = this.state.options.find((o) => o.value === value);
+      if (o) {
+        return this.getValueFromValueProperties(o.properties, fieldPath);
       }
     }
 
@@ -417,7 +413,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   public onSearchChange?(searchFilter: string): void;
 }
 
-/*
+/**
  * Looks for matching option, first by value but as a fallback by text (label).
  */
 function findOptionMatchingCurrent(
