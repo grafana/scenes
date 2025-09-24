@@ -360,10 +360,18 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React.
     // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches.
-    const updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
+    let updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
 
     if (updatedOptions && !isEmpty(updatedOptions)) {
-      this.onOptionsChange(updatedOptions, true, true);
+      const { options } = getPanelOptionsWithDefaults({
+        plugin: this._plugin!,
+        currentOptions: updatedOptions,
+        currentFieldConfig: this.state.fieldConfig,
+        isAfterPluginChange: isAfterPluginChange,
+      });
+
+      // We need to merge the update with the defaults before overwriting the options given we use replace
+      this.onOptionsChange(options as DeepPartial<TOptions>, true);
     }
   }
 
@@ -385,36 +393,30 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     });
   };
 
-  public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
-    const { fieldConfig, options } = this.state;
+  public onOptionsChange = (options: DeepPartial<TOptions>, replace = false) => {
+    const { options: prevOptions } = this.state;
 
-    // When replace is true, we want to replace the entire options object. Default will be applied.
-    const nextOptions = replace
-      ? optionsUpdate
-      : mergeWith(cloneDeep(options), optionsUpdate, (objValue, srcValue, key, obj) => {
-          if (isArray(srcValue)) {
-            return srcValue;
-          }
-          // If customizer returns undefined, merging is handled by the method instead
-          // so we need to override the value in the object instead
-          if (objValue !== srcValue && typeof srcValue === 'undefined') {
-            obj[key] = srcValue;
-            return;
-          }
-          return;
-        });
+    const _renderCounter = (this.state._renderCounter ?? 0) + 1;
 
-    const withDefaults = getPanelOptionsWithDefaults({
-      plugin: this._plugin!,
-      currentOptions: nextOptions,
-      currentFieldConfig: fieldConfig,
-      isAfterPluginChange: isAfterPluginChange,
+    if (replace) {
+      return this.setState({ options, _renderCounter });
+    }
+
+    options = mergeWith(cloneDeep(prevOptions), options, (objValue, srcValue, key, obj) => {
+      if (isArray(srcValue)) {
+        return srcValue;
+      }
+
+      // If the customizer returns undefined, the method handles merging instead,
+      // So we need to override the value in the object instead
+      if (objValue !== srcValue && typeof srcValue === 'undefined') {
+        obj[key] = srcValue;
+        return;
+      }
+      return;
     });
 
-    this.setState({
-      options: withDefaults.options as DeepPartial<TOptions>,
-      _renderCounter: (this.state._renderCounter ?? 0) + 1,
-    });
+    this.setState({ options, _renderCounter });
   };
 
   public onFieldConfigChange = (fieldConfigUpdate: FieldConfigSource<DeepPartial<TFieldConfig>>, replace?: boolean) => {
