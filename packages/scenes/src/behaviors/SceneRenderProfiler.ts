@@ -3,15 +3,41 @@ import { SceneQueryControllerLike } from './types';
 import { getScenePerformanceTracker, generateOperationId, PerformanceEventData } from './ScenePerformanceTracker';
 import { PanelProfilingManager, PanelProfilingConfig } from './PanelProfilingManager';
 import { SceneObject } from '../core/types';
+import { writeSceneLog } from '../utils/writeSceneLog';
+import { SceneQueryControllerLike, LongFrameEvent, SceneComponentInteractionEvent } from './types';
+import { LongFrameDetector } from './LongFrameDetector';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
-const SPAN_THRESHOLD = 30; // Frames longer than this will be considered slow
+const DEFAULT_LONG_FRAME_THRESHOLD = 30; // Threshold for tail recording slow frames
 const TAB_INACTIVE_THRESHOLD = 1000; // Tab inactive threshold in ms
+
+/**
+ * SceneRenderProfiler tracks dashboard interaction performance including:
+ * - Total interaction duration
+ * - Network time
+ * - Long frame detection (50ms threshold) during interaction using LoAF API (default) or manual tracking (fallback)
+ * - Slow frame detection (30ms threshold) for tail recording after interaction
+ *
+ * Long frame detection during interaction:
+ * - 50ms threshold aligned with LoAF API default
+ * - LoAF API preferred (Chrome 123+) with manual fallback
+ * - Provides script attribution when using LoAF API
+ *
+ * Slow frame detection for tail recording:
+ * - 30ms threshold for post-interaction monitoring
+ * - Manual frame timing measurement
+ * - Captures rendering delays after user interaction completes
+ */
 
 export class SceneRenderProfiler {
   #profileInProgress: {
     origin: string; // Profile trigger (e.g., 'time_range_change')
     crumbs: string[];
+  } | null = null;
+
+  #interactionInProgress: {
+    interaction: string;
+    startTs: number;
   } | null = null;
 
   #profileStartTs: number | null = null;
@@ -26,7 +52,13 @@ export class SceneRenderProfiler {
   // Trailing frame measurements
   #recordedTrailingSpans: number[] = [];
 
+  // Long frame tracking
+  #longFrameDetector: LongFrameDetector;
+  #longFramesCount = 0;
+  #longFramesTotalTime = 0;
+
   #visibilityChangeHandler: (() => void) | null = null;
+  #onInteractionComplete: ((event: SceneComponentInteractionEvent) => void) | null = null;
 
   // Panel profiling composition
   private _panelProfilingManager?: PanelProfilingManager;
@@ -35,7 +67,9 @@ export class SceneRenderProfiler {
   private queryController?: SceneQueryControllerLike;
 
   public constructor(panelProfilingConfig?: PanelProfilingConfig) {
+    this.#longFrameDetector = new LongFrameDetector();
     this.setupVisibilityChangeHandler();
+    this.#interactionInProgress = null;
 
     // Compose with panel profiling manager if provided
     if (panelProfilingConfig) {
@@ -55,6 +89,9 @@ export class SceneRenderProfiler {
   /** Attach panel profiling to a scene object */
   public attachPanelProfiling(sceneObject: SceneObject) {
     this._panelProfilingManager?.attachToScene(sceneObject);
+  }
+  public setInteractionCompleteHandler(handler?: (event: SceneComponentInteractionEvent) => void) {
+    this.#onInteractionComplete = handler ?? null;
   }
 
   private setupVisibilityChangeHandler() {
@@ -80,6 +117,11 @@ export class SceneRenderProfiler {
       document.removeEventListener('visibilitychange', this.#visibilityChangeHandler);
       this.#visibilityChangeHandler = null;
     }
+
+    // Cleanup long frame tracking
+    this.#longFrameDetector.stop();
+
+    // Cancel any ongoing profiling
     this.cancelProfile();
 
     // Cleanup composed panel profiling manager
@@ -105,17 +147,80 @@ export class SceneRenderProfiler {
     }
   }
 
+  public startInteraction(interaction: string) {
+    // Cancel any existing interaction recording
+    if (this.#interactionInProgress) {
+      writeSceneLog('profile', 'Cancelled interaction:', this.#interactionInProgress);
+      this.#interactionInProgress = null;
+    }
+
+    this.#interactionInProgress = {
+      interaction,
+      startTs: performance.now(),
+    };
+
+    writeSceneLog('SceneRenderProfiler', 'Started interaction:', interaction);
+  }
+
+  public stopInteraction() {
+    if (!this.#interactionInProgress) {
+      return;
+    }
+
+    const endTs = performance.now();
+    const interactionDuration = endTs - this.#interactionInProgress.startTs;
+
+    // Capture network requests that occurred during the interaction
+    const networkDuration = captureNetwork(this.#interactionInProgress.startTs, endTs);
+
+    writeSceneLog('SceneRenderProfiler', 'Completed interaction:');
+    writeSceneLog('', `  ├─ Total time: ${interactionDuration.toFixed(1)}ms`);
+    writeSceneLog('', `  ├─ Network duration: ${networkDuration.toFixed(1)}ms`);
+    writeSceneLog('', `  ├─ StartTs: ${this.#interactionInProgress.startTs.toFixed(1)}ms`);
+    writeSceneLog('', `  └─ EndTs: ${endTs.toFixed(1)}ms`);
+
+    if (this.#onInteractionComplete && this.#profileInProgress) {
+      this.#onInteractionComplete({
+        origin: this.#interactionInProgress.interaction,
+        duration: interactionDuration,
+        networkDuration,
+        startTs: this.#interactionInProgress.startTs,
+        endTs,
+      });
+    }
+
+    // Create performance marks for browser dev tools
+    performance.mark(`${this.#interactionInProgress.interaction}_start`, {
+      startTime: this.#interactionInProgress.startTs,
+    });
+    performance.mark(`${this.#interactionInProgress.interaction}_end`, {
+      startTime: endTs,
+    });
+    performance.measure(
+      `Interaction_${this.#interactionInProgress.interaction}`,
+      `${this.#interactionInProgress.interaction}_start`,
+      `${this.#interactionInProgress.interaction}_end`
+    );
+
+    this.#interactionInProgress = null;
+  }
+
+  public getCurrentInteraction(): string | null {
+    return this.#interactionInProgress?.interaction ?? null;
+  }
+
   /**
    * Start new performance profile
    * @param name - Profile trigger (e.g., 'time_range_change')
    * @param force - True if canceling existing profile, false if starting clean
    */
   private _startNewProfile(name: string, force = false) {
-    this.#profileInProgress = { origin: name, crumbs: [] };
-    this.#profileStartTs = performance.now();
-
     const profileType = force ? 'forced' : 'clean';
     writePerformanceLog('SceneRenderProfiler', `Profile started [${profileType}]`, name);
+    this.#profileInProgress = { origin: name, crumbs: [] };
+    this.#profileStartTs = performance.now();
+    this.#longFramesCount = 0;
+    this.#longFramesTotalTime = 0;
 
     this.#currentOperationId = generateOperationId('dashboard');
     getScenePerformanceTracker().notifyDashboardInteractionStart({
@@ -123,6 +228,22 @@ export class SceneRenderProfiler {
       interactionType: name,
       timestamp: this.#profileStartTs,
       metadata: this.metadata,
+    });
+
+    // Start long frame detection with callback
+    this.#longFrameDetector.start((event: LongFrameEvent) => {
+      // Only record long frames during active profiling
+      if (!this.#profileInProgress || !this.#profileStartTs) {
+        return;
+      }
+
+      // Only record frames that occur after profile started
+      if (event.timestamp < this.#profileStartTs) {
+        return;
+      }
+
+      this.#longFramesCount++;
+      this.#longFramesTotalTime += event.duration;
     });
   }
 
@@ -176,6 +297,38 @@ export class SceneRenderProfiler {
         'ms, total measured time:',
         profileDuration + slowFramesTime
       );
+
+      if (slowFrames.length > 0) {
+        // const slowFramesMarkName = `Slow Frames Summary: ${slowFrames.length} frames (${slowFramesTime.toFixed(1)}ms)`;
+        // performance.mark(slowFramesMarkName);
+        // Create individual measurements for each slow frame during tail
+        // slowFrames.forEach((frameTime, index) => {
+        //   if (frameTime > 16) {
+        //     // Only measure frames slower than 16ms (60fps)
+        //     try {
+        //       const frameStartTime =
+        //         this.#profileStartTs! +
+        //         profileDuration +
+        //         (index > 0 ? slowFrames.slice(0, index).reduce((sum, t) => sum + t, 0) : 0);
+        //       const frameId = `slow-frame-${index}`;
+        //       const frameStartMark = `${frameId}-start`;
+        //       const frameEndMark = `${frameId}-end`;
+        //       // performance.mark(frameStartMark, { startTime: frameStartTime });
+        //       // performance.mark(frameEndMark, { startTime: frameStartTime + frameTime });
+        //       // performance.measure(`Slow Frame ${index + 1}: ${frameTime.toFixed(1)}ms`, frameStartMark, frameEndMark);
+        //     } catch {
+        //       // Fallback if startTime not supported
+        //       // performance.mark(`Slow Frame ${index + 1}: ${frameTime.toFixed(1)}ms`);
+        //     }
+        //   }
+        // });
+      }
+      writeSceneLog('SceneRenderProfiler', 'Profile completed');
+      writeSceneLog('', `  ├─ Total time: ${(profileDuration + slowFramesTime).toFixed(1)}ms`);
+      writeSceneLog('', `  ├─ Slow frames: ${slowFramesTime}ms (${slowFrames.length} frames)`);
+      writeSceneLog('', `  └─ Long frames: ${this.#longFramesTotalTime}ms (${this.#longFramesCount} frames)`);
+      this.#longFrameDetector.stop();
+
       this.#trailAnimationFrameId = null;
 
       // Profile completion - interaction context now handled by observer pattern
@@ -201,6 +354,8 @@ export class SceneRenderProfiler {
           timestamp: profileEndTs,
           duration: profileDuration + slowFramesTime,
           networkDuration: networkDuration,
+          longFramesCount: this.#longFramesCount,
+          longFramesTotalTime: this.#longFramesTotalTime,
           metadata: this.metadata,
         };
 
@@ -254,8 +409,13 @@ export class SceneRenderProfiler {
         cancelAnimationFrame(this.#trailAnimationFrameId);
         this.#trailAnimationFrameId = null;
       }
+      // Stop long frame tracking
+      this.#longFrameDetector.stop();
+      writeSceneLog('SceneRenderProfiler', 'Stopped long frame detection - profile cancelled');
       // Reset recorded spans to ensure complete cleanup
       this.#recordedTrailingSpans = [];
+      this.#longFramesCount = 0;
+      this.#longFramesTotalTime = 0;
     }
   }
 
@@ -276,9 +436,9 @@ export class SceneRenderProfiler {
 }
 
 export function processRecordedSpans(spans: number[]) {
-  // identify last span in spans that's bigger than SPAN_THRESHOLD
+  // identify last span in spans that's bigger than default threshold
   for (let i = spans.length - 1; i >= 0; i--) {
-    if (spans[i] > SPAN_THRESHOLD) {
+    if (spans[i] > DEFAULT_LONG_FRAME_THRESHOLD) {
       return spans.slice(0, i + 1);
     }
   }
@@ -349,3 +509,6 @@ export const FILTER_CHANGED_INTERACTION = 'filter_changed';
 export const FILTER_RESTORED_INTERACTION = 'filter_restored';
 export const VARIABLE_VALUE_CHANGED_INTERACTION = 'variable_value_changed';
 export const SCOPES_CHANGED_INTERACTION = 'scopes_changed';
+export const ADHOC_KEYS_DROPDOWN_INTERACTION = 'adhoc_keys_dropdown';
+export const ADHOC_VALUES_DROPDOWN_INTERACTION = 'adhoc_values_dropdown';
+export const GROUPBY_DIMENSIONS_INTERACTION = 'groupby_dimensions';
