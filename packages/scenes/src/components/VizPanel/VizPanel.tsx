@@ -360,7 +360,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React.
     // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches.
-    let updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
+    const updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
 
     if (updatedOptions && !isEmpty(updatedOptions)) {
       const { options } = getPanelOptionsWithDefaults({
