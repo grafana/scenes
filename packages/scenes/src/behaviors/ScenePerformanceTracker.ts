@@ -22,6 +22,8 @@ export interface PerformanceEventData extends BasePerformanceEvent {
   interactionType: string;
   networkDuration?: number;
   milestone?: string;
+  longFramesCount: number;
+  longFramesTotalTime: number;
 }
 
 export interface PanelPerformanceData extends BasePerformanceEvent {
