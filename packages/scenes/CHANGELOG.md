@@ -1,3 +1,15 @@
+# v6.39.0 (Wed Sep 24 2025)
+
+#### 🚀 Enhancement
+
+- AdHocVariables: Show custom value first for `=~` and `!~` regex operators [#1250](https://github.com/grafana/scenes/pull/1250) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
 # v6.38.0 (Fri Sep 19 2025)
 
 #### 🚀 Enhancement
