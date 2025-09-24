@@ -1,12 +1,9 @@
+import { calculateNetworkTime, processRecordedSpans, captureNetwork, SceneRenderProfiler } from './SceneRenderProfiler';
 import {
-  calculateNetworkTime,
-  processRecordedSpans,
-  captureNetwork,
-  SceneRenderProfiler,
   ADHOC_KEYS_DROPDOWN_INTERACTION,
   ADHOC_VALUES_DROPDOWN_INTERACTION,
   GROUPBY_DIMENSIONS_INTERACTION,
-} from './SceneRenderProfiler';
+} from './interactionConstants';
 import { SceneComponentInteractionEvent, SceneQueryControllerLike } from './types';
 // ScenePerformanceTracker imports handled via mocking
 

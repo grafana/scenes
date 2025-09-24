@@ -14,7 +14,7 @@ import { VariableFormatID, VariableHide } from '@grafana/schema';
 import { SCOPES_VARIABLE_NAME } from '../constants';
 import { isEqual } from 'lodash';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
-import { SCOPES_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+import { SCOPES_CHANGED_INTERACTION } from '../../behaviors/interactionConstants';
 
 export interface ScopesVariableState extends SceneVariableState {
   /**

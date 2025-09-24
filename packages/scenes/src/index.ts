@@ -39,6 +39,19 @@ export {
   generateOperationId,
 } from './behaviors/ScenePerformanceTracker';
 export { writePerformanceLog } from './utils/writePerformanceLog';
+export {
+  REFRESH_INTERACTION,
+  TIME_RANGE_CHANGE_INTERACTION,
+  FILTER_ADDED_INTERACTION,
+  FILTER_REMOVED_INTERACTION,
+  FILTER_CHANGED_INTERACTION,
+  FILTER_RESTORED_INTERACTION,
+  VARIABLE_VALUE_CHANGED_INTERACTION,
+  SCOPES_CHANGED_INTERACTION,
+  ADHOC_KEYS_DROPDOWN_INTERACTION,
+  ADHOC_VALUES_DROPDOWN_INTERACTION,
+  GROUPBY_DIMENSIONS_INTERACTION,
+} from './behaviors/interactionConstants';
 export * as dataLayers from './querying/layers';
 
 export { SceneObjectBase, useSceneObjectState } from './core/SceneObjectBase';

@@ -19,7 +19,7 @@ import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
 import { sceneGraph } from '../../core/sceneGraph';
-import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/interactionConstants';
 
 const filterNoOp = () => true;
 
